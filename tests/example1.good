@@ -94,6 +94,7 @@ txt09 3600 IN TXT "foo\010bar"
 txt10 3600 IN TXT "foo bar"
 txt11 3600 IN TXT "\"foo\""
 txt12 3600 IN TXT "\"foo\""
+txt13 3600 IN TXT "foo"
 u 300 IN TXT "txt-not-in-nxt"
 a.u 300 IN A 73.80.65.49
 b.u 300 IN A 73.80.65.49

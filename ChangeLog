@@ -1,3 +1,8 @@
+2004-10-25  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/ANY/TXT.py (TXT.from_text): The masterfile parser
+	incorrectly rejected TXT records where a value was not quoted.
+
 2004-10-11  Bob Halley  <halley@dnspython.org>
 
 	* dns/message.py: Added make_response(), which creates a skeletal

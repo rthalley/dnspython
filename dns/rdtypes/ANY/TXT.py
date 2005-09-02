@@ -48,8 +48,9 @@ class TXT(dns.rdata.Rdata):
             (ttype, s) = tok.get()
             if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
                 break
-            if ttype != dns.tokenizer.QUOTED_STRING:
-                raise dns.exception.SyntaxError, "expected a quoted string"
+            if ttype != dns.tokenizer.QUOTED_STRING and \
+               ttype != dns.tokenizer.IDENTIFIER:
+                raise dns.exception.SyntaxError, "expected a string"
             if len(s) > 255:
                 raise dns.exception.SyntaxError, "string too long"
             strings.append(s)
