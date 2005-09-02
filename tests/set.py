@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2005 Nominum, Inc.
+# Copyright (C) 2003, 2004 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -171,6 +171,38 @@ class SimpleSetTestCase(unittest.TestCase):
         e = S([1, 2, 3])
         s1.update(u)
         self.failUnless(s1 == e)
+
+    def testGetitem(self):
+        s1 = S([1, 2, 3])
+        i0 = s1[0]
+        i1 = s1[1]
+        i2 = s1[2]
+        s2 = S([i0, i1, i2])
+        self.failUnless(s1 == s2)
+
+    def testGetslice(self):
+        s1 = S([1, 2, 3])
+        slice = s1[0:2]
+        self.failUnless(len(slice) == 2)
+        item = s1[2]
+        slice.append(item)
+        s2 = S(slice)
+        self.failUnless(s1 == s2)
+
+    def testDelitem(self):
+        s1 = S([1, 2, 3])
+        del s1[0]
+        i1 = s1[0]
+        i2 = s1[1]
+        self.failUnless(i1 != i2)
+        self.failUnless(i1 == 1 or i1 == 2 or i1 == 3)
+        self.failUnless(i2 == 1 or i2 == 2 or i2 == 3)
+
+    def testDelslice(self):
+        s1 = S([1, 2, 3])
+        del s1[0:2]
+        i1 = s1[0]
+        self.failUnless(i1 == 1 or i1 == 2 or i1 == 3)
 
 if __name__ == '__main__':
     unittest.main()
