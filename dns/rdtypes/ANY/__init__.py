@@ -41,4 +41,5 @@ __all__ = [
     'RRSIG',
     'NSEC',
     'DNSKEY',
+    'SSHFP',
 ]
