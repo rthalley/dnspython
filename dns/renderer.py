@@ -19,6 +19,7 @@
 
 import cStringIO
 import struct
+import random
 import time
 
 import dns.exception
