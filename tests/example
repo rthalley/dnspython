@@ -197,3 +197,7 @@ dnskey02		DNSKEY	HOST|FLAG4 DNSSEC RSAMD5 (
 				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
 				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
 				jqf0BaqHT+8= )
+;
+; test known type using unknown RR syntax
+;
+unknown3		A	\# 4 7f000002

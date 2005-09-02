@@ -399,6 +399,21 @@ def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
     if isinstance(tok, str):
         tok = dns.tokenizer.Tokenizer(tok)
     cls = get_rdata_class(rdclass, rdtype)
+    if cls != GenericRdata:
+        # peek at first token
+        token = tok.get()
+        tok.unget(token)
+        if token[0] == dns.tokenizer.IDENTIFIER and \
+           token[1] == r'\#':
+            #
+            # Known type using the generic syntax.  Extract the
+            # wire form from the generic syntax, and then run
+            # from_wire on it.
+            #
+            rdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
+                                           relativize)
+            return from_wire(rdclass, rdtype, rdata.data, 0, len(rdata.data),
+                             origin)
     return cls.from_text(rdclass, rdtype, tok, origin, relativize)
 
 def from_wire(rdclass, rdtype, wire, current, rdlen, origin = None):

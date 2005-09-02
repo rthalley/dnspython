@@ -95,6 +95,7 @@ u.example. 300 IN TXT "txt-not-in-nxt"
 a.u.example. 300 IN A 73.80.65.49
 b.u.example. 300 IN A 73.80.65.49
 unknown2.example. 3600 IN TYPE999 \# 8 0a0000010a000001
+unknown3.example. 3600 IN A 127.0.0.2
 wks01.example. 3600 IN WKS 10.0.0.1 6 0 1 2 21 23
 wks02.example. 3600 IN WKS 10.0.0.1 17 0 1 2 53
 wks03.example. 3600 IN WKS 10.0.0.2 6 65535

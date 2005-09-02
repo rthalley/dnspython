@@ -59,7 +59,7 @@ class Tokenizer(object):
     @ivar ungotten_char: The most recently ungotten character, or None.
     @type ungotten_char: string
     @ivar ungotten_token: The most recently ungotten token, or None.
-    @type ungotten_token: string
+    @type ungotten_token: (int, string) token tuple
     @ivar multiline: The current multiline level.  This value is increased
     by one every time a '(' delimiter is read, and decreased by one every time
     a ')' delimiter is read.
@@ -302,8 +302,8 @@ class Tokenizer(object):
         empty.
         
         @param token: the token to unget
-        @type token: string
-        @raises UngetBufferFull: there is already an ungotten char
+        @type token: (int, string) token tuple
+        @raises UngetBufferFull: there is already an ungotten token
         """
 
         if not self.ungotten_token is None:

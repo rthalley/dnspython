@@ -1,3 +1,13 @@
+2004-05-14  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdata.py (from_text): The masterfile reader did not
+	accept the unknown RR syntax when used with a known RR type.
+
+2004-05-08  Bob Halley  <halley@dnspython.org>
+
+	* dns/name.py (from_text): dns.name.from_text() did not raise
+	an exception if a backslash escape ended prematurely.
+
 2004-04-09  Bob Halley  <halley@dnspython.org>
 
 	* dns/zone.py (_MasterReader._rr_line): The masterfile reader
