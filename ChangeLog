@@ -1,3 +1,17 @@
+2005-06-05  Bob Halley  <halley@nominum.com>
+
+	* dns/query.py: The requirement that the "where" parameter be
+	  an IPv4 or IPv6 address is now documented.
+
+2005-06-04  Bob Halley  <halley@nominum.com>
+
+	* dns/resolver.py: The resolver now does exponential backoff
+	  each time it runs through all of the nameservers.
+
+	* dns/resolver.py: rcodes which indicate a nameserver is likely
+	  to be a "permanent failure" for a query cause the nameserver
+	  to be removed from the mix for that query.
+
 2005-01-30  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.3.3 released)
