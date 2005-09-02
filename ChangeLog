@@ -1,0 +1,529 @@
+2004-03-19  Bob Halley  <halley@dnspython.org>
+
+	* Added support for new DNSSEC types RRSIG, NSEC, and DNSKEY.
+
+2004-01-16  Bob Halley  <halley@dnspython.org>
+
+	* dns/query.py (_connect): Windows returns EWOULDBLOCK instead
+	of EINPROGRESS when trying to connect a nonblocking socket.
+
+2003-11-13  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/ANY/LOC.py (LOC.to_wire): We encoded and decoded LOC
+	incorrectly, since we were interpreting the values of altitiude,
+	size, hprec, and vprec in meters instead of centimeters.
+
+	* dns/rdtypes/IN/WKS.py (WKS.from_wire): The WKS protocol value is
+	encoded with just one octet, not two!
+
+2003-11-09  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Cache.maybe_clean): The cleaner deleted items
+	from the dictionary while iterating it, causing a RuntimeError
+	to be raised.  Thanks to Mark R. Levinson for the bug report,
+	regression test, and fix.
+
+2003-11-07  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.2.0 released)
+
+2003-11-03  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py (_MasterReader.read): The saved_state now includes
+	the default TTL.
+
+2003-11-01  Bob Halley  <halley@dnspython.org>
+
+	* dns/tokenizer.py (Tokenizer.get): The tokenizer didn't
+	handle escaped delimiters.
+
+2003-10-27  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver.read_resolv_conf): If no nameservers
+	are configured in /etc/resolv.conf, the default nameserver
+	list should be ['127.0.0.1'].
+
+2003-09-08  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver._config_win32_fromkey): We didn't
+	catch WindowsError, which can happen if a key is not defined
+	in the registry.
+
+2003-09-06  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.2.0b1 released)
+	
+2003-09-05  Bob Halley  <halley@dnspython.org>
+
+	* dns/query.py: Timeout support has been overhauled to provide
+	timeouts under Python 2.2 as well as 2.3, and to provide more
+	accurate expiration.
+
+2003-08-30  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: dns.exception.SyntaxError is raised for unknown
+	master file directives.
+
+2003-08-28  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: $INCLUDE processing is now enabled/disabled using
+	the allow_include parameter.  The default is to process $INCLUDE
+	for from_file(), and to disallow $INCLUDE for from_text().  The
+	master reader now calls zone.check_origin_node() by default after
+	the zone has been read.  find_rdataset() called get_node() instead
+	of find_node(), which result in an incorrect exception.  The
+	relativization state of a zone is now remembered and applied
+	consistently when looking up names.  from_xfr() now supports
+	relativization like the _MasterReader.
+
+2003-08-22  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: The _MasterReader now understands $INCLUDE.
+
+2003-08-12  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: The _MasterReader now specifies the file and line
+	number when a syntax error occurs.  The BIND 8 TTL format is now
+	understood when loading a zone, though it will never be emitted.
+	The from_file() function didn't pass the zone_factory parameter
+	to from_text().
+
+2003-08-10  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.1.0 released)
+
+2003-08-07  Bob Halley  <halley@dnspython.org>
+
+	* dns/update.py (Update._add): A typo meant that _add would
+	fail if the thing being added was an Rdata object (as
+	opposed to an Rdataset or the textual form of an Rdata).
+
+2003-08-05  Bob Halley  <halley@dnspython.org>
+
+	* dns/set.py: the simple Set class has been moved to its
+	own module, and augmented to support more set operations.
+
+2003-08-04  Bob Halley  <halley@dnspython.org>
+
+	* Node and all rdata types have been "slotted".  This speeds
+	things up a little and reduces memory usage noticeably.
+
+2003-08-02  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.1.0c1 released)
+
+2003-08-02  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdataset.py: SimpleSets now support more set options.
+	
+	* dns/message.py: Added the get_rrset() method.  from_file() now
+	allows Unicode filenames and turns on universal newline support if
+	it opens the file itself.
+
+	* dns/node.py: Added the delete_rdataset() and replace_rdataset()
+	methods.
+
+	* dns/zone.py: Added the delete_node(), delete_rdataset(), and
+	replace_rdataset() methods.  from_file() now allows Unicode
+	filenames and turns on universal newline support if it opens the
+	file itself.  Added a to_file() method.
+
+2003-08-01  Bob Halley  <halley@dnspython.org>
+
+	* dns/opcode.py: Opcode from/to text converters now understand
+	numeric opcodes.  The to_text() method will return a numeric opcode
+	string if it doesn't know a text name for the opcode.
+	
+	* dns/message.py: Added set_rcode().  Fixed code where ednsflags
+	wasn't treated as a long.
+
+	* dns/rcode.py: ednsflags wasn't treated as a long.  Rcode from/to
+	text converters now understand numeric rcodes.  The to_text()
+	method will return a numeric rcode string if it doesn't know
+	a text name for the rcode.
+
+	* examples/reverse.py: Added a new example program that builds a
+	reverse (address-to-name) mapping table from the name-to-address
+	mapping specified by A RRs in zone files.
+
+	* dns/node.py: Added get_rdataset() method.
+
+	* dns/zone.py: Added get_rdataset() and get_rrset() methods.  Added
+	iterate_rdatas().
+
+2003-07-31  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: Added the iterate_rdatasets() method which returns
+	a generator which yields (name, rdataset) tuples for all the
+	rdatasets in the zone matching the specified rdatatype.
+
+2003-07-30  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.1.0b2 released)
+
+2003-07-30  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: Added find_rrset() and find_rdataset() convenience
+	methods.  They let you retrieve rdata with the specified name
+	and type in one call.
+
+	* dns/node.py: Nodes no longer have names; owner names are
+	associated with nodes in the Zone object's nodes dictionary.
+
+	* dns/zone.py: Zone objects now implement more of the standard
+	mapping interface.  __iter__ has been changed to iterate the keys
+	rather than values to match the standard mapping interface's
+	behavior.
+
+2003-07-20  Bob Halley  <halley@dnspython.org>
+
+	* dns/ipv6.py (inet_ntoa): Handle embedded IPv4 addresses.
+
+2003-07-19  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.1.0b1 released)
+
+2003-07-18  Bob Halley  <halley@dnspython.org>
+
+	* dns/tsig.py: The TSIG validation of TCP streams where not
+	every message is signed now works correctly.
+
+	* dns/zone.py: Zones can now be compared for equality and
+	inequality.  If the other object in the comparison is also
+	a zone, then "the right thing" happens; i.e. the zones are
+	equal iff.: they have the same rdclass, origin, and nodes.
+
+2003-07-17  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py (Message.use_tsig): The method now allows for
+	greater control over the various fields in the generated signature
+	(e.g. fudge).
+	(_WireReader._get_section): UnknownTSIGKey is now raised if an
+	unknown key is encountered, or if a signed message has no keyring.
+
+2003-07-16  Bob Halley  <halley@dnspython.org>
+
+	* dns/tokenizer.py (Tokenizer._get_char): get_char and unget_char
+	have been renamed to _get_char and _unget_char since they are not
+	useful to clients of the tokenizer.
+
+2003-07-15  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py (_MasterReader._rr_line): owner names were being
+	unconditionally relativized; it makes much more sense for them
+	to be relativized according to the relativization setting of
+	the reader.
+
+2003-07-12  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver.read_resolv_conf): The resolv.conf
+	parser did not allow blank / whitespace-only lines, nor did it
+	allow comments.  Both are now supported.
+
+2003-07-11  Bob Halley  <halley@dnspython.org>
+
+	* dns/name.py (Name.to_digestable): to_digestable() now
+	requires an origin to be specified if the name is relative.
+	It will raise NeedAbsoluteNameOrOrigin if the name is
+	relative and there is either no origin or the origin is
+	itself relative.
+	(Name.split): returned the wrong answer if depth was 0 or depth
+	was the length of the name.  split() now does bounds checking
+	on depth, and raises ValueError if depth < 0 or depth > the length
+	of the name.
+
+2003-07-10  Bob Halley  <halley@dnspython.org>
+
+	* dns/ipv6.py (inet_ntoa): The routine now minimizes its output
+	strings.  E.g. the IPv6 address
+	"0000:0000:0000:0000:0000:0000:0000:0001" is minimized to "::1".
+	We do not, however, make any effort to display embedded IPv4
+	addresses in the dot-quad notation.
+
+2003-07-09  Bob Halley  <halley@dnspython.org>
+
+	* dns/inet.py: We now supply our own AF_INET and AF_INET6
+	constants since AF_INET6 may not always be available.  If the
+	socket module has AF_INET6, we will use it.  If not, we will
+	use our own value for the constant.
+
+	* dns/query.py: the functions now take an optional af argument
+	specifying the address family to use when creating the socket.
+
+	* dns/rdatatype.py (is_metatype): a typo caused the function
+	return true only for type OPT.
+
+	* dns/message.py: message section list elements are now RRsets
+	instead of Nodes.  This API change makes processing messages
+	easier for many applications.
+	
+2003-07-07  Bob Halley  <halley@dnspython.org>
+
+	* dns/rrset.py: added.  An RRset is a named rdataset.
+
+	* dns/rdataset.py (Rdataset.__eq__): rdatasets may now be compared
+	for equality and inequality with other objects.  Rdataset instance
+	variables are now slotted.
+	
+	* dns/message.py: The wire format and text format readers are now
+	classes.  Variables related to reader state have been moved out
+	of the message class.
+
+2003-07-06  Bob Halley  <halley@dnspython.org>
+
+	* dns/name.py (from_text): '@' was not interpreted as the empty
+	name.
+
+	* dns/zone.py: the master file reader derelativized names in rdata
+	relative to the zone's origin, not relative to the current origin.
+	The reader now deals with relativization in two steps.  The rdata
+	is read and derelativized using the current origin.  The rdata's
+	relativity is then chosen using the zone origin and the relativize
+	boolean.  Here's an example.
+
+		$ORIGIN foo.example.
+		$TTL 300
+		bar MX 0 blaz
+
+	If the zone origin is example., and relativization is on, then
+	This fragment will become:
+
+		bar.foo.example. 300 IN MX 0 blaz.foo.example.
+
+	after the first step (derelativization to current origin), and
+
+		bar.foo 300 IN MX 0 blaz.foo
+
+	after the second step (relativiation to zone origin).
+	
+	* dns/namedict.py: added.
+
+	* dns/zone.py: The master file reader has been made into its
+	own class.  Reader-related instance variables have been moved
+	form the zone class into the reader class.
+	
+	* dns/zone.py: Add node_factory class attribute.  An application
+	can now subclass Zone and Node and have a zone whose nodes are of
+	the subclassed Node type.  The from_text(), from_file(), and
+	from_xfr() algorithms now take an optional zone_factory argument.
+	This allows the algorithms to be used to create zones whose class
+	is a subclass of Zone.
+
+
+2003-07-04  Bob Halley  <halley@dnspython.org>
+
+	* dns/renderer.py: added new wire format rendering module and
+	converted message.py to use it.  Applications which want
+	fine-grained control over the conversion to wire format may call
+	the renderer directy, instead of having it called on their behalf
+	by the message code.
+
+2003-07-02  Bob Halley  <halley@dnspython.org>
+
+	* dns/name.py (_validate_labels): The NameTooLong test was
+	incorrect.
+
+	* dns/message.py (Message.to_wire): dns.exception.TooBig is
+	now raised if the wire encoding exceeds the specified
+	maximum size.
+
+2003-07-01  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py: EDNS encoding was broken.  from_text()
+	didn't parse rcodes, flags, or eflags correctly.  Comparing
+	messages with other types of objects didn't work.
+
+2003-06-30  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.0.0 released)
+
+2003-06-30  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdata.py: Rdatas now implement rich comparisons instead of
+	__cmp__.
+
+	* dns/name.py: Names now implement rich comparisons instead of
+	__cmp__.
+
+	* dns/inet.py (inet_ntop): Always use our code, since the code
+	in the socket module doesn't support AF_INET6 conversions if
+	IPv6 sockets are not available on the system.
+
+	* dns/resolver.py (Answer.__init__): A dangling CNAME chain was
+	not raising NoAnswer.
+
+	* Added a simple resolver Cache class.
+
+	* Added an expiration attribute to answer instances.
+
+2003-06-24  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.0.0b3 released)
+
+2003-06-24  Bob Halley  <halley@dnspython.org>
+
+	* Renamed module "DNS" to "dns" to avoid conflicting with
+	PyDNS.
+
+2003-06-23  Bob Halley  <halley@dnspython.org>
+
+	* The from_text() relativization controls now work the same way as
+	the to_text() controls.
+
+	* DNS/rdata.py: The parsing of generic rdata was broken.
+
+2003-06-21  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.0.0b2 released)
+
+2003-06-21  Bob Halley  <halley@dnspython.org>
+
+	* The Python 2.2 socket.inet_aton() doesn't seem to like
+	'255.255.255.255'.  We work around this.
+
+	* Fixed bugs in rdata to_wire() and from_wire() routines of a few
+	types.  These bugs were discovered by running the tests/zone.py
+	Torture1 test.
+	
+	* Added implementation of type APL.
+
+2003-06-20  Bob Halley  <halley@dnspython.org>
+
+	* DNS/rdtypes/IN/AAAA.py: Use our own versions of inet_ntop and
+	inet_pton if the socket module doesn't provide them for us.
+
+	* The resolver now does a better job handling exceptions.  In
+	particular, it no longer eats all exceptions; rather it handles
+	those exceptions it understands, and leaves the rest uncaught.
+	
+	* Exceptions have been pulled into their own module.  Almost all
+	exceptions raised by the code are now subclasses of
+	DNS.exception.DNSException.  All form errors are subclasses of
+	DNS.exception.FormError (which is itself a subclass of
+	DNS.exception.DNSException).
+
+2003-06-19  Bob Halley  <halley@dnspython.org>
+	
+	* Added implementations of types DS, NXT, SIG, and WKS.
+
+	* __cmp__ for type A and AAAA could produce incorrect results.
+
+2003-06-18  Bob Halley  <halley@dnspython.org>
+
+	* Started test suites for zone.py and tokenizer.py.
+	
+	* Added implementation of type KEY.
+	
+	* DNS/rdata.py(_base64ify): \n could be emitted erroneously.
+
+	* DNS/rdtypes/ANY/SOA.py (SOA.from_text): The SOA RNAME field could
+	be set to the value of MNAME in common cases.
+
+	* DNS/rdtypes/ANY/X25.py: __init__ was broken.
+
+	* DNS/zone.py (from_text): $TTL handling erroneously caused the
+	next line to be eaten.
+
+	* DNS/tokenizer.py (Tokenizer.get): parsing was broken for empty
+	quoted strings.  Quoted strings didn't handle \ddd escapes.  Such
+	escapes are appear not to comply with RFC 1035, but BIND allows
+	them and they seem useful, so we allow them too.
+
+	* DNS/rdtypes/ANY/ISDN.py (ISDN.from_text): parsing was
+	broken for ISDN RRs without subaddresses.
+
+	* DNS/zone.py (from_file): from_file() didn't work because
+	some required parameters were not passed to from_text().
+
+2003-06-17  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.0.0b1 released)
+
+2003-06-17  Bob Halley  <halley@dnspython.org>
+
+	* Added implementation of type PX.
+	
+2003-06-16  Bob Halley  <halley@dnspython.org>
+
+	* Added implementation of types CERT, GPOS, LOC, NSAP, NSAP-PTR.
+
+	* DNS/rdatatype.py (_by_value): A cut-and-paste error had broken
+	NSAP and NSAP-PTR.
+
+2003-06-12  Bob Halley  <halley@dnspython.org>
+
+	* Created a tests directory and started adding tests.
+	
+	* Added "and its documentation" to the permission grant in the
+	license.
+
+2003-06-12  Bob Halley  <halley@dnspython.org>
+
+	* DNS/name.py (Name.is_wild): is_wild() erroneously raised IndexError
+	if the name was empty.
+
+2003-06-10  Bob Halley  <halley@dnspython.org>
+
+	* Added implementations of types AFSDB, X25, and ISDN.
+	
+	* The documentation associated with the various rdata types has been
+	improved.  In particular, instance variables are now described.
+
+2003-06-09  Bob Halley  <halley@dnspython.org>
+
+	* Added implementations of types HINFO, RP, and RT.
+	
+	* DNS/message.py (make_query): Document that make_query() sets
+	flags to DNS.flags.RD, and chooses a random query id.
+
+2003-06-05  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.0.0a2 released)
+	
+2003-06-05  Bob Halley  <halley@dnspython.org>
+	
+	* DNS/node.py: removed __getitem__ and __setitem__, since
+	they are not used by the codebase and were not useful in
+	general either.
+
+	* DNS/message.py (from_file): from_file() now allows a
+	filename to be specified instead of a file object.
+
+	* DNS/rdataset.py: The is_compatible() method of the
+	DNS.rdataset.Rdataset class was deleted.
+
+2003-06-04  Bob Halley  <halley@dnspython.org>
+
+	* DNS/name.py (class Name): Names are now immutable.
+
+	* DNS/name.py: the is_comparable() method has been removed, since
+	names are always comparable.
+
+	* DNS/resolver.py (Resolver.query): A query could run for up
+	to the lifetime + the timeout.  This has been corrected and the
+	query will now only run up to the lifetime.
+
+2003-06-03  Bob Halley  <halley@dnspython.org>
+
+	* DNS/resolver.py: removed the 'new' function since it is not the
+	style of the library to have such a function.  Call
+	DNS.resolver.Resolver() to make a new resolver.
+
+2003-06-03  Bob Halley  <halley@dnspython.org>
+
+	* DNS/resolver.py (Resolver._config_win32_fromkey): The DhcpServer
+	list is space separated, not comma separated.
+
+2003-06-03  Bob Halley  <halley@dnspython.org>
+
+	* DNS/update.py: Added an update module to make generating updates
+	easier.
+
+2003-06-03  Bob Halley  <halley@dnspython.org>
+
+	* Commas were missing in some of the __all__ entries in various
+	__init__.py files.
+
+2003-05-30  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.0.0a1 released)

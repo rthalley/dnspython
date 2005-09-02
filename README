@@ -1,0 +1,73 @@
+dnspython
+
+INTRODUCTION
+
+dnspython is a DNS toolkit for Python. It supports almost all record
+types. It can be used for queries, zone transfers, and dynamic
+updates.  It supports TSIG authenticated messages and EDNS0.
+
+dnspython provides both high and low level access to DNS. The high
+level classes perform queries for data of a given name, type, and
+class, and return an answer set.  The low level classes allow direct
+manipulation of DNS zones, messages, names, and records.
+
+To see a few of the ways dnspython can be used, look in the examples/
+directory.
+
+dnspython originated at Nominum where it was developed to facilitate
+the testing of DNS software.  Nominum has generously allowed it to be
+open sourced under a BSD-style license, and helps support its future
+development by continuing to employ the author :).
+
+
+ABOUT THIS RELEASE
+
+This is dnspython 1.3.0.
+
+New since 1.2.0:
+
+	Added support for new DNSSEC types RRSIG, NSEC, and DNSKEY.
+
+This release fixes all known bugs.
+
+See the ChangeLog file for more detailed information on changes since
+the prior release.
+
+
+REQUIREMENTS
+
+Python 2.2 or later.
+
+
+INSTALLATION
+
+To build and install dnspython, type
+
+	python setup.py install
+
+
+HOME PAGE
+
+For the latest in releases, documentation, and information, visit the
+dnspython home page at
+
+	http://www.dnspython.org/
+
+
+
+DOCUMENTATION
+
+Documentation is sparse at the moment.  Use pydoc, or read the HTML
+documentation at the dnspython home page, or download the HTML
+documentation.
+
+
+BUG REPORTS
+
+Bug reports may be sent to bugs@dnspython.org
+
+
+MAILING LISTS
+
+A number of mailing lists are available.  Visit the dnspython home
+page to subscribe or unsubscribe.
