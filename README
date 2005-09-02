@@ -26,7 +26,26 @@ This is dnspython 1.3.3.
 
 New since 1.3.2:
 
-	XXX TBS XXX
+    	dns.message.Message.find_rrset() now uses an index, vastly
+	improving the from_wire() performance of large messages such
+	as zone transfers.
+
+	Added dns.message.make_response(), which creates a skeletal
+	response for the specified query.
+
+	Added opcode() and set_opcode() convenience methods to the
+	dns.message.Message class.  Added the request_payload
+	attribute to the Message class.
+
+        The 'file' parameter of dns.name.Name.to_wire() is now
+	optional; if omitted, the wire form will be returned as the
+	value of the function.
+
+	dns.zone.from_xfr() in relativization mode incorrectly set
+	zone.origin to the empty name.
+
+	The masterfile parser incorrectly rejected TXT records where a
+	value was not quoted.
 
 New since 1.3.1:
 
