@@ -424,6 +424,16 @@ class Resolver(object):
         finally:
             lm.Close()
 
+    def _compute_timeout(self, start):
+        now = time.time()
+        if now < start:
+            # Time going backwards is bad.  Just give up.
+            raise Timeout
+        duration = now - start
+        if duration >= self.lifetime:
+            raise Timeout
+        return min(self.lifetime - duration, self.timeout)
+
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
               tcp=False):
         """Query nameservers to find the answer to the question.
@@ -481,18 +491,12 @@ class Resolver(object):
             # make a copy of the servers list so we can alter it later.
             #
             nameservers = self.nameservers[:]
+            backoff = 0.10
             while response is None:
                 if len(nameservers) == 0:
                     raise NoNameservers
                 for nameserver in nameservers:
-                    now = time.time()
-                    if now < start:
-                        # Time going backwards is bad.  Just give up.
-                        raise Timeout
-                    duration = now - start
-                    if duration >= self.lifetime:
-                        raise Timeout
-                    timeout = min(self.lifetime - duration, self.timeout)
+                    timeout = self._compute_timeout(start)
                     try:
                         if tcp:
                             response = dns.query.tcp(request, nameserver,
@@ -526,7 +530,26 @@ class Resolver(object):
                     if rcode == dns.rcode.NOERROR or \
                            rcode == dns.rcode.NXDOMAIN:
                         break
+                    #
+                    # We got a response, but we're not happy with the
+                    # rcode in it.  Remove the server from the mix if
+                    # the rcode isn't SERVFAIL.
+                    #
+                    if rcode != dns.rcode.SERVFAIL:
+                        nameservers.remove(nameserver)
                     response = None
+                #
+                # All nameservers failed!
+                #
+                if len(nameservers) > 0:
+                    #
+                    # But we still have servers to try.  Sleep a bit
+                    # so we don't pound them!
+                    #
+                    timeout = self._compute_timeout(start)
+                    sleep_time = min(timeout, backoff)
+                    backoff *= 2
+                    time.sleep(sleep_time)
             if response.rcode() == dns.rcode.NXDOMAIN:
                 continue
             all_nxdomain = False
