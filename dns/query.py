@@ -71,6 +71,8 @@ def udp(q, where, timeout=None, port=53, af=socket.AF_INET):
 
     @param q: the query
     @type q: dns.message.Message
+    @param where: where to send the message
+    @type where: string
     @param timeout: The number of seconds to wait before the query times out.
     If None, the default, wait forever.
     @type timeout: float
@@ -138,6 +140,8 @@ def tcp(q, where, timeout=None, port=53, af=socket.AF_INET):
 
     @param q: the query
     @type q: dns.message.Message object
+    @param where: where to send the message
+    @type where: string
     @param timeout: The number of seconds to wait before the query times out.
     If None, the default, wait forever.
     @type timeout: float
@@ -176,6 +180,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         af=socket.AF_INET, lifetime=None):
     """Return a generator for the responses to a zone transfer.
 
+    @param where: where to send the message
+    @type where: string
     @param zone: The name of the zone to transfer
     @type zone: dns.name.Name object or string
     @param rdtype: The type of zone transfer.  The default is
