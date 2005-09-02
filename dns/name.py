@@ -532,6 +532,8 @@ def from_text(text, origin = root):
                 total = 0
             else:
                 label += c
+        if escaping:
+            raise BadEscape
         if len(label) > 0:
             labels.append(label)
         else:
