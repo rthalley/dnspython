@@ -1,3 +1,9 @@
+2004-06-16  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/ANY/LOC.py (LOC.from_text): LOC milliseconds values
+	were converted incorrectly if the length of the milliseconds
+	string was less than 3.
+
 2004-06-06  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.3.1 released)

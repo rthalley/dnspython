@@ -22,7 +22,12 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.3.1.
+This is dnspython 1.3.2.
+
+New since 1.3.1:
+
+        The conversion of LOC milliseconds values from text to binary was
+	incorrect if the length of the milliseconds string was not 3.
 
 New since 1.3.0:
 

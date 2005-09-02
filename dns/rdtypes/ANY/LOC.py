@@ -166,8 +166,24 @@ class LOC(dns.rdata.Rdata):
             t = tok.get_string()
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
+                if not seconds.isdigit():
+                    raise dns.exception.SyntaxError, \
+                          'bad latitude seconds value'
                 latitude[2] = int(seconds)
-                latitude[3] = int(milliseconds)
+                if latitude[2] >= 60:
+                    raise dns.exception.SyntaxError, \
+                          'latitude seconds >= 60'
+                l = len(milliseconds)
+                if l == 0 or l > 3 or not milliseconds.isdigit():
+                    raise dns.exception.SyntaxError, \
+                          'bad latitude milliseconds value'
+                if l == 1:
+                    m = 100
+                elif l == 2:
+                    m = 10
+                else:
+                    m = 1
+                latitude[3] = m * int(milliseconds)
                 t = tok.get_string()
             elif t.isdigit():
                 latitude[2] = int(t)
@@ -184,8 +200,24 @@ class LOC(dns.rdata.Rdata):
             t = tok.get_string()
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
+                if not seconds.isdigit():
+                    raise dns.exception.SyntaxError, \
+                          'bad longitude seconds value'
                 longitude[2] = int(seconds)
-                longitude[3] = int(milliseconds)
+                if longitude[2] >= 60:
+                    raise dns.exception.SyntaxError, \
+                          'longitude seconds >= 60'
+                l = len(milliseconds)
+                if l == 0 or l > 3 or not milliseconds.isdigit():
+                    raise dns.exception.SyntaxError, \
+                          'bad longitude milliseconds value'
+                if l == 1:
+                    m = 100
+                elif l == 2:
+                    m = 10
+                else:
+                    m = 1
+                longitude[3] = m * int(milliseconds)
                 t = tok.get_string()
             elif t.isdigit():
                 longitude[2] = int(t)

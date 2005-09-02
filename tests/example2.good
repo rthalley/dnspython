@@ -48,6 +48,8 @@ kx02.example. 3600 IN KX 10 .
 loc01.example. 3600 IN LOC 60 9 0.000 N 24 39 0.000 E 10.00m 20.00m 2000.00m 20.00m
 loc02.example. 3600 IN LOC 60 9 0.000 N 24 39 0.000 E 10.00m 20.00m 2000.00m 20.00m
 loc03.example. 3600 IN LOC 60 9 0.000 N 24 39 0.000 E 10.00m 90000000.00m 2000.00m 20.00m
+loc04.example. 3600 IN LOC 60 9 1.500 N 24 39 0.000 E 10.00m 20.00m 2000.00m 20.00m
+loc05.example. 3600 IN LOC 60 9 1.510 N 24 39 0.000 E 10.00m 20.00m 2000.00m 20.00m
 mx01.example. 3600 IN MX 10 mail.example.
 mx02.example. 3600 IN MX 10 .
 naptr01.example. 3600 IN NAPTR 0 0 "" "" "" .
