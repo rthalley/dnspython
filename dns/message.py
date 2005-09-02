@@ -84,6 +84,8 @@ class Message(object):
     @type ednsflags: long
     @ivar payload: The EDNS payload size.  The default is 0.
     @type payload: int
+    @ivar request_payload: The associated request's EDNS payload size.
+    @type request_payload: int
     @ivar keyring: The TSIG keyring to use.  The default is None.
     @type keyring: dict
     @ivar keyname: The TSIG keyname to use.  The default is None.
@@ -141,6 +143,7 @@ class Message(object):
         self.edns = -1
         self.ednsflags = 0
         self.payload = 0
+        self.request_payload = 0
         self.keyring = None
         self.keyname = None
         self.request_mac = ''
@@ -363,7 +366,7 @@ class Message(object):
             rrset = None
         return rrset
 
-    def to_wire(self, origin=None, max_size=65535, **kw):
+    def to_wire(self, origin=None, max_size=0, **kw):
         """Return a string containing the message in DNS compressed wire
         format.
 
@@ -372,12 +375,23 @@ class Message(object):
         
         @param origin: The origin to be appended to any relative names.
         @type origin: dns.name.Name object
-        @param max_size: The maximum size of the wire format output.
+        @param max_size: The maximum size of the wire format output; default
+        is 0, which means 'the message's request payload, if nonzero, or
+        65536'.
         @type max_size: int
         @raises dns.exception.TooBig: max_size was exceeded
         @rtype: string
         """
 
+        if max_size == 0:
+            if self.request_payload != 0:
+                max_size = self.request_payload
+            else:
+                max_size = 65535
+        if max_size < 512:
+            max_size = 512
+        elif max_size > 65535:
+            max_size = 65535
         r = dns.renderer.Renderer(self.id, self.flags, max_size, origin)
         for rrset in self.question:
             r.add_question(rrset.name, rrset.rdtype, rrset.rdclass)
@@ -436,7 +450,7 @@ class Message(object):
         self.tsig_error = tsig_error
         self.other_data = other_data
 
-    def use_edns(self, edns, ednsflags, payload):
+    def use_edns(self, edns, ednsflags, payload, request_payload=0):
         """Configure EDNS behavior.
         @param edns: The EDNS level to use.  Specifying None or -1 means
         'do not use EDNS'.
@@ -453,6 +467,7 @@ class Message(object):
         self.edns = edns
         self.ednsflags = ednsflags
         self.payload = payload
+        self.request_payload = request_payload
 
     def rcode(self):
         """Return the rcode.
@@ -472,6 +487,20 @@ class Message(object):
         self.ednsflags |= evalue
         if self.ednsflags != 0 and self.edns < 0:
             self.edns = 0
+
+    def opcode(self):
+        """Return the opcode.
+        @rtype: int
+        """
+        return dns.opcode.from_flags(self.flags)
+
+    def set_opcode(self, opcode):
+        """Set the opcode.
+        @param opcode: the opcode
+        @type opcode: int
+        """
+        self.flags &= 0x87FF
+        self.flags |= dns.opcode.to_flags(opcode)
 
 class _WireReader(object):
     """Wire format reader.
@@ -937,3 +966,38 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN):
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
                  force_unique=True)
     return m
+
+def make_response(query, recursion_available=False, our_payload=8192):
+    """Make a message which is a response for the specified query.
+    The message returned is really a response skeleton; it has all
+    of the infrastructure required of a response, but none of the
+    content.
+
+    The response's question section is a shallow copy of the query's
+    question section, so the query's question RRsets should not be
+    changed.
+    
+    @param query: the query to respond to
+    @type query: dns.message.Message object
+    @param recursion_available: should RA be set in the response?
+    @type recursion_available: bool
+    @param our_payload: payload size to advertise in EDNS responses; default
+    is 8192.
+    @type our_payload: int
+    @rtype: dns.message.Message object"""
+
+    if query.flags & dns.flags.QR:
+        raise FormError, 'specified query message is not a query'
+    response = dns.message.Message(query.id)
+    response.flags = dns.flags.QR | (query.flags & dns.flags.RD)
+    if recursion_available:
+        response.flags |= dns.flags.RA
+    response.set_opcode(query.opcode())
+    response.question = list(query.question)
+    if query.edns >= 0:
+        response.use_edns(0, 0, our_payload, query.payload)
+    if not query.keyname is None:
+        response.keyname = query.keyname
+        response.keyring = query.keyring
+        response.request_mac = query.mac
+    return response

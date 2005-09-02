@@ -1,3 +1,10 @@
+2004-10-11  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py: Added make_response(), which creates a skeletal
+	response for the specified query.  Added opcode() and set_opcode()
+	convenience methods to the Message class.  Added the request_payload
+	attribute to the Message class.
+
 2004-10-10  Bob Halley  <halley@dnspython.org>
 
 	* dns/zone.py (from_xfr): dns.zone.from_xfr() in relativization
