@@ -1,3 +1,7 @@
+2004-08-07  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.3.2 released)
+
 2004-08-04  Bob Halley  <halley@nominum.com>
 
 	* dns/query.py: sending queries to a nameserver via IPv6 now
