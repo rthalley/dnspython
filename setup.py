@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2003, 2004 Nominum, Inc.
+# Copyright (C) 2003-2005 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
