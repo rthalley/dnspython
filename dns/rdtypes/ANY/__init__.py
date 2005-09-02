@@ -13,8 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: __init__.py,v 1.18 2004/03/19 00:17:27 halley Exp $
-
 """Class ANY (generic) rdata type classes."""
 
 __all__ = [

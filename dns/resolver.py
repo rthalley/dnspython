@@ -13,8 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: resolver.py,v 1.22 2004/03/19 00:17:27 halley Exp $
-
 """DNS stub resolver.
 
 @var default_resolver: The default resolver object

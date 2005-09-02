@@ -13,8 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rdataclass.py,v 1.11 2004/03/19 00:17:27 halley Exp $
-
 """DNS Rdata Classes.
 
 @var _by_text: The rdata class textual name to value mapping

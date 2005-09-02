@@ -13,8 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rrset.py,v 1.10 2004/03/19 00:17:27 halley Exp $
-
 """DNS RRsets (an RRset is a named rdataset)"""
 
 import dns.name

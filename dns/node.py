@@ -13,8 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: node.py,v 1.19 2004/03/19 00:17:27 halley Exp $
-
 """DNS nodes.  A node is a set of rdatasets."""
 
 import StringIO

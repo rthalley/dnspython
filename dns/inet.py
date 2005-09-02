@@ -13,8 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: inet.py,v 1.8 2004/03/19 00:17:27 halley Exp $
-
 """Generic Internet address helper functions."""
 
 import socket
