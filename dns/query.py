@@ -25,6 +25,7 @@ import sys
 import time
 
 import dns.exception
+import dns.inet
 import dns.name
 import dns.message
 import dns.rdataclass
@@ -64,7 +65,7 @@ def _wait_for_readable(s, expiration):
 def _wait_for_writable(s, expiration):
     _wait_for([], [s], [s], expiration)
     
-def udp(q, where, timeout=None, port=53, af=socket.AF_INET):
+def udp(q, where, timeout=None, port=53, af=None):
     """Return the response obtained after sending a query via UDP.
 
     @param q: the query
@@ -76,22 +77,33 @@ def udp(q, where, timeout=None, port=53, af=socket.AF_INET):
     @type timeout: float
     @param port: The port to which to send the message.  The default is 53.
     @type port: int
-    @param af: the address family to use.  The default is socket.AF_INET.
+    @param af: the address family to use.  The default is None, which
+    causes the address family to use to be inferred from the form of of where.
+    If the inference attempt fails, AF_INET is used.
     @type af: int
     @rtype: dns.message.Message object"""
     
     wire = q.to_wire()
+    if af is None:
+        try:
+            af = dns.inet.af_for_address(where)
+        except:
+            af = dns.inet.AF_INET
+    if af == dns.inet.AF_INET:
+        destination = (where, port)
+    elif af == dns.inet.AF_INET6:
+        destination = (where, port, 0, 0)
     s = socket.socket(af, socket.SOCK_DGRAM, 0)
     try:
         expiration = _compute_expiration(timeout)
         s.setblocking(0)
         _wait_for_writable(s, expiration)
-        s.sendto(wire, (where, port))
+        s.sendto(wire, destination)
         _wait_for_readable(s, expiration)
         (wire, from_address) = s.recvfrom(65535)
     finally:
         s.close()
-    if from_address != (where, port):
+    if from_address != destination:
         raise UnexpectedSource
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac)
     if not q.is_response(r):
@@ -133,7 +145,7 @@ def _connect(s, address):
         if v[0] != errno.EINPROGRESS and v[0] != errno.EWOULDBLOCK:
             raise ty, v
 
-def tcp(q, where, timeout=None, port=53, af=socket.AF_INET):
+def tcp(q, where, timeout=None, port=53, af=None):
     """Return the response obtained after sending a query via TCP.
 
     @param q: the query
@@ -145,16 +157,27 @@ def tcp(q, where, timeout=None, port=53, af=socket.AF_INET):
     @type timeout: float
     @param port: The port to which to send the message.  The default is 53.
     @type port: int
-    @param af: the address family to use.  The default is socket.AF_INET.
+    @param af: the address family to use.  The default is None, which
+    causes the address family to use to be inferred from the form of of where.
+    If the inference attempt fails, AF_INET is used.
     @type af: int
     @rtype: dns.message.Message object"""
     
     wire = q.to_wire()
+    if af is None:
+        try:
+            af = dns.inet.af_for_address(where)
+        except:
+            af = dns.inet.AF_INET
+    if af == dns.inet.AF_INET:
+        destination = (where, port)
+    elif af == dns.inet.AF_INET6:
+        destination = (where, port, 0, 0)
     s = socket.socket(af, socket.SOCK_STREAM, 0)
     try:
         expiration = _compute_expiration(timeout)
         s.setblocking(0)
-        _connect(s, (where, port))
+        _connect(s, destination)
 
         l = len(wire)
 
@@ -175,7 +198,7 @@ def tcp(q, where, timeout=None, port=53, af=socket.AF_INET):
 
 def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         timeout=None, port=53, keyring=None, keyname=None, relativize=True,
-        af=socket.AF_INET, lifetime=None):
+        af=None, lifetime=None):
     """Return a generator for the responses to a zone transfer.
 
     @param where: where to send the message
@@ -200,7 +223,9 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     @param relativize: If True, all names in the zone will be relativized to
     the zone origin.
     @type relativize: bool
-    @param af: the address family to use.  The default is socket.AF_INET.
+    @param af: the address family to use.  The default is None, which
+    causes the address family to use to be inferred from the form of of where.
+    If the inference attempt fails, AF_INET is used.
     @type af: int
     @param lifetime: The total number of seconds to spend doing the transfer.
     If None, the default, then there is no limit on the time the transfer may
@@ -214,9 +239,18 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     if not keyring is None:
         q.use_tsig(keyring, keyname)
     wire = q.to_wire()
+    if af is None:
+        try:
+            af = dns.inet.af_for_address(where)
+        except:
+            af = dns.inet.AF_INET
+    if af == dns.inet.AF_INET:
+        destination = (where, port)
+    elif af == dns.inet.AF_INET6:
+        destination = (where, port, 0, 0)
     s = socket.socket(af, socket.SOCK_STREAM, 0)
     expiration = _compute_expiration(lifetime)
-    _connect(s, (where, port))
+    _connect(s, destination)
     l = len(wire)
     tcpmsg = struct.pack("!H", l) + wire
     _net_write(s, tcpmsg, expiration)

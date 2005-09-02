@@ -70,3 +70,21 @@ def inet_ntop(family, address):
         return dns.ipv6.inet_ntoa(address)
     else:
         raise NotImplementedError
+
+def af_for_address(text):
+    """Determine the address family of a textual-form network address.
+
+    @param text: the textual address
+    @type text: string
+    @raises ValueError: the address family cannot be determined from the input.
+    @rtype int
+    """
+    try:
+        junk = dns.ipv4.inet_aton(text)
+        return AF_INET
+    except:
+        try:
+            junk = dns.ipv6.inet_aton(text)
+            return AF_INET6
+        except:
+            raise ValueError

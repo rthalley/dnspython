@@ -1,3 +1,18 @@
+2004-08-04  Bob Halley  <halley@nominum.com>
+
+	* dns/query.py: sending queries to a nameserver via IPv6 now
+	works.
+	
+	* dns/inet.py (af_for_address): Add af_for_address(), which looks
+	at a textual-form address and attempts to determine which address
+	family it is.
+
+	* dns/query.py: the default for the 'af' parameter of the udp(),
+	tcp(), and xfr() functions has been changed from AF_INET to None,
+	which causes dns.inet.af_for_address() to be used to determine the
+	address family.  If dns.inet.af_for_address() can't figure it out,
+	we fall back to AF_INET and hope for the best.
+
 2004-07-31  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/ANY/NSEC.py (NSEC.from_text): The NSEC text format
