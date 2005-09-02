@@ -142,7 +142,7 @@ def _connect(s, address):
         s.connect(address)
     except socket.error:
         (ty, v) = sys.exc_info()[:2]
-        if v[0] != errno.EINPROGRESS and v[0] != errno.EWOULDBLOCK:
+        if v[0] != errno.EINPROGRESS and v[0] != errno.EWOULDBLOCK and v[0] != errno.EALREADY:
             raise ty, v
 
 def tcp(q, where, timeout=None, port=53, af=None):
