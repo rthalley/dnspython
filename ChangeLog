@@ -1,4 +1,9 @@
-2004-09-02  Bob Halley  <halley@nominum.com>
+2004-10-10  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py (from_xfr): dns.zone.from_xfr() in relativization
+	mode incorrectly set zone.origin to the empty name.
+
+2004-09-02  Bob Halley  <halley@dnspython.org>
 
 	* dns/name.py (Name.to_wire): The 'file' parameter to
 	Name.to_wire() is now optional; if omitted, the wire form will

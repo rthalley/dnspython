@@ -814,7 +814,10 @@ def from_xfr(xfr, zone_factory=Zone, relativize=True):
     z = None
     for r in xfr:
         if z is None:
-            origin = r.answer[0].name
+            if relativize:
+                origin = r.origin
+            else:
+                origin = r.answer[0].name
             rdclass = r.answer[0].rdclass
             z = zone_factory(origin, rdclass, relativize=relativize)
         for rrset in r.answer:
