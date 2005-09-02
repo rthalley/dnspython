@@ -567,6 +567,13 @@ class _MasterReader(object):
         token = self.tok.get(want_leading = True)
         if token[0] != dns.tokenizer.WHITESPACE:
             self.last_name = dns.name.from_text(token[1], self.current_origin)
+        else:
+            token = self.tok.get()
+            if token[0] == dns.tokenizer.EOL or \
+               token[0] == dns.tokenizer.EOF:
+                # treat leading WS followed by EOL/EOF as if they were EOL/EOF.
+                return
+            self.tok.unget(token)
         name = self.last_name
         if not name.is_subdomain(self.zone.origin):
             self._eat_line()

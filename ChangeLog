@@ -1,3 +1,14 @@
+2004-04-09  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py (_MasterReader._rr_line): The masterfile reader
+	erroneously treated lines starting with leading whitespace but
+	not having any RR definition as an error.  It now treats
+	them like a blank line (which is not an error).
+
+2004-04-01  Bob Halley  <halley@dnspython.org>
+	
+	* (Version 1.3.0 released)
+
 2004-03-19  Bob Halley  <halley@dnspython.org>
 
 	* Added support for new DNSSEC types RRSIG, NSEC, and DNSKEY.

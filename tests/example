@@ -33,6 +33,13 @@ $ORIGIN example.
 *			MX	10 mail
 a			TXT	"foo foo foo"
 			PTR	foo.net.
+;; The next line not starting with ';;' is leading whitespace followed by
+;; EOL.  We want to treat that as if EOL had appeared alone.
+   	    
+;; The next line not starting with ';;' is leading whitespace followed by
+;; a comment followed by EOL.  We want to treat that as if EOL had appeared
+;; alone.
+		; foo	
 $TTL 3600	; 1 hour
 a01			A	0.0.0.0
 a02			A	255.255.255.255
