@@ -399,6 +399,11 @@ class NameTestCase(unittest.TestCase):
         self.failUnless(f.getvalue() == \
                         '\x03FOO\x03bar\x00\x01\x61\x03foo\x03bar\x00')
 
+    def testToWire6(self):
+        n = dns.name.from_text('FOO.bar')
+        v = n.to_wire()
+        self.failUnless(v == '\x03FOO\x03bar\x00')
+
     def testBadToWire(self):
         def bad():
             n = dns.name.from_text('FOO.bar', None)

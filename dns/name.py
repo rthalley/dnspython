@@ -21,6 +21,7 @@
 @type empty: dns.name.Name object
 """
 
+import cStringIO
 import string
 import struct
 import sys
@@ -343,12 +344,13 @@ class Name(object):
         dlabels = ["%s%s" % (chr(len(x)), x.lower()) for x in labels]
         return ''.join(dlabels)
         
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file = None, compress = None, origin = None):
         """Convert name to wire format, possibly compressing it.
 
-        @param file: the file where the compressed name is emitted (typically
-        a cStringIO file)
-        @type file: file
+        @param file: the file where the name is emitted (typically
+        a cStringIO file).  If None, a string containing the wire name
+        will be returned.
+        @type file: file or None
         @param compress: The compression table.  If None (the default) names
         will not be compressed.
         @type compress: dict
@@ -359,7 +361,13 @@ class Name(object):
         absolute.  If self is a relative name, then an origin must be supplied;
         if it is missing, then this exception is raised
         """
-        
+
+        if file is None:
+            file = cStringIO.StringIO()
+            want_return = True
+        else:
+            want_return = False
+
         if not self.is_absolute():
             if origin is None or not origin.is_absolute():
                 raise NeedAbsoluteNameOrOrigin
@@ -379,7 +387,7 @@ class Name(object):
                 value = 0xc000 + pos
                 s = struct.pack('!H', value)
                 file.write(s)
-                return
+                break
             else:
                 if not compress is None and len(n) > 1:
                     pos = file.tell()
@@ -389,6 +397,8 @@ class Name(object):
                 file.write(chr(l))
                 if l > 0:
                     file.write(label)
+        if want_return:
+            return file.getvalue()
 
     def __len__(self):
         """The length of the name (in labels).
