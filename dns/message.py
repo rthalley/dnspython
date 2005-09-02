@@ -122,6 +122,10 @@ class Message(object):
     message sequence?  This variable is used when validating TSIG signatures
     on messages which are part of a zone transfer.
     @type first: bool
+    @ivar index: An index of rrsets in the message.  The index key is
+    (section, name, rdclass, rdtype, covers, deleting).  Indexing can be
+    disabled by setting the index to None.
+    @type index: dict
     """
 
     def __init__(self, id=None):
@@ -151,6 +155,7 @@ class Message(object):
         self.had_tsig = False
         self.multi = False
         self.first = True
+        self.index = {}
 
     def __repr__(self):
         return '<DNS message, ID ' + `self.id` + '>'
@@ -265,6 +270,18 @@ class Message(object):
                 return False
         return True
 
+    def section_number(self, section):
+        if section is self.question:
+            return 0
+        elif section is self.answer:
+            return 1
+        elif section is self.authority:
+            return 2
+        elif section is self.additional:
+            return 3
+        else:
+            raise ValueError, 'unknown section'
+
     def find_rrset(self, section, name, rdclass, rdtype,
                    covers=dns.rdatatype.NONE, deleting=None, create=False,
                    force_unique=False):
@@ -292,14 +309,23 @@ class Message(object):
         @raises KeyError: the RRset was not found and create was False
         @rtype: dns.rrset.RRset object"""
 
+        key = (self.section_number(section),
+               name, rdclass, rdtype, covers, deleting)
         if not force_unique:
-            for rrset in section:
-                if rrset.match(name, rdclass, rdtype, covers, deleting):
+            if not self.index is None:
+                rrset = self.index.get(key)
+                if not rrset is None:
                     return rrset
+            else:
+                for rrset in section:
+                    if rrset.match(name, rdclass, rdtype, covers, deleting):
+                        return rrset
         if not create:
             raise KeyError
         rrset = dns.rrset.RRset(name, rdclass, rdtype, covers, deleting)
         section.append(rrset)
+        if not self.index is None:
+            self.index[key] = rrset
         return rrset
 
     def get_rrset(self, section, name, rdclass, rdtype,
