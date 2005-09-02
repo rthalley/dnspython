@@ -1,5 +1,10 @@
 2004-05-22  Bob Halley  <halley@dnspython.org>
 
+	* dns/update.py (Update.delete): We erroneously specified a
+	"deleting" value of dns.rdatatype.NONE instead of
+	dns.rdataclass.NONE when the thing being deleted was either an
+	Rdataset instance or an Rdata instance.
+
 	* dns/rdtypes/ANY/SSHFP.py: Added support for the proposed SSHFP
 	RR type.
 

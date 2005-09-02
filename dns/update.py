@@ -141,12 +141,12 @@ class Update(dns.message.Message):
         elif isinstance(args[0], dns.rdataset.Rdataset):
             for rds in args:
                 for rd in rds:
-                    self._add_rr(name, 0, rd, dns.rdatatype.NONE)
+                    self._add_rr(name, 0, rd, dns.rdataclass.NONE)
         else:
             args = list(args)
             if isinstance(args[0], dns.rdata.Rdata):
                 for rd in args:
-                    self._add_rr(name, 0, rd, dns.rdatatype.NONE)
+                    self._add_rr(name, 0, rd, dns.rdataclass.NONE)
             else:
                 rdtype = args.pop(0)
                 if isinstance(rdtype, str):
