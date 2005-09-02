@@ -72,6 +72,7 @@ DNAME = 39
 OPT = 41
 APL = 42
 DS = 43
+SSHFP = 44
 RRSIG = 46
 NSEC = 47
 DNSKEY = 48
@@ -125,6 +126,7 @@ _by_text = {
     'OPT' : OPT,
     'APL' : APL,
     'DS' : DS,
+    'SSHFP' : SSHFP,
     'RRSIG' : RRSIG,
     'NSEC' : NSEC,
     'DNSKEY' : DNSKEY,

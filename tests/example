@@ -201,3 +201,4 @@ dnskey02		DNSKEY	HOST|FLAG4 DNSSEC RSAMD5 (
 ; test known type using unknown RR syntax
 ;
 unknown3		A	\# 4 7f000002
+sshfp1			SSHFP	1 1 aa549bfe898489c02d1715d97d79c57ba2fa76ab
