@@ -1,9 +1,15 @@
-2005-06-05  Bob Halley  <halley@nominum.com>
+2005-07-31  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py (make_response): Trying to respond to a response
+	  threw a NameError while trying to throw a FormErr since it used
+	  the wrong name for the FormErr exception.
+
+2005-06-05  Bob Halley  <halley@dnspython.org>
 
 	* dns/query.py: The requirement that the "where" parameter be
 	  an IPv4 or IPv6 address is now documented.
 
-2005-06-04  Bob Halley  <halley@nominum.com>
+2005-06-04  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py: The resolver now does exponential backoff
 	  each time it runs through all of the nameservers.

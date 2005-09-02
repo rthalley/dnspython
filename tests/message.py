@@ -156,5 +156,12 @@ class MessageTestCase(unittest.TestCase):
             m = dns.message.from_wire(badwire)
         self.failUnlessRaises(dns.message.ShortHeader, bad)
 
+    def test_RespondingToResponse(self):
+        def bad():
+            q = dns.message.make_query('foo', 'A')
+            r1 = dns.message.make_response(q)
+            r2 = dns.message.make_response(r1)
+        self.failUnlessRaises(dns.exception.FormError, bad)
+
 if __name__ == '__main__':
     unittest.main()
