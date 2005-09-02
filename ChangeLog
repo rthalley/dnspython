@@ -1,3 +1,16 @@
+2004-07-31  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/ANY/NSEC.py (NSEC.from_text): The NSEC text format
+	does not allow specifying types by number, so we shouldn't either.
+
+	* dns/renderer.py: the renderer module didn't import random,
+	causing an exception to be raised if a query id wasn't provided
+	when a Renderer was created.
+
+	* dns/resolver.py (Resolver.query): the resolver wasn't catching
+	dns.exception.Timeout, so a timeout erroneously caused the whole
+	resolution to fail instead of just going on to the next server.
+
 2004-06-16  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/ANY/LOC.py (LOC.from_text): LOC milliseconds values

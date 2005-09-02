@@ -26,6 +26,18 @@ This is dnspython 1.3.2.
 
 New since 1.3.1:
 
+	The NSEC format doesn't allow specifying types by number, so
+	we shouldn't either.  (Using the unknown type format is still
+	OK though.)
+
+	The resolver wasn't catching dns.exception.Timeout, so a timeout
+	erroneously caused the whole resolution to fail instead of just
+	going on to the next server.
+
+	The renderer module didn't import random, causing an exception
+	to be raised if a query id wasn't provided when a Renderer was
+	created.
+
         The conversion of LOC milliseconds values from text to binary was
 	incorrect if the length of the milliseconds string was not 3.
 

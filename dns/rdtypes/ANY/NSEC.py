@@ -57,10 +57,7 @@ class NSEC(dns.rdata.Rdata):
             (ttype, value) = tok.get()
             if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
                 break
-            if value.isdigit():
-                nrdtype = int(value)
-            else:
-                nrdtype = dns.rdatatype.from_text(value)
+            nrdtype = dns.rdatatype.from_text(value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError, "NSEC with bit 0"
             if nrdtype > 65535:
