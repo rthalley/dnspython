@@ -1,8 +1,18 @@
+2005-07-31  Bob Halley  <halley@nominum.com>
+
+	* (Version 1.3.4 released)
+
 2005-07-31  Bob Halley  <halley@dnspython.org>
 
 	* dns/message.py (make_response): Trying to respond to a response
 	  threw a NameError while trying to throw a FormErr since it used
 	  the wrong name for the FormErr exception.
+
+	* dns/query.py (_connect): We needed to ignore EALREADY too.
+
+	* dns/query.py: Optional "source" and "source_port" parameters
+	  have been added to udp(), tcp(), and xfr().  Thanks to Ralf
+	  Weber for suggesting the change and providing a patch.
 
 2005-06-05  Bob Halley  <halley@dnspython.org>
 

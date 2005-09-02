@@ -22,13 +22,13 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.3.4.
+This is dnspython 1.3.4
 
 New since 1.3.3:
 
-	The requirement that the "where" parameter in dns.query.{udp,tcp,xfr}
-	be an IPv4 or IPv6 address is now documented.
-
+	The source address and port may now be specified when calling
+	dns.query.{udp,tcp,xfr}.
+	
 	The resolver now does exponential backoff each time it runs
 	through all of the nameservers.
 
