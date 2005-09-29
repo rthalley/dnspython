@@ -427,8 +427,14 @@ class Resolver(object):
     def _compute_timeout(self, start):
         now = time.time()
         if now < start:
-            # Time going backwards is bad.  Just give up.
-            raise Timeout
+            if start - now > 1:
+                # Time going backwards is bad.  Just give up.
+                raise Timeout
+            else:
+                # Time went backwards, but only a little.  This can
+                # happen, e.g. under vmware with older linux kernels.
+                # Pretend it didn't happen.
+                now = start
         duration = now - start
         if duration >= self.lifetime:
             raise Timeout
