@@ -1,3 +1,11 @@
+2005-10-01  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py: Added zone_for_name() helper, which returns
+	  the name of the zone which contains the specified name.
+
+	* dns/resolver.py: Added get_default_resolver(), which returns
+	  the default resolver, initializing it if necessary.
+
 2005-09-29  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (Resolver._compute_timeout): If time goes

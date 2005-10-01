@@ -52,6 +52,17 @@ class NoNameservers(dns.exception.DNSException):
     """No non-broken nameservers are available to answer the query."""
     pass
 
+class NotAbsolute(dns.exception.DNSException):
+    """Raised if an absolute domain name is required but a relative name
+    was provided."""
+    pass
+
+class NoRootSOA(dns.exception.DNSException):
+    """Raised if for some reason there is no SOA at the root name.
+    This should never happen!"""
+    pass
+
+
 class Answer(object):
     """DNS stub resolver answer
 
@@ -602,6 +613,13 @@ class Resolver(object):
 
 default_resolver = None
 
+def get_default_resolver():
+    """Get the default resolver, initializing it if necessary."""
+    global default_resolver
+    if default_resolver is None:
+        default_resolver = Resolver()
+    return default_resolver
+
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
           tcp=False):
     """Query nameservers to find the answer to the question.
@@ -610,7 +628,31 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
     object to make the query.
     @see: L{dns.resolver.Resolver.query} for more information on the
     parameters."""
-    global default_resolver
-    if default_resolver is None:
-        default_resolver = Resolver()
-    return default_resolver.query(qname, rdtype, rdclass, tcp)
+    return get_default_resolver().query(qname, rdtype, rdclass, tcp)
+
+def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
+    """Find the name of the zone which contains the specified name.
+
+    @param name: the query name
+    @type name: absolute dns.name.Name object or string
+    @ivar rdclass: The query class
+    @type rdclass: int
+    @param tcp: use TCP to make the query (default is False).
+    @type tcp: bool
+    @param resolver: the resolver to use
+    @type resolver: dns.resolver.Resolver object or None
+    @rtype: dns.name.Name"""
+
+    if isinstance(name, str):
+        name = dns.name.from_text(name, dns.name.root)
+    if resolver is None:
+        resolver = get_default_resolver()
+    if not name.is_absolute():
+        raise NotAbsolute, name
+    while len(name) > 0:
+        try:
+            answer = resolver.query(name, dns.rdatatype.SOA, rdclass, tcp)
+            return name
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+            name = dns.name.Name(name[1:])
+    raise NoRootSoa

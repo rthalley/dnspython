@@ -77,5 +77,29 @@ class ResolverTestCase(unittest.TestCase):
         self.failUnless(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
                         is None)
 
+    def testZoneForName1(self):
+        name = dns.name.from_text('www.dnspython.org.')
+        ezname = dns.name.from_text('dnspython.org.')
+        zname = dns.resolver.zone_for_name(name)
+        self.failUnless(zname == ezname)
+
+    def testZoneForName2(self):
+        name = dns.name.from_text('a.b.www.dnspython.org.')
+        ezname = dns.name.from_text('dnspython.org.')
+        zname = dns.resolver.zone_for_name(name)
+        self.failUnless(zname == ezname)
+
+    def testZoneForName3(self):
+        name = dns.name.from_text('dnspython.org.')
+        ezname = dns.name.from_text('dnspython.org.')
+        zname = dns.resolver.zone_for_name(name)
+        self.failUnless(zname == ezname)
+
+    def testZoneForName4(self):
+        def bad():
+            name = dns.name.from_text('dnspython.org', None)
+            zname = dns.resolver.zone_for_name(name)
+        self.failUnlessRaises(dns.resolver.NotAbsolute, bad)
+
 if __name__ == '__main__':
     unittest.main()
