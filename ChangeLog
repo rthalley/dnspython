@@ -1,3 +1,8 @@
+2005-10-06  Bob Halley  <halley@dnspython.org>
+
+	* dns/name.py: Added the parent() method, which returns the
+	  parent of a name.
+
 2005-10-01  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py: Added zone_for_name() helper, which returns

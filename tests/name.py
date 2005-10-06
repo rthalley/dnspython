@@ -589,5 +589,27 @@ class NameTestCase(unittest.TestCase):
             (n, cused) = dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadLabelType, bad)
 
+    def testParent1(self):
+        n = dns.name.from_text('foo.bar.')
+        self.failUnless(n.parent() == dns.name.from_text('bar.'))
+        self.failUnless(n.parent().parent() == dns.name.root)
+
+    def testParent2(self):
+        n = dns.name.from_text('foo.bar', None)
+        self.failUnless(n.parent() == dns.name.from_text('bar', None))
+        self.failUnless(n.parent().parent() == dns.name.empty)
+
+    def testParent3(self):
+        def bad():
+            n = dns.name.root
+            n.parent()
+        self.failUnlessRaises(dns.name.NoParent, bad)
+
+    def testParent4(self):
+        def bad():
+            n = dns.name.empty
+            n.parent()
+        self.failUnlessRaises(dns.name.NoParent, bad)
+
 if __name__ == '__main__':
     unittest.main()
