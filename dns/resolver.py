@@ -649,10 +649,12 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
         resolver = get_default_resolver()
     if not name.is_absolute():
         raise NotAbsolute, name
-    while len(name) > 0:
+    while 1:
         try:
             answer = resolver.query(name, dns.rdatatype.SOA, rdclass, tcp)
             return name
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-            name = dns.name.Name(name[1:])
-    raise NoRootSoa
+            try:
+                name = name.parent()
+            except NoParent:
+                raise NoRootSoa
