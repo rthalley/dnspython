@@ -1,8 +1,8 @@
 2005-10-12  Bob Halley  <halley@dnspython.org>
 
 	* dns/zone.py: Zone.iterate_rdatasets() and Zone.iterate_rdatas()
-	  did apply a default rdtype of dns.rdatatype.ANY as their
-	  docstrings said they did.  They now do.
+	  did not have a default rdtype of dns.rdatatype.ANY as their
+	  docstrings said they did.  They do now.
 
 2005-10-06  Bob Halley  <halley@dnspython.org>
 
