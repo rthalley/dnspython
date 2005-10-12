@@ -291,11 +291,51 @@ class ZoneTestCase(unittest.TestCase):
         self.failUnless(ns == [dns.name.from_text('ns1', None),
                                dns.name.from_text('ns2', None)])
 
+    def testIterateAllRdatasets(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        ns = [n for n, r in z.iterate_rdatasets()]
+        ns.sort()
+        self.failUnless(ns == [dns.name.from_text('@', None),
+                               dns.name.from_text('@', None),
+                               dns.name.from_text('bar.foo', None),
+                               dns.name.from_text('ns1', None),
+                               dns.name.from_text('ns2', None)])
+
     def testIterateRdatas(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         l = list(z.iterate_rdatas('A'))
         l.sort()
         exl = [(dns.name.from_text('ns1', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.1')),
+               (dns.name.from_text('ns2', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.2'))]
+        self.failUnless(l == exl)
+
+    def testIterateAllRdatas(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        l = list(z.iterate_rdatas())
+        l.sort()
+        exl = [(dns.name.from_text('@', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
+                                    'ns1')),
+               (dns.name.from_text('@', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
+                                    'ns2')),
+               (dns.name.from_text('@', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
+                                    'foo bar 1 2 3 4 5')),
+               (dns.name.from_text('bar.foo', None),
+                300,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
+                                    '0 blaz.foo')),
+               (dns.name.from_text('ns1', None),
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.1')),

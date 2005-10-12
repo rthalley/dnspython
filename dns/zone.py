@@ -403,7 +403,8 @@ class Zone(object):
             rrset = None
         return rrset
 
-    def iterate_rdatasets(self, rdtype=None, covers=dns.rdatatype.NONE):
+    def iterate_rdatasets(self, rdtype=dns.rdatatype.ANY,
+                          covers=dns.rdatatype.NONE):
         """Return a generator which yields (name, rdataset) tuples for
         all rdatasets in the zone which have the specified I{rdtype}
         and I{covers}.  If I{rdtype} is dns.rdatatype.ANY, the default,
@@ -425,7 +426,8 @@ class Zone(object):
                    (rds.rdtype == rdtype and rds.covers == covers):
                     yield (name, rds)
 
-    def iterate_rdatas(self, rdtype=None, covers=dns.rdatatype.NONE):
+    def iterate_rdatas(self, rdtype=dns.rdatatype.ANY,
+                       covers=dns.rdatatype.NONE):
         """Return a generator which yields (name, ttl, rdata) tuples for
         all rdatas in the zone which have the specified I{rdtype}
         and I{covers}.  If I{rdtype} is dns.rdatatype.ANY, the default,
