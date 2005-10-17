@@ -806,7 +806,9 @@ def from_xfr(xfr, zone_factory=Zone, relativize=True):
     
     @param xfr: The xfr generator
     @type xfr: generator of dns.message.Message objects
-    @param relativize: should names be relativized?  The default is True
+    @param relativize: should names be relativized?  The default is True.
+    It is essential that the relativize setting matches the one specified
+    to dns.query.xfr().
     @type relativize: bool
     @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
     @raises dns.zone.NoNS: No NS RRset was found at the zone origin
