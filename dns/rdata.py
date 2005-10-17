@@ -250,7 +250,7 @@ class Rdata(object):
         @param origin: The origin to use for relative names
         @type origin: dns.name.Name
         @param relativize: should names be relativized?
-        @type origin: bool
+        @type relativize: bool
         @rtype: dns.rdata.Rdata instance
         """
 

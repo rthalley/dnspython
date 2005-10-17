@@ -635,7 +635,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
 
     @param name: the query name
     @type name: absolute dns.name.Name object or string
-    @ivar rdclass: The query class
+    @param rdclass: The query class
     @type rdclass: int
     @param tcp: use TCP to make the query (default is False).
     @type tcp: bool
