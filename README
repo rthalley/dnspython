@@ -26,7 +26,7 @@ This is dnspython 1.3.5
 
 New since 1.3.4:
 
-    	In the resolver, if time goes backward a little bit, ignore
+     	In the resolver, if time goes backward a little bit, ignore
     	it.
 
 	zone_for_name() has been added to the resolver module.  It
@@ -51,6 +51,8 @@ New since 1.3.4:
 	Zone.iterate_rdatasets() and Zone.iterate_rdatas() now have
 	a default rdtype of dns.rdatatype.ANY like the documentation
 	says.
+
+	A Dynamic DNS example, ddns.py, has been added.
 
 New since 1.3.3:
 
