@@ -21,7 +21,6 @@
 import socket
 import sys
 import time
-import types
 
 import dns.exception
 import dns.message
@@ -656,5 +655,5 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
             try:
                 name = name.parent()
-            except NoParent:
-                raise NoRootSoa
+            except dns.name.NoParent:
+                raise NoRootSOA

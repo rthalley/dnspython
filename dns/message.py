@@ -17,7 +17,6 @@
 
 import cStringIO
 import random
-import string
 import struct
 import sys
 import time

@@ -14,7 +14,6 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import cStringIO
-import struct
 
 import dns.exception
 import dns.rdata

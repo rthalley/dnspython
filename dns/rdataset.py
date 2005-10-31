@@ -18,7 +18,6 @@
 import random
 import StringIO
 import struct
-import sys
 
 import dns.exception
 import dns.rdatatype

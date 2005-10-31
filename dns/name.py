@@ -25,7 +25,6 @@ import cStringIO
 import string
 import struct
 import sys
-import types
 
 import dns.exception
 
@@ -521,6 +520,8 @@ def from_text(text, origin = root):
     labels = []
     label = ''
     escaping = False
+    edigits = 0
+    total = 0
     if text == '@':
         text = ''
     if text:

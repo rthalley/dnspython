@@ -15,8 +15,6 @@
 
 """NS-like base classes."""
 
-import struct
-
 import dns.exception
 import dns.rdata
 import dns.name

@@ -25,9 +25,6 @@ default is 'dns.rdtypes'.  Changing this value will break the library.
 chunk of hexstring that _hexify() produces before whitespace occurs.
 @type _hex_chunk: int"""
 
-import codecs
-import cStringIO
-
 import dns.exception
 import dns.rdataclass
 import dns.rdatatype

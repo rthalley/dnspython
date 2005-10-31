@@ -52,6 +52,7 @@ def inet_ntoa(address):
     #
     best_start = 0
     best_len = 0
+    start = -1
     last_was_zero = False
     for i in xrange(8):
         if chunks[i] != '0':
