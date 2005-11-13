@@ -102,7 +102,7 @@ class Zone(object):
         return not self.__eq__(other)
 
     def _validate_name(self, name):
-        if isinstance(name, str):
+        if isinstance(name, (str, unicode)):
             name = dns.name.from_text(name, None)
         elif not isinstance(name, dns.name.Name):
             raise KeyError, \
@@ -543,7 +543,7 @@ class _MasterReader(object):
 
     def __init__(self, tok, origin, rdclass, relativize, zone_factory=Zone,
                  allow_include=False):
-        if isinstance(origin, str):
+        if isinstance(origin, (str, unicode)):
             origin = dns.name.from_text(origin)
         self.tok = tok
         self.current_origin = origin

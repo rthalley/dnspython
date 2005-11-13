@@ -115,7 +115,7 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas):
     @rtype: dns.rrset.RRset object
     """
     
-    if isinstance(name, str):
+    if isinstance(name, (str, unicode)):
         name = dns.name.from_text(name, None)
     if isinstance(rdclass, str):
         rdclass = dns.rdataclass.from_text(rdclass)
@@ -144,7 +144,7 @@ def from_rdata_list(name, ttl, rdatas):
     @rtype: dns.rrset.RRset object
     """
 
-    if isinstance(name, str):
+    if isinstance(name, (str, unicode)):
         name = dns.name.from_text(name, None)
 
     if len(rdatas) == 0:

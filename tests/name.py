@@ -611,5 +611,40 @@ class NameTestCase(unittest.TestCase):
             n.parent()
         self.failUnlessRaises(dns.name.NoParent, bad)
 
+    def testFromUnicode1(self):
+        n = dns.name.from_text(u'foo.bar')
+        self.failUnless(n.labels == ('foo', 'bar', ''))
+
+    def testFromUnicode2(self):
+        n = dns.name.from_text(u'foo\u1234bar.bar')
+        self.failUnless(n.labels == ('xn--foobar-r5z', 'bar', ''))
+
+    def testFromUnicodeAlternateDot1(self):
+        n = dns.name.from_text(u'foo\u3002bar')
+        self.failUnless(n.labels == ('foo', 'bar', ''))
+
+    def testFromUnicodeAlternateDot2(self):
+        n = dns.name.from_text(u'foo\uff0ebar')
+        self.failUnless(n.labels == ('foo', 'bar', ''))
+
+    def testFromUnicodeAlternateDot3(self):
+        n = dns.name.from_text(u'foo\uff61bar')
+        self.failUnless(n.labels == ('foo', 'bar', ''))
+
+    def testToUnicode1(self):
+        n = dns.name.from_text(u'foo.bar')
+        s = n.to_unicode()
+        self.failUnless(s == u'foo.bar.')
+
+    def testToUnicode2(self):
+        n = dns.name.from_text(u'foo\u1234bar.bar')
+        s = n.to_unicode()
+        self.failUnless(s == u'foo\u1234bar.bar.')
+
+    def testToUnicode3(self):
+        n = dns.name.from_text('foo.bar')
+        s = n.to_unicode()
+        self.failUnless(s == u'foo.bar.')
+
 if __name__ == '__main__':
     unittest.main()

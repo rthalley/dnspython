@@ -438,7 +438,7 @@ class Message(object):
         if keyname is None:
             self.keyname = self.keyring.keys()[0]
         else:
-            if isinstance(keyname, str):
+            if isinstance(keyname, (str, unicode)):
                 keyname = dns.name.from_text(keyname)
             self.keyname = keyname
         self.fudge = fudge
@@ -954,7 +954,7 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN):
     @type rdclass: int
     @rtype: dns.message.Message object"""
     
-    if isinstance(qname, str):
+    if isinstance(qname, (str, unicode)):
         qname = dns.name.from_text(qname)
     if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)

@@ -263,7 +263,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     The default is 0.
     @type source_port: int"""
 
-    if isinstance(zone, str):
+    if isinstance(zone, (str, unicode)):
         zone = dns.name.from_text(zone)
     q = dns.message.make_query(zone, rdtype, rdclass)
     if not keyring is None:

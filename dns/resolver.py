@@ -474,7 +474,7 @@ class Resolver(object):
         @raises NoNameservers: no non-broken nameservers are available to
         answer the question."""
         
-        if isinstance(qname, str):
+        if isinstance(qname, (str, unicode)):
             qname = dns.name.from_text(qname, None)
         if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
@@ -642,7 +642,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     @type resolver: dns.resolver.Resolver object or None
     @rtype: dns.name.Name"""
 
-    if isinstance(name, str):
+    if isinstance(name, (str, unicode)):
         name = dns.name.from_text(name, dns.name.root)
     if resolver is None:
         resolver = get_default_resolver()
