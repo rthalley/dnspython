@@ -4,7 +4,8 @@
 	  domain names.  Running dns.name.from_text() on a Unicode string
 	  will now encode each label using the IDN ACE encoding.  The
 	  to_unicode() method may be used to convert a dns.name.Name with
-	  IDN ACE labels back into a Unicode string.
+	  IDN ACE labels back into a Unicode string.  This functionality
+	  requires Python 2.3 or greater.
 
 2005-10-31  Bob Halley  <halley@dnspython.org>
 
