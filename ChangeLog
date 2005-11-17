@@ -1,3 +1,8 @@
+2005-11-17  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: Sanity checks of the zone's origin node can now
+	  be disabled.
+
 2005-11-12  Bob Halley  <halley@dnspython.org>
 
 	* dns/name.py: Preliminary Unicode support has been added for

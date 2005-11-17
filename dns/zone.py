@@ -539,10 +539,13 @@ class _MasterReader(object):
     (None if no $INCLUDE is active).
     @ivar allow_include: is $INCLUDE allowed?
     @type allow_include: bool
+    @ivar check_origin: should sanity checks of the origin node be done?
+    The default is True.
+    @type check_origin: bool
     """
 
     def __init__(self, tok, origin, rdclass, relativize, zone_factory=Zone,
-                 allow_include=False):
+                 allow_include=False, check_origin=True):
         if isinstance(origin, (str, unicode)):
             origin = dns.name.from_text(origin)
         self.tok = tok
@@ -554,6 +557,7 @@ class _MasterReader(object):
         self.saved_state = []
         self.current_file = None
         self.allow_include = allow_include
+        self.check_origin = check_origin
 
     def _eat_line(self):
         while 1:
@@ -713,10 +717,12 @@ class _MasterReader(object):
                   "%s:%d: %s" % (filename, line_number, detail)
         
         # Now that we're done reading, do some basic checking of the zone.
-        self.zone.check_origin()
+        if self.check_origin:
+            self.zone.check_origin()
 
 def from_text(text, origin, rdclass = dns.rdataclass.IN, relativize = True,
-              zone_factory=Zone, filename=None, allow_include=False):
+              zone_factory=Zone, filename=None, allow_include=False,
+              check_origin=True):
     """Build a zone object from a master file format string.
 
     @param text: the master file format input
@@ -731,9 +737,12 @@ def from_text(text, origin, rdclass = dns.rdataclass.IN, relativize = True,
     @type zone_factory: function returning a Zone
     @param filename: The filename to emit when describing where an error
     occurred; the default is '<string>'.
+    @type filename: string
     @param allow_include: is $INCLUDE allowed?
     @type allow_include: bool
-    @type filename: string
+    @param check_origin: should sanity checks of the origin node be done?
+    The default is True.
+    @type check_origin: bool
     @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
     @raises dns.zone.NoNS: No NS RRset was found at the zone origin
     @rtype: dns.zone.Zone object
@@ -747,12 +756,14 @@ def from_text(text, origin, rdclass = dns.rdataclass.IN, relativize = True,
         filename = '<string>'
     tok = dns.tokenizer.Tokenizer(text, filename)
     reader = _MasterReader(tok, origin, rdclass, relativize, zone_factory,
-                           allow_include=allow_include)
+                           allow_include=allow_include,
+                           check_origin=check_origin)
     reader.read()
     return reader.zone
 
 def from_file(f, origin, rdclass = dns.rdataclass.IN, relativize = True,
-              zone_factory=Zone, filename=None, allow_include=True):
+              zone_factory=Zone, filename=None, allow_include=True,
+              check_origin=True):
     """Read a master file and build a zone object.
 
     @param f: file or string.  If I{f} is a string, it is treated
@@ -771,6 +782,9 @@ def from_file(f, origin, rdclass = dns.rdataclass.IN, relativize = True,
     @type filename: string
     @param allow_include: is $INCLUDE allowed?
     @type allow_include: bool
+    @param check_origin: should sanity checks of the origin node be done?
+    The default is True.
+    @type check_origin: bool
     @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
     @raises dns.zone.NoNS: No NS RRset was found at the zone origin
     @rtype: dns.zone.Zone object
@@ -795,7 +809,7 @@ def from_file(f, origin, rdclass = dns.rdataclass.IN, relativize = True,
         
     try:
         z = from_text(f, origin, rdclass, relativize, zone_factory,
-                      filename, allow_include)
+                      filename, allow_include, check_origin)
     finally:
         if want_close:
             f.close()
