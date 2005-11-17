@@ -1,5 +1,9 @@
 2005-11-17  Bob Halley  <halley@dnspython.org>
 
+	* dns/zone.py: The 'origin' parameter to from_text() and from_file()
+	  is now optional.  If not specified, dnspython will use the
+	  first $ORIGIN in the text as the zone's origin.
+
 	* dns/zone.py: Sanity checks of the zone's origin node can now
 	  be disabled.
 

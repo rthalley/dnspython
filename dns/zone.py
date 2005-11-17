@@ -40,6 +40,10 @@ class NoNS(BadZone):
     """The zone has no NS RRset at its origin."""
     pass
 
+class UnknownOrigin(BadZone):
+    """The zone's origin is unknown."""
+    pass
+
 class Zone(object):
     """A DNS zone.
 
@@ -568,6 +572,8 @@ class _MasterReader(object):
     def _rr_line(self):
         """Process one line from a DNS master file."""
         # Name
+        if self.current_origin is None:
+            raise UnknownOrigin
         token = self.tok.get(want_leading = True)
         if token[0] != dns.tokenizer.WHITESPACE:
             self.last_name = dns.name.from_text(token[1], self.current_origin)
@@ -677,6 +683,8 @@ class _MasterReader(object):
                     elif u == '$ORIGIN':
                         self.current_origin = self.tok.get_name()
                         self.tok.get_eol()
+                        if self.zone.origin is None:
+                            self.zone.origin = self.current_origin
                     elif u == '$INCLUDE' and self.allow_include:
                         token = self.tok.get()
                         if token[0] != dns.tokenizer.QUOTED_STRING:
@@ -720,14 +728,16 @@ class _MasterReader(object):
         if self.check_origin:
             self.zone.check_origin()
 
-def from_text(text, origin, rdclass = dns.rdataclass.IN, relativize = True,
-              zone_factory=Zone, filename=None, allow_include=False,
-              check_origin=True):
+def from_text(text, origin = None, rdclass = dns.rdataclass.IN,
+              relativize = True, zone_factory=Zone, filename=None,
+              allow_include=False, check_origin=True):
     """Build a zone object from a master file format string.
 
     @param text: the master file format input
     @type text: string.
-    @param origin: The origin of the zone.
+    @param origin: The origin of the zone; if not specified, the first
+    $ORIGIN statement in the master file will determine the origin of the
+    zone.
     @type origin: dns.name.Name object or string
     @param rdclass: The zone's rdata class; the default is class IN.
     @type rdclass: int
@@ -761,14 +771,16 @@ def from_text(text, origin, rdclass = dns.rdataclass.IN, relativize = True,
     reader.read()
     return reader.zone
 
-def from_file(f, origin, rdclass = dns.rdataclass.IN, relativize = True,
-              zone_factory=Zone, filename=None, allow_include=True,
-              check_origin=True):
+def from_file(f, origin = None, rdclass = dns.rdataclass.IN,
+              relativize = True, zone_factory=Zone, filename=None,
+              allow_include=True, check_origin=True):
     """Read a master file and build a zone object.
 
     @param f: file or string.  If I{f} is a string, it is treated
     as the name of a file to open.
-    @param origin: The origin of the zone.
+    @param origin: The origin of the zone; if not specified, the first
+    $ORIGIN statement in the master file will determine the origin of the
+    zone.
     @type origin: dns.name.Name object or string
     @param rdclass: The zone's rdata class; the default is class IN.
     @type rdclass: int
