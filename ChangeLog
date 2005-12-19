@@ -1,3 +1,9 @@
+2005-12-18  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/ANY/LOC.py (_tuple_to_float): The sign was lost when
+	  converting a tuple into a float, which broke conversions of
+	  south latitudes and west longitudes.
+
 2005-11-17  Bob Halley  <halley@dnspython.org>
 
 	* dns/zone.py: The 'origin' parameter to from_text() and from_file()

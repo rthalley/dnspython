@@ -58,7 +58,7 @@ def _tuple_to_float(what):
     value += float(what[1]) / 60.0
     value += float(what[2]) / 3600.0
     value += float(what[3]) / 3600000.0
-    return value
+    return sign * value
 
 def _encode_size(what, desc):
     what = long(what);
