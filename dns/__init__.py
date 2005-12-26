@@ -35,7 +35,7 @@ __all__ = [
     'rdatatype',
     'renderer',
     'resolver',
-    'reversemap',
+    'reversename',
     'rrset',
     'set',
     'tokenizer',
