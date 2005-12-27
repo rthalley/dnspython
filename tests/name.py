@@ -20,6 +20,7 @@ import socket
 
 import dns.name
 import dns.reversename
+import dns.e164
 
 class NameTestCase(unittest.TestCase):
     def setUp(self):
@@ -650,23 +651,47 @@ class NameTestCase(unittest.TestCase):
 
     def testReverseIPv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
-        n = dns.reversename.from_text('127.0.0.1')
+        n = dns.reversename.from_address('127.0.0.1')
         self.failUnless(e == n)
 
     def testReverseIPv6(self):
         e = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.')
-        n = dns.reversename.from_text('::1')
+        n = dns.reversename.from_address('::1')
         self.failUnless(e == n)
 
     def testBadReverseIPv4(self):
         def bad():
-            n = dns.reversename.from_text('127.0.foo.1')
+            n = dns.reversename.from_address('127.0.foo.1')
         self.failUnlessRaises(socket.error, bad)
 
     def testBadReverseIPv6(self):
         def bad():
-            n = dns.reversename.from_text('::1::1')
+            n = dns.reversename.from_address('::1::1')
         self.failUnlessRaises(socket.error, bad)
+
+    def testForwardIPv4(self):
+        n = dns.name.from_text('1.0.0.127.in-addr.arpa.')
+        e = '127.0.0.1'
+        text = dns.reversename.to_address(n)
+        self.failUnless(text == e)
+
+    def testForwardIPv6(self):
+        n = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.')
+        e = '::1'
+        text = dns.reversename.to_address(n)
+        self.failUnless(text == e)
+
+    def testE164ToEnum(self):
+        text = '+1 650 555 1212'
+        e = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')
+        n = dns.e164.from_e164(text)
+        self.failUnless(n == e)
+
+    def testEnumToE164(self):
+        n = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')
+        e = '+16505551212'
+        text = dns.e164.to_e164(n)
+        self.failUnless(text == e)
 
 if __name__ == '__main__':
     unittest.main()
