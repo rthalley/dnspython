@@ -17,6 +17,7 @@
 
 __all__ = [
     'dnssec',
+    'e164',
     'exception',
     'flags',
     'inet',
