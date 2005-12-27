@@ -1,3 +1,11 @@
+2005-12-27  Bob Halley  <halley@dnspython.org>
+
+	* dns/e164.py: Added routines to convert between E.164 numbers and
+	  their ENUM domain name equivalents.
+
+	* dns/reversename.py: Added routines to convert between IPv4 and
+	  IPv6 addresses and their DNS reverse-map equivalents.
+
 2005-12-18  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/ANY/LOC.py (_tuple_to_float): The sign was lost when
