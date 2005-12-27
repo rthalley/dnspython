@@ -16,8 +16,10 @@
 import unittest
 
 import cStringIO
+import socket
 
 import dns.name
+import dns.reversename
 
 class NameTestCase(unittest.TestCase):
     def setUp(self):
@@ -645,6 +647,26 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('foo.bar')
         s = n.to_unicode()
         self.failUnless(s == u'foo.bar.')
+
+    def testReverseIPv4(self):
+        e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
+        n = dns.reversename.from_text('127.0.0.1')
+        self.failUnless(e == n)
+
+    def testReverseIPv6(self):
+        e = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.')
+        n = dns.reversename.from_text('::1')
+        self.failUnless(e == n)
+
+    def testBadReverseIPv4(self):
+        def bad():
+            n = dns.reversename.from_text('127.0.foo.1')
+        self.failUnlessRaises(socket.error, bad)
+
+    def testBadReverseIPv6(self):
+        def bad():
+            n = dns.reversename.from_text('::1::1')
+        self.failUnlessRaises(socket.error, bad)
 
 if __name__ == '__main__':
     unittest.main()
