@@ -224,7 +224,7 @@ class Cache(object):
         else:
             self.data = {}
             self.next_cleaning = time.time() + self.cleaning_interval
-    
+
 class Resolver(object):
     """DNS stub resolver
 
@@ -326,10 +326,27 @@ class Resolver(object):
         if len(self.nameservers) == 0:
             self.nameservers.append('127.0.0.1')
 
-    def _config_win32_nameservers(self, nameservers, split_char=','):
+    def _determine_split_char(self, entry):
+        #
+        # The windows registry irritatingly changes the list element
+        # delimiter in between ' ' and ',' (and vice-versa) in various
+        # versions of windows.
+        #
+        if entry.find(' ') >= 0:
+            split_char = ' '
+        elif entry.find(',') >= 0:
+            split_char = ','
+        else:
+            # probably a singleton; treat as a space-separated list.
+            split_char = ' '
+        return split_char
+
+    def _config_win32_nameservers(self, nameservers):
         """Configure a NameServer registry entry."""
         # we call str() on nameservers to convert it from unicode to ascii
-        ns_list = str(nameservers).split(split_char)
+        nameservers = str(nameservers)
+        split_char = self._determine_split_char(nameservers)
+        ns_list = nameservers.split(split_char)
         for ns in ns_list:
             if not ns in self.nameservers:
                 self.nameservers.append(ns)
@@ -342,7 +359,9 @@ class Resolver(object):
     def _config_win32_search(self, search):
         """Configure a Search registry entry."""
         # we call str() on search to convert it from unicode to ascii
-        search_list = str(search).split(',')
+        search = str(search)
+        split_char = self._determine_split_char(search)
+        search_list = search.split(split_char)
         for s in search_list:
             if not s in self.search:
                 self.search.append(dns.name.from_text(s))
@@ -367,9 +386,7 @@ class Resolver(object):
             except WindowsError:
                 servers = None
             if servers:
-                # Annoyingly, the DhcpNameServer list is apparently space
-                # separated instead of comma separated like NameServer.
-                self._config_win32_nameservers(servers, ' ')
+                self._config_win32_nameservers(servers)
                 try:
                     dom, rtype = _winreg.QueryValueEx(key, 'DhcpDomain')
                     if dom:

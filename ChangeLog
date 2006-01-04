@@ -1,3 +1,10 @@
+2006-01-04  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py: The windows registry irritatingly changes the
+	  list element delimiter in between ' ' and ',' (and vice-versa)
+	  in various versions of windows.  We now cope by always looking
+	  for either one (' ' first).
+
 2005-12-27  Bob Halley  <halley@dnspython.org>
 
 	* dns/e164.py: Added routines to convert between E.164 numbers and
