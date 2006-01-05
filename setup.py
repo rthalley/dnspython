@@ -19,7 +19,7 @@ from distutils.core import setup
 
 setup(
     name = "dnspython",
-    version = "1.3.5",
+    version = "1.4.0",
     description = "DNS toolkit",
     long_description = \
     """dnspython is a DNS toolkit for Python. It supports almost all
