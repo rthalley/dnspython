@@ -101,7 +101,7 @@ class SIGBase(dns.rdata.Rdata):
         type_covered = dns.rdatatype.from_text(tok.get_string())
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         labels = tok.get_int()
-        original_ttl = tok.get_uint32()
+        original_ttl = tok.get_ttl()
         expiration = sigtime_to_posixtime(tok.get_string())
         inception = sigtime_to_posixtime(tok.get_string())
         key_tag = tok.get_int()

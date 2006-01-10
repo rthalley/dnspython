@@ -3,6 +3,10 @@
 	* dns/ttl.py: TTLs are now bounds checked to be within the closed
 	  interval [0, 2^31 - 1].
 
+	* The BIND 8 TTL syntax is now accepted in the SOA refresh, retry,
+	  expire, and minimum fields, and in the original_ttl field of
+	  SIG and RRSIG records.
+
 2006-01-04  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py: The windows registry irritatingly changes the

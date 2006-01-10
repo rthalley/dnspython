@@ -20,6 +20,7 @@ import sys
 
 import dns.exception
 import dns.name
+import dns.ttl
 
 _DELIMITERS = {
     ' ' : True,
@@ -420,3 +421,9 @@ class Tokenizer(object):
             raise dns.exception.SyntaxError, \
                   'expected EOL or EOF, got %d "%s"' % (ttype, t)
         return t
+
+    def get_ttl(self):
+        (ttype, t) = self.get()
+        if ttype != IDENTIFIER:
+            raise dns.exception.SyntaxError, 'expecting an identifier'
+        return dns.ttl.from_text(t)
