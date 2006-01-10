@@ -1,3 +1,8 @@
+2006-01-11  Bob Halley  <halley@dnspython.org>
+
+	* dns/ttl.py: TTLs are now bounds checked to be within the closed
+	  interval [0, 2^31 - 1].
+
 2006-01-04  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py: The windows registry irritatingly changes the

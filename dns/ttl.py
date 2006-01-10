@@ -32,30 +32,33 @@ def from_text(text):
     """
     
     if text.isdigit():
-        return int(text)
-    if not text[0].isdigit():
-        raise BadTTL
-    total = 0
-    current = 0
-    for c in text:
-        if c.isdigit():
-            current *= 10
-            current += int(c)
-        else:
-            c = c.lower()
-            if c == 'w':
-                total += current * 604800
-            elif c == 'd':
-                total += current * 86400
-            elif c == 'h':
-                total += current * 3600
-            elif c == 'm':
-                total += current * 60
-            elif c == 's':
-                total += current
+        total = long(text)
+    else:
+        if not text[0].isdigit():
+            raise BadTTL
+        total = 0L
+        current = 0L
+        for c in text:
+            if c.isdigit():
+                current *= 10
+                current += long(c)
             else:
-                raise BadTTL, "unknown unit '%s'" % c
-            current = 0
-    if not current == 0:
-        raise BadTTL, "trailing integer"
+                c = c.lower()
+                if c == 'w':
+                    total += current * 604800L
+                elif c == 'd':
+                    total += current * 86400L
+                elif c == 'h':
+                    total += current * 3600L
+                elif c == 'm':
+                    total += current * 60L
+                elif c == 's':
+                    total += current
+                else:
+                    raise BadTTL, "unknown unit '%s'" % c
+                current = 0
+        if not current == 0:
+            raise BadTTL, "trailing integer"
+    if total < 0L or total > 2147483647L:
+        raise BadTTL, "TTL should be between 0 and 2^31 - 1 (inclusive)"
     return total
