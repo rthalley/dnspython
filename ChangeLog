@@ -1,3 +1,15 @@
+2006-01-18  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdata.py: added a validate() method to the rdata class.  If
+	  you change an rdata by assigning to its fields, it is a good
+	  idea to call validate() when you are done making changes.
+	  For example, if 'r' is an MX record and then you execute:
+
+		r.preference = 100000   # invalid, because > 65535
+		r.validate()
+
+	  The validation will fail and an exception will be raised.
+
 2006-01-11  Bob Halley  <halley@dnspython.org>
 
 	* dns/ttl.py: TTLs are now bounds checked to be within the closed

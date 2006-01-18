@@ -169,6 +169,14 @@ class Rdata(object):
         """
         
         raise NotImplementedError
+
+    def validate(self):
+        """Check that the current contents of the rdata's fields are
+        valid.  If you change an rdata by assigning to its fields,
+        it is a good idea to call validate() when you are done making
+        changes.
+        """
+        dns.rdata.from_text(self.rdclass, self.rdtype, self.to_text())
         
     def __repr__(self):
 	covers = self.covers()
