@@ -46,8 +46,6 @@ class Update(dns.message.Message):
         self.flags |= dns.opcode.to_flags(dns.opcode.UPDATE)
         if isinstance(zone, (str, unicode)):
             zone = dns.name.from_text(zone)
-        else:
-            zone = zone.copy()
         self.origin = zone
         if isinstance(rdclass, str):
             rdclass = dns.rdataclass.from_text(rdclass)
