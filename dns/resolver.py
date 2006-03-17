@@ -571,6 +571,8 @@ class Resolver(object):
                     if rcode != dns.rcode.SERVFAIL:
                         nameservers.remove(nameserver)
                     response = None
+                if not response is None:
+                    break
                 #
                 # All nameservers failed!
                 #

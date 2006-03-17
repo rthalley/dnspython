@@ -1,3 +1,8 @@
+2006-03-17  Bob Halley  <halley@nominum.com>
+
+	* dns/resolver.py (Resolver.query): The resolver needlessly
+	  delayed responses for successful queries.
+
 2006-01-18  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdata.py: added a validate() method to the rdata class.  If
