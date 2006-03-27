@@ -1,4 +1,9 @@
-2006-03-17  Bob Halley  <halley@nominum.com>
+2006-03-26  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver.query): The resolver deleted from
+	  a list while iterating it, which makes the iterator unhappy.
+
+2006-03-17  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (Resolver.query): The resolver needlessly
 	  delayed responses for successful queries.
