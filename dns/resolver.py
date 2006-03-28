@@ -528,7 +528,7 @@ class Resolver(object):
             while response is None:
                 if len(nameservers) == 0:
                     raise NoNameservers
-                for nameserver in nameservers[:]
+                for nameserver in nameservers[:]:
                     timeout = self._compute_timeout(start)
                     try:
                         if tcp:
