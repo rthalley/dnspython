@@ -1,3 +1,11 @@
+2006-03-27  Bob Halley  <halley@dnspython.org>
+
+	* Added dns.e164.query().  This function can be used to look for
+	  NAPTR RRs for a specified number in several domains, e.g.:
+
+		dns.e164.query('16505551212',
+			       ['e164.dnspython.org.', 'e164.arpa.'])
+
 2006-03-26  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (Resolver.query): The resolver deleted from

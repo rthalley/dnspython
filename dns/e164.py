@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""DNS E.164 Names.
+"""DNS E.164 helpers
 
 @var public_enum_domain: The DNS public ENUM domain, e164.arpa.
 @type public_enum_domain: dns.name.Name object
@@ -21,6 +21,7 @@
 
 import dns.exception
 import dns.name
+import dns.resolver
 
 public_enum_domain = dns.name.from_text('e164.arpa.')
 
@@ -59,3 +60,20 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     if want_plus_prefix:
         text = '+' + text
     return text
+
+def query(number, domains, resolver=None):
+    """Look for NAPTR RRs for the specified number in the specified domains.
+
+    e.g. lookup('16505551212', ['e164.dnspython.org.', 'e164.arpa.'])
+    """
+    if resolver is None:
+        resolver = dns.resolver.get_default_resolver()
+    for domain in domains:
+        if isinstance(domain, (str, unicode)):
+            domain = dns.name.from_text(domain)
+        qname = dns.e164.from_e164(number, domain)
+        try:
+            return dns.resolver.query(qname, 'NAPTR')
+        except dns.resolver.NXDOMAIN:
+            pass
+    raise dns.resolver.NXDOMAIN
