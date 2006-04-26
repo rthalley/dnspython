@@ -107,6 +107,13 @@ class RRset(dns.rdataset.Rdataset):
         return super(RRset, self).to_wire(self.name, file, compress, origin,
                                           self.deleting, **kw)
 
+    def to_rdataset(self):
+        """Convert an RRset into an Rdataset.
+
+        #rtype: dns.rdataset.Rdataset object
+        """
+        return dns.rdataset.from_rdata_list(self.ttl, list(self))
+
 
 def from_text_list(name, ttl, rdclass, rdtype, text_rdatas):
     """Create an RRset with the specified name, TTL, class, and type, and with

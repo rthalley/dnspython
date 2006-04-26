@@ -1,3 +1,8 @@
+2006-04-25  Bob Halley  <halley@nominum.com>
+
+	* dns/rrset.py (RRset.to_rdataset): Added a convenience method
+	  to convert an rrset into an rdataset.
+
 2006-03-27  Bob Halley  <halley@dnspython.org>
 
 	* Added dns.e164.query().  This function can be used to look for
