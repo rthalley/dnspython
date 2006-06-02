@@ -1,4 +1,8 @@
-2006-04-25  Bob Halley  <halley@nominum.com>
+2006-06-02  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.4.0 released)
+
+2006-04-25  Bob Halley  <halley@dnspython.org>
 
 	* dns/rrset.py (RRset.to_rdataset): Added a convenience method
 	  to convert an rrset into an rdataset.
