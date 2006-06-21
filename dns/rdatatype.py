@@ -74,6 +74,7 @@ SSHFP = 44
 RRSIG = 46
 NSEC = 47
 DNSKEY = 48
+SPF = 99
 UNSPEC = 103
 TKEY = 249
 TSIG = 250
@@ -128,6 +129,7 @@ _by_text = {
     'RRSIG' : RRSIG,
     'NSEC' : NSEC,
     'DNSKEY' : DNSKEY,
+    'SPF' : SPF,
     'UNSPEC' : UNSPEC,
     'TKEY' : TKEY,
     'TSIG' : TSIG,

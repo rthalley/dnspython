@@ -1,3 +1,7 @@
+2006-06-21  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/ANY/SPF.py: Added support for the SPF RR type.
+
 2006-06-02  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.4.0 released)
