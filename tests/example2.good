@@ -37,6 +37,11 @@ f.example. 300 IN A 73.80.65.52
 gpos01.example. 3600 IN GPOS -22.6882 116.8652 250.0
 hinfo01.example. 3600 IN HINFO "Generic PC clone" "NetBSD-1.4"
 hinfo02.example. 3600 IN HINFO "PC" "NetBSD"
+ipseckey01.example. 3600 IN IPSECKEY 10 1 2 192.0.2.38 AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
+ipseckey02.example. 3600 IN IPSECKEY 10 0 2 . AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
+ipseckey03.example. 3600 IN IPSECKEY 10 3 2 mygateway.example.com. AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
+ipseckey04.example. 3600 IN IPSECKEY 10 2 2 2001:0DB8:0:8002::2000:1 AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
+ipseckey05.example. 3600 IN IPSECKEY 10 3 2 mygateway2.example. AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
 isdn01.example. 3600 IN ISDN "isdn-address"
 isdn02.example. 3600 IN ISDN "isdn-address" "subaddress"
 isdn03.example. 3600 IN ISDN "isdn-address"

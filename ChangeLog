@@ -1,3 +1,7 @@
+2006-06-22  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/IN/IPSECKEY.py: Added support for the IPSECKEY RR type.
+
 2006-06-21  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/ANY/SPF.py: Added support for the SPF RR type.
