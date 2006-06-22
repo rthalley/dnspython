@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2006 Nominum, Inc.
+# Copyright (C) 2006 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -16,5 +16,7 @@
 import dns.rdtypes.txtbase
 
 class SPF(dns.rdtypes.txtbase.TXTBase):
-    """SPF record"""
+    """SPF record
+
+    @see: RFC 4408"""
     pass
