@@ -68,8 +68,11 @@ class Answer(object):
     Instances of this class bundle up the result of a successful DNS
     resolution.
 
-    For convenience, the answer is iterable.  "for a in answer" is
-    equivalent to "for a in answer.rrset".
+    For convenience, the answer object implements much of the sequence
+    protocol, forwarding to its rrset.  E.g. "for a in answer" is
+    equivalent to "for a in answer.rrset", "answer[i]" is equivalent
+    to "answer.rrset[i]", and "answer[i:j]" is equivalent to
+    "answer.rrset[i:j]".
 
     Note that CNAMEs or DNAMEs in the response may mean that answer
     node's name might not be the query name.
@@ -141,6 +144,18 @@ class Answer(object):
 
     def __iter__(self):
         return iter(self.rrset)
+
+    def __getitem__(self, i):
+        return self.rrset[i]
+
+    def __delitem__(self, i):
+        del self.rrset[i]
+
+    def __getslice__(self, i, j):
+        return self.rrset[i:j]
+
+    def __delslice__(self, i, j):
+        del self.rrset[i:j]
 
 class Cache(object):
     """Simple DNS answer cache.

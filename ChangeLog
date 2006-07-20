@@ -1,3 +1,11 @@
+2006-07-20  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Answer): Add more support for the sequence
+	  protocol, forwarding requests to the answer object's rrset.
+	  E.g. "for a in answer" is equivalent to "for a in answer.rrset",
+	  "answer[i]" is equivalent to "answer.rrset[i]", and
+	  "answer[i:j]" is equivalent to "answer.rrset[i:j]".
+
 2006-07-19  Bob Halley  <halley@dnspython.org>
 
 	* dns/query.py (xfr): Add IXFR support.
