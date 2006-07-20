@@ -327,6 +327,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
             if rrset.rdtype != dns.rdatatype.SOA:
                 raise dns.exception.FormError
             soa_rrset = rrset.copy()
+            if soa_rrset.serial == serial:
+                done = True
         #
         # Count the number of origin SOA RRs in this message
         #
