@@ -1,3 +1,7 @@
+2006-07-19  Bob Halley  <halley@dnspython.org>
+
+	* dns/query.py (xfr): Add IXFR support.
+
 2006-06-22  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/IN/IPSECKEY.py: Added support for the IPSECKEY RR type.
