@@ -320,31 +320,51 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                                   multi=True, first=first)
         tsig_ctx = r.tsig_ctx
         first = False
+        answer_index = 0
+        delete_mode = False
+        expecting_SOA = False
         if soa_rrset is None:
             if not r.answer or r.answer[0].name != oname:
                 raise dns.exception.FormError
             rrset = r.answer[0]
             if rrset.rdtype != dns.rdatatype.SOA:
-                raise dns.exception.FormError
+                raise dns.exception.FormError, "first RRset is not an SOA"
+            answer_index = 1
             soa_rrset = rrset.copy()
-            if soa_rrset.serial == serial:
-                done = True
+            if rdtype == dns.rdatatype.IXFR:
+                if soa_rrset[0].serial == serial:
+                    #
+                    # We're already up-to-date.
+                    #
+                    done = True
+                else:
+                    expecting_SOA = True
         #
-        # Count the number of origin SOA RRs in this message
+        # Process SOAs in the answer section (other than the initial
+        # SOA in the first message).
         #
-        for rrset in r.answer:
+        for rrset in r.answer[answer_index:]:
+            if done:
+                raise dns.exception.FormError, "answers after final SOA"
             if rrset.rdtype == dns.rdatatype.SOA and rrset.name == oname:
-                soa_count += 1
-        #
-        # Are we done?
-        #
-        if len(r.answer) > 1 and r.answer[-1].name == oname:
-            rrset = r.answer[-1]
-            if rrset == soa_rrset and \
-               (rdtype == dns.rdatatype.AXFR or \
-                (rdtype == dns.rdatatype.IXFR and soa_count % 2 == 0)):
-                done = True
-            if done and q.keyring and not r.had_tsig:
-                raise dns.exception.FormError, "missing TSIG"
+                if expecting_SOA:
+                    if rrset[0].serial != serial:
+                        raise dns.exception.FormError, \
+                              "IXFR base serial mismatch"
+                    expecting_SOA = False
+                elif rdtype == dns.rdatatype.IXFR:
+                    delete_mode = not delete_mode
+                if rrset == soa_rrset and not delete_mode:
+                    done = True
+            elif expecting_SOA:
+                #
+                # We made an IXFR request and are expecting another
+                # SOA RR, but saw something else, so this must be an
+                # AXFR response.
+                #
+                rdtype = dns.rdatatype.AXFR
+                expecting_SOA = False
+        if done and q.keyring and not r.had_tsig:
+            raise dns.exception.FormError, "missing TSIG"
         yield r
     s.close()
