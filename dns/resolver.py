@@ -413,7 +413,7 @@ class Resolver(object):
         except WindowsError:
             search = None
         if search:
-            self._config_win32_search(servers)
+            self._config_win32_search(search)
 
     def read_registry(self):
         """Extract resolver configuration from the Windows registry."""

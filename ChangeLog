@@ -1,3 +1,10 @@
+2006-07-26  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver._config_win32_fromkey): fix
+	  cut-and-paste error where we passed the wrong variable to
+	  self._config_win32_search().  Thanks to David Arnold for finding
+	  the bug and submitting a patch.
+
 2006-07-20  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (Answer): Add more support for the sequence
