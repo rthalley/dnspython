@@ -77,7 +77,7 @@ def af_for_address(text):
     @param text: the textual address
     @type text: string
     @raises ValueError: the address family cannot be determined from the input.
-    @rtype int
+    @rtype: int
     """
     try:
         junk = dns.ipv4.inet_aton(text)

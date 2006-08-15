@@ -110,7 +110,7 @@ class RRset(dns.rdataset.Rdataset):
     def to_rdataset(self):
         """Convert an RRset into an Rdataset.
 
-        #rtype: dns.rdataset.Rdataset object
+        @rtype: dns.rdataset.Rdataset object
         """
         return dns.rdataset.from_rdata_list(self.ttl, list(self))
 

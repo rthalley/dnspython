@@ -167,7 +167,7 @@ class Zone(object):
         @param create: should the node be created if it doesn't exist?
         @type create: bool
         @raises KeyError: the name is not known and create was not specified.
-        @rtype dns.node.Node object
+        @rtype: dns.node.Node object
         """
         
         name = self._validate_name(name)
@@ -190,7 +190,7 @@ class Zone(object):
         @type name: dns.name.Name object or string
         @param create: should the node be created if it doesn't exist?
         @type create: bool
-        @rtype dns.node.Node object or None
+        @rtype: dns.node.Node object or None
         """
 
         try:
