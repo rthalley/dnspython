@@ -317,7 +317,13 @@ class Resolver(object):
         a string, it is used as the name of the file to open; otherwise it
         is treated as the file itself."""
         if isinstance(f, str) or isinstance(f, unicode):
-            f = open(f, 'r')
+            try:
+                f = open(f, 'r')
+            except IOError:
+                # /etc/resolv.conf doesn't exist, can't be read, etc.
+                # We'll just use the default resolver configuration.
+                self.nameservers = ['127.0.0.1']
+                return
             want_close = True
         else:
             want_close = False

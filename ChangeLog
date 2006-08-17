@@ -1,3 +1,10 @@
+2006-08-17  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver.read_resolv_conf): If /etc/resolv.conf
+	  doesn't exist, just use the default resolver configuration (i.e.
+	  the same thing we would have used if resolv.conf had existed and
+	  been empty).
+
 2006-07-26  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (Resolver._config_win32_fromkey): fix
