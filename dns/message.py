@@ -478,7 +478,7 @@ class Message(object):
         self.request_payload = request_payload
 
     def want_dnssec(self, wanted=True):
-        """Enable or disable DNSSEC in requests.
+        """Enable or disable 'DNSSEC desired' flag in requests.
         @param wanted: Is DNSSEC desired?  If True, EDNS is enabled if
         required, and then the DO bit is set.  If False, the DO bit is
         cleared if EDNS is enabled.
@@ -960,7 +960,7 @@ def from_file(f):
             f.close()
     return m
 
-def make_query(qname, rdtype, rdclass = dns.rdataclass.IN):
+def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, want_dnssec=False):
     """Make a query message.
 
     The query name, type, and class may all be specified either
@@ -975,6 +975,8 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN):
     @type rdtype: int
     @param rdclass: The desired rdata class; the default is class IN.
     @type rdclass: int
+    @param want_dnssec: Should the query indicate that DNSSEC is desired?
+    @type want_dnssec: bool
     @rtype: dns.message.Message object"""
     
     if isinstance(qname, (str, unicode)):
@@ -987,6 +989,7 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN):
     m.flags |= dns.flags.RD
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
                  force_unique=True)
+    m.want_dnssec(want_dnssec)
     return m
 
 def make_response(query, recursion_available=False, our_payload=8192):
