@@ -6,7 +6,8 @@
 	* dns/message.py (Message.want_dnssec): add convenience method for
 	  enabling/disabling the "DNSSEC desired" flag in requests.
 
-	* dns/message.py (make_query): add "want_dnssec" parameter.
+	* dns/message.py (make_query): add "use_edns" and "want_dnssec"
+	  parameters.
 
 2006-08-17  Bob Halley  <halley@dnspython.org>
 

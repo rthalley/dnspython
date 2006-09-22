@@ -451,9 +451,11 @@ class Message(object):
 
     def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None):
         """Configure EDNS behavior.
-        @param edns: The EDNS level to use.  Specifying None or a -1 means
-        'do not use EDNS', and in this case the other parameters are ignored.
-        @type edns: int or None
+        @param edns: The EDNS level to use.  Specifying None, False, or -1
+        means 'do not use EDNS', and in this case the other parameters are
+        ignored.  Specifying True is equivalent to specifying 0, i.e. 'use
+        EDNS0'.
+        @type edns: int or bool or None
         @param ednsflags: EDNS flag values.
         @type ednsflags: int
         @param payload: The EDNS sender's payload field, which is the maximum
@@ -464,8 +466,10 @@ class Message(object):
         @type request_payload: int or None
         @see: RFC 2671
         """
-        if edns is None:
+        if edns is None or edns is False:
             edns = -1
+        if edns is True:
+            edns = 0
         if request_payload is None:
             request_payload = payload
         if edns < 0:
@@ -960,7 +964,8 @@ def from_file(f):
             f.close()
     return m
 
-def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, want_dnssec=False):
+def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, use_edns=None,
+               want_dnssec=False):
     """Make a query message.
 
     The query name, type, and class may all be specified either
@@ -975,6 +980,10 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, want_dnssec=False):
     @type rdtype: int
     @param rdclass: The desired rdata class; the default is class IN.
     @type rdclass: int
+    @param use_edns: The EDNS level to use; the default is None (no EDNS).
+    See the description of dns.message.Message.use_edns() for the possible
+    values for use_edns and their meanings.
+    @type use_edns: int or bool or None
     @param want_dnssec: Should the query indicate that DNSSEC is desired?
     @type want_dnssec: bool
     @rtype: dns.message.Message object"""
@@ -989,6 +998,7 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, want_dnssec=False):
     m.flags |= dns.flags.RD
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
                  force_unique=True)
+    m.use_edns(use_edns)
     m.want_dnssec(want_dnssec)
     return m
 
