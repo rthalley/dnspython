@@ -449,24 +449,47 @@ class Message(object):
         self.tsig_error = tsig_error
         self.other_data = other_data
 
-    def use_edns(self, edns, ednsflags, payload, request_payload=0):
+    def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None):
         """Configure EDNS behavior.
-        @param edns: The EDNS level to use.  Specifying None or -1 means
-        'do not use EDNS'.
+        @param edns: The EDNS level to use.  Specifying None or a -1 means
+        'do not use EDNS', and in this case the other parameters are ignored.
         @type edns: int or None
         @param ednsflags: EDNS flag values.
         @type ednsflags: int
         @param payload: The EDNS sender's payload field, which is the maximum
         size of UDP datagram the sender can handle.
         @type payload: int
+        @param request_payload: The EDNS payload size to use when sending
+        this message.  If not specified, defaults to the value of payload.
+        @type request_payload: int or None
         @see: RFC 2671
         """
         if edns is None:
             edns = -1
+        if request_payload is None:
+            request_payload = payload
+        if edns < 0:
+            ednsflags = 0
+            payload = 0
+            request_payload = 0
         self.edns = edns
         self.ednsflags = ednsflags
         self.payload = payload
         self.request_payload = request_payload
+
+    def want_dnssec(self, wanted=True):
+        """Enable or disable DNSSEC in requests.
+        @param wanted: Is DNSSEC desired?  If True, EDNS is enabled if
+        required, and then the DO bit is set.  If False, the DO bit is
+        cleared if EDNS is enabled.
+        @type wanted: bool
+        """
+        if wanted:
+            if self.edns < 0:
+                self.use_edns()
+            self.ednsflags |= dns.flags.DO
+        elif self.edns >= 0:
+            self.ednsflags &= ~dns.flags.DO
 
     def rcode(self):
         """Return the rcode.

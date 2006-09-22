@@ -1,3 +1,11 @@
+2006-09-22  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py (Message.use_edns): add reasonable defaults for
+	  the ednsflags, payload, and request_payload parameters.
+
+	* dns/message.py (Message.want_dnssec): add convenience method for
+	  enabling/disabling the "DNSSEC desired" flag in requests.
+
 2006-08-17  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (Resolver.read_resolv_conf): If /etc/resolv.conf
