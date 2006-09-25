@@ -22,7 +22,33 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.4.0.
+This is dnspython 1.5.0.
+
+New since 1.4.0:
+
+    	Answer objects now support more of the python sequence
+	protocol, forwarding the requests to the answer rrset.
+	E.g. "for a in answer" is equivalent to "for a in
+	answer.rrset", "answer[i]" is equivalent to "answer.rrset[i]",
+	and "answer[i:j]" is equivalent to "answer.rrset[i:j]".
+
+	Making requests using EDNS, including indicating DNSSEC awareness,
+	is now easier.  For example, you can now say:
+
+	   q = dns.message.make_query('www.dnspython.org', 'MX',
+				      want_dnssec=True)
+
+	dns.query.xfr() can now be used for IXFR.
+
+	Support has been added for the IPSECKEY and SPF RR types.
+
+Bugs fixed since 1.4.0:
+
+        If /etc/resolv.conf didn't exist, we raised an exception
+	instead of simply using the default resolver configuration.
+
+	In dns.resolver.Resolver._config_win32_fromkey(), we were
+	passing the wrong variable to self._config_win32_search().
 
 New since 1.3.5:
 
