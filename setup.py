@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2003-2005 Nominum, Inc.
+# Copyright (C) 2003-2006 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -17,10 +17,12 @@
 
 from distutils.core import setup
 
+version = '1.5.0'
+
 setup(
-    name = "dnspython",
-    version = "1.5.0",
-    description = "DNS toolkit",
+    name = 'dnspython',
+    version = version,
+    description = 'DNS toolkit',
     long_description = \
     """dnspython is a DNS toolkit for Python. It supports almost all
 record types. It can be used for queries, zone transfers, and dynamic
@@ -31,9 +33,22 @@ level classes perform queries for data of a given name, type, and
 class, and return an answer set.  The low level classes allow
 direct manipulation of DNS zones, messages, names, and records.""",
 
-    author = "Bob Halley",
-    author_email = "halley@dnspython.org",
-    license = "BSD-like",
-    url = "http://www.dnspython.org",
-    packages = ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY']
+    author = 'Bob Halley',
+    author_email = 'halley@dnspython.org',
+    license = 'BSD-like',
+    url = 'http://www.dnspython.org',
+    packages = ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY'],
+    download_url = \
+    	'http://www.dnspython.org/kits/dnspython-%s.tar.gz' % version,
+    classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: Freeware",
+    "Operating System :: Microsoft :: Windows :: Windows 95/98/2000",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Topic :: Internet :: Name Service (DNS)",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
     )
