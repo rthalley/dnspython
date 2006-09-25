@@ -98,7 +98,7 @@ Bugs fixed since 1.3.5:
 	(float_latitude and float_longitude) had incorrect signs for
 	south latitudes and west longitudes.
 
-	BIND 8 TTL syntax is now accept in all ttl-like places (i.e.
+	BIND 8 TTL syntax is now accepted in all TTL-like places (i.e.
 	SOA fields refresh, retry, expire, and minimum; SIG/RRSIG
 	field original_ttl).
 
