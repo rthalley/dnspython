@@ -55,4 +55,8 @@ if sys.hexversion >= 0x02020300:
         "Topic :: Software Development :: Libraries :: Python Modules",
         ]
 
+if sys.hexversion >= 0x02050000:
+    kwargs['requires'] = []
+    kwargs['provides'] = ['dns']
+
 setup(**kwargs)
