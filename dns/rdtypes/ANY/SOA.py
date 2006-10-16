@@ -32,8 +32,8 @@ class SOA(dns.rdata.Rdata):
     @type refresh: int
     @ivar retry: The zone's retry value (in seconds)
     @type retry: int
-    @ivar expiration: The zone's expiration value (in seconds)
-    @type expiration: int
+    @ivar expire: The zone's expiration value (in seconds)
+    @type expire: int
     @ivar minimum: The zone's negative caching time (in seconds, called
     "minimum" for historical reasons)
     @type minimum: int
