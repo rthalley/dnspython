@@ -115,7 +115,9 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
     finally:
         s.close()
     if from_address != destination:
-        raise UnexpectedSource
+        raise UnexpectedSource, \
+              'got a response from %s instead of %s' % (from_address,
+                                                        destination)
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac)
     if not q.is_response(r):
         raise BadResponse
