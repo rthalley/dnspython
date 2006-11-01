@@ -1,3 +1,8 @@
+2006-10-31  Bob Halley  <halley@dnspython.org>
+
+	* dns/query.py (udp): When raising UnexpectedSource, add more
+	  detail about what went wrong to the exception.
+
 2006-09-22  Bob Halley  <halley@dnspython.org>
 
 	* dns/message.py (Message.use_edns): add reasonable defaults for
