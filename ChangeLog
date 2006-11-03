@@ -1,3 +1,7 @@
+2006-11-03  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/IN/DHCID.py: Added support for the DHCID RR type.
+
 2006-11-02  Bob Halley  <halley@dnspython.org>
 
 	* dns/query.py (udp): Messages from unexpected sources can now be

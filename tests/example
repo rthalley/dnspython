@@ -69,6 +69,12 @@ cname03			CNAME	.
 $TTL 300	; 5 minutes
 d			A	73.80.65.49
 $TTL 3600	; 1 hour
+dhcid01			DHCID	( AAIBY2/AuCccgoJbsaxcQc9TUapptP69l
+			          OjxfNuVAA2kjEA= )
+dhcid02			DHCID   ( AAEBOSD+XR3Os/0LozeXVqcNc7FwCfQdW
+                        	  L3b/NaiUDlW2No= )
+dhcid03			DHCID	( AAABxLmlskllE0MVjd57zHcWmEH3pCQ6V
+                                  ytcKD//7es/deY= )
 dname01			DNAME	dname-target.
 dname02			DNAME	dname-target
 dname03			DNAME	.

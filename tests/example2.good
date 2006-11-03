@@ -19,6 +19,9 @@ cname01.example. 3600 IN CNAME cname-target.
 cname02.example. 3600 IN CNAME cname-target.example.
 cname03.example. 3600 IN CNAME .
 d.example. 300 IN A 73.80.65.49
+dhcid01.example. 3600 IN DHCID AAIBY2/AuCccgoJbsaxcQc9TUapptP69 lOjxfNuVAA2kjEA=
+dhcid02.example. 3600 IN DHCID AAEBOSD+XR3Os/0LozeXVqcNc7FwCfQd WL3b/NaiUDlW2No=
+dhcid03.example. 3600 IN DHCID AAABxLmlskllE0MVjd57zHcWmEH3pCQ6 VytcKD//7es/deY=
 dname01.example. 3600 IN DNAME dname-target.
 dname02.example. 3600 IN DNAME dname-target.example.
 dname03.example. 3600 IN DNAME .
