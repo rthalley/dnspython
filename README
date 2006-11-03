@@ -40,7 +40,10 @@ New since 1.4.0:
 
 	dns.query.xfr() can now be used for IXFR.
 
-	Support has been added for the IPSECKEY and SPF RR types.
+	Support has been added for the DHCID, IPSECKEY, and SPF RR types.
+
+	UDP messages from unexpected sources can now be ignored by
+	setting ignore_unexpected to True when calling dns.query.udp.
 
 Bugs fixed since 1.4.0:
 
