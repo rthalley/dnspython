@@ -1,3 +1,8 @@
+2006-11-02  Bob Halley  <halley@dnspython.org>
+
+	* dns/query.py (udp): Messages from unexpected sources can now be
+	  ignored by setting ignore_unexpected to True.
+
 2006-10-31  Bob Halley  <halley@dnspython.org>
 
 	* dns/query.py (udp): When raising UnexpectedSource, add more

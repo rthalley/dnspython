@@ -65,7 +65,8 @@ def _wait_for_readable(s, expiration):
 def _wait_for_writable(s, expiration):
     _wait_for([], [s], [s], expiration)
 
-def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
+def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
+        ignore_unexpected=False):
     """Return the response obtained after sending a query via UDP.
 
     @param q: the query
@@ -86,7 +87,10 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
     @type source: string
     @param source_port: The port from which to send the message.
     The default is 0.
-    @type source_port: int"""
+    @type source_port: int
+    @param ignore_unexpected: If True, ignore responses from unexpected
+    sources.  The default is False.
+    @type ignore_unexpected: bool"""
     
     wire = q.to_wire()
     if af is None:
@@ -110,14 +114,17 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
             s.bind(source)
         _wait_for_writable(s, expiration)
         s.sendto(wire, destination)
-        _wait_for_readable(s, expiration)
-        (wire, from_address) = s.recvfrom(65535)
+        while 1:
+            _wait_for_readable(s, expiration)
+            (wire, from_address) = s.recvfrom(65535)
+            if from_address == destination:
+                break
+            if not ignore_unexpected:
+                raise UnexpectedSource, \
+                      'got a response from %s instead of %s' % (from_address,
+                                                                destination)
     finally:
         s.close()
-    if from_address != destination:
-        raise UnexpectedSource, \
-              'got a response from %s instead of %s' % (from_address,
-                                                        destination)
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac)
     if not q.is_response(r):
         raise BadResponse
