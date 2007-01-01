@@ -1,4 +1,4 @@
-# Copyright (C) 2004, 2005 Nominum, Inc.
+# Copyright (C) 2004-2007 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
