@@ -18,7 +18,7 @@
 import sys
 from distutils.core import setup
 
-version = '1.5.0'
+version = '1.6.0'
 
 kwargs = {
     'name' : 'dnspython',
@@ -42,7 +42,8 @@ direct manipulation of DNS zones, messages, names, and records.""",
 
 if sys.hexversion >= 0x02020300:
     kwargs['download_url'] = \
-	'http://www.dnspython.org/kits/dnspython-%s.tar.gz' % version
+	'http://www.dnspython.org/kits/%s/dnspython-%s.tar.gz' % (version,
+                                                                  version)
     kwargs['classifiers'] = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
