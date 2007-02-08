@@ -1,3 +1,9 @@
+2007-02-07  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py: Integrate code submitted by Paul Marks to
+	  determine whether a Windows NIC is enabled.  The way dnspython
+	  used to do this does not work on Windows Vista.
+
 2006-11-03  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/IN/DHCID.py: Added support for the DHCID RR type.
