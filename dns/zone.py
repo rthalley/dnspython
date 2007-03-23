@@ -25,6 +25,7 @@ import dns.node
 import dns.rdataclass
 import dns.rdatatype
 import dns.rdata
+import dns.rrset
 import dns.tokenizer
 import dns.ttl
 
