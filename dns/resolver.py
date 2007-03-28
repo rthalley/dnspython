@@ -466,60 +466,60 @@ class Resolver(object):
         finally:
             lm.Close()
 
- def _win32_is_nic_enabled(self, lm, guid, interface_key):
-     # Look in the Windows Registry to determine whether the network
-     # interface corresponding to the given guid is enabled.
-     #
-     # (Code contributed by Paul Marks, thanks!)
-     #
-     try:
-         # This hard-coded location seems to be consistent, at least
-         # from Windows 2000 through Vista.
-         connection_key = _winreg.OpenKey(
-             lm,
-             r'SYSTEM\CurrentControlSet\Control\Network'
-             r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
-             r'\%s\Connection' % guid)
-
+    def _win32_is_nic_enabled(self, lm, guid, interface_key):
+         # Look in the Windows Registry to determine whether the network
+         # interface corresponding to the given guid is enabled.
+         #
+         # (Code contributed by Paul Marks, thanks!)
+         #
          try:
-             # The PnpInstanceID points to a key inside Enum
-             (pnp_id, ttype) = _winreg.QueryValueEx(
-                 connection_key, 'PnpInstanceID')
-
-             if ttype != _winreg.REG_SZ:
-                 raise ValueError
-
-             device_key = _winreg.OpenKey(
-                 lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
+             # This hard-coded location seems to be consistent, at least
+             # from Windows 2000 through Vista.
+             connection_key = _winreg.OpenKey(
+                 lm,
+                 r'SYSTEM\CurrentControlSet\Control\Network'
+                 r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
+                 r'\%s\Connection' % guid)
 
              try:
-                 # Get ConfigFlags for this device
-                 (flags, ttype) = _winreg.QueryValueEx(
-                     device_key, 'ConfigFlags')
+                 # The PnpInstanceID points to a key inside Enum
+                 (pnp_id, ttype) = _winreg.QueryValueEx(
+                     connection_key, 'PnpInstanceID')
 
-                 if ttype != _winreg.REG_DWORD:
+                 if ttype != _winreg.REG_SZ:
                      raise ValueError
 
-                 # Based on experimentation, bit 0x1 indicates that the
-                 # device is disabled.
-                 return not (flags & 0x1)
+                 device_key = _winreg.OpenKey(
+                     lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
 
+                 try:
+                     # Get ConfigFlags for this device
+                     (flags, ttype) = _winreg.QueryValueEx(
+                         device_key, 'ConfigFlags')
+
+                     if ttype != _winreg.REG_DWORD:
+                         raise ValueError
+
+                     # Based on experimentation, bit 0x1 indicates that the
+                     # device is disabled.
+                     return not (flags & 0x1)
+
+                 finally:
+                     device_key.Close()
              finally:
-                 device_key.Close()
-         finally:
-             connection_key.Close()
-     except (EnvironmentError, ValueError):
-         # Pre-vista, enabled interfaces seem to have a non-empty
-         # NTEContextList; this was how dnspython detected enabled
-         # nics before the code above was contributed.  We've retained
-         # the old method since we don't know if the code above works
-         # on Windows 95/98/ME.
-         try:
-             (nte, ttype) = _winreg.QueryValueEx(interface_key,
-                                                 'NTEContextList')
-             return nte is not None
-         except WindowsError:
-             return False
+                 connection_key.Close()
+         except (EnvironmentError, ValueError):
+             # Pre-vista, enabled interfaces seem to have a non-empty
+             # NTEContextList; this was how dnspython detected enabled
+             # nics before the code above was contributed.  We've retained
+             # the old method since we don't know if the code above works
+             # on Windows 95/98/ME.
+             try:
+                 (nte, ttype) = _winreg.QueryValueEx(interface_key,
+                                                     'NTEContextList')
+                 return nte is not None
+             except WindowsError:
+                 return False
 
     def _compute_timeout(self, start):
         now = time.time()
