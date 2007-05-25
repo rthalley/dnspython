@@ -1,3 +1,8 @@
+2007-05-24  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/IN/NAPTR.py: NAPTR comparisons didn't compare the
+	  preference field due to a typo.
+
 2007-02-07  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py: Integrate code submitted by Paul Marks to
