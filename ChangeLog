@@ -1,3 +1,11 @@
+2007-06-13  Bob Halley  <halley@dnspython.org>
+
+	* dns/inet.py: Added is_multicast().
+
+	* dns/query.py (udp):  If the queried address is a multicast address, then
+	  don't check that the address of the response is the same as the address
+	  queried.
+
 2007-05-24  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/IN/NAPTR.py: NAPTR comparisons didn't compare the

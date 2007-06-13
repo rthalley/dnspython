@@ -88,3 +88,21 @@ def af_for_address(text):
             return AF_INET6
         except:
             raise ValueError
+
+def is_multicast(text):
+    """Is the textual-form network address a multicast address?
+
+    @param text: the textual address
+    @raises ValueError: the address family cannot be determined from the input.
+    @rtype: bool
+    """
+    try:
+        first = ord(dns.ipv4.inet_aton(text)[0])
+        return (first >= 224 and first <= 239)
+    except:
+        try:
+            first = ord(dns.ipv6.inet_aton(text)[0])
+            return (first == 255)
+        except:
+            raise ValueError
+    
