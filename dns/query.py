@@ -119,7 +119,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
             (wire, from_address) = s.recvfrom(65535)
             if from_address == destination or \
                (dns.inet.is_multicast(where) and \
-                from_address[1:] == destination[1:]):
+                from_address[1] == destination[1]):
                 break
             if not ignore_unexpected:
                 raise UnexpectedSource, \
