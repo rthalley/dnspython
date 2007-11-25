@@ -1,3 +1,9 @@
+
+2007-11-25  Bob Halley  <halley@dnspython.org
+
+	* dns/query.py (_wait_for): if select() raises an exception due to
+	  EINTR, we should just select() again.
+
 2007-06-13  Bob Halley  <halley@dnspython.org>
 
 	* dns/inet.py: Added is_multicast().

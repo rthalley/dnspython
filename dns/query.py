@@ -44,24 +44,31 @@ def _compute_expiration(timeout):
         return None
     else:
         return time.time() + timeout
-    
+
 def _wait_for(ir, iw, ix, expiration):
-    if expiration is None:
-        timeout = None
-    else:
-        timeout = expiration - time.time()
-        if timeout <= 0.0:
+    done = False
+    while not done:
+        if expiration is None:
+            timeout = None
+        else:
+            timeout = expiration - time.time()
+            if timeout <= 0.0:
+                raise dns.exception.Timeout
+        try:
+            if timeout is None:
+                (r, w, x) = select.select(ir, iw, ix)
+            else:
+                (r, w, x) = select.select(ir, iw, ix, timeout)
+        except select.error, e:
+            if e.args[0] != errno.EINTR:
+                raise e
+        done = True
+        if len(r) == 0 and len(w) == 0 and len(x) == 0:
             raise dns.exception.Timeout
-    if timeout is None:
-        (r, w, x) = select.select(ir, iw, ix)
-    else:
-        (r, w, x) = select.select(ir, iw, ix, timeout)
-    if len(r) == 0 and len(w) == 0 and len(x) == 0:
-        raise dns.exception.Timeout
-    
+
 def _wait_for_readable(s, expiration):
     _wait_for([s], [], [s], expiration)
-    
+
 def _wait_for_writable(s, expiration):
     _wait_for([], [s], [s], expiration)
 
@@ -91,7 +98,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     @param ignore_unexpected: If True, ignore responses from unexpected
     sources.  The default is False.
     @type ignore_unexpected: bool"""
-    
+
     wire = q.to_wire()
     if af is None:
         try:
@@ -191,7 +198,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
     @param source_port: The port from which to send the message.
     The default is 0.
     @type source_port: int"""
-    
+
     wire = q.to_wire()
     if af is None:
         try:
