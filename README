@@ -25,10 +25,22 @@ ABOUT THIS RELEASE
 This is dnspython 1.6.0.
 
 New since 1.5.0:
-	<nothing>
+	Added dns.inet.is_multicast().
 
 Bugs fixed since 1.5.0:
-	<nothing>
+	
+	If select() raises an exception due to EINTR, we should just
+	select() again.
+
+	If the queried address is a multicast address, then don't
+	check that the address of the response is the same as the
+	address queried.
+
+	NAPTR comparisons didn't compare the preference field due to a
+	typo.
+
+	Testing of whether a Windows NIC is enabled now works on Vista
+	thanks to code contributed by Paul Marks.
 
 New since 1.4.0:
 
