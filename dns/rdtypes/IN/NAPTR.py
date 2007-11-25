@@ -119,7 +119,7 @@ class NAPTR(dns.rdata.Rdata):
         
     def _cmp(self, other):
         sp = struct.pack("!HH", self.order, self.preference)
-        op = struct.pack("!HH", other.order, order.preference)
+        op = struct.pack("!HH", other.order, other.preference)
         v = cmp(sp, op)
         if v == 0:
             v = cmp(self.flags, other.flags)
