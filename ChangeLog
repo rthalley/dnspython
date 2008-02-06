@@ -1,3 +1,11 @@
+2008-02-06  Bob Halley  <halley@dnspython.org>
+
+	* dns/ipv6.py (inet_aton):  We could raise an exception other than
+	  dns.exception.SyntaxError in some cases.
+
+	* dns/tsig.py: Raise an exception when the peer has set a non-zero
+	  TSIG error.
+
 2007-11-25  Bob Halley  <halley@dnspython.org
 
 	* (Version 1.6.0 released)

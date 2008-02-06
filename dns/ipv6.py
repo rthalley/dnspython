@@ -157,4 +157,7 @@ def inet_aton(text):
     #
     # Finally we can go to binary.
     #
-    return text.decode('hex_codec')
+    try:
+        return text.decode('hex_codec')
+    except TypeError:
+        raise dns.exception.SyntaxError
