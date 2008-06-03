@@ -35,7 +35,7 @@ class Renderer(object):
     class and its to_wire() method to generate wire-format messages.
     This class is for those applications which need finer control
     over the generation of messages.
-    
+
     Typical use::
 
         r = dns.renderer.Renderer(id=1, flags=0x80, max_size=512)
@@ -85,7 +85,7 @@ class Renderer(object):
         @param origin: the origin to use when rendering relative names
         @type origin: dns.name.Namem or None.
         """
-        
+
         self.output = cStringIO.StringIO()
         if id is None:
             self.id = random.randint(0, 65535)
@@ -108,7 +108,7 @@ class Renderer(object):
         @param where: the offset
         @type where: int
         """
-        
+
         self.output.seek(where)
         self.output.truncate()
         keys_to_delete = []
@@ -129,7 +129,7 @@ class Renderer(object):
         @raises dns.exception.FormError: an attempt was made to set
         a section value less than the current section.
         """
-        
+
         if self.section != section:
             if self.section > section:
                 raise dns.exception.FormError
@@ -145,7 +145,7 @@ class Renderer(object):
         @param rdclass: the question rdata class
         @type rdclass: int
         """
-        
+
         self._set_section(QUESTION)
         before = self.output.tell()
         qname.to_wire(self.output, self.compress, self.origin)
@@ -155,13 +155,13 @@ class Renderer(object):
             self._rollback(before)
             raise dns.exception.TooBig
         self.counts[QUESTION] += 1
-        
+
     def add_rrset(self, section, rrset, **kw):
         """Add the rrset to the specified section.
 
         Any keyword arguments are passed on to the rdataset's to_wire()
         routine.
-        
+
         @param section: the section
         @type section: int
         @param rrset: the rrset
@@ -191,7 +191,7 @@ class Renderer(object):
         @param rdataset: the rdataset
         @type rdataset: dns.rdataset.Rdataset object
         """
-        
+
         self._set_section(section)
         before = self.output.tell()
         n = rdataset.to_wire(name, self.output, self.compress, self.origin,
@@ -215,6 +215,9 @@ class Renderer(object):
         @see: RFC 2671
         """
 
+        # make sure the EDNS version in ednsflags agrees with edns
+        ednsflags &= 0xFF00FFFFL
+        ednsflags |= (edns << 16)
         self._set_section(ADDITIONAL)
         before = self.output.tell()
         self.output.write(struct.pack('!BHHIH', 0, dns.rdatatype.OPT, payload,
@@ -228,7 +231,7 @@ class Renderer(object):
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
                  request_mac):
         """Add a TSIG signature to the message.
-        
+
         @param keyname: the TSIG key name
         @type keyname: dns.name.Name object
         @param secret: the secret to use
@@ -245,7 +248,7 @@ class Renderer(object):
         had the specified MAC.
         @type request_mac: string
         """
- 
+
         self._set_section(ADDITIONAL)
         before = self.output.tell()
         s = self.output.getvalue()
@@ -282,7 +285,7 @@ class Renderer(object):
         have been rendered, but before the optional TSIG signature
         is added.
         """
-        
+
         self.output.seek(0)
         self.output.write(struct.pack('!HHHHHH', self.id, self.flags,
                                       self.counts[0], self.counts[1],
@@ -294,5 +297,5 @@ class Renderer(object):
 
         @rtype: string
         """
-        
+
         return self.output.getvalue()

@@ -163,5 +163,17 @@ class MessageTestCase(unittest.TestCase):
             r2 = dns.message.make_response(r1)
         self.failUnlessRaises(dns.exception.FormError, bad)
 
+    def test_ExtendedRcodeSetting(self):
+        m = dns.message.make_query('foo', 'A')
+        m.set_rcode(4095)
+        self.failUnless(m.rcode() == 4095)
+        m.set_rcode(2)
+        self.failUnless(m.rcode() == 2)
+
+    def test_EDNSVersionCoherence(self):
+        m = dns.message.make_query('foo', 'A')
+        m.use_edns(1)
+        self.failUnless((m.ednsflags >> 16) & 0xFF == 1)
+
 if __name__ == '__main__':
     unittest.main()
