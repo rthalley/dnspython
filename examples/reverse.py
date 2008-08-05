@@ -27,16 +27,14 @@ for filename in sys.argv[1:]:
     zone = dns.zone.from_file(filename, os.path.basename(filename),
                               relativize=False)
     for (name, ttl, rdata) in zone.iterate_rdatas('A'):
-        l = reverse_map.get(rdata.address)
-        if l is None:
-            l = []
-            reverse_map[rdata.address] = l
-        l.append(name)
+        try:
+	    reverse_map[rdata.address].append(name.to_text())
+	except KeyError:
+	    reverse_map[rdata.address] = [name.to_text()]
 
 keys = reverse_map.keys()
 keys.sort(lambda a1, a2: cmp(dns.ipv4.inet_aton(a1), dns.ipv4.inet_aton(a2)))
 for k in keys:
     v = reverse_map[k]
     v.sort()
-    l = map(str, v)	# convert names to strings for prettier output
-    print k, l
+    print k, v
