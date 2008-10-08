@@ -25,6 +25,7 @@ import dns.exception
 import dns.flags
 import dns.name
 import dns.opcode
+import dns.entropy
 import dns.rcode
 import dns.rdata
 import dns.rdataclass
@@ -131,7 +132,7 @@ class Message(object):
 
     def __init__(self, id=None):
         if id is None:
-            self.id = random.randint(0, 65535)
+            self.id = dns.entropy.random_16()
         else:
             self.id = id
         self.flags = 0
@@ -598,6 +599,7 @@ class _WireReader(object):
         for i in xrange(0, count):
             rr_start = self.current
             (name, used) = dns.name.from_wire(self.wire, self.current)
+            absolute_name = name
             if not self.message.origin is None:
                 name = name.relativize(self.message.origin)
             self.current = self.current + used
@@ -618,12 +620,12 @@ class _WireReader(object):
                     raise BadTSIG
                 if self.message.keyring is None:
                     raise UnknownTSIGKey, 'got signed message without keyring'
-                secret = self.message.keyring.get(name)
+                secret = self.message.keyring.get(absolute_name)
                 if secret is None:
                     raise UnknownTSIGKey, "key '%s' unknown" % name
                 self.message.tsig_ctx = \
                                       dns.tsig.validate(self.wire,
-                                          name,
+                                          absolute_name,
                                           secret,
                                           int(time.time()),
                                           self.message.request_mac,
