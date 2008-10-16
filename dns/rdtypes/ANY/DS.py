@@ -32,7 +32,7 @@ class DS(dns.rdata.Rdata):
     @see: draft-ietf-dnsext-delegation-signer-14.txt"""
 
     __slots__ = ['key_tag', 'algorithm', 'digest_type', 'digest']
-    
+
     def __init__(self, rdclass, rdtype, key_tag, algorithm, digest_type,
                  digest):
         super(DS, self).__init__(rdclass, rdtype)
@@ -46,17 +46,24 @@ class DS(dns.rdata.Rdata):
                                 self.digest_type,
                                 dns.rdata._hexify(self.digest,
                                                   chunksize=128))
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         key_tag = tok.get_uint16()
         algorithm = tok.get_uint8()
         digest_type = tok.get_uint8()
-        digest = tok.get_string()
+        chunks = []
+        while 1:
+            t = tok.get()
+            if t[0] == dns.tokenizer.EOL or t[0] == dns.tokenizer.EOF:
+                break
+            if t[0] != dns.tokenizer.IDENTIFIER:
+                raise dns.exception.SyntaxError
+            chunks.append(t[1])
+        digest = ''.join(chunks)
         digest = digest.decode('hex_codec')
-        tok.get_eol()
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
                    digest)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -64,7 +71,7 @@ class DS(dns.rdata.Rdata):
                              self.digest_type)
         file.write(header)
         file.write(self.digest)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         header = struct.unpack("!HBB", wire[current : current + 4])
         current += 4
