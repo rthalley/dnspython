@@ -1,4 +1,4 @@
-# Copyright (C) 2001-2007 Nominum, Inc.
+# Copyright (C) 2001-2009 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -84,6 +84,8 @@ class Message(object):
     @type ednsflags: long
     @ivar payload: The EDNS payload size.  The default is 0.
     @type payload: int
+    @ivar options: The EDNS options
+    @type options: list of dns.edns.Option objects
     @ivar request_payload: The associated request's EDNS payload size.
     @type request_payload: int
     @ivar keyring: The TSIG keyring to use.  The default is None.
@@ -143,6 +145,7 @@ class Message(object):
         self.edns = -1
         self.ednsflags = 0
         self.payload = 0
+        self.options = []
         self.request_payload = 0
         self.keyring = None
         self.keyname = None
@@ -400,7 +403,7 @@ class Message(object):
         for rrset in self.authority:
             r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
         if self.edns >= 0:
-            r.add_edns(self.edns, self.ednsflags, self.payload)
+            r.add_edns(self.edns, self.ednsflags, self.payload, self.options)
         for rrset in self.additional:
             r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
         r.write_header()
@@ -450,7 +453,7 @@ class Message(object):
         self.tsig_error = tsig_error
         self.other_data = other_data
 
-    def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None):
+    def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None, options=None):
         """Configure EDNS behavior.
         @param edns: The EDNS level to use.  Specifying None, False, or -1
         means 'do not use EDNS', and in this case the other parameters are
@@ -477,13 +480,17 @@ class Message(object):
             ednsflags = 0
             payload = 0
             request_payload = 0
+            options = []
         else:
             # make sure the EDNS version in ednsflags agrees with edns
             ednsflags &= 0xFF00FFFFL
             ednsflags |= (edns << 16)
+            if options is None:
+                options = []
         self.edns = edns
         self.ednsflags = ednsflags
         self.payload = payload
+        self.options = options
         self.request_payload = request_payload
 
     def want_dnssec(self, wanted=True):
@@ -613,6 +620,18 @@ class _WireReader(object):
                 self.message.payload = rdclass
                 self.message.ednsflags = ttl
                 self.message.edns = (ttl & 0xff0000) >> 16
+                self.message.options = []
+                current = self.current
+                optslen = rdlen
+                while optslen > 0:
+                    (otype, olen) = \
+                            struct.unpack('!HH',
+                                          self.wire[current:current + 4])
+                    current = current + 4
+                    opt = dns.edns.option_from_wire(otype, self.wire, current, olen)
+                    self.message.options.append(opt)
+                    current = current + olen
+                    optslen = optslen - 4 - olen
                 seen_opt = True
             elif rdtype == dns.rdatatype.TSIG:
                 if not (section is self.message.additional and

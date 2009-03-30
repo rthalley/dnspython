@@ -1,3 +1,7 @@
+2009-03-30  Bob Halley  <halley@dnspython.org>
+
+	* Added EDNS option support.
+
 2008-10-16  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/ANY/DS.py: The from_text() parser for DS RRs did not
