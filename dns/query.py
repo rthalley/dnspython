@@ -249,7 +249,8 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
 
 def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         timeout=None, port=53, keyring=None, keyname=None, relativize=True,
-        af=None, lifetime=None, source=None, source_port=0, serial=0):
+        af=None, lifetime=None, source=None, source_port=0, serial=0,
+        use_udp=False):
     """Return a generator for the responses to a zone transfer.
 
     @param where: where to send the message
@@ -291,10 +292,15 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     @type source_port: int
     @param serial: The SOA serial number to use as the base for an IXFR diff
     sequence (only meaningful if rdtype == dns.rdatatype.IXFR).
-    @type serial: int"""
+    @type serial: int
+    @param use_udp: Use UDP (only meaningful for IXFR)
+    @type use_udp: bool
+    """
 
     if isinstance(zone, (str, unicode)):
         zone = dns.name.from_text(zone)
+    if isinstance(rdtype, str):
+        rdtype = dns.rdatatype.from_text(rdtype)
     q = dns.message.make_query(zone, rdtype, rdclass)
     if rdtype == dns.rdatatype.IXFR:
         rrset = dns.rrset.from_text(zone, 0, 'IN', 'SOA',
@@ -316,14 +322,23 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         destination = (where, port, 0, 0)
         if source is not None:
             source = (source, source_port, 0, 0)
-    s = socket.socket(af, socket.SOCK_STREAM, 0)
+    if use_udp:
+        if rdtype != dns.rdatatype.IXFR:
+            raise ValueError, 'cannot do a UDP AXFR'
+        s = socket.socket(af, socket.SOCK_DGRAM, 0)
+    else:
+        s = socket.socket(af, socket.SOCK_STREAM, 0)
     if source is not None:
         s.bind(source)
     expiration = _compute_expiration(lifetime)
     _connect(s, destination)
     l = len(wire)
-    tcpmsg = struct.pack("!H", l) + wire
-    _net_write(s, tcpmsg, expiration)
+    if use_udp:
+        _wait_for_writable(s, expiration)
+        s.send(wire)
+    else:
+        tcpmsg = struct.pack("!H", l) + wire
+        _net_write(s, tcpmsg, expiration)
     done = False
     soa_rrset = None
     soa_count = 0
@@ -339,12 +354,17 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         mexpiration = _compute_expiration(timeout)
         if mexpiration is None or mexpiration > expiration:
             mexpiration = expiration
-        ldata = _net_read(s, 2, mexpiration)
-        (l,) = struct.unpack("!H", ldata)
-        wire = _net_read(s, l, mexpiration)
+        if use_udp:
+            _wait_for_readable(s, expiration)
+            (wire, from_address) = s.recvfrom(65535)
+        else:
+            ldata = _net_read(s, 2, mexpiration)
+            (l,) = struct.unpack("!H", ldata)
+            wire = _net_read(s, l, mexpiration)
         r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
                                   xfr=True, origin=origin, tsig_ctx=tsig_ctx,
-                                  multi=True, first=first)
+                                  multi=True, first=first,
+                                  one_rr_per_rrset=(rdtype==dns.rdatatype.IXFR))
         tsig_ctx = r.tsig_ctx
         first = False
         answer_index = 0

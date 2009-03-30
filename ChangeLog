@@ -1,5 +1,10 @@
 2009-03-30  Bob Halley  <halley@dnspython.org>
 
+	* dns/query.py (xfr): Allow UDP IXFRs.  Use "one_rr_per_rrset" mode when
+	  doing IXFR.
+
+2009-03-30  Bob Halley  <halley@dnspython.org>
+
 	* Add "one_rr_per_rrset" mode switch to methods which parse
 	  messages from wire format (e.g. dns.message.from_wire(),
 	  dns.query.udp(), dns.query.tcp()).  If set, each RR read is
