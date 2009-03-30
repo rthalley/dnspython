@@ -73,7 +73,7 @@ def _wait_for_writable(s, expiration):
     _wait_for([], [s], [s], expiration)
 
 def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
-        ignore_unexpected=False):
+        ignore_unexpected=False, one_rr_per_rrset=False):
     """Return the response obtained after sending a query via UDP.
 
     @param q: the query
@@ -97,7 +97,10 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     @type source_port: int
     @param ignore_unexpected: If True, ignore responses from unexpected
     sources.  The default is False.
-    @type ignore_unexpected: bool"""
+    @type ignore_unexpected: bool
+    @param one_rr_per_rrset: Put each RR into its own RRset
+    @type one_rr_per_rrset: bool
+    """
 
     wire = q.to_wire()
     if af is None:
@@ -134,7 +137,8 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
                                                                 destination)
     finally:
         s.close()
-    r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac)
+    r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
+                              one_rr_per_rrset=one_rr_per_rrset)
     if not q.is_response(r):
         raise BadResponse
     return r
@@ -176,7 +180,8 @@ def _connect(s, address):
                v[0] != errno.EALREADY:
             raise ty, v
 
-def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
+def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
+        one_rr_per_rrset=False):
     """Return the response obtained after sending a query via TCP.
 
     @param q: the query
@@ -197,7 +202,10 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
     @type source: string
     @param source_port: The port from which to send the message.
     The default is 0.
-    @type source_port: int"""
+    @type source_port: int
+    @param one_rr_per_rrset: Put each RR into its own RRset
+    @type one_rr_per_rrset: bool
+    """
 
     wire = q.to_wire()
     if af is None:
@@ -233,7 +241,8 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0):
         wire = _net_read(s, l, expiration)
     finally:
         s.close()
-    r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac)
+    r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
+                              one_rr_per_rrset=one_rr_per_rrset)
     if not q.is_response(r):
         raise BadResponse
     return r

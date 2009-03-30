@@ -553,18 +553,22 @@ class _WireReader(object):
     @type current: int
     @ivar updating: Is the message a dynamic update?
     @type updating: bool
+    @ivar one_rr_per_rrset: Put each RR into its own RRset?
+    @type one_rr_per_rrset: bool
     @ivar zone_rdclass: The class of the zone in messages which are
     DNS dynamic updates.
     @type zone_rdclass: int
     """
 
-    def __init__(self, wire, message, question_only=False):
+    def __init__(self, wire, message, question_only=False,
+                 one_rr_per_rrset=False):
         self.wire = wire
         self.message = message
         self.current = 0
         self.updating = False
         self.zone_rdclass = dns.rdataclass.IN
         self.question_only = question_only
+        self.one_rr_per_rrset = one_rr_per_rrset
 
     def _get_question(self, qcount):
         """Read the next I{qcount} records from the wire data and add them to
@@ -598,7 +602,7 @@ class _WireReader(object):
         @param count: the number of records to read
         @type count: int"""
 
-        if self.updating:
+        if self.updating or self.one_rr_per_rrset:
             force_unique = True
         else:
             force_unique = False
@@ -709,7 +713,7 @@ class _WireReader(object):
 
 def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
               tsig_ctx = None, multi = False, first = True,
-              question_only = False):
+              question_only = False, one_rr_per_rrset = False):
     """Convert a DNS wire format message into a message
     object.
 
@@ -733,6 +737,8 @@ def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
     @type first: bool
     @param question_only: Read only up to the end of the question section?
     @type question_only: bool
+    @param one_rr_per_rrset: Put each RR into its own RRset
+    @type one_rr_per_rrset: bool
     @raises ShortHeader: The message is less than 12 octets long.
     @raises TrailingJunk: There were octets in the message past the end
     of the proper DNS message.
@@ -751,7 +757,7 @@ def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
     m.multi = multi
     m.first = first
 
-    reader = _WireReader(wire, m, question_only)
+    reader = _WireReader(wire, m, question_only, one_rr_per_rrset)
     reader.read()
 
     return m
