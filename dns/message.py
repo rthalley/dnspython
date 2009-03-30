@@ -468,6 +468,8 @@ class Message(object):
         @param request_payload: The EDNS payload size to use when sending
         this message.  If not specified, defaults to the value of payload.
         @type request_payload: int or None
+        @param options: The EDNS options
+        @type options: None or list of dns.edns.Option objects
         @see: RFC 2671
         """
         if edns is None or edns is False:
