@@ -49,6 +49,51 @@ class Option(object):
 
     from_wire = classmethod(from_wire)
 
+    def _cmp(self, other):
+        """Compare an ENDS option with another option of the same type.
+        Return < 0 if self < other, 0 if self == other, and > 0 if self > other.
+        """
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        if not isinstance(other, Option):
+            return False
+        if self.otype != other.otype:
+            return False
+        return self._cmp(other) == 0
+
+    def __ne__(self, other):
+        if not isinstance(other, Option):
+            return False
+        if self.otype != other.otype:
+            return False
+        return self._cmp(other) != 0
+
+    def __lt__(self, other):
+        if not isinstance(other, Option) or \
+               self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) < 0
+
+    def __le__(self, other):
+        if not isinstance(other, Option) or \
+               self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) <= 0
+
+    def __ge__(self, other):
+        if not isinstance(other, Option) or \
+               self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) >= 0
+
+    def __gt__(self, other):
+        if not isinstance(other, Option) or \
+               self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) > 0
+
+
 class GenericOption(Option):
     """Generate Rdata Class
 
@@ -68,6 +113,8 @@ class GenericOption(Option):
 
     from_wire = classmethod(from_wire)
 
+    def _cmp(self, other):
+	return cmp(self.data, other.data)
 
 _type_to_class = {
 }
