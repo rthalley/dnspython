@@ -22,7 +22,13 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.6.0.
+This is dnspython 1.7.0.
+
+New since 1.6.0:
+	TBS
+
+Bugs fixed since 1.6.0:
+	TBS
 
 New since 1.5.0:
 	Added dns.inet.is_multicast().
