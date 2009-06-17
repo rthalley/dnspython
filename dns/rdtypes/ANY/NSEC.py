@@ -37,6 +37,7 @@ class NSEC(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)
+        text = ''
         for (window, bitmap) in self.windows:
             bits = []
             for i in xrange(0, len(bitmap)):
@@ -45,8 +46,8 @@ class NSEC(dns.rdata.Rdata):
                     if byte & (0x80 >> j):
                         bits.append(dns.rdatatype.to_text(window * 256 + \
                                                           i * 8 + j))
-            text = ' '.join(bits)
-        return '%s %s' % (next, text)
+            text += (' ' + ' '.join(bits))
+        return '%s%s' % (next, text)
         
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         next = tok.get_name()
