@@ -72,6 +72,14 @@ def _wait_for_readable(s, expiration):
 def _wait_for_writable(s, expiration):
     _wait_for([], [s], [s], expiration)
 
+def _addresses_equal(af, a1, a2):
+    # Convert the first value of the tuple, which is a textual format
+    # address into binary form, so that we are not confused by different
+    # textual representations of the same address
+    n1 = dns.inet.inet_pton(af, a1[0])
+    n2 = dns.inet.inet_pton(af, a2[0])
+    return n1 == n2 and a1[1:] == a2[1:]
+
 def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         ignore_unexpected=False, one_rr_per_rrset=False):
     """Return the response obtained after sending a query via UDP.
@@ -127,9 +135,9 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         while 1:
             _wait_for_readable(s, expiration)
             (wire, from_address) = s.recvfrom(65535)
-            if from_address == destination or \
-               (dns.inet.is_multicast(where) and \
-                from_address[1] == destination[1]):
+            if _addresses_equal(from_address, destination) or \
+                    (dns.inet.is_multicast(where) and \
+                         from_address[1:] == destination[1:]):
                 break
             if not ignore_unexpected:
                 raise UnexpectedSource, \
