@@ -21,7 +21,6 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.rdatatype
-import dns.name
 
 b32_hex_to_normal = string.maketrans('0123456789ABCDEFGHIJKLMNOPQRSTUV',
                                      'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
