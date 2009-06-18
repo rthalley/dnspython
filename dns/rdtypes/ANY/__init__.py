@@ -31,6 +31,7 @@ __all__ = [
     'NS',
     'NSEC',
     'NSEC3',
+    'NSEC3PARAM',
     'NXT',
     'PTR',
     'RP',
