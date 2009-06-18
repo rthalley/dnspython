@@ -1,3 +1,12 @@
+2009-06-18  Bob Halley  <halley@dnspython.org>
+
+	* Added NSEC3 and NSEC3PARAM support.
+
+2009-06-17  Bob Halley  <halley@dnspython.org>
+
+	* Fixed NSEC.to_text(), which was only printing the last window.
+	  Thanks to Brian Wellington for finding the problem and fixing it.
+
 2009-03-30  Bob Halley  <halley@dnspython.org>
 
 	* dns/query.py (xfr): Allow UDP IXFRs.  Use "one_rr_per_rrset" mode when
