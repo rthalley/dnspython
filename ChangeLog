@@ -1,5 +1,11 @@
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
+	* The resolver's query() method now has an optional 'source' parameter,
+	allowing the source IP address to be specified.  Thanks to
+	Alexander Lind for suggesting the change and sending a patch.
+
+2009-06-18  Bob Halley  <halley@dnspython.org>
+
 	* Added NSEC3 and NSEC3PARAM support.
 
 2009-06-17  Bob Halley  <halley@dnspython.org>
