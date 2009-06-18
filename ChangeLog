@@ -1,8 +1,17 @@
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
+	* dns/query.py (udp): When checking that addresses are the same,
+	  use the binary form of the address in the comparison.  This
+	  ensures that we don't treat addresses as different if they have
+	  equivalent but differing textual representations.  E.g. "1:00::1"
+	  and "1::1" represent the same address but are not textually equal.
+	  Thanks to Kim Davies for reporting this bug.
+
+2009-06-18  Bob Halley  <halley@dnspython.org>
+
 	* The resolver's query() method now has an optional 'source' parameter,
-	allowing the source IP address to be specified.  Thanks to
-	Alexander Lind for suggesting the change and sending a patch.
+	  allowing the source IP address to be specified.  Thanks to
+	  Alexander Lind for suggesting the change and sending a patch.
 
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
