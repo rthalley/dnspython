@@ -15,6 +15,11 @@
 
 import dns.rdtypes.keybase
 
+# flag constants
+SEP = 0x0001
+REVOKE = 0x0080
+ZONE = 0x0100
+
 class DNSKEY(dns.rdtypes.keybase.KEYBase):
     """DNSKEY record"""
     pass

@@ -1,5 +1,10 @@
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
+	* Added various DNSSEC related constants (e.g. algorithm identifiers,
+	  flag values).
+
+2009-06-18  Bob Halley  <halley@dnspython.org>
+
 	* dns/tsig.py: Added support for BADTRUNC result code.
 
 2009-06-18  Bob Halley  <halley@dnspython.org>

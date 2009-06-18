@@ -27,6 +27,12 @@ b32_hex_to_normal = string.maketrans('0123456789ABCDEFGHIJKLMNOPQRSTUV',
 b32_normal_to_hex = string.maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
                                      '0123456789ABCDEFGHIJKLMNOPQRSTUV')
 
+# hash algorithm constants
+SHA1 = 1
+
+# flag constants
+OPTOUT = 1
+
 class NSEC3(dns.rdata.Rdata):
     """NSEC3 record
 
