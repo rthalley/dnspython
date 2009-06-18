@@ -538,7 +538,7 @@ class Resolver(object):
         return min(self.lifetime - duration, self.timeout)
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-              tcp=False):
+              tcp=False, source=None):
         """Query nameservers to find the answer to the question.
 
         The I{qname}, I{rdtype}, and I{rdclass} parameters may be objects
@@ -554,6 +554,8 @@ class Resolver(object):
         @type rdclass: int or string
         @param tcp: use TCP to make the query (default is False).
         @type tcp: bool
+        @param source: bind to this IP address (defaults to machine default IP).
+        @type source: IP address in dotted quad notation
         @rtype: dns.resolver.Answer instance
         @raises Timeout: no answers could be found in the specified lifetime
         @raises NXDOMAIN: the query name does not exist
@@ -603,10 +605,12 @@ class Resolver(object):
                     try:
                         if tcp:
                             response = dns.query.tcp(request, nameserver,
-                                                     timeout, self.port)
+                                                     timeout, self.port,
+                                                     source=source)
                         else:
                             response = dns.query.udp(request, nameserver,
-                                                     timeout, self.port)
+                                                     timeout, self.port,
+                                                     source=source)
                     except (socket.error, dns.exception.Timeout):
                         #
                         # Communication failure or timeout.  Go to the
@@ -709,14 +713,14 @@ def get_default_resolver():
     return default_resolver
 
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-          tcp=False):
+          tcp=False, source=None):
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver
     object to make the query.
     @see: L{dns.resolver.Resolver.query} for more information on the
     parameters."""
-    return get_default_resolver().query(qname, rdtype, rdclass, tcp)
+    return get_default_resolver().query(qname, rdtype, rdclass, tcp, source)
 
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     """Find the name of the zone which contains the specified name.
