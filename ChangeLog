@@ -1,5 +1,9 @@
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
+	* dns/tsig.py: Added support for BADTRUNC result code.
+
+2009-06-18  Bob Halley  <halley@dnspython.org>
+
 	* dns/query.py (udp): When checking that addresses are the same,
 	  use the binary form of the address in the comparison.  This
 	  ensures that we don't treat addresses as different if they have

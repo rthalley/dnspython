@@ -46,11 +46,16 @@ class PeerBadTime(PeerError):
     """Raised if the peer didn't like the time we sent"""
     pass
 
+class PeerBadTruncation(PeerError):
+    """Raised if the peer didn't like amount of truncation in the TSIG we sent"""
+    pass
+
 _alg_name = dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT.').to_digestable()
 
 BADSIG = 16
 BADKEY = 17
 BADTIME = 18
+BADTRUNC = 22
 
 def hmac_md5(wire, keyname, secret, time, fudge, original_id, error,
              other_data, request_mac, ctx=None, multi=False, first=True):
@@ -138,6 +143,8 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
             raise PeerBadKey
         elif error == BADTIME:
             raise PeerBadTime
+        elif error == BADTRUNC:
+            raise PeerBadTruncation
         else:
             raise PeerError, 'unknown TSIG error code %d' % error
     time_low = time - fudge
