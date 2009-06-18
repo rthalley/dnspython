@@ -19,6 +19,7 @@ __all__ = [
     'AFSDB',
     'CERT',
     'CNAME',
+    'DLV',
     'DNAME',
     'DNSKEY',
     'DS',

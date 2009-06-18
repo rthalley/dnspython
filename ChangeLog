@@ -1,5 +1,9 @@
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
+	* Added support for the DLV RR type.
+
+2009-06-18  Bob Halley  <halley@dnspython.org>
+
 	* Added various DNSSEC related constants (e.g. algorithm identifiers,
 	  flag values).
 
