@@ -68,9 +68,11 @@ nsap-ptr01.example. 3600 IN NSAP-PTR foo.
 nsap-ptr01.example. 3600 IN NSAP-PTR .
 nsap01.example. 3600 IN NSAP 0x47000580005a0000000001e133ffffff00016100
 nsap02.example. 3600 IN NSAP 0x47000580005a0000000001e133ffffff00016100
-nsec01.example. 3600 IN NSEC a.secure. TYPE1234
+nsec01.example. 3600 IN NSEC a.secure. A MX RRSIG NSEC TYPE1234
 nsec02.example. 3600 IN NSEC . NSAP-PTR NSEC
-nsec03.example. 3600 IN NSEC . TYPE65535
+nsec03.example. 3600 IN NSEC . NSEC TYPE65535
+nsec301.example. 3600 IN NSEC3 1 1 12 aabbccdd 2t7b4g4vsa5smi47k61mv5bv1a22bojr NS SOA MX RRSIG DNSKEY NSEC3PARAM
+nsec302.example. 3600 IN NSEC3 1 1 12 - 2t7b4g4vsa5smi47k61mv5bv1a22bojr NS SOA MX RRSIG DNSKEY NSEC3PARAM
 nxt01.example. 3600 IN NXT a.secure.example. NS SOA MX SIG KEY LOC NXT
 nxt02.example. 3600 IN NXT . NSAP-PTR NXT
 nxt03.example. 3600 IN NXT . A
