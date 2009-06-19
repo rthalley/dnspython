@@ -28,7 +28,7 @@ class RP(dns.rdata.Rdata):
     @see: RFC 1183"""
 
     __slots__ = ['mbox', 'txt']
-    
+
     def __init__(self, rdclass, rdtype, mbox, txt):
         super(RP, self).__init__(rdclass, rdtype)
         self.mbox = mbox
@@ -38,7 +38,7 @@ class RP(dns.rdata.Rdata):
         mbox = self.mbox.choose_relativity(origin, relativize)
         txt = self.txt.choose_relativity(origin, relativize)
         return "%s %s" % (str(mbox), str(txt))
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         mbox = tok.get_name()
         txt = tok.get_name()
@@ -46,13 +46,17 @@ class RP(dns.rdata.Rdata):
         txt = txt.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, mbox, txt)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         self.mbox.to_wire(file, None, origin)
         self.txt.to_wire(file, None, origin)
-        
+
+    def to_digestable(self, origin = None):
+        return self.mbox.to_digestable(origin) + \
+            self.txt.to_digestable(origin)
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (mbox, cused) = dns.name.from_wire(wire[: current + rdlen],
                                            current)

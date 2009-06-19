@@ -82,7 +82,13 @@ class SOA(dns.rdata.Rdata):
         five_ints = struct.pack('!IIIII', self.serial, self.refresh,
                                 self.retry, self.expire, self.minimum)
         file.write(five_ints)
-        
+
+    def to_digestable(self, origin = None):
+        return self.mname.to_digestable(origin) + \
+            self.rname.to_digestable(origin) + \
+            struct.pack('!IIIII', self.serial, self.refresh,
+                        self.retry, self.expire, self.minimum)
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (mname, cused) = dns.name.from_wire(wire[: current + rdlen], current)
         current += cused

@@ -28,7 +28,7 @@ class NXT(dns.rdata.Rdata):
     @see: RFC 2535"""
 
     __slots__ = ['next', 'bitmap']
-    
+
     def __init__(self, rdclass, rdtype, next, bitmap):
         super(NXT, self).__init__(rdclass, rdtype)
         self.next = next
@@ -44,7 +44,7 @@ class NXT(dns.rdata.Rdata):
                     bits.append(dns.rdatatype.to_text(i * 8 + j))
         text = ' '.join(bits)
         return '%s %s' % (next, text)
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         next = tok.get_name()
         next = next.choose_relativity(origin, relativize)
@@ -68,13 +68,16 @@ class NXT(dns.rdata.Rdata):
             bitmap[i] = chr(ord(bitmap[i]) | (0x80 >> (nrdtype % 8)))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
         return cls(rdclass, rdtype, next, bitmap)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         self.next.to_wire(file, None, origin)
         file.write(self.bitmap)
-        
+
+    def to_digestable(self, origin = None):
+        return self.next.to_digestable(origin) + self.bitmap
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (next, cused) = dns.name.from_wire(wire[: current + rdlen], current)
         current += cused
@@ -88,7 +91,7 @@ class NXT(dns.rdata.Rdata):
 
     def choose_relativity(self, origin = None, relativize = True):
         self.next = self.next.choose_relativity(origin, relativize)
-        
+
     def _cmp(self, other):
         v = cmp(self.next, other.next)
         if v == 0:

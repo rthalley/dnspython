@@ -15,6 +15,7 @@
 
 """MX-like base classes."""
 
+import cStringIO
 import struct
 
 import dns.exception
@@ -30,7 +31,7 @@ class MXBase(dns.rdata.Rdata):
     @type exchange: dns.name.Name object"""
 
     __slots__ = ['preference', 'exchange']
-    
+
     def __init__(self, rdclass, rdtype, preference, exchange):
         super(MXBase, self).__init__(rdclass, rdtype)
         self.preference = preference
@@ -39,21 +40,25 @@ class MXBase(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         exchange = self.exchange.choose_relativity(origin, relativize)
         return '%d %s' % (self.preference, exchange)
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         preference = tok.get_uint16()
         exchange = tok.get_name()
         exchange = exchange.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, preference, exchange)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         pref = struct.pack("!H", self.preference)
         file.write(pref)
         self.exchange.to_wire(file, compress, origin)
-        
+
+    def to_digestable(self, origin = None):
+        return struct.pack("!H", self.preference) + \
+            self.exchange.to_digestable(origin)
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (preference, ) = struct.unpack('!H', wire[current : current + 2])
         current += 2
@@ -70,7 +75,7 @@ class MXBase(dns.rdata.Rdata):
 
     def choose_relativity(self, origin = None, relativize = True):
         self.exchange = self.exchange.choose_relativity(origin, relativize)
-        
+
     def _cmp(self, other):
         sp = struct.pack("!H", self.preference)
         op = struct.pack("!H", other.preference)
@@ -81,7 +86,20 @@ class MXBase(dns.rdata.Rdata):
 
 class UncompressedMX(MXBase):
     """Base class for rdata that is like an MX record, but whose name
-    is not compressed when convert to DNS wire format."""
+    is not compressed when converted to DNS wire format, and whose
+    digestable form is not downcased."""
 
     def to_wire(self, file, compress = None, origin = None):
         super(UncompressedMX, self).to_wire(file, None, origin)
+
+    def to_digestable(self, origin = None):
+        f = cStringIO.StringIO()
+        self.to_wire(f, None, origin)
+        return f.getvalue()
+
+class UncompressedDowncasingMX(MXBase):
+    """Base class for rdata that is like an MX record, but whose name
+    is not compressed when convert to DNS wire format."""
+
+    def to_wire(self, file, compress = None, origin = None):
+        super(UncompressedDowncasingMX, self).to_wire(file, None, origin)

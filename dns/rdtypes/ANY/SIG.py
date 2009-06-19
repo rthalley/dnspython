@@ -17,4 +17,10 @@ import dns.rdtypes.sigbase
 
 class SIG(dns.rdtypes.sigbase.SIGBase):
     """SIG record"""
-    pass
+    def to_digestable(self, origin = None):
+        return struct.pack('!HBBIIIH', self.type_covered,
+                           self.algorithm, self.labels,
+                           self.original_ttl, self.expiration,
+                           self.inception, self.key_tag) + \
+                           self.signer.to_digestable(origin) + \
+                           self.signature

@@ -15,7 +15,7 @@
 
 import dns.rdtypes.mxbase
 
-class AFSDB(dns.rdtypes.mxbase.UncompressedMX):
+class AFSDB(dns.rdtypes.mxbase.UncompressedDowncasingMX):
     """AFSDB record
 
     @ivar subtype: the subtype value
@@ -33,18 +33,18 @@ class AFSDB(dns.rdtypes.mxbase.UncompressedMX):
     # We probably lose some performance vs. a cut-and-paste
     # implementation, but this way we don't copy code, and that's
     # good.
-    
+
     def get_subtype(self):
         return self.preference
-    
+
     def set_subtype(self, subtype):
         self.preference = subtype
 
     subtype = property(get_subtype, set_subtype)
-    
+
     def get_hostname(self):
         return self.exchange
-    
+
     def set_hostname(self, hostname):
         self.exchange = hostname
 
