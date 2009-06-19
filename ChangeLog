@@ -1,5 +1,11 @@
 2009-06-19  Bob Halley  <halley@dnspython.org>
 
+	* (Version 1.7.1 released)
+
+2009-06-19  Bob Halley  <halley@dnspython.org>
+
+	* DLV.py was omitted from the kit
+
 	* Negative prerequisites were not handled correctly in _get_section().
 
 2009-06-19  Bob Halley  <halley@dnspython.org>

@@ -22,7 +22,18 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.7.0.
+This is dnspython 1.7.1.
+
+New since 1.7.0:
+
+    	Nothing
+
+Bugs fixed since 1.7.0:
+
+     	The 1.7.0 kitting process inadventently omitted the code for the
+	DLV RR.
+
+	Negative DDNS prerequisites are now handled correctly.
 
 New since 1.6.0:
 
