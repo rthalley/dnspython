@@ -25,6 +25,7 @@ __all__ = [
     'DS',
     'GPOS',
     'HINFO',
+    'HIP',
     'ISDN',
     'KEY',
     'LOC',

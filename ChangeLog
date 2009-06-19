@@ -1,3 +1,7 @@
+2009-06-19  Bob Halley  <halley@dnspython.org>
+
+	* Added support for the HIP RR type.
+
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
 	* Added support for the DLV RR type.
