@@ -1,46 +1,38 @@
 2009-06-19  Bob Halley  <halley@dnspython.org>
 
+	* (Version 1.7.0 released)
+
+2009-06-19  Bob Halley  <halley@dnspython.org>
+
         * Added a to_digestable() method to rdata classes; it returns the
 	  digestable form (i.e. DNSSEC canonical form) of the rdata.  For
 	  most rdata types this is the same uncompressed wire form.  For
 	  certain older DNS RR types, however, domain names in the rdata
 	  are downcased.
 
-2009-06-19  Bob Halley  <halley@dnspython.org>
-
-        * Added support for the HIP RR type.
+       * Added support for the HIP RR type.
 
 2009-06-18  Bob Halley  <halley@dnspython.org>
 
-        * Added support for the DLV RR type.
+       * Added support for the DLV RR type.
 
-2009-06-18  Bob Halley  <halley@dnspython.org>
+       * Added various DNSSEC related constants (e.g. algorithm identifiers,
+         flag values).
 
-        * Added various DNSSEC related constants (e.g. algorithm identifiers,
-          flag values).
+       * dns/tsig.py: Added support for BADTRUNC result code.
 
-2009-06-18  Bob Halley  <halley@dnspython.org>
+       * dns/query.py (udp): When checking that addresses are the same,
+         use the binary form of the address in the comparison.  This
+         ensures that we don't treat addresses as different if they have
+         equivalent but differing textual representations.  E.g. "1:00::1"
+         and "1::1" represent the same address but are not textually equal.
+         Thanks to Kim Davies for reporting this bug.
 
-        * dns/tsig.py: Added support for BADTRUNC result code.
+       * The resolver's query() method now has an optional 'source' parameter,
+         allowing the source IP address to be specified.  Thanks to
+         Alexander Lind for suggesting the change and sending a patch.
 
-2009-06-18  Bob Halley  <halley@dnspython.org>
-
-        * dns/query.py (udp): When checking that addresses are the same,
-          use the binary form of the address in the comparison.  This
-          ensures that we don't treat addresses as different if they have
-          equivalent but differing textual representations.  E.g. "1:00::1"
-          and "1::1" represent the same address but are not textually equal.
-          Thanks to Kim Davies for reporting this bug.
-
-2009-06-18  Bob Halley  <halley@dnspython.org>
-
-        * The resolver's query() method now has an optional 'source' parameter,
-          allowing the source IP address to be specified.  Thanks to
-          Alexander Lind for suggesting the change and sending a patch.
-
-2009-06-18  Bob Halley  <halley@dnspython.org>
-
-        * Added NSEC3 and NSEC3PARAM support.
+       * Added NSEC3 and NSEC3PARAM support.
 
 2009-06-17  Bob Halley  <halley@dnspython.org>
 

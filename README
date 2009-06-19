@@ -25,10 +25,44 @@ ABOUT THIS RELEASE
 This is dnspython 1.7.0.
 
 New since 1.6.0:
-	TBS
+
+    	Rdatas now have a to_digestable() method, which returns the
+	DNSSEC canonical form of the rdata, suitable for use in
+	signature computations.
+
+	The NSEC3, NSEC3PARAM, DLV, and HIP RR types are now supported.
+
+	An entropy module has been added and is used to randomize query ids.
+
+	EDNS0 options are now supported.
+
+	UDP IXFR is now supported.
+
+	The wire format parser now has a 'one_rr_per_rrset' mode, which
+	suppresses the usual coalescing of all RRs of a given type into a
+	single RRset.
+
+	Various helpful DNSSEC-related constants are now defined.
+
+	The resolver's query() method now has an optional 'source' parameter,
+        allowing the source IP address to be specified.
 
 Bugs fixed since 1.6.0:
-	TBS
+
+	DS RR parsing only allowed one Base64 chunk.
+
+	TSIG validation didn't always use absolute names.
+
+	NSEC.to_text() only printed the last window.
+
+	We did not canonicalize IPv6 addresses before comparing them; we
+	would thus treat equivalent but different textual forms, e.g.
+	"1:00::1" and "1::1" as being non-equivalent.
+
+	If the peer set a TSIG error, we didn't raise an exception.
+
+	Some EDNS bugs in the message code have been fixed (see the ChangeLog
+	for details).
 
 New since 1.5.0:
 	Added dns.inet.is_multicast().
