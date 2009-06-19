@@ -95,6 +95,8 @@ ns1 1d1s a 10.0.0.1
 ns2 1w1D1h1m1S a 10.0.0.2
 """
 
+_keep_output = False
+
 class ZoneTestCase(unittest.TestCase):
 
     def testFromFile1(self):
@@ -104,7 +106,8 @@ class ZoneTestCase(unittest.TestCase):
             z.to_file('example1.out', nl='\x0a')
             ok = filecmp.cmp('example1.out', 'example1.good')
         finally:
-            os.unlink('example1.out')
+            if not _keep_output:
+                os.unlink('example1.out')
         self.failUnless(ok)
 
     def testFromFile2(self):
@@ -114,7 +117,8 @@ class ZoneTestCase(unittest.TestCase):
             z.to_file('example2.out', relativize=False, nl='\x0a')
             ok = filecmp.cmp('example2.out', 'example2.good')
         finally:
-            os.unlink('example2.out')
+            if not _keep_output:
+                os.unlink('example2.out')
         self.failUnless(ok)
 
     def testFromText(self):
