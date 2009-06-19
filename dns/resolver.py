@@ -398,7 +398,7 @@ class Resolver(object):
             try:
                 dom, rtype = _winreg.QueryValueEx(key, 'Domain')
                 if dom:
-                    self._config_win32_domain(servers)
+                    self._config_win32_domain(dom)
             except WindowsError:
                 pass
         else:
@@ -411,7 +411,7 @@ class Resolver(object):
                 try:
                     dom, rtype = _winreg.QueryValueEx(key, 'DhcpDomain')
                     if dom:
-                        self._config_win32_domain(servers)
+                        self._config_win32_domain(dom)
                 except WindowsError:
                     pass
         try:

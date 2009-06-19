@@ -49,6 +49,8 @@ New since 1.6.0:
 
 Bugs fixed since 1.6.0:
 
+     	On Windows, the resolver set the domain incorrectly.
+
 	DS RR parsing only allowed one Base64 chunk.
 
 	TSIG validation didn't always use absolute names.

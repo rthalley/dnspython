@@ -4,6 +4,9 @@
 
 2009-06-19  Bob Halley  <halley@dnspython.org>
 
+	* On Windows, the resolver set the domain incorrectly.  Thanks
+	  to Brandon Carpenter for reporting this bug.
+
         * Added a to_digestable() method to rdata classes; it returns the
 	  digestable form (i.e. DNSSEC canonical form) of the rdata.  For
 	  most rdata types this is the same uncompressed wire form.  For
