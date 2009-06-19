@@ -135,7 +135,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         while 1:
             _wait_for_readable(s, expiration)
             (wire, from_address) = s.recvfrom(65535)
-            if _addresses_equal(from_address, destination) or \
+            if _addresses_equal(af, from_address, destination) or \
                     (dns.inet.is_multicast(where) and \
                          from_address[1:] == destination[1:]):
                 break
