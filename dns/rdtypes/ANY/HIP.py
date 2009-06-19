@@ -79,7 +79,7 @@ class HIP(dns.rdata.Rdata):
         file.write(self.hit)
         file.write(self.key)
         for server in self.servers:
-            server.to_wire(file, compress, origin)
+            server.to_wire(file, None, origin)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (lh, algorithm, lk) = struct.unpack('!BBH',
