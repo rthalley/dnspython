@@ -1,5 +1,9 @@
 2009-06-19  Bob Halley  <halley@dnspython.org>
 
+	* Negative prerequisites were not handled correctly in _get_section().
+
+2009-06-19  Bob Halley  <halley@dnspython.org>
+
 	* (Version 1.7.0 released)
 
 2009-06-19  Bob Halley  <halley@dnspython.org>
