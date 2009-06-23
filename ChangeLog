@@ -1,3 +1,9 @@
+2009-06-23  Bob Halley  <halley@dnspython.org>
+
+	* dns/entropy.py (EntropyPool.__init__): open /dev/random unbuffered;
+	  there's no need to consume more randomness than we need.  Thanks
+	  to Brian Wellington for the patch.
+
 2009-06-19  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.7.1 released)

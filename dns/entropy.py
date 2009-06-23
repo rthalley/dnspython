@@ -22,7 +22,7 @@ class EntropyPool(object):
         self.next_byte = 0
         if seed is None:
             try:
-                r = file('/dev/random')
+                r = file('/dev/random', 'r', 0)
                 try:
                     seed = r.read(16)
                 finally:
