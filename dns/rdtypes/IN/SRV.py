@@ -33,7 +33,7 @@ class SRV(dns.rdata.Rdata):
     @see: RFC 2782"""
 
     __slots__ = ['priority', 'weight', 'port', 'target']
-    
+
     def __init__(self, rdclass, rdtype, priority, weight, port, target):
         super(SRV, self).__init__(rdclass, rdtype)
         self.priority = priority
@@ -45,7 +45,7 @@ class SRV(dns.rdata.Rdata):
         target = self.target.choose_relativity(origin, relativize)
         return '%d %d %d %s' % (self.priority, self.weight, self.port,
                                 target)
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         priority = tok.get_uint16()
         weight = tok.get_uint16()
@@ -54,14 +54,14 @@ class SRV(dns.rdata.Rdata):
         target = target.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, priority, weight, port, target)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         three_ints = struct.pack("!HHH", self.priority, self.weight, self.port)
         file.write(three_ints)
         self.target.to_wire(file, compress, origin)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (priority, weight, port) = struct.unpack('!HHH',
                                                  wire[current : current + 6])
@@ -82,7 +82,7 @@ class SRV(dns.rdata.Rdata):
 
     def _cmp(self, other):
         sp = struct.pack("!HHH", self.priority, self.weight, self.port)
-        op = struct.pack("!HHH", other.priority, self.weight, self.port)
+        op = struct.pack("!HHH", other.priority, other.weight, other.port)
         v = cmp(sp, op)
         if v == 0:
             v = cmp(self.target, other.target)
