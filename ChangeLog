@@ -1,3 +1,7 @@
+2009-07-23  Bob Halley  <halley@dnspython.org>
+
+	* dns/e164.py (query): The resolver parameter was never used.
+
 2009-06-23  Bob Halley  <halley@dnspython.org>
 
 	* dns/entropy.py (EntropyPool.__init__): open /dev/random unbuffered;

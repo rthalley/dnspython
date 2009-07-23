@@ -73,7 +73,7 @@ def query(number, domains, resolver=None):
             domain = dns.name.from_text(domain)
         qname = dns.e164.from_e164(number, domain)
         try:
-            return dns.resolver.query(qname, 'NAPTR')
+            return resolver.query(qname, 'NAPTR')
         except dns.resolver.NXDOMAIN:
             pass
     raise dns.resolver.NXDOMAIN
