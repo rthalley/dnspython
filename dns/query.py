@@ -336,6 +336,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         s = socket.socket(af, socket.SOCK_DGRAM, 0)
     else:
         s = socket.socket(af, socket.SOCK_STREAM, 0)
+    s.setblocking(0)
     if source is not None:
         s.bind(source)
     expiration = _compute_expiration(lifetime)
