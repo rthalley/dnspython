@@ -14,12 +14,17 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import time
+try:
+    import threading as _threading
+except ImportError:
+    import dummy_threading as _threading
 
 class EntropyPool(object):
     def __init__(self, seed=None):
         self.pool_index = 0
         self.digest = None
         self.next_byte = 0
+        self.lock = _threading.Lock()
         if seed is None:
             try:
                 r = file('/dev/random', 'r', 0)
@@ -45,24 +50,34 @@ class EntropyPool(object):
         self.pool = '\0' * self.hash_len
         self.stir(seed)
 
-    def stir(self, entropy):
-        bytes = [ord(c) for c in self.pool]
-        for c in entropy:
-            if self.pool_index == self.hash_len:
-                self.pool_index = 0
-            b = ord(c) & 0xff
-            bytes[self.pool_index] ^= b
-            self.pool_index += 1
-        self.pool = ''.join([chr(c) for c in bytes])
+    def stir(self, entropy, already_locked=False):
+        if not already_locked:
+            self.lock.acquire()
+        try:
+            bytes = [ord(c) for c in self.pool]
+            for c in entropy:
+                if self.pool_index == self.hash_len:
+                    self.pool_index = 0
+                b = ord(c) & 0xff
+                bytes[self.pool_index] ^= b
+                self.pool_index += 1
+            self.pool = ''.join([chr(c) for c in bytes])
+        finally:
+            if not already_locked:
+                self.lock.release()
 
     def random_8(self):
-        if self.digest is None or self.next_byte == self.hash_len:
-            self.hash.update(self.pool)
-            self.digest = self.hash.digest()
-            self.stir(self.digest)
-            self.next_byte = 0
-        value = ord(self.digest[self.next_byte])
-        self.next_byte += 1
+        self.lock.acquire()
+        try:
+            if self.digest is None or self.next_byte == self.hash_len:
+                self.hash.update(self.pool)
+                self.digest = self.hash.digest()
+                self.stir(self.digest, True)
+                self.next_byte = 0
+            value = ord(self.digest[self.next_byte])
+            self.next_byte += 1
+        finally:
+            self.lock.release()
         return value
 
     def random_16(self):
