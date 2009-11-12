@@ -1,3 +1,8 @@
+2009-11-13  Bob Halley  <halley@dnspython.org>
+
+	* dns/entropy.py: Use os.urandom() if present.  Don't seed until
+	  someone wants randomness.
+
 2009-09-16  Bob Halley  <halley@dnspython.org>
 
 	* dns/entropy.py: The entropy module needs locking in order to be
