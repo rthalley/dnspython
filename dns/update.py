@@ -199,7 +199,7 @@ class Update(dns.message.Message):
         elif isinstance(args[0], dns.rdataset.Rdataset) or \
              isinstance(args[0], dns.rdata.Rdata) or \
              len(args) > 1:
-            if not isinstance(args[0], dns.rdata.Rdataset):
+            if not isinstance(args[0], dns.rdataset.Rdataset):
                 # Add a 0 TTL
                 args = list(args)
                 args.insert(0, 0)
