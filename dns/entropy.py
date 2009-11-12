@@ -13,6 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import os
 import time
 try:
     import threading as _threading
@@ -25,15 +26,6 @@ class EntropyPool(object):
         self.digest = None
         self.next_byte = 0
         self.lock = _threading.Lock()
-        if seed is None:
-            try:
-                r = file('/dev/random', 'r', 0)
-                try:
-                    seed = r.read(16)
-                finally:
-                    r.close()
-            except:
-                seed = str(time.time())
         try:
             import hashlib
             self.hash = hashlib.sha1()
@@ -48,7 +40,11 @@ class EntropyPool(object):
                 self.hash = md5.new()
                 self.hash_len = 16
         self.pool = '\0' * self.hash_len
-        self.stir(seed)
+        if not seed is None:
+            self.stir(seed)
+            self.seeded = True
+        else:
+            self.seeded = False
 
     def stir(self, entropy, already_locked=False):
         if not already_locked:
@@ -66,8 +62,25 @@ class EntropyPool(object):
             if not already_locked:
                 self.lock.release()
 
+    def _maybe_seed(self):
+        if not self.seeded:
+            try:
+                seed = os.urandom(16)
+            except:
+                try:
+                    r = file('/dev/urandom', 'r', 0)
+                    try:
+                        seed = r.read(16)
+                    finally:
+                        r.close()
+                except:
+                    seed = str(time.time())
+            self.seeded = True
+            self.stir(seed, True)
+
     def random_8(self):
         self.lock.acquire()
+        self._maybe_seed()
         try:
             if self.digest is None or self.next_byte == self.hash_len:
                 self.hash.update(self.pool)
