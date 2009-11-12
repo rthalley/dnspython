@@ -22,7 +22,33 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.7.1.
+This is dnspython 1.8.0
+
+New since 1.7.1:
+
+    	Support for hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384
+	and hmac-sha512 has been contributed by Kevin Chen.
+
+Bugs fixed since 1.7.1:
+
+     	When constructing a DDNS update, if the present() method was
+	used with a single rdata, a zero TTL was not added.
+
+	The entropy pool needed locking to be thread safe.
+
+	The entropy pool's reading of /dev/random could cause
+	dnspython to block.
+
+	The entropy pool did buffered reads, potentially consuming more
+	randomness than we needed.
+
+	The entropy pool did not seed with high quality randomness on
+	Windows.
+
+	SRV records were compared incorrectly.
+
+	In the e164 query function, the resolver parameter was not
+	used.
 
 New since 1.7.0:
 
