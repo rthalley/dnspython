@@ -24,7 +24,7 @@ import dns.rdataset
 
 class Update(dns.message.Message):
     def __init__(self, zone, rdclass=dns.rdataclass.IN, keyring=None,
-                 keyname=None):
+                 keyname=None, keyalgorithm=dns.tsig.default_algorithm):
         """Initialize a new DNS Update object.
 
         @param zone: The zone which is being updated.
@@ -41,6 +41,9 @@ class Update(dns.message.Message):
         so applications should supply a keyname when a keyring is used, unless
         they know the keyring contains only one key.
         @type keyname: dns.name.Name or string
+        @param keyalgorithm: The TSIG algorithm to use; defaults to
+        dns.tsig.default_algorithm
+        @type keyalgorithm: string
         """
         super(Update, self).__init__()
         self.flags |= dns.opcode.to_flags(dns.opcode.UPDATE)
@@ -53,7 +56,7 @@ class Update(dns.message.Message):
         self.find_rrset(self.question, self.origin, rdclass, dns.rdatatype.SOA,
                         create=True, force_unique=True)
         if not keyring is None:
-            self.use_tsig(keyring, keyname)
+            self.use_tsig(keyring, keyname, keyalgorithm)
 
     def _add_rr(self, name, ttl, rd, deleting=None, section=None):
         """Add a single RR to the update section."""

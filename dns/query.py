@@ -258,7 +258,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
 def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         timeout=None, port=53, keyring=None, keyname=None, relativize=True,
         af=None, lifetime=None, source=None, source_port=0, serial=0,
-        use_udp=False):
+        use_udp=False, keyalgorithm=dns.tsig.default_algorithm):
     """Return a generator for the responses to a zone transfer.
 
     @param where: where to send the message
@@ -303,6 +303,9 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     @type serial: int
     @param use_udp: Use UDP (only meaningful for IXFR)
     @type use_udp: bool
+    @param keyalgorithm: The TSIG algorithm to use; defaults to
+    dns.tsig.default_algorithm
+    @type keyalgorithm: string
     """
 
     if isinstance(zone, (str, unicode)):
@@ -315,7 +318,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                                     '. . %u 0 0 0 0' % serial)
         q.authority.append(rrset)
     if not keyring is None:
-        q.use_tsig(keyring, keyname)
+        q.use_tsig(keyring, keyname, keyalgorithm)
     wire = q.to_wire()
     if af is None:
         try:

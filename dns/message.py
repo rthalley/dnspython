@@ -92,6 +92,9 @@ class Message(object):
     @type keyring: dict
     @ivar keyname: The TSIG keyname to use.  The default is None.
     @type keyname: dns.name.Name object
+    @ivar keyalgorithm: The TSIG key algorithm to use.  The default is
+    dns.tsig.default_algorithm.
+    @type keyalgorithm: string
     @ivar request_mac: The TSIG MAC of the request message associated with
     this message; used when validating TSIG signatures.   @see: RFC 2845 for
     more information on TSIG fields.
@@ -149,6 +152,7 @@ class Message(object):
         self.request_payload = 0
         self.keyring = None
         self.keyname = None
+        self.keyalgorithm = dns.tsig.default_algorithm
         self.request_mac = ''
         self.other_data = ''
         self.tsig_error = 0
@@ -410,12 +414,14 @@ class Message(object):
         if not self.keyname is None:
             r.add_tsig(self.keyname, self.keyring[self.keyname],
                        self.fudge, self.original_id, self.tsig_error,
-                       self.other_data, self.request_mac)
+                       self.other_data, self.request_mac,
+                       self.keyalgorithm)
             self.mac = r.mac
         return r.get_wire()
 
-    def use_tsig(self, keyring, keyname=None, fudge=300, original_id=None,
-                 tsig_error=0, other_data=''):
+    def use_tsig(self, keyring, keyname=None, fudge=300,
+                 original_id=None, tsig_error=0, other_data='',
+                 algorithm=dns.tsig.default_algorithm):
         """When sending, a TSIG signature using the specified keyring
         and keyname should be added.
 
@@ -436,6 +442,8 @@ class Message(object):
         @type tsig_error: int
         @param other_data: TSIG other data.
         @type other_data: string
+        @param algorithm: The TSIG algorithm to use; defaults to
+        dns.tsig.default_algorithm
         """
 
         self.keyring = keyring
@@ -445,6 +453,7 @@ class Message(object):
             if isinstance(keyname, (str, unicode)):
                 keyname = dns.name.from_text(keyname)
             self.keyname = keyname
+        self.keyalgorithm = algorithm
         self.fudge = fudge
         if original_id is None:
             self.original_id = self.id

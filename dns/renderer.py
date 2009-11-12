@@ -250,7 +250,7 @@ class Renderer(object):
         self.counts[ADDITIONAL] += 1
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
-                 request_mac):
+                 request_mac, algorithm=dns.tsig.default_algorithm):
         """Add a TSIG signature to the message.
 
         @param keyname: the TSIG key name
@@ -267,6 +267,7 @@ class Renderer(object):
         @type other_data: string
         @param request_mac: This message is a response to the request which
         had the specified MAC.
+        @param algorithm: the TSIG algorithm to use
         @type request_mac: string
         """
 
@@ -281,7 +282,8 @@ class Renderer(object):
                                                         id,
                                                         tsig_error,
                                                         other_data,
-                                                        request_mac)
+                                                        request_mac,
+                                                        algorithm=algorithm)
         keyname.to_wire(self.output, self.compress, self.origin)
         self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
                                       dns.rdataclass.ANY, 0, 0))

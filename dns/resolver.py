@@ -265,6 +265,9 @@ class Resolver(object):
     @type keyring: dict
     @ivar keyname: The TSIG keyname to use.  The default is None.
     @type keyname: dns.name.Name object
+    @ivar keyalgorithm: The TSIG key algorithm to use.  The default is
+    dns.tsig.default_algorithm.
+    @type keyalgorithm: string
     @ivar edns: The EDNS level to use.  The default is -1, no Edns.
     @type edns: int
     @ivar ednsflags: The EDNS flags
@@ -307,6 +310,7 @@ class Resolver(object):
         self.lifetime = 30.0
         self.keyring = None
         self.keyname = None
+        self.keyalgorithm = dns.tsig.default_algorithm
         self.edns = -1
         self.ednsflags = 0
         self.payload = 0
@@ -589,7 +593,7 @@ class Resolver(object):
                     return answer
             request = dns.message.make_query(qname, rdtype, rdclass)
             if not self.keyname is None:
-                request.use_tsig(self.keyring, self.keyname)
+                request.use_tsig(self.keyring, self.keyname, self.keyalgorithm)
             request.use_edns(self.edns, self.ednsflags, self.payload)
             response = None
             #
@@ -670,7 +674,8 @@ class Resolver(object):
             self.cache.put((qname, rdtype, rdclass), answer)
         return answer
 
-    def use_tsig(self, keyring, keyname=None):
+    def use_tsig(self, keyring, keyname=None,
+                 algorithm=dns.tsig.default_algorithm):
         """Add a TSIG signature to the query.
 
         @param keyring: The TSIG keyring to use; defaults to None.
@@ -680,12 +685,16 @@ class Resolver(object):
         but a keyname is not, then the key used will be the first key in the
         keyring.  Note that the order of keys in a dictionary is not defined,
         so applications should supply a keyname when a keyring is used, unless
-        they know the keyring contains only one key."""
+        they know the keyring contains only one key.
+        @param algorithm: The TSIG key algorithm to use.  The default
+        is dns.tsig.default_algorithm.
+        @type algorithm: string"""
         self.keyring = keyring
         if keyname is None:
             self.keyname = self.keyring.keys()[0]
         else:
             self.keyname = keyname
+        self.keyalgorithm = algorithm
 
     def use_edns(self, edns, ednsflags, payload):
         """Configure Edns.
