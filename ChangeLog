@@ -1,3 +1,10 @@
+2009-11-13  Bob Halley  <halley@nominum.com>
+
+	* dns/update.py (Update::present): A zero TTL was not added if
+	  present() was called with a single rdata, causing _add() to be
+	  unhappy.  Thanks to Eugene Kim for reporting the problem and
+	  submitting a patch.
+
 2009-11-13  Bob Halley  <halley@dnspython.org>
 
 	* dns/entropy.py: Use os.urandom() if present.  Don't seed until
