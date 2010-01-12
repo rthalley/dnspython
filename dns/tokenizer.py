@@ -386,7 +386,7 @@ class Tokenizer(object):
             if self.multiline:
                 raise dns.exception.SyntaxError, 'unbalanced parentheses'
             ttype = EOF
-        return Token(ttype, token)
+        return Token(ttype, token, has_escape)
 
     def unget(self, token):
         """Unget a token.
