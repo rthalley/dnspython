@@ -159,12 +159,32 @@ class TokenizerTestCase(unittest.TestCase):
     def testEscapedDelimiter1(self):
         tok = dns.tokenizer.Tokenizer(r'ch\ ld')
         t = tok.get()
-        self.failUnless(t.ttype == dns.tokenizer.IDENTIFIER and t.value == r'ch ld')
+        self.failUnless(t.ttype == dns.tokenizer.IDENTIFIER and t.value == r'ch\ ld')
 
     def testEscapedDelimiter2(self):
         tok = dns.tokenizer.Tokenizer(r'ch\0ld')
         t = tok.get()
         self.failUnless(t.ttype == dns.tokenizer.IDENTIFIER and t.value == r'ch\0ld')
+
+    def testEscapedDelimiter3(self):
+        tok = dns.tokenizer.Tokenizer(r'ch\032ld')
+        t = tok.get()
+        self.failUnless(t.ttype == dns.tokenizer.IDENTIFIER and t.value == r'ch\032ld')
+
+    def testEscapedDelimiter1u(self):
+        tok = dns.tokenizer.Tokenizer(r'ch\ ld')
+        t = tok.get().unescape()
+        self.failUnless(t.ttype == dns.tokenizer.IDENTIFIER and t.value == r'ch\ ld')
+
+    def testEscapedDelimiter2u(self):
+        tok = dns.tokenizer.Tokenizer(r'ch\0ld')
+        t = tok.get().unescape()
+        self.failUnless(t.ttype == dns.tokenizer.IDENTIFIER and t.value == r'ch\0ld')
+
+    def testEscapedDelimiter3u(self):
+        tok = dns.tokenizer.Tokenizer(r'ch\032ld')
+        t = tok.get().unescape()
+        self.failUnless(t.ttype == dns.tokenizer.IDENTIFIER and t.value == r'ch\032ld')
 
 if __name__ == '__main__':
     unittest.main()

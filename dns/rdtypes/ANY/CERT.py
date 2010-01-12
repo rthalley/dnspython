@@ -86,7 +86,7 @@ class CERT(dns.rdata.Rdata):
             raise dns.exception.SyntaxError, "bad algorithm type"
         chunks = []
         while 1:
-            t = tok.get()
+            t = tok.get().unescape()
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():

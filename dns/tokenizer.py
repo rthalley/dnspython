@@ -53,6 +53,8 @@ class Token(object):
     @type ttype: int
     @ivar value: The token value
     @type value: string
+    @ivar has_escape: Does the token value contain escapes?
+    @type has_escape: bool
     """
 
     def __init__(self, ttype, value='', has_escape=False):
@@ -107,6 +109,35 @@ class Token(object):
 
     def __str__(self):
         return '%d "%s"' % (self.ttype, self.value)
+
+    def unescape(self):
+        if not self.has_escape:
+            return self
+        unescaped = ''
+        l = len(self.value)
+        i = 0
+        while i < l:
+            c = self.value[i]
+            i += 1
+            if c == '\\':
+                if i >= l:
+                    raise dns.exception.UnexpectedEnd
+                c = self.value[i]
+                i += 1
+                if c.isdigit():
+                    if i >= l:
+                        raise dns.exception.UnexpectedEnd
+                    c2 = self.value[i]
+                    i += 1
+                    if i >= l:
+                        raise dns.exception.UnexpectedEnd
+                    c3 = self.value[i]
+                    i += 1
+                    if not (c2.isdigit() and c3.isdigit()):
+                        raise dns.exception.SyntaxError
+                    c = chr(int(c) * 100 + int(c2) * 10 + int(c3))
+            unescaped += c
+        return Token(self.ttype, unescaped)
 
 class Tokenizer(object):
     """A DNS master file format tokenizer.
@@ -264,6 +295,7 @@ class Tokenizer(object):
             return Token(WHITESPACE, ' ')
         token = ''
         ttype = IDENTIFIER
+        has_escape = False
         while True:
             c = self._get_char()
             if c == '' or c in self.delimiters:
@@ -341,13 +373,14 @@ class Tokenizer(object):
                     raise dns.exception.SyntaxError, 'newline in quoted string'
             elif c == '\\':
                 #
-                # Treat \ followed by a delimiter as the
-                # delimiter, otherwise leave it alone.
+                # It's an escape.  Put it and the next character into
+                # the token; it will be checked later for goodness.
                 #
+                token += c
+                has_escape = True
                 c = self._get_char()
-                if c == '' or not c in self.delimiters:
-                    self._unget_char(c)
-                    c = '\\'
+                if c == '' or c == '\n':
+                    raise dns.exception.UnexpectedEnd
             token += c
         if token == '' and ttype != QUOTED_STRING:
             if self.multiline:
@@ -393,7 +426,7 @@ class Tokenizer(object):
         @rtype: int
         """
 
-        token = self.get()
+        token = self.get().unescape()
         if not token.is_identifier():
             raise dns.exception.SyntaxError, 'expecting an identifier'
         if not token.value.isdigit():
@@ -436,7 +469,7 @@ class Tokenizer(object):
         @rtype: int
         """
 
-        token = self.get()
+        token = self.get().unescape()
         if not token.is_identifier():
             raise dns.exception.SyntaxError, 'expecting an identifier'
         if not token.value.isdigit():
@@ -454,7 +487,7 @@ class Tokenizer(object):
         @rtype: string
         """
 
-        token = self.get()
+        token = self.get().unescape()
         if not (token.is_identifier() or token.is_quoted_string()):
             raise dns.exception.SyntaxError, 'expecting a string'
         return token.value
@@ -466,7 +499,7 @@ class Tokenizer(object):
         @rtype: string
         """
 
-        token = self.get()
+        token = self.get().unescape()
         if not token.is_identifier():
             raise dns.exception.SyntaxError, 'expecting an identifier'
         return token.value
@@ -497,7 +530,7 @@ class Tokenizer(object):
         return token.value
 
     def get_ttl(self):
-        token = self.get()
+        token = self.get().unescape()
         if not token.is_identifier():
             raise dns.exception.SyntaxError, 'expecting an identifier'
         return dns.ttl.from_text(token.value)

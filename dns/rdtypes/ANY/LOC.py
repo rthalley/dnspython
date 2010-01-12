@@ -229,19 +229,19 @@ class LOC(dns.rdata.Rdata):
             t = t[0 : -1]
         altitude = float(t) * 100.0	# m -> cm
 
-        token = tok.get()
+        token = tok.get().unescape()
         if not token.is_eol_or_eof():
             value = token.value
             if value[-1] == 'm':
                 value = value[0 : -1]
             size = float(value) * 100.0	# m -> cm
-            token = tok.get()
+            token = tok.get().unescape()
             if not token.is_eol_or_eof():
                 value = token.value
                 if value[-1] == 'm':
                     value = value[0 : -1]
                 hprec = float(value) * 100.0	# m -> cm
-                token = tok.get()
+                token = tok.get().unescape()
                 if not token.is_eol_or_eof():
                     value = token.value
                     if value[-1] == 'm':

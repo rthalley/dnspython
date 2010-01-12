@@ -35,7 +35,7 @@ class DHCID(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         chunks = []
         while 1:
-            t = tok.get()
+            t = tok.get().unescape()
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():

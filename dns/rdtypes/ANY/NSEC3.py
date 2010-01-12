@@ -93,7 +93,7 @@ class NSEC3(dns.rdata.Rdata):
         next = base64.b32decode(next)
         rdtypes = []
         while 1:
-            token = tok.get()
+            token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break
             nrdtype = dns.rdatatype.from_text(token.value)

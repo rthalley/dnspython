@@ -112,7 +112,7 @@ class KEYBase(dns.rdata.Rdata):
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         chunks = []
         while 1:
-            t = tok.get()
+            t = tok.get().unescape()
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():

@@ -86,7 +86,7 @@ class IPSECKEY(dns.rdata.Rdata):
             gateway = tok.get_string()
         chunks = []
         while 1:
-            t = tok.get()
+            t = tok.get().unescape()
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():
@@ -96,7 +96,7 @@ class IPSECKEY(dns.rdata.Rdata):
         key = b64.decode('base64_codec')
         return cls(rdclass, rdtype, precedence, gateway_type, algorithm,
                    gateway, key)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -114,7 +114,7 @@ class IPSECKEY(dns.rdata.Rdata):
         else:
             raise ValueError, 'invalid gateway type'
         file.write(self.key)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         if rdlen < 3:
             raise dns.exception.FormError
@@ -156,5 +156,5 @@ class IPSECKEY(dns.rdata.Rdata):
         other.to_wire(f)
         wire2 = f.getvalue()
         f.close()
-        
+
         return cmp(wire1, wire2)

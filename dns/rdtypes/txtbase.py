@@ -45,7 +45,7 @@ class TXTBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         strings = []
         while 1:
-            token = tok.get()
+            token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break
             if not (token.is_quoted_string() or token.is_identifier()):

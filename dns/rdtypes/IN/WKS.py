@@ -60,7 +60,7 @@ class WKS(dns.rdata.Rdata):
             protocol = socket.getprotobyname(protocol)
         bitmap = []
         while 1:
-            token = tok.get()
+            token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break
             if token.value.isdigit():

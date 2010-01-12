@@ -53,7 +53,7 @@ class NXT(dns.rdata.Rdata):
                   '\x00', '\x00', '\x00', '\x00',
                   '\x00', '\x00', '\x00', '\x00' ]
         while 1:
-            token = tok.get()
+            token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break
             if token.value.isdigit():

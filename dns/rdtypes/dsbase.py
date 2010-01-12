@@ -53,7 +53,7 @@ class DSBase(dns.rdata.Rdata):
         digest_type = tok.get_uint8()
         chunks = []
         while 1:
-            t = tok.get()
+            t = tok.get().unescape()
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():
