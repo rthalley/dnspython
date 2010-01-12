@@ -62,10 +62,10 @@ class HIP(dns.rdata.Rdata):
         key = tok.get_string().decode('base64-codec')
         servers = []
         while 1:
-            (ttype, value) = tok.get()
-            if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
+            token = tok.get()
+            if token.is_eol_or_eof():
                 break
-            server = dns.name.from_text(value, origin)
+            server = dns.name.from_text(token.value, origin)
             server.choose_relativity(origin, relativize)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)

@@ -93,10 +93,10 @@ class NSEC3(dns.rdata.Rdata):
         next = base64.b32decode(next)
         rdtypes = []
         while 1:
-            (ttype, value) = tok.get()
-            if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
+            token = tok.get()
+            if token.is_eol_or_eof():
                 break
-            nrdtype = dns.rdatatype.from_text(value)
+            nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError, "NSEC3 with bit 0"
             if nrdtype > 65535:

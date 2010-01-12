@@ -24,7 +24,7 @@ class DHCID(dns.rdata.Rdata):
     @see: RFC 4701"""
 
     __slots__ = ['data']
-    
+
     def __init__(self, rdclass, rdtype, data):
         super(DHCID, self).__init__(rdclass, rdtype)
         self.data = data
@@ -36,20 +36,20 @@ class DHCID(dns.rdata.Rdata):
         chunks = []
         while 1:
             t = tok.get()
-            if t[0] == dns.tokenizer.EOL or t[0] == dns.tokenizer.EOF:
+            if t.is_eol_or_eof():
                 break
-            if t[0] != dns.tokenizer.IDENTIFIER:
+            if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t[1])
+            chunks.append(t.value)
         b64 = ''.join(chunks)
         data = b64.decode('base64_codec')
         return cls(rdclass, rdtype, data)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         file.write(self.data)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         data = wire[current : current + rdlen]
         return cls(rdclass, rdtype, data)
@@ -57,4 +57,4 @@ class DHCID(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-	return cmp(self.data, other.data)
+        return cmp(self.data, other.data)

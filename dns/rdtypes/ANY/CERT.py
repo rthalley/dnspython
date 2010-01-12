@@ -63,7 +63,7 @@ class CERT(dns.rdata.Rdata):
     @see: RFC 2538"""
 
     __slots__ = ['certificate_type', 'key_tag', 'algorithm', 'certificate']
-    
+
     def __init__(self, rdclass, rdtype, certificate_type, key_tag, algorithm,
                  certificate):
         super(CERT, self).__init__(rdclass, rdtype)
@@ -77,7 +77,7 @@ class CERT(dns.rdata.Rdata):
         return "%s %d %s %s" % (certificate_type, self.key_tag,
                                 dns.dnssec.algorithm_to_text(self.algorithm),
                                 dns.rdata._base64ify(self.certificate))
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         certificate_type = _ctype_from_text(tok.get_string())
         key_tag = tok.get_uint16()
@@ -87,16 +87,16 @@ class CERT(dns.rdata.Rdata):
         chunks = []
         while 1:
             t = tok.get()
-            if t[0] == dns.tokenizer.EOL or t[0] == dns.tokenizer.EOF:
+            if t.is_eol_or_eof():
                 break
-            if t[0] != dns.tokenizer.IDENTIFIER:
+            if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t[1])
+            chunks.append(t.value)
         b64 = ''.join(chunks)
         certificate = b64.decode('base64_codec')
         return cls(rdclass, rdtype, certificate_type, key_tag,
                    algorithm, certificate)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -104,7 +104,7 @@ class CERT(dns.rdata.Rdata):
                              self.algorithm)
         file.write(prefix)
         file.write(self.certificate)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         prefix = wire[current : current + 5]
         current += 5
@@ -127,5 +127,5 @@ class CERT(dns.rdata.Rdata):
         other.to_wire(f)
         wire2 = f.getvalue()
         f.close()
-        
+
         return cmp(wire1, wire2)

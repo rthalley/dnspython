@@ -87,11 +87,11 @@ class IPSECKEY(dns.rdata.Rdata):
         chunks = []
         while 1:
             t = tok.get()
-            if t[0] == dns.tokenizer.EOL or t[0] == dns.tokenizer.EOF:
+            if t.is_eol_or_eof():
                 break
-            if t[0] != dns.tokenizer.IDENTIFIER:
+            if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t[1])
+            chunks.append(t.value)
         b64 = ''.join(chunks)
         key = b64.decode('base64_codec')
         return cls(rdclass, rdtype, precedence, gateway_type, algorithm,

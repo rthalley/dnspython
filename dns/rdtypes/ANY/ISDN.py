@@ -27,7 +27,7 @@ class ISDN(dns.rdata.Rdata):
     @see: RFC 1183"""
 
     __slots__ = ['address', 'subaddress']
-    
+
     def __init__(self, rdclass, rdtype, address, subaddress):
         super(ISDN, self).__init__(rdclass, rdtype)
         self.address = address
@@ -39,11 +39,11 @@ class ISDN(dns.rdata.Rdata):
                                   dns.rdata._escapify(self.subaddress))
         else:
             return '"%s"' % dns.rdata._escapify(self.address)
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         address = tok.get_string()
         t = tok.get()
-        if t[0] != dns.tokenizer.EOL and t[0] != dns.tokenizer.EOF:
+        if not t.is_eol_or_eof():
             tok.unget(t)
             subaddress = tok.get_string()
         else:
@@ -51,7 +51,7 @@ class ISDN(dns.rdata.Rdata):
             subaddress = ''
         tok.get_eol()
         return cls(rdclass, rdtype, address, subaddress)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -66,7 +66,7 @@ class ISDN(dns.rdata.Rdata):
             byte = chr(l)
             file.write(byte)
             file.write(self.subaddress)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         l = ord(wire[current])
         current += 1

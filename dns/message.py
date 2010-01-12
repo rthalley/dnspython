@@ -803,17 +803,18 @@ class _TextReader(object):
     def _header_line(self, section):
         """Process one line from the text format header section."""
 
-        (ttype, what) = self.tok.get()
+        token = self.tok.get()
+        what = token.value
         if what == 'id':
             self.message.id = self.tok.get_int()
         elif what == 'flags':
             while True:
                 token = self.tok.get()
-                if token[0] != dns.tokenizer.IDENTIFIER:
+                if not token.is_identifier():
                     self.tok.unget(token)
                     break
                 self.message.flags = self.message.flags | \
-                                     dns.flags.from_text(token[1])
+                                     dns.flags.from_text(token.value)
             if dns.opcode.is_update(self.message.flags):
                 self.updating = True
         elif what == 'edns':
@@ -825,11 +826,11 @@ class _TextReader(object):
                 self.message.edns = 0
             while True:
                 token = self.tok.get()
-                if token[0] != dns.tokenizer.IDENTIFIER:
+                if not token.is_identifier():
                     self.tok.unget(token)
                     break
                 self.message.ednsflags = self.message.ednsflags | \
-                              dns.flags.edns_from_text(token[1])
+                              dns.flags.edns_from_text(token.value)
         elif what == 'payload':
             self.message.payload = self.tok.get_int()
             if self.message.edns < 0:
@@ -849,24 +850,24 @@ class _TextReader(object):
         """Process one line from the text format question section."""
 
         token = self.tok.get(want_leading = True)
-        if token[0] != dns.tokenizer.WHITESPACE:
-            self.last_name = dns.name.from_text(token[1], None)
+        if not token.is_whitespace():
+            self.last_name = dns.name.from_text(token.value, None)
         name = self.last_name
         token = self.tok.get()
-        if token[0] != dns.tokenizer.IDENTIFIER:
+        if not token.is_identifier():
             raise dns.exception.SyntaxError
         # Class
         try:
-            rdclass = dns.rdataclass.from_text(token[1])
+            rdclass = dns.rdataclass.from_text(token.value)
             token = self.tok.get()
-            if token[0] != dns.tokenizer.IDENTIFIER:
+            if not token.is_identifier():
                 raise dns.exception.SyntaxError
         except dns.exception.SyntaxError:
             raise dns.exception.SyntaxError
         except:
             rdclass = dns.rdataclass.IN
         # Type
-        rdtype = dns.rdatatype.from_text(token[1])
+        rdtype = dns.rdatatype.from_text(token.value)
         self.message.find_rrset(self.message.question, name,
                                 rdclass, rdtype, create=True,
                                 force_unique=True)
@@ -882,17 +883,17 @@ class _TextReader(object):
         deleting = None
         # Name
         token = self.tok.get(want_leading = True)
-        if token[0] != dns.tokenizer.WHITESPACE:
-            self.last_name = dns.name.from_text(token[1], None)
+        if not token.is_whitespace():
+            self.last_name = dns.name.from_text(token.value, None)
         name = self.last_name
         token = self.tok.get()
-        if token[0] != dns.tokenizer.IDENTIFIER:
+        if not token.is_identifier():
             raise dns.exception.SyntaxError
         # TTL
         try:
-            ttl = int(token[1], 0)
+            ttl = int(token.value, 0)
             token = self.tok.get()
-            if token[0] != dns.tokenizer.IDENTIFIER:
+            if not token.is_identifier():
                 raise dns.exception.SyntaxError
         except dns.exception.SyntaxError:
             raise dns.exception.SyntaxError
@@ -900,9 +901,9 @@ class _TextReader(object):
             ttl = 0
         # Class
         try:
-            rdclass = dns.rdataclass.from_text(token[1])
+            rdclass = dns.rdataclass.from_text(token.value)
             token = self.tok.get()
-            if token[0] != dns.tokenizer.IDENTIFIER:
+            if not token.is_identifier():
                 raise dns.exception.SyntaxError
             if rdclass == dns.rdataclass.ANY or rdclass == dns.rdataclass.NONE:
                 deleting = rdclass
@@ -912,9 +913,9 @@ class _TextReader(object):
         except:
             rdclass = dns.rdataclass.IN
         # Type
-        rdtype = dns.rdatatype.from_text(token[1])
+        rdtype = dns.rdatatype.from_text(token.value)
         token = self.tok.get()
-        if token[0] != dns.tokenizer.EOL and token[0] != dns.tokenizer.EOF:
+        if not token.is_eol_or_eof():
             self.tok.unget(token)
             rd = dns.rdata.from_text(rdclass, rdtype, self.tok, None)
             covers = rd.covers()
@@ -935,10 +936,10 @@ class _TextReader(object):
         section = None
         while 1:
             token = self.tok.get(True, True)
-            if token[0] == dns.tokenizer.EOL or token[0] == dns.tokenizer.EOF:
+            if token.is_eol_or_eof():
                 break
-            if token[0] == dns.tokenizer.COMMENT:
-                u = token[1].upper()
+            if token.is_comment():
+                u = token.value.upper()
                 if u == 'HEADER':
                     line_method = self._header_line
                 elif u == 'QUESTION' or u == 'ZONE':

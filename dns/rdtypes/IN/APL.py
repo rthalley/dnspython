@@ -23,7 +23,7 @@ import dns.tokenizer
 
 class APLItem(object):
     """An APL list item.
-    
+
     @ivar family: the address family (IANA address family registry)
     @type family: int
     @ivar negation: is this item negated?
@@ -35,7 +35,7 @@ class APLItem(object):
     """
 
     __slots__ = ['family', 'negation', 'address', 'prefix']
-    
+
     def __init__(self, family, negation, address, prefix):
         self.family = family
         self.negation = negation
@@ -80,20 +80,21 @@ class APL(dns.rdata.Rdata):
     @see: RFC 3123"""
 
     __slots__ = ['items']
-    
+
     def __init__(self, rdclass, rdtype, items):
         super(APL, self).__init__(rdclass, rdtype)
         self.items = items
 
     def to_text(self, origin=None, relativize=True, **kw):
         return ' '.join(map(lambda x: str(x), self.items))
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         items = []
         while 1:
-            (ttype, item) = tok.get()
-            if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
+            token = tok.get()
+            if token.is_eol_or_eof():
                 break
+            item = token.value
             if item[0] == '!':
                 negation = True
                 item = item[1:]
@@ -107,13 +108,13 @@ class APL(dns.rdata.Rdata):
             items.append(item)
 
         return cls(rdclass, rdtype, items)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         for item in self.items:
             item.to_wire(file)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         items = []
         while 1:
@@ -165,5 +166,5 @@ class APL(dns.rdata.Rdata):
         other.to_wire(f)
         wire2 = f.getvalue()
         f.close()
-        
+
         return cmp(wire1, wire2)

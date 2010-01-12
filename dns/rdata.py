@@ -325,10 +325,10 @@ class GenericRdata(Rdata):
         length = tok.get_int()
         chunks = []
         while 1:
-            (ttype, value) = tok.get()
-            if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
+            token = tok.get()
+            if token.is_eol_or_eof():
                 break
-            chunks.append(value)
+            chunks.append(token.value)
         hex = ''.join(chunks)
         data = hex.decode('hex_codec')
         if len(data) != length:
@@ -415,8 +415,8 @@ def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
         # peek at first token
         token = tok.get()
         tok.unget(token)
-        if token[0] == dns.tokenizer.IDENTIFIER and \
-           token[1] == r'\#':
+        if token.is_identifier and \
+           token.value == r'\#':
             #
             # Known type using the generic syntax.  Extract the
             # wire form from the generic syntax, and then run

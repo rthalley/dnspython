@@ -34,7 +34,7 @@ class WKS(dns.rdata.Rdata):
     @see: RFC 1035"""
 
     __slots__ = ['address', 'protocol', 'bitmap']
-    
+
     def __init__(self, rdclass, rdtype, address, protocol, bitmap):
         super(WKS, self).__init__(rdclass, rdtype)
         self.address = address
@@ -50,7 +50,7 @@ class WKS(dns.rdata.Rdata):
                     bits.append(str(i * 8 + j))
         text = ' '.join(bits)
         return '%s %d %s' % (self.address, self.protocol, text)
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         address = tok.get_string()
         protocol = tok.get_string()
@@ -60,11 +60,11 @@ class WKS(dns.rdata.Rdata):
             protocol = socket.getprotobyname(protocol)
         bitmap = []
         while 1:
-            (ttype, value) = tok.get()
-            if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
+            token = tok.get()
+            if token.is_eol_or_eof():
                 break
-            if value.isdigit():
-                serv = int(value)
+            if token.value.isdigit():
+                serv = int(token.value)
             else:
                 if protocol != _proto_udp and protocol != _proto_tcp:
                     raise NotImplementedError, "protocol must be TCP or UDP"
@@ -72,7 +72,7 @@ class WKS(dns.rdata.Rdata):
                     protocol_text = "udp"
                 else:
                     protocol_text = "tcp"
-                serv = socket.getservbyname(value, protocol_text)
+                serv = socket.getservbyname(token.value, protocol_text)
             i = serv // 8
             l = len(bitmap)
             if l < i + 1:
@@ -81,7 +81,7 @@ class WKS(dns.rdata.Rdata):
             bitmap[i] = chr(ord(bitmap[i]) | (0x80 >> (serv % 8)))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
         return cls(rdclass, rdtype, address, protocol, bitmap)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -89,7 +89,7 @@ class WKS(dns.rdata.Rdata):
         protocol = struct.pack('!B', self.protocol)
         file.write(protocol)
         file.write(self.bitmap)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         address = dns.ipv4.inet_ntoa(wire[current : current + 4])
         protocol, = struct.unpack('!B', wire[current + 4 : current + 5])

@@ -53,13 +53,13 @@ class NXT(dns.rdata.Rdata):
                   '\x00', '\x00', '\x00', '\x00',
                   '\x00', '\x00', '\x00', '\x00' ]
         while 1:
-            (ttype, value) = tok.get()
-            if ttype == dns.tokenizer.EOL or ttype == dns.tokenizer.EOF:
+            token = tok.get()
+            if token.is_eol_or_eof():
                 break
-            if value.isdigit():
-                nrdtype = int(value)
+            if token.value.isdigit():
+                nrdtype = int(token.value)
             else:
-                nrdtype = dns.rdatatype.from_text(value)
+                nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError, "NXT with bit 0"
             if nrdtype > 127:

@@ -40,7 +40,7 @@ def sigtime_to_posixtime(what):
 
 def posixtime_to_sigtime(what):
     return time.strftime('%Y%m%d%H%M%S', time.gmtime(what))
-    
+
 class SIGBase(dns.rdata.Rdata):
     """SIG-like record base
 
@@ -66,7 +66,7 @@ class SIGBase(dns.rdata.Rdata):
     __slots__ = ['type_covered', 'algorithm', 'labels', 'original_ttl',
                  'expiration', 'inception', 'key_tag', 'signer',
                  'signature']
-    
+
     def __init__(self, rdclass, rdtype, type_covered, algorithm, labels,
                  original_ttl, expiration, inception, key_tag, signer,
                  signature):
@@ -83,7 +83,7 @@ class SIGBase(dns.rdata.Rdata):
 
     def covers(self):
         return self.type_covered
-    
+
     def to_text(self, origin=None, relativize=True, **kw):
         return '%s %d %d %d %s %s %d %s %s' % (
             dns.rdatatype.to_text(self.type_covered),
@@ -110,17 +110,17 @@ class SIGBase(dns.rdata.Rdata):
         chunks = []
         while 1:
             t = tok.get()
-            if t[0] == dns.tokenizer.EOL or t[0] == dns.tokenizer.EOF:
+            if t.is_eol_or_eof():
                 break
-            if t[0] != dns.tokenizer.IDENTIFIER:
+            if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t[1])
+            chunks.append(t.value)
         b64 = ''.join(chunks)
         signature = b64.decode('base64_codec')
         return cls(rdclass, rdtype, type_covered, algorithm, labels,
                    original_ttl, expiration, inception, key_tag, signer,
                    signature)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -131,7 +131,7 @@ class SIGBase(dns.rdata.Rdata):
         file.write(header)
         self.signer.to_wire(file, None, origin)
         file.write(self.signature)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         header = struct.unpack('!HBBIIIH', wire[current : current + 18])
         current += 18
@@ -150,7 +150,7 @@ class SIGBase(dns.rdata.Rdata):
 
     def choose_relativity(self, origin = None, relativize = True):
         self.signer = self.signer.choose_relativity(origin, relativize)
-        
+
     def _cmp(self, other):
         hs = struct.pack('!HBBIIIH', self.type_covered,
                          self.algorithm, self.labels,

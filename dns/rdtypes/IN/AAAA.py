@@ -25,7 +25,7 @@ class AAAA(dns.rdata.Rdata):
     @type address: string (in the standard IPv6 format)"""
 
     __slots__ = ['address']
-    
+
     def __init__(self, rdclass, rdtype, address):
         super(AAAA, self).__init__(rdclass, rdtype)
         # check that it's OK
@@ -34,19 +34,17 @@ class AAAA(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         return self.address
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
-        (ttype, address) = tok.get()
-        if ttype != dns.tokenizer.IDENTIFIER:
-            raise dns.exception.SyntaxError
-        t = tok.get_eol()
+        address = tok.get_identifier()
+        tok.get_eol()
         return cls(rdclass, rdtype, address)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         file.write(dns.inet.inet_pton(dns.inet.AF_INET6, self.address))
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         address = dns.inet.inet_ntop(dns.inet.AF_INET6,
                                      wire[current : current + rdlen])
