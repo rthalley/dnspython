@@ -319,7 +319,8 @@ class GenericRdata(Rdata):
         return r'\# %d ' % len(self.data) + _hexify(self.data)
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
-        if tok.get_string() != r'\#':
+        token = tok.get()
+        if not token.is_identifier() or token.value != '\#'
             raise dns.exception.SyntaxError, \
                   r'generic rdata does not start with \#'
         length = tok.get_int()
@@ -415,7 +416,7 @@ def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
         # peek at first token
         token = tok.get()
         tok.unget(token)
-        if token.is_identifier and \
+        if token.is_identifier() and \
            token.value == r'\#':
             #
             # Known type using the generic syntax.  Extract the
