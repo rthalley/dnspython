@@ -320,7 +320,7 @@ class GenericRdata(Rdata):
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         token = tok.get()
-        if not token.is_identifier() or token.value != '\#'
+        if not token.is_identifier() or token.value != '\#':
             raise dns.exception.SyntaxError, \
                   r'generic rdata does not start with \#'
         length = tok.get_int()
