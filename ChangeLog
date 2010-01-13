@@ -1,3 +1,17 @@
+2010-01-13  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py: Added RSASHA256 and RSASHA512 codepoints; added
+	  other missing codepoints to _algorithm_by_text.
+
+2010-01-12  Bob Halley  <halley@dnspython.org>
+
+	* Escapes in masterfiles now work correctly.  Previously they were
+	  only working correctly when the text involved was part of a domain
+	  name.
+
+	* dns/tokenizer.py: The tokenizer's get() method now returns Token
+	  objects, not (type, text) tuples.
+
 2009-11-13  Bob Halley  <halley@dnspython.org>
 
 	* Support has been added for hmac-sha1, hmac-sha224, hmac-sha256,
