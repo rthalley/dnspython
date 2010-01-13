@@ -318,7 +318,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                                     '. . %u 0 0 0 0' % serial)
         q.authority.append(rrset)
     if not keyring is None:
-        q.use_tsig(keyring, keyname, keyalgorithm)
+        q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
     wire = q.to_wire()
     if af is None:
         try:
