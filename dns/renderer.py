@@ -274,16 +274,16 @@ class Renderer(object):
         self._set_section(ADDITIONAL)
         before = self.output.tell()
         s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = dns.tsig.hmac_md5(s,
-                                                        keyname,
-                                                        secret,
-                                                        int(time.time()),
-                                                        fudge,
-                                                        id,
-                                                        tsig_error,
-                                                        other_data,
-                                                        request_mac,
-                                                        algorithm=algorithm)
+        (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
+                                                    keyname,
+                                                    secret,
+                                                    int(time.time()),
+                                                    fudge,
+                                                    id,
+                                                    tsig_error,
+                                                    other_data,
+                                                    request_mac,
+                                                    algorithm=algorithm)
         keyname.to_wire(self.output, self.compress, self.origin)
         self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
                                       dns.rdataclass.ANY, 0, 0))

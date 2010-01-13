@@ -57,9 +57,9 @@ BADKEY = 17
 BADTIME = 18
 BADTRUNC = 22
 
-def hmac_md5(wire, keyname, secret, time, fudge, original_id, error,
-             other_data, request_mac, ctx=None, multi=False, first=True,
-             algorithm=default_algorithm):
+def sign(wire, keyname, secret, time, fudge, original_id, error,
+         other_data, request_mac, ctx=None, multi=False, first=True,
+         algorithm=default_algorithm):
     """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
     for the input parameters, the HMAC MAC calculated by applying the
     TSIG signature algorithm, and the TSIG digest context.
@@ -108,6 +108,12 @@ def hmac_md5(wire, keyname, secret, time, fudge, original_id, error,
         ctx = None
     return (tsig_rdata, mac, ctx)
 
+def hmac_md5(wire, keyname, secret, time, fudge, original_id, error,
+             other_data, request_mac, ctx=None, multi=False, first=True,
+             algorithm=default_algorithm):
+    return sign(wire, keyname, secret, time, fudge, original_id, error,
+                other_data, request_mac, ctx, multi, first, algorithm)
+
 def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
              tsig_rdlen, ctx=None, multi=False, first=True):
     """Validate the specified TSIG rdata against the other input parameters.
@@ -154,17 +160,18 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
     time_high = time + fudge
     if now < time_low or now > time_high:
         raise BadTime
-    (junk, our_mac, ctx) = hmac_md5(new_wire, keyname, secret, time, fudge,
-                                    original_id, error, other_data,
-                                    request_mac, ctx, multi, first, aname)
+    (junk, our_mac, ctx) = sign(new_wire, keyname, secret, time, fudge,
+                                original_id, error, other_data,
+                                request_mac, ctx, multi, first, aname)
     if (our_mac != mac):
         raise BadSignature
     return ctx
 
 def get_algorithm(algorithm):
     """Returns the wire format string and the hash module to use for the
-    specified TSIG algorithm"
-    @rtype: (string, hash module)
+    specified TSIG algorithm
+
+    @rtype: (string, hash constructor)
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
@@ -175,6 +182,8 @@ def get_algorithm(algorithm):
         hashes[dns.name.from_text('hmac-sha256')] = hashlib.sha256
         hashes[dns.name.from_text('hmac-sha384')] = hashlib.sha384
         hashes[dns.name.from_text('hmac-sha512')] = hashlib.sha512
+        hashes[dns.name.from_text('hmac-sha1')] = hashlib.sha1
+        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] = hashlib.md5
 
         import sys
         if sys.hexversion < 0x02050000:
@@ -193,11 +202,9 @@ def get_algorithm(algorithm):
                 hashes[name] = HashlibWrapper(hashes[name])
 
     except ImportError:
-        pass
-
-    import md5, sha
-    hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] =  md5
-    hashes[dns.name.from_text('hmac-sha1')] = sha
+        import md5, sha
+        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] =  md5.md5
+        hashes[dns.name.from_text('hmac-sha1')] = sha.sha
 
     if isinstance(algorithm, (str, unicode)):
         algorithm = dns.name.from_text(algorithm)
