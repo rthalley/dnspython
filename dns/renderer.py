@@ -257,7 +257,7 @@ class Renderer(object):
         @type keyname: dns.name.Name object
         @param secret: the secret to use
         @type secret: string
-        @param fudge: TSIG time fudge; default is 300 seconds.
+        @param fudge: TSIG time fudge
         @type fudge: int
         @param id: the message id to encode in the tsig signature
         @type id: int
