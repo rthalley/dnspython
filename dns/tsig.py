@@ -89,7 +89,7 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     pre_mac = algorithm_name + time_mac
     ol = len(other_data)
     if ol > 65535:
-        raise ValueError, 'TSIG Other Data is > 65535 bytes'
+        raise ValueError('TSIG Other Data is > 65535 bytes')
     post_mac = struct.pack('!HH', error, ol) + other_data
     if first:
         ctx.update(pre_mac)
@@ -155,7 +155,7 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
         elif error == BADTRUNC:
             raise PeerBadTruncation
         else:
-            raise PeerError, 'unknown TSIG error code %d' % error
+            raise PeerError('unknown TSIG error code %d' % error)
     time_low = time - fudge
     time_high = time + fudge
     if now < time_low or now > time_high:
@@ -212,5 +212,5 @@ def get_algorithm(algorithm):
     if algorithm in hashes:
         return (algorithm.to_digestable(), hashes[algorithm])
 
-    raise NotImplementedError, "TSIG algorithm " + str(algorithm) + \
-        " is not supported"
+    raise NotImplementedError("TSIG algorithm " + str(algorithm) +
+                              " is not supported")

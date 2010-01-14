@@ -110,12 +110,10 @@ class Zone(object):
         if isinstance(name, (str, unicode)):
             name = dns.name.from_text(name, None)
         elif not isinstance(name, dns.name.Name):
-            raise KeyError, \
-                  "name parameter must be convertable to a DNS name"
+            raise KeyError("name parameter must be convertable to a DNS name")
         if name.is_absolute():
             if not name.is_subdomain(self.origin):
-                raise KeyError, \
-                      "name parameter must be a subdomain of the zone origin"
+                raise KeyError("name parameter must be a subdomain of the zone origin")
             if self.relativize:
                 name = name.relativize(self.origin)
         return name
@@ -330,7 +328,7 @@ class Zone(object):
         """
 
         if replacement.rdclass != self.rdclass:
-            raise ValueError, 'replacement.rdclass != zone.rdclass'
+            raise ValueError('replacement.rdclass != zone.rdclass')
         node = self.find_node(name, True)
         node.replace_rdataset(replacement)
 
@@ -612,13 +610,12 @@ class _MasterReader(object):
         except:
             rdclass = self.zone.rdclass
         if rdclass != self.zone.rdclass:
-            raise dns.exception.SyntaxError, "RR class is not zone's class"
+            raise dns.exception.SyntaxError("RR class is not zone's class")
         # Type
         try:
             rdtype = dns.rdatatype.from_text(token.value)
         except:
-            raise dns.exception.SyntaxError, \
-                  "unknown rdatatype '%s'" % token.value
+            raise dns.exception.SyntaxError("unknown rdatatype '%s'" % token.value)
         n = self.zone.nodes.get(name)
         if n is None:
             n = self.zone.node_factory()
@@ -629,7 +626,7 @@ class _MasterReader(object):
         except dns.exception.SyntaxError:
             # Catch and reraise.
             (ty, va) = sys.exc_info()[:2]
-            raise ty, va
+            raise va
         except:
             # All exceptions that occur in the processing of rdata
             # are treated as syntax errors.  This is not strictly
@@ -637,8 +634,7 @@ class _MasterReader(object):
             # We convert them to syntax errors so that we can emit
             # helpful filename:line info.
             (ty, va) = sys.exc_info()[:2]
-            raise dns.exception.SyntaxError, \
-                  "caught exception %s: %s" % (str(ty), str(va))
+            raise dns.exception.SyntaxError("caught exception %s: %s" % (str(ty), str(va)))
 
         rd.choose_relativity(self.zone.origin, self.relativize)
         covers = rd.covers()
@@ -676,7 +672,7 @@ class _MasterReader(object):
                     if u == '$TTL':
                         token = self.tok.get()
                         if not token.is_identifier():
-                            raise dns.exception.SyntaxError, "bad $TTL"
+                            raise dns.exception.SyntaxError("bad $TTL")
                         self.ttl = dns.ttl.from_text(token.value)
                         self.tok.get_eol()
                     elif u == '$ORIGIN':
@@ -687,8 +683,7 @@ class _MasterReader(object):
                     elif u == '$INCLUDE' and self.allow_include:
                         token = self.tok.get()
                         if not token.is_quoted_string():
-                            raise dns.exception.SyntaxError, \
-                                  "bad filename in $INCLUDE"
+                            raise dns.exception.SyntaxError("bad filename in $INCLUDE")
                         filename = token.value
                         token = self.tok.get()
                         if token.is_identifier():
@@ -696,8 +691,7 @@ class _MasterReader(object):
                                                             self.current_origin)
                             self.tok.get_eol()
                         elif not token.is_eol_or_eof():
-                            raise dns.exception.SyntaxError, \
-                                  "bad origin in $INCLUDE"
+                            raise dns.exception.SyntaxError("bad origin in $INCLUDE")
                         else:
                             new_origin = self.current_origin
                         self.saved_state.append((self.tok,
@@ -710,8 +704,7 @@ class _MasterReader(object):
                                                            filename)
                         self.current_origin = new_origin
                     else:
-                        raise dns.exception.SyntaxError, \
-                              "Unknown master file directive '" + u + "'"
+                        raise dns.exception.SyntaxError("Unknown master file directive '" + u + "'")
                     continue
                 self.tok.unget(token)
                 self._rr_line()
@@ -719,8 +712,7 @@ class _MasterReader(object):
             (filename, line_number) = self.tok.where()
             if detail is None:
                 detail = "syntax error"
-            raise dns.exception.SyntaxError, \
-                  "%s:%d: %s" % (filename, line_number, detail)
+            raise dns.exception.SyntaxError("%s:%d: %s" % (filename, line_number, detail))
 
         # Now that we're done reading, do some basic checking of the zone.
         if self.check_origin:

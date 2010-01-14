@@ -58,7 +58,7 @@ class HIP(dns.rdata.Rdata):
         algorithm = tok.get_uint8()
         hit = tok.get_string().decode('hex-codec')
         if len(hit) > 255:
-            raise dns.exception.SyntaxError, "HIT too long"
+            raise dns.exception.SyntaxError("HIT too long")
         key = tok.get_string().decode('base64-codec')
         servers = []
         while 1:

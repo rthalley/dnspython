@@ -58,13 +58,13 @@ class Rdataset(dns.set.Set):
     """
 
     __slots__ = ['rdclass', 'rdtype', 'covers', 'ttl']
-    
+
     def __init__(self, rdclass, rdtype, covers=dns.rdatatype.NONE):
         """Create a new rdataset of the specified class and type.
 
         @see: the description of the class instance variables for the
         meaning of I{rdclass} and I{rdtype}"""
-        
+
         super(Rdataset, self).__init__()
         self.rdclass = rdclass
         self.rdtype = rdtype
@@ -85,7 +85,7 @@ class Rdataset(dns.set.Set):
         to the specified TTL.
         @param ttl: The TTL
         @type ttl: int"""
-        
+
         if len(self) == 0:
             self.ttl = ttl
         elif ttl < self.ttl:
@@ -96,12 +96,12 @@ class Rdataset(dns.set.Set):
 
         If the optional I{ttl} parameter is supplied, then
         self.update_ttl(ttl) will be called prior to adding the rdata.
-        
+
         @param rd: The rdata
         @type rd: dns.rdata.Rdata object
         @param ttl: The TTL
         @type ttl: int"""
-        
+
         #
         # If we're adding a signature, do some special handling to
         # check that the signature covers the same type as the
@@ -136,7 +136,7 @@ class Rdataset(dns.set.Set):
 
         @param other: The rdataset from which to update
         @type other: dns.rdataset.Rdataset object"""
-        
+
         self.update_ttl(other.ttl)
         super(Rdataset, self).update(other)
 
@@ -147,7 +147,7 @@ class Rdataset(dns.set.Set):
             ctext = '(' + dns.rdatatype.to_text(self.covers) + ')'
         return '<DNS ' + dns.rdataclass.to_text(self.rdclass) + ' ' + \
                dns.rdatatype.to_text(self.rdtype) + ctext + ' rdataset>'
-    
+
     def __str__(self):
         return self.to_text()
 
@@ -155,7 +155,7 @@ class Rdataset(dns.set.Set):
         """Two rdatasets are equal if they have the same class, type, and
         covers, and contain the same rdata.
         @rtype: bool"""
-        
+
         if not isinstance(other, Rdataset):
             return False
         if self.rdclass != other.rdclass or \
@@ -163,7 +163,7 @@ class Rdataset(dns.set.Set):
            self.covers != other.covers:
             return False
         return super(Rdataset, self).__eq__(other)
-    
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -177,7 +177,7 @@ class Rdataset(dns.set.Set):
 
         Any additional keyword arguments are passed on to the rdata
         to_text() method.
-        
+
         @param name: If name is not None, emit a RRs with I{name} as
         the owner name.
         @type name: dns.name.Name object
@@ -264,7 +264,7 @@ class Rdataset(dns.set.Set):
                 file.write(stuff)
                 file.seek(0, 2)
             return len(self)
-    
+
     def match(self, rdclass, rdtype, covers):
         """Returns True if this rdataset matches the specified class, type,
         and covers"""
@@ -291,11 +291,11 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas):
         rd = dns.rdata.from_text(r.rdclass, r.rdtype, t)
         r.add(rd)
     return r
-    
+
 def from_text(rdclass, rdtype, ttl, *text_rdatas):
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified rdatas in text format.
-    
+
     @rtype: dns.rdataset.Rdataset object
     """
 
@@ -304,12 +304,12 @@ def from_text(rdclass, rdtype, ttl, *text_rdatas):
 def from_rdata_list(ttl, rdatas):
     """Create an rdataset with the specified TTL, and with
     the specified list of rdata objects.
-    
+
     @rtype: dns.rdataset.Rdataset object
     """
 
     if len(rdatas) == 0:
-        raise ValueError, "rdata list must not be empty"
+        raise ValueError("rdata list must not be empty")
     r = None
     for rd in rdatas:
         if r is None:
@@ -318,11 +318,11 @@ def from_rdata_list(ttl, rdatas):
             first_time = False
         r.add(rd)
     return r
-    
+
 def from_rdata(ttl, *rdatas):
     """Create an rdataset with the specified TTL, and with
     the specified rdata objects.
-    
+
     @rtype: dns.rdataset.Rdataset object
     """
 

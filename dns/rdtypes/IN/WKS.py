@@ -67,7 +67,7 @@ class WKS(dns.rdata.Rdata):
                 serv = int(token.value)
             else:
                 if protocol != _proto_udp and protocol != _proto_tcp:
-                    raise NotImplementedError, "protocol must be TCP or UDP"
+                    raise NotImplementedError("protocol must be TCP or UDP")
                 if protocol == _proto_udp:
                     protocol_text = "udp"
                 else:

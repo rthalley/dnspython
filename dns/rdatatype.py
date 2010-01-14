@@ -194,7 +194,7 @@ def from_text(text):
             raise UnknownRdatatype
         value = int(match.group(1))
         if value < 0 or value > 65535:
-            raise ValueError, "type must be between >= 0 and <= 65535"
+            raise ValueError("type must be between >= 0 and <= 65535")
     return value
 
 def to_text(value):
@@ -205,7 +205,7 @@ def to_text(value):
     @rtype: string"""
 
     if value < 0 or value > 65535:
-        raise ValueError, "type must be between >= 0 and <= 65535"
+        raise ValueError("type must be between >= 0 and <= 65535")
     text = _by_value.get(value)
     if text is None:
         text = 'TYPE' + `value`

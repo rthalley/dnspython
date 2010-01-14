@@ -72,4 +72,4 @@ def to_address(name):
         # run through inet_aton() to check syntax and make pretty.
         return dns.ipv6.inet_ntoa(dns.ipv6.inet_aton(text))
     else:
-        raise dns.exception.SyntaxError, 'unknown reverse-map address family'
+        raise dns.exception.SyntaxError('unknown reverse-map address family')

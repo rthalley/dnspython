@@ -321,8 +321,7 @@ class GenericRdata(Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         token = tok.get()
         if not token.is_identifier() or token.value != '\#':
-            raise dns.exception.SyntaxError, \
-                  r'generic rdata does not start with \#'
+            raise dns.exception.SyntaxError(r'generic rdata does not start with \#')
         length = tok.get_int()
         chunks = []
         while 1:
@@ -333,8 +332,7 @@ class GenericRdata(Rdata):
         hex = ''.join(chunks)
         data = hex.decode('hex_codec')
         if len(data) != length:
-            raise dns.exception.SyntaxError, \
-                  'generic rdata hex data has wrong length'
+            raise dns.exception.SyntaxError('generic rdata hex data has wrong length')
         return cls(rdclass, rdtype, data)
 
     from_text = classmethod(from_text)

@@ -58,7 +58,7 @@ class UnknownRcode(dns.exception.DNSException):
 
 def from_text(text):
     """Convert text into an rcode.
-    
+
     @param text: the texual rcode
     @type text: string
     @raises UnknownRcode: the rcode is unknown
@@ -87,7 +87,7 @@ def from_flags(flags, ednsflags):
 
     value = (flags & 0x000f) | ((ednsflags >> 20) & 0xff0)
     if value < 0 or value > 4095:
-        raise ValueError, 'rcode must be >= 0 and <= 4095'
+        raise ValueError('rcode must be >= 0 and <= 4095')
     return value
 
 def to_flags(value):
@@ -100,7 +100,7 @@ def to_flags(value):
     """
 
     if value < 0 or value > 4095:
-        raise ValueError, 'rcode must be >= 0 and <= 4095'
+        raise ValueError('rcode must be >= 0 and <= 4095')
     v = value & 0xf
     ev = long(value & 0xff0) << 20
     return (v, ev)
@@ -112,7 +112,7 @@ def to_text(value):
     @type value: int
     @rtype: string
     """
-    
+
     text = _by_value.get(value)
     if text is None:
         text = str(value)

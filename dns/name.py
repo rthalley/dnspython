@@ -107,7 +107,7 @@ def _validate_labels(labels):
     @raises LabelTooLong: an individual label is too long
     @raises EmptyLabel: a label is empty (i.e. the root label) and appears
     in a position other than the end of the label sequence"""
-    
+
     l = len(labels)
     total = 0
     i = -1
@@ -130,43 +130,43 @@ class Name(object):
 
     The dns.name.Name class represents a DNS name as a tuple of labels.
     Instances of the class are immutable.
-    
+
     @ivar labels: The tuple of labels in the name. Each label is a string of
     up to 63 octets."""
 
     __slots__ = ['labels']
-    
+
     def __init__(self, labels):
         """Initialize a domain name from a list of labels.
         @param labels: the labels
         @type labels: any iterable whose values are strings
         """
-        
+
         super(Name, self).__setattr__('labels', tuple(labels))
         _validate_labels(self.labels)
 
     def __setattr__(self, name, value):
-        raise TypeError, "object doesn't support attribute assignment"
+        raise TypeError("object doesn't support attribute assignment")
 
     def is_absolute(self):
         """Is the most significant label of this name the root label?
         @rtype: bool
         """
-        
+
         return len(self.labels) > 0 and self.labels[-1] == ''
 
     def is_wild(self):
         """Is this name wild?  (I.e. Is the least significant label '*'?)
         @rtype: bool
         """
-        
+
         return len(self.labels) > 0 and self.labels[0] == '*'
 
     def __hash__(self):
         """Return a case-insensitive hash of the name.
         @rtype: int
         """
-        
+
         h = 0L
         for label in self.labels:
             for c in label:
@@ -185,7 +185,7 @@ class Name(object):
         0 if self == other.  A relative name is always less than an
         absolute name.  If both names have the same relativity, then
         the DNSSEC order relation is used to order them.
-        
+
         I{nlabels} is the number of significant labels that the two names
         have in common.
         """
@@ -240,7 +240,7 @@ class Name(object):
         The notion of subdomain includes equality.
         @rtype: bool
         """
-        
+
         (nr, o, nl) = self.fullcompare(other)
         if nr == NAMERELN_SUBDOMAIN or nr == NAMERELN_EQUAL:
             return True
@@ -252,7 +252,7 @@ class Name(object):
         The notion of subdomain includes equality.
         @rtype: bool
         """
-        
+
         (nr, o, nl) = self.fullcompare(other)
         if nr == NAMERELN_SUPERDOMAIN or nr == NAMERELN_EQUAL:
             return True
@@ -263,7 +263,7 @@ class Name(object):
         DNSSEC canonical form.
         @rtype: dns.name.Name object
         """
-        
+
         return Name([x.lower() for x in self.labels])
 
     def __eq__(self, other):
@@ -304,7 +304,7 @@ class Name(object):
 
     def __repr__(self):
         return '<DNS name ' + self.__str__() + '>'
-    
+
     def __str__(self):
         return self.to_text(False)
 
@@ -314,7 +314,7 @@ class Name(object):
         root label) for absolute names.  The default is False.
         @rtype: string
         """
-        
+
         if len(self.labels) == 0:
             return '@'
         if len(self.labels) == 1 and self.labels[0] == '':
@@ -335,7 +335,7 @@ class Name(object):
         root label) for absolute names.  The default is False.
         @rtype: string
         """
-        
+
         if len(self.labels) == 0:
             return u'@'
         if len(self.labels) == 1 and self.labels[0] == '':
@@ -351,7 +351,7 @@ class Name(object):
         """Convert name to a format suitable for digesting in hashes.
 
         The name is canonicalized and converted to uncompressed wire format.
-        
+
         @param origin: If the name is relative and origin is not None, then
         origin will be appended to it.
         @type origin: dns.name.Name object
@@ -360,7 +360,7 @@ class Name(object):
         if it is missing, then this exception is raised
         @rtype: string
         """
-        
+
         if not self.is_absolute():
             if origin is None or not origin.is_absolute():
                 raise NeedAbsoluteNameOrOrigin
@@ -370,7 +370,7 @@ class Name(object):
             labels = self.labels
         dlabels = ["%s%s" % (chr(len(x)), x.lower()) for x in labels]
         return ''.join(dlabels)
-        
+
     def to_wire(self, file = None, compress = None, origin = None):
         """Convert name to wire format, possibly compressing it.
 
@@ -431,7 +431,7 @@ class Name(object):
         """The length of the name (in labels).
         @rtype: int
         """
-        
+
         return len(self.labels)
 
     def __getitem__(self, index):
@@ -456,15 +456,14 @@ class Name(object):
         @returns: the tuple (prefix, suffix)
         @rtype: tuple
         """
-        
+
         l = len(self.labels)
         if depth == 0:
             return (self, dns.name.empty)
         elif depth == l:
             return (dns.name.empty, self)
         elif depth < 0 or depth > l:
-            raise ValueError, \
-                  'depth must be >= 0 and <= the length of the name'
+            raise ValueError('depth must be >= 0 and <= the length of the name')
         return (Name(self[: -depth]), Name(self[-depth :]))
 
     def concatenate(self, other):
@@ -473,7 +472,7 @@ class Name(object):
         @raises AbsoluteConcatenation: self is absolute and other is
         not the empty name
         """
-        
+
         if self.is_absolute() and len(other) > 0:
             raise AbsoluteConcatenation
         labels = list(self.labels)
@@ -485,7 +484,7 @@ class Name(object):
         relative to origin.  Otherwise return self.
         @rtype: dns.name.Name object
         """
-        
+
         if not origin is None and self.is_subdomain(origin):
             return Name(self[: -len(origin)])
         else:
@@ -496,7 +495,7 @@ class Name(object):
         concatenation of self and origin.  Otherwise return self.
         @rtype: dns.name.Name object
         """
-        
+
         if not self.is_absolute():
             return self.concatenate(origin)
         else:
@@ -509,7 +508,7 @@ class Name(object):
         false the name is derelativized.
         @rtype: dns.name.Name object
         """
-        
+
         if origin:
             if relativize:
                 return self.relativize(origin)
@@ -527,7 +526,7 @@ class Name(object):
         if self == root or self == empty:
             raise NoParent
         return Name(self.labels[1:])
-        
+
 root = Name([''])
 empty = Name([])
 
@@ -535,14 +534,14 @@ def from_unicode(text, origin = root):
     """Convert unicode text into a Name object.
 
     Lables are encoded in IDN ACE form.
-    
+
     @rtype: dns.name.Name object
     """
 
     if not isinstance(text, unicode):
-        raise ValueError, "input to from_unicode() must be a unicode string"
+        raise ValueError("input to from_unicode() must be a unicode string")
     if not (origin is None or isinstance(origin, Name)):
-        raise ValueError, "origin must be a Name or None"
+        raise ValueError("origin must be a Name or None")
     labels = []
     label = u''
     escaping = False
@@ -602,9 +601,9 @@ def from_text(text, origin = root):
         if isinstance(text, unicode) and sys.hexversion >= 0x02030000:
             return from_unicode(text, origin)
         else:
-            raise ValueError, "input to from_text() must be a string"
+            raise ValueError("input to from_text() must be a string")
     if not (origin is None or isinstance(origin, Name)):
-        raise ValueError, "origin must be a Name or None"
+        raise ValueError("origin must be a Name or None")
     labels = []
     label = ''
     escaping = False
@@ -670,7 +669,7 @@ def from_wire(message, current):
     """
 
     if not isinstance(message, str):
-        raise ValueError, "input to from_wire() must be a byte string"
+        raise ValueError("input to from_wire() must be a byte string")
     labels = []
     biggest_pointer = current
     hops = 0

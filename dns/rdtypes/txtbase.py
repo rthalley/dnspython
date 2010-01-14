@@ -49,9 +49,9 @@ class TXTBase(dns.rdata.Rdata):
             if token.is_eol_or_eof():
                 break
             if not (token.is_quoted_string() or token.is_identifier()):
-                raise dns.exception.SyntaxError, "expected a string"
+                raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
-                raise dns.exception.SyntaxError, "string too long"
+                raise dns.exception.SyntaxError("string too long")
             strings.append(token.value)
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd

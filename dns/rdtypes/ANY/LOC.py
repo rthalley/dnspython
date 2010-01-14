@@ -29,7 +29,7 @@ def _exponent_of(what, desc):
             exp = i - 1
             break
     if exp is None or exp < 0:
-        raise dns.exception.SyntaxError, "%s value out of bounds" % desc
+        raise dns.exception.SyntaxError("%s value out of bounds" % desc)
     return exp
 
 def _float_to_tuple(what):
@@ -69,10 +69,10 @@ def _encode_size(what, desc):
 def _decode_size(what, desc):
     exponent = what & 0x0F
     if exponent > 9:
-        raise dns.exception.SyntaxError, "bad %s exponent" % desc
+        raise dns.exception.SyntaxError("bad %s exponent" % desc)
     base = (what & 0xF0) >> 4
     if base > 9:
-        raise dns.exception.SyntaxError, "bad %s base" % desc
+        raise dns.exception.SyntaxError("bad %s base" % desc)
     return long(base) * pow(10, exponent)
 
 class LOC(dns.rdata.Rdata):
@@ -164,16 +164,13 @@ class LOC(dns.rdata.Rdata):
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
                 if not seconds.isdigit():
-                    raise dns.exception.SyntaxError, \
-                          'bad latitude seconds value'
+                    raise dns.exception.SyntaxError('bad latitude seconds value')
                 latitude[2] = int(seconds)
                 if latitude[2] >= 60:
-                    raise dns.exception.SyntaxError, \
-                          'latitude seconds >= 60'
+                    raise dns.exception.SyntaxError('latitude seconds >= 60')
                 l = len(milliseconds)
                 if l == 0 or l > 3 or not milliseconds.isdigit():
-                    raise dns.exception.SyntaxError, \
-                          'bad latitude milliseconds value'
+                    raise dns.exception.SyntaxError('bad latitude milliseconds value')
                 if l == 1:
                     m = 100
                 elif l == 2:
@@ -188,7 +185,7 @@ class LOC(dns.rdata.Rdata):
         if t == 'S':
             latitude[0] *= -1
         elif t != 'N':
-            raise dns.exception.SyntaxError, 'bad latitude hemisphere value'
+            raise dns.exception.SyntaxError('bad latitude hemisphere value')
 
         longitude[0] = tok.get_int()
         t = tok.get_string()
@@ -198,16 +195,13 @@ class LOC(dns.rdata.Rdata):
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
                 if not seconds.isdigit():
-                    raise dns.exception.SyntaxError, \
-                          'bad longitude seconds value'
+                    raise dns.exception.SyntaxError('bad longitude seconds value')
                 longitude[2] = int(seconds)
                 if longitude[2] >= 60:
-                    raise dns.exception.SyntaxError, \
-                          'longitude seconds >= 60'
+                    raise dns.exception.SyntaxError('longitude seconds >= 60')
                 l = len(milliseconds)
                 if l == 0 or l > 3 or not milliseconds.isdigit():
-                    raise dns.exception.SyntaxError, \
-                          'bad longitude milliseconds value'
+                    raise dns.exception.SyntaxError('bad longitude milliseconds value')
                 if l == 1:
                     m = 100
                 elif l == 2:
@@ -222,7 +216,7 @@ class LOC(dns.rdata.Rdata):
         if t == 'W':
             longitude[0] *= -1
         elif t != 'E':
-            raise dns.exception.SyntaxError, 'bad longitude hemisphere value'
+            raise dns.exception.SyntaxError('bad longitude hemisphere value')
 
         t = tok.get_string()
         if t[-1] == 'm':
@@ -293,13 +287,13 @@ class LOC(dns.rdata.Rdata):
         else:
             latitude = -1 * float(0x80000000L - latitude) / 3600000
         if latitude < -90.0 or latitude > 90.0:
-            raise dns.exception.FormError, "bad latitude"
+            raise dns.exception.FormError("bad latitude")
         if longitude > 0x80000000L:
             longitude = float(longitude - 0x80000000L) / 3600000
         else:
             longitude = -1 * float(0x80000000L - longitude) / 3600000
         if longitude < -180.0 or longitude > 180.0:
-            raise dns.exception.FormError, "bad longitude"
+            raise dns.exception.FormError("bad longitude")
         altitude = float(altitude) - 10000000.0
         size = _decode_size(size, "size")
         hprec = _decode_size(hprec, "horizontal precision")

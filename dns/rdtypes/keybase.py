@@ -97,7 +97,7 @@ class KEYBase(dns.rdata.Rdata):
             for flag in flag_names:
                 v = _flags_from_text.get(flag)
                 if v is None:
-                    raise dns.exception.SyntaxError, 'unknown flag %s' % flag
+                    raise dns.exception.SyntaxError('unknown flag %s' % flag)
                 flags &= ~v[1]
                 flags |= v[0]
         protocol = tok.get_string()
@@ -106,8 +106,7 @@ class KEYBase(dns.rdata.Rdata):
         else:
             protocol = _protocol_from_text.get(protocol)
             if protocol is None:
-                raise dns.exception.SyntaxError, \
-                      'unknown protocol %s' % protocol
+                raise dns.exception.SyntaxError('unknown protocol %s' % protocol)
 
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         chunks = []

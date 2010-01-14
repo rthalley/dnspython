@@ -26,14 +26,14 @@ class Set(object):
     @type items: list"""
 
     __slots__ = ['items']
-    
+
     def __init__(self, items=None):
         """Initialize the set.
 
         @param items: the initial set of items
         @type items: any iterable or None
         """
-        
+
         self.items = []
         if not items is None:
             for item in items:
@@ -41,7 +41,7 @@ class Set(object):
 
     def __repr__(self):
         return "dns.simpleset.Set(%s)" % repr(self.items)
-        
+
     def add(self, item):
         """Add an item to the set."""
         if not item in self.items:
@@ -70,7 +70,7 @@ class Set(object):
         return new instances (e.g. union) once, and keep using them in
         subclasses.
         """
-        
+
         cls = self.__class__
         obj = cls.__new__(cls)
         obj.items = list(self.items)
@@ -79,7 +79,7 @@ class Set(object):
     def __copy__(self):
         """Make a (shallow) copy of the set."""
         return self._clone()
-        
+
     def copy(self):
         """Make a (shallow) copy of the set."""
         return self._clone()
@@ -91,7 +91,7 @@ class Set(object):
         @type other: Set object
         """
         if not isinstance(other, Set):
-            raise ValueError, 'other must be a Set instance'
+            raise ValueError('other must be a Set instance')
         if self is other:
             return
         for item in other.items:
@@ -104,7 +104,7 @@ class Set(object):
         @type other: Set object
         """
         if not isinstance(other, Set):
-            raise ValueError, 'other must be a Set instance'
+            raise ValueError('other must be a Set instance')
         if self is other:
             return
         # we make a copy of the list so that we can remove items from
@@ -120,7 +120,7 @@ class Set(object):
         @type other: Set object
         """
         if not isinstance(other, Set):
-            raise ValueError, 'other must be a Set instance'
+            raise ValueError('other must be a Set instance')
         if self is other:
             self.items = []
         else:
@@ -134,7 +134,7 @@ class Set(object):
         @type other: Set object
         @rtype: the same type as I{self}
         """
-        
+
         obj = self._clone()
         obj.union_update(other)
         return obj
@@ -241,9 +241,9 @@ class Set(object):
 
         @rtype: bool
         """
-        
+
         if not isinstance(other, Set):
-            raise ValueError, 'other must be a Set instance'
+            raise ValueError('other must be a Set instance')
         for item in self.items:
             if not item in other.items:
                 return False
@@ -256,7 +256,7 @@ class Set(object):
         """
 
         if not isinstance(other, Set):
-            raise ValueError, 'other must be a Set instance'
+            raise ValueError('other must be a Set instance')
         for item in other.items:
             if not item in self.items:
                 return False

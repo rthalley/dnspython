@@ -31,7 +31,7 @@ class RRset(dns.rdataset.Rdataset):
     """
 
     __slots__ = ['name', 'deleting']
-    
+
     def __init__(self, name, rdclass, rdtype, covers=dns.rdatatype.NONE,
                  deleting=None):
         """Create a new RRset."""
@@ -65,7 +65,7 @@ class RRset(dns.rdataset.Rdataset):
     def __eq__(self, other):
         """Two RRsets are equal if they have the same name and the same
         rdataset
-        
+
         @rtype: bool"""
         if not isinstance(other, RRset):
             return False
@@ -82,7 +82,7 @@ class RRset(dns.rdataset.Rdataset):
         if self.name != name or self.deleting != deleting:
             return False
         return True
-        
+
     def to_text(self, origin=None, relativize=True, **kw):
         """Convert the RRset into DNS master file format.
 
@@ -92,7 +92,7 @@ class RRset(dns.rdataset.Rdataset):
 
         Any additional keyword arguments are passed on to the rdata
         to_text() method.
-        
+
         @param origin: The origin for relative names, or None.
         @type origin: dns.name.Name object
         @param relativize: True if names should names be relativized
@@ -121,7 +121,7 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas):
 
     @rtype: dns.rrset.RRset object
     """
-    
+
     if isinstance(name, (str, unicode)):
         name = dns.name.from_text(name, None)
     if isinstance(rdclass, str):
@@ -134,7 +134,7 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas):
         rd = dns.rdata.from_text(r.rdclass, r.rdtype, t)
         r.add(rd)
     return r
-    
+
 def from_text(name, ttl, rdclass, rdtype, *text_rdatas):
     """Create an RRset with the specified name, TTL, class, and type and with
     the specified rdatas in text format.
@@ -155,7 +155,7 @@ def from_rdata_list(name, ttl, rdatas):
         name = dns.name.from_text(name, None)
 
     if len(rdatas) == 0:
-        raise ValueError, "rdata list must not be empty"
+        raise ValueError("rdata list must not be empty")
     r = None
     for rd in rdatas:
         if r is None:
@@ -164,7 +164,7 @@ def from_rdata_list(name, ttl, rdatas):
             first_time = False
         r.add(rd)
     return r
-    
+
 def from_rdata(name, ttl, *rdatas):
     """Create an RRset with the specified name and TTL, and with
     the specified rdata objects.

@@ -42,7 +42,7 @@ class IPSECKEY(dns.rdata.Rdata):
         super(IPSECKEY, self).__init__(rdclass, rdtype)
         if gateway_type == 0:
             if gateway != '.' and not gateway is None:
-                raise SyntaxError, 'invalid gateway for gateway type 0'
+                raise SyntaxError('invalid gateway for gateway type 0')
             gateway = None
         elif gateway_type == 1:
             # check that it's OK
@@ -53,8 +53,7 @@ class IPSECKEY(dns.rdata.Rdata):
         elif gateway_type == 3:
             pass
         else:
-            raise SyntaxError, \
-                  'invalid IPSECKEY gateway type: %d' % gateway_type
+            raise SyntaxError('invalid IPSECKEY gateway type: %d' % gateway_type)
         self.precedence = precedence
         self.gateway_type = gateway_type
         self.algorithm = algorithm
@@ -71,7 +70,7 @@ class IPSECKEY(dns.rdata.Rdata):
         elif self.gateway_type == 3:
             gateway = str(self.gateway.choose_relativity(origin, relativize))
         else:
-            raise ValueError, 'invalid gateway type'
+            raise ValueError('invalid gateway type')
         return '%d %d %d %s %s' % (self.precedence, self.gateway_type,
                                    self.algorithm, gateway,
                                    dns.rdata._base64ify(self.key))
@@ -112,7 +111,7 @@ class IPSECKEY(dns.rdata.Rdata):
         elif self.gateway_type == 3:
             self.gateway.to_wire(file, None, origin)
         else:
-            raise ValueError, 'invalid gateway type'
+            raise ValueError('invalid gateway type')
         file.write(self.key)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
@@ -140,7 +139,7 @@ class IPSECKEY(dns.rdata.Rdata):
             current += cused
             rdlen -= cused
         else:
-            raise dns.exception.FormError, 'invalid IPSECKEY gateway type'
+            raise dns.exception.FormError('invalid IPSECKEY gateway type')
         key = wire[current : current + rdlen]
         return cls(rdclass, rdtype, header[0], gateway_type, header[2],
                    gateway, key)

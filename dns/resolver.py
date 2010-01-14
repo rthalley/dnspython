@@ -137,7 +137,7 @@ class Answer(object):
         elif attr == 'rdtype':
             return self.rrset.rdtype
         else:
-            raise AttributeError, attr
+            raise AttributeError(attr)
 
     def __len__(self):
         return len(self.rrset)
@@ -169,7 +169,7 @@ class Cache(object):
     since the epoch.)
     @type next_cleaning: float
     """
-    
+
     def __init__(self, cleaning_interval=300.0):
         """Initialize a DNS cache.
 
@@ -177,14 +177,14 @@ class Cache(object):
         cleanings.  The default is 300.0
         @type cleaning_interval: float.
         """
-        
+
         self.data = {}
         self.cleaning_interval = cleaning_interval
         self.next_cleaning = time.time() + self.cleaning_interval
 
     def maybe_clean(self):
         """Clean the cache if it's time to do so."""
-        
+
         now = time.time()
         if self.next_cleaning <= now:
             keys_to_delete = []
@@ -195,7 +195,7 @@ class Cache(object):
                 del self.data[k]
             now = time.time()
             self.next_cleaning = now + self.cleaning_interval
-            
+
     def get(self, key):
         """Get the answer associated with I{key}.  Returns None if
         no answer is cached for the key.
@@ -204,7 +204,7 @@ class Cache(object):
         query name, rdtype, and rdclass.
         @rtype: dns.resolver.Answer object or None
         """
-        
+
         self.maybe_clean()
         v = self.data.get(key)
         if v is None or v.expiration <= time.time():
@@ -219,7 +219,7 @@ class Cache(object):
         @param value: The answer being cached
         @type value: dns.resolver.Answer object
         """
-        
+
         self.maybe_clean()
         self.data[key] = value
 
@@ -232,7 +232,7 @@ class Cache(object):
         @param key: the key to flush
         @type key: (dns.name.Name, int, int) tuple or None
         """
-        
+
         if not key is None:
             if self.data.has_key(key):
                 del self.data[key]
@@ -549,7 +549,7 @@ class Resolver(object):
         of the appropriate type, or strings that can be converted into objects
         of the appropriate type.  E.g. For I{rdtype} the integer 2 and the
         the string 'NS' both mean to query for records with DNS rdata type NS.
-        
+
         @param qname: the query name
         @type qname: dns.name.Name object or string
         @param rdtype: the query type
@@ -566,7 +566,7 @@ class Resolver(object):
         @raises NoAnswer: the response did not contain an answer
         @raises NoNameservers: no non-broken nameservers are available to
         answer the question."""
-        
+
         if isinstance(qname, (str, unicode)):
             qname = dns.name.from_text(qname, None)
         if isinstance(rdtype, str):
@@ -749,7 +749,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     if resolver is None:
         resolver = get_default_resolver()
     if not name.is_absolute():
-        raise NotAbsolute, name
+        raise NotAbsolute(name)
     while 1:
         try:
             answer = resolver.query(name, dns.rdatatype.SOA, rdclass, tcp)

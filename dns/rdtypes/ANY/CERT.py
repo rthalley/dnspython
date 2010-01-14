@@ -83,7 +83,7 @@ class CERT(dns.rdata.Rdata):
         key_tag = tok.get_uint16()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         if algorithm < 0 or algorithm > 255:
-            raise dns.exception.SyntaxError, "bad algorithm type"
+            raise dns.exception.SyntaxError("bad algorithm type")
         chunks = []
         while 1:
             t = tok.get().unescape()

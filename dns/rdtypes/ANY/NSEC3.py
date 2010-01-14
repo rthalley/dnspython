@@ -98,9 +98,9 @@ class NSEC3(dns.rdata.Rdata):
                 break
             nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
-                raise dns.exception.SyntaxError, "NSEC3 with bit 0"
+                raise dns.exception.SyntaxError("NSEC3 with bit 0")
             if nrdtype > 65535:
-                raise dns.exception.SyntaxError, "NSEC3 with bit > 65535"
+                raise dns.exception.SyntaxError("NSEC3 with bit > 65535")
             rdtypes.append(nrdtype)
         rdtypes.sort()
         window = 0
@@ -157,15 +157,15 @@ class NSEC3(dns.rdata.Rdata):
         windows = []
         while rdlen > 0:
             if rdlen < 3:
-                raise dns.exception.FormError, "NSEC3 too short"
+                raise dns.exception.FormError("NSEC3 too short")
             window = ord(wire[current])
             octets = ord(wire[current + 1])
             if octets == 0 or octets > 32:
-                raise dns.exception.FormError, "bad NSEC3 octets"
+                raise dns.exception.FormError("bad NSEC3 octets")
             current += 2
             rdlen -= 2
             if rdlen < octets:
-                raise dns.exception.FormError, "bad NSEC3 bitmap length"
+                raise dns.exception.FormError("bad NSEC3 bitmap length")
             bitmap = wire[current : current + octets]
             current += octets
             rdlen -= octets

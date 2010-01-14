@@ -77,7 +77,7 @@ def from_text(text):
     @raises dns.rdataclass.UnknownRdataClass: the class is unknown
     @raises ValueError: the rdata class value is not >= 0 and <= 65535
     """
-    
+
     value = _by_text.get(text.upper())
     if value is None:
         match = _unknown_class_pattern.match(text)
@@ -85,7 +85,7 @@ def from_text(text):
             raise UnknownRdataclass
         value = int(match.group(1))
         if value < 0 or value > 65535:
-            raise ValueError, "class must be between >= 0 and <= 65535"
+            raise ValueError("class must be between >= 0 and <= 65535")
     return value
 
 def to_text(value):
@@ -97,7 +97,7 @@ def to_text(value):
     """
 
     if value < 0 or value > 65535:
-        raise ValueError, "class must be between >= 0 and <= 65535"
+        raise ValueError("class must be between >= 0 and <= 65535")
     text = _by_value.get(value)
     if text is None:
         text = 'CLASS' + `value`
@@ -108,7 +108,7 @@ def is_metaclass(rdclass):
     @param rdclass: the rdata class
     @type rdclass: int
     @rtype: bool"""
-    
+
     if _metaclasses.has_key(rdclass):
         return True
     return False

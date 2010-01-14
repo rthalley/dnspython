@@ -102,7 +102,7 @@ class EntropyPool(object):
     def random_between(self, first, last):
         size = last - first + 1
         if size > 4294967296L:
-            raise ValueError, 'too big'
+            raise ValueError('too big')
         if size > 65536:
             rand = self.random_32
             max = 4294967295L

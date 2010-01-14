@@ -290,7 +290,7 @@ class Message(object):
         elif section is self.additional:
             return 3
         else:
-            raise ValueError, 'unknown section'
+            raise ValueError('unknown section')
 
     def find_rrset(self, section, name, rdclass, rdtype,
                    covers=dns.rdatatype.NONE, deleting=None, create=False,
@@ -653,10 +653,10 @@ class _WireReader(object):
                         i == (count - 1)):
                     raise BadTSIG
                 if self.message.keyring is None:
-                    raise UnknownTSIGKey, 'got signed message without keyring'
+                    raise UnknownTSIGKey('got signed message without keyring')
                 secret = self.message.keyring.get(absolute_name)
                 if secret is None:
-                    raise UnknownTSIGKey, "key '%s' unknown" % name
+                    raise UnknownTSIGKey("key '%s' unknown" % name)
                 self.message.tsig_ctx = \
                                       dns.tsig.validate(self.wire,
                                           absolute_name,
@@ -1067,7 +1067,7 @@ def make_response(query, recursion_available=False, our_payload=8192):
     @rtype: dns.message.Message object"""
 
     if query.flags & dns.flags.QR:
-        raise dns.exception.FormError, 'specified query message is not a query'
+        raise dns.exception.FormError('specified query message is not a query')
     response = dns.message.Message(query.id)
     response.flags = dns.flags.QR | (query.flags & dns.flags.RD)
     if recursion_available:

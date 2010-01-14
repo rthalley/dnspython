@@ -352,8 +352,7 @@ class Tokenizer(object):
                             return Token(COMMENT, token)
                         elif c == '':
                             if self.multiline:
-                                raise dns.exception.SyntaxError, \
-                                      'unbalanced parentheses'
+                                raise dns.exception.SyntaxError('unbalanced parentheses')
                             return Token(EOF)
                         elif self.multiline:
                             self.skip_whitespace()
@@ -386,7 +385,7 @@ class Tokenizer(object):
                             raise dns.exception.SyntaxError
                         c = chr(int(c) * 100 + int(c2) * 10 + int(c3))
                 elif c == '\n':
-                    raise dns.exception.SyntaxError, 'newline in quoted string'
+                    raise dns.exception.SyntaxError('newline in quoted string')
             elif c == '\\':
                 #
                 # It's an escape.  Put it and the next character into
@@ -400,7 +399,7 @@ class Tokenizer(object):
             token += c
         if token == '' and ttype != QUOTED_STRING:
             if self.multiline:
-                raise dns.exception.SyntaxError, 'unbalanced parentheses'
+                raise dns.exception.SyntaxError('unbalanced parentheses')
             ttype = EOF
         return Token(ttype, token, has_escape)
 
@@ -444,9 +443,9 @@ class Tokenizer(object):
 
         token = self.get().unescape()
         if not token.is_identifier():
-            raise dns.exception.SyntaxError, 'expecting an identifier'
+            raise dns.exception.SyntaxError('expecting an identifier')
         if not token.value.isdigit():
-            raise dns.exception.SyntaxError, 'expecting an integer'
+            raise dns.exception.SyntaxError('expecting an integer')
         return int(token.value)
 
     def get_uint8(self):
@@ -459,8 +458,7 @@ class Tokenizer(object):
 
         value = self.get_int()
         if value < 0 or value > 255:
-            raise dns.exception.SyntaxError, \
-                  '%d is not an unsigned 8-bit integer' % value
+            raise dns.exception.SyntaxError('%d is not an unsigned 8-bit integer' % value)
         return value
 
     def get_uint16(self):
@@ -473,8 +471,7 @@ class Tokenizer(object):
 
         value = self.get_int()
         if value < 0 or value > 65535:
-            raise dns.exception.SyntaxError, \
-                  '%d is not an unsigned 16-bit integer' % value
+            raise dns.exception.SyntaxError('%d is not an unsigned 16-bit integer' % value)
         return value
 
     def get_uint32(self):
@@ -487,13 +484,12 @@ class Tokenizer(object):
 
         token = self.get().unescape()
         if not token.is_identifier():
-            raise dns.exception.SyntaxError, 'expecting an identifier'
+            raise dns.exception.SyntaxError('expecting an identifier')
         if not token.value.isdigit():
-            raise dns.exception.SyntaxError, 'expecting an integer'
+            raise dns.exception.SyntaxError('expecting an integer')
         value = long(token.value)
         if value < 0 or value > 4294967296L:
-            raise dns.exception.SyntaxError, \
-                  '%d is not an unsigned 32-bit integer' % value
+            raise dns.exception.SyntaxError('%d is not an unsigned 32-bit integer' % value)
         return value
 
     def get_string(self, origin=None):
@@ -505,7 +501,7 @@ class Tokenizer(object):
 
         token = self.get().unescape()
         if not (token.is_identifier() or token.is_quoted_string()):
-            raise dns.exception.SyntaxError, 'expecting a string'
+            raise dns.exception.SyntaxError('expecting a string')
         return token.value
 
     def get_identifier(self, origin=None):
@@ -517,7 +513,7 @@ class Tokenizer(object):
 
         token = self.get().unescape()
         if not token.is_identifier():
-            raise dns.exception.SyntaxError, 'expecting an identifier'
+            raise dns.exception.SyntaxError('expecting an identifier')
         return token.value
 
     def get_name(self, origin=None):
@@ -528,7 +524,7 @@ class Tokenizer(object):
 
         token = self.get()
         if not token.is_identifier():
-            raise dns.exception.SyntaxError, 'expecting an identifier'
+            raise dns.exception.SyntaxError('expecting an identifier')
         return dns.name.from_text(token.value, origin)
 
     def get_eol(self):
@@ -541,12 +537,11 @@ class Tokenizer(object):
 
         token = self.get()
         if not token.is_eol_or_eof():
-            raise dns.exception.SyntaxError, \
-                  'expected EOL or EOF, got %d "%s"' % (token.ttype, token.value)
+            raise dns.exception.SyntaxError('expected EOL or EOF, got %d "%s"' % (token.ttype, token.value))
         return token.value
 
     def get_ttl(self):
         token = self.get().unescape()
         if not token.is_identifier():
-            raise dns.exception.SyntaxError, 'expecting an identifier'
+            raise dns.exception.SyntaxError('expecting an identifier')
         return dns.ttl.from_text(token.value)

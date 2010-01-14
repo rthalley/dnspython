@@ -61,9 +61,9 @@ class NXT(dns.rdata.Rdata):
             else:
                 nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
-                raise dns.exception.SyntaxError, "NXT with bit 0"
+                raise dns.exception.SyntaxError("NXT with bit 0")
             if nrdtype > 127:
-                raise dns.exception.SyntaxError, "NXT with bit > 127"
+                raise dns.exception.SyntaxError("NXT with bit > 127")
             i = nrdtype // 8
             bitmap[i] = chr(ord(bitmap[i]) | (0x80 >> (nrdtype % 8)))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
