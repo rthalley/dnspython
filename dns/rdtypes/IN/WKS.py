@@ -18,6 +18,7 @@ import struct
 
 import dns.ipv4
 import dns.rdata
+import dns.util
 
 _proto_tcp = socket.getprotobyname('tcp')
 _proto_udp = socket.getprotobyname('udp')
@@ -43,9 +44,9 @@ class WKS(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
-        for i in xrange(0, len(self.bitmap)):
-            byte = ord(self.bitmap[i])
-            for j in xrange(0, 8):
+        for i in range(0, len(self.bitmap)):
+            byte = self.bitmap[i]
+            for j in range(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
         text = ' '.join(bits)
@@ -58,7 +59,7 @@ class WKS(dns.rdata.Rdata):
             protocol = int(protocol)
         else:
             protocol = socket.getprotobyname(protocol)
-        bitmap = []
+        bitmap = bytearray(32 * 256)
         while 1:
             token = tok.get().unescape()
             if token.is_eol_or_eof():
@@ -74,11 +75,7 @@ class WKS(dns.rdata.Rdata):
                     protocol_text = "tcp"
                 serv = socket.getservbyname(token.value, protocol_text)
             i = serv // 8
-            l = len(bitmap)
-            if l < i + 1:
-                for j in xrange(l, i + 1):
-                    bitmap.append('\x00')
-            bitmap[i] = chr(ord(bitmap[i]) | (0x80 >> (serv % 8)))
+            bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
@@ -103,11 +100,11 @@ class WKS(dns.rdata.Rdata):
     def _cmp(self, other):
         sa = dns.ipv4.inet_aton(self.address)
         oa = dns.ipv4.inet_aton(other.address)
-        v = cmp(sa, oa)
+        v = dns.util.cmp(sa, oa)
         if v == 0:
             sp = struct.pack('!B', self.protocol)
             op = struct.pack('!B', other.protocol)
-            v = cmp(sp, op)
+            v = dns.util.cmp(sp, op)
             if v == 0:
-                v = cmp(self.bitmap, other.bitmap)
+                v = dns.util.cmp(self.bitmap, other.bitmap)
         return v

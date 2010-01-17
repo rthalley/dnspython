@@ -13,12 +13,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+import io
 
 import dns.exception
 import dns.rdata
 import dns.rdatatype
 import dns.name
+import dns.util
 
 class NSEC(dns.rdata.Rdata):
     """NSEC record
@@ -40,9 +41,9 @@ class NSEC(dns.rdata.Rdata):
         text = ''
         for (window, bitmap) in self.windows:
             bits = []
-            for i in xrange(0, len(bitmap)):
-                byte = ord(bitmap[i])
-                for j in xrange(0, 8):
+            for i in range(0, len(bitmap)):
+                byte = bitmap[i]
+                for j in range(0, 8):
                     if byte & (0x80 >> j):
                         bits.append(dns.rdatatype.to_text(window * 256 + \
                                                           i * 8 + j))
@@ -67,7 +68,7 @@ class NSEC(dns.rdata.Rdata):
         window = 0
         octets = 0
         prior_rdtype = 0
-        bitmap = ['\0'] * 32
+        bitmap = bytearray(32)
         windows = []
         for nrdtype in rdtypes:
             if nrdtype == prior_rdtype:
@@ -75,15 +76,15 @@ class NSEC(dns.rdata.Rdata):
             prior_rdtype = nrdtype
             new_window = nrdtype // 256
             if new_window != window:
-                windows.append((window, ''.join(bitmap[0:octets])))
-                bitmap = ['\0'] * 32
+                windows.append((window, bytes(bitmap[0:octets])))
+                bitmap = bytearray(32)
                 window = new_window
             offset = nrdtype % 256
-            byte = offset / 8
+            byte = offset // 8
             bit = offset % 8
             octets = byte + 1
-            bitmap[byte] = chr(ord(bitmap[byte]) | (0x80 >> bit))
-        windows.append((window, ''.join(bitmap[0:octets])))
+            bitmap[byte] = bitmap[byte] | (0x80 >> bit)
+        windows.append((window, bytes(bitmap[0:octets])))
         return cls(rdclass, rdtype, next, windows)
 
     from_text = classmethod(from_text)
@@ -91,8 +92,8 @@ class NSEC(dns.rdata.Rdata):
     def to_wire(self, file, compress = None, origin = None):
         self.next.to_wire(file, None, origin)
         for (window, bitmap) in self.windows:
-            file.write(chr(window))
-            file.write(chr(len(bitmap)))
+            dns.util.write_uint8(file, window)
+            dns.util.write_uint8(file, len(bitmap))
             file.write(bitmap)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
@@ -103,8 +104,8 @@ class NSEC(dns.rdata.Rdata):
         while rdlen > 0:
             if rdlen < 3:
                 raise dns.exception.FormError("NSEC too short")
-            window = ord(wire[current])
-            octets = ord(wire[current + 1])
+            window = wire[current]
+            octets = wire[current + 1]
             if octets == 0 or octets > 32:
                 raise dns.exception.FormError("bad NSEC octets")
             current += 2
@@ -125,17 +126,17 @@ class NSEC(dns.rdata.Rdata):
         self.next = self.next.choose_relativity(origin, relativize)
 
     def _cmp(self, other):
-        v = cmp(self.next, other.next)
+        v = dns.util.cmp(self.next, other.next)
         if v == 0:
-            b1 = cStringIO.StringIO()
+            b1 = io.BytesIO()
             for (window, bitmap) in self.windows:
-                b1.write(chr(window))
-                b1.write(chr(len(bitmap)))
+                dns.util.write_uint8(b1, window)
+                dns.util.write_uint8(b1, len(bitmap))
                 b1.write(bitmap)
-            b2 = cStringIO.StringIO()
+            b2 = io.BytesIO()
             for (window, bitmap) in other.windows:
-                b2.write(chr(window))
-                b2.write(chr(len(bitmap)))
+                dns.util.write_uint8(b2, window)
+                dns.util.write_uint8(b2, len(bitmap))
                 b2.write(bitmap)
-            v = cmp(b1.getvalue(), b2.getvalue())
+            v = dns.util.cmp(b1.getvalue(), b2.getvalue())
         return v

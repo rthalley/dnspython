@@ -18,13 +18,13 @@ import struct
 import dns.exception
 import dns.name
 import dns.rdata
+import dns.util
 
 def _write_string(file, s):
     l = len(s)
     assert l < 256
-    byte = chr(l)
-    file.write(byte)
-    file.write(s)
+    dns.util.write_uint8(file, l)
+    file.write(s.encode('ascii'))
 
 class NAPTR(dns.rdata.Rdata):
     """NAPTR record
@@ -45,7 +45,7 @@ class NAPTR(dns.rdata.Rdata):
 
     __slots__ = ['order', 'preference', 'flags', 'service', 'regexp',
                  'replacement']
-    
+
     def __init__(self, rdclass, rdtype, order, preference, flags, service,
                  regexp, replacement):
         super(NAPTR, self).__init__(rdclass, rdtype)
@@ -76,7 +76,7 @@ class NAPTR(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, order, preference, flags, service,
                    regexp, replacement)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -86,19 +86,19 @@ class NAPTR(dns.rdata.Rdata):
         _write_string(file, self.service)
         _write_string(file, self.regexp)
         self.replacement.to_wire(file, compress, origin)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (order, preference) = struct.unpack('!HH', wire[current : current + 4])
         current += 4
         rdlen -= 4
         strings = []
-        for i in xrange(3):
-            l = ord(wire[current])
+        for i in range(3):
+            l = wire[current]
             current += 1
             rdlen -= 1
             if l > rdlen or rdlen < 0:
                 raise dns.exception.FormError
-            s = wire[current : current + l]
+            s = wire[current : current + l].decode('latin_1')
             current += l
             rdlen -= l
             strings.append(s)
@@ -116,17 +116,17 @@ class NAPTR(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.replacement = self.replacement.choose_relativity(origin,
                                                               relativize)
-        
+
     def _cmp(self, other):
         sp = struct.pack("!HH", self.order, self.preference)
         op = struct.pack("!HH", other.order, other.preference)
-        v = cmp(sp, op)
+        v = dns.util.cmp(sp, op)
         if v == 0:
-            v = cmp(self.flags, other.flags)
+            v = dns.util.cmp(self.flags, other.flags)
             if v == 0:
-                v = cmp(self.service, other.service)
+                v = dns.util.cmp(self.service, other.service)
                 if v == 0:
-                    v = cmp(self.regexp, other.regexp)
+                    v = dns.util.cmp(self.regexp, other.regexp)
                     if v == 0:
-                        v = cmp(self.replacement, other.replacement)
+                        v = dns.util.cmp(self.replacement, other.replacement)
         return v

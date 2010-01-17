@@ -15,8 +15,8 @@
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
 
+import io
 import random
-import StringIO
 import struct
 
 import dns.exception
@@ -192,7 +192,7 @@ class Rdataset(dns.set.Set):
         else:
             ntext = ''
             pad = ''
-        s = StringIO.StringIO()
+        s = io.StringIO()
         if not override_rdclass is None:
             rdclass = override_rdclass
         else:
@@ -203,15 +203,17 @@ class Rdataset(dns.set.Set):
             # some dynamic updates, so we don't need to print out the TTL
             # (which is meaningless anyway).
             #
-            print >> s, '%s%s%s %s' % (ntext, pad,
-                                       dns.rdataclass.to_text(rdclass),
-                                       dns.rdatatype.to_text(self.rdtype))
+            print('%s%s%s %s' % (ntext, pad,
+                                 dns.rdataclass.to_text(rdclass),
+                                 dns.rdatatype.to_text(self.rdtype)),
+                  file=s)
         else:
             for rd in self:
-                print >> s, '%s%s%d %s %s %s' % \
+                print('%s%s%d %s %s %s' % \
                       (ntext, pad, self.ttl, dns.rdataclass.to_text(rdclass),
                        dns.rdatatype.to_text(self.rdtype),
-                       rd.to_text(origin=origin, relativize=relativize, **kw))
+                       rd.to_text(origin=origin, relativize=relativize, **kw)),
+                      file=s)
         #
         # We strip off the final \n for the caller's convenience in printing
         #

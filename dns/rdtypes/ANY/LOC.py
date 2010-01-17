@@ -13,19 +13,20 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+import io
 import struct
 
 import dns.exception
 import dns.rdata
+import dns.util
 
-_pows = (1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L,
-         100000000L, 1000000000L, 10000000000L)
+_pows = (1, 10, 100, 1000, 10000, 100000, 1000000, 10000000,
+         100000000, 1000000000, 10000000000)
 
 def _exponent_of(what, desc):
     exp = None
-    for i in xrange(len(_pows)):
-        if what // _pows[i] == 0L:
+    for i in range(len(_pows)):
+        if what // _pows[i] == 0:
             exp = i - 1
             break
     if exp is None or exp < 0:
@@ -38,14 +39,13 @@ def _float_to_tuple(what):
         what *= -1
     else:
         sign = 1
-    what = long(round(what * 3600000))
-    degrees = int(what // 3600000)
+    what = int(round(what * 3600000))
+    degrees = what // 3600000
     what -= degrees * 3600000
-    minutes = int(what // 60000)
+    minutes = what // 60000
     what -= minutes * 60000
-    seconds = int(what // 1000)
-    what -= int(seconds * 1000)
-    what = int(what)
+    seconds = what // 1000
+    what -= seconds * 1000
     return (degrees * sign, minutes, seconds, what)
 
 def _tuple_to_float(what):
@@ -61,7 +61,7 @@ def _tuple_to_float(what):
     return sign * value
 
 def _encode_size(what, desc):
-    what = long(what);
+    what = int(what);
     exponent = _exponent_of(what, desc) & 0xF
     base = what // pow(10, exponent) & 0xF
     return base * 16 + exponent
@@ -73,7 +73,7 @@ def _decode_size(what, desc):
     base = (what & 0xF0) >> 4
     if base > 9:
         raise dns.exception.SyntaxError("bad %s base" % desc)
-    return long(base) * pow(10, exponent)
+    return int(base) * pow(10, exponent)
 
 class LOC(dns.rdata.Rdata):
     """LOC record
@@ -107,12 +107,12 @@ class LOC(dns.rdata.Rdata):
         degrees.  The other parameters are floats."""
 
         super(LOC, self).__init__(rdclass, rdtype)
-        if isinstance(latitude, int) or isinstance(latitude, long):
+        if isinstance(latitude, int):
             latitude = float(latitude)
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
         self.latitude = latitude
-        if isinstance(longitude, int) or isinstance(longitude, long):
+        if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
@@ -251,27 +251,27 @@ class LOC(dns.rdata.Rdata):
     def to_wire(self, file, compress = None, origin = None):
         if self.latitude[0] < 0:
             sign = -1
-            degrees = long(-1 * self.latitude[0])
+            degrees = -1 * self.latitude[0]
         else:
             sign = 1
-            degrees = long(self.latitude[0])
+            degrees = self.latitude[0]
         milliseconds = (degrees * 3600000 +
                         self.latitude[1] * 60000 +
                         self.latitude[2] * 1000 +
                         self.latitude[3]) * sign
-        latitude = 0x80000000L + milliseconds
+        latitude = 0x80000000 + milliseconds
         if self.longitude[0] < 0:
             sign = -1
-            degrees = long(-1 * self.longitude[0])
+            degrees = -1 * self.longitude[0]
         else:
             sign = 1
-            degrees = long(self.longitude[0])
+            degrees = self.longitude[0]
         milliseconds = (degrees * 3600000 +
                         self.longitude[1] * 60000 +
                         self.longitude[2] * 1000 +
                         self.longitude[3]) * sign
-        longitude = 0x80000000L + milliseconds
-        altitude = long(self.altitude) + 10000000L
+        longitude = 0x80000000 + milliseconds
+        altitude = int(self.altitude) + 10000000
         size = _encode_size(self.size, "size")
         hprec = _encode_size(self.horizontal_precision, "horizontal precision")
         vprec = _encode_size(self.vertical_precision, "vertical precision")
@@ -282,16 +282,16 @@ class LOC(dns.rdata.Rdata):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (version, size, hprec, vprec, latitude, longitude, altitude) = \
                   struct.unpack("!BBBBIII", wire[current : current + rdlen])
-        if latitude > 0x80000000L:
-            latitude = float(latitude - 0x80000000L) / 3600000
+        if latitude > 0x80000000:
+            latitude = float(latitude - 0x80000000) / 3600000
         else:
-            latitude = -1 * float(0x80000000L - latitude) / 3600000
+            latitude = -1 * float(0x80000000 - latitude) / 3600000
         if latitude < -90.0 or latitude > 90.0:
             raise dns.exception.FormError("bad latitude")
-        if longitude > 0x80000000L:
-            longitude = float(longitude - 0x80000000L) / 3600000
+        if longitude > 0x80000000:
+            longitude = float(longitude - 0x80000000) / 3600000
         else:
-            longitude = -1 * float(0x80000000L - longitude) / 3600000
+            longitude = -1 * float(0x80000000 - longitude) / 3600000
         if longitude < -180.0 or longitude > 180.0:
             raise dns.exception.FormError("bad longitude")
         altitude = float(altitude) - 10000000.0
@@ -304,7 +304,7 @@ class LOC(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         self.to_wire(f)
         wire1 = f.getvalue()
         f.seek(0)
@@ -313,7 +313,7 @@ class LOC(dns.rdata.Rdata):
         wire2 = f.getvalue()
         f.close()
 
-        return cmp(wire1, wire2)
+        return dns.util.cmp(wire1, wire2)
 
     def _get_float_latitude(self):
         return _tuple_to_float(self.latitude)

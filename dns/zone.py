@@ -107,7 +107,7 @@ class Zone(object):
         return not self.__eq__(other)
 
     def _validate_name(self, name):
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, str):
             name = dns.name.from_text(name, None)
         elif not isinstance(name, dns.name.Name):
             raise KeyError("name parameter must be convertable to a DNS name")
@@ -205,7 +205,7 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if self.nodes.has_key(name):
+        if name in self.nodes:
             del self.nodes[name]
 
     def find_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
@@ -423,7 +423,7 @@ class Zone(object):
             rdtype = dns.rdatatype.from_text(rdtype)
         if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
-        for (name, node) in self.iteritems():
+        for (name, node) in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
                    (rds.rdtype == rdtype and rds.covers == covers):
@@ -446,7 +446,7 @@ class Zone(object):
             rdtype = dns.rdatatype.from_text(rdtype)
         if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
-        for (name, node) in self.iteritems():
+        for (name, node) in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
                    (rds.rdtype == rdtype and rds.covers == covers):
@@ -471,23 +471,18 @@ class Zone(object):
         @type nl: string or None
         """
 
-        if sys.hexversion >= 0x02030000:
-            # allow Unicode filenames
-            str_type = basestring
-        else:
-            str_type = str
         if nl is None:
             opts = 'w'
         else:
             opts = 'wb'
-        if isinstance(f, str_type):
-            f = file(f, opts)
+        if isinstance(f, str):
+            f = open(f, opts)
             want_close = True
         else:
             want_close = False
         try:
             if sorted:
-                names = self.keys()
+                names = list(self.keys())
                 names.sort()
             else:
                 names = self.iterkeys()
@@ -495,10 +490,10 @@ class Zone(object):
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize)
                 if nl is None:
-                    print >> f, l
+                    print(l, file=f)
                 else:
-                    f.write(l)
-                    f.write(nl)
+                    f.write(l.encode('ascii'))
+                    f.write(nl.encode('ascii'))
         finally:
             if want_close:
                 f.close()
@@ -549,7 +544,7 @@ class _MasterReader(object):
 
     def __init__(self, tok, origin, rdclass, relativize, zone_factory=Zone,
                  allow_include=False, check_origin=True):
-        if isinstance(origin, (str, unicode)):
+        if isinstance(origin, str):
             origin = dns.name.from_text(origin)
         self.tok = tok
         self.current_origin = origin
@@ -699,7 +694,7 @@ class _MasterReader(object):
                                                  self.last_name,
                                                  self.current_file,
                                                  self.ttl))
-                        self.current_file = file(filename, 'r')
+                        self.current_file = open(filename, 'r')
                         self.tok = dns.tokenizer.Tokenizer(self.current_file,
                                                            filename)
                         self.current_origin = new_origin
@@ -708,7 +703,7 @@ class _MasterReader(object):
                     continue
                 self.tok.unget(token)
                 self._rr_line()
-        except dns.exception.SyntaxError, detail:
+        except dns.exception.SyntaxError as detail:
             (filename, line_number) = self.tok.where()
             if detail is None:
                 detail = "syntax error"
@@ -792,17 +787,10 @@ def from_file(f, origin = None, rdclass = dns.rdataclass.IN,
     @rtype: dns.zone.Zone object
     """
 
-    if sys.hexversion >= 0x02030000:
-        # allow Unicode filenames; turn on universal newline support
-        str_type = basestring
-        opts = 'rU'
-    else:
-        str_type = str
-        opts = 'r'
-    if isinstance(f, str_type):
+    if isinstance(f, str):
         if filename is None:
             filename = f
-        f = file(f, opts)
+        f = open(f, 'rU')
         want_close = True
     else:
         if filename is None:

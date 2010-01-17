@@ -158,20 +158,12 @@ _by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
 
-_by_value = dict([(y, x) for x, y in _by_text.iteritems()])
+_by_value = dict([(y, x) for x, y in _by_text.items()])
 
+_metatypes = frozenset([OPT])
 
-_metatypes = {
-    OPT : True
-    }
-
-_singletons = {
-    SOA : True,
-    NXT : True,
-    DNAME : True,
-    NSEC : True,
-    # CNAME is technically a singleton, but we allow multiple CNAMEs.
-    }
+# CNAME is technically a singleton, but we allow multiple CNAMEs.
+_singletons = frozenset([SOA, NXT, DNAME, NSEC, NSEC3, NSEC3PARAM])
 
 _unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I);
 
@@ -208,7 +200,7 @@ def to_text(value):
         raise ValueError("type must be between >= 0 and <= 65535")
     text = _by_value.get(value)
     if text is None:
-        text = 'TYPE' + `value`
+        text = 'TYPE' + str(value)
     return text
 
 def is_metatype(rdtype):
@@ -217,7 +209,7 @@ def is_metatype(rdtype):
     @type rdtype: int
     @rtype: bool"""
 
-    if rdtype >= TKEY and rdtype <= ANY or _metatypes.has_key(rdtype):
+    if rdtype >= TKEY and rdtype <= ANY or rdtype in _metatypes:
         return True
     return False
 
@@ -227,6 +219,6 @@ def is_singleton(rdtype):
     @type rdtype: int
     @rtype: bool"""
 
-    if _singletons.has_key(rdtype):
+    if rdtype in _singletons:
         return True
     return False

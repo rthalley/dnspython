@@ -16,6 +16,7 @@
 import dns.exception
 import dns.rdata
 import dns.tokenizer
+import dns.util
 
 class NSAP(dns.rdata.Rdata):
     """NSAP record.
@@ -31,7 +32,7 @@ class NSAP(dns.rdata.Rdata):
         self.address = address
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return "0x%s" % self.address.encode('hex_codec')
+        return "0x%s" % dns.rdata._hexify(self.address, 256)
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         address = tok.get_string()
@@ -41,7 +42,7 @@ class NSAP(dns.rdata.Rdata):
         address = address[2:].replace('.', '')
         if len(address) % 2 != 0:
             raise dns.exception.SyntaxError('hexstring has odd length')
-        address = address.decode('hex_codec')
+        address = bytes.fromhex(address)
         return cls(rdclass, rdtype, address)
 
     from_text = classmethod(from_text)
@@ -56,4 +57,4 @@ class NSAP(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        return cmp(self.address, other.address)
+        return dns.util.cmp(self.address, other.address)

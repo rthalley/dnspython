@@ -13,11 +13,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+import base64
+import io
 import struct
 
 import dns.exception
 import dns.rdata
+import dns.util
 
 class NSEC3PARAM(dns.rdata.Rdata):
     """NSEC3PARAM record
@@ -41,10 +43,10 @@ class NSEC3PARAM(dns.rdata.Rdata):
         self.salt = salt
 
     def to_text(self, origin=None, relativize=True, **kw):
-        if self.salt == '':
+        if self.salt == b'':
             salt = '-'
         else:
-            salt = self.salt.encode('hex-codec')
+            salt = base64.b16encode(self.salt).decode('ascii').lower()
         return '%u %u %u %s' % (self.algorithm, self.flags, self.iterations, salt)
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
@@ -53,9 +55,9 @@ class NSEC3PARAM(dns.rdata.Rdata):
         iterations = tok.get_uint16()
         salt = tok.get_string()
         if salt == '-':
-            salt = ''
+            salt = b''
         else:
-            salt = salt.decode('hex-codec')
+            salt = bytes.fromhex(salt)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
     from_text = classmethod(from_text)
@@ -81,8 +83,8 @@ class NSEC3PARAM(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        b1 = cStringIO.StringIO()
+        b1 = io.BytesIO()
         self.to_wire(b1)
-        b2 = cStringIO.StringIO()
+        b2 = io.BytesIO()
         other.to_wire(b2)
-        return cmp(b1.getvalue(), b2.getvalue())
+        return dns.util.cmp(b1.getvalue(), b2.getvalue())

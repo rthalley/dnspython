@@ -59,7 +59,7 @@ def _wait_for(ir, iw, ix, expiration):
                 (r, w, x) = select.select(ir, iw, ix)
             else:
                 (r, w, x) = select.select(ir, iw, ix, timeout)
-        except select.error, e:
+        except select.error as e:
             if e.args[0] != errno.EINTR:
                 raise e
         done = True

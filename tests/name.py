@@ -15,8 +15,9 @@
 
 import unittest
 
-import cStringIO
+import io
 import socket
+import sys
 
 import dns.name
 import dns.reversename
@@ -25,18 +26,18 @@ import dns.e164
 class NameTestCase(unittest.TestCase):
     def setUp(self):
         self.origin = dns.name.from_text('example.')
-        
+
     def testFromTextRel1(self):
         n = dns.name.from_text('foo.bar')
-        self.failUnless(n.labels == ('foo', 'bar', ''))
+        self.failUnless(n.labels == (b'foo', b'bar', b''))
 
     def testFromTextRel2(self):
         n = dns.name.from_text('foo.bar', origin=self.origin)
-        self.failUnless(n.labels == ('foo', 'bar', 'example', ''))
+        self.failUnless(n.labels == (b'foo', b'bar', b'example', b''))
 
     def testFromTextRel3(self):
         n = dns.name.from_text('foo.bar', origin=None)
-        self.failUnless(n.labels == ('foo', 'bar'))
+        self.failUnless(n.labels == (b'foo', b'bar'))
 
     def testFromTextRel4(self):
         n = dns.name.from_text('@', origin=None)
@@ -48,7 +49,7 @@ class NameTestCase(unittest.TestCase):
 
     def testFromTextAbs1(self):
         n = dns.name.from_text('foo.bar.')
-        self.failUnless(n.labels == ('foo', 'bar', ''))
+        self.failUnless(n.labels == (b'foo', b'bar', b''))
 
     def testTortureFromText(self):
         good = [
@@ -80,6 +81,9 @@ class NameTestCase(unittest.TestCase):
             try:
                 n = dns.name.from_text(t)
             except:
+                info = sys.exc_info()
+                print(info[0])
+                print(info[2])
                 self.fail("good test '%s' raised an exception" % t)
         for t in bad:
             caught = False
@@ -97,7 +101,7 @@ class NameTestCase(unittest.TestCase):
 
     def testImmutable2(self):
         def bad():
-            self.origin.labels[0] = 'foo'
+            self.origin.labels[0] = b'foo'
         self.failUnlessRaises(TypeError, bad)
 
     def testAbs1(self):
@@ -155,9 +159,6 @@ class NameTestCase(unittest.TestCase):
     def testCompare4(self):
         self.failUnless(dns.name.root != 1)
 
-    def testCompare5(self):
-        self.failUnless(dns.name.root < 1 or dns.name.root > 1)
-
     def testSubdomain1(self):
         self.failUnless(not dns.name.empty.is_subdomain(dns.name.root))
 
@@ -197,7 +198,7 @@ class NameTestCase(unittest.TestCase):
     def testCanonicalize1(self):
         n = dns.name.from_text('FOO.bar', origin=self.origin)
         c = n.canonicalize()
-        self.failUnless(c.labels == ('foo', 'bar', 'example', ''))
+        self.failUnless(c.labels == (b'foo', b'bar', b'example', b''))
 
     def testToText1(self):
         n = dns.name.from_text('FOO.bar', origin=self.origin)
@@ -240,17 +241,17 @@ class NameTestCase(unittest.TestCase):
     def testSlice1(self):
         n = dns.name.from_text(r'a.b.c.', origin=None)
         s = n[:]
-        self.failUnless(s == ('a', 'b', 'c', ''))
+        self.failUnless(s == (b'a', b'b', b'c', b''))
 
     def testSlice2(self):
         n = dns.name.from_text(r'a.b.c.', origin=None)
         s = n[:2]
-        self.failUnless(s == ('a', 'b'))
+        self.failUnless(s == (b'a', b'b'))
 
     def testSlice3(self):
         n = dns.name.from_text(r'a.b.c.', origin=None)
         s = n[2:]
-        self.failUnless(s == ('c', ''))
+        self.failUnless(s == (b'c', b''))
 
     def testEmptyLabel1(self):
         def bad():
@@ -329,13 +330,13 @@ class NameTestCase(unittest.TestCase):
     def testBadEscape(self):
         def bad():
             n = dns.name.from_text(r'a.b\0q1.c.')
-            print n
+            print(n)
         self.failUnlessRaises(dns.name.BadEscape, bad)
 
     def testDigestable1(self):
         n = dns.name.from_text('FOO.bar')
         d = n.to_digestable()
-        self.failUnless(d == '\x03foo\x03bar\x00')
+        self.failUnless(d == b'\x03foo\x03bar\x00')
 
     def testDigestable2(self):
         n1 = dns.name.from_text('FOO.bar')
@@ -346,13 +347,13 @@ class NameTestCase(unittest.TestCase):
 
     def testDigestable3(self):
         d = dns.name.root.to_digestable()
-        self.failUnless(d == '\x00')
+        self.failUnless(d == b'\x00')
 
     def testDigestable4(self):
         n = dns.name.from_text('FOO.bar', None)
         d = n.to_digestable(dns.name.root)
-        self.failUnless(d == '\x03foo\x03bar\x00')
-        
+        self.failUnless(d == b'\x03foo\x03bar\x00')
+
     def testBadDigestable(self):
         def bad():
             n = dns.name.from_text('FOO.bar', None)
@@ -361,56 +362,56 @@ class NameTestCase(unittest.TestCase):
 
     def testToWire1(self):
         n = dns.name.from_text('FOO.bar')
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         compress = {}
         n.to_wire(f, compress)
-        self.failUnless(f.getvalue() == '\x03FOO\x03bar\x00')
+        self.failUnless(f.getvalue() == b'\x03FOO\x03bar\x00')
 
     def testToWire2(self):
         n = dns.name.from_text('FOO.bar')
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         compress = {}
         n.to_wire(f, compress)
         n.to_wire(f, compress)
-        self.failUnless(f.getvalue() == '\x03FOO\x03bar\x00\xc0\x00')
+        self.failUnless(f.getvalue() == b'\x03FOO\x03bar\x00\xc0\x00')
 
     def testToWire3(self):
         n1 = dns.name.from_text('FOO.bar')
         n2 = dns.name.from_text('foo.bar')
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         compress = {}
         n1.to_wire(f, compress)
         n2.to_wire(f, compress)
-        self.failUnless(f.getvalue() == '\x03FOO\x03bar\x00\xc0\x00')
+        self.failUnless(f.getvalue() == b'\x03FOO\x03bar\x00\xc0\x00')
 
     def testToWire4(self):
         n1 = dns.name.from_text('FOO.bar')
         n2 = dns.name.from_text('a.foo.bar')
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         compress = {}
         n1.to_wire(f, compress)
         n2.to_wire(f, compress)
-        self.failUnless(f.getvalue() == '\x03FOO\x03bar\x00\x01\x61\xc0\x00')
+        self.failUnless(f.getvalue() == b'\x03FOO\x03bar\x00\x01\x61\xc0\x00')
 
     def testToWire5(self):
         n1 = dns.name.from_text('FOO.bar')
         n2 = dns.name.from_text('a.foo.bar')
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         compress = {}
         n1.to_wire(f, compress)
         n2.to_wire(f, None)
         self.failUnless(f.getvalue() == \
-                        '\x03FOO\x03bar\x00\x01\x61\x03foo\x03bar\x00')
+                        b'\x03FOO\x03bar\x00\x01\x61\x03foo\x03bar\x00')
 
     def testToWire6(self):
         n = dns.name.from_text('FOO.bar')
         v = n.to_wire()
-        self.failUnless(v == '\x03FOO\x03bar\x00')
+        self.failUnless(v == b'\x03FOO\x03bar\x00')
 
     def testBadToWire(self):
         def bad():
             n = dns.name.from_text('FOO.bar', None)
-            f = cStringIO.StringIO()
+            f = io.BytesIO()
             compress = {}
             n.to_wire(f, compress)
         self.failUnlessRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
@@ -540,7 +541,7 @@ class NameTestCase(unittest.TestCase):
         self.failUnless(n.choose_relativity(o, False) == e)
 
     def testFromWire1(self):
-        w = '\x03foo\x00\xc0\x00'
+        w = b'\x03foo\x00\xc0\x00'
         (n1, cused1) = dns.name.from_wire(w, 0)
         (n2, cused2) = dns.name.from_wire(w, cused1)
         en1 = dns.name.from_text('foo.')
@@ -550,8 +551,8 @@ class NameTestCase(unittest.TestCase):
         self.failUnless(n1 == en1 and cused1 == ecused1 and \
                         n2 == en2 and cused2 == ecused2)
 
-    def testFromWire1(self):
-        w = '\x03foo\x00\x01a\xc0\x00\x01b\xc0\x05'
+    def testFromWire2(self):
+        w = b'\x03foo\x00\x01a\xc0\x00\x01b\xc0\x05'
         current = 0
         (n1, cused1) = dns.name.from_wire(w, current)
         current += cused1
@@ -570,25 +571,25 @@ class NameTestCase(unittest.TestCase):
 
     def testBadFromWire1(self):
         def bad():
-            w = '\x03foo\xc0\x04'
+            w = b'\x03foo\xc0\x04'
             (n, cused) = dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadPointer, bad)
 
     def testBadFromWire2(self):
         def bad():
-            w = '\x03foo\xc0\x05'
+            w = b'\x03foo\xc0\x05'
             (n, cused) = dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadPointer, bad)
 
     def testBadFromWire3(self):
         def bad():
-            w = '\xbffoo'
+            w = b'\xbffoo'
             (n, cused) = dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadLabelType, bad)
 
     def testBadFromWire4(self):
         def bad():
-            w = '\x41foo'
+            w = b'\x41foo'
             (n, cused) = dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadLabelType, bad)
 
@@ -615,39 +616,39 @@ class NameTestCase(unittest.TestCase):
         self.failUnlessRaises(dns.name.NoParent, bad)
 
     def testFromUnicode1(self):
-        n = dns.name.from_text(u'foo.bar')
-        self.failUnless(n.labels == ('foo', 'bar', ''))
+        n = dns.name.from_text('foo.bar')
+        self.failUnless(n.labels == (b'foo', b'bar', b''))
 
     def testFromUnicode2(self):
-        n = dns.name.from_text(u'foo\u1234bar.bar')
-        self.failUnless(n.labels == ('xn--foobar-r5z', 'bar', ''))
+        n = dns.name.from_text('foo\u1234bar.bar')
+        self.failUnless(n.labels == (b'xn--foobar-r5z', b'bar', b''))
 
     def testFromUnicodeAlternateDot1(self):
-        n = dns.name.from_text(u'foo\u3002bar')
-        self.failUnless(n.labels == ('foo', 'bar', ''))
+        n = dns.name.from_text('foo\u3002bar')
+        self.failUnless(n.labels == (b'foo', b'bar', b''))
 
     def testFromUnicodeAlternateDot2(self):
-        n = dns.name.from_text(u'foo\uff0ebar')
-        self.failUnless(n.labels == ('foo', 'bar', ''))
+        n = dns.name.from_text('foo\uff0ebar')
+        self.failUnless(n.labels == (b'foo', b'bar', b''))
 
     def testFromUnicodeAlternateDot3(self):
-        n = dns.name.from_text(u'foo\uff61bar')
-        self.failUnless(n.labels == ('foo', 'bar', ''))
+        n = dns.name.from_text('foo\uff61bar')
+        self.failUnless(n.labels == (b'foo', b'bar', b''))
 
     def testToUnicode1(self):
-        n = dns.name.from_text(u'foo.bar')
+        n = dns.name.from_text('foo.bar')
         s = n.to_unicode()
-        self.failUnless(s == u'foo.bar.')
+        self.failUnless(s == 'foo.bar.')
 
     def testToUnicode2(self):
-        n = dns.name.from_text(u'foo\u1234bar.bar')
+        n = dns.name.from_text('foo\u1234bar.bar')
         s = n.to_unicode()
-        self.failUnless(s == u'foo\u1234bar.bar.')
+        self.failUnless(s == 'foo\u1234bar.bar.')
 
     def testToUnicode3(self):
         n = dns.name.from_text('foo.bar')
         s = n.to_unicode()
-        self.failUnless(s == u'foo.bar.')
+        self.failUnless(s == 'foo.bar.')
 
     def testReverseIPv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')

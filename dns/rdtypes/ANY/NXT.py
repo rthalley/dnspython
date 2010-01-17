@@ -17,6 +17,7 @@ import dns.exception
 import dns.rdata
 import dns.rdatatype
 import dns.name
+import dns.util
 
 class NXT(dns.rdata.Rdata):
     """NXT record
@@ -37,9 +38,9 @@ class NXT(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)
         bits = []
-        for i in xrange(0, len(self.bitmap)):
-            byte = ord(self.bitmap[i])
-            for j in xrange(0, 8):
+        for i in range(0, len(self.bitmap)):
+            byte = self.bitmap[i]
+            for j in range(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(dns.rdatatype.to_text(i * 8 + j))
         text = ' '.join(bits)
@@ -48,10 +49,7 @@ class NXT(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         next = tok.get_name()
         next = next.choose_relativity(origin, relativize)
-        bitmap = ['\x00', '\x00', '\x00', '\x00',
-                  '\x00', '\x00', '\x00', '\x00',
-                  '\x00', '\x00', '\x00', '\x00',
-                  '\x00', '\x00', '\x00', '\x00' ]
+        bitmap = bytearray(32)
         while 1:
             token = tok.get().unescape()
             if token.is_eol_or_eof():
@@ -65,7 +63,7 @@ class NXT(dns.rdata.Rdata):
             if nrdtype > 127:
                 raise dns.exception.SyntaxError("NXT with bit > 127")
             i = nrdtype // 8
-            bitmap[i] = chr(ord(bitmap[i]) | (0x80 >> (nrdtype % 8)))
+            bitmap[i] = bitmap[i] | (0x80 >> (nrdtype % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
         return cls(rdclass, rdtype, next, bitmap)
 
@@ -93,7 +91,7 @@ class NXT(dns.rdata.Rdata):
         self.next = self.next.choose_relativity(origin, relativize)
 
     def _cmp(self, other):
-        v = cmp(self.next, other.next)
+        v = dns.util.cmp(self.next, other.next)
         if v == 0:
-            v = cmp(self.bitmap, other.bitmap)
+            v = dns.util.cmp(self.bitmap, other.bitmap)
         return v

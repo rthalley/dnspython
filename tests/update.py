@@ -34,7 +34,7 @@ goodhex = '0001 2800 0001 0005 0007 0000' \
           '04626c617ac00c 0001 00ff 00000000 0000' \
           'c049 00ff 00ff 00000000 0000'
 
-goodwire = goodhex.replace(' ', '').decode('hex_codec')
+goodwire = bytes.fromhex(goodhex.replace(' ', ''))
 
 update_text="""id 1
 opcode UPDATE

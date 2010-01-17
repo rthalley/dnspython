@@ -18,6 +18,7 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.name
+import dns.util
 
 class PX(dns.rdata.Rdata):
     """PX record.
@@ -31,7 +32,7 @@ class PX(dns.rdata.Rdata):
     @see: RFC 2163"""
 
     __slots__ = ['preference', 'map822', 'mapx400']
-        
+
     def __init__(self, rdclass, rdtype, preference, map822, mapx400):
         super(PX, self).__init__(rdclass, rdtype)
         self.preference = preference
@@ -42,7 +43,7 @@ class PX(dns.rdata.Rdata):
         map822 = self.map822.choose_relativity(origin, relativize)
         mapx400 = self.mapx400.choose_relativity(origin, relativize)
         return '%d %s %s' % (self.preference, map822, mapx400)
-        
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         preference = tok.get_uint16()
         map822 = tok.get_name()
@@ -51,7 +52,7 @@ class PX(dns.rdata.Rdata):
         mapx400 = mapx400.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, preference, map822, mapx400)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -59,7 +60,7 @@ class PX(dns.rdata.Rdata):
         file.write(pref)
         self.map822.to_wire(file, None, origin)
         self.mapx400.to_wire(file, None, origin)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (preference, ) = struct.unpack('!H', wire[current : current + 2])
         current += 2
@@ -89,9 +90,9 @@ class PX(dns.rdata.Rdata):
     def _cmp(self, other):
         sp = struct.pack("!H", self.preference)
         op = struct.pack("!H", other.preference)
-        v = cmp(sp, op)
+        v = dns.util.cmp(sp, op)
         if v == 0:
-            v = cmp(self.map822, other.map822)
+            v = dns.util.cmp(self.map822, other.map822)
             if v == 0:
-                v = cmp(self.mapx400, other.mapx400)
+                v = dns.util.cmp(self.mapx400, other.mapx400)
         return v

@@ -16,6 +16,7 @@
 import dns.exception
 import dns.rdata
 import dns.name
+import dns.util
 
 class RP(dns.rdata.Rdata):
     """RP record
@@ -80,7 +81,7 @@ class RP(dns.rdata.Rdata):
         self.txt = self.txt.choose_relativity(origin, relativize)
 
     def _cmp(self, other):
-        v = cmp(self.mbox, other.mbox)
+        v = dns.util.cmp(self.mbox, other.mbox)
         if v == 0:
-            v = cmp(self.txt, other.txt)
+            v = dns.util.cmp(self.txt, other.txt)
         return v

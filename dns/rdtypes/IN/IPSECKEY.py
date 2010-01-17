@@ -13,12 +13,14 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+import base64
+import io
 import struct
 
 import dns.exception
 import dns.inet
 import dns.name
+import dns.util
 
 class IPSECKEY(dns.rdata.Rdata):
     """IPSECKEY record
@@ -92,7 +94,7 @@ class IPSECKEY(dns.rdata.Rdata):
                 raise dns.exception.SyntaxError
             chunks.append(t.value)
         b64 = ''.join(chunks)
-        key = b64.decode('base64_codec')
+        key = base64.b64decode(b64.encode('ascii'))
         return cls(rdclass, rdtype, precedence, gateway_type, algorithm,
                    gateway, key)
 
@@ -147,7 +149,7 @@ class IPSECKEY(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         self.to_wire(f)
         wire1 = f.getvalue()
         f.seek(0)
@@ -156,4 +158,4 @@ class IPSECKEY(dns.rdata.Rdata):
         wire2 = f.getvalue()
         f.close()
 
-        return cmp(wire1, wire2)
+        return dns.util.cmp(wire1, wire2)

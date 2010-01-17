@@ -13,7 +13,10 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import base64
+
 import dns.exception
+import dns.util
 
 class DHCID(dns.rdata.Rdata):
     """DHCID record
@@ -42,7 +45,7 @@ class DHCID(dns.rdata.Rdata):
                 raise dns.exception.SyntaxError
             chunks.append(t.value)
         b64 = ''.join(chunks)
-        data = b64.decode('base64_codec')
+        data = base64.b64decode(b64.encode('ascii'))
         return cls(rdclass, rdtype, data)
 
     from_text = classmethod(from_text)
@@ -57,4 +60,4 @@ class DHCID(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        return cmp(self.data, other.data)
+        return dns.util.cmp(self.data, other.data)

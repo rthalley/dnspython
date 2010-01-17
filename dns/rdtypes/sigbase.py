@@ -13,6 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import base64
 import calendar
 import struct
 import time
@@ -21,6 +22,7 @@ import dns.dnssec
 import dns.exception
 import dns.rdata
 import dns.rdatatype
+import dns.util
 
 class BadSigTime(dns.exception.DNSException):
     """Raised when a SIG or RRSIG RR's time cannot be parsed."""
@@ -97,6 +99,7 @@ class SIGBase(dns.rdata.Rdata):
             dns.rdata._base64ify(self.signature)
             )
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         type_covered = dns.rdatatype.from_text(tok.get_string())
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
@@ -116,12 +119,10 @@ class SIGBase(dns.rdata.Rdata):
                 raise dns.exception.SyntaxError
             chunks.append(t.value)
         b64 = ''.join(chunks)
-        signature = b64.decode('base64_codec')
+        signature = base64.b64decode(b64.encode('ascii'))
         return cls(rdclass, rdtype, type_covered, algorithm, labels,
                    original_ttl, expiration, inception, key_tag, signer,
                    signature)
-
-    from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         header = struct.pack('!HBBIIIH', self.type_covered,
@@ -132,6 +133,7 @@ class SIGBase(dns.rdata.Rdata):
         self.signer.to_wire(file, None, origin)
         file.write(self.signature)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         header = struct.unpack('!HBBIIIH', wire[current : current + 18])
         current += 18
@@ -146,8 +148,6 @@ class SIGBase(dns.rdata.Rdata):
                    header[3], header[4], header[5], header[6], signer,
                    signature)
 
-    from_wire = classmethod(from_wire)
-
     def choose_relativity(self, origin = None, relativize = True):
         self.signer = self.signer.choose_relativity(origin, relativize)
 
@@ -160,9 +160,9 @@ class SIGBase(dns.rdata.Rdata):
                          other.algorithm, other.labels,
                          other.original_ttl, other.expiration,
                          other.inception, other.key_tag)
-        v = cmp(hs, ho)
+        v = dns.util.cmp(hs, ho)
         if v == 0:
-            v = cmp(self.signer, other.signer)
+            v = dns.util.cmp(self.signer, other.signer)
             if v == 0:
-                v = cmp(self.signature, other.signature)
+                v = dns.util.cmp(self.signature, other.signature)
         return v

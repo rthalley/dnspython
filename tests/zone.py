@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+import io
 import filecmp
 import os
 import unittest
@@ -123,23 +123,22 @@ class ZoneTestCase(unittest.TestCase):
 
     def testFromText(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
-        f = cStringIO.StringIO()
-        names = z.nodes.keys()
-        names.sort()
+        f = io.StringIO()
+        names = sorted(z.nodes.keys())
         for n in names:
-            print >> f, z[n].to_text(n)
+            print(z[n].to_text(n), file=f)
         self.failUnless(f.getvalue() == example_text_output)
-            
+
     def testTorture1(self):
         #
         # Read a zone containing all our supported RR types, and
         # for each RR in the zone, convert the rdata into wire format
         # and then back out, and see if we get equal rdatas.
         #
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         o = dns.name.from_text('example.')
         z = dns.zone.from_file('example', o)
-        for (name, node) in z.iteritems():
+        for (name, node) in z.items():
             for rds in node:
                 for rd in rds:
                     f.seek(0)
@@ -290,15 +289,13 @@ class ZoneTestCase(unittest.TestCase):
 
     def testIterateRdatasets(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
-        ns = [n for n, r in z.iterate_rdatasets('A')]
-        ns.sort()
+        ns = sorted([n for n, r in z.iterate_rdatasets('A')])
         self.failUnless(ns == [dns.name.from_text('ns1', None),
                                dns.name.from_text('ns2', None)])
 
     def testIterateAllRdatasets(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
-        ns = [n for n, r in z.iterate_rdatasets()]
-        ns.sort()
+        ns = sorted([n for n, r in z.iterate_rdatasets()])
         self.failUnless(ns == [dns.name.from_text('@', None),
                                dns.name.from_text('@', None),
                                dns.name.from_text('bar.foo', None),
@@ -307,8 +304,7 @@ class ZoneTestCase(unittest.TestCase):
 
     def testIterateRdatas(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
-        l = list(z.iterate_rdatas('A'))
-        l.sort()
+        l = sorted(z.iterate_rdatas('A'))
         exl = [(dns.name.from_text('ns1', None),
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
@@ -321,8 +317,7 @@ class ZoneTestCase(unittest.TestCase):
 
     def testIterateAllRdatas(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
-        l = list(z.iterate_rdatas())
-        l.sort()
+        l = sorted(z.iterate_rdatas())
         exl = [(dns.name.from_text('@', None),
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,

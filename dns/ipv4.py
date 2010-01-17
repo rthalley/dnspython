@@ -18,16 +18,14 @@
 import socket
 import sys
 
-if sys.hexversion < 0x02030000 or sys.platform == 'win32':
+if sys.platform == 'win32':
     #
-    # Some versions of Python 2.2 have an inet_aton which rejects
-    # the valid IP address '255.255.255.255'.  It appears this
-    # problem is still present on the Win32 platform even in 2.3.
-    # We'll work around the problem.
+    # XXX  Does the Win32 python 3 inet_aton still reject 255.255.255.255?
+    # Until we know it doesn't, we'll keep our workaround in place.
     #
     def inet_aton(text):
         if text == '255.255.255.255':
-            return '\xff' * 4
+            return b'\xff' * 4
         else:
             return socket.inet_aton(text)
 else:

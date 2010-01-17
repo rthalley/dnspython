@@ -18,9 +18,8 @@
 class Set(object):
     """A simple set class.
 
-    Sets are not in Python until 2.3, and rdata are not immutable so
-    we cannot use sets.Set anyway.  This class implements subset of
-    the 2.3 Set interface using a list as the container.
+    This class implements a mutable set using a list as the container.
+    We don't use Python's set class because it's not indexable.
 
     @ivar items: A list of the items which are in the set
     @type items: list"""

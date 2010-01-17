@@ -15,12 +15,11 @@
 
 """IPv6 helper functions."""
 
+import base64
 import re
 
 import dns.exception
 import dns.ipv4
-
-_leading_zero = re.compile(r'0+([0-9a-f]+)')
 
 def inet_ntoa(address):
     """Convert a network format IPv6 address into text.
@@ -33,18 +32,14 @@ def inet_ntoa(address):
 
     if len(address) != 16:
         raise ValueError("IPv6 addresses are 16 bytes long")
-    hex = address.encode('hex_codec')
+    hex = str(base64.b16encode(address), encoding='utf_8').lower()
     chunks = []
     i = 0
     l = len(hex)
     while i < l:
-        chunk = hex[i : i + 4]
-        # strip leading zeros.  we do this with an re instead of
-        # with lstrip() because lstrip() didn't support chars until
-        # python 2.2.2
-        m = _leading_zero.match(chunk)
-        if not m is None:
-            chunk = m.group(1)
+        chunk = hex[i : i + 4].lstrip('0')
+        if chunk == '':
+            chunk = '0'
         chunks.append(chunk)
         i += 4
     #
@@ -54,7 +49,7 @@ def inet_ntoa(address):
     best_len = 0
     start = -1
     last_was_zero = False
-    for i in xrange(8):
+    for i in range(8):
         if chunks[i] != '0':
             if last_was_zero:
                 end = i
@@ -141,7 +136,7 @@ def inet_aton(text):
             if seen_empty:
                 raise dns.exception.SyntaxError
             seen_empty = True
-            for i in xrange(0, 8 - l + 1):
+            for i in range(0, 8 - l + 1):
                 canonical.append('0000')
         else:
             lc = len(c)
@@ -158,6 +153,6 @@ def inet_aton(text):
     # Finally we can go to binary.
     #
     try:
-        return text.decode('hex_codec')
+        return bytes.fromhex(text)
     except TypeError:
         raise dns.exception.SyntaxError

@@ -47,7 +47,7 @@ _algorithm_by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
 
-_algorithm_by_value = dict([(y, x) for x, y in _algorithm_by_text.iteritems()])
+_algorithm_by_value = dict([(y, x) for x, y in _algorithm_by_text.items()])
 
 class UnknownAlgorithm(Exception):
     """Raised if an algorithm is unknown."""

@@ -47,7 +47,7 @@ _by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
 
-_by_value = dict([(y, x) for x, y in _by_text.iteritems()])
+_by_value = dict([(y, x) for x, y in _by_text.items()])
 
 # Now that we've built the inverse map, we can add class aliases to
 # the _by_text mapping.
@@ -58,10 +58,7 @@ _by_text.update({
     'HESIOD' : HS
     })
 
-_metaclasses = {
-    NONE : True,
-    ANY : True
-    }
+_metaclasses = frozenset([NONE, ANY])
 
 _unknown_class_pattern = re.compile('CLASS([0-9]+)$', re.I);
 
@@ -100,7 +97,7 @@ def to_text(value):
         raise ValueError("class must be between >= 0 and <= 65535")
     text = _by_value.get(value)
     if text is None:
-        text = 'CLASS' + `value`
+        text = 'CLASS' + str(value)
     return text
 
 def is_metaclass(rdclass):
@@ -109,6 +106,6 @@ def is_metaclass(rdclass):
     @type rdclass: int
     @rtype: bool"""
 
-    if _metaclasses.has_key(rdclass):
+    if rdclass in _metaclasses:
         return True
     return False

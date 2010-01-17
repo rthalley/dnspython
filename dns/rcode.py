@@ -49,7 +49,7 @@ _by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be a true inverse.
 
-_by_value = dict([(y, x) for x, y in _by_text.iteritems()])
+_by_value = dict([(y, x) for x, y in _by_text.items()])
 
 
 class UnknownRcode(dns.exception.DNSException):
@@ -102,7 +102,7 @@ def to_flags(value):
     if value < 0 or value > 4095:
         raise ValueError('rcode must be >= 0 and <= 4095')
     v = value & 0xf
-    ev = long(value & 0xff0) << 20
+    ev = (value & 0xff0) << 20
     return (v, ev)
 
 def to_text(value):

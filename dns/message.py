@@ -15,7 +15,7 @@
 
 """DNS Messages"""
 
-import cStringIO
+import io
 import random
 import struct
 import sys
@@ -168,7 +168,7 @@ class Message(object):
         self.index = {}
 
     def __repr__(self):
-        return '<DNS message, ID ' + `self.id` + '>'
+        return '<DNS message, ID ' + str(self.id) + '>'
 
     def __str__(self):
         return self.to_text()
@@ -182,41 +182,42 @@ class Message(object):
         @rtype: string
         """
 
-        s = cStringIO.StringIO()
-        print >> s, 'id %d' % self.id
-        print >> s, 'opcode %s' % \
-              dns.opcode.to_text(dns.opcode.from_flags(self.flags))
+        s = io.StringIO()
+        print('id %d' % self.id, file=s)
+        print('opcode %s' % \
+              dns.opcode.to_text(dns.opcode.from_flags(self.flags)),
+              file=s)
         rc = dns.rcode.from_flags(self.flags, self.ednsflags)
-        print >> s, 'rcode %s' % dns.rcode.to_text(rc)
-        print >> s, 'flags %s' % dns.flags.to_text(self.flags)
+        print('rcode %s' % dns.rcode.to_text(rc), file=s)
+        print('flags %s' % dns.flags.to_text(self.flags), file=s)
         if self.edns >= 0:
-            print >> s, 'edns %s' % self.edns
+            print('edns %s' % self.edns, file=s)
             if self.ednsflags != 0:
-                print >> s, 'eflags %s' % \
-                      dns.flags.edns_to_text(self.ednsflags)
-            print >> s, 'payload', self.payload
+                print('eflags %s' % \
+                      dns.flags.edns_to_text(self.ednsflags), file=s)
+            print('payload', self.payload, file=s)
         is_update = dns.opcode.is_update(self.flags)
         if is_update:
-            print >> s, ';ZONE'
+            print(';ZONE', file=s)
         else:
-            print >> s, ';QUESTION'
+            print(';QUESTION', file=s)
         for rrset in self.question:
-            print >> s, rrset.to_text(origin, relativize, **kw)
+            print(rrset.to_text(origin, relativize, **kw), file=s)
         if is_update:
-            print >> s, ';PREREQ'
+            print(';PREREQ', file=s)
         else:
-            print >> s, ';ANSWER'
+            print(';ANSWER', file=s)
         for rrset in self.answer:
-            print >> s, rrset.to_text(origin, relativize, **kw)
+            print(rrset.to_text(origin, relativize, **kw), file=s)
         if is_update:
-            print >> s, ';UPDATE'
+            print(';UPDATE', file=s)
         else:
-            print >> s, ';AUTHORITY'
+            print(';AUTHORITY', file=s)
         for rrset in self.authority:
-            print >> s, rrset.to_text(origin, relativize, **kw)
-        print >> s, ';ADDITIONAL'
+            print(rrset.to_text(origin, relativize, **kw), file=s)
+        print(';ADDITIONAL', file=s)
         for rrset in self.additional:
-            print >> s, rrset.to_text(origin, relativize, **kw)
+            print(rrset.to_text(origin, relativize, **kw), file=s)
         #
         # We strip off the final \n so the caller can print the result without
         # doing weird things to get around eccentricities in Python print
@@ -450,7 +451,7 @@ class Message(object):
         if keyname is None:
             self.keyname = self.keyring.keys()[0]
         else:
-            if isinstance(keyname, (str, unicode)):
+            if isinstance(keyname, str):
                 keyname = dns.name.from_text(keyname)
             self.keyname = keyname
         self.keyalgorithm = algorithm
@@ -494,7 +495,7 @@ class Message(object):
             options = []
         else:
             # make sure the EDNS version in ednsflags agrees with edns
-            ednsflags &= 0xFF00FFFFL
+            ednsflags &= 0xFF00FFFF
             ednsflags |= (edns << 16)
             if options is None:
                 options = []
@@ -532,7 +533,7 @@ class Message(object):
         (value, evalue) = dns.rcode.to_flags(rcode)
         self.flags &= 0xFFF0
         self.flags |= value
-        self.ednsflags &= 0x00FFFFFFL
+        self.ednsflags &= 0x00FFFFFF
         self.ednsflags |= evalue
         if self.ednsflags != 0 and self.edns < 0:
             self.edns = 0
@@ -590,7 +591,7 @@ class _WireReader(object):
         if self.updating and qcount > 1:
             raise dns.exception.FormError
 
-        for i in xrange(0, qcount):
+        for i in range(0, qcount):
             (qname, used) = dns.name.from_wire(self.wire, self.current)
             if not self.message.origin is None:
                 qname = qname.relativize(self.message.origin)
@@ -618,7 +619,7 @@ class _WireReader(object):
         else:
             force_unique = False
         seen_opt = False
-        for i in xrange(0, count):
+        for i in range(0, count):
             rr_start = self.current
             (name, used) = dns.name.from_wire(self.wire, self.current)
             absolute_name = name
@@ -989,15 +990,8 @@ def from_file(f):
     @raises dns.exception.SyntaxError:
     @rtype: dns.message.Message object"""
 
-    if sys.hexversion >= 0x02030000:
-        # allow Unicode filenames; turn on universal newline support
-        str_type = basestring
-        opts = 'rU'
-    else:
-        str_type = str
-        opts = 'r'
-    if isinstance(f, str_type):
-        f = file(f, opts)
+    if isinstance(f, str):
+        f = open(f, 'rU')
         want_close = True
     else:
         want_close = False
@@ -1033,7 +1027,7 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, use_edns=None,
     @type want_dnssec: bool
     @rtype: dns.message.Message object"""
 
-    if isinstance(qname, (str, unicode)):
+    if isinstance(qname, str):
         qname = dns.name.from_text(qname)
     if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)

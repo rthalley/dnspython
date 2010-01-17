@@ -17,6 +17,7 @@ import dns.exception
 import dns.ipv4
 import dns.rdata
 import dns.tokenizer
+import dns.util
 
 class A(dns.rdata.Rdata):
     """A record.
@@ -54,4 +55,4 @@ class A(dns.rdata.Rdata):
     def _cmp(self, other):
         sa = dns.ipv4.inet_aton(self.address)
         oa = dns.ipv4.inet_aton(other.address)
-        return cmp(sa, oa)
+        return dns.util.cmp(sa, oa)

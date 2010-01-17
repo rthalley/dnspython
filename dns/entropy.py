@@ -39,7 +39,7 @@ class EntropyPool(object):
                 import md5
                 self.hash = md5.new()
                 self.hash_len = 16
-        self.pool = '\0' * self.hash_len
+        self.pool = bytearray(self.hash_len)
         if not seed is None:
             self.stir(seed)
             self.seeded = True
@@ -50,14 +50,11 @@ class EntropyPool(object):
         if not already_locked:
             self.lock.acquire()
         try:
-            bytes = [ord(c) for c in self.pool]
             for c in entropy:
                 if self.pool_index == self.hash_len:
                     self.pool_index = 0
-                b = ord(c) & 0xff
-                bytes[self.pool_index] ^= b
+                self.pool[self.pool_index] ^= c
                 self.pool_index += 1
-            self.pool = ''.join([chr(c) for c in bytes])
         finally:
             if not already_locked:
                 self.lock.release()
@@ -68,13 +65,13 @@ class EntropyPool(object):
                 seed = os.urandom(16)
             except:
                 try:
-                    r = file('/dev/urandom', 'r', 0)
+                    r = open('/dev/urandom', 'rb', 0)
                     try:
                         seed = r.read(16)
                     finally:
                         r.close()
                 except:
-                    seed = str(time.time())
+                    seed = str(time.time()).encode('utf-8')
             self.seeded = True
             self.stir(seed, True)
 
@@ -87,7 +84,7 @@ class EntropyPool(object):
                 self.digest = self.hash.digest()
                 self.stir(self.digest, True)
                 self.next_byte = 0
-            value = ord(self.digest[self.next_byte])
+            value = self.digest[self.next_byte]
             self.next_byte += 1
         finally:
             self.lock.release()
@@ -101,18 +98,18 @@ class EntropyPool(object):
 
     def random_between(self, first, last):
         size = last - first + 1
-        if size > 4294967296L:
+        if size > 4294967296:
             raise ValueError('too big')
         if size > 65536:
             rand = self.random_32
-            max = 4294967295L
+            max = 4294967295
         elif size > 256:
             rand = self.random_16
             max = 65535
         else:
             rand = self.random_8
             max = 255
-	return (first + size * rand() // (max + 1))
+        return (first + size * rand() // (max + 1))
 
 pool = EntropyPool()
 

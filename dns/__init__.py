@@ -47,6 +47,7 @@ __all__ = [
     'ttl',
     'rdtypes',
     'update',
+    'util',
     'version',
     'zone',
 ]

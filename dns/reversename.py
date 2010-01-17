@@ -21,6 +21,8 @@
 @type ipv6_reverse_domain: dns.name.Name object
 """
 
+import base64
+
 import dns.name
 import dns.ipv6
 import dns.ipv4
@@ -37,13 +39,13 @@ def from_address(text):
     @rtype: dns.name.Name object
     """
     try:
-        parts = list(dns.ipv6.inet_aton(text).encode('hex_codec'))
+        parts = ['%x.%x' % (byte, byte >> 4) for byte in dns.ipv6.inet_aton(text)]
         origin = ipv6_reverse_domain
     except:
-        parts = ['%d' % ord(byte) for byte in dns.ipv4.inet_aton(text)]
+        parts = ['%d' % byte for byte in dns.ipv4.inet_aton(text)]
         origin = ipv4_reverse_domain
     parts.reverse()
-    return dns.name.from_text('.'.join(parts), origin=origin)
+    return dns.name.from_text('.'.join(parts).lower(), origin=origin)
 
 def to_address(name):
     """Convert a reverse map domain name into textual address form.
@@ -55,7 +57,7 @@ def to_address(name):
         name = name.relativize(ipv4_reverse_domain)
         labels = list(name.labels)
         labels.reverse()
-        text = '.'.join(labels)
+        text = '.'.join([x.decode('ascii') for x in labels])
         # run through inet_aton() to check syntax and make pretty.
         return dns.ipv4.inet_ntoa(dns.ipv4.inet_aton(text))
     elif name.is_subdomain(ipv6_reverse_domain):
@@ -66,7 +68,7 @@ def to_address(name):
         i = 0
         l = len(labels)
         while i < l:
-            parts.append(''.join(labels[i:i+4]))
+            parts.append(''.join([x.decode('ascii') for x in labels[i:i+4]]))
             i += 4
         text = ':'.join(parts)
         # run through inet_aton() to check syntax and make pretty.

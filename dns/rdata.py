@@ -25,12 +25,14 @@ default is 'dns.rdtypes'.  Changing this value will break the library.
 chunk of hexstring that _hexify() produces before whitespace occurs.
 @type _hex_chunk: int"""
 
-import cStringIO
+import base64
+import io
 
 import dns.exception
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
+import dns.util
 
 _hex_chunksize = 32
 
@@ -46,7 +48,7 @@ def _hexify(data, chunksize=None):
 
     if chunksize is None:
         chunksize = _hex_chunksize
-    hex = data.encode('hex_codec')
+    hex = base64.b16encode(data).decode('ascii').lower()
     l = len(hex)
     if l > chunksize:
         chunks = []
@@ -72,8 +74,7 @@ def _base64ify(data, chunksize=None):
 
     if chunksize is None:
         chunksize = _base64_chunksize
-    b64 = data.encode('base64_codec')
-    b64 = b64.replace('\n', '')
+    b64 = base64.b64encode(data).decode('ascii')
     l = len(b64)
     if l > chunksize:
         chunks = []
@@ -84,10 +85,7 @@ def _base64ify(data, chunksize=None):
         b64 = ' '.join(chunks)
     return b64
 
-__escaped = {
-    '"' : True,
-    '\\' : True,
-    }
+_escaped = frozenset('"\\')
 
 def _escapify(qstring):
     """Escape the characters in a quoted string which need it.
@@ -98,9 +96,11 @@ def _escapify(qstring):
     @rtype: string
     """
 
+    if isinstance(qstring, bytes):
+        qstring = qstring.decode('latin_1')
     text = ''
     for c in qstring:
-        if c in __escaped:
+        if c in _escaped:
             text += '\\' + c
         elif ord(c) >= 0x20 and ord(c) < 0x7F:
             text += c
@@ -117,10 +117,10 @@ def _truncate_bitmap(what):
     @rtype: string
     """
 
-    for i in xrange(len(what) - 1, -1, -1):
-        if what[i] != '\x00':
+    for i in range(len(what) - 1, -1, -1):
+        if what[i] != 0:
             break
-    return ''.join(what[0 : i + 1])
+    return bytes(what[0 : i + 1])
 
 class Rdata(object):
     """Base class for all DNS rdata types.
@@ -175,7 +175,7 @@ class Rdata(object):
     def to_digestable(self, origin = None):
         """Convert rdata to a format suitable for digesting in hashes.  This
         is also the DNSSEC canonical form."""
-        f = cStringIO.StringIO()
+        f = io.BytesIO()
         self.to_wire(f, None, origin)
         return f.getvalue()
 
@@ -225,33 +225,38 @@ class Rdata(object):
         return self._cmp(other) != 0
 
     def __lt__(self, other):
-        if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+        if not isinstance(other, Rdata):
             return NotImplemented
+        if self.rdclass != other.rdclass or \
+               self.rdtype != other.rdtype:
+            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
         return self._cmp(other) < 0
 
     def __le__(self, other):
-        if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+        if not isinstance(other, Rdata):
             return NotImplemented
+        if self.rdclass != other.rdclass or \
+               self.rdtype != other.rdtype:
+            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
         return self._cmp(other) <= 0
 
     def __ge__(self, other):
-        if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+        if not isinstance(other, Rdata):
             return NotImplemented
+        if self.rdclass != other.rdclass or \
+               self.rdtype != other.rdtype:
+            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
         return self._cmp(other) >= 0
 
     def __gt__(self, other):
-        if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+        if not isinstance(other, Rdata):
             return NotImplemented
+        if self.rdclass != other.rdclass or \
+               self.rdtype != other.rdtype:
+            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
         return self._cmp(other) > 0
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         """Build an rdata object from text format.
 
@@ -270,8 +275,7 @@ class Rdata(object):
 
         raise NotImplementedError
 
-    from_text = classmethod(from_text)
-
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         """Build an rdata object from wire format
 
@@ -291,8 +295,6 @@ class Rdata(object):
         """
 
         raise NotImplementedError
-
-    from_wire = classmethod(from_wire)
 
     def choose_relativity(self, origin = None, relativize = True):
         """Convert any domain names in the rdata to the specified
@@ -318,9 +320,11 @@ class GenericRdata(Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         return r'\# %d ' % len(self.data) + _hexify(self.data)
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         token = tok.get()
         if not token.is_identifier() or token.value != '\#':
+            print('XXX %u %u' % (rdclass, rdtype))
             raise dns.exception.SyntaxError(r'generic rdata does not start with \#')
         length = tok.get_int()
         chunks = []
@@ -329,24 +333,20 @@ class GenericRdata(Rdata):
             if token.is_eol_or_eof():
                 break
             chunks.append(token.value)
-        hex = ''.join(chunks)
-        data = hex.decode('hex_codec')
+        data = bytes.fromhex(''.join(chunks))
         if len(data) != length:
             raise dns.exception.SyntaxError('generic rdata hex data has wrong length')
         return cls(rdclass, rdtype, data)
 
-    from_text = classmethod(from_text)
-
     def to_wire(self, file, compress = None, origin = None):
         file.write(self.data)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         return cls(rdclass, rdtype, wire[current : current + rdlen])
 
-    from_wire = classmethod(from_wire)
-
     def _cmp(self, other):
-        return cmp(self.data, other.data)
+        return dns.util.cmp(self.data, other.data)
 
 _rdata_modules = {}
 _module_prefix = 'dns.rdtypes'

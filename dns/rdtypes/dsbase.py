@@ -17,6 +17,7 @@ import struct
 
 import dns.rdata
 import dns.rdatatype
+import dns.util
 
 class DSBase(dns.rdata.Rdata):
     """Base class for rdata that is like a DS record
@@ -47,6 +48,7 @@ class DSBase(dns.rdata.Rdata):
                                 dns.rdata._hexify(self.digest,
                                                   chunksize=128))
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         key_tag = tok.get_uint16()
         algorithm = tok.get_uint8()
@@ -59,12 +61,9 @@ class DSBase(dns.rdata.Rdata):
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value)
-        digest = ''.join(chunks)
-        digest = digest.decode('hex_codec')
+        digest = bytes.fromhex(''.join(chunks))
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
                    digest)
-
-    from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         header = struct.pack("!HBB", self.key_tag, self.algorithm,
@@ -72,6 +71,7 @@ class DSBase(dns.rdata.Rdata):
         file.write(header)
         file.write(self.digest)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         header = struct.unpack("!HBB", wire[current : current + 4])
         current += 4
@@ -79,14 +79,12 @@ class DSBase(dns.rdata.Rdata):
         digest = wire[current : current + rdlen]
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)
 
-    from_wire = classmethod(from_wire)
-
     def _cmp(self, other):
         hs = struct.pack("!HBB", self.key_tag, self.algorithm,
                          self.digest_type)
         ho = struct.pack("!HBB", other.key_tag, other.algorithm,
                          other.digest_type)
-        v = cmp(hs, ho)
+        v = dns.util.cmp(hs, ho)
         if v == 0:
-            v = cmp(self.digest, other.digest)
+            v = dns.util.cmp(self.digest, other.digest)
         return v

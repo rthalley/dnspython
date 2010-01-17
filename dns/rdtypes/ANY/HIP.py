@@ -13,13 +13,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+import base64
+import io
 import string
 import struct
 
 import dns.exception
 import dns.rdata
 import dns.rdatatype
+import dns.util
 
 class HIP(dns.rdata.Rdata):
     """HIP record
@@ -44,8 +46,8 @@ class HIP(dns.rdata.Rdata):
         self.servers = servers
 
     def to_text(self, origin=None, relativize=True, **kw):
-        hit = self.hit.encode('hex-codec')
-        key = self.key.encode('base64-codec').replace('\n', '')
+        hit = base64.b16encode(self.hit).decode('ascii').lower()
+        key = base64.b64encode(self.key).decode('ascii')
         text = ''
         servers = []
         for server in self.servers:
@@ -56,10 +58,10 @@ class HIP(dns.rdata.Rdata):
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         algorithm = tok.get_uint8()
-        hit = tok.get_string().decode('hex-codec')
+        hit = bytes.fromhex(tok.get_string())
         if len(hit) > 255:
             raise dns.exception.SyntaxError("HIT too long")
-        key = tok.get_string().decode('base64-codec')
+        key = base64.b64decode(tok.get_string().encode('ascii'))
         servers = []
         while 1:
             token = tok.get()
@@ -113,19 +115,19 @@ class HIP(dns.rdata.Rdata):
         self.servers = servers
 
     def _cmp(self, other):
-        b1 = cStringIO.StringIO()
+        b1 = io.BytesIO()
         lh = len(self.hit)
         lk = len(self.key)
         b1.write(struct.pack("!BBH", lh, self.algorithm, lk))
         b1.write(self.hit)
         b1.write(self.key)
-        b2 = cStringIO.StringIO()
+        b2 = io.BytesIO()
         lh = len(other.hit)
         lk = len(other.key)
         b2.write(struct.pack("!BBH", lh, other.algorithm, lk))
         b2.write(other.hit)
         b2.write(other.key)
-        v = cmp(b1.getvalue(), b2.getvalue())
+        v = dns.util.cmp(b1.getvalue(), b2.getvalue())
         if v != 0:
             return v
         ls = len(self.servers)
@@ -133,7 +135,7 @@ class HIP(dns.rdata.Rdata):
         count = min(ls, lo)
         i = 0
         while i < count:
-            v = cmp(self.servers[i], other.servers[i])
+            v = dns.util.cmp(self.servers[i], other.servers[i])
             if v != 0:
                 return v
             i += 1

@@ -13,7 +13,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
 import os
 import unittest
 
@@ -36,7 +35,7 @@ wwww.dnspython.org. IN A
 goodhex = '04d201000001000000000001047777777709646e73707974686f6e' \
           '036f726700000100010000291000000080000000'
 
-goodwire = goodhex.decode('hex_codec')
+goodwire = bytes.fromhex(goodhex)
 
 answer_text = """id 1234
 opcode QUERY
@@ -66,7 +65,7 @@ goodhex2 = '04d2 8500 0001 0001 0003 0001' \
            'c091 0001 0001 00000e10 0004 cc98ba96'
 
 
-goodwire2 = goodhex2.replace(' ', '').decode('hex_codec')
+goodwire2 = bytes.fromhex(goodhex2.replace(' ', ''))
 
 query_text_2 = """id 1234
 opcode QUERY
@@ -84,7 +83,7 @@ wwww.dnspython.org. IN A
 goodhex3 = '04d2010f0001000000000001047777777709646e73707974686f6e' \
           '036f726700000100010000291000ff0080000000'
 
-goodwire3 = goodhex3.decode('hex_codec')
+goodwire3 = bytes.fromhex(goodhex3)
 
 class MessageTestCase(unittest.TestCase):
 
@@ -130,7 +129,7 @@ class MessageTestCase(unittest.TestCase):
     def test_TooBig(self):
         def bad():
             q = dns.message.from_text(query_text)
-            for i in xrange(0, 25):
+            for i in range(0, 25):
                 rrset = dns.rrset.from_text('foo%d.' % i, 3600,
                                             dns.rdataclass.IN,
                                             dns.rdatatype.A,
@@ -146,13 +145,13 @@ class MessageTestCase(unittest.TestCase):
 
     def test_TrailingJunk(self):
         def bad():
-            badwire = goodwire + '\x00'
+            badwire = goodwire + b'\x00'
             m = dns.message.from_wire(badwire)
         self.failUnlessRaises(dns.message.TrailingJunk, bad)
 
     def test_ShortHeader(self):
         def bad():
-            badwire = '\x00' * 11
+            badwire = b'\x00' * 11
             m = dns.message.from_wire(badwire)
         self.failUnlessRaises(dns.message.ShortHeader, bad)
 

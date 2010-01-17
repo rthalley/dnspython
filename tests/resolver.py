@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+import io
 import sys
 import time
 import unittest
@@ -50,7 +50,7 @@ class ResolverTestCase(unittest.TestCase):
 
     if sys.platform != 'win32':
         def testRead(self):
-            f = cStringIO.StringIO(resolv_conf)
+            f = io.StringIO(resolv_conf)
             r = dns.resolver.Resolver(f)
             self.failUnless(r.nameservers == ['10.0.0.1', '10.0.0.2'] and
                             r.domain == dns.name.from_text('foo'))

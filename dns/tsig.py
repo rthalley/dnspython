@@ -15,6 +15,7 @@
 
 """DNS TSIG support."""
 
+import hashlib
 import hmac
 import struct
 
@@ -82,9 +83,8 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
         ctx.update(keyname.to_digestable())
         ctx.update(struct.pack('!H', dns.rdataclass.ANY))
         ctx.update(struct.pack('!I', 0))
-    long_time = time + 0L
-    upper_time = (long_time >> 32) & 0xffffL
-    lower_time = long_time & 0xffffffffL
+    upper_time = (time >> 32) & 0xffff
+    lower_time = time & 0xffffffff
     time_mac = struct.pack('!HIH', upper_time, lower_time, fudge)
     pre_mac = algorithm_name + time_mac
     ol = len(other_data)
@@ -134,7 +134,7 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
     current = current + used
     (upper_time, lower_time, fudge, mac_size) = \
                  struct.unpack("!HIHH", wire[current:current + 10])
-    time = ((upper_time + 0L) << 32) + (lower_time + 0L)
+    time = ((upper_time + 0) << 32) + lower_time
     current += 10
     mac = wire[current:current + mac_size]
     current += mac_size
@@ -176,35 +176,12 @@ def get_algorithm(algorithm):
     """
 
     hashes = {}
-    try:
-        import hashlib
-        hashes[dns.name.from_text('hmac-sha224')] = hashlib.sha224
-        hashes[dns.name.from_text('hmac-sha256')] = hashlib.sha256
-        hashes[dns.name.from_text('hmac-sha384')] = hashlib.sha384
-        hashes[dns.name.from_text('hmac-sha512')] = hashlib.sha512
-        hashes[dns.name.from_text('hmac-sha1')] = hashlib.sha1
-        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] = hashlib.md5
-
-        import sys
-        if sys.hexversion < 0x02050000:
-            # hashlib doesn't conform to PEP 247: API for
-            # Cryptographic Hash Functions, which hmac before python
-            # 2.5 requires, so add the necessary items.
-            class HashlibWrapper:
-                def __init__(self, basehash):
-                    self.basehash = basehash
-                    self.digest_size = self.basehash().digest_size
-
-                def new(self, *args, **kwargs):
-                    return self.basehash(*args, **kwargs)
-
-            for name in hashes:
-                hashes[name] = HashlibWrapper(hashes[name])
-
-    except ImportError:
-        import md5, sha
-        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] =  md5.md5
-        hashes[dns.name.from_text('hmac-sha1')] = sha.sha
+    hashes[dns.name.from_text('hmac-sha224')] = hashlib.sha224
+    hashes[dns.name.from_text('hmac-sha256')] = hashlib.sha256
+    hashes[dns.name.from_text('hmac-sha384')] = hashlib.sha384
+    hashes[dns.name.from_text('hmac-sha512')] = hashlib.sha512
+    hashes[dns.name.from_text('hmac-sha1')] = hashlib.sha1
+    hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] = hashlib.md5
 
     if isinstance(algorithm, (str, unicode)):
         algorithm = dns.name.from_text(algorithm)

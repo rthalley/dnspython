@@ -56,7 +56,7 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     if len(dlabels) != len(name.labels):
         raise dns.exception.SyntaxError('non-digit labels in ENUM domain name')
     dlabels.reverse()
-    text = ''.join(dlabels)
+    text = ''.join([x.decode('ascii') for x in dlabels])
     if want_plus_prefix:
         text = '+' + text
     return text

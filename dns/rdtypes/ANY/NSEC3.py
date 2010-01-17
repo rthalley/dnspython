@@ -14,18 +14,19 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import base64
-import cStringIO
+import io
 import string
 import struct
 
 import dns.exception
 import dns.rdata
 import dns.rdatatype
+import dns.util
 
-b32_hex_to_normal = string.maketrans('0123456789ABCDEFGHIJKLMNOPQRSTUV',
-                                     'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
-b32_normal_to_hex = string.maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
-                                     '0123456789ABCDEFGHIJKLMNOPQRSTUV')
+b32_hex_to_normal = bytes.maketrans(b'0123456789ABCDEFGHIJKLMNOPQRSTUV',
+                                    b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
+b32_normal_to_hex = bytes.maketrans(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
+                                    b'0123456789ABCDEFGHIJKLMNOPQRSTUV')
 
 # hash algorithm constants
 SHA1 = 1
@@ -63,16 +64,17 @@ class NSEC3(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = base64.b32encode(self.next).translate(b32_normal_to_hex).lower()
-        if self.salt == '':
+        next = next.decode('ascii')
+        if self.salt == b'':
             salt = '-'
         else:
-            salt = self.salt.encode('hex-codec')
+            salt = base64.b16encode(self.salt).decode('ascii').lower()
         text = ''
         for (window, bitmap) in self.windows:
             bits = []
-            for i in xrange(0, len(bitmap)):
-                byte = ord(bitmap[i])
-                for j in xrange(0, 8):
+            for i in range(0, len(bitmap)):
+                byte = bitmap[i]
+                for j in range(0, 8):
                     if byte & (0x80 >> j):
                         bits.append(dns.rdatatype.to_text(window * 256 + \
                                                           i * 8 + j))
@@ -86,10 +88,11 @@ class NSEC3(dns.rdata.Rdata):
         iterations = tok.get_uint16()
         salt = tok.get_string()
         if salt == '-':
-            salt = ''
+            salt = b''
         else:
-            salt = salt.decode('hex-codec')
-        next = tok.get_string().upper().translate(b32_hex_to_normal)
+            salt = bytes.fromhex(salt)
+        next = tok.get_string().upper().encode('ascii')
+        next = next.translate(b32_hex_to_normal)
         next = base64.b32decode(next)
         rdtypes = []
         while 1:
@@ -106,7 +109,7 @@ class NSEC3(dns.rdata.Rdata):
         window = 0
         octets = 0
         prior_rdtype = 0
-        bitmap = ['\0'] * 32
+        bitmap = bytearray(32)
         windows = []
         for nrdtype in rdtypes:
             if nrdtype == prior_rdtype:
@@ -114,15 +117,15 @@ class NSEC3(dns.rdata.Rdata):
             prior_rdtype = nrdtype
             new_window = nrdtype // 256
             if new_window != window:
-                windows.append((window, ''.join(bitmap[0:octets])))
-                bitmap = ['\0'] * 32
+                windows.append((window, bytes(bitmap[0:octets])))
+                bitmap = bytearray(32)
                 window = new_window
             offset = nrdtype % 256
-            byte = offset / 8
+            byte = offset // 8
             bit = offset % 8
             octets = byte + 1
-            bitmap[byte] = chr(ord(bitmap[byte]) | (0x80 >> bit))
-        windows.append((window, ''.join(bitmap[0:octets])))
+            bitmap[byte] = bitmap[byte] | (0x80 >> bit)
+        windows.append((window, bytes(bitmap[0:octets])))
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, windows)
 
     from_text = classmethod(from_text)
@@ -136,8 +139,8 @@ class NSEC3(dns.rdata.Rdata):
         file.write(struct.pack("!B", l))
         file.write(self.next)
         for (window, bitmap) in self.windows:
-            file.write(chr(window))
-            file.write(chr(len(bitmap)))
+            dns.util.write_uint8(file, window)
+            dns.util.write_uint8(file, len(bitmap))
             file.write(bitmap)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
@@ -148,7 +151,7 @@ class NSEC3(dns.rdata.Rdata):
         salt = wire[current : current + slen]
         current += slen
         rdlen -= slen
-        (nlen, ) = struct.unpack('!B', wire[current])
+        nlen = wire[current]
         current += 1
         rdlen -= 1
         next = wire[current : current + nlen]
@@ -158,8 +161,8 @@ class NSEC3(dns.rdata.Rdata):
         while rdlen > 0:
             if rdlen < 3:
                 raise dns.exception.FormError("NSEC3 too short")
-            window = ord(wire[current])
-            octets = ord(wire[current + 1])
+            window = wire[current]
+            octets = wire[current + 1]
             if octets == 0 or octets > 32:
                 raise dns.exception.FormError("bad NSEC3 octets")
             current += 2
@@ -175,8 +178,8 @@ class NSEC3(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        b1 = cStringIO.StringIO()
+        b1 = io.BytesIO()
         self.to_wire(b1)
-        b2 = cStringIO.StringIO()
+        b2 = io.BytesIO()
         other.to_wire(b2)
-        return cmp(b1.getvalue(), b2.getvalue())
+        return dns.util.cmp(b1.getvalue(), b2.getvalue())

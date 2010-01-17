@@ -16,6 +16,7 @@
 import dns.exception
 import dns.rdata
 import dns.tokenizer
+import dns.util
 
 class ISDN(dns.rdata.Rdata):
     """ISDN record
@@ -41,14 +42,14 @@ class ISDN(dns.rdata.Rdata):
             return '"%s"' % dns.rdata._escapify(self.address)
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
-        address = tok.get_string()
+        address = tok.get_string().encode('ascii')
         t = tok.get()
         if not t.is_eol_or_eof():
             tok.unget(t)
-            subaddress = tok.get_string()
+            subaddress = tok.get_string().encode('ascii')
         else:
             tok.unget(t)
-            subaddress = ''
+            subaddress = b''
         tok.get_eol()
         return cls(rdclass, rdtype, address, subaddress)
 
@@ -57,18 +58,16 @@ class ISDN(dns.rdata.Rdata):
     def to_wire(self, file, compress = None, origin = None):
         l = len(self.address)
         assert l < 256
-        byte = chr(l)
-        file.write(byte)
+        dns.util.write_uint8(file, l)
         file.write(self.address)
         l = len(self.subaddress)
         if l > 0:
             assert l < 256
-            byte = chr(l)
-            file.write(byte)
+            dns.util.write_uint8(file, l)
             file.write(self.subaddress)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        l = ord(wire[current])
+        l = wire[current]
         current += 1
         rdlen -= 1
         if l > rdlen:
@@ -77,20 +76,20 @@ class ISDN(dns.rdata.Rdata):
         current += l
         rdlen -= l
         if rdlen > 0:
-            l = ord(wire[current])
+            l = wire[current]
             current += 1
             rdlen -= 1
             if l != rdlen:
                 raise dns.exception.FormError
             subaddress = wire[current : current + l]
         else:
-            subaddress = ''
+            subaddress = b''
         return cls(rdclass, rdtype, address, subaddress)
 
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        v = cmp(self.address, other.address)
+        v = dns.util.cmp(self.address, other.address)
         if v == 0:
-            v = cmp(self.subaddress, other.subaddress)
+            v = dns.util.cmp(self.subaddress, other.subaddress)
         return v

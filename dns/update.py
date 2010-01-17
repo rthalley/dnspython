@@ -47,7 +47,7 @@ class Update(dns.message.Message):
         """
         super(Update, self).__init__()
         self.flags |= dns.opcode.to_flags(dns.opcode.UPDATE)
-        if isinstance(zone, (str, unicode)):
+        if isinstance(zone, str):
             zone = dns.name.from_text(zone)
         self.origin = zone
         if isinstance(rdclass, str):
@@ -81,7 +81,7 @@ class Update(dns.message.Message):
 
                 - ttl, rdtype, string..."""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, str):
             name = dns.name.from_text(name, None)
         if isinstance(args[0], dns.rdataset.Rdataset):
             for rds in args:
@@ -131,7 +131,7 @@ class Update(dns.message.Message):
 
                 - rdtype, [string...]"""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, str):
             name = dns.name.from_text(name, None)
         if len(args) == 0:
             rrset = self.find_rrset(self.authority, name, dns.rdataclass.ANY,
@@ -189,7 +189,7 @@ class Update(dns.message.Message):
 
                 - rdtype, string..."""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, str):
             name = dns.name.from_text(name, None)
         if len(args) == 0:
             rrset = self.find_rrset(self.answer, name,
@@ -217,7 +217,7 @@ class Update(dns.message.Message):
         """Require that an owner name (and optionally an rdata type) does
         not exist as a prerequisite to the execution of the update."""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, str):
             name = dns.name.from_text(name, None)
         if rdtype is None:
             rrset = self.find_rrset(self.answer, name,

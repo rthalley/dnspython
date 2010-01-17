@@ -13,11 +13,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import base64
 import struct
 
 import dns.exception
 import dns.dnssec
 import dns.rdata
+import dns.util
 
 _flags_from_text = {
     'NOCONF': (0x4000, 0xC000),
@@ -87,6 +89,7 @@ class KEYBase(dns.rdata.Rdata):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
                                 dns.rdata._base64ify(self.key))
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         flags = tok.get_string()
         if flags.isdigit():
@@ -118,16 +121,15 @@ class KEYBase(dns.rdata.Rdata):
                 raise dns.exception.SyntaxError
             chunks.append(t.value)
         b64 = ''.join(chunks)
-        key = b64.decode('base64_codec')
+        key = base64.b64decode(b64.encode('ascii'))
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)
-
-    from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         header = struct.pack("!HBB", self.flags, self.protocol, self.algorithm)
         file.write(header)
         file.write(self.key)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         if rdlen < 4:
             raise dns.exception.FormError
@@ -138,12 +140,10 @@ class KEYBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
 
-    from_wire = classmethod(from_wire)
-
     def _cmp(self, other):
         hs = struct.pack("!HBB", self.flags, self.protocol, self.algorithm)
         ho = struct.pack("!HBB", other.flags, other.protocol, other.algorithm)
-        v = cmp(hs, ho)
+        v = dns.util.cmp(hs, ho)
         if v == 0:
-            v = cmp(self.key, other.key)
+            v = dns.util.cmp(self.key, other.key)
         return v

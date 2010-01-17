@@ -15,12 +15,12 @@
 
 """MX-like base classes."""
 
-import cStringIO
 import struct
 
 import dns.exception
 import dns.rdata
 import dns.name
+import dns.util
 
 class MXBase(dns.rdata.Rdata):
     """Base class for rdata that is like an MX record.
@@ -41,14 +41,13 @@ class MXBase(dns.rdata.Rdata):
         exchange = self.exchange.choose_relativity(origin, relativize)
         return '%d %s' % (self.preference, exchange)
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         preference = tok.get_uint16()
         exchange = tok.get_name()
         exchange = exchange.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, preference, exchange)
-
-    from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         pref = struct.pack("!H", self.preference)
@@ -59,6 +58,7 @@ class MXBase(dns.rdata.Rdata):
         return struct.pack("!H", self.preference) + \
             self.exchange.to_digestable(origin)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (preference, ) = struct.unpack('!H', wire[current : current + 2])
         current += 2
@@ -71,17 +71,15 @@ class MXBase(dns.rdata.Rdata):
             exchange = exchange.relativize(origin)
         return cls(rdclass, rdtype, preference, exchange)
 
-    from_wire = classmethod(from_wire)
-
     def choose_relativity(self, origin = None, relativize = True):
         self.exchange = self.exchange.choose_relativity(origin, relativize)
 
     def _cmp(self, other):
         sp = struct.pack("!H", self.preference)
         op = struct.pack("!H", other.preference)
-        v = cmp(sp, op)
+        v = dns.util.cmp(sp, op)
         if v == 0:
-            v = cmp(self.exchange, other.exchange)
+            v = dns.util.cmp(self.exchange, other.exchange)
         return v
 
 class UncompressedMX(MXBase):
@@ -93,9 +91,7 @@ class UncompressedMX(MXBase):
         super(UncompressedMX, self).to_wire(file, None, origin)
 
     def to_digestable(self, origin = None):
-        f = cStringIO.StringIO()
-        self.to_wire(f, None, origin)
-        return f.getvalue()
+        return self.to_wire(f, None, origin)
 
 class UncompressedDowncasingMX(MXBase):
     """Base class for rdata that is like an MX record, but whose name

@@ -97,7 +97,7 @@ class Answer(object):
         self.response = response
         min_ttl = -1
         rrset = None
-        for count in xrange(0, 15):
+        for count in range(0, 15):
             try:
                 rrset = response.find_rrset(response.answer, qname,
                                             rdclass, rdtype)
@@ -188,7 +188,7 @@ class Cache(object):
         now = time.time()
         if self.next_cleaning <= now:
             keys_to_delete = []
-            for (k, v) in self.data.iteritems():
+            for (k, v) in self.data.items():
                 if v.expiration <= now:
                     keys_to_delete.append(k)
             for k in keys_to_delete:
@@ -234,7 +234,7 @@ class Cache(object):
         """
 
         if not key is None:
-            if self.data.has_key(key):
+            if key in self.data:
                 del self.data[key]
         else:
             self.data = {}
@@ -320,7 +320,7 @@ class Resolver(object):
         """Process f as a file in the /etc/resolv.conf format.  If f is
         a string, it is used as the name of the file to open; otherwise it
         is treated as the file itself."""
-        if isinstance(f, str) or isinstance(f, unicode):
+        if isinstance(f, str):
             try:
                 f = open(f, 'r')
             except IOError:
@@ -368,8 +368,6 @@ class Resolver(object):
 
     def _config_win32_nameservers(self, nameservers):
         """Configure a NameServer registry entry."""
-        # we call str() on nameservers to convert it from unicode to ascii
-        nameservers = str(nameservers)
         split_char = self._determine_split_char(nameservers)
         ns_list = nameservers.split(split_char)
         for ns in ns_list:
@@ -378,13 +376,10 @@ class Resolver(object):
 
     def _config_win32_domain(self, domain):
         """Configure a Domain registry entry."""
-        # we call str() on domain to convert it from unicode to ascii
-        self.domain = dns.name.from_text(str(domain))
+        self.domain = dns.name.from_text(domain)
 
     def _config_win32_search(self, search):
         """Configure a Search registry entry."""
-        # we call str() on search to convert it from unicode to ascii
-        search = str(search)
         split_char = self._determine_split_char(search)
         search_list = search.split(split_char)
         for s in search_list:
@@ -567,7 +562,7 @@ class Resolver(object):
         @raises NoNameservers: no non-broken nameservers are available to
         answer the question."""
 
-        if isinstance(qname, (str, unicode)):
+        if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
         if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
@@ -744,7 +739,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     @type resolver: dns.resolver.Resolver object or None
     @rtype: dns.name.Name"""
 
-    if isinstance(name, (str, unicode)):
+    if isinstance(name, str):
         name = dns.name.from_text(name, dns.name.root)
     if resolver is None:
         resolver = get_default_resolver()
