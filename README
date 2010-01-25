@@ -29,7 +29,14 @@ New since 1.7.1:
     	Support for hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384
 	and hmac-sha512 has been contributed by Kevin Chen.
 
+	The tokenizer's tokens are now Token objects instead of (type,
+	value) tuples.
+
 Bugs fixed since 1.7.1:
+
+        Escapes in masterfiles now work correctly.  Previously they
+	were only working correctly when the text involved was part of
+	a domain name.
 
      	When constructing a DDNS update, if the present() method was
 	used with a single rdata, a zero TTL was not added.
