@@ -1,3 +1,7 @@
+2010-01-26  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.8.0 released)
+
 2010-01-13  Bob Halley  <halley@dnspython.org>
 
 	* dns/dnssec.py: Added RSASHA256 and RSASHA512 codepoints; added
