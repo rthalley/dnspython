@@ -49,7 +49,7 @@ docclean:
 
 kits:
 	${PYTHON} ./setup.py sdist --formats=gztar,zip
-	${PYTHON} ./setup.py bdist_wininst
+#	${PYTHON} ./setup.py bdist_wininst
 #	${PYTHON} ./setup.py bdist_rpm
 
 tags:
