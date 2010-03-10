@@ -593,7 +593,8 @@ class Resolver(object):
                     return answer
             request = dns.message.make_query(qname, rdtype, rdclass)
             if not self.keyname is None:
-                request.use_tsig(self.keyring, self.keyname, self.keyalgorithm)
+                request.use_tsig(self.keyring, self.keyname,
+                                 algorithm=self.keyalgorithm)
             request.use_edns(self.edns, self.ednsflags, self.payload)
             response = None
             #
