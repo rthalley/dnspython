@@ -1,3 +1,8 @@
+2010-03-10  Bob Halley  <halley@dnspython.org>
+
+	* The TSIG algorithm value was passed to use_tsig() incorrectly
+	  in some cases.  Thanks to 'ducciovigolo' for reporting the problem.
+
 2010-01-26  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.8.0 released)

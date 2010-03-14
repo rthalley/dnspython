@@ -56,7 +56,7 @@ class Update(dns.message.Message):
         self.find_rrset(self.question, self.origin, rdclass, dns.rdatatype.SOA,
                         create=True, force_unique=True)
         if not keyring is None:
-            self.use_tsig(keyring, keyname, keyalgorithm)
+            self.use_tsig(keyring, keyname, algorithm=keyalgorithm)
 
     def _add_rr(self, name, ttl, rd, deleting=None, section=None):
         """Add a single RR to the update section."""
