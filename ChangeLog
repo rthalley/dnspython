@@ -1,3 +1,9 @@
+2010-05-04  Bob Halley  <halley@dnspython.org>
+
+	* dns/rrset.py (RRset.__init__): "covers" was not passed to the
+	  superclass __init__().  Thanks to Shanmuga Rajan for reporting
+	  the problem.
+
 2010-03-10  Bob Halley  <halley@dnspython.org>
 
 	* The TSIG algorithm value was passed to use_tsig() incorrectly
