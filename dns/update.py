@@ -152,7 +152,7 @@ class Update(dns.message.Message):
                     self._add_rr(name, 0, rd, dns.rdataclass.NONE)
             else:
                 rdtype = args.pop(0)
-                if isinstance(rdtype, str):
+                if isinstance(rdtype, (str, unicode)):
                     rdtype = dns.rdatatype.from_text(rdtype)
                 if len(args) == 0:
                     rrset = self.find_rrset(self.authority, name,
@@ -210,7 +210,7 @@ class Update(dns.message.Message):
             self._add(False, self.answer, name, *args)
         else:
             rdtype = args[0]
-            if isinstance(rdtype, str):
+            if isinstance(rdtype, (str, unicode)):
                 rdtype = dns.rdatatype.from_text(rdtype)
             rrset = self.find_rrset(self.answer, name,
                                     dns.rdataclass.ANY, rdtype,
@@ -229,7 +229,7 @@ class Update(dns.message.Message):
                                     dns.rdatatype.NONE, None,
                                     True, True)
         else:
-            if isinstance(rdtype, str):
+            if isinstance(rdtype, (str, unicode)):
                 rdtype = dns.rdatatype.from_text(rdtype)
             rrset = self.find_rrset(self.answer, name,
                                     dns.rdataclass.NONE, rdtype,

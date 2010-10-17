@@ -281,9 +281,9 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas):
     @rtype: dns.rdataset.Rdataset object
     """
 
-    if isinstance(rdclass, str):
+    if isinstance(rdclass, (str, unicode)):
         rdclass = dns.rdataclass.from_text(rdclass)
-    if isinstance(rdtype, str):
+    if isinstance(rdtype, (str, unicode)):
         rdtype = dns.rdatatype.from_text(rdtype)
     r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)

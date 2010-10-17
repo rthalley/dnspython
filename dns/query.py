@@ -310,7 +310,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
 
     if isinstance(zone, (str, unicode)):
         zone = dns.name.from_text(zone)
-    if isinstance(rdtype, str):
+    if isinstance(rdtype, (str, unicode)):
         rdtype = dns.rdatatype.from_text(rdtype)
     q = dns.message.make_query(zone, rdtype, rdclass)
     if rdtype == dns.rdatatype.IXFR:

@@ -237,9 +237,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, str):
+        if isinstance(rdtype, (str, unicode)):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
+        if isinstance(covers, (str, unicode)):
             covers = dns.rdatatype.from_text(covers)
         node = self.find_node(name, create)
         return node.find_rdataset(self.rdclass, rdtype, covers, create)
@@ -300,9 +300,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, str):
+        if isinstance(rdtype, (str, unicode)):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
+        if isinstance(covers, (str, unicode)):
             covers = dns.rdatatype.from_text(covers)
         node = self.get_node(name)
         if not node is None:
@@ -363,9 +363,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, str):
+        if isinstance(rdtype, (str, unicode)):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
+        if isinstance(covers, (str, unicode)):
             covers = dns.rdatatype.from_text(covers)
         rdataset = self.nodes[name].find_rdataset(self.rdclass, rdtype, covers)
         rrset = dns.rrset.RRset(name, self.rdclass, rdtype, covers)
@@ -419,9 +419,9 @@ class Zone(object):
         @type covers: int or string
         """
 
-        if isinstance(rdtype, str):
+        if isinstance(rdtype, (str, unicode)):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
+        if isinstance(covers, (str, unicode)):
             covers = dns.rdatatype.from_text(covers)
         for (name, node) in self.iteritems():
             for rds in node:
@@ -442,9 +442,9 @@ class Zone(object):
         @type covers: int or string
         """
 
-        if isinstance(rdtype, str):
+        if isinstance(rdtype, (str, unicode)):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
+        if isinstance(covers, (str, unicode)):
             covers = dns.rdatatype.from_text(covers)
         for (name, node) in self.iteritems():
             for rds in node:

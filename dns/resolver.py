@@ -569,9 +569,9 @@ class Resolver(object):
 
         if isinstance(qname, (str, unicode)):
             qname = dns.name.from_text(qname, None)
-        if isinstance(rdtype, str):
+        if isinstance(rdtype, (str, unicode)):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(rdclass, str):
+        if isinstance(rdclass, (str, unicode)):
             rdclass = dns.rdataclass.from_text(rdclass)
         qnames_to_try = []
         if qname.is_absolute():

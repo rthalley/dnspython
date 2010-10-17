@@ -104,7 +104,7 @@ def make_ds(name, key, algorithm):
    else:
        raise ValueError, 'unsupported algorithm "%s"' % algorithm
 
-   if isinstance(name, str):
+   if isinstance(name, (str, unicode)):
        name = dns.name.from_text(name)
    hash.update(name.canonicalize().to_wire())
    hash.update(_to_rdata(key))

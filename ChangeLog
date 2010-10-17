@@ -1,4 +1,8 @@
-2010-10-17  Robert Halley  <halley@nominum.com>
+2010-10-17  Bob Halley  <halley@dnspython.org>
+
+	* Various routines that took the string forms of rdata types and
+	  classes did not permit the strings to be Unicode strings.
+	  Thanks to Ryan Workman for reporting the issue.
 
 	* dns/tsig.py: Added symbolic constants for the algorithm strings.
 	  E.g. you can now say dns.tsig.HMAC_MD5 instead of

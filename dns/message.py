@@ -1039,9 +1039,9 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, use_edns=None,
 
     if isinstance(qname, (str, unicode)):
         qname = dns.name.from_text(qname)
-    if isinstance(rdtype, str):
+    if isinstance(rdtype, (str, unicode)):
         rdtype = dns.rdatatype.from_text(rdtype)
-    if isinstance(rdclass, str):
+    if isinstance(rdclass, (str, unicode)):
         rdclass = dns.rdataclass.from_text(rdclass)
     m = Message()
     m.flags |= dns.flags.RD

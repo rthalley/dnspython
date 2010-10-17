@@ -124,9 +124,9 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas):
 
     if isinstance(name, (str, unicode)):
         name = dns.name.from_text(name, None)
-    if isinstance(rdclass, str):
+    if isinstance(rdclass, (str, unicode)):
         rdclass = dns.rdataclass.from_text(rdclass)
-    if isinstance(rdtype, str):
+    if isinstance(rdtype, (str, unicode)):
         rdtype = dns.rdatatype.from_text(rdtype)
     r = RRset(name, rdclass, rdtype)
     r.update_ttl(ttl)
