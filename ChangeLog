@@ -1,5 +1,10 @@
 2010-10-17  Bob Halley  <halley@dnspython.org>
 
+	* Python prior to 2.5.2 doesn't compute the correct values for
+	  HMAC-SHA384 and HMAC-SHA512.  We now detect attempts to use
+	  them and raise NotImplemented if the Python version is too old.
+	  Thanks to Kevin Chen for reporting the problem.
+
 	* Various routines that took the string forms of rdata types and
 	  classes did not permit the strings to be Unicode strings.
 	  Thanks to Ryan Workman for reporting the issue.
