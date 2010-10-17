@@ -93,8 +93,11 @@ class Message(object):
     @type keyring: dict
     @ivar keyname: The TSIG keyname to use.  The default is None.
     @type keyname: dns.name.Name object
-    @ivar keyalgorithm: The TSIG key algorithm to use.  The default is
-    dns.tsig.default_algorithm.
+    @ivar keyalgorithm: The TSIG algorithm to use; defaults to
+    dns.tsig.default_algorithm.  Constants for TSIG algorithms are defined
+    in dns.tsig, and the currently implemented algorithms are
+    HMAC_MD5, HMAC_SHA1, HMAC_SHA224, HMAC_SHA256, HMAC_SHA384, and
+    HMAC_SHA512.
     @type keyalgorithm: string
     @ivar request_mac: The TSIG MAC of the request message associated with
     this message; used when validating TSIG signatures.   @see: RFC 2845 for

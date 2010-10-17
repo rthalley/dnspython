@@ -1,4 +1,9 @@
-2010-10-17  Bob Halley  <halley@dnspython.org>
+2010-10-17  Robert Halley  <halley@nominum.com>
+
+	* dns/tsig.py: Added symbolic constants for the algorithm strings.
+	  E.g. you can now say dns.tsig.HMAC_MD5 instead of
+	  "HMAC-MD5.SIG-ALG.REG.INT".  Thanks to Cillian Sharkey for
+	  suggesting this improvement.
 
 	* dns/tsig.py (get_algorithm): fix hashlib compatibility; thanks to
 	  Kevin Chen for the patch.

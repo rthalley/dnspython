@@ -50,7 +50,16 @@ class PeerBadTruncation(PeerError):
     """Raised if the peer didn't like amount of truncation in the TSIG we sent"""
     pass
 
-default_algorithm = "HMAC-MD5.SIG-ALG.REG.INT"
+# TSIG Algorithms
+
+HMAC_MD5 = "HMAC-MD5.SIG-ALG.REG.INT"
+HMAC_SHA1 = "hmac-sha1"
+HMAC_SHA224 = "hmac-sha224"
+HMAC_SHA256 = "hmac-sha256"
+HMAC_SHA384 = "hmac-sha384"
+HMAC_SHA512 = "hmac-sha512"
+
+default_algorithm = HMAC_MD5
 
 BADSIG = 16
 BADKEY = 17
@@ -178,12 +187,12 @@ def get_algorithm(algorithm):
     hashes = {}
     try:
         import hashlib
-        hashes[dns.name.from_text('hmac-sha224')] = hashlib.sha224
-        hashes[dns.name.from_text('hmac-sha256')] = hashlib.sha256
-        hashes[dns.name.from_text('hmac-sha384')] = hashlib.sha384
-        hashes[dns.name.from_text('hmac-sha512')] = hashlib.sha512
-        hashes[dns.name.from_text('hmac-sha1')] = hashlib.sha1
-        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] = hashlib.md5
+        hashes[dns.name.from_text(HMAC_SHA224)] = hashlib.sha224
+        hashes[dns.name.from_text(HMAC_SHA256)] = hashlib.sha256
+        hashes[dns.name.from_text(HMAC_SHA384)] = hashlib.sha384
+        hashes[dns.name.from_text(HMAC_SHA512)] = hashlib.sha512
+        hashes[dns.name.from_text(HMAC_SHA1)] = hashlib.sha1
+        hashes[dns.name.from_text(HMAC_MD5)] = hashlib.md5
 
         import sys
         if sys.hexversion < 0x02050000:
@@ -203,8 +212,8 @@ def get_algorithm(algorithm):
 
     except ImportError:
         import md5, sha
-        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] =  md5
-        hashes[dns.name.from_text('hmac-sha1')] = sha
+        hashes[dns.name.from_text(HMAC_MD5)] =  md5
+        hashes[dns.name.from_text(HMAC_SHA1)] = sha
 
     if isinstance(algorithm, (str, unicode)):
         algorithm = dns.name.from_text(algorithm)
