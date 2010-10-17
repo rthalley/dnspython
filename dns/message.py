@@ -21,6 +21,7 @@ import struct
 import sys
 import time
 
+import dns.edns
 import dns.exception
 import dns.flags
 import dns.name
