@@ -1,8 +1,9 @@
 2010-10-17  Bob Halley  <halley@dnspython.org>
 
-	* dns/dnssec.py: Added key_id() and make_ds().
+	* dns/tsig.py (get_algorithm): fix hashlib compatibility; thanks to
+	  Kevin Chen for the patch.
 
-2010-10-17  Bob Halley  <halley@dnspython.org>
+	* dns/dnssec.py: Added key_id() and make_ds().
 
 	* dns/message.py: message.py needs to import dns.edns since it uses
 	  it.

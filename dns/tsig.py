@@ -203,8 +203,8 @@ def get_algorithm(algorithm):
 
     except ImportError:
         import md5, sha
-        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] =  md5.md5
-        hashes[dns.name.from_text('hmac-sha1')] = sha.sha
+        hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] =  md5
+        hashes[dns.name.from_text('hmac-sha1')] = sha
 
     if isinstance(algorithm, (str, unicode)):
         algorithm = dns.name.from_text(algorithm)
