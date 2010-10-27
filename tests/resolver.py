@@ -14,6 +14,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import cStringIO
+import select
 import sys
 import time
 import unittest
@@ -46,7 +47,7 @@ example. 1 IN A 10.0.0.1
 ;ADDITIONAL
 """
 
-class ResolverTestCase(unittest.TestCase):
+class BaseResolverTests(object):
 
     if sys.platform != 'win32':
         def testRead(self):
@@ -100,6 +101,27 @@ class ResolverTestCase(unittest.TestCase):
             name = dns.name.from_text('dnspython.org', None)
             zname = dns.resolver.zone_for_name(name)
         self.failUnlessRaises(dns.resolver.NotAbsolute, bad)
+
+class PollingMonkeyPatchMixin(object):
+    def setUp(self):
+        self.__native_polling_backend = dns.query._polling_backend
+        dns.query._set_polling_backend(self.polling_backend())
+
+        unittest.TestCase.setUp(self)
+
+    def tearDown(self):
+        dns.query._set_polling_backend(self.__native_polling_backend)
+
+        unittest.TestCase.tearDown(self)
+
+class SelectResolverTestCase(PollingMonkeyPatchMixin, BaseResolverTests, unittest.TestCase):
+    def polling_backend(self):
+        return dns.query._select_for
+
+if hasattr(select, 'poll'):
+    class PollResolverTestCase(PollingMonkeyPatchMixin, BaseResolverTests, unittest.TestCase):
+        def polling_backend(self):
+            return dns.query._poll_for
 
 if __name__ == '__main__':
     unittest.main()

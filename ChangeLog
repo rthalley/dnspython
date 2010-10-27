@@ -1,3 +1,9 @@
+2010-10-27  Bob Halley  <halley@dnspython.org>
+
+	* Incorporate a patch to use poll() instead of select() by
+	  default on platforms which support it.  Thanks to
+	  Peter Schüller and Spotify for the contribution.
+
 2010-10-17  Bob Halley  <halley@dnspython.org>
 
 	* Python prior to 2.5.2 doesn't compute the correct values for

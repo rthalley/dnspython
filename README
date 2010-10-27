@@ -22,7 +22,15 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.8.0
+This is dnspython 1.9.0
+
+New since 1.8.0:
+
+    	dnspython now uses poll() instead of select() when available.
+
+Bugs fixed since 1.8.0
+
+     	XXX TBS XXX
 
 New since 1.7.1:
 
