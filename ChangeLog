@@ -1,3 +1,10 @@
+2010-10-31  Bob Halley  <halley@dnspython.org>
+
+	* Added zonediff.py to examples.  This program compares two zones
+	  and shows the differences either in diff-like plain text, or
+	  HTML.  Thanks to Dennis Kaarsemaker for contributing this
+	  useful program.
+
 2010-10-27  Bob Halley  <halley@dnspython.org>
 
 	* Incorporate a patch to use poll() instead of select() by
