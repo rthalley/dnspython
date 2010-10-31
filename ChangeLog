@@ -1,5 +1,10 @@
 2010-10-31  Bob Halley  <halley@dnspython.org>
 
+	* dns/resolver.py (zone_for_name): A query name resulting in a
+	  CNAME or DNAME response to a node which had an SOA was incorrectly
+	  treated as a zone origin.  In these cases, we should just look
+	  higher.
+
 	* Added zonediff.py to examples.  This program compares two zones
 	  and shows the differences either in diff-like plain text, or
 	  HTML.  Thanks to Dennis Kaarsemaker for contributing this

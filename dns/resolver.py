@@ -754,9 +754,12 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     while 1:
         try:
             answer = resolver.query(name, dns.rdatatype.SOA, rdclass, tcp)
-            return name
+            if answer.rrset.name == name:
+                return name
+            # otherwise we were CNAMEd or DNAMEd and need to look higher
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-            try:
-                name = name.parent()
-            except dns.name.NoParent:
-                raise NoRootSOA
+            pass
+        try:
+            name = name.parent()
+        except dns.name.NoParent:
+            raise NoRootSOA
