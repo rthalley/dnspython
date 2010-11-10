@@ -15,6 +15,7 @@
 
 """Common DNSSEC-related functions and constants."""
 
+import dns.hash
 import dns.name
 import dns.rdata
 import dns.rdatatype
@@ -77,39 +78,186 @@ def algorithm_to_text(value):
     return text
 
 def _to_rdata(record):
-   s = cStringIO.StringIO()
-   record.to_wire(s)
-   return s.getvalue()
+    s = cStringIO.StringIO()
+    record.to_wire(s)
+    return s.getvalue()
 
 def key_id(key):
-   rdata = _to_rdata(key)
-   if key.algorithm == RSAMD5:
-       return (ord(rdata[-3]) << 8) + ord(rdata[-2])
-   else:
-       total = 0
-       for i in range(len(rdata) / 2):
-           total += (ord(rdata[2 * i]) << 8) + ord(rdata[2 * i + 1])
-       if len(rdata) % 2 != 0:
-           total += ord(rdata[len(rdata) - 1]) << 8
-       total += ((total >> 16) & 0xffff);
-       return total & 0xffff
+    rdata = _to_rdata(key)
+    if key.algorithm == RSAMD5:
+        return (ord(rdata[-3]) << 8) + ord(rdata[-2])
+    else:
+        total = 0
+        for i in range(len(rdata) / 2):
+            total += (ord(rdata[2 * i]) << 8) + ord(rdata[2 * i + 1])
+        if len(rdata) % 2 != 0:
+            total += ord(rdata[len(rdata) - 1]) << 8
+        total += ((total >> 16) & 0xffff);
+        return total & 0xffff
 
 def make_ds(name, key, algorithm):
-   if algorithm.upper() == 'SHA1':
-       dsalg = 1
-       hash = hashlib.sha1()
-   elif algorithm.upper() == 'SHA256':
-       dsalg = 2
-       hash = hashlib.sha256()
-   else:
-       raise ValueError, 'unsupported algorithm "%s"' % algorithm
+    if algorithm.upper() == 'SHA1':
+        dsalg = 1
+        hash = dns.hash.get('SHA1')()
+    elif algorithm.upper() == 'SHA256':
+        dsalg = 2
+        hash = dns.hash.get('SHA256')()
+    else:
+        raise ValueError, 'unsupported algorithm "%s"' % algorithm
 
-   if isinstance(name, (str, unicode)):
-       name = dns.name.from_text(name)
-   hash.update(name.canonicalize().to_wire())
-   hash.update(_to_rdata(key))
-   digest = hash.digest()
+    if isinstance(name, (str, unicode)):
+        name = dns.name.from_text(name)
+    hash.update(name.canonicalize().to_wire())
+    hash.update(_to_rdata(key))
+    digest = hash.digest()
 
-   dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, dsalg) + digest
-   return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.DS, dsrdata, 0,
-                              len(dsrdata))
+    dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, dsalg) + digest
+    return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.DS, dsrdata, 0,
+                               len(dsrdata))
+def _find_key(keys, rrsig):
+    for key in keys:
+        if key.algorithm == rrsig.algorithm and key_id(key) == rrsig.key_tag:
+            return key
+    return None
+
+def _is_rsa(algorithm):
+    return algorithm in (RSAMD5, RSASHA1,
+                         RSASHA1NSEC3SHA1, RSASHA256,
+                         RSASHA512)
+
+def _is_dsa(algorithm):
+    return algorithm in (DSA, DSANSEC3SHA1)
+
+def _is_md5(algorithm):
+    return algorithm == RSAMD5
+
+def _is_sha1(algorithm):
+    return algorithm in (DSA, RSASHA1,
+                         DSANSEC3SHA1, RSASHA1NSEC3SHA1)
+
+def _is_sha256(algorithm):
+    return algorithm == RSASHA256
+
+def _is_sha512(algorithm):
+    return algorithm == RSASHA512
+
+def _make_hash(algorithm):
+    if _is_md5(algorithm):
+        return dns.hash.get('MD5')()
+    if _is_sha1(algorithm):
+        return dns.hash.get('SHA1')()
+    if _is_sha256(algorithm):
+        return dns.hash.get('SHA256')()
+    if _is_sha512(algorithm):
+        return dns.hash.get('SHA512')()
+    raise ValueError, 'unknown algorithm'
+
+def _make_algorithm_id(algorithm):
+    if _is_md5(algorithm):
+        oid = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x05]
+    elif _is_sha1(algorithm):
+        oid = [0x2b, 0x0e, 0x03, 0x02, 0x1a]
+    elif _is_sha256(algorithm):
+        oid = [0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01]
+    elif _is_sha512(algorithm):
+        oid = [0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03]
+    else:
+        raise ValueError, 'unknown algorithm %u' % algorithm
+    olen = len(oid)
+    dlen = _make_hash(algorithm).digest_size
+    idbytes = [0x30] + [8 + olen + dlen] + \
+              [0x30, olen + 4] + [0x06, olen] + oid + \
+              [0x05, 0x00] + [0x04, dlen]
+    return ''.join(map(chr, idbytes))
+
+def _validate(rrset, rrsig, keys):
+    key = _find_key(keys, rrsig)
+    if not key:
+        raise ValueError, 'unknown key'
+
+    now = time.time()
+    if rrsig.expiration < now:
+        raise ValueError, 'expired'
+    if rrsig.inception > now:
+        raise ValueError, 'not yet valid'
+
+    hash = _make_hash(rrsig.algorithm)
+
+    if _is_rsa(rrsig.algorithm):
+        keyptr = key.key
+        (bytes,) = struct.unpack('!B', keyptr[0:1])
+        keyptr = keyptr[1:]
+        if bytes == 0:
+            (bytes,) = struct.unpack('!H', keyptr[0:2])
+            keyptr = keyptr[2:]
+        rsa_e = keyptr[0:bytes]
+        rsa_n = keyptr[bytes:]
+        keylen = len(rsa_n) * 8
+        pubkey = RSA.construct((Crypto.Util.number.bytes_to_long(rsa_n),
+                                Crypto.Util.number.bytes_to_long(rsa_e)))
+        sig = (Crypto.Util.number.bytes_to_long(rrsig.signature),)
+    elif _is_dsa(rrsig.algorithm):
+        keyptr = key.key
+        (t,) = struct.unpack('!B', keyptr[0:1])
+        keyptr = keyptr[1:]
+        octets = 64 + t * 8
+        dsa_q = keyptr[0:20]
+        keyptr = keyptr[20:]
+        dsa_p = keyptr[0:octets]
+        keyptr = keyptr[octets:]
+        dsa_g = keyptr[0:octets]
+        keyptr = keyptr[octets:]
+        dsa_y = keyptr[0:octets]
+        pubkey = DSA.construct((Crypto.Util.number.bytes_to_long(dsa_y),
+                                Crypto.Util.number.bytes_to_long(dsa_g),
+                                Crypto.Util.number.bytes_to_long(dsa_p),
+                                Crypto.Util.number.bytes_to_long(dsa_q)))
+        (dsa_r, dsa_s) = struct.unpack('!20s20s', rrsig.signature[1:])
+        sig = (Crypto.Util.number.bytes_to_long(dsa_r),
+               Crypto.Util.number.bytes_to_long(dsa_s))
+    else:
+        raise ValueError, 'unknown algorithm'
+
+    hash.update(_to_rdata(rrsig)[:18])
+    hash.update(rrsig.signer.to_digestable())
+
+    rrname = rrset.name
+    if rrsig.labels < len(rrname) - 1:
+        suffix = rrname.split(rrsig.labels + 1)[1]
+        rrname = dns.name.from_text('*', suffix)
+    rrnamebuf = rrname.to_digestable()
+    rrfixed = struct.pack('!HHI', rrset.rdtype, rrset.rdclass,
+                          rrsig.original_ttl)
+    rrlist = sorted(rrset);
+    for rr in rrlist:
+        hash.update(rrnamebuf)
+        hash.update(rrfixed)
+        rrdata = rr.to_digestable()
+        rrlen = struct.pack('!H', len(rrdata))
+        hash.update(rrlen)
+        hash.update(rrdata)
+
+    digest = hash.digest()
+
+    if _is_rsa(rrsig.algorithm):
+        # PKCS1 algorithm identifier goop
+        digest = _make_algorithm_id(rrsig.algorithm) + digest
+        padlen = keylen / 8 - len(digest) - 3
+        digest = chr(0) + chr(1) + chr(0xFF) * padlen + chr(0) + digest
+    elif _is_dsa(rrsig.algorithm):
+        pass
+    else:
+        raise ValueError, 'unknown algorithm'
+
+    if not pubkey.verify(digest, sig):
+        raise ValueError, 'verify failure'
+
+def _need_pycrypto(*args, **kwargs):
+    raise NotImplementedError, "DNSSEC validation requires pycrypto"
+
+try:
+    from Crypto.PublicKey import RSA,DSA
+    import Crypto.Util.number
+    validate = _validate
+except ImportError:
+    validate = _need_pycrypto

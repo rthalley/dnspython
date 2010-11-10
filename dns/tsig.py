@@ -20,6 +20,7 @@ import struct
 import sys
 
 import dns.exception
+import dns.hash
 import dns.rdataclass
 import dns.name
 
@@ -179,37 +180,21 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
 
 _hashes = None
 
+def _maybe_add_hash(tsig_alg, hash_alg):
+    try:
+        _hashes[tsig_alg] = dns.hash.get(hash_alg)
+    except KeyError:
+        pass
+
 def _setup_hashes():
     global _hashes
     _hashes = {}
-    try:
-        import hashlib
-        _hashes[HMAC_SHA224] = hashlib.sha224
-        _hashes[HMAC_SHA256] = hashlib.sha256
-        _hashes[HMAC_SHA384] = hashlib.sha384
-        _hashes[HMAC_SHA512] = hashlib.sha512
-        _hashes[HMAC_SHA1] = hashlib.sha1
-        _hashes[HMAC_MD5] = hashlib.md5
-
-        if sys.hexversion < 0x02050000:
-            # hashlib doesn't conform to PEP 247: API for
-            # Cryptographic Hash Functions, which hmac before python
-            # 2.5 requires, so add the necessary items.
-            class HashlibWrapper:
-                def __init__(self, basehash):
-                    self.basehash = basehash
-                    self.digest_size = self.basehash().digest_size
-
-                def new(self, *args, **kwargs):
-                    return self.basehash(*args, **kwargs)
-
-            for name in _hashes:
-                _hashes[name] = HashlibWrapper(_hashes[name])
-
-    except ImportError:
-        import md5, sha
-        _hashes[dns.name.from_text(HMAC_MD5)] =  md5
-        _hashes[dns.name.from_text(HMAC_SHA1)] = sha
+    _maybe_add_hash(HMAC_SHA224, 'SHA224')
+    _maybe_add_hash(HMAC_SHA256, 'SHA256')
+    _maybe_add_hash(HMAC_SHA384, 'SHA384')
+    _maybe_add_hash(HMAC_SHA512, 'SHA512')
+    _maybe_add_hash(HMAC_SHA1, 'SHA1')
+    _maybe_add_hash(HMAC_MD5, 'MD5')
 
 def get_algorithm(algorithm):
     """Returns the wire format string and the hash module to use for the

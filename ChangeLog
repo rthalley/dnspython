@@ -1,3 +1,10 @@
+2010-11-07  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py: Added validate() to do basic DNSSEC validation.
+	  Thanks to Brian Wellington for the patch.
+
+	* dns/hash.py: Hash compatibility handling is now its own module.
+
 2010-10-31  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (zone_for_name): A query name resulting in a
