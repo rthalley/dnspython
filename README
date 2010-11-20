@@ -28,9 +28,37 @@ New since 1.8.0:
 
     	dnspython now uses poll() instead of select() when available.
 
+	Basic DNSSEC validation can be done using dns.dnsec.validate()
+	and dns.dnssec.validate_rrsig() if you have PyCrypto 2.3 or
+	later installed.  Complete secure resolution is not yet
+	available.
+
+	Added key_id() to the DNSSEC module, which computes the DNSSEC
+	key id of a DNSKEY rdata.
+
+	Added make_ds() to the DNSSEC module, which returns the DS RR
+	for a given DNSKEY rdata.
+
+	dnspython now raises an exception if HMAC-SHA284 or
+	HMAC-SHA512 are used with a Python older than 2.5.2.  (Older
+	Pythons do not compute the correct value.)
+
+	Symbolic constants are now available for TSIG algorithm names.
+
 Bugs fixed since 1.8.0
 
-     	XXX TBS XXX
+        dns.resolver.zone_for_name() didn't handle a query response
+	with a CNAME or DNAME correctly in some cases.
+
+        When specifying rdata types and classes as text, Unicode
+	strings may now be used.
+
+	Hashlib compatibility issues have been fixed.
+
+	dns.message now imports dns.edns.
+
+	The TSIG algorithm value was passed incorrectly to use_tsig()
+	in some cases.
 
 New since 1.7.1:
 
