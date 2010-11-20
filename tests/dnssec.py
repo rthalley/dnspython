@@ -85,7 +85,6 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
     def testMakeDS(self):
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
-        print ds
         self.failUnless(ds == good_ds)
 
 if __name__ == '__main__':
