@@ -22,7 +22,16 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.9.0
+This is dnspython 1.9.1
+
+New since 1.8.0:
+
+    	Nothing.
+
+Bugs fixed since 1.9.0
+
+        The dns.dnssec module didn't work with DSA due to namespace
+	contamination from a "from"-style import.
 
 New since 1.8.0:
 

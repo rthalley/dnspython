@@ -249,8 +249,9 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         rsa_e = keyptr[0:bytes]
         rsa_n = keyptr[bytes:]
         keylen = len(rsa_n) * 8
-        pubkey = RSA.construct((Crypto.Util.number.bytes_to_long(rsa_n),
-                                Crypto.Util.number.bytes_to_long(rsa_e)))
+        pubkey = Crypto.PublicKey.RSA.construct(
+            (Crypto.Util.number.bytes_to_long(rsa_n),
+             Crypto.Util.number.bytes_to_long(rsa_e)))
         sig = (Crypto.Util.number.bytes_to_long(rrsig.signature),)
     elif _is_dsa(rrsig.algorithm):
         keyptr = key.key
@@ -264,10 +265,11 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         dsa_g = keyptr[0:octets]
         keyptr = keyptr[octets:]
         dsa_y = keyptr[0:octets]
-        pubkey = DSA.construct((Crypto.Util.number.bytes_to_long(dsa_y),
-                                Crypto.Util.number.bytes_to_long(dsa_g),
-                                Crypto.Util.number.bytes_to_long(dsa_p),
-                                Crypto.Util.number.bytes_to_long(dsa_q)))
+        pubkey = Crypto.PublicKey.DSA.construct(
+            (Crypto.Util.number.bytes_to_long(dsa_y),
+             Crypto.Util.number.bytes_to_long(dsa_g),
+             Crypto.Util.number.bytes_to_long(dsa_p),
+             Crypto.Util.number.bytes_to_long(dsa_q)))
         (dsa_r, dsa_s) = struct.unpack('!20s20s', rrsig.signature[1:])
         sig = (Crypto.Util.number.bytes_to_long(dsa_r),
                Crypto.Util.number.bytes_to_long(dsa_s))
@@ -360,7 +362,7 @@ def _need_pycrypto(*args, **kwargs):
     raise NotImplementedError, "DNSSEC validation requires pycrypto"
 
 try:
-    from Crypto.PublicKey import RSA,DSA
+    import Crypto.PublicKey
     import Crypto.Util.number
     validate = _validate
     validate_rrsig = _validate_rrsig

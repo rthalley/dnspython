@@ -1,3 +1,13 @@
+2010-11-22  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.1 released)
+
+2010-11-22  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py: the "from" style import used to get DSA from
+	  PyCrypto trashed a DSA constant.  Now a normal import is used
+	  to avoid namespace contamination.
+
 2010-11-20  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.9.0 released)
