@@ -136,7 +136,6 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 if __name__ == '__main__':
     import_ok = False
     try:
-        from Crypto.PublicKey import RSA,DSA
         import Crypto.Util.number
         import_ok = True
     except:

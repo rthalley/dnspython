@@ -362,7 +362,8 @@ def _need_pycrypto(*args, **kwargs):
     raise NotImplementedError, "DNSSEC validation requires pycrypto"
 
 try:
-    import Crypto.PublicKey
+    import Crypto.PublicKey.RSA
+    import Crypto.PublicKey.DSA
     import Crypto.Util.number
     validate = _validate
     validate_rrsig = _validate_rrsig

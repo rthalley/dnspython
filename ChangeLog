@@ -1,3 +1,13 @@
+2010-11-23  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.2 released)
+
+2010-11-23  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py (_need_pycrypto): DSA and RSA are modules, not
+	  functions, and I didn't notice because the test suite masked
+	  the bug!  *sigh*
+
 2010-11-22  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.9.1 released)
