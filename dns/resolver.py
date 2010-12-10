@@ -61,6 +61,10 @@ class NoRootSOA(dns.exception.DNSException):
     This should never happen!"""
     pass
 
+class NoMetaqueries(dns.exception.DNSException):
+    """Metaqueries are not allowed."""
+    pass
+
 
 class Answer(object):
     """DNS stub resolver answer
@@ -571,8 +575,12 @@ class Resolver(object):
             qname = dns.name.from_text(qname, None)
         if isinstance(rdtype, (str, unicode)):
             rdtype = dns.rdatatype.from_text(rdtype)
+        if dns.rdatatype.is_metatype(rdtype):
+            raise NoMetaqueries
         if isinstance(rdclass, (str, unicode)):
             rdclass = dns.rdataclass.from_text(rdclass)
+        if dns.rdataclass.is_metaclass(rdclass):
+            raise NoMetaqueries
         qnames_to_try = []
         if qname.is_absolute():
             qnames_to_try.append(qname)
