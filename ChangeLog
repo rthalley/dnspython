@@ -1,3 +1,7 @@
+2010-12-10  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdata.py (Rdata.__hash__): Added a __hash__ method for rdata.
+
 2010-11-23  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.9.2 released)

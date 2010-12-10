@@ -28,6 +28,7 @@ chunk of hexstring that _hexify() produces before whitespace occurs.
 import cStringIO
 
 import dns.exception
+import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
@@ -251,6 +252,9 @@ class Rdata(object):
                self.rdtype != other.rdtype:
             return NotImplemented
         return self._cmp(other) > 0
+
+    def __hash__(self):
+        return hash(self.to_digestable(dns.name.root))
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         """Build an rdata object from text format.
