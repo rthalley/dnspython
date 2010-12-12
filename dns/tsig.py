@@ -18,6 +18,7 @@
 import hashlib
 import hmac
 import struct
+import sys
 
 import dns.exception
 import dns.rdataclass
@@ -51,7 +52,16 @@ class PeerBadTruncation(PeerError):
     """Raised if the peer didn't like amount of truncation in the TSIG we sent"""
     pass
 
-default_algorithm = "HMAC-MD5.SIG-ALG.REG.INT"
+# TSIG Algorithms
+
+HMAC_MD5 = dns.name.from_text("HMAC-MD5.SIG-ALG.REG.INT")
+HMAC_SHA1 = dns.name.from_text("hmac-sha1")
+HMAC_SHA224 = dns.name.from_text("hmac-sha224")
+HMAC_SHA256 = dns.name.from_text("hmac-sha256")
+HMAC_SHA384 = dns.name.from_text("hmac-sha384")
+HMAC_SHA512 = dns.name.from_text("hmac-sha512")
+
+default_algorithm = HMAC_MD5
 
 BADSIG = 16
 BADKEY = 17
@@ -167,6 +177,24 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
         raise BadSignature
     return ctx
 
+_hashes = None
+
+def _maybe_add_hash(tsig_alg, hash_alg):
+    try:
+        _hashes[tsig_alg] = dns.hash.get(hash_alg)
+    except KeyError:
+        pass
+
+def _setup_hashes():
+    global _hashes
+    _hashes = {}
+    _maybe_add_hash(HMAC_SHA224, 'SHA224')
+    _maybe_add_hash(HMAC_SHA256, 'SHA256')
+    _maybe_add_hash(HMAC_SHA384, 'SHA384')
+    _maybe_add_hash(HMAC_SHA512, 'SHA512')
+    _maybe_add_hash(HMAC_SHA1, 'SHA1')
+    _maybe_add_hash(HMAC_MD5, 'MD5')
+
 def get_algorithm(algorithm):
     """Returns the wire format string and the hash module to use for the
     specified TSIG algorithm
@@ -175,19 +203,15 @@ def get_algorithm(algorithm):
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    hashes = {}
-    hashes[dns.name.from_text('hmac-sha224')] = hashlib.sha224
-    hashes[dns.name.from_text('hmac-sha256')] = hashlib.sha256
-    hashes[dns.name.from_text('hmac-sha384')] = hashlib.sha384
-    hashes[dns.name.from_text('hmac-sha512')] = hashlib.sha512
-    hashes[dns.name.from_text('hmac-sha1')] = hashlib.sha1
-    hashes[dns.name.from_text('HMAC-MD5.SIG-ALG.REG.INT')] = hashlib.md5
+    global _hashes
+    if _hashes is None:
+        _setup_hashes()
 
-    if isinstance(algorithm, (str, unicode)):
+    if isinstance(algorithm, str):
         algorithm = dns.name.from_text(algorithm)
 
-    if algorithm in hashes:
-        return (algorithm.to_digestable(), hashes[algorithm])
-
-    raise NotImplementedError("TSIG algorithm " + str(algorithm) +
-                              " is not supported")
+    try:
+        return (algorithm.to_digestable(), _hashes[algorithm])
+    except KeyError:
+        raise NotImplementedError("TSIG algorithm " + str(algorithm) +
+                                  " is not supported")

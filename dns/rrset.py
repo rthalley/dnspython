@@ -36,7 +36,7 @@ class RRset(dns.rdataset.Rdataset):
                  deleting=None):
         """Create a new RRset."""
 
-        super(RRset, self).__init__(rdclass, rdtype)
+        super(RRset, self).__init__(rdclass, rdtype, covers)
         self.name = name
         self.deleting = deleting
 

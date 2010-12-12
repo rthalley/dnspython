@@ -21,6 +21,7 @@ import dns.opcode
 import dns.rdata
 import dns.rdataclass
 import dns.rdataset
+import dns.tsig
 
 class Update(dns.message.Message):
     def __init__(self, zone, rdclass=dns.rdataclass.IN, keyring=None,
@@ -42,7 +43,10 @@ class Update(dns.message.Message):
         they know the keyring contains only one key.
         @type keyname: dns.name.Name or string
         @param keyalgorithm: The TSIG algorithm to use; defaults to
-        dns.tsig.default_algorithm
+        dns.tsig.default_algorithm.  Constants for TSIG algorithms are defined
+        in dns.tsig, and the currently implemented algorithms are
+        HMAC_MD5, HMAC_SHA1, HMAC_SHA224, HMAC_SHA256, HMAC_SHA384, and
+        HMAC_SHA512.
         @type keyalgorithm: string
         """
         super(Update, self).__init__()

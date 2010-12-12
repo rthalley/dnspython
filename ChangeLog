@@ -1,3 +1,88 @@
+2010-12-10  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver.query): disallow metaqueries.
+
+	* dns/rdata.py (Rdata.__hash__): Added a __hash__ method for rdata.
+
+2010-11-23  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.2 released)
+
+2010-11-23  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py (_need_pycrypto): DSA and RSA are modules, not
+	  functions, and I didn't notice because the test suite masked
+	  the bug!  *sigh*
+
+2010-11-22  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.1 released)
+
+2010-11-22  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py: the "from" style import used to get DSA from
+	  PyCrypto trashed a DSA constant.  Now a normal import is used
+	  to avoid namespace contamination.
+
+2010-11-20  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.0 released)
+
+2010-11-07  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py: Added validate() to do basic DNSSEC validation
+	  (requires PyCrypto). Thanks to Brian Wellington for the patch.
+
+	* dns/hash.py: Hash compatibility handling is now its own module.
+
+2010-10-31  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (zone_for_name): A query name resulting in a
+	  CNAME or DNAME response to a node which had an SOA was incorrectly
+	  treated as a zone origin.  In these cases, we should just look
+	  higher.  Thanks to Gert Berger for reporting this problem.
+
+	* Added zonediff.py to examples.  This program compares two zones
+	  and shows the differences either in diff-like plain text, or
+	  HTML.  Thanks to Dennis Kaarsemaker for contributing this
+	  useful program.
+
+2010-10-27  Bob Halley  <halley@dnspython.org>
+
+	* Incorporate a patch to use poll() instead of select() by
+	  default on platforms which support it.  Thanks to
+	  Peter Schüller and Spotify for the contribution.
+
+2010-10-17  Bob Halley  <halley@dnspython.org>
+
+	* Python prior to 2.5.2 doesn't compute the correct values for
+	  HMAC-SHA384 and HMAC-SHA512.  We now detect attempts to use
+	  them and raise NotImplemented if the Python version is too old.
+	  Thanks to Kevin Chen for reporting the problem.
+
+	* Various routines that took the string forms of rdata types and
+	  classes did not permit the strings to be Unicode strings.
+	  Thanks to Ryan Workman for reporting the issue.
+
+	* dns/tsig.py: Added symbolic constants for the algorithm strings.
+	  E.g. you can now say dns.tsig.HMAC_MD5 instead of
+	  "HMAC-MD5.SIG-ALG.REG.INT".  Thanks to Cillian Sharkey for
+	  suggesting this improvement.
+
+	* dns/tsig.py (get_algorithm): fix hashlib compatibility; thanks to
+	  Kevin Chen for the patch.
+
+	* dns/dnssec.py: Added key_id() and make_ds().
+
+	* dns/message.py: message.py needs to import dns.edns since it uses
+	  it.
+
+2010-05-04  Bob Halley  <halley@dnspython.org>
+
+	* dns/rrset.py (RRset.__init__): "covers" was not passed to the
+	  superclass __init__().  Thanks to Shanmuga Rajan for reporting
+	  the problem.
+
 2010-03-10  Bob Halley  <halley@dnspython.org>
 
 	* The TSIG algorithm value was passed to use_tsig() incorrectly

@@ -29,6 +29,7 @@ import base64
 import io
 
 import dns.exception
+import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
@@ -255,6 +256,9 @@ class Rdata(object):
                self.rdtype != other.rdtype:
             return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
         return self._cmp(other) > 0
+
+    def __hash__(self):
+        return hash(self.to_digestable(dns.name.root))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):

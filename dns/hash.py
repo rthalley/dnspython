@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2007, 2009, 2010 Nominum, Inc.
+# Copyright (C) 2010 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -13,22 +13,18 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""dnspython release version information."""
+"""Hashing backwards compatibility wrapper"""
 
-MAJOR = 1
-MINOR = 9
-MICRO = 3
-RELEASELEVEL = 0x0f
-SERIAL = 0
+import sys
+import hashlib
 
-if RELEASELEVEL == 0x0f:
-    version = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-elif RELEASELEVEL == 0x00:
-    version = '%d.%d.%dx%d' % \
-              (MAJOR, MINOR, MICRO, SERIAL)
-else:
-    version = '%d.%d.%d%x%d' % \
-              (MAJOR, MINOR, MICRO, RELEASELEVEL, SERIAL)
+_hashes = {'MD5' : hashlib.md5,
+           'SHA1' : hashlib.sha1,
+           'SHA224' : hashlib.sha224,
+           'SHA256' : hashlib.sha256,
+           'SHA384' : hashlib.sha384,
+           'SHA512' : hashlib.sha512,
+           }
 
-hexversion = MAJOR << 24 | MINOR << 16 | MICRO << 8 | RELEASELEVEL << 4 | \
-             SERIAL
+def get(algorithm):
+    return _hashes[algorithm.upper()]
