@@ -686,7 +686,7 @@ class _WireReader(object):
                     deleting = None
                 if deleting == dns.rdataclass.ANY or \
                    (deleting == dns.rdataclass.NONE and \
-                    section == self.message.answer):
+                    section is self.message.answer):
                     covers = dns.rdatatype.NONE
                     rd = None
                 else:
