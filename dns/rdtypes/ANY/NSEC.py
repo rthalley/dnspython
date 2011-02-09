@@ -125,17 +125,4 @@ class NSEC(dns.rdata.Rdata):
         self.next = self.next.choose_relativity(origin, relativize)
 
     def _cmp(self, other):
-        v = cmp(self.next, other.next)
-        if v == 0:
-            b1 = cStringIO.StringIO()
-            for (window, bitmap) in self.windows:
-                b1.write(chr(window))
-                b1.write(chr(len(bitmap)))
-                b1.write(bitmap)
-            b2 = cStringIO.StringIO()
-            for (window, bitmap) in other.windows:
-                b2.write(chr(window))
-                b2.write(chr(len(bitmap)))
-                b2.write(bitmap)
-            v = cmp(b1.getvalue(), b2.getvalue())
-        return v
+        return self._wire_cmp(other)

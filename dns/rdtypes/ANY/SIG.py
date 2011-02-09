@@ -24,3 +24,18 @@ class SIG(dns.rdtypes.sigbase.SIGBase):
                            self.inception, self.key_tag) + \
                            self.signer.to_digestable(origin) + \
                            self.signature
+    def _cmp(self, other):
+        hs = struct.pack('!HBBIIIH', self.type_covered,
+                         self.algorithm, self.labels,
+                         self.original_ttl, self.expiration,
+                         self.inception, self.key_tag)
+        ho = struct.pack('!HBBIIIH', other.type_covered,
+                         other.algorithm, other.labels,
+                         other.original_ttl, other.expiration,
+                         other.inception, other.key_tag)
+        v = cmp(hs, ho)
+        if v == 0:
+            v = cmp(self.signer, other.signer)
+            if v == 0:
+                v = cmp(self.signature, other.signature)
+        return v

@@ -256,6 +256,15 @@ class Rdata(object):
     def __hash__(self):
         return hash(self.to_digestable(dns.name.root))
 
+    def _wire_cmp(self, other):
+        # A number of types compare rdata in wire form, so we provide
+        # the method here instead of duplicating it.
+        b1 = cStringIO.StringIO()
+        self.to_wire(b1)
+        b2 = cStringIO.StringIO()
+        other.to_wire(b2)
+        return cmp(b1.getvalue(), b2.getvalue())
+
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         """Build an rdata object from text format.
 
