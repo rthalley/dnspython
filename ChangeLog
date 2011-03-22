@@ -1,3 +1,11 @@
+2011-03-22  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py: a boolean parameter, 'raise_on_no_answer', has
+	been added to the query() methods.  In no-error, no-data
+	situations, this parameter determines whether NoAnswer should be
+	raised or not.  If True, NoAnswer is raised.  If False, then an
+	Answer() object with a None rrset will be returned.
+
 2011-01-11  Bob Halley  <halley@dnspython.org>
 
 	* Dnspython was erroneously doing case-insensitive comparisons
