@@ -22,7 +22,29 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.9.2
+This is dnspython 1.9.3
+
+New since 1.9.2:
+
+    	A boolean parameter, 'raise_on_no_answer', has been added to
+	the query() methods.  In no-error, no-data situations, this
+	parameter determines whether NoAnswer should be raised or not.
+	If True, NoAnswer is raised.  If False, then an Answer()
+	object with a None rrset will be returned.
+
+	Resolver Answer() objects now have a canonical_name field.
+
+	Rdata now have a __hash__ method.
+
+Bugs fixed since 1.9.2:
+
+       	Dnspython was erroneously doing case-insensitive comparisons
+	of the names in NSEC and RRSIG RRs.
+
+	We now use "is" and not "==" when testing what section an RR
+	is in.
+
+	The resolver now disallows metaqueries.
 
 New since 1.9.1:
 
