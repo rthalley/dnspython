@@ -93,6 +93,8 @@ class Answer(object):
     @type rrset: dns.rrset.RRset object
     @ivar expiration: The time when the answer expires
     @type expiration: float (seconds since the epoch)
+    @ivar canonical_name: The canonical name of the query name
+    @type canonical_name: dns.name.Name object
     """
     def __init__(self, qname, rdtype, rdclass, response,
                  raise_on_no_answer=True):
@@ -129,6 +131,7 @@ class Answer(object):
                     raise NoAnswer
         if rrset is None and raise_on_no_answer:
             raise NoAnswer
+        self.canonical_name = qname
         self.rrset = rrset
         if rrset is None:
             while 1:
