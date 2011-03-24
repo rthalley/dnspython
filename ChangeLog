@@ -1,3 +1,7 @@
+2011-03-24  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.3 released)
+
 2011-03-22  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py: a boolean parameter, 'raise_on_no_answer', has
