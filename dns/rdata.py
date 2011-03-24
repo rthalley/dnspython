@@ -259,10 +259,14 @@ class Rdata(object):
     def _wire_cmp(self, other):
         # A number of types compare rdata in wire form, so we provide
         # the method here instead of duplicating it.
+        #
+        # We specifiy an arbitrary origin of '.' when doing the
+        # comparison, since the rdata may have relative names and we
+        # can't convert a relative name to wire without an origin.
         b1 = cStringIO.StringIO()
-        self.to_wire(b1)
+        self.to_wire(b1, None, dns.name.root)
         b2 = cStringIO.StringIO()
-        other.to_wire(b2)
+        other.to_wire(b2, None, dns.name.root)
         return cmp(b1.getvalue(), b2.getvalue())
 
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
