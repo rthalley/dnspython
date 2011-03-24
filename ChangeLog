@@ -1,5 +1,15 @@
 2011-03-24  Bob Halley  <halley@dnspython.org>
 
+	* dns/rdata.py (Rdata._wire_cmp): We need to specify no
+	  compression and an origin to _wire_cmp() in case names in the
+	  rdata are relative names.
+
+	* dns/rdtypes/ANY/SIG.py (SIG._cmp): Add missing 'import struct'.
+	  Thanks to Arfrever Frehtes Taifersar Arahesis for reporting the
+	  problem.
+
+2011-03-24  Bob Halley  <halley@dnspython.org>
+
 	* (Version 1.9.3 released)
 
 2011-03-22  Bob Halley  <halley@dnspython.org>
