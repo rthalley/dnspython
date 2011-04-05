@@ -134,7 +134,7 @@ class KEYBase(dns.rdata.Rdata):
         header = struct.unpack('!HBB', wire[current : current + 4])
         current += 4
         rdlen -= 4
-        key = wire[current : current + rdlen]
+        key = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
 

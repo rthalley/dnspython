@@ -45,7 +45,7 @@ class NAPTR(dns.rdata.Rdata):
 
     __slots__ = ['order', 'preference', 'flags', 'service', 'regexp',
                  'replacement']
-    
+
     def __init__(self, rdclass, rdtype, order, preference, flags, service,
                  regexp, replacement):
         super(NAPTR, self).__init__(rdclass, rdtype)
@@ -76,7 +76,7 @@ class NAPTR(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, order, preference, flags, service,
                    regexp, replacement)
-    
+
     from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
@@ -86,7 +86,7 @@ class NAPTR(dns.rdata.Rdata):
         _write_string(file, self.service)
         _write_string(file, self.regexp)
         self.replacement.to_wire(file, compress, origin)
-        
+
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (order, preference) = struct.unpack('!HH', wire[current : current + 4])
         current += 4
@@ -98,7 +98,7 @@ class NAPTR(dns.rdata.Rdata):
             rdlen -= 1
             if l > rdlen or rdlen < 0:
                 raise dns.exception.FormError
-            s = wire[current : current + l]
+            s = wire[current : current + l].unwrap()
             current += l
             rdlen -= l
             strings.append(s)
@@ -116,7 +116,7 @@ class NAPTR(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.replacement = self.replacement.choose_relativity(origin,
                                                               relativize)
-        
+
     def _cmp(self, other):
         sp = struct.pack("!HH", self.order, self.preference)
         op = struct.pack("!HH", other.order, other.preference)

@@ -95,7 +95,7 @@ class WKS(dns.rdata.Rdata):
         protocol, = struct.unpack('!B', wire[current + 4 : current + 5])
         current += 5
         rdlen -= 5
-        bitmap = wire[current : current + rdlen]
+        bitmap = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
     from_wire = classmethod(from_wire)

@@ -145,13 +145,13 @@ class NSEC3(dns.rdata.Rdata):
                                                              wire[current : current + 5])
         current += 5
         rdlen -= 5
-        salt = wire[current : current + slen]
+        salt = wire[current : current + slen].unwrap()
         current += slen
         rdlen -= slen
         (nlen, ) = struct.unpack('!B', wire[current])
         current += 1
         rdlen -= 1
-        next = wire[current : current + nlen]
+        next = wire[current : current + nlen].unwrap()
         current += nlen
         rdlen -= nlen
         windows = []
@@ -166,7 +166,7 @@ class NSEC3(dns.rdata.Rdata):
             rdlen -= 2
             if rdlen < octets:
                 raise dns.exception.FormError("bad NSEC3 bitmap length")
-            bitmap = wire[current : current + octets]
+            bitmap = wire[current : current + octets].unwrap()
             current += octets
             rdlen -= octets
             windows.append((window, bitmap))

@@ -111,7 +111,7 @@ class NSEC(dns.rdata.Rdata):
             rdlen -= 2
             if rdlen < octets:
                 raise dns.exception.FormError("bad NSEC bitmap length")
-            bitmap = wire[current : current + octets]
+            bitmap = wire[current : current + octets].unwrap()
             current += octets
             rdlen -= octets
             windows.append((window, bitmap))

@@ -71,7 +71,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
                                                              wire[current : current + 5])
         current += 5
         rdlen -= 5
-        salt = wire[current : current + slen]
+        salt = wire[current : current + slen].unwrap()
         current += slen
         rdlen -= slen
         if rdlen != 0:

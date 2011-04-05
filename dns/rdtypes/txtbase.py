@@ -75,7 +75,7 @@ class TXTBase(dns.rdata.Rdata):
             rdlen -= 1
             if l > rdlen:
                 raise dns.exception.FormError
-            s = wire[current : current + l]
+            s = wire[current : current + l].unwrap()
             current += l
             rdlen -= l
             strings.append(s)

@@ -32,6 +32,7 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
+import dns.wiredata
 
 _hex_chunksize = 32
 
@@ -469,5 +470,6 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin = None):
     @type origin: dns.name.Name
     @rtype: dns.rdata.Rdata instance"""
 
+    wire = dns.wiredata.maybe_wrap(wire)
     cls = get_rdata_class(rdclass, rdtype)
     return cls.from_wire(rdclass, rdtype, wire, current, rdlen, origin)

@@ -86,10 +86,10 @@ class HIP(dns.rdata.Rdata):
                                             wire[current : current + 4])
         current += 4
         rdlen -= 4
-        hit = wire[current : current + lh]
+        hit = wire[current : current + lh].unwrap()
         current += lh
         rdlen -= lh
-        key = wire[current : current + lk]
+        key = wire[current : current + lk].unwrap()
         current += lk
         rdlen -= lk
         servers = []

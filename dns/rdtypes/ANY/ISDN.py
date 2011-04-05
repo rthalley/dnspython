@@ -73,7 +73,7 @@ class ISDN(dns.rdata.Rdata):
         rdlen -= 1
         if l > rdlen:
             raise dns.exception.FormError
-        address = wire[current : current + l]
+        address = wire[current : current + l].unwrap()
         current += l
         rdlen -= l
         if rdlen > 0:
@@ -82,7 +82,7 @@ class ISDN(dns.rdata.Rdata):
             rdlen -= 1
             if l != rdlen:
                 raise dns.exception.FormError
-            subaddress = wire[current : current + l]
+            subaddress = wire[current : current + l].unwrap()
         else:
             subaddress = ''
         return cls(rdclass, rdtype, address, subaddress)

@@ -49,5 +49,6 @@ __all__ = [
     'rdtypes',
     'update',
     'version',
+    'wiredata',
     'zone',
 ]

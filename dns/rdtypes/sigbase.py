@@ -141,7 +141,7 @@ class SIGBase(dns.rdata.Rdata):
         rdlen -= cused
         if not origin is None:
             signer = signer.relativize(origin)
-        signature = wire[current : current + rdlen]
+        signature = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    header[3], header[4], header[5], header[6], signer,
                    signature)

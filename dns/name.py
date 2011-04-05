@@ -29,6 +29,7 @@ if sys.hexversion >= 0x02030000:
     import encodings.idna
 
 import dns.exception
+import dns.wiredata
 
 NAMERELN_NONE = 0
 NAMERELN_SUPERDOMAIN = 1
@@ -670,6 +671,7 @@ def from_wire(message, current):
 
     if not isinstance(message, str):
         raise ValueError("input to from_wire() must be a byte string")
+    message = dns.wiredata.maybe_wrap(message)
     labels = []
     biggest_pointer = current
     hops = 0
@@ -678,7 +680,7 @@ def from_wire(message, current):
     cused = 1
     while count != 0:
         if count < 64:
-            labels.append(message[current : current + count])
+            labels.append(message[current : current + count].unwrap())
             current += count
             if hops == 0:
                 cused += count

@@ -82,7 +82,7 @@ class NXT(dns.rdata.Rdata):
         (next, cused) = dns.name.from_wire(wire[: current + rdlen], current)
         current += cused
         rdlen -= cused
-        bitmap = wire[current : current + rdlen]
+        bitmap = wire[current : current + rdlen].unwrap()
         if not origin is None:
             next = next.relativize(origin)
         return cls(rdclass, rdtype, next, bitmap)

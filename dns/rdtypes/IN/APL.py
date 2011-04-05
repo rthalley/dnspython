@@ -131,7 +131,7 @@ class APL(dns.rdata.Rdata):
             rdlen -= 4
             if rdlen < afdlen:
                 raise dns.exception.FormError
-            address = wire[current : current + afdlen]
+            address = wire[current : current + afdlen].unwrap()
             l = len(address)
             if header[0] == 1:
                 if l < 4:

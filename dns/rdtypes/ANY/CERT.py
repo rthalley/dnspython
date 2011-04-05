@@ -106,13 +106,13 @@ class CERT(dns.rdata.Rdata):
         file.write(self.certificate)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        prefix = wire[current : current + 5]
+        prefix = wire[current : current + 5].unwrap()
         current += 5
         rdlen -= 5
         if rdlen < 0:
             raise dns.exception.FormError
         (certificate_type, key_tag, algorithm) = struct.unpack("!HHB", prefix)
-        certificate = wire[current : current + rdlen]
+        certificate = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, certificate_type, key_tag, algorithm,
                    certificate)
 
