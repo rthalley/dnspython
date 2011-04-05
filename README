@@ -22,7 +22,25 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.9.3
+This is dnspython 1.9.5
+
+New since 1.9.4:
+
+        XXX TBS.
+
+Bugs fixed since 1.9.4:
+
+        XXX TBS.
+
+New since 1.9.3:
+
+        Nothing.
+
+Bugs fixed since 1.9.3:
+
+     	The rdata _wire_cmp() routine now handles relative names.
+
+	The SIG RR implementation was missing 'import struct'.
 
 New since 1.9.2:
 

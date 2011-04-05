@@ -18,7 +18,7 @@
 import sys
 from distutils.core import setup
 
-version = '1.9.4'
+version = '1.9.5'
 
 kwargs = {
     'name' : 'dnspython',
@@ -38,13 +38,9 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'license' : 'BSD-like',
     'url' : 'http://www.dnspython.org',
     'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY'],
-    }
-
-if sys.hexversion >= 0x02020300:
-    kwargs['download_url'] = \
-	'http://www.dnspython.org/kits/%s/dnspython-%s.tar.gz' % (version,
-                                                                  version)
-    kwargs['classifiers'] = [
+    'download_url' : \
+    'http://www.dnspython.org/kits/%s/dnspython-%s.tar.gz' % (version, version),
+    'classifiers' : [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
@@ -54,7 +50,8 @@ if sys.hexversion >= 0x02020300:
         "Programming Language :: Python",
         "Topic :: Internet :: Name Service (DNS)",
         "Topic :: Software Development :: Libraries :: Python Modules",
-        ]
+        ],
+    }
 
 if sys.hexversion >= 0x02050000:
     kwargs['requires'] = []
