@@ -1,3 +1,7 @@
+2011-03-28  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.4 released)
+
 2011-03-24  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdata.py (Rdata._wire_cmp): We need to specify no
