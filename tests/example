@@ -101,16 +101,17 @@ isdn01			ISDN	"isdn-address"
 isdn02			ISDN	"isdn-address" "subaddress"
 isdn03			ISDN	"isdn-address"
 isdn04			ISDN	"isdn-address" "subaddress"
-key01			KEY	512 255 1 (
-				AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aR
-				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
-				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
-				jqf0BaqHT+8= )
-key02			KEY	HOST|FLAG4 DNSSEC RSAMD5 (
-				AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aR
-				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
-				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
-				jqf0BaqHT+8= )
+;; dnspython no longer supports old DNSSEC
+;;key01			KEY	512 255 1 (
+;;				AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aR
+;;				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
+;;				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
+;;				jqf0BaqHT+8= )
+;;key02			KEY	HOST|FLAG4 DNSSEC RSAMD5 (
+;;				AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aR
+;;				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
+;;				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
+;;				jqf0BaqHT+8= )
 kx01			KX	10 kdc
 kx02			KX	10 .
 loc01			LOC	60 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m
@@ -137,10 +138,10 @@ nsap-ptr01		NSAP-PTR foo.
 			NSAP-PTR .
 nsap01			NSAP	0x47000580005a0000000001e133ffffff00016100
 nsap02			NSAP	0x47.000580005a0000000001e133ffffff000161.00
-nxt01			NXT	a.secure ( NS SOA MX SIG KEY LOC NXT )
-nxt02			NXT	. ( NSAP-PTR NXT )
-nxt03			NXT	. ( A )
-nxt04			NXT	. ( 127 )
+;;nxt01			NXT	a.secure ( NS SOA MX SIG KEY LOC NXT )
+;;nxt02			NXT	. ( NSAP-PTR NXT )
+;;nxt03			NXT	. ( A )
+;;nxt04			NXT	. ( 127 )
 ptr01			PTR	example.
 px01			PX	65535 foo. bar.
 px02			PX	65535 . .
@@ -154,11 +155,11 @@ $ORIGIN s.example.
 ns			A	73.80.65.49
 $ORIGIN example.
 $TTL 3600	; 1 hour
-sig01			SIG	NXT 1 3 3600 (
-				20200101000000 20030101000000 2143 foo
-				MxFcby9k/yvedMfQgKzhH5er0Mu/vILz45IkskceFGgi
-				WCn/GxHhai6VAuHAoNUz4YoU1tVfSCSqQYn6//11U6Nl
-				d80jEeC8aTrO+KKmCaY= )
+;;sig01			SIG	NXT 1 3 3600 (
+;;				20200101000000 20030101000000 2143 foo
+;;				MxFcby9k/yvedMfQgKzhH5er0Mu/vILz45IkskceFGgi
+;;				WCn/GxHhai6VAuHAoNUz4YoU1tVfSCSqQYn6//11U6Nl
+;;				d80jEeC8aTrO+KKmCaY= )
 srv01			SRV	0 0 0 .
 srv02			SRV	65535 65535 65535 old-slow-box.example.com.
 $TTL 301	; 5 minutes 1 second
@@ -202,7 +203,7 @@ dnskey01		DNSKEY	512 255 1 (
 				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
 				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
 				jqf0BaqHT+8= )
-dnskey02		DNSKEY	HOST|FLAG4 DNSSEC RSAMD5 (
+dnskey02		DNSKEY	257 3 RSAMD5 (
 				AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aR
 				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
 				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
