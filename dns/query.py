@@ -372,7 +372,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     @type keyalgorithm: string
     """
 
-    if isinstance(zone, (str, unicode)):
+    if isinstance(zone, str):
         zone = dns.name.from_text(zone)
     if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)

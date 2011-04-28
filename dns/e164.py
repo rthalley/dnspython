@@ -69,7 +69,7 @@ def query(number, domains, resolver=None):
     if resolver is None:
         resolver = dns.resolver.get_default_resolver()
     for domain in domains:
-        if isinstance(domain, (str, unicode)):
+        if isinstance(domain, str):
             domain = dns.name.from_text(domain)
         qname = dns.e164.from_e164(number, domain)
         try:

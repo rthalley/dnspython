@@ -116,7 +116,7 @@ def make_ds(name, key, algorithm, origin=None):
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
-    if isinstance(name, (str, unicode)):
+    if isinstance(name, str):
         name = dns.name.from_text(name, origin)
     hash.update(name.canonicalize().to_wire())
     hash.update(_to_rdata(key, origin))
@@ -214,7 +214,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     @type now: int
     """
 
-    if isinstance(origin, (str, unicode)):
+    if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root)
 
     key = _find_key(keys, rrsig)
@@ -331,7 +331,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     @type now: int
     """
 
-    if isinstance(origin, (str, unicode)):
+    if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root)
 
     if isinstance(rrset, tuple):
