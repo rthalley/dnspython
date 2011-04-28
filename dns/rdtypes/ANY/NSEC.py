@@ -27,7 +27,7 @@ class NSEC(dns.rdata.Rdata):
     @ivar next: the next name
     @type next: dns.name.Name object
     @ivar windows: the windowed bitmap list
-    @type windows: list of (window number, string) tuples"""
+    @type windows: list of (window number, bytes) tuples"""
 
     __slots__ = ['next', 'windows']
 
@@ -112,7 +112,7 @@ class NSEC(dns.rdata.Rdata):
             rdlen -= 2
             if rdlen < octets:
                 raise dns.exception.FormError("bad NSEC bitmap length")
-            bitmap = wire[current : current + octets]
+            bitmap = wire[current : current + octets].unwrap()
             current += octets
             rdlen -= octets
             windows.append((window, bitmap))
@@ -126,17 +126,4 @@ class NSEC(dns.rdata.Rdata):
         self.next = self.next.choose_relativity(origin, relativize)
 
     def _cmp(self, other):
-        v = dns.util.cmp(self.next, other.next)
-        if v == 0:
-            b1 = io.BytesIO()
-            for (window, bitmap) in self.windows:
-                dns.util.write_uint8(b1, window)
-                dns.util.write_uint8(b1, len(bitmap))
-                b1.write(bitmap)
-            b2 = io.BytesIO()
-            for (window, bitmap) in other.windows:
-                dns.util.write_uint8(b2, window)
-                dns.util.write_uint8(b2, len(bitmap))
-                b2.write(bitmap)
-            v = dns.util.cmp(b1.getvalue(), b2.getvalue())
-        return v
+        return self._wire_cmp(other)

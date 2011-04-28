@@ -1,3 +1,52 @@
+2011-04-05  Bob Halley  <halley@dnspython.org>
+
+	* Old DNSSEC types (KEY, NXT, and SIG) have been removed.
+
+	* Bounds checking of slices in rdata wire processing is now more
+	  strict, and bounds errors (e.g. we got less data than was
+	  expected) now raise dns.exception.FormError rather than
+	  IndexError.
+
+2011-03-28  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.4 released)
+
+2011-03-24  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdata.py (Rdata._wire_cmp): We need to specify no
+	  compression and an origin to _wire_cmp() in case names in the
+	  rdata are relative names.
+
+	* dns/rdtypes/ANY/SIG.py (SIG._cmp): Add missing 'import struct'.
+	  Thanks to Arfrever Frehtes Taifersar Arahesis for reporting the
+	  problem.
+
+2011-03-24  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.9.3 released)
+
+2011-03-22  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py: a boolean parameter, 'raise_on_no_answer', has
+	  been added to the query() methods.  In no-error, no-data
+	  situations, this parameter determines whether NoAnswer should be
+	  raised or not.  If True, NoAnswer is raised.  If False, then an
+	  Answer() object with a None rrset will be returned.
+
+	* dns/resolver.py: Answer() objects now have a canonical_name field.
+
+2011-01-11  Bob Halley  <halley@dnspython.org>
+
+	* Dnspython was erroneously doing case-insensitive comparisons
+	  of the names in NSEC and RRSIG RRs.  Thanks to Casey Deccio for
+	  reporting this bug.
+
+2010-12-17  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py (_WireReader._get_section): use "is" and not "=="
+	  when testing what section an RR is in.  Thanks to James Raftery
+	  for reporting this bug.
+
 2010-12-10  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py (Resolver.query): disallow metaqueries.

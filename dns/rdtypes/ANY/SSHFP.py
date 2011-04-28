@@ -27,7 +27,7 @@ class SSHFP(dns.rdata.Rdata):
     @ivar fp_type: the digest type
     @type fp_type: int
     @ivar fingerprint: the fingerprint
-    @type fingerprint: string
+    @type fingerprint: bytes
     @see: draft-ietf-secsh-dns-05.txt"""
 
     __slots__ = ['algorithm', 'fp_type', 'fingerprint']
@@ -63,7 +63,7 @@ class SSHFP(dns.rdata.Rdata):
         header = struct.unpack("!BB", wire[current : current + 2])
         current += 2
         rdlen -= 2
-        fingerprint = wire[current : current + rdlen]
+        fingerprint = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], fingerprint)
 
     from_wire = classmethod(from_wire)

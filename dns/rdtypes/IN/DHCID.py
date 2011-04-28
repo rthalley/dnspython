@@ -23,7 +23,7 @@ class DHCID(dns.rdata.Rdata):
 
     @ivar data: the data (the content of the RR is opaque as far as the
     DNS is concerned)
-    @type data: string
+    @type data: bytes
     @see: RFC 4701"""
 
     __slots__ = ['data']
@@ -54,7 +54,7 @@ class DHCID(dns.rdata.Rdata):
         file.write(self.data)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        data = wire[current : current + rdlen]
+        data = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, data)
 
     from_wire = classmethod(from_wire)

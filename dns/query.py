@@ -66,7 +66,7 @@ def _poll_for(fd, readable, writable, error, timeout):
     pollable.register(fd, event_mask)
 
     if timeout:
-        event_list = pollable.poll(long(timeout * 1000))
+        event_list = pollable.poll(int(timeout * 1000))
     else:
         event_list = pollable.poll()
 

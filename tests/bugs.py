@@ -25,20 +25,20 @@ class BugsTestCase(unittest.TestCase):
     def test_float_LOC(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC,
                                     "30 30 0.000 N 100 30 0.000 W 10.00m 20m 2000m 20m")
-        self.failUnless(rdata.float_latitude == 30.5)
-        self.failUnless(rdata.float_longitude == -100.5)
+        self.assertTrue(rdata.float_latitude == 30.5)
+        self.assertTrue(rdata.float_longitude == -100.5)
 
     def test_SOA_BIND8_TTL(self):
         rdata1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                      "a b 100 1s 1m 1h 1d")
         rdata2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                      "a b 100 1 60 3600 86400")
-        self.failUnless(rdata1 == rdata2)
+        self.assertTrue(rdata1 == rdata2)
 
     def test_TTL_bounds_check(self):
         def bad():
             ttl = dns.ttl.from_text("2147483648")
-        self.failUnlessRaises(dns.ttl.BadTTL, bad)
+        self.assertRaises(dns.ttl.BadTTL, bad)
 
 if __name__ == '__main__':
     unittest.main()

@@ -27,11 +27,11 @@ class HIP(dns.rdata.Rdata):
     """HIP record
 
     @ivar hit: the host identity tag
-    @type hit: string
+    @type hit: bytes
     @ivar algorithm: the public key cryptographic algorithm
     @type algorithm: int
     @ivar key: the public key
-    @type key: string
+    @type key: bytes
     @ivar servers: the rendezvous servers
     @type servers: list of dns.name.Name objects
     @see: RFC 5205"""
@@ -88,10 +88,10 @@ class HIP(dns.rdata.Rdata):
                                             wire[current : current + 4])
         current += 4
         rdlen -= 4
-        hit = wire[current : current + lh]
+        hit = wire[current : current + lh].unwrap()
         current += lh
         rdlen -= lh
-        key = wire[current : current + lk]
+        key = wire[current : current + lk].unwrap()
         current += lk
         rdlen -= lk
         servers = []

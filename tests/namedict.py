@@ -33,70 +33,70 @@ class NameTestCase(unittest.TestCase):
         self.rndict[n2] = 2
 
     def testDepth(self):
-        self.failUnless(self.ndict.max_depth == 3)
+        self.assertTrue(self.ndict.max_depth == 3)
 
     def testLookup1(self):
         k = dns.name.from_text('foo.bar.')
-        self.failUnless(self.ndict[k] == 1)
+        self.assertTrue(self.ndict[k] == 1)
 
     def testLookup2(self):
         k = dns.name.from_text('foo.bar.')
-        self.failUnless(self.ndict.get_deepest_match(k)[1] == 1)
+        self.assertTrue(self.ndict.get_deepest_match(k)[1] == 1)
 
     def testLookup3(self):
         k = dns.name.from_text('a.b.c.foo.bar.')
-        self.failUnless(self.ndict.get_deepest_match(k)[1] == 1)
+        self.assertTrue(self.ndict.get_deepest_match(k)[1] == 1)
 
     def testLookup4(self):
         k = dns.name.from_text('a.b.c.bar.')
-        self.failUnless(self.ndict.get_deepest_match(k)[1] == 2)
+        self.assertTrue(self.ndict.get_deepest_match(k)[1] == 2)
 
     def testLookup5(self):
         def bad():
             n = dns.name.from_text('a.b.c.')
             (k, v) = self.ndict.get_deepest_match(n)
-        self.failUnlessRaises(KeyError, bad)
+        self.assertRaises(KeyError, bad)
 
     def testLookup6(self):
         def bad():
             (k, v) = self.ndict.get_deepest_match(dns.name.empty)
-        self.failUnlessRaises(KeyError, bad)
+        self.assertRaises(KeyError, bad)
 
     def testLookup7(self):
         self.ndict[dns.name.empty] = 100
         n = dns.name.from_text('a.b.c.')
         (k, v) = self.ndict.get_deepest_match(n)
-        self.failUnless(v == 100)
+        self.assertTrue(v == 100)
 
     def testLookup8(self):
         def bad():
             self.ndict['foo'] = 100
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def testRelDepth(self):
-        self.failUnless(self.rndict.max_depth == 2)
+        self.assertTrue(self.rndict.max_depth == 2)
 
     def testRelLookup1(self):
         k = dns.name.from_text('foo.bar', None)
-        self.failUnless(self.rndict[k] == 1)
+        self.assertTrue(self.rndict[k] == 1)
 
     def testRelLookup2(self):
         k = dns.name.from_text('foo.bar', None)
-        self.failUnless(self.rndict.get_deepest_match(k)[1] == 1)
+        self.assertTrue(self.rndict.get_deepest_match(k)[1] == 1)
 
     def testRelLookup3(self):
         k = dns.name.from_text('a.b.c.foo.bar', None)
-        self.failUnless(self.rndict.get_deepest_match(k)[1] == 1)
+        self.assertTrue(self.rndict.get_deepest_match(k)[1] == 1)
 
     def testRelLookup4(self):
         k = dns.name.from_text('a.b.c.bar', None)
-        self.failUnless(self.rndict.get_deepest_match(k)[1] == 2)
+        self.assertTrue(self.rndict.get_deepest_match(k)[1] == 2)
 
     def testRelLookup7(self):
         self.rndict[dns.name.empty] = 100
         n = dns.name.from_text('a.b.c', None)
         (k, v) = self.rndict.get_deepest_match(n)
-        self.failUnless(v == 100)
+        self.assertTrue(v == 100)
 
 if __name__ == '__main__':
     unittest.main()

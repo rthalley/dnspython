@@ -31,7 +31,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
     @ivar iterations: the number of iterations
     @type iterations: int
     @ivar salt: the salt
-    @type salt: string"""
+    @type salt: bytes"""
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
 
@@ -73,7 +73,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
                                                              wire[current : current + 5])
         current += 5
         rdlen -= 5
-        salt = wire[current : current + slen]
+        salt = wire[current : current + slen].unwrap()
         current += slen
         rdlen -= slen
         if rdlen != 0:
@@ -83,8 +83,4 @@ class NSEC3PARAM(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        b1 = io.BytesIO()
-        self.to_wire(b1)
-        b2 = io.BytesIO()
-        other.to_wire(b2)
-        return dns.util.cmp(b1.getvalue(), b2.getvalue())
+        return self._wire_cmp(other)

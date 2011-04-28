@@ -31,7 +31,7 @@ class WKS(dns.rdata.Rdata):
     @ivar protocol: the protocol
     @type protocol: int
     @ivar bitmap: the bitmap
-    @type bitmap: string
+    @type bitmap: bytes
     @see: RFC 1035"""
 
     __slots__ = ['address', 'protocol', 'bitmap']
@@ -92,7 +92,7 @@ class WKS(dns.rdata.Rdata):
         protocol, = struct.unpack('!B', wire[current + 4 : current + 5])
         current += 5
         rdlen -= 5
-        bitmap = wire[current : current + rdlen]
+        bitmap = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
     from_wire = classmethod(from_wire)

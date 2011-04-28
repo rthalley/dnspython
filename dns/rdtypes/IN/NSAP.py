@@ -21,8 +21,8 @@ import dns.util
 class NSAP(dns.rdata.Rdata):
     """NSAP record.
 
-    @ivar address: a NASP
-    @type address: string
+    @ivar address: a NSAP
+    @type address: bytes
     @see: RFC 1706"""
 
     __slots__ = ['address']
@@ -51,7 +51,7 @@ class NSAP(dns.rdata.Rdata):
         file.write(self.address)
 
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        address = wire[current : current + rdlen]
+        address = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, address)
 
     from_wire = classmethod(from_wire)

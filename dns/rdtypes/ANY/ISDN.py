@@ -22,9 +22,9 @@ class ISDN(dns.rdata.Rdata):
     """ISDN record
 
     @ivar address: the ISDN address
-    @type address: string
+    @type address: bytes
     @ivar subaddress: the ISDN subaddress (or '' if not present)
-    @type subaddress: string
+    @type subaddress: bytes
     @see: RFC 1183"""
 
     __slots__ = ['address', 'subaddress']
@@ -72,7 +72,7 @@ class ISDN(dns.rdata.Rdata):
         rdlen -= 1
         if l > rdlen:
             raise dns.exception.FormError
-        address = wire[current : current + l]
+        address = wire[current : current + l].unwrap()
         current += l
         rdlen -= l
         if rdlen > 0:
@@ -81,7 +81,7 @@ class ISDN(dns.rdata.Rdata):
             rdlen -= 1
             if l != rdlen:
                 raise dns.exception.FormError
-            subaddress = wire[current : current + l]
+            subaddress = wire[current : current + l].unwrap()
         else:
             subaddress = b''
         return cls(rdclass, rdtype, address, subaddress)

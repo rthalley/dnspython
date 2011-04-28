@@ -99,7 +99,7 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         def bad():
             dns.dnssec.validate(abs_other_soa, abs_soa_rrsig, abs_keys, None,
                                 when)
-        self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
+        self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
     def testRelativeRSAGood(self):
         dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
@@ -109,11 +109,11 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         def bad():
             dns.dnssec.validate(rel_other_soa, rel_soa_rrsig, rel_keys,
                                 abs_dnspython_org, when)
-        self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
+        self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
     def testMakeSHA256DS(self):
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
-        self.failUnless(ds == good_ds)
+        self.assertTrue(ds == good_ds)
 
     def testAbsoluteDSAGood(self):
         dns.dnssec.validate(abs_dsa_soa, abs_dsa_soa_rrsig, abs_dsa_keys, None,
@@ -123,15 +123,15 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         def bad():
             dns.dnssec.validate(abs_other_dsa_soa, abs_dsa_soa_rrsig,
                                 abs_dsa_keys, None, when2)
-        self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
+        self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
     def testMakeExampleSHA1DS(self):
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA1')
-        self.failUnless(ds == example_ds_sha1)
+        self.assertTrue(ds == example_ds_sha1)
 
     def testMakeExampleSHA256DS(self):
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
-        self.failUnless(ds == example_ds_sha256)
+        self.assertTrue(ds == example_ds_sha256)
 
 if __name__ == '__main__':
     import_ok = False

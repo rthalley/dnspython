@@ -44,11 +44,11 @@ class NSEC3(dns.rdata.Rdata):
     @ivar iterations: the number of iterations
     @type iterations: int
     @ivar salt: the salt
-    @type salt: string
+    @type salt: bytes
     @ivar next: the next name hash
-    @type next: string
+    @type next: bytes
     @ivar windows: the windowed bitmap list
-    @type windows: list of (window number, string) tuples"""
+    @type windows: list of (window number, bytes) tuples"""
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt', 'next', 'windows']
 
@@ -148,13 +148,13 @@ class NSEC3(dns.rdata.Rdata):
                                                              wire[current : current + 5])
         current += 5
         rdlen -= 5
-        salt = wire[current : current + slen]
+        salt = wire[current : current + slen].unwrap()
         current += slen
         rdlen -= slen
         nlen = wire[current]
         current += 1
         rdlen -= 1
-        next = wire[current : current + nlen]
+        next = wire[current : current + nlen].unwrap()
         current += nlen
         rdlen -= nlen
         windows = []
@@ -169,7 +169,7 @@ class NSEC3(dns.rdata.Rdata):
             rdlen -= 2
             if rdlen < octets:
                 raise dns.exception.FormError("bad NSEC3 bitmap length")
-            bitmap = wire[current : current + octets]
+            bitmap = wire[current : current + octets].unwrap()
             current += octets
             rdlen -= octets
             windows.append((window, bitmap))
@@ -178,8 +178,4 @@ class NSEC3(dns.rdata.Rdata):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        b1 = io.BytesIO()
-        self.to_wire(b1)
-        b2 = io.BytesIO()
-        other.to_wire(b2)
-        return dns.util.cmp(b1.getvalue(), b2.getvalue())
+        return self._wire_cmp(other)

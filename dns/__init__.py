@@ -50,5 +50,6 @@ __all__ = [
     'update',
     'util',
     'version',
+    'wiredata',
     'zone',
 ]

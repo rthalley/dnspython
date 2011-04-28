@@ -34,7 +34,7 @@ class IPSECKEY(dns.rdata.Rdata):
     @ivar gateway: the public key
     @type gateway: None, IPv4 address, IPV6 address, or domain name
     @ivar key: the public key
-    @type key: string
+    @type key: bytes
     @see: RFC 4025"""
 
     __slots__ = ['precedence', 'gateway_type', 'algorithm', 'gateway', 'key']
@@ -142,7 +142,7 @@ class IPSECKEY(dns.rdata.Rdata):
             rdlen -= cused
         else:
             raise dns.exception.FormError('invalid IPSECKEY gateway type')
-        key = wire[current : current + rdlen]
+        key = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], gateway_type, header[2],
                    gateway, key)
 

@@ -33,6 +33,7 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
+import dns.wiredata
 import dns.util
 
 _hex_chunksize = 32
@@ -260,6 +261,19 @@ class Rdata(object):
     def __hash__(self):
         return hash(self.to_digestable(dns.name.root))
 
+    def _wire_cmp(self, other):
+        # A number of types compare rdata in wire form, so we provide
+        # the method here instead of duplicating it.
+        #
+        # We specifiy an arbitrary origin of '.' when doing the
+        # comparison, since the rdata may have relative names and we
+        # can't convert a relative name to wire without an origin.
+        b1 = io.BytesIO()
+        self.to_wire(b1, None, dns.name.root)
+        b2 = io.BytesIO()
+        other.to_wire(b2, None, dns.name.root)
+        return dns.util.cmp(b1.getvalue(), b2.getvalue())
+
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         """Build an rdata object from text format.
@@ -456,5 +470,6 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin = None):
     @type origin: dns.name.Name
     @rtype: dns.rdata.Rdata instance"""
 
+    wire = dns.wiredata.maybe_wrap(wire)
     cls = get_rdata_class(rdclass, rdtype)
     return cls.from_wire(rdclass, rdtype, wire, current, rdlen, origin)

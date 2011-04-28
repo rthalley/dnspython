@@ -34,6 +34,7 @@ import dns.rdatatype
 import dns.rrset
 import dns.renderer
 import dns.tsig
+import dns.wiredata
 
 class ShortHeader(dns.exception.FormError):
     """Raised if the DNS packet passed to from_wire() is too short."""
@@ -578,7 +579,7 @@ class _WireReader(object):
 
     def __init__(self, wire, message, question_only=False,
                  one_rr_per_rrset=False):
-        self.wire = wire
+        self.wire = dns.wiredata.maybe_wrap(wire)
         self.message = message
         self.current = 0
         self.updating = False
@@ -687,7 +688,7 @@ class _WireReader(object):
                     deleting = None
                 if deleting == dns.rdataclass.ANY or \
                    (deleting == dns.rdataclass.NONE and \
-                    section == self.message.answer):
+                    section is self.message.answer):
                     covers = dns.rdatatype.NONE
                     rd = None
                 else:

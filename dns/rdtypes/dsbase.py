@@ -29,7 +29,7 @@ class DSBase(dns.rdata.Rdata):
     @ivar digest_type: the digest type
     @type digest_type: int
     @ivar digest: the digest
-    @type digest: int
+    @type digest: bytes
     @see: draft-ietf-dnsext-delegation-signer-14.txt"""
 
     __slots__ = ['key_tag', 'algorithm', 'digest_type', 'digest']
@@ -76,7 +76,7 @@ class DSBase(dns.rdata.Rdata):
         header = struct.unpack("!HBB", wire[current : current + 4])
         current += 4
         rdlen -= 4
-        digest = wire[current : current + rdlen]
+        digest = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)
 
     def _cmp(self, other):
