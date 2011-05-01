@@ -207,7 +207,6 @@ class Rdata(object):
         rdclass.  Return < 0 if self < other in the DNSSEC ordering,
         0 if self == other, and > 0 if self > other.
         """
-
         raise NotImplementedError
 
     def __eq__(self, other):
@@ -231,7 +230,7 @@ class Rdata(object):
             return NotImplemented
         if self.rdclass != other.rdclass or \
                self.rdtype != other.rdtype:
-            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
+            return (self.rdclass, self.rdtype) < (other.rdclass, other.rdtype)
         return self._cmp(other) < 0
 
     def __le__(self, other):
@@ -239,7 +238,7 @@ class Rdata(object):
             return NotImplemented
         if self.rdclass != other.rdclass or \
                self.rdtype != other.rdtype:
-            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
+            return (self.rdclass, self.rdtype) <= (other.rdclass, other.rdtype)
         return self._cmp(other) <= 0
 
     def __ge__(self, other):
@@ -247,7 +246,7 @@ class Rdata(object):
             return NotImplemented
         if self.rdclass != other.rdclass or \
                self.rdtype != other.rdtype:
-            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
+            return (self.rdclass, self.rdtype) >= (other.rdclass, other.rdtype)
         return self._cmp(other) >= 0
 
     def __gt__(self, other):
@@ -255,7 +254,7 @@ class Rdata(object):
             return NotImplemented
         if self.rdclass != other.rdclass or \
                self.rdtype != other.rdtype:
-            return dns.util.cmp((self.rdclass, self.rdtype), (other.rdclass, other.rdtype))
+            return (self.rdclass, self.rdtype) > (other.rdclass, other.rdtype)
         return self._cmp(other) > 0
 
     def __hash__(self):
