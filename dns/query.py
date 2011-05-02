@@ -110,7 +110,7 @@ def _wait_for(fd, readable, writable, error, expiration):
             if not _polling_backend(fd, readable, writable, error, timeout):
                 raise dns.exception.Timeout
         except select.error as e:
-            if e.args[0] != errno.EINTR:
+            if e.errno != errno.EINTR:
                 raise e
         done = True
 
@@ -247,9 +247,9 @@ def _connect(s, address):
         s.connect(address)
     except socket.error:
         (ty, v) = sys.exc_info()[:2]
-        if v[0] != errno.EINPROGRESS and \
-               v[0] != errno.EWOULDBLOCK and \
-               v[0] != errno.EALREADY:
+        if v.errno != errno.EINPROGRESS and \
+               v.errno != errno.EWOULDBLOCK and \
+               v.errno != errno.EALREADY:
             raise v
 
 def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
