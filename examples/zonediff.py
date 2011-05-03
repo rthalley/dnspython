@@ -171,10 +171,10 @@ The differences shown will be logical differences, not textual differences.
     opts.use_vc = opts.use_git or opts.use_bzr or opts.use_rcs
 
     def _open(what, err):
-        if isinstance(what, basestring):
+        if isinstance(what, str):
             # Open as normal file
             try:
-                return open(what, 'rb')
+                return open(what, 'r')
             except:
                 sys.stderr.write(err + "\n")
                 if opts.tracebacks:
@@ -264,7 +264,7 @@ The differences shown will be logical differences, not textual differences.
     if not changes:
         sys.exit(0)
     if opts.html:
-        print format_changes_html(oldn, newn, changes, opts.ignore_ttl)
+        print(format_changes_html(oldn, newn, changes, opts.ignore_ttl))
     else:
-        print format_changes_plain(oldn, newn, changes, opts.ignore_ttl)
+        print(format_changes_plain(oldn, newn, changes, opts.ignore_ttl))
     sys.exit(1)
