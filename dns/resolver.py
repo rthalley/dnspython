@@ -722,7 +722,7 @@ class Resolver(object):
         @type algorithm: string"""
         self.keyring = keyring
         if keyname is None:
-            self.keyname = self.keyring.keys()[0]
+            self.keyname = next(iter(self.keyring.keys()))
         else:
             self.keyname = keyname
         self.keyalgorithm = algorithm

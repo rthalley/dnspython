@@ -454,7 +454,7 @@ class Message(object):
 
         self.keyring = keyring
         if keyname is None:
-            self.keyname = self.keyring.keys()[0]
+            self.keyname = next(iter(self.keyring.keys()))
         else:
             if isinstance(keyname, str):
                 keyname = dns.name.from_text(keyname)
