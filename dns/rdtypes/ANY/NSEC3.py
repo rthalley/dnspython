@@ -118,7 +118,7 @@ class NSEC3(dns.rdata.Rdata):
                 bitmap = ['\0'] * 32
                 window = new_window
             offset = nrdtype % 256
-            byte = offset / 8
+            byte = offset // 8
             bit = offset % 8
             octets = byte + 1
             bitmap[byte] = chr(ord(bitmap[byte]) | (0x80 >> bit))

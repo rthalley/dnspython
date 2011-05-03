@@ -99,7 +99,7 @@ def key_id(key, origin=None):
         return (ord(rdata[-3]) << 8) + ord(rdata[-2])
     else:
         total = 0
-        for i in range(len(rdata) / 2):
+        for i in range(len(rdata) // 2):
             total += (ord(rdata[2 * i]) << 8) + ord(rdata[2 * i + 1])
         if len(rdata) % 2 != 0:
             total += ord(rdata[len(rdata) - 1]) << 8
@@ -299,7 +299,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     if _is_rsa(rrsig.algorithm):
         # PKCS1 algorithm identifier goop
         digest = _make_algorithm_id(rrsig.algorithm) + digest
-        padlen = keylen / 8 - len(digest) - 3
+        padlen = keylen // 8 - len(digest) - 3
         digest = chr(0) + chr(1) + chr(0xFF) * padlen + chr(0) + digest
     elif _is_dsa(rrsig.algorithm):
         pass
