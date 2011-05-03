@@ -267,8 +267,9 @@ class Renderer(object):
         @type other_data: string
         @param request_mac: This message is a response to the request which
         had the specified MAC.
-        @param algorithm: the TSIG algorithm to use
         @type request_mac: string
+        @param algorithm: the TSIG algorithm to use
+        @type algorithm: dns.name.Name object
         """
 
         self._set_section(ADDITIONAL)
