@@ -18,6 +18,7 @@
 import struct
 
 def cmp(x, y):
+    """The cmp() function from Python 2"""
     if x > y:
         return 1
     elif x < y:
@@ -28,25 +29,21 @@ def cmp(x, y):
 def write_uint8(bfile, value):
     """Write an unsigned 8-bit integer to an io.BytesIO file
     """
-
     bfile.write(struct.pack('B', value))
 
 
 def write_uint16(bfile, value):
     """Write an unsigned 16-bit integer to an io.BytesIO file
     """
-
     bfile.write(struct.pack('!H', value))
 
 def write_uint32(bfile, value):
     """Write an unsigned 32-bit integer to an io.BytesIO file
     """
-
     bfile.write(struct.pack('!L', value))
 
 
 def write_uint64(bfile, value):
     """Write an unsigned 64-bit integer to an io.BytesIO file
     """
-
     bfile.write(struct.pack('!Q', value))
