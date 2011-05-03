@@ -131,22 +131,13 @@ class Zone(object):
         del self.nodes[key]
 
     def __iter__(self):
-        return self.nodes.iterkeys()
-
-    def iterkeys(self):
-        return self.nodes.iterkeys()
+        return iter(self.nodes.keys())
 
     def keys(self):
         return self.nodes.keys()
 
-    def itervalues(self):
-        return self.nodes.itervalues()
-
     def values(self):
         return self.nodes.values()
-
-    def iteritems(self):
-        return self.nodes.iteritems()
 
     def items(self):
         return self.nodes.items()
@@ -482,10 +473,9 @@ class Zone(object):
             want_close = False
         try:
             if sorted:
-                names = list(self.keys())
-                names.sort()
+                names = sorted(self.keys())
             else:
-                names = self.iterkeys()
+                names = self.keys()
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize)
