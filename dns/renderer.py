@@ -47,7 +47,7 @@ class Renderer(object):
         r.add_rrset(dns.renderer.ADDTIONAL, ad_rrset_1)
         r.add_rrset(dns.renderer.ADDTIONAL, ad_rrset_2)
         r.write_header()
-        r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
+        r.add_tsig(keyname, secret, 300, 1, 0, b'', request_mac)
         wire = r.get_wire()
 
     @ivar output: where rendering is written
@@ -68,7 +68,7 @@ class Renderer(object):
     @ivar counts: list of the number of RRs in each section
     @type counts: int list of length 4
     @ivar mac: the MAC of the rendered message (if TSIG was used)
-    @type mac: string
+    @type mac: bytes
     """
 
     def __init__(self, id=None, flags=0, max_size=65535, origin=None):
@@ -98,7 +98,7 @@ class Renderer(object):
         self.section = QUESTION
         self.counts = [0, 0, 0, 0]
         self.output.write(b'\x00' * 12)
-        self.mac = ''
+        self.mac = b''
 
     def _rollback(self, where):
         """Truncate the output buffer at offset I{where}, and remove any
@@ -267,8 +267,9 @@ class Renderer(object):
         @type other_data: string
         @param request_mac: This message is a response to the request which
         had the specified MAC.
+        @type request_mac: bytes
         @param algorithm: the TSIG algorithm to use
-        @type request_mac: string
+        @type algorithm: dns.name.Name object
         """
 
         self._set_section(ADDITIONAL)

@@ -21,6 +21,7 @@ import struct
 import sys
 
 import dns.exception
+import dns.hash
 import dns.rdataclass
 import dns.name
 
@@ -74,7 +75,7 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
     for the input parameters, the HMAC MAC calculated by applying the
     TSIG signature algorithm, and the TSIG digest context.
-    @rtype: (string, string, hmac.HMAC object)
+    @rtype: (bytes, bytes, hmac.HMAC object)
     @raises ValueError: I{other_data} is too long
     @raises NotImplementedError: I{algorithm} is not supported
     """

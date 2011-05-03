@@ -111,9 +111,9 @@ class Message(object):
     @ivar tsig_error: TSIG error code; default is 0.
     @type tsig_error: int
     @ivar other_data: TSIG other data.
-    @type other_data: string
+    @type other_data: bytes
     @ivar mac: The TSIG MAC for this message.
-    @type mac: string
+    @type mac: bytes
     @ivar xfr: Is the message being used to contain the results of a DNS
     zone transfer?  The default is False.
     @type xfr: bool
@@ -158,12 +158,12 @@ class Message(object):
         self.keyring = None
         self.keyname = None
         self.keyalgorithm = dns.tsig.default_algorithm
-        self.request_mac = ''
-        self.other_data = ''
+        self.request_mac = b''
+        self.other_data = b''
         self.tsig_error = 0
         self.fudge = 300
         self.original_id = self.id
-        self.mac = ''
+        self.mac = b''
         self.xfr = False
         self.origin = None
         self.tsig_ctx = None
@@ -426,7 +426,7 @@ class Message(object):
         return r.get_wire()
 
     def use_tsig(self, keyring, keyname=None, fudge=300,
-                 original_id=None, tsig_error=0, other_data='',
+                 original_id=None, tsig_error=0, other_data=b'',
                  algorithm=dns.tsig.default_algorithm):
         """When sending, a TSIG signature using the specified keyring
         and keyname should be added.
@@ -447,7 +447,7 @@ class Message(object):
         @param tsig_error: TSIG error code; default is 0.
         @type tsig_error: int
         @param other_data: TSIG other data.
-        @type other_data: string
+        @type other_data: bytes
         @param algorithm: The TSIG algorithm to use; defaults to
         dns.tsig.default_algorithm
         """
@@ -730,7 +730,7 @@ class _WireReader(object):
             self.message.tsig_ctx.update(self.wire)
 
 
-def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
+def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
               tsig_ctx = None, multi = False, first = True,
               question_only = False, one_rr_per_rrset = False):
     """Convert a DNS wire format message into a message
@@ -740,7 +740,7 @@ def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
     @type keyring: dict
     @param request_mac: If the message is a response to a TSIG-signed request,
     I{request_mac} should be set to the MAC of that request.
-    @type request_mac: string
+    @type request_mac: bytes
     @param xfr: Is this message part of a zone transfer?
     @type xfr: bool
     @param origin: If the message is part of a zone transfer, I{origin}

@@ -49,7 +49,7 @@ class DNSKEY(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
-                                dns.rdata._base64ify(self.key))
+                                dns.rdata._base64ify(self.key).decode('ascii'))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
