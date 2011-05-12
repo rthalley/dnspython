@@ -17,6 +17,7 @@
 
 from __future__ import generators
 
+import builtins
 import sys
 
 import dns.exception
@@ -473,7 +474,7 @@ class Zone(object):
             want_close = False
         try:
             if sorted:
-                names = sorted(self.keys())
+                names = builtins.sorted(self.keys())
             else:
                 names = self.keys()
             for n in names:
