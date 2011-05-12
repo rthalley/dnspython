@@ -15,7 +15,7 @@
 
 # $Id: Makefile,v 1.16 2004/03/19 00:17:27 halley Exp $
 
-PYTHON=python
+PYTHON=python3
 
 all:
 	${PYTHON} ./setup.py build
