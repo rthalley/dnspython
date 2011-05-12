@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (C) 2003-2007, 2009, 2010 Nominum, Inc.
 #
@@ -21,7 +21,7 @@ from distutils.core import setup
 version = '1.9.5'
 
 kwargs = {
-    'name' : 'dnspython',
+    'name' : 'dnspython3',
     'version' : version,
     'description' : 'DNS toolkit',
     'long_description' : \
@@ -39,8 +39,8 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'url' : 'http://www.dnspython.org',
     'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY'],
     'download_url' : \
-	'http://www.dnspython.org/kits/%s/dnspython-%s.tar.gz' % (version,
-                                                                  version),
+	'http://www.dnspython.org/kits/%s/dnspython3-%s.tar.gz' % (version,
+                                                                   version),
     'classifiers' : [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
