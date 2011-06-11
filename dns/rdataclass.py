@@ -74,7 +74,7 @@ def from_text(text):
     @param text: the text
     @type text: string
     @rtype: int
-    @raises dns.rdataclass.UnknownRdataClass: the class is unknown
+    @raises dns.rdataclass.UnknownRdataclass: the class is unknown
     @raises ValueError: the rdata class value is not >= 0 and <= 65535
     """
 
