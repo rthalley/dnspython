@@ -15,20 +15,21 @@
 
 """IPv4 helper functions."""
 
-import socket
-import sys
+import struct
 
-if sys.platform == 'win32':
-    #
-    # XXX  Does the Win32 python 3 inet_aton still reject 255.255.255.255?
-    # Until we know it doesn't, we'll keep our workaround in place.
-    #
-    def inet_aton(text):
-        if text == '255.255.255.255':
-            return b'\xff' * 4
-        else:
-            return socket.inet_aton(text)
-else:
-    inet_aton = socket.inet_aton
+import dns.exception
 
-inet_ntoa = socket.inet_ntoa
+def inet_ntoa(address):
+    if len(address) != 4:
+        raise dns.exception.SyntaxError
+    return '%u.%u.%u.%u' % (address[0], address[1], address[2], address[3])
+
+def inet_aton(text):
+    parts = text.split('.')
+    if len(parts) != 4:
+        raise dns.exception.SyntaxError
+    try:
+        bytes = [int(part) for part in parts]
+        return struct.pack('BBBB', *bytes)
+    except:
+        raise dns.exception.SyntaxError

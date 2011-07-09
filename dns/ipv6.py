@@ -108,9 +108,16 @@ def inet_aton(text):
     #
     m = _v4_ending.match(text)
     if not m is None:
-        text = "%s:%04x:%04x" % (m.group(1),
-                                 int(m.group(2)) * 256 + int(m.group(3)),
-                                 int(m.group(4)) * 256 + int(m.group(5)))
+        try:
+            b1 = int(m.group(2))
+            b2 = int(m.group(3))
+            b3 = int(m.group(4))
+            b4 = int(m.group(5))
+        except:
+            raise dns.exception.SyntaxError
+        if b1 > 255 or b2 > 255 or b3 > 255 or b4 > 255:
+            raise dns.exception.SyntaxError
+        text = "%s:%04x:%04x" % (m.group(1), b1 * 256 + b2, b3 * 256 + b4)
     #
     # Try to turn '::<whatever>' into ':<whatever>'; if no match try to
     # turn '<whatever>::' into '<whatever>:'

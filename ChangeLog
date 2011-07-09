@@ -1,3 +1,13 @@
+2011-07-08  Bob Halley  <halley@dnspython.org>
+
+	* dns/ipv4.py: dnspython now provides its own, stricter, versions
+	  of IPv4 inet_ntoa() and inet_aton() instead of using the OS's
+	  versions.
+
+	* dns/ipv6.py: inet_aton() now bounds checks embedded IPv4 addresses
+	  more strictly.  Also, now only dns.exception.SyntaxError can be
+	  raised on bad input.
+
 2011-04-05  Bob Halley  <halley@dnspython.org>
 
 	* Old DNSSEC types (KEY, NXT, and SIG) have been removed.
