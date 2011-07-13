@@ -29,6 +29,12 @@ def inet_aton(text):
     parts = text.split('.')
     if len(parts) != 4:
         raise dns.exception.SyntaxError
+    for part in parts:
+        if not part.isdigit():
+            raise dns.exception.SyntaxError
+        if len(part) > 1 and part[0] == '0':
+            # No leading zeros
+            raise dns.exception.SyntaxError
     try:
         bytes = [int(part) for part in parts]
         return struct.pack('BBBB', *bytes)
