@@ -1,3 +1,15 @@
+2011-07-13  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py: dns.resolver.override_system_resolver()
+  	  overrides the socket module's versions of getaddrinfo(),
+	  getnameinfo(), getfqdn(), gethostbyname(), gethostbyname_ex() and
+	  gethostbyaddr() with an implementation which uses a dnspython stub
+	  resolver instead of the system's stub resolver.  This can be
+	  useful in testing situations where you want to control the
+	  resolution behavior of python code without having to change the
+	  system's resolver settings (e.g. /etc/resolv.conf).
+	  dns.resolver.restore_system_resolver() undoes the change.
+
 2011-07-08  Bob Halley  <halley@dnspython.org>
 
 	* dns/ipv4.py: dnspython now provides its own, stricter, versions
