@@ -16,8 +16,8 @@
 """dnspython release version information."""
 
 MAJOR = 1
-MINOR = 9
-MICRO = 5
+MINOR = 10
+MICRO = 0
 RELEASELEVEL = 0x0f
 SERIAL = 0
 
