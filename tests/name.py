@@ -662,12 +662,12 @@ class NameTestCase(unittest.TestCase):
     def testBadReverseIPv4(self):
         def bad():
             n = dns.reversename.from_address('127.0.foo.1')
-        self.failUnlessRaises(socket.error, bad)
+        self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testBadReverseIPv6(self):
         def bad():
             n = dns.reversename.from_address('::1::1')
-        self.failUnlessRaises(socket.error, bad)
+        self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testForwardIPv4(self):
         n = dns.name.from_text('1.0.0.127.in-addr.arpa.')

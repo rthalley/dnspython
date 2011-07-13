@@ -89,7 +89,7 @@ def inet_ntoa(address):
         hex = ':'.join(chunks)
     return hex
 
-_v4_ending = re.compile(r'(.*):(\d+)\.(\d+)\.(\d+)\.(\d+)$')
+_v4_ending = re.compile(r'(.*):(\d+\.\d+\.\d+\.\d+)$')
 _colon_colon_start = re.compile(r'::.*')
 _colon_colon_end = re.compile(r'.*::$')
 
@@ -113,16 +113,9 @@ def inet_aton(text):
     #
     m = _v4_ending.match(text)
     if not m is None:
-        try:
-            b1 = int(m.group(2))
-            b2 = int(m.group(3))
-            b3 = int(m.group(4))
-            b4 = int(m.group(5))
-        except:
-            raise dns.exception.SyntaxError
-        if b1 > 255 or b2 > 255 or b3 > 255 or b4 > 255:
-            raise dns.exception.SyntaxError
-        text = "%s:%04x:%04x" % (m.group(1), b1 * 256 + b2, b3 * 256 + b4)
+        b = dns.ipv4.inet_aton(m.group(2))
+        text = "%s:%02x%02x:%02x%02x" % (m.group(1), ord(b[0]), ord(b[1]),
+                                         ord(b[2]), ord(b[3]))
     #
     # Try to turn '::<whatever>' into ':<whatever>'; if no match try to
     # turn '<whatever>::' into '<whatever>:'
