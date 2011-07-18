@@ -413,12 +413,15 @@ def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
     Once a class is chosen, its from_text() class method is called
     with the parameters to this function.
 
+    If I{tok} is a string, then a tokenizer is created and the string
+    is used as its input.
+
     @param rdclass: The rdata class
     @type rdclass: int
     @param rdtype: The rdata type
     @type rdtype: int
-    @param tok: The tokenizer
-    @type tok: dns.tokenizer.Tokenizer
+    @param tok: The tokenizer or input text
+    @type tok: dns.tokenizer.Tokenizer or string
     @param origin: The origin to use for relative names
     @type origin: dns.name.Name
     @param relativize: Should names be relativized?
