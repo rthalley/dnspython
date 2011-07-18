@@ -25,7 +25,7 @@ kwargs = {
     'version' : version,
     'description' : 'DNS toolkit',
     'long_description' : \
-    """dnspython is a DNS toolkit for Python. It supports almost all
+    """dnspython3 is a DNS toolkit for Python 3. It supports almost all
 record types. It can be used for queries, zone transfers, and dynamic
 updates.  It supports TSIG authenticated messages and EDNS0.
 
@@ -39,7 +39,7 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'url' : 'http://www.dnspython.org',
     'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY'],
     'download_url' : \
-	'http://www.dnspython.org/kits/%s/dnspython3-%s.tar.gz' % (version,
+	'http://www.dnspython.org/kits3/%s/dnspython3-%s.tar.gz' % (version,
                                                                    version),
     'classifiers' : [
         "Development Status :: 5 - Production/Stable",
