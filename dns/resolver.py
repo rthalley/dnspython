@@ -270,6 +270,127 @@ class Cache(object):
             self.data = {}
             self.next_cleaning = time.time() + self.cleaning_interval
 
+class LRUCacheNode(object):
+    """LRUCache node.
+    """
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+        self.prev = self
+        self.next = self
+
+    def link_before(self, node):
+        self.prev = node.prev
+        self.next = node
+        node.prev.next = self
+        node.prev = self
+
+    def link_after(self, node):
+        self.prev = node
+        self.next = node.next
+        node.next.prev = self
+        node.next = self
+
+    def unlink(self):
+        self.next.prev = self.prev
+        self.prev.next = self.next
+
+class LRUCache(object):
+    """Bounded least-recently-used DNS answer cache.
+
+    This cache is better than the simple cache (above) if you're
+    running a web crawler or other process that does a lot of
+    resolutions.  The LRUCache has a maximum number of nodes, and when
+    it is full, the least-recently used node is removed to make space
+    for a new one.
+
+    @ivar data: A dictionary of cached data
+    @type data: dict
+    @ivar sentinel: sentinel node for circular doubly linked list of nodes
+    @type sentinel: LRUCacheNode object
+    @ivar max_size: The maximum number of nodes
+    @type max_size: int
+    """
+
+    def __init__(self, max_size=100000):
+        """Initialize a DNS cache.
+
+        @param max_size: The maximum number of nodes to cache; the default is
+        100000.  Must be > 1.
+        @type max_size: int
+        """
+        self.data = {}
+        self.set_max_size(max_size)
+        self.sentinel = LRUCacheNode(None, None)
+
+    def set_max_size(self, max_size):
+        if max_size < 1:
+            max_size = 1
+        self.max_size = max_size
+
+    def get(self, key):
+        """Get the answer associated with I{key}.  Returns None if
+        no answer is cached for the key.
+        @param key: the key
+        @type key: (dns.name.Name, int, int) tuple whose values are the
+        query name, rdtype, and rdclass.
+        @rtype: dns.resolver.Answer object or None
+        """
+        node = self.data.get(key)
+        if node is None:
+            return None
+        # Unlink because we're either going to move the node to the front
+        # of the LRU list or we're going to free it.
+        node.unlink()
+        if node.value.expiration <= time.time():
+            del self.data[node.key]
+            return None
+        node.link_after(self.sentinel)
+        return node.value
+
+    def put(self, key, value):
+        """Associate key and value in the cache.
+        @param key: the key
+        @type key: (dns.name.Name, int, int) tuple whose values are the
+        query name, rdtype, and rdclass.
+        @param value: The answer being cached
+        @type value: dns.resolver.Answer object
+        """
+        node = self.data.get(key)
+        if not node is None:
+            node.unlink()
+            del self.data[node.key]
+        while len(self.data) >= self.max_size:
+            node = self.sentinel.prev
+            node.unlink()
+            del self.data[node.key]
+        node = LRUCacheNode(key, value)
+        node.link_after(self.sentinel)
+        self.data[key] = node
+
+    def flush(self, key=None):
+        """Flush the cache.
+
+        If I{key} is specified, only that item is flushed.  Otherwise
+        the entire cache is flushed.
+
+        @param key: the key to flush
+        @type key: (dns.name.Name, int, int) tuple or None
+        """
+        if not key is None:
+            node = self.data.get(key)
+            if not node is None:
+                node.unlink()
+                del self.data[node.key]
+        else:
+            node = self.sentinel.next
+            while node != self.sentinel:
+                next = node.next
+                node.prev = None
+                node.next = None
+                node = next
+            self.data = {}
+
 class Resolver(object):
     """DNS stub resolver
 
@@ -627,8 +748,11 @@ class Resolver(object):
         for qname in qnames_to_try:
             if self.cache:
                 answer = self.cache.get((qname, rdtype, rdclass))
-                if answer:
-                    return answer
+                if not answer is None:
+                    if answer.rrset is None and raise_on_no_answer:
+                        raise NoAnswer
+                    else:
+                        return answer
             request = dns.message.make_query(qname, rdtype, rdclass)
             if not self.keyname is None:
                 request.use_tsig(self.keyring, self.keyname,
