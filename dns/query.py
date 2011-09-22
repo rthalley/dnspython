@@ -144,7 +144,7 @@ def _addresses_equal(af, a1, a2):
     n2 = dns.inet.inet_pton(af, a2[0])
     return n1 == n2 and a1[1:] == a2[1:]
 
-def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
+def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=53,
         ignore_unexpected=False, one_rr_per_rrset=False):
     """Return the response obtained after sending a query via UDP.
 
@@ -165,7 +165,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     @param source: source address.  The default is the IPv4 wildcard address.
     @type source: string
     @param source_port: The port from which to send the message.
-    The default is 0.
+    The default is 53.
     @type source_port: int
     @param ignore_unexpected: If True, ignore responses from unexpected
     sources.  The default is False.
@@ -252,7 +252,7 @@ def _connect(s, address):
                v[0] != errno.EALREADY:
             raise v
 
-def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
+def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=53,
         one_rr_per_rrset=False):
     """Return the response obtained after sending a query via TCP.
 
@@ -273,7 +273,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     @param source: source address.  The default is the IPv4 wildcard address.
     @type source: string
     @param source_port: The port from which to send the message.
-    The default is 0.
+    The default is 53.
     @type source_port: int
     @param one_rr_per_rrset: Put each RR into its own RRset
     @type one_rr_per_rrset: bool
