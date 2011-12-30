@@ -26,11 +26,26 @@ This is dnspython 1.10.0
 
 New since 1.9.4:
 
-        XXX TBS.
+       	Added dns.resolver.LRUCache.  In this cache implementation,
+	the cache size is limited to a user-specified number of nodes,
+	and when adding a new node to a full cache the least-recently
+	used node is removed.  If you're crawling the web or otherwise
+	doing lots of resolutions and you are using a cache, switching
+	to the LRUCache is recommended.
+
+	The python socket module's DNS methods can be now be overriden
+	with implementations that use dnspython's resolver.
+
+	Old DNSSEC types KEY, NXT, and SIG have been removed.
 
 Bugs fixed since 1.9.4:
 
-        XXX TBS.
+     	IPv4 and IPv6 address processing is now stricter.
+
+	Bounds checking of slices in rdata wire processing is now more
+	strict, and bounds errors (e.g. we got less data than was
+	expected) now raise dns.exception.FormError rather than
+	IndexError.
 
 New since 1.9.3:
 
