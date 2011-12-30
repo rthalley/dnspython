@@ -1,8 +1,9 @@
-2011-08-22  Robert Halley  <halley@dnspython.org>
+2011-08-22  Bob Halley  <halley@dnspython.org>
 
-	* dns/resolver.py: Added LRUCache, which allows a maximum number
-	  of nodes to be cached, and removes the least-recently used node
-	  when adding a new node to a full cache.
+	* dns/resolver.py: Added LRUCache.  In this cache implementation,
+	  the cache size is limited to a user-specified number of nodes, and
+	  when adding a new node to a full cache the least-recently used
+	  node is removed.
 
 2011-07-13  Bob Halley  <halley@dnspython.org>
 
