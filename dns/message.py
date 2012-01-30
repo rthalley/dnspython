@@ -571,13 +571,15 @@ class _WireReader(object):
     @type updating: bool
     @ivar one_rr_per_rrset: Put each RR into its own RRset?
     @type one_rr_per_rrset: bool
+    @ivar ignore_trailing: Ignore trailing junk at end of request?
+    @type ignore_trailing: bool
     @ivar zone_rdclass: The class of the zone in messages which are
     DNS dynamic updates.
     @type zone_rdclass: int
     """
 
     def __init__(self, wire, message, question_only=False,
-                 one_rr_per_rrset=False):
+                 one_rr_per_rrset=False, ignore_trailing=False):
         self.wire = dns.wiredata.maybe_wrap(wire)
         self.message = message
         self.current = 0
@@ -585,6 +587,7 @@ class _WireReader(object):
         self.zone_rdclass = dns.rdataclass.IN
         self.question_only = question_only
         self.one_rr_per_rrset = one_rr_per_rrset
+        self.ignore_trailing = ignore_trailing
 
     def _get_question(self, qcount):
         """Read the next I{qcount} records from the wire data and add them to
@@ -722,7 +725,7 @@ class _WireReader(object):
         self._get_section(self.message.answer, ancount)
         self._get_section(self.message.authority, aucount)
         self._get_section(self.message.additional, adcount)
-        if self.current != l:
+        if not self.ignore_trailing and self.current != l:
             raise TrailingJunk
         if self.message.multi and self.message.tsig_ctx and \
                not self.message.had_tsig:
@@ -731,7 +734,8 @@ class _WireReader(object):
 
 def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
               tsig_ctx = None, multi = False, first = True,
-              question_only = False, one_rr_per_rrset = False):
+              question_only = False, one_rr_per_rrset = False,
+              ignore_trailing = False):
     """Convert a DNS wire format message into a message
     object.
 
@@ -757,6 +761,8 @@ def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
     @type question_only: bool
     @param one_rr_per_rrset: Put each RR into its own RRset
     @type one_rr_per_rrset: bool
+    @param ignore_trailing: Ignore trailing junk at end of request?
+    @type ignore_trailing: bool
     @raises ShortHeader: The message is less than 12 octets long.
     @raises TrailingJunk: There were octets in the message past the end
     of the proper DNS message.
@@ -775,7 +781,8 @@ def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
     m.multi = multi
     m.first = first
 
-    reader = _WireReader(wire, m, question_only, one_rr_per_rrset)
+    reader = _WireReader(wire, m, question_only, one_rr_per_rrset,
+                         ignore_trailing)
     reader.read()
 
     return m
