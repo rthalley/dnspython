@@ -796,7 +796,7 @@ def from_file(f, origin = None, rdclass = dns.rdataclass.IN,
             f.close()
     return z
 
-def from_xfr(xfr, zone_factory=Zone, relativize=True):
+def from_xfr(xfr, zone_factory=Zone, relativize=True, check_origin=True):
     """Convert the output of a zone transfer generator into a zone object.
 
     @param xfr: The xfr generator
@@ -805,6 +805,9 @@ def from_xfr(xfr, zone_factory=Zone, relativize=True):
     It is essential that the relativize setting matches the one specified
     to dns.query.xfr().
     @type relativize: bool
+    @param check_origin: should sanity checks of the origin node be done?
+    The default is True.
+    @type check_origin: bool
     @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
     @raises dns.zone.NoNS: No NS RRset was found at the zone origin
     @rtype: dns.zone.Zone object
@@ -830,5 +833,6 @@ def from_xfr(xfr, zone_factory=Zone, relativize=True):
             for rd in rrset:
                 rd.choose_relativity(z.origin, relativize)
                 zrds.add(rd)
-    z.check_origin()
+    if check_origin:
+        z.check_origin()
     return z
