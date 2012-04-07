@@ -47,9 +47,16 @@ class SSHFP(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         algorithm = tok.get_uint8()
         fp_type = tok.get_uint8()
-        fingerprint = tok.get_string()
+        chunks = []
+        while 1:
+            t = tok.get().unescape()
+            if t.is_eol_or_eof():
+                break
+            if not t.is_identifier():
+                raise dns.exception.SyntaxError
+            chunks.append(t.value)
+        fingerprint = ''.join(chunks)
         fingerprint = fingerprint.decode('hex_codec')
-        tok.get_eol()
         return cls(rdclass, rdtype, algorithm, fp_type, fingerprint)
 
     from_text = classmethod(from_text)
