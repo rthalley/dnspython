@@ -89,7 +89,7 @@ def algorithm_to_text(value):
     return text
 
 def _to_rdata(record, origin):
-    s = io.StringIO()
+    s = io.BytesIO()
     record.to_wire(s, origin=origin)
     return s.getvalue()
 
