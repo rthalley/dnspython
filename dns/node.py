@@ -167,6 +167,8 @@ class Node(object):
         at the node, it stores I{replacement} itself.
         """
 
+        if not isinstance(replacement, dns.rdataset.Rdataset):
+            raise ValueError, 'replacement is not an rdataset'
         self.delete_rdataset(replacement.rdclass, replacement.rdtype,
                              replacement.covers)
         self.rdatasets.append(replacement)
