@@ -693,7 +693,7 @@ class Resolver(object):
         return min(self.lifetime - duration, self.timeout)
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-              tcp=False, source=None, raise_on_no_answer=True):
+              tcp=False, source=None, source_port=0, raise_on_no_answer=True):
         """Query nameservers to find the answer to the question.
 
         The I{qname}, I{rdtype}, and I{rdclass} parameters may be objects
@@ -711,6 +711,9 @@ class Resolver(object):
         @type tcp: bool
         @param source: bind to this IP address (defaults to machine default IP).
         @type source: IP address in dotted quad notation
+        @param source_port: The port from which to send the message.
+        The default is 0.
+        @type source_port: int
         @param raise_on_no_answer: raise NoAnswer if there's no answer
         (defaults is True).
         @type raise_on_no_answer: bool
@@ -773,11 +776,13 @@ class Resolver(object):
                         if tcp:
                             response = dns.query.tcp(request, nameserver,
                                                      timeout, self.port,
-                                                     source=source)
+                                                     source=source,
+                                                     source_port=source_port)
                         else:
                             response = dns.query.udp(request, nameserver,
                                                      timeout, self.port,
-                                                     source=source)
+                                                     source=source,
+                                                     source_port=source_port)
                     except (socket.error, dns.exception.Timeout):
                         #
                         # Communication failure or timeout.  Go to the
@@ -886,7 +891,7 @@ def get_default_resolver():
     return default_resolver
 
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-          tcp=False, source=None, raise_on_no_answer=True):
+          tcp=False, source=None, source_port=0, raise_on_no_answer=True):
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -894,7 +899,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
     @see: L{dns.resolver.Resolver.query} for more information on the
     parameters."""
     return get_default_resolver().query(qname, rdtype, rdclass, tcp, source,
-                                        raise_on_no_answer)
+                                        source_port, raise_on_no_answer)
 
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     """Find the name of the zone which contains the specified name.
