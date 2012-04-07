@@ -1,3 +1,11 @@
+2012-04-07  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py (from_wire): dns.message.from_wire() now takes
+	  an 'ignore_trailing' parameter which defaults to False.  If set
+	  to True, then trailing junk will be ignored instead of causing
+	  TrailingJunk to be raised.  Thanks to Shane Huntley for
+	  contributing the patch.
+
 2011-08-22  Bob Halley  <halley@dnspython.org>
 
 	* dns/resolver.py: Added LRUCache.  In this cache implementation,
