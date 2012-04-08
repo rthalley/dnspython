@@ -33,10 +33,19 @@ New since 1.9.4:
 	doing lots of resolutions and you are using a cache, switching
 	to the LRUCache is recommended.
 
+	dns.resolver.query() will try TCP if a UDP response is
+	truncated.
+
 	The python socket module's DNS methods can be now be overriden
 	with implementations that use dnspython's resolver.
 
 	Old DNSSEC types KEY, NXT, and SIG have been removed.
+
+	Whitespace is allowed in SSHFP fingerprints.
+
+	Origin checking in dns.zone.from_xfr() can be disabled.
+
+	Trailing junk checking can be disabled.
 
 Bugs fixed since 1.9.4:
 
