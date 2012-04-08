@@ -32,7 +32,7 @@ def from_e164(text, origin=public_enum_domain):
     @type text: str
     @param origin: The domain in which the number should be constructed.
     The default is e164.arpa.
-    @type: dns.name.Name object or None
+    @type origin: dns.name.Name object or None
     @rtype: dns.name.Name object
     """
     parts = [d for d in text if d.isdigit()]
@@ -45,7 +45,7 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     @type name: dns.name.Name object.
     @param origin: A domain containing the ENUM domain name.  The
     name is relativized to this domain before being converted to text.
-    @type: dns.name.Name object or None
+    @type origin: dns.name.Name object or None
     @param want_plus_prefix: if True, add a '+' to the beginning of the
     returned number.
     @rtype: str

@@ -25,7 +25,7 @@ def inet_ntoa(address):
     """Convert a network format IPv6 address into text.
 
     @param address: the binary address
-    @type address: string
+    @type address: bytes
     @rtype: string
     @raises ValueError: the address isn't 16 bytes long
     """
@@ -93,7 +93,7 @@ def inet_aton(text):
 
     @param text: the textual address
     @type text: string
-    @rtype: string
+    @rtype: bytes
     @raises dns.exception.SyntaxError: the text was not properly formatted
     """
 

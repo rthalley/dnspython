@@ -20,11 +20,23 @@ import struct
 import dns.exception
 
 def inet_ntoa(address):
+    """Convert an IPv4 address in network form to text form.
+
+    @param address: The IPv4 address
+    @type address: bytes
+    @returns: string
+    """
     if len(address) != 4:
         raise dns.exception.SyntaxError
     return '%u.%u.%u.%u' % (address[0], address[1], address[2], address[3])
 
 def inet_aton(text):
+    """Convert an IPv4 address in text form to network form.
+
+    @param text: The IPv4 address
+    @type text: string
+    @returns: bytes
+    """
     parts = text.split('.')
     if len(parts) != 4:
         raise dns.exception.SyntaxError

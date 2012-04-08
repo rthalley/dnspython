@@ -54,9 +54,9 @@ class Token(object):
 
         @param ttype: The token type
         @type ttype: int
-        @ivar value: The token value
+        @param value: The token value
         @type value: string
-        @ivar has_escape: Does the token value contain escapes?
+        @param has_escape: Does the token value contain escapes?
         @type has_escape: bool
         """
         self.ttype = ttype
