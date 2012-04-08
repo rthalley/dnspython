@@ -1,5 +1,12 @@
 2012-04-08  Bob Halley  <halley@dnspython.org>
 
+	* dns/query.py: Specifying source_port had no effect if source was
+	  not specified.  We now use the appropriate wildcard source in
+	  that case.
+
+	* dns/resolver.py (Resolver.query): source_port may now be
+	  specified.
+
 	* dns/resolver.py (Resolver.query): Switch to TCP when a UDP
 	  response is truncated.  Handle nameservers that serve on UDP
 	  but not TCP.
