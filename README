@@ -49,6 +49,8 @@ New since 1.9.4:
 
 	A source port can be specified when creating a resolver query.
 
+	All EDNS values may now be specified to dns.message.make_query().
+
 Bugs fixed since 1.9.4:
 
      	IPv4 and IPv6 address processing is now stricter.

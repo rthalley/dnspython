@@ -1016,7 +1016,8 @@ def from_file(f):
     return m
 
 def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, use_edns=None,
-               want_dnssec=False):
+               want_dnssec=False, ednsflags=0, payload=1280,
+               request_payload=None, options=None):
     """Make a query message.
 
     The query name, type, and class may all be specified either
@@ -1037,6 +1038,17 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, use_edns=None,
     @type use_edns: int or bool or None
     @param want_dnssec: Should the query indicate that DNSSEC is desired?
     @type want_dnssec: bool
+    @param ednsflags: EDNS flag values.
+    @type ednsflags: int
+    @param payload: The EDNS sender's payload field, which is the maximum
+    size of UDP datagram the sender can handle.
+    @type payload: int
+    @param request_payload: The EDNS payload size to use when sending
+    this message.  If not specified, defaults to the value of payload.
+    @type request_payload: int or None
+    @param options: The EDNS options
+    @type options: None or list of dns.edns.Option objects
+    @see: RFC 2671
     @rtype: dns.message.Message object"""
 
     if isinstance(qname, str):
@@ -1049,7 +1061,7 @@ def make_query(qname, rdtype, rdclass = dns.rdataclass.IN, use_edns=None,
     m.flags |= dns.flags.RD
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
                  force_unique=True)
-    m.use_edns(use_edns)
+    m.use_edns(use_edns, ednsflags, payload, request_payload, options)
     m.want_dnssec(want_dnssec)
     return m
 
