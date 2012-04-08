@@ -1,3 +1,9 @@
+2012-04-08  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py (Resolver.query): Switch to TCP when a UDP
+	  response is truncated.  Handle nameservers that serve on UDP
+	  but not TCP.
+
 2012-04-07  Bob Halley  <halley@dnspython.org>
 
 	* dns/zone.py (from_xfr): dns.zone.from_xfr() now takes a
