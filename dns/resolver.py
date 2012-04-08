@@ -23,6 +23,7 @@ import sys
 import time
 
 import dns.exception
+import dns.flags
 import dns.ipv4
 import dns.ipv6
 import dns.message
@@ -778,6 +779,12 @@ class Resolver(object):
                             response = dns.query.udp(request, nameserver,
                                                      timeout, self.port,
                                                      source=source)
+                            if response.flags & dns.flags.TC:
+                                # Response truncated; retry with TCP.
+                                timeout = self._compute_timeout(start)
+                                response = dns.query.tcp(request, nameserver,
+                                                         timeout, self.port,
+                                                         source=source)
                     except (socket.error, dns.exception.Timeout):
                         #
                         # Communication failure or timeout.  Go to the
@@ -796,6 +803,16 @@ class Resolver(object):
                         # We don't understand what this server is
                         # saying.  Take it out of the mix and
                         # continue.
+                        #
+                        nameservers.remove(nameserver)
+                        response = None
+                        continue
+                    except EOFError:
+                        #
+                        # We're using TCP and they hung up on us.
+                        # Probably they don't support TCP (though
+                        # they're supposed to!).  Take it out of the
+                        # mix and continue.
                         #
                         nameservers.remove(nameserver)
                         response = None
