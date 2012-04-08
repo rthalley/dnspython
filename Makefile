@@ -34,7 +34,7 @@ distclean: clean docclean
 	rm -f MANIFEST
 
 doc:
-	epydoc -n dnspython -u http://www.dnspython.org \
+	epydoc -v -n dnspython -u http://www.dnspython.org \
 		dns/*.py dns/rdtypes/*.py dns/rdtypes/ANY/*.py \
 		dns/rdtypes/IN/*.py
 

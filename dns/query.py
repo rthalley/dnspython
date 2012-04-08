@@ -46,12 +46,15 @@ def _compute_expiration(timeout):
         return time.time() + timeout
 
 def _poll_for(fd, readable, writable, error, timeout):
-    """
-    @param fd: File descriptor (int).
-    @param readable: Whether to wait for readability (bool).
-    @param writable: Whether to wait for writability (bool).
-    @param expiration: Deadline timeout (expiration time, in seconds (float)).
-
+    """Poll polling backend.
+    @param fd: File descriptor
+    @type fd: int
+    @param readable: Whether to wait for readability
+    @type readable: bool
+    @param writable: Whether to wait for writability
+    @type writable: bool
+    @param timeout: Deadline timeout (expiration time, in seconds)
+    @type timeout: float
     @return True on success, False on timeout
     """
     event_mask = 0
@@ -73,12 +76,15 @@ def _poll_for(fd, readable, writable, error, timeout):
     return bool(event_list)
 
 def _select_for(fd, readable, writable, error, timeout):
-    """
-    @param fd: File descriptor (int).
-    @param readable: Whether to wait for readability (bool).
-    @param writable: Whether to wait for writability (bool).
-    @param expiration: Deadline timeout (expiration time, in seconds (float)).
-
+    """Select polling backend.
+    @param fd: File descriptor
+    @type fd: int
+    @param readable: Whether to wait for readability
+    @type readable: bool
+    @param writable: Whether to wait for writability
+    @type writable: bool
+    @param timeout: Deadline timeout (expiration time, in seconds)
+    @type timeout: float
     @return True on success, False on timeout
     """
     rset, wset, xset = [], [], []

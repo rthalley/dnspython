@@ -23,8 +23,8 @@ class Option(object):
 
     def __init__(self, otype):
         """Initialize an option.
-        @param rdtype: The rdata type
-        @type rdtype: int
+        @param otype: The rdata type
+        @type otype: int
         """
         self.otype = otype
 

@@ -316,8 +316,7 @@ class LRUCache(object):
     def __init__(self, max_size=100000):
         """Initialize a DNS cache.
 
-        @param max_size: The maximum number of nodes to cache; the default is
-        100000.  Must be > 1.
+        @param max_size: The maximum number of nodes to cache; the default is 100000.  Must be > 1.
         @type max_size: int
         """
         self.data = {}
