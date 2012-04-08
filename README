@@ -47,6 +47,8 @@ New since 1.9.4:
 
 	Trailing junk checking can be disabled.
 
+	A source port can be specified when creating a resolver query.
+
 Bugs fixed since 1.9.4:
 
      	IPv4 and IPv6 address processing is now stricter.
@@ -55,6 +57,10 @@ Bugs fixed since 1.9.4:
 	strict, and bounds errors (e.g. we got less data than was
 	expected) now raise dns.exception.FormError rather than
 	IndexError.
+
+	Specifying a source port without specifying source used to
+	have no effect, but now uses the wildcard address and the
+	specified port.
 
 New since 1.9.3:
 

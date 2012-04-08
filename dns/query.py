@@ -144,6 +144,28 @@ def _addresses_equal(af, a1, a2):
     n2 = dns.inet.inet_pton(af, a2[0])
     return n1 == n2 and a1[1:] == a2[1:]
 
+def _destination_and_source(af, where, port, source, source_port):
+    # Apply defaults and compute destination and source tuples
+    # suitable for use in connect(), sendto(), or bind().
+    if af is None:
+        try:
+            af = dns.inet.af_for_address(where)
+        except:
+            af = dns.inet.AF_INET
+    if af == dns.inet.AF_INET:
+        destination = (where, port)
+        if source is not None or source_port != 0:
+            if source is None:
+                source = '0.0.0.0'
+            source = (source, source_port)
+    elif af == dns.inet.AF_INET6:
+        destination = (where, port, 0, 0)
+        if source is not None or source_port != 0:
+            if source is None:
+                source = '::'
+            source = (source, source_port, 0, 0)
+    return (af, destination, source)
+
 def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         ignore_unexpected=False, one_rr_per_rrset=False):
     """Return the response obtained after sending a query via UDP.
@@ -162,7 +184,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     If the inference attempt fails, AF_INET is used.
     @type af: int
     @rtype: dns.message.Message object
-    @param source: source address.  The default is the IPv4 wildcard address.
+    @param source: source address.  The default is the wildcard address.
     @type source: string
     @param source_port: The port from which to send the message.
     The default is 0.
@@ -175,19 +197,8 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     """
 
     wire = q.to_wire()
-    if af is None:
-        try:
-            af = dns.inet.af_for_address(where)
-        except:
-            af = dns.inet.AF_INET
-    if af == dns.inet.AF_INET:
-        destination = (where, port)
-        if source is not None:
-            source = (source, source_port)
-    elif af == dns.inet.AF_INET6:
-        destination = (where, port, 0, 0)
-        if source is not None:
-            source = (source, source_port, 0, 0)
+    (af, destination, source) = _destination_and_source(af, where, port, source,
+                                                        source_port)
     s = socket.socket(af, socket.SOCK_DGRAM, 0)
     try:
         expiration = _compute_expiration(timeout)
@@ -270,7 +281,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     If the inference attempt fails, AF_INET is used.
     @type af: int
     @rtype: dns.message.Message object
-    @param source: source address.  The default is the IPv4 wildcard address.
+    @param source: source address.  The default is the wildcard address.
     @type source: string
     @param source_port: The port from which to send the message.
     The default is 0.
@@ -280,19 +291,8 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     """
 
     wire = q.to_wire()
-    if af is None:
-        try:
-            af = dns.inet.af_for_address(where)
-        except:
-            af = dns.inet.AF_INET
-    if af == dns.inet.AF_INET:
-        destination = (where, port)
-        if source is not None:
-            source = (source, source_port)
-    elif af == dns.inet.AF_INET6:
-        destination = (where, port, 0, 0)
-        if source is not None:
-            source = (source, source_port, 0, 0)
+    (af, destination, source) = _destination_and_source(af, where, port, source,
+                                                        source_port)
     s = socket.socket(af, socket.SOCK_STREAM, 0)
     try:
         expiration = _compute_expiration(timeout)
@@ -357,7 +357,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     take.
     @type lifetime: float
     @rtype: generator of dns.message.Message objects.
-    @param source: source address.  The default is the IPv4 wildcard address.
+    @param source: source address.  The default is the wildcard address.
     @type source: string
     @param source_port: The port from which to send the message.
     The default is 0.
@@ -384,19 +384,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     if not keyring is None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
     wire = q.to_wire()
-    if af is None:
-        try:
-            af = dns.inet.af_for_address(where)
-        except:
-            af = dns.inet.AF_INET
-    if af == dns.inet.AF_INET:
-        destination = (where, port)
-        if source is not None:
-            source = (source, source_port)
-    elif af == dns.inet.AF_INET6:
-        destination = (where, port, 0, 0)
-        if source is not None:
-            source = (source, source_port, 0, 0)
+    (af, destination, source) = _destination_and_source(af, where, port, source,
+                                                        source_port)
     if use_udp:
         if rdtype != dns.rdatatype.IXFR:
             raise ValueError('cannot do a UDP AXFR')
