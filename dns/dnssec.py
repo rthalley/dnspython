@@ -241,13 +241,13 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
     if _is_rsa(rrsig.algorithm):
         keyptr = key.key
-        (bytes,) = struct.unpack('!B', keyptr[0:1])
+        (count,) = struct.unpack('!B', keyptr[0:1])
         keyptr = keyptr[1:]
-        if bytes == 0:
-            (bytes,) = struct.unpack('!H', keyptr[0:2])
+        if count == 0:
+            (count,) = struct.unpack('!H', keyptr[0:2])
             keyptr = keyptr[2:]
-        rsa_e = keyptr[0:bytes]
-        rsa_n = keyptr[bytes:]
+        rsa_e = keyptr[0:count]
+        rsa_n = keyptr[count:]
         keylen = len(rsa_n) * 8
         pubkey = Crypto.PublicKey.RSA.construct(
             (Crypto.Util.number.bytes_to_long(rsa_n),
@@ -300,8 +300,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         # PKCS1 algorithm identifier goop
         digest = _make_algorithm_id(rrsig.algorithm) + digest
         padlen = keylen // 8 - len(digest) - 3
-        digest = bytes(0) + bytes(1) + bytes(0xFF) * padlen + bytes(0) + \
-                 digest
+        digest = bytes([0]) + bytes([1]) + bytes([0xFF]) * padlen + \
+                 bytes([0]) + digest
     elif _is_dsa(rrsig.algorithm):
         pass
     else:

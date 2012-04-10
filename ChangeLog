@@ -1,3 +1,8 @@
+2012-04-10  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py (_validate_rrsig): Fix python3 port issues with
+	  RSA validation.
+
 2012-04-08  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.10.0 released)
