@@ -44,13 +44,13 @@ class Option(object):
         @type current: int
         @param olen: The length of the wire-format option data
         @type olen: int
-        @rtype: dns.ends.Option instance"""
+        @rtype: dns.edns.Option instance"""
         raise NotImplementedError
 
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-        """Compare an ENDS option with another option of the same type.
+        """Compare an EDNS option with another option of the same type.
         Return < 0 if self < other, 0 if self == other, and > 0 if self > other.
         """
         raise NotImplementedError
@@ -136,7 +136,7 @@ def option_from_wire(otype, wire, current, olen):
     @type current: int
     @param olen: The length of the wire-format option data
     @type olen: int
-    @rtype: dns.ends.Option instance"""
+    @rtype: dns.edns.Option instance"""
 
     cls = get_option_class(otype)
     return cls.from_wire(otype, wire, current, olen)
