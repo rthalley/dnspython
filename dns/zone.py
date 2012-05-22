@@ -682,8 +682,6 @@ class _MasterReader(object):
                             self.zone.origin = self.current_origin
                     elif u == '$INCLUDE' and self.allow_include:
                         token = self.tok.get()
-                        if not token.is_quoted_string():
-                            raise dns.exception.SyntaxError("bad filename in $INCLUDE")
                         filename = token.value
                         token = self.tok.get()
                         if token.is_identifier():
