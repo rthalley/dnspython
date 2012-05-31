@@ -339,7 +339,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     dns.rdatatype.AXFR.
     @type rdtype: int or string
     @param rdclass: The class of the zone transfer.  The default is
-    dns.rdatatype.IN.
+    dns.rdataclass.IN.
     @type rdclass: int or string
     @param timeout: The number of seconds to wait for each response message.
     If None, the default, wait forever.
