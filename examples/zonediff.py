@@ -93,11 +93,11 @@ def format_changes_plain(oldf, newf, changes, ignore_ttl=False):
                 ret += "+ %s\n" % str(r).replace('\n','\n+ ')
         elif not new:
             for r in old.rdatasets:
-                ret += "- %s\n" % str(r).replace('\n','\n+ ')
+                ret += "- %s\n" % str(r).replace('\n','\n- ')
         else:
             for r in old.rdatasets:
                 if r not in new.rdatasets or (r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += "- %s\n" % str(r).replace('\n','\n+ ')
+                    ret += "- %s\n" % str(r).replace('\n','\n- ')
             for r in new.rdatasets:
                 if r not in old.rdatasets or (r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
                     ret += "+ %s\n" % str(r).replace('\n','\n+ ')
