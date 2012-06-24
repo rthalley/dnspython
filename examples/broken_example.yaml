@@ -1,0 +1,185 @@
+# Edited example dump that shows the error detection features of tracegraph.py
+
+name: .
+names:
+- addresses:
+    192.0.43.11:
+    - !!python/tuple [example.org., a.iana-servers.net.]
+    192.0.43.10:
+    - !!python/tuple [example.org., a.iana-servers.net.]
+    - !!python/tuple [example.org., b.iana-servers.net.]
+    NXDOMAIN:
+    - !!python/tuple [example.org., d.iana-servers.net.]
+  name: www.example.org.
+resolvers:
+- ip: [192.228.79.201]
+  name: b.root-servers.net.
+  up: []
+- ip: [199.7.83.42]
+  name: l.root-servers.net.
+  up: []
+- ip: [193.0.14.129]
+  name: k.root-servers.net.
+  up: []
+- ip: [192.36.148.17]
+  name: i.root-servers.net.
+  up: []
+- ip: [128.63.2.53]
+  name: h.root-servers.net.
+  up: []
+- ip: [192.5.5.241]
+  name: f.root-servers.net.
+  up: []
+- ip: [128.8.10.90]
+  name: d.root-servers.net.
+  up: []
+- ip: [192.33.4.12]
+  name: c.root-servers.net.
+  up: []
+- ip: [198.41.0.4]
+  name: a.root-servers.net.
+  up: []
+- ip: [202.12.27.33]
+  name: m.root-servers.net.
+  up: []
+- ip: [192.58.128.30]
+  name: j.root-servers.net.
+  up: []
+- ip: [192.112.36.4]
+  name: g.root-servers.net.
+  up: []
+- ip: [192.203.230.10]
+  name: e.root-servers.net.
+  up: []
+zones:
+- name: org.
+  names: []
+  resolvers:
+  - ip: [199.249.112.1]
+    name: a2.org.afilias-nst.info.
+    up:
+    - !!python/tuple [., a.root-servers.net.]
+    - !!python/tuple [., b.root-servers.net.]
+    - !!python/tuple [., c.root-servers.net.]
+    - !!python/tuple [., d.root-servers.net.]
+    - !!python/tuple [., e.root-servers.net.]
+    - !!python/tuple [., f.root-servers.net.]
+    - !!python/tuple [., g.root-servers.net.]
+    - !!python/tuple [., h.root-servers.net.]
+    - !!python/tuple [., i.root-servers.net.]
+    - !!python/tuple [., j.root-servers.net.]
+    - !!python/tuple [., k.root-servers.net.]
+    - !!python/tuple [., l.root-servers.net.]
+    - !!python/tuple [., m.root-servers.net.]
+  - ip: [199.19.54.1]
+    name: b0.org.afilias-nst.org.
+    up:
+    - !!python/tuple [., a.root-servers.net.]
+    - !!python/tuple [., b.root-servers.net.]
+    - !!python/tuple [., c.root-servers.net.]
+    - !!python/tuple [., d.root-servers.net.]
+    - !!python/tuple [., e.root-servers.net.]
+    - !!python/tuple [., f.root-servers.net.]
+    - !!python/tuple [., g.root-servers.net.]
+    - !!python/tuple [., h.root-servers.net.]
+    - !!python/tuple [., i.root-servers.net.]
+    - !!python/tuple [., j.root-servers.net.]
+    - !!python/tuple [., k.root-servers.net.]
+    - !!python/tuple [., l.root-servers.net.]
+    - !!python/tuple [., m.root-servers.net.]
+  - ip: [199.19.53.1]
+    name: c0.org.afilias-nst.info.
+    up:
+    - !!python/tuple [., a.root-servers.net.]
+    - !!python/tuple [., b.root-servers.net.]
+    - !!python/tuple [., c.root-servers.net.]
+    - !!python/tuple [., d.root-servers.net.]
+    - !!python/tuple [., e.root-servers.net.]
+    - !!python/tuple [., f.root-servers.net.]
+    - !!python/tuple [., g.root-servers.net.]
+    - !!python/tuple [., h.root-servers.net.]
+    - !!python/tuple [., i.root-servers.net.]
+    - !!python/tuple [., j.root-servers.net.]
+    - !!python/tuple [., k.root-servers.net.]
+    - !!python/tuple [., l.root-servers.net.]
+    - !!python/tuple [., m.root-servers.net.]
+  - ip: [199.19.56.1]
+    name: a0.org.afilias-nst.info.
+    up:
+    - !!python/tuple [., a.root-servers.net.]
+    - !!python/tuple [., b.root-servers.net.]
+    - !!python/tuple [., c.root-servers.net.]
+    - !!python/tuple [., d.root-servers.net.]
+    - !!python/tuple [., e.root-servers.net.]
+    - !!python/tuple [., f.root-servers.net.]
+    - !!python/tuple [., g.root-servers.net.]
+    - !!python/tuple [., h.root-servers.net.]
+    - !!python/tuple [., i.root-servers.net.]
+    - !!python/tuple [., j.root-servers.net.]
+    - !!python/tuple [., k.root-servers.net.]
+    - !!python/tuple [., l.root-servers.net.]
+    - !!python/tuple [., m.root-servers.net.]
+  - ip: [199.249.120.1]
+    name: b2.org.afilias-nst.org.
+    up:
+    - !!python/tuple [., a.root-servers.net.]
+    - !!python/tuple [., b.root-servers.net.]
+    - !!python/tuple [., c.root-servers.net.]
+    - !!python/tuple [., d.root-servers.net.]
+    - !!python/tuple [., e.root-servers.net.]
+    - !!python/tuple [., f.root-servers.net.]
+    - !!python/tuple [., g.root-servers.net.]
+    - !!python/tuple [., h.root-servers.net.]
+    - !!python/tuple [., i.root-servers.net.]
+    - !!python/tuple [., j.root-servers.net.]
+    - !!python/tuple [., k.root-servers.net.]
+    - !!python/tuple [., l.root-servers.net.]
+    - !!python/tuple [., m.root-servers.net.]
+  - ip: [199.19.57.1]
+    name: d0.org.afilias-nst.org.
+    up:
+    - !!python/tuple [., a.root-servers.net.]
+    - !!python/tuple [., b.root-servers.net.]
+    - !!python/tuple [., c.root-servers.net.]
+    - !!python/tuple [., d.root-servers.net.]
+    - !!python/tuple [., e.root-servers.net.]
+    - !!python/tuple [., f.root-servers.net.]
+    - !!python/tuple [., g.root-servers.net.]
+    - !!python/tuple [., h.root-servers.net.]
+    - !!python/tuple [., i.root-servers.net.]
+    - !!python/tuple [., j.root-servers.net.]
+    - !!python/tuple [., k.root-servers.net.]
+    - !!python/tuple [., l.root-servers.net.]
+    - !!python/tuple [., m.root-servers.net.]
+  zones: []
+- name: example.org.
+  names: []
+  resolvers:
+  - ip: [199.43.133.53]
+    name: b.iana-servers.net.
+    up:
+    - !!python/tuple [org., a0.org.afilias-nst.info.]
+    - !!python/tuple [org., a2.org.afilias-nst.info.]
+#    - !!python/tuple [org., b0.org.afilias-nst.org.]
+    - !!python/tuple [org., b2.org.afilias-nst.org.]
+    - !!python/tuple [org., c0.org.afilias-nst.info.]
+    - !!python/tuple [org., d0.org.afilias-nst.org.]
+  - ip: [199.43.132.53]
+    name: a.iana-servers.net.
+    up:
+    - !!python/tuple [org., a0.org.afilias-nst.info.]
+    - !!python/tuple [org., a2.org.afilias-nst.info.]
+    - !!python/tuple [org., b0.org.afilias-nst.org.]
+    - !!python/tuple [org., b2.org.afilias-nst.org.]
+    - !!python/tuple [org., c0.org.afilias-nst.info.]
+    - !!python/tuple [org., d0.org.afilias-nst.org.]
+  - ip: [199.4.29.153]
+    name: d.iana-servers.net.
+    up:
+    - !!python/tuple [org., a0.org.afilias-nst.info.]
+    - !!python/tuple [org., a2.org.afilias-nst.info.]
+    - !!python/tuple [org., b0.org.afilias-nst.org.]
+    - !!python/tuple [org., b2.org.afilias-nst.org.]
+    - !!python/tuple [org., c0.org.afilias-nst.info.]
+    - !!python/tuple [org., d0.org.afilias-nst.org.]
+  zones: []
