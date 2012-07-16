@@ -425,6 +425,8 @@ class Resolver(object):
     @type ednsflags: int
     @ivar payload: The EDNS payload size.  The default is 0.
     @type payload: int
+    @ivar flags: The message flags to use.  The default is None (i.e. not overwritten)
+    @type flags: int
     @ivar cache: The cache to use.  The default is None.
     @type cache: dns.resolver.Cache object
     """
@@ -466,6 +468,7 @@ class Resolver(object):
         self.ednsflags = 0
         self.payload = 0
         self.cache = None
+        self.flags = None
 
     def read_resolv_conf(self, f):
         """Process f as a file in the /etc/resolv.conf format.  If f is
@@ -761,6 +764,8 @@ class Resolver(object):
                 request.use_tsig(self.keyring, self.keyname,
                                  algorithm=self.keyalgorithm)
             request.use_edns(self.edns, self.ednsflags, self.payload)
+            if self.flags is not None:
+                request.flags = self.flags
             response = None
             #
             # make a copy of the servers list so we can alter it later.
@@ -897,6 +902,13 @@ class Resolver(object):
         self.edns = edns
         self.ednsflags = ednsflags
         self.payload = payload
+
+    def set_flags(self, flags):
+        """Overrides the default flags with your own
+
+        @param flags: The flags to overwrite the default with
+        @type flags: int"""
+        self.flags = flags
 
 default_resolver = None
 
