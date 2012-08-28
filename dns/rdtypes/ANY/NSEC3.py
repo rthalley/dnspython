@@ -117,7 +117,8 @@ class NSEC3(dns.rdata.Rdata):
             prior_rdtype = nrdtype
             new_window = nrdtype // 256
             if new_window != window:
-                windows.append((window, bytes(bitmap[0:octets])))
+                if octets != 0:
+                    windows.append((window, bytes(bitmap[0:octets])))
                 bitmap = bytearray(32)
                 window = new_window
             offset = nrdtype % 256
@@ -125,7 +126,8 @@ class NSEC3(dns.rdata.Rdata):
             bit = offset % 8
             octets = byte + 1
             bitmap[byte] = bitmap[byte] | (0x80 >> bit)
-        windows.append((window, bytes(bitmap[0:octets])))
+        if octets != 0:
+            windows.append((window, bytes(bitmap[0:octets])))
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, windows)
 
     from_text = classmethod(from_text)
