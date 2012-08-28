@@ -1,3 +1,9 @@
+2012-08-28  Bob Halley  <halley@dnspython.org>
+
+	* dns/rdtypes/ANY/NSEC3.py (NSEC3.from_text): The NSEC3 from_text()
+	  method could erroneously emit empty bitmap windows (i.e. windows
+	  with a count of 0 bytes); such bitmaps are illegal.
+
 2012-04-08  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.10.0 released)
