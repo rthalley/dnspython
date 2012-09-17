@@ -90,6 +90,9 @@ srv01.example. 3600 IN SRV 0 0 0 .
 srv02.example. 3600 IN SRV 65535 65535 65535 old-slow-box.example.com.
 sshfp1.example. 3600 IN SSHFP 1 1 aa549bfe898489c02d1715d97d79c57ba2fa76ab
 t.example. 301 IN A 73.80.65.49
+tlsa1.example. 3600 IN TLSA 3 1 1 a9cdf989b504fe5dca90c0d2167b6550570734f7c763e09fdf88904e06157065
+tlsa2.example. 3600 IN TLSA 1 0 1 efddf0d915c7bdc5782c0881e1b2a95ad099fbdd06d7b1f77982d9364338d955
+tlsa3.example. 3600 IN TLSA 1 0 2 81ee7f6c0ecc6b09b7785a9418f54432de630dd54dc6ee9e3c49de547708d236d4c413c3e97e44f969e635958aa410495844127c04883503e5b024cf7a8f6a94
 txt01.example. 3600 IN TXT "foo"
 txt02.example. 3600 IN TXT "foo" "bar"
 txt03.example. 3600 IN TXT "foo"
