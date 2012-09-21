@@ -5,3 +5,4 @@ html
 html.zip
 html.tar.gz
 tests/*.out
+*.pyc
