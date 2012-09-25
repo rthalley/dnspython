@@ -1,3 +1,7 @@
+2012-09-25  Pieter Lexis
+
+	* added support for TLSA RR
+
 2012-08-28  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/ANY/NSEC3.py (NSEC3.from_text): The NSEC3 from_text()
