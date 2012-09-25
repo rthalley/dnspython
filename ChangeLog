@@ -1,3 +1,7 @@
+2012-09-25  Sean Leach
+
+	* added set_flags() method to dns.resolver.Resolver
+
 2012-09-25  Pieter Lexis
 
 	* added support for TLSA RR
