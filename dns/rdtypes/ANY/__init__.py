@@ -33,6 +33,7 @@ __all__ = [
     'NSEC',
     'NSEC3',
     'NSEC3PARAM',
+    'TLSA',
     'PTR',
     'RP',
     'RRSIG',
