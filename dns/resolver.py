@@ -696,7 +696,8 @@ class Resolver(object):
         return min(self.lifetime - duration, self.timeout)
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-              tcp=False, source=None, raise_on_no_answer=True, source_port=0):
+              tcp=False, source=None, raise_on_no_answer=True, source_port=0,
+			  return_response_on_nxdomain=False):
         """Query nameservers to find the answer to the question.
 
         The I{qname}, I{rdtype}, and I{rdclass} parameters may be objects
@@ -720,6 +721,9 @@ class Resolver(object):
         @param source_port: The port from which to send the message.
         The default is 0.
         @type source_port: int
+		@param return_response_on_nxdomain: return an answer on NXDOMAIN
+		possibly containing NSEC/NSEC3 records. Default is False.
+		@type return_response_on_nxdomain: bool
         @rtype: dns.resolver.Answer instance
         @raises Timeout: no answers could be found in the specified lifetime
         @raises NXDOMAIN: the query name does not exist
@@ -857,7 +861,7 @@ class Resolver(object):
                 continue
             all_nxdomain = False
             break
-        if all_nxdomain:
+        if all_nxdomain and not return_response_on_nxdomain:
             raise NXDOMAIN
         answer = Answer(qname, rdtype, rdclass, response,
                         raise_on_no_answer)
