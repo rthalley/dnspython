@@ -41,6 +41,10 @@ class NXDOMAIN(dns.exception.DNSException):
     """The query name does not exist."""
     pass
 
+class YXDOMAIN(dns.exception.DNSException):
+    """The query name is too long after DNAME substitution."""
+    pass
+
 # The definition of the Timeout exception has moved from here to the
 # dns.exception module.  We keep dns.resolver.Timeout defined for
 # backwards compatibility.
@@ -714,6 +718,7 @@ class Resolver(object):
         @rtype: dns.resolver.Answer instance
         @raises Timeout: no answers could be found in the specified lifetime
         @raises NXDOMAIN: the query name does not exist
+        @raises YXDOMAIN: the query name is too long after DNAME substitution
         @raises NoAnswer: the response did not contain an answer and
         raise_on_no_answer is True.
         @raises NoNameservers: no non-broken nameservers are available to
@@ -818,6 +823,8 @@ class Resolver(object):
                         response = None
                         continue
                     rcode = response.rcode()
+                    if rcode == dns.rcode.YXDOMAIN:
+                        raise YXDOMAIN
                     if rcode == dns.rcode.NOERROR or \
                            rcode == dns.rcode.NXDOMAIN:
                         break
