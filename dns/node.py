@@ -49,7 +49,8 @@ class Node(object):
 
         s = io.StringIO()
         for rds in self.rdatasets:
-            print(rds.to_text(name, **kw), file=s)
+            if len(rds) > 0:
+	        print(rds.to_text(name, **kw), file=s)
         return s.getvalue()[:-1]
 
     def __repr__(self):
