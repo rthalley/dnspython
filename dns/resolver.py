@@ -433,6 +433,9 @@ class Resolver(object):
     @type flags: int
     @ivar cache: The cache to use.  The default is None.
     @type cache: dns.resolver.Cache object
+    @ivar retry_servfail: should we retry a nameserver if it says SERVFAIL?
+    The default is 'false'.
+    @type retry_servfail: bool
     """
     def __init__(self, filename='/etc/resolv.conf', configure=True):
         """Initialize a resolver instance.
@@ -473,6 +476,7 @@ class Resolver(object):
         self.payload = 0
         self.cache = None
         self.flags = None
+        self.retry_servfail = False
 
     def read_resolv_conf(self, f):
         """Process f as a file in the /etc/resolv.conf format.  If f is
@@ -843,7 +847,7 @@ class Resolver(object):
                     # rcode in it.  Remove the server from the mix if
                     # the rcode isn't SERVFAIL.
                     #
-                    if rcode != dns.rcode.SERVFAIL:
+                    if rcode != dns.rcode.SERVFAIL or not retry_servfail:
                         nameservers.remove(nameserver)
                     response = None
                 if not response is None:
