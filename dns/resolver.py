@@ -833,11 +833,9 @@ class Resolver(object):
                         break
                     #
                     # We got a response, but we're not happy with the
-                    # rcode in it.  Remove the server from the mix if
-                    # the rcode isn't SERVFAIL.
+                    # rcode in it.  Remove the server from the mix.
                     #
-                    if rcode != dns.rcode.SERVFAIL:
-                        nameservers.remove(nameserver)
+                    nameservers.remove(nameserver)
                     response = None
                 if not response is None:
                     break
