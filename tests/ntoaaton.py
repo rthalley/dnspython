@@ -193,5 +193,11 @@ class NtoAAtoNTestCase(unittest.TestCase):
         for addr in addrs:
             self.assertRaises(dns.exception.SyntaxError, make_bad(addr))
 
+    def test_rfc5952_section_4_2_2(self):
+        addr = '2001:db8:0:1:1:1:1:1'
+        b1 = aton6(addr)
+        t1 = ntoa6(b1)
+        self.assertTrue(t1 == addr)
+
 if __name__ == '__main__':
     unittest.main()

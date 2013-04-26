@@ -1,3 +1,10 @@
+2013-04-26  Bob Halley  <halley@dnspython.org>
+
+	* dns/ipv6.py (inet_ntoa): We now comply with RFC 5952 section
+	  5.2.2, by *not* using the :: syntax to shorten just one 16-bit
+	  field.  Thanks to David Waitzman for reporting the bug and
+	  suggesting the fix.
+
 2012-08-28  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdtypes/ANY/NSEC3.py (NSEC3.from_text): The NSEC3 from_text()
