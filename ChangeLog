@@ -1,3 +1,9 @@
+2013-04-28  Bob Halley  <halley@dnspython.org>
+
+	* dns/name.py (Name.to_wire): Do not add items with offsets >= 2^14
+	  to the compression table.  Thanks to Casey Deccio for discovering
+	  this bug.
+
 2013-04-26  Bob Halley  <halley@dnspython.org>
 
 	* dns/ipv6.py (inet_ntoa): We now comply with RFC 5952 section
