@@ -1,3 +1,7 @@
+2013-07-01  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.11.0 released)
+
 2013-04-28  Bob Halley  <halley@dnspython.org>
 
 	* dns/name.py (Name.to_wire): Do not add items with offsets >= 2^14
@@ -10,6 +14,32 @@
 	  5.2.2, by *not* using the :: syntax to shorten just one 16-bit
 	  field.  Thanks to David Waitzman for reporting the bug and
 	  suggesting the fix.
+
+2013-03-31  Bob Halley  <halley@dnspython.org>
+
+	* lock caches in case they are shared
+
+	* raise YXDOMAIN if we see one
+
+	* do not print empty rdatasets
+
+	* Add contributed $GENERATE support (thanks uberj)
+
+	* Remove DNSKEY keytag uniqueness assumption (RFC 4034, section 8)
+	  (thanks James Dempsey)
+
+2012-12-31  Bob Halley  <halley@dnspython.org>
+
+	* Pull up fix _winreg renamed to winreg in python 3 (thanks
+	  Christopher Lambacher)
+
+2012-09-25  Sean Leach
+
+	* added set_flags() method to dns.resolver.Resolver
+
+2012-09-25  Pieter Lexis
+
+	* added support for TLSA RR
 
 2012-08-28  Bob Halley  <halley@dnspython.org>
 
