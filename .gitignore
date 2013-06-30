@@ -3,3 +3,4 @@ dist
 MANIFEST
 html
 tests/*.out
+*.pyc
