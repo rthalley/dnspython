@@ -26,11 +26,31 @@ This is dnspython3 1.11.0
 
 New since 1.10.0:
 
-        XXX TBS XXX
+        $GENERATE support
+
+	TLSA RR support
+
+	Added set_flags() method to dns.resolver.Resolver
 
 Bugs fixed since 1.10.0:
 
-        XXX TBS XXX
+        Names with offsets >= 2^14 are no longer added to the compression
+	table.
+
+	The "::" syntax is not used to shorten a single 16-bit section of
+	the text form an IPv6 address.
+
+	Caches are now locked.
+
+	YXDOMAIN is raised if seen by the resolver.
+
+	Empty rdatasets are not printed.
+
+	DNSKEY key tags are no longer assumed to be unique.
+
+	Python 3 renamed _winreg to winreg, we now cope.
+
+	Python 3 port issues with RSA validation.
 
 New since 1.9.4:
 
