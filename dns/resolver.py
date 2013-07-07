@@ -40,7 +40,10 @@ import dns.rdatatype
 import dns.reversename
 
 if sys.platform == 'win32':
-    import winreg as _winreg
+    try:
+        import winreg as _winreg
+    except ImportError:
+        import _winreg
 
 class NXDOMAIN(dns.exception.DNSException):
     """The query name does not exist."""
