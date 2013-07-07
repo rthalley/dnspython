@@ -23,8 +23,8 @@ def from_text(text):
 
     @param text: the textual range
     @type text: string
-    @return range: The start, stop and step values.
-    @type range: tuple
+    @return: The start, stop and step values.
+    @rtype: tuple
     """
     # TODO, figure out the bounds on start, stop and step.
 
