@@ -72,7 +72,7 @@ class GRangeTestCase(unittest.TestCase):
             start = 2
             stop = 1
             step = 1
-            dns.grange.from_text('{0}-{1}/{2}'.format(start, stop, step))
+            dns.grange.from_text('%d-%d/%d' % (start, stop, step))
         self.assertRaises(AssertionError, bad)
 
     def testFailFromText2(self):
@@ -80,7 +80,7 @@ class GRangeTestCase(unittest.TestCase):
             start = '-1'
             stop = 3
             step = 1
-            dns.grange.from_text('{0}-{1}/{2}'.format(start, stop, step))
+            dns.grange.from_text('%s-%d/%d' % (start, stop, step))
         self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testFailFromText2(self):
@@ -88,7 +88,7 @@ class GRangeTestCase(unittest.TestCase):
             start = 1
             stop = 4
             step = '-2'
-            dns.grange.from_text('{0}-{1}/{2}'.format(start, stop, step))
+            dns.grange.from_text('%d-%d/%s' % (start, stop, step))
         self.assertRaises(dns.exception.SyntaxError, bad)
 
 if __name__ == '__main__':
