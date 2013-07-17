@@ -878,7 +878,7 @@ class Resolver(object):
                     # rcode in it.  Remove the server from the mix if
                     # the rcode isn't SERVFAIL.
                     #
-                    if rcode != dns.rcode.SERVFAIL or not retry_servfail:
+                    if rcode != dns.rcode.SERVFAIL or not self.retry_servfail:
                         nameservers.remove(nameserver)
                     response = None
                 if not response is None:
