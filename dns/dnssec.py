@@ -133,8 +133,8 @@ def _find_candidate_keys(keys, rrsig):
         return None
     if isinstance(value, dns.node.Node):
         try:
-            rdataset = node.find_rdataset(dns.rdataclass.IN,
-                                          dns.rdatatype.DNSKEY)
+            rdataset = value.find_rdataset(dns.rdataclass.IN,
+                                           dns.rdatatype.DNSKEY)
         except KeyError:
             return None
     else:
