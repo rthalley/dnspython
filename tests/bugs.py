@@ -13,6 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import binascii
 import unittest
 
 import dns.rdata
@@ -44,6 +45,12 @@ class BugsTestCase(unittest.TestCase):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NSEC3,
                                     "1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715")
         self.assertTrue(rdata.windows == [])
+
+    def test_APL_trailing_zero(self):
+        rd4 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL,
+                                  '!1:127.0.0.0/1')
+        out4 = rd4.to_digestable(dns.name.from_text("test"))
+        self.assertTrue(binascii.hexlify(out4).decode('ascii') == '000101817f')
 
 if __name__ == '__main__':
     unittest.main()
