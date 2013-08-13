@@ -61,7 +61,7 @@ class APLItem(object):
         #
         last = 0
         for i in range(len(address) - 1, -1, -1):
-            if address[i] != chr(0):
+            if address[i] != 0:
                 last = i + 1
                 break
         address = address[0 : last]
