@@ -1,3 +1,10 @@
+2013-08-26  Bob Halley  <halley@dnspython.org>
+
+	* dns/tsig.py (sign): multi-message TSIGs were broken for
+	algorithms other than HMAC-MD5 because we weren't passing the
+	right digest module to the HMAC code.  Thanks to salzmdan for
+	reporting the bug.
+
 2013-07-01  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.11.0 released)
