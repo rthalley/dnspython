@@ -1,9 +1,36 @@
+2013-09-02  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.11.1 released)
+
+2013-09-01  Bob Halley  <halley@dnspython.org>
+
+	* dns/tsigkeyring.py (to_text): we want keyname.to_text(), not
+	  dns.name.to_text(keyname).  Thangs to wangwang for the fix.
+
 2013-08-26  Bob Halley  <halley@dnspython.org>
 
 	* dns/tsig.py (sign): multi-message TSIGs were broken for
-	algorithms other than HMAC-MD5 because we weren't passing the
-	right digest module to the HMAC code.  Thanks to salzmdan for
-	reporting the bug.
+	  algorithms other than HMAC-MD5 because we weren't passing the
+	  right digest module to the HMAC code.  Thanks to salzmdan for
+	  reporting the bug.
+
+2013-08-09  Bob Halley  <halley@dnspython.org>
+
+	* dns/dnssec.py (_find_candidate_keys): we tried to extract the
+	  key from the wrong variable name.  Thanks to Andrei Fokau for the
+	  fix.
+
+2013-07-08  Bob Halley  <halley@dnspython.org>
+
+	* dns/resolver.py: we want 'self.retry_servfail' not just
+	  retry_servfail.  Reported by many, thanks!  Thanks to
+	  Jeffrey C. Ollie for the fix.
+
+2013-07-08  Bob Halley  <halley@dnspython.org>
+
+	* tests/grange.py: fix tests to use older-style print formatting
+	  for backwards compatibility with python 2.4.  Thanks to
+	  Jeffrey C. Ollie for the fix.
 
 2013-07-01  Bob Halley  <halley@dnspython.org>
 
