@@ -22,7 +22,31 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython3 1.11.0
+This is dnspython3 1.11.1
+
+New since 1.11.0:
+    
+	Nothing
+
+Bugs fixed since 1.11.1:
+
+	dns.resolver.Resolver erroneously referred to 'retry_servfail'
+	instead of 'self.retry_servfail'.
+
+     	dns.tsigkeyring.to_text() would fail trying to convert the
+     	keyname to text.
+
+	Multi-message TSIGs were broken for algorithms other than
+	HMAC-MD5 because we weren't passing the right digest module to
+	the HMAC code.
+
+	dns.dnssec._find_candidate_keys() tried to extract the key
+	from the wrong variable name.
+
+	$GENERATE tests were not backward compatible with python 2.4.
+
+	APL RR trailing zero suppression didn't work due to insufficient
+	python 3 porting.
 
 New since 1.10.0:
 
