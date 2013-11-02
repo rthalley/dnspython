@@ -31,6 +31,10 @@ import dns.tokenizer
 import dns.ttl
 import dns.grange
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 class BadZone(dns.exception.DNSException):
     """The zone is malformed."""
@@ -505,6 +509,27 @@ class Zone(object):
         finally:
             if want_close:
                 f.close()
+
+    def to_text(self, sorted=True, relativize=True, nl=None):
+        """Return a zone's text as though it were written to a file.
+
+        @param sorted: if True, the file will be written with the
+        names sorted in DNSSEC order from least to greatest.  Otherwise
+        the names will be written in whatever order they happen to have
+        in the zone's dictionary.
+        @param relativize: if True, domain names in the output will be
+        relativized to the zone's origin (if possible).
+        @type relativize: bool
+        @param nl: The end of line string.  If not specified, the
+        output will use the platform's native end-of-line marker (i.e.
+        LF on POSIX, CRLF on Windows, CR on Macintosh).
+        @type nl: string or None
+        """
+        temp_buffer = StringIO()
+        self.to_file(temp_buffer, sorted, relativize, nl)
+        return_value = temp_buffer.getvalue()
+        temp_buffer.close()
+        return return_value
 
     def check_origin(self):
         """Do some simple checking of the zone's origin.
