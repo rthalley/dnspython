@@ -1,3 +1,9 @@
+2013-12-11  Bob Halley  <halley@dnspython.org>
+
+	* dns/query.py: Fix problems with the IXFR state machine which caused
+	  long diffs to fail.  Thanks to James Raftery for the fix and the
+	  repeated prodding to get it applied :)
+
 2013-09-02  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.11.1 released)
