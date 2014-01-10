@@ -45,7 +45,7 @@ def inet_pton(family, text):
     implemented.
     @rtype: string
     """
-    
+
     if family == AF_INET:
         return dns.ipv4.inet_aton(text)
     elif family == AF_INET6:
@@ -97,12 +97,11 @@ def is_multicast(text):
     @rtype: bool
     """
     try:
-        first = ord(dns.ipv4.inet_aton(text)[0])
+        first = dns.ipv4.inet_aton(text)[0]
         return (first >= 224 and first <= 239)
     except:
         try:
-            first = ord(dns.ipv6.inet_aton(text)[0])
+            first = dns.ipv6.inet_aton(text)[0]
             return (first == 255)
         except:
             raise ValueError
-    

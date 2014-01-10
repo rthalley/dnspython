@@ -1,3 +1,7 @@
+2014-01-10  Bob Halley  <halley@ndnspython.org>
+
+	* dns/inet.py (is_multicast): Removed lingering ord()s.
+
 2013-12-11  Bob Halley  <halley@dnspython.org>
 
 	* dns/query.py: Fix problems with the IXFR state machine which caused
