@@ -250,8 +250,8 @@ class LOC(dns.rdata.Rdata):
                     value = token.value
                     if value[-1] == 'm':
                         value = value[0 : -1]
-                        vprec = float(value) * 100.0	# m -> cm
-                        tok.get_eol()
+                    vprec = float(value) * 100.0	# m -> cm
+                    tok.get_eol()
 
         return cls(rdclass, rdtype, latitude, longitude, altitude,
                    size, hprec, vprec)
