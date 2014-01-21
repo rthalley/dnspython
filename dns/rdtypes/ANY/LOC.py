@@ -23,6 +23,11 @@ import dns.util
 _pows = (1, 10, 100, 1000, 10000, 100000, 1000000, 10000000,
          100000000, 1000000000, 10000000000)
 
+# default values are in centimeters
+_default_size = 100.0
+_default_hprec = 1000000.0
+_default_vprec = 1000.0
+
 def _exponent_of(what, desc):
     if what == 0:
         return 0
@@ -100,13 +105,14 @@ class LOC(dns.rdata.Rdata):
                  'horizontal_precision', 'vertical_precision']
 
     def __init__(self, rdclass, rdtype, latitude, longitude, altitude,
-                 size=1.0, hprec=10000.0, vprec=10.0):
+                 size=_default_size, hprec=_default_hprec, vprec=_default_vprec):
         """Initialize a LOC record instance.
 
         The parameters I{latitude} and I{longitude} may be either a 4-tuple
         of integers specifying (degrees, minutes, seconds, milliseconds),
         or they may be floating point values specifying the number of
-        degrees.  The other parameters are floats."""
+        degrees. The other parameters are floats. Size, horizontal precision,
+        and vertical precision are specified in centimeters."""
 
         super(LOC, self).__init__(rdclass, rdtype)
         if isinstance(latitude, int):
@@ -143,8 +149,10 @@ class LOC(dns.rdata.Rdata):
             self.longitude[3], long_hemisphere, self.altitude / 100.0
             )
 
-        if self.size != 1.0 or self.horizontal_precision != 10000.0 or \
-           self.vertical_precision != 10.0:
+        # do not print default values
+        if self.size != _default_size or \
+            self.horizontal_precision != _default_hprec or \
+            self.vertical_precision != _default_vprec:
             text += " %0.2fm %0.2fm %0.2fm" % (
                 self.size / 100.0, self.horizontal_precision / 100.0,
                 self.vertical_precision / 100.0
@@ -154,9 +162,9 @@ class LOC(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         latitude = [0, 0, 0, 0]
         longitude = [0, 0, 0, 0]
-        size = 1.0
-        hprec = 10000.0
-        vprec = 10.0
+        size = _default_size
+        hprec = _default_hprec
+        vprec = _default_vprec
 
         latitude[0] = tok.get_int()
         t = tok.get_string()
