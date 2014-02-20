@@ -25,6 +25,7 @@ import encodings.idna
 import io
 import struct
 import sys
+import copy
 
 import dns.exception
 import dns.util
@@ -155,6 +156,12 @@ class Name(object):
 
     def __setattr__(self, name, value):
         raise TypeError("object doesn't support attribute assignment")
+
+    def __copy__(self):
+        return Name(self.labels)
+
+    def __deepcopy__(self, memo):
+        return Name(copy.deepcopy(self.labels, memo))
 
     def is_absolute(self):
         """Is the most significant label of this name the root label?
