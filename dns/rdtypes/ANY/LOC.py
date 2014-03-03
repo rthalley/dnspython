@@ -28,6 +28,8 @@ _default_hprec = 1000000.0
 _default_vprec = 1000.0
 
 def _exponent_of(what, desc):
+    if what == 0:
+        return 0
     exp = None
     for i in xrange(len(_pows)):
         if what // _pows[i] == 0L:
