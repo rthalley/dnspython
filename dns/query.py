@@ -212,6 +212,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         if source is not None:
             s.bind(source)
         _wait_for_writable(s, expiration)
+        begin_time = time.time()
         s.sendto(wire, destination)
         while 1:
             _wait_for_readable(s, expiration)
@@ -225,9 +226,11 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
                                        '%s instead of %s' % (from_address,
                                                              destination))
     finally:
+        response_time = time.time() - begin_time
         s.close()
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
                               one_rr_per_rrset=one_rr_per_rrset)
+    r.time = response_time
     if not q.is_response(r):
         raise BadResponse
     return r
@@ -303,6 +306,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     try:
         expiration = _compute_expiration(timeout)
         s.setblocking(0)
+        begin_time = time.time()
         if source is not None:
             s.bind(source)
         _connect(s, destination)
@@ -318,9 +322,11 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         (l,) = struct.unpack("!H", ldata)
         wire = _net_read(s, l, expiration)
     finally:
+        response_time = time.time() - begin_time()
         s.close()
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
                               one_rr_per_rrset=one_rr_per_rrset)
+    r.time = response_time
     if not q.is_response(r):
         raise BadResponse
     return r
