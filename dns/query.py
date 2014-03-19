@@ -320,7 +320,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         (l,) = struct.unpack("!H", ldata)
         wire = _net_read(s, l, expiration)
     finally:
-        response_time = time.time() - begin_time()
+        response_time = time.time() - begin_time
         s.close()
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
                               one_rr_per_rrset=one_rr_per_rrset)
