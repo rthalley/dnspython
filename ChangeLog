@@ -1,3 +1,9 @@
+2014-04-04  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py: Making a response didn't work correctly if the
+	  query was signed with TSIG and we knew the key.  Thanks to Jeffrey
+	  Stiles for reporting the problem.
+
 2014-01-10  Bob Halley  <halley@ndnspython.org>
 
 	* dns/inet.py (is_multicast): Removed lingering ord()s.
