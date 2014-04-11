@@ -1,3 +1,9 @@
+2014-04-11  Bob Halley  <halley@dnspython.org>
+
+	* dns/zone.py: Do not put back an unescaped token.  This was
+	  causing escape processing for domain names to break.  Thanks to
+	  connormclaud for reporting the problem.
+
 2014-04-04  Bob Halley  <halley@dnspython.org>
 
 	* dns/message.py: Making a response didn't work correctly if the
