@@ -78,7 +78,10 @@ class NoMetaqueries(dns.exception.DNSException):
     """Metaqueries are not allowed."""
     pass
 
-
+class AllNameserversFailed(dns.exception.DNSException):
+	""" All nameservers failed for one reason or another."""
+	pass
+	
 class Answer(object):
     """DNS stub resolver answer
 
@@ -895,6 +898,8 @@ class Resolver(object):
                     sleep_time = min(timeout, backoff)
                     backoff *= 2
                     time.sleep(sleep_time)
+                else:
+                	raise AllNameserversFailed
             if response.rcode() == dns.rcode.NXDOMAIN:
                 continue
             all_nxdomain = False
