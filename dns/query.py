@@ -45,6 +45,37 @@ def _compute_expiration(timeout):
     else:
         return time.time() + timeout
 
+def _epoll_for(fd, readable, writable, error, timeout):
+    """Poll polling backend.
+    @param fd: File descriptor
+    @type fd: int
+    @param readable: Whether to wait for readability
+    @type readable: bool
+    @param writable: Whether to wait for writability
+    @type writable: bool
+    @param timeout: Deadline timeout (expiration time, in seconds)
+    @type timeout: float
+    @return True on success, False on timeout
+    """
+    event_mask = select.EPOLLONESHOT
+    if readable:
+        event_mask |= select.EPOLLIN
+    if writable:
+        event_mask |= select.EPOLLOUT
+    if error:
+        event_mask |= select.EPOLLERR
+
+    pollable = select.epoll()
+    pollable.register(fd, event_mask)
+
+    if timeout:
+        event_list = pollable.poll(timeout)
+    else:
+        event_list = pollable.poll()
+
+    pollable.close()
+    return bool(event_list)
+
 def _poll_for(fd, readable, writable, error, timeout):
     """Poll polling backend.
     @param fd: File descriptor
@@ -128,7 +159,10 @@ def _set_polling_backend(fn):
 
     _polling_backend = fn
 
-if hasattr(select, 'poll'):
+if hasattr(select, 'epoll'):
+    # prefer epoll for performance over poll or select
+    _polling_backend = _epoll_for
+elif hasattr(select, 'poll'):
     # Prefer poll() on platforms that support it because it has no
     # limits on the maximum value of a file descriptor (plus it will
     # be more efficient for high values).
