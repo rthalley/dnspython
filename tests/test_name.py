@@ -25,7 +25,7 @@ import dns.e164
 class NameTestCase(unittest.TestCase):
     def setUp(self):
         self.origin = dns.name.from_text('example.')
-        
+
     def testFromTextRel1(self):
         n = dns.name.from_text('foo.bar')
         self.failUnless(n.labels == ('foo', 'bar', ''))
@@ -352,7 +352,7 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('FOO.bar', None)
         d = n.to_digestable(dns.name.root)
         self.failUnless(d == '\x03foo\x03bar\x00')
-        
+
     def testBadDigestable(self):
         def bad():
             n = dns.name.from_text('FOO.bar', None)
@@ -657,6 +657,11 @@ class NameTestCase(unittest.TestCase):
     def testReverseIPv6(self):
         e = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.')
         n = dns.reversename.from_address('::1')
+        self.failUnless(e == n)
+
+    def testReverseIPv6MappedIpv4(self):
+        e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
+        n = dns.reversename.from_address('::ffff:127.0.0.1')
         self.failUnless(e == n)
 
     def testBadReverseIPv4(self):

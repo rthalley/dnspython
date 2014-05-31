@@ -199,5 +199,13 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t1 = ntoa6(b1)
         self.failUnless(t1 == addr)
 
+    def test_is_mapped(self):
+        t1 = '2001:db8:0:1:1:1:1:1'
+        t2 = '::ffff:127.0.0.1'
+        t3 = '1::ffff:127.0.0.1'
+        self.failIf(dns.ipv6.is_mapped(aton6(t1)))
+        self.failUnless(dns.ipv6.is_mapped(aton6(t2)))
+        self.failIf(dns.ipv6.is_mapped(aton6(t3)))
+
 if __name__ == '__main__':
     unittest.main()
