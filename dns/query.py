@@ -44,6 +44,8 @@ def _compute_expiration(timeout):
         return None
     else:
         return time.time() + timeout
+        
+_e_pollable = select.epoll()
 
 def _epoll_for(fd, readable, writable, error, timeout):
     """Poll polling backend.
@@ -65,15 +67,13 @@ def _epoll_for(fd, readable, writable, error, timeout):
     if error:
         event_mask |= select.EPOLLERR
 
-    pollable = select.epoll()
-    pollable.register(fd, event_mask)
+    _e_pollable.register(fd, event_mask)
 
     if timeout:
-        event_list = pollable.poll(timeout)
+        event_list = _e_pollable.poll(timeout)
     else:
-        event_list = pollable.poll()
+        event_list = _e_pollable.poll()
 
-    pollable.close()
     return bool(event_list)
 
 def _poll_for(fd, readable, writable, error, timeout):
