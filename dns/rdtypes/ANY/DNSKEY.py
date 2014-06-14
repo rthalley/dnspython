@@ -21,10 +21,53 @@ import dns.dnssec
 import dns.rdata
 import dns.util
 
+
 # flag constants
 SEP = 0x0001
 REVOKE = 0x0080
 ZONE = 0x0100
+
+_flag_by_text = {
+    'SEP': SEP,
+    'REVOKE': REVOKE,
+    'ZONE': ZONE
+    }
+
+# We construct the inverse mapping programmatically to ensure that we
+# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
+# would cause the mapping not to be true inverse.
+_flag_by_value = dict([(y, x) for x, y in _flag_by_text.iteritems()])
+
+
+def flags_to_text_set(flags):
+    """Convert a DNSKEY flags value to set texts
+    @rtype: set([string])"""
+
+    flags_set = set()
+    mask = 0x1
+    while mask <= 0x8000:
+        if flags & mask:
+            text = _flag_by_value.get(mask)
+            if not text:
+                text = hex(mask)
+            flags_set.add(text)
+        mask <<= 1
+    return flags_set
+
+
+def flags_from_text_set(texts_set):
+    """Convert set of DNSKEY flag mnemonic texts to DNSKEY flag value
+    @rtype: int"""
+
+    flags = 0
+    for text in texts_set:
+        try:
+            flags += _flag_by_text[text]
+        except KeyError:
+            raise NotImplementedError(
+                "DNSKEY flag '%s' is not supported" % text)
+    return flags
+
 
 class DNSKEY(dns.rdata.Rdata):
     """DNSKEY record
@@ -91,3 +134,8 @@ class DNSKEY(dns.rdata.Rdata):
         if v == 0:
             v = dns.util.cmp(self.key, other.key)
         return v
+
+    def flags_to_text_set(self):
+        """Convert a DNSKEY flags value to set texts
+        @rtype: set([string])"""
+        return flags_to_text_set(self.flags)
