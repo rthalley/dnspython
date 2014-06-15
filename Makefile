@@ -54,3 +54,8 @@ kits:
 
 tags:
 	find . -name '*.py' -print | etags -
+
+check: test
+
+test:
+	cd tests; make test
