@@ -118,6 +118,8 @@ class APL(dns.rdata.Rdata):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         items = []
         while 1:
+            if rdlen == 0:
+                break
             if rdlen < 4:
                 raise dns.exception.FormError
             header = struct.unpack('!HBB', wire[current : current + 4])
@@ -151,8 +153,6 @@ class APL(dns.rdata.Rdata):
             rdlen -= afdlen
             item = APLItem(header[0], negation, address, header[1])
             items.append(item)
-            if rdlen == 0:
-                break
         return cls(rdclass, rdtype, items)
 
     from_wire = classmethod(from_wire)

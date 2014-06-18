@@ -1,3 +1,9 @@
+2014-06-18  Bob Halley  <halley@dnspython.org>
+
+    * dns/rdtypes/IN/APL.py: The APL from_wire() method did not accept an
+      rdata length of 0 as valid.  Thanks to salzmdan for reporting the
+      problem.
+
 2014-05-31  Bob Halley  <halley@dnspython.org>
 
 	* dns/ipv6.py: Add is_mapped()

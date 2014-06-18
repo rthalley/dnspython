@@ -45,5 +45,12 @@ class BugsTestCase(unittest.TestCase):
                                     "1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715")
         self.failUnless(rdata.windows == [])
 
+    def test_zero_size_APL(self):
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL,
+                                    "")
+        rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.APL,
+                                     "", 0, 0)
+        self.failUnless(rdata == rdata2)
+
 if __name__ == '__main__':
     unittest.main()
