@@ -9,6 +9,9 @@
       the numeric form of the flags and a set of human-friendly strings.
       Thanks to Petr Spacek for the patch.
 
+    * RRSIGs did not respect relativization settings in to_text().  Thanks
+      to Brian Smith for reporting the bug and submitting a (slightly different) patch.
+
 2014-06-18  Bob Halley  <halley@dnspython.org>
 
     * dns/rdtypes/IN/APL.py: The APL from_wire() method did not accept an
