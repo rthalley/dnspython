@@ -88,9 +88,9 @@ _escaped = {
     '$' : True
     }
 
-def _escapify(label, whitespaces_only=False):
+def _escapify(label, unicode_mode=False):
     """Escape the characters in label which need it.
-    @param whitespaces_only: escapify only special and whitespace (ord < 0x20)
+    @param unicode_mode: escapify only special and whitespace (<= 0x20)
     characters
     @returns: the escaped string
     @rtype: string"""
@@ -101,7 +101,7 @@ def _escapify(label, whitespaces_only=False):
         elif ord(c) > 0x20 and ord(c) < 0x7F:
             text += c
         else:
-            if whitespaces_only and ord(c) >= 0x7F:
+            if unicode_mode and ord(c) >= 0x7F:
                 text += c
             else:
                 text += '\\%03d' % ord(c)
@@ -357,7 +357,7 @@ class Name(object):
             l = self.labels[:-1]
         else:
             l = self.labels
-        s = u'.'.join([_escapify(encodings.idna.ToUnicode(x), whitespaces_only=True) for x in l])
+        s = u'.'.join([_escapify(encodings.idna.ToUnicode(x), True) for x in l])
         return s
 
     def to_digestable(self, origin=None):
