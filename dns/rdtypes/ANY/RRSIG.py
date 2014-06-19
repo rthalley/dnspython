@@ -93,7 +93,7 @@ class RRSIG(dns.rdata.Rdata):
             posixtime_to_sigtime(self.expiration),
             posixtime_to_sigtime(self.inception),
             self.key_tag,
-            self.signer,
+            self.signer if relativize == True else self.signer.to_text(),
             dns.rdata._base64ify(self.signature)
             )
 
