@@ -1,3 +1,14 @@
+2014-06-19  Bob Halley  <halley@dnspython.org>
+
+    * Escaping of Unicode has been corrected.  Previously we escaped and
+      then converted to Unicode, but the right thing to do is convert to
+      Unicode, then escape.  Also, characters > 0x7f should NOT be escaped
+      in Unicode mode.  Thanks to Martin Basti for the patch.
+
+    * dns.rdtypes.ANY.DNSKEY now has helpers functions to convert between
+      the numeric form of the flags and a set of human-friendly strings.
+      Thanks to Petr Spacek for the patch.
+
 2014-06-18  Bob Halley  <halley@dnspython.org>
 
     * dns/rdtypes/IN/APL.py: The APL from_wire() method did not accept an
