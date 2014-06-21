@@ -558,7 +558,7 @@ class _MasterReader(object):
         self.current_origin = origin
         self.relativize = relativize
         self.ttl = 0
-        self.last_name = None
+        self.last_name = self.current_origin
         self.zone = zone_factory(origin, rdclass, relativize=relativize)
         self.saved_state = []
         self.current_file = None

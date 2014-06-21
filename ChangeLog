@@ -1,3 +1,10 @@
+2014-06-21  Bob Halley  <halley@dnspython.org>
+
+    * When reading from a masterfile, if the first content line started
+      with leading whitespace, we raised an ugly exception instead of
+      doing the right thing, namely using the zone origin as the name.
+      [#73]
+
 2014-06-19  Bob Halley  <halley@dnspython.org>
 
     * Escaping of Unicode has been corrected.  Previously we escaped and

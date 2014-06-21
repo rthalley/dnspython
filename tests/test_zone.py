@@ -129,7 +129,7 @@ class ZoneTestCase(unittest.TestCase):
         for n in names:
             print >> f, z[n].to_text(n)
         self.failUnless(f.getvalue() == example_text_output)
-            
+
     def testTorture1(self):
         #
         # Read a zone containing all our supported RR types, and
@@ -384,6 +384,15 @@ class ZoneTestCase(unittest.TestCase):
             z = dns.zone.from_text(bad_directive_text, 'example.',
                                    relativize=True)
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
+
+    def testFirstRRStartsWithWhitespace(self):
+        # no name is specified, so default to the intial origin
+        # no ttl is specified, so default to the initial TTL of 0
+        z = dns.zone.from_text(' IN A 10.0.0.1', origin='example.',
+                               check_origin=False)
+        n = z['@']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
+        self.failUnless(rds.ttl == 0)
 
 if __name__ == '__main__':
     unittest.main()
