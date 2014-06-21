@@ -121,6 +121,20 @@ class ZoneTestCase(unittest.TestCase):
                 os.unlink('example2.out')
         self.assertTrue(ok)
 
+    def testToText(self):
+        z = dns.zone.from_file('example', 'example')
+        ok = False
+        try:
+            text_zone = z.to_text(nl='\x0a')
+            f = open('example3.out', 'wb')
+            f.write(text_zone)
+            f.close()
+            ok = filecmp.cmp('example3.out', 'example3.good')
+        finally:
+            if not _keep_output:
+                os.unlink('example3.out')
+        self.failUnless(ok)
+
     def testFromText(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         f = io.StringIO()

@@ -8,6 +8,17 @@
 	  resolver library does not understand it.  In this case, just set
 	  resolver.rotate = True by hand.
 
+	* Added dns.zone.to_text() convenience method.  Thanks to Brandon Whaley
+	  <redkrieg@gmail.com> for the patch.
+
+2014-05-31  Bob Halley  <halley@dnspython.org>
+
+	* dns/ipv6.py: Add is_mapped()
+
+	* dns/reversename.py: Lookup IPv6 mapped IPv4 addresses in the v4
+	  reverse namespace.  Thanks to Devin Bayer.  Yes, I finally fixed
+	  this one :)
+
 2014-04-11  Bob Halley  <halley@dnspython.org>
 
 	* dns/zone.py: Do not put back an unescaped token.  This was
