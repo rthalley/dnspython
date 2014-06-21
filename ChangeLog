@@ -8,6 +8,13 @@
     * Added dns.zone.to_text() convenience method.  Thanks to Brandon Whaley
       <redkrieg@gmail.com> for the patch.
 
+    * The /etc/resolv.conf setting "options rotate" is now understood by the
+      resolver.  If present, the resolver will shuffle the nameserver list
+      each time dns.resolver.query() is called.  Thanks to underrun for the
+      patch.  Note that you don't want to add "options rotate" to your
+      /etc/resolv.conf if your system's resolver library does not understand
+      it.  In this case, just set resolver.rotate = True by hand.
+
 2014-06-19  Bob Halley  <halley@dnspython.org>
 
     * Escaping of Unicode has been corrected.  Previously we escaped and

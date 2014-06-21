@@ -541,7 +541,7 @@ class Resolver(object):
                     for suffix in tokens[1:]:
                         self.search.append(dns.name.from_text(suffix))
                 elif tokens[0] == 'options':
-                    if len(tokens) == 2 and tokens[1] == 'rotate':
+                    if 'rotate' in tokens[1:]:
                         self.rotate = True
         finally:
             if want_close:
