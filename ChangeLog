@@ -5,6 +5,9 @@
       doing the right thing, namely using the zone origin as the name.
       [#73]  Thanks to Tassatux for reporting the issue.
 
+    * Added dns.zone.to_text() convenience method.  Thanks to Brandon Whaley
+      <redkrieg@gmail.com> for the patch.
+
 2014-06-19  Bob Halley  <halley@dnspython.org>
 
     * Escaping of Unicode has been corrected.  Previously we escaped and
