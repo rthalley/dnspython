@@ -21,6 +21,7 @@
 import socket
 import sys
 import time
+import random
 
 try:
     import threading as _threading
@@ -508,6 +509,7 @@ class Resolver(object):
         self.cache = None
         self.flags = None
         self.retry_servfail = False
+        self.rotate = False
 
     def read_resolv_conf(self, f):
         """Process f as a file in the /etc/resolv.conf format.  If f is
@@ -538,6 +540,9 @@ class Resolver(object):
                 elif tokens[0] == 'search':
                     for suffix in tokens[1:]:
                         self.search.append(dns.name.from_text(suffix))
+                elif tokens[0] == 'options':
+                    if len(tokens) == 2 and tokens[1] == 'rotate':
+                        self.rotate = True
         finally:
             if want_close:
                 f.close()
@@ -811,6 +816,8 @@ class Resolver(object):
             # make a copy of the servers list so we can alter it later.
             #
             nameservers = self.nameservers[:]
+            if self.rotate:
+                random.shuffle(nameservers)
             backoff = 0.10
             while response is None:
                 if len(nameservers) == 0:
