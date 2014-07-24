@@ -1,3 +1,11 @@
+2014-07-24  Bob Halley  <halley@dnspython.org>
+
+    * The 64-bit version of Python on Windows has sys.maxint set to 2^31-1,
+      yet passes 2^63-1 as the "unspecified bound" value in slices.
+      This is a bug in Python as the documentation says the unspecified
+      bound value should be sys.maxint.  We now cope with this.  Thanks to
+      Matthäus Wander for reporting the problem.
+
 2014-06-21  Bob Halley  <halley@dnspython.org>
 
     * When reading from a masterfile, if the first content line started
