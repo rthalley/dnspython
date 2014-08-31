@@ -1,3 +1,13 @@
+2014-08-31  Bob Halley  <halley@dnspython.org>
+
+	* The /etc/resolv.conf setting "options rotate" is now understood
+	  by the resolver.  If present, the resolver will shuffle the
+	  nameserver list each time dns.resolver.query() is called.  Thanks
+	  to underrun for the patch.  Note that you don't want to add
+	  "options rotate" to your /etc/resolv.conf if your system's
+	  resolver library does not understand it.  In this case, just set
+	  resolver.rotate = True by hand.
+
 2014-04-11  Bob Halley  <halley@dnspython.org>
 
 	* dns/zone.py: Do not put back an unescaped token.  This was
