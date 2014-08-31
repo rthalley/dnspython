@@ -58,6 +58,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
             salt = b''
         else:
             salt = bytes.fromhex(salt)
+        tok.get_eol()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
     from_text = classmethod(from_text)
