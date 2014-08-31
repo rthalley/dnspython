@@ -82,10 +82,8 @@ class LabelMixesUnicodeAndASCII(dns.exception.SyntaxError):
 
 _escaped = frozenset([ord(c) for c in '"().;\\@$'])
 
-def _escapify(label, unicode_mode=False):
+def _escapify(label):
     """Escape the characters in label which need it.
-    @param unicode_mode: escapify only special and whitespace (<= 0x20)
-    characters
     @returns: the escaped string
     @rtype: string"""
     text = ''
@@ -95,10 +93,21 @@ def _escapify(label, unicode_mode=False):
         elif c > 0x20 and c < 0x7F:
             text += chr(c)
         else:
-            if unicode_mode and c >= 0x7F:
-                text += chr(c)
-            else:
-                text += '\\%03d' % c
+            text += '\\%03d' % c
+    return text
+
+def _escapify_unicode(label):
+    """Escape the characters in label which need it.
+    @returns: the escaped string
+    @rtype: string"""
+    text = ''
+    for c in label:
+        if ord(c) in _escaped:
+            text += '\\' + c
+        elif ord(c) > 0x20:
+            text += c
+        else:
+            text += '\\%03d' % ord(c)
     return text
 
 def _bytesify(label):
@@ -365,7 +374,8 @@ class Name(object):
             l = self.labels[:-1]
         else:
             l = self.labels
-        s = '.'.join([_escapify(encodings.idna.ToUnicode(x), True) for x in l])
+        s = '.'.join([_escapify_unicode(encodings.idna.ToUnicode(x))
+                      for x in l])
         return s
 
     def to_digestable(self, origin=None):
