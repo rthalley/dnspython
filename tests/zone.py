@@ -133,7 +133,7 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink('example3.out')
-        self.failUnless(ok)
+        self.assertTrue(ok)
 
     def testFromText(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)

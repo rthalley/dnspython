@@ -507,7 +507,7 @@ class Zone(object):
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
         """
-        temp_buffer = io.StringIO()
+        temp_buffer = io.BytesIO()
         self.to_file(temp_buffer, sorted, relativize, nl)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
