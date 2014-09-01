@@ -965,7 +965,7 @@ def from_file(f, origin = None, rdclass = dns.rdataclass.IN,
     if isinstance(f, str):
         if filename is None:
             filename = f
-        f = open(f, 'rU')
+        f = open(f, 'r')
         want_close = True
     else:
         if filename is None:
