@@ -394,5 +394,14 @@ class ZoneTestCase(unittest.TestCase):
                                    relativize=True)
         self.assertRaises(dns.exception.SyntaxError, bad)
 
+    def testFirstRRStartsWithWhitespace(self):
+        # no name is specified, so default to the intial origin
+        # no ttl is specified, so default to the initial TTL of 0
+        z = dns.zone.from_text(' IN A 10.0.0.1', origin='example.',
+                               check_origin=False)
+        n = z['@']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
+        self.assertTrue(rds.ttl == 0)
+
 if __name__ == '__main__':
     unittest.main()
