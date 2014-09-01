@@ -22,13 +22,51 @@ development by continuing to employ the author :).
 
 ABOUT THIS RELEASE
 
-This is dnspython 1.11.1
+This is dnspython 1.12.0
+
+New since 1.11.1:
+    
+	Added dns.zone.to_text().
+
+	Added support for "options rotate" in /etc/resolv.conf.
+
+	dns.rdtypes.ANY.DNSKEY now has helpers functions to convert
+	between the numeric form of the flags and a set of
+	human-friendly strings
+
+	The reverse name of an IPv6 mapped IPv4 address is now in the
+	IPv4 reverse namespace.
+
+	The test system can now run the tests without requiring
+	dnspython to be installed.
+
+	Preliminary Elliptic Curve DNSSEC Validation (requires ecdsa module)
+
+Bugs fixed since 1.11.1:
+
+	dnspython raised an exception when reading a masterfile starting
+	with leading whitespace
+	
+	dnspython was affected by a python slicing API bug present on
+	64-bit windows.
+
+	Unicode escaping was applied at the wrong time.
+
+	RRSIG to_text() did not respect the relativize setting.
+
+	APL RRs with zero rdlength were rejected.
+
+	The tokenizer could put back an unescaped token.
+
+	Making a response to a message signed with TSIG was broken.
+
+	The IXFR state machine didn't handle long IXFR diffs.
 
 New since 1.11.0:
     
 	Nothing
 
-Bugs fixed since 1.11.1:
+Bugs fixed since 1.11.0:
 
 	dns.resolver.Resolver erroneously referred to 'retry_servfail'
 	instead of 'self.retry_servfail'.

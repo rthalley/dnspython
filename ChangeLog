@@ -1,6 +1,11 @@
-2014-09-01  Bob Halley  <halley@nominum.com>
+2014-09-01  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.12.0 released)
+
+2014-08-31  Bob Halley  <halley@dnspython.org>
+
+	* The test system can now run the tests without requiring dnspython
+	  to be installed.
 
 2014-07-24  Bob Halley  <halley@dnspython.org>
 
