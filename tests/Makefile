@@ -20,7 +20,4 @@ PYTHON=python3
 check: test
 
 test:
-	@for i in *.py; do \
-		echo "Running $$i:"; \
-		${PYTHON} $$i || exit 1; \
-	done
+	${PYTHON} ./utest.py

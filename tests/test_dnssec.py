@@ -99,22 +99,32 @@ example_ds_sha256 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
 
 class DNSSECValidatorTestCase(unittest.TestCase):
 
+    @unittest.skipIf(not dns.dnssec._have_pycrypto,
+                     "PyCrypto cannot be imported")
     def testAbsoluteRSAGood(self):
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, abs_keys, None, when)
 
+    @unittest.skipIf(not dns.dnssec._have_pycrypto,
+                     "PyCrypto cannot be imported")
     def testDuplicateKeytag(self):
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, abs_keys_duplicate_keytag, None, when)
 
+    @unittest.skipIf(not dns.dnssec._have_pycrypto,
+                     "PyCrypto cannot be imported")
     def testAbsoluteRSABad(self):
         def bad():
             dns.dnssec.validate(abs_other_soa, abs_soa_rrsig, abs_keys, None,
                                 when)
         self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
+    @unittest.skipIf(not dns.dnssec._have_pycrypto,
+                     "PyCrypto cannot be imported")
     def testRelativeRSAGood(self):
         dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
                             abs_dnspython_org, when)
 
+    @unittest.skipIf(not dns.dnssec._have_pycrypto,
+                     "PyCrypto cannot be imported")
     def testRelativeRSABad(self):
         def bad():
             dns.dnssec.validate(rel_other_soa, rel_soa_rrsig, rel_keys,
@@ -125,10 +135,14 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
         self.assertTrue(ds == good_ds)
 
+    @unittest.skipIf(not dns.dnssec._have_pycrypto,
+                     "PyCrypto cannot be imported")
     def testAbsoluteDSAGood(self):
         dns.dnssec.validate(abs_dsa_soa, abs_dsa_soa_rrsig, abs_dsa_keys, None,
                             when2)
 
+    @unittest.skipIf(not dns.dnssec._have_pycrypto,
+                     "PyCrypto cannot be imported")
     def testAbsoluteDSABad(self):
         def bad():
             dns.dnssec.validate(abs_other_dsa_soa, abs_dsa_soa_rrsig,
