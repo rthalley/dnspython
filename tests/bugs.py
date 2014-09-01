@@ -52,5 +52,13 @@ class BugsTestCase(unittest.TestCase):
         out4 = rd4.to_digestable(dns.name.from_text("test"))
         self.assertTrue(binascii.hexlify(out4).decode('ascii') == '000101817f')
 
+    def test_zero_size_APL(self):
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL,
+                                    "")
+        rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.APL,
+                                     b"", 0, 0)
+        self.assertTrue(rdata == rdata2)
+
+
 if __name__ == '__main__':
     unittest.main()
