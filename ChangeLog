@@ -1,4 +1,16 @@
+2014-09-01  Bob Halley  <halley@nominum.com>
+
+	* (Version 1.12.0 released)
+
 2014-08-31  Bob Halley  <halley@dnspython.org>
+
+	* When reading from a masterfile, if the first content line started
+	  with leading whitespace, we raised an ugly exception instead of
+	  doing the right thing, namely using the zone origin as the name.
+	  [#73]  Thanks to Tassatux for reporting the issue.
+
+	* Added dns.zone.to_text() convenience method.  Thanks to Brandon
+	  Whaley <redkrieg@gmail.com> for the patch.
 
 	* The /etc/resolv.conf setting "options rotate" is now understood
 	  by the resolver.  If present, the resolver will shuffle the
@@ -8,8 +20,23 @@
 	  resolver library does not understand it.  In this case, just set
 	  resolver.rotate = True by hand.
 
-	* Added dns.zone.to_text() convenience method.  Thanks to Brandon Whaley
-	  <redkrieg@gmail.com> for the patch.
+	* Escaping of Unicode has been corrected.  Previously we escaped
+	  and then converted to Unicode, but the right thing to do is
+	  convert to Unicode, then escape.  Also, characters > 0x7f should
+	  NOT be escaped in Unicode mode.  Thanks to Martin Basti for the
+	  patch.
+
+	* dns.rdtypes.ANY.DNSKEY now has helpers functions to convert
+	  between the numeric form of the flags and a set of human-friendly
+	  strings.  Thanks to Petr Spacek for the patch.
+
+	* RRSIGs did not respect relativization settings in to_text().
+	  Thanks to Brian Smith for reporting the bug and submitting a
+	  (slightly different) patch.
+
+	* dns/rdtypes/IN/APL.py: The APL from_wire() method did not accept
+	  an rdata length of 0 as valid.  Thanks to salzmdan for reporting
+	  the problem.
 
 2014-05-31  Bob Halley  <halley@dnspython.org>
 
