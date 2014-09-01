@@ -27,10 +27,10 @@ class RdtypeAnyDnskeyTestCase(unittest.TestCase):
         good_s = set()
         good_f = 0
         from_flags = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(good_f)
-        self.failUnless(from_flags == good_s,
+        self.assertTrue(from_flags == good_s,
                         '"%s" != "%s"' % (from_flags, good_s))
         from_set = dns.rdtypes.ANY.DNSKEY.flags_from_text_set(good_s)
-        self.failUnless(from_set == good_f,
+        self.assertTrue(from_set == good_f,
                         '"0x%x" != "0x%x"' % (from_set, good_f))
 
     def testFlagsAll(self):
@@ -38,30 +38,30 @@ class RdtypeAnyDnskeyTestCase(unittest.TestCase):
         good_s = set(['SEP', 'REVOKE', 'ZONE'])
         good_f = 0x181
         from_flags = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(good_f)
-        self.failUnless(from_flags == good_s,
+        self.assertTrue(from_flags == good_s,
                         '"%s" != "%s"' % (from_flags, good_s))
         from_text = dns.rdtypes.ANY.DNSKEY.flags_from_text_set(good_s)
-        self.failUnless(from_text == good_f,
+        self.assertTrue(from_text == good_f,
                         '"0x%x" != "0x%x"' % (from_text, good_f))
 
     def testFlagsUnknownToText(self):
         '''Test that undefined flags are returned in hexadecimal notation.'''
         unk_s = set(['0x8000'])
         flags_s = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(0x8000)
-        self.failUnless(flags_s == unk_s, '"%s" != "%s"' % (flags_s, unk_s))
+        self.assertTrue(flags_s == unk_s, '"%s" != "%s"' % (flags_s, unk_s))
 
     def testFlagsUnknownToFlags(self):
         '''Test that conversion from undefined mnemonic raises error.'''
-        self.failUnlessRaises(NotImplementedError,
-                              dns.rdtypes.ANY.DNSKEY.flags_from_text_set,
-                              (['0x8000']))
+        self.assertRaises(NotImplementedError,
+                          dns.rdtypes.ANY.DNSKEY.flags_from_text_set,
+                          (['0x8000']))
 
     def testFlagsRRToText(self):
         '''Test that RR method returns correct flags.'''
         rr = dns.rrset.from_text('foo', 300, 'IN', 'DNSKEY', '257 3 8 KEY=')[0]
         rr_s = set(['ZONE', 'SEP'])
         flags_s = rr.flags_to_text_set()
-        self.failUnless(flags_s == rr_s, '"%s" != "%s"' % (flags_s, rr_s))
+        self.assertTrue(flags_s == rr_s, '"%s" != "%s"' % (flags_s, rr_s))
 
 
 if __name__ == '__main__':
