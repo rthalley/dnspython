@@ -39,8 +39,13 @@ def from_address(text):
     @rtype: dns.name.Name object
     """
     try:
-        parts = ['%x.%x' % (byte & 0x0f, byte >> 4) for byte in dns.ipv6.inet_aton(text)]
-        origin = ipv6_reverse_domain
+        v6 = dns.ipv6.inet_aton(text)
+        if dns.ipv6.is_mapped(v6):
+            parts = ['%d' % byte for byte in v6[12:]]
+            origin = ipv4_reverse_domain
+        else:
+            parts = ['%x.%x' % (byte & 0x0f, byte >> 4) for byte in v6]
+            origin = ipv6_reverse_domain
     except:
         parts = ['%d' % byte for byte in dns.ipv4.inet_aton(text)]
         origin = ipv4_reverse_domain

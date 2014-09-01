@@ -660,6 +660,11 @@ class NameTestCase(unittest.TestCase):
         n = dns.reversename.from_address('::1')
         self.assertTrue(e == n)
 
+    def testReverseIPv6MappedIpv4(self):
+        e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
+        n = dns.reversename.from_address('::ffff:127.0.0.1')
+        self.assertTrue(e == n)
+
     def testBadReverseIPv4(self):
         def bad():
             n = dns.reversename.from_address('127.0.foo.1')
