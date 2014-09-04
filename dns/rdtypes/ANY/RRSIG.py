@@ -150,6 +150,3 @@ class RRSIG(dns.rdata.Rdata):
 
     def choose_relativity(self, origin = None, relativize = True):
         self.signer = self.signer.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        return self._wire_cmp(other)

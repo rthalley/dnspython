@@ -112,16 +112,3 @@ class SOA(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.mname = self.mname.choose_relativity(origin, relativize)
         self.rname = self.rname.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        v = cmp(self.mname, other.mname)
-        if v == 0:
-            v = cmp(self.rname, other.rname)
-            if v == 0:
-                self_ints = struct.pack('!IIIII', self.serial, self.refresh,
-                                        self.retry, self.expire, self.minimum)
-                other_ints = struct.pack('!IIIII', other.serial, other.refresh,
-                                         other.retry, other.expire,
-                                         other.minimum)
-                v = cmp(self_ints, other_ints)
-        return v

@@ -71,13 +71,3 @@ class CAA(dns.rdata.Rdata):
         return cls(rdclass, rdtype, flags, tag, value)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        v = cmp(self.flags, other.flags)
-        if v == 0:
-            v = cmp(len(self.tag), len(other.tag))
-        if v == 0:
-            v = cmp(self.tag, other.tag)
-        if v == 0:
-            v = cmp(self.value, other.value)
-        return v

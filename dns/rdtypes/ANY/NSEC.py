@@ -123,6 +123,3 @@ class NSEC(dns.rdata.Rdata):
 
     def choose_relativity(self, origin = None, relativize = True):
         self.next = self.next.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        return self._wire_cmp(other)

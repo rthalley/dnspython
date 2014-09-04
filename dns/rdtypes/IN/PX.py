@@ -85,13 +85,3 @@ class PX(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.map822 = self.map822.choose_relativity(origin, relativize)
         self.mapx400 = self.mapx400.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        sp = struct.pack("!H", self.preference)
-        op = struct.pack("!H", other.preference)
-        v = cmp(sp, op)
-        if v == 0:
-            v = cmp(self.map822, other.map822)
-            if v == 0:
-                v = cmp(self.mapx400, other.mapx400)
-        return v

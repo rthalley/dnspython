@@ -82,6 +82,3 @@ class TXTBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, strings)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return cmp(self.strings, other.strings)

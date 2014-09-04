@@ -65,9 +65,6 @@ class NSBase(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.target = self.target.choose_relativity(origin, relativize)
 
-    def _cmp(self, other):
-        return cmp(self.target, other.target)
-
 class UncompressedNS(NSBase):
     """Base class for rdata that is like an NS record, but whose name
     is not compressed when convert to DNS wire format, and whose

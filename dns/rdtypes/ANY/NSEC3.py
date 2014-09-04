@@ -175,10 +175,3 @@ class NSEC3(dns.rdata.Rdata):
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, windows)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        b1 = cStringIO.StringIO()
-        self.to_wire(b1)
-        b2 = cStringIO.StringIO()
-        other.to_wire(b2)
-        return cmp(b1.getvalue(), b2.getvalue())

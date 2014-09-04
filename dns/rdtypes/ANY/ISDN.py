@@ -88,9 +88,3 @@ class ISDN(dns.rdata.Rdata):
         return cls(rdclass, rdtype, address, subaddress)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        v = cmp(self.address, other.address)
-        if v == 0:
-            v = cmp(self.subaddress, other.subaddress)
-        return v

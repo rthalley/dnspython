@@ -54,6 +54,3 @@ class NSAP(dns.rdata.Rdata):
         return cls(rdclass, rdtype, address)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return cmp(self.address, other.address)

@@ -76,14 +76,6 @@ class MXBase(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.exchange = self.exchange.choose_relativity(origin, relativize)
 
-    def _cmp(self, other):
-        sp = struct.pack("!H", self.preference)
-        op = struct.pack("!H", other.preference)
-        v = cmp(sp, op)
-        if v == 0:
-            v = cmp(self.exchange, other.exchange)
-        return v
-
 class UncompressedMX(MXBase):
     """Base class for rdata that is like an MX record, but whose name
     is not compressed when converted to DNS wire format, and whose

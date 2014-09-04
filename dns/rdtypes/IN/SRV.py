@@ -79,11 +79,3 @@ class SRV(dns.rdata.Rdata):
 
     def choose_relativity(self, origin = None, relativize = True):
         self.target = self.target.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        sp = struct.pack("!HHH", self.priority, self.weight, self.port)
-        op = struct.pack("!HHH", other.priority, other.weight, other.port)
-        v = cmp(sp, op)
-        if v == 0:
-            v = cmp(self.target, other.target)
-        return v

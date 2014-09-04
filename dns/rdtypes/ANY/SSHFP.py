@@ -74,11 +74,3 @@ class SSHFP(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], fingerprint)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        hs = struct.pack("!BB", self.algorithm, self.fp_type)
-        ho = struct.pack("!BB", other.algorithm, other.fp_type)
-        v = cmp(hs, ho)
-        if v == 0:
-            v = cmp(self.fingerprint, other.fingerprint)
-        return v

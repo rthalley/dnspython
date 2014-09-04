@@ -1,5 +1,10 @@
 2014-09-04  Bob Halley  <halley@dnspython.org>
 
+	* Comparing two rdata is now always done by comparing the binary
+	  data of the DNSSEC digestable forms.  This corrects a number of
+	  errors where dnspython's rdata comparsion order was not the
+	  DNSSEC order.
+
 	* Add CAA implementation.  Thanks to Brian Wellington for the
 	  patch.
 

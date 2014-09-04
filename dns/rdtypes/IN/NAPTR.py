@@ -116,17 +116,3 @@ class NAPTR(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.replacement = self.replacement.choose_relativity(origin,
                                                               relativize)
-
-    def _cmp(self, other):
-        sp = struct.pack("!HH", self.order, self.preference)
-        op = struct.pack("!HH", other.order, other.preference)
-        v = cmp(sp, op)
-        if v == 0:
-            v = cmp(self.flags, other.flags)
-            if v == 0:
-                v = cmp(self.service, other.service)
-                if v == 0:
-                    v = cmp(self.regexp, other.regexp)
-                    if v == 0:
-                        v = cmp(self.replacement, other.replacement)
-        return v

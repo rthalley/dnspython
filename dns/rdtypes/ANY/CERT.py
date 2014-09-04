@@ -117,15 +117,3 @@ class CERT(dns.rdata.Rdata):
                    certificate)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        f = cStringIO.StringIO()
-        self.to_wire(f)
-        wire1 = f.getvalue()
-        f.seek(0)
-        f.truncate()
-        other.to_wire(f)
-        wire2 = f.getvalue()
-        f.close()
-
-        return cmp(wire1, wire2)
