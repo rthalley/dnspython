@@ -115,14 +115,6 @@ class GPOS(dns.rdata.Rdata):
 
     from_wire = classmethod(from_wire)
 
-    def _cmp(self, other):
-        v = dns.util.cmp(self.latitude, other.latitude)
-        if v == 0:
-            v = dns.util.cmp(self.longitude, other.longitude)
-            if v == 0:
-                v = dns.util.cmp(self.altitude, other.altitude)
-        return v
-
     def _get_float_latitude(self):
         return float(self.latitude)
 

@@ -207,7 +207,8 @@ class Rdata(object):
         rdclass.  Return < 0 if self < other in the DNSSEC ordering,
         0 if self == other, and > 0 if self > other.
         """
-        raise NotImplementedError
+        return dns.util.cmp(self.to_digestable(dns.name.root),
+                            other.to_digestable(dns.name.root))
 
     def __eq__(self, other):
         if not isinstance(other, Rdata):
@@ -259,19 +260,6 @@ class Rdata(object):
 
     def __hash__(self):
         return hash(self.to_digestable(dns.name.root))
-
-    def _wire_cmp(self, other):
-        # A number of types compare rdata in wire form, so we provide
-        # the method here instead of duplicating it.
-        #
-        # We specifiy an arbitrary origin of '.' when doing the
-        # comparison, since the rdata may have relative names and we
-        # can't convert a relative name to wire without an origin.
-        b1 = io.BytesIO()
-        self.to_wire(b1, None, dns.name.root)
-        b2 = io.BytesIO()
-        other.to_wire(b2, None, dns.name.root)
-        return dns.util.cmp(b1.getvalue(), b2.getvalue())
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
@@ -361,9 +349,6 @@ class GenericRdata(Rdata):
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         return cls(rdclass, rdtype, wire[current : current + rdlen])
-
-    def _cmp(self, other):
-        return dns.util.cmp(self.data, other.data)
 
 _rdata_modules = {}
 _module_prefix = 'dns.rdtypes'

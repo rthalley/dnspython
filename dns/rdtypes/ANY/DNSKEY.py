@@ -127,14 +127,6 @@ class DNSKEY(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
 
-    def _cmp(self, other):
-        hs = struct.pack("!HBB", self.flags, self.protocol, self.algorithm)
-        ho = struct.pack("!HBB", other.flags, other.protocol, other.algorithm)
-        v = dns.util.cmp(hs, ho)
-        if v == 0:
-            v = dns.util.cmp(self.key, other.key)
-        return v
-
     def flags_to_text_set(self):
         """Convert a DNSKEY flags value to set texts
         @rtype: set([string])"""

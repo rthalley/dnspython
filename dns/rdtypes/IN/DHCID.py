@@ -58,6 +58,3 @@ class DHCID(dns.rdata.Rdata):
         return cls(rdclass, rdtype, data)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return dns.util.cmp(self.data, other.data)

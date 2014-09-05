@@ -80,6 +80,3 @@ class TXTBase(dns.rdata.Rdata):
             rdlen -= l
             strings.append(s)
         return cls(rdclass, rdtype, strings)
-
-    def _cmp(self, other):
-        return dns.util.cmp(self.strings, other.strings)

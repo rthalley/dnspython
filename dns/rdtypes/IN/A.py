@@ -51,8 +51,3 @@ class A(dns.rdata.Rdata):
         return cls(rdclass, rdtype, address)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        sa = dns.ipv4.inet_aton(self.address)
-        oa = dns.ipv4.inet_aton(other.address)
-        return dns.util.cmp(sa, oa)

@@ -78,13 +78,3 @@ class DSBase(dns.rdata.Rdata):
         rdlen -= 4
         digest = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)
-
-    def _cmp(self, other):
-        hs = struct.pack("!HBB", self.key_tag, self.algorithm,
-                         self.digest_type)
-        ho = struct.pack("!HBB", other.key_tag, other.algorithm,
-                         other.digest_type)
-        v = dns.util.cmp(hs, ho)
-        if v == 0:
-            v = dns.util.cmp(self.digest, other.digest)
-        return v

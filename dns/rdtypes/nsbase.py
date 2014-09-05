@@ -64,9 +64,6 @@ class NSBase(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.target = self.target.choose_relativity(origin, relativize)
 
-    def _cmp(self, other):
-        return dns.util.cmp(self.target, other.target)
-
 class UncompressedNS(NSBase):
     """Base class for rdata that is like an NS record, but whose name
     is not compressed when convert to DNS wire format, and whose
@@ -76,4 +73,4 @@ class UncompressedNS(NSBase):
         super(UncompressedNS, self).to_wire(file, None, origin)
 
     def to_digestable(self, origin = None):
-        return self.to_wire(None, None, origin)
+        return self.target.to_wire(None, None, origin)

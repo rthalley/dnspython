@@ -79,9 +79,3 @@ class RP(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.mbox = self.mbox.choose_relativity(origin, relativize)
         self.txt = self.txt.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        v = dns.util.cmp(self.mbox, other.mbox)
-        if v == 0:
-            v = dns.util.cmp(self.txt, other.txt)
-        return v

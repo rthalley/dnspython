@@ -113,30 +113,3 @@ class HIP(dns.rdata.Rdata):
             server = server.choose_relativity(origin, relativize)
             servers.append(server)
         self.servers = servers
-
-    def _cmp(self, other):
-        b1 = io.BytesIO()
-        lh = len(self.hit)
-        lk = len(self.key)
-        b1.write(struct.pack("!BBH", lh, self.algorithm, lk))
-        b1.write(self.hit)
-        b1.write(self.key)
-        b2 = io.BytesIO()
-        lh = len(other.hit)
-        lk = len(other.key)
-        b2.write(struct.pack("!BBH", lh, other.algorithm, lk))
-        b2.write(other.hit)
-        b2.write(other.key)
-        v = dns.util.cmp(b1.getvalue(), b2.getvalue())
-        if v != 0:
-            return v
-        ls = len(self.servers)
-        lo = len(other.servers)
-        count = min(ls, lo)
-        i = 0
-        while i < count:
-            v = dns.util.cmp(self.servers[i], other.servers[i])
-            if v != 0:
-                return v
-            i += 1
-        return ls - lo

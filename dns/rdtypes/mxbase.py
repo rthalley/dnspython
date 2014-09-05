@@ -15,6 +15,7 @@
 
 """MX-like base classes."""
 
+import io
 import struct
 
 import dns.exception
@@ -74,14 +75,6 @@ class MXBase(dns.rdata.Rdata):
     def choose_relativity(self, origin = None, relativize = True):
         self.exchange = self.exchange.choose_relativity(origin, relativize)
 
-    def _cmp(self, other):
-        sp = struct.pack("!H", self.preference)
-        op = struct.pack("!H", other.preference)
-        v = dns.util.cmp(sp, op)
-        if v == 0:
-            v = dns.util.cmp(self.exchange, other.exchange)
-        return v
-
 class UncompressedMX(MXBase):
     """Base class for rdata that is like an MX record, but whose name
     is not compressed when converted to DNS wire format, and whose
@@ -91,7 +84,9 @@ class UncompressedMX(MXBase):
         super(UncompressedMX, self).to_wire(file, None, origin)
 
     def to_digestable(self, origin = None):
-        return self.to_wire(f, None, origin)
+        f = io.BytesIO()
+        self.to_wire(f, None, origin)
+        return f.getvalue()
 
 class UncompressedDowncasingMX(MXBase):
     """Base class for rdata that is like an MX record, but whose name

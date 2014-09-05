@@ -150,19 +150,3 @@ class RRSIG(dns.rdata.Rdata):
 
     def choose_relativity(self, origin = None, relativize = True):
         self.signer = self.signer.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        hs = struct.pack('!HBBIIIH', self.type_covered,
-                         self.algorithm, self.labels,
-                         self.original_ttl, self.expiration,
-                         self.inception, self.key_tag)
-        ho = struct.pack('!HBBIIIH', other.type_covered,
-                         other.algorithm, other.labels,
-                         other.original_ttl, other.expiration,
-                         other.inception, other.key_tag)
-        v = dns.util.cmp(hs, ho)
-        if v == 0:
-            v = dns.util.cmp(self.signer, other.signer)
-            if v == 0:
-                v = dns.util.cmp(self.signature, other.signature)
-        return v

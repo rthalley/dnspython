@@ -147,15 +147,3 @@ class IPSECKEY(dns.rdata.Rdata):
                    gateway, key)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        f = io.BytesIO()
-        self.to_wire(f)
-        wire1 = f.getvalue()
-        f.seek(0)
-        f.truncate()
-        other.to_wire(f)
-        wire2 = f.getvalue()
-        f.close()
-
-        return dns.util.cmp(wire1, wire2)

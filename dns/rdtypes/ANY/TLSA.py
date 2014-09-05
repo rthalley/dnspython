@@ -80,11 +80,3 @@ class TLSA(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], header[2], cert)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        hs = struct.pack("!BBB", self.usage, self.selector, self.mtype)
-        ho = struct.pack("!BBB", other.usage, other.selector, other.mtype)
-        v = dns.util.cmp(hs, ho)
-        if v == 0:
-            v = dns.util.cmp(self.cert, other.cert)
-        return v

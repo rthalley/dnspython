@@ -74,9 +74,3 @@ class HINFO(dns.rdata.Rdata):
         return cls(rdclass, rdtype, cpu, os)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        v = dns.util.cmp(self.cpu, other.cpu)
-        if v == 0:
-            v = dns.util.cmp(self.os, other.os)
-        return v

@@ -82,6 +82,3 @@ class NSEC3PARAM(dns.rdata.Rdata):
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return self._wire_cmp(other)

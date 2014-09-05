@@ -96,15 +96,3 @@ class WKS(dns.rdata.Rdata):
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        sa = dns.ipv4.inet_aton(self.address)
-        oa = dns.ipv4.inet_aton(other.address)
-        v = dns.util.cmp(sa, oa)
-        if v == 0:
-            sp = struct.pack('!B', self.protocol)
-            op = struct.pack('!B', other.protocol)
-            v = dns.util.cmp(sp, op)
-            if v == 0:
-                v = dns.util.cmp(self.bitmap, other.bitmap)
-        return v

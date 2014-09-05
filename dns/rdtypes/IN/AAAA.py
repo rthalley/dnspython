@@ -52,8 +52,3 @@ class AAAA(dns.rdata.Rdata):
         return cls(rdclass, rdtype, address)
 
     from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        sa = dns.inet.inet_pton(dns.inet.AF_INET6, self.address)
-        oa = dns.inet.inet_pton(dns.inet.AF_INET6, other.address)
-        return dns.util.cmp(sa, oa)
