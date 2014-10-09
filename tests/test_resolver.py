@@ -57,7 +57,8 @@ class BaseResolverTests(object):
         def testRead(self):
             f = cStringIO.StringIO(resolv_conf)
             r = dns.resolver.Resolver(f)
-            self.failUnless(r.nameservers == ['10.0.0.1', '10.0.0.2'] and
+            self.failUnless(r.nameservers == [('10.0.0.1', 53),
+                                              ('10.0.0.2', 53)] and
                             r.domain == dns.name.from_text('foo'))
 
     def testCacheExpiration(self):
