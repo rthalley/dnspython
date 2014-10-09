@@ -526,8 +526,9 @@ class Resolver(object):
         if len(self.domain) == 0:
             self.domain = dns.name.root
         self.nameservers = []
-        self.search = []
+        self.nameserver_ports = {}
         self.port = 53
+        self.search = []
         self.timeout = 2.0
         self.lifetime = 30.0
         self.keyring = None
@@ -855,16 +856,17 @@ class Resolver(object):
                     raise NoNameservers(request=request, errors=errors)
                 for nameserver in nameservers[:]:
                     timeout = self._compute_timeout(start)
+                    port = self.nameserver_ports.get(nameserver, self.port)
                     try:
                         tcp_attempt = tcp
                         if tcp:
                             response = dns.query.tcp(request, nameserver,
-                                                     timeout, self.port,
+                                                     timeout, port,
                                                      source=source,
                                                      source_port=source_port)
                         else:
                             response = dns.query.udp(request, nameserver,
-                                                     timeout, self.port,
+                                                     timeout, port,
                                                      source=source,
                                                      source_port=source_port)
                             if response.flags & dns.flags.TC:
@@ -872,7 +874,7 @@ class Resolver(object):
                                 tcp_attempt = True
                                 timeout = self._compute_timeout(start)
                                 response = dns.query.tcp(request, nameserver,
-                                                       timeout, self.port,
+                                                       timeout, port,
                                                        source=source,
                                                        source_port=source_port)
                     except (socket.error, dns.exception.Timeout) as ex:
@@ -880,7 +882,7 @@ class Resolver(object):
                         # Communication failure or timeout.  Go to the
                         # next server
                         #
-                        errors.append((nameserver, tcp_attempt, self.port, ex,
+                        errors.append((nameserver, tcp_attempt, port, ex,
                                        response))
                         response = None
                         continue
@@ -888,7 +890,7 @@ class Resolver(object):
                         #
                         # Who knows?  Keep going.
                         #
-                        errors.append((nameserver, tcp_attempt, self.port, ex,
+                        errors.append((nameserver, tcp_attempt, port, ex,
                                        response))
                         response = None
                         continue
@@ -899,7 +901,7 @@ class Resolver(object):
                         # continue.
                         #
                         nameservers.remove(nameserver)
-                        errors.append((nameserver, tcp_attempt, self.port, ex,
+                        errors.append((nameserver, tcp_attempt, port, ex,
                                        response))
                         response = None
                         continue
@@ -911,14 +913,14 @@ class Resolver(object):
                         # mix and continue.
                         #
                         nameservers.remove(nameserver)
-                        errors.append((nameserver, tcp_attempt, self.port, ex,
+                        errors.append((nameserver, tcp_attempt, port, ex,
                                        response))
                         response = None
                         continue
                     rcode = response.rcode()
                     if rcode == dns.rcode.YXDOMAIN:
                         ex = YXDOMAIN()
-                        errors.append((nameserver, tcp_attempt, self.port, ex,
+                        errors.append((nameserver, tcp_attempt, port, ex,
                                        response))
                         raise ex
                     if rcode == dns.rcode.NOERROR or \
@@ -931,7 +933,7 @@ class Resolver(object):
                     #
                     if rcode != dns.rcode.SERVFAIL or not self.retry_servfail:
                         nameservers.remove(nameserver)
-                    errors.append((nameserver, tcp_attempt, self.port,
+                    errors.append((nameserver, tcp_attempt, port,
                                    dns.rcode.to_text(rcode), response))
                     response = None
                 if not response is None:
