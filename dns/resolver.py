@@ -1218,7 +1218,10 @@ def _getnameinfo(sockaddr, flags=0):
 def _getfqdn(name=None):
     if name is None:
         name = socket.gethostname()
-    return _getnameinfo(_getaddrinfo(name, 80)[0][4])[0]
+    try:
+        return _getnameinfo(_getaddrinfo(name, 80)[0][4])[0]
+    except:
+        return name
 
 def _gethostbyname(name):
     return _gethostbyname_ex(name)[2][0]
