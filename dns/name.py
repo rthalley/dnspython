@@ -587,6 +587,9 @@ def from_unicode(text, origin = root):
                  c == u'\uff0e' or c == u'\uff61':
                 if len(label) == 0:
                     raise EmptyLabel
+                if len(label) > 63:
+                    # otherwise encodings.idna raises UnicodeError later
+                    raise LabelTooLong
                 labels.append(encodings.idna.ToASCII(label))
                 label = u''
             elif c == u'\\':
@@ -597,6 +600,9 @@ def from_unicode(text, origin = root):
                 label += c
         if escaping:
             raise BadEscape
+        if len(label) > 63:
+            # otherwise encodings.idna raises UnicodeError later
+            raise LabelTooLong
         if len(label) > 0:
             labels.append(encodings.idna.ToASCII(label))
         else:
