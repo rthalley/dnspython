@@ -17,7 +17,12 @@
 
 class DNSException(Exception):
     """Abstract base class shared by all dnspython exceptions."""
-    pass
+    def __init__(self, *args):
+        if args:
+            super(DNSException, self).__init__(*args)
+        else:
+            # doc string is better implicit message than empty string
+            super(DNSException, self).__init__(self.__doc__)
 
 class FormError(DNSException):
     """DNS message is malformed."""
