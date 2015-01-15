@@ -26,11 +26,11 @@ import dns.rdataclass
 import dns.name
 
 class BadTime(dns.exception.DNSException):
-    """Raised if the current time is not within the TSIG's validity time."""
+    """The current time is not within the TSIG's validity time."""
     pass
 
 class BadSignature(dns.exception.DNSException):
-    """Raised if the TSIG signature fails to verify."""
+    """The TSIG signature fails to verify."""
     pass
 
 class PeerError(dns.exception.DNSException):
@@ -38,19 +38,19 @@ class PeerError(dns.exception.DNSException):
     pass
 
 class PeerBadKey(PeerError):
-    """Raised if the peer didn't know the key we used"""
+    """The peer didn't know the key we used"""
     pass
 
 class PeerBadSignature(PeerError):
-    """Raised if the peer didn't like the signature we sent"""
+    """The peer didn't like the signature we sent"""
     pass
 
 class PeerBadTime(PeerError):
-    """Raised if the peer didn't like the time we sent"""
+    """The peer didn't like the time we sent"""
     pass
 
 class PeerBadTruncation(PeerError):
-    """Raised if the peer didn't like amount of truncation in the TSIG we sent"""
+    """The peer didn't like amount of truncation in the TSIG we sent"""
     pass
 
 # TSIG Algorithms

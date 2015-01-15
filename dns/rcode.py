@@ -53,7 +53,7 @@ _by_value = dict([(y, x) for x, y in _by_text.items()])
 
 
 class UnknownRcode(dns.exception.DNSException):
-    """Raised if an rcode is unknown."""
+    """A DNS rcode is unknown."""
     pass
 
 def from_text(text):

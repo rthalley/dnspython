@@ -25,7 +25,7 @@ import dns.rdatatype
 import dns.util
 
 class BadSigTime(dns.exception.DNSException):
-    """Raised when a SIG or RRSIG RR's time cannot be parsed."""
+    """Time in DNS SIG or RRSIG resource record cannot be parsed."""
     pass
 
 def sigtime_to_posixtime(what):

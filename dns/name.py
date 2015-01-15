@@ -38,41 +38,41 @@ NAMERELN_EQUAL = 3
 NAMERELN_COMMONANCESTOR = 4
 
 class EmptyLabel(dns.exception.SyntaxError):
-    """Raised if a label is empty."""
+    """A DNS label is empty."""
     pass
 
 class BadEscape(dns.exception.SyntaxError):
-    """Raised if an escaped code in a text format name is invalid."""
+    """An escaped code in a text format of DNS name is invalid."""
     pass
 
 class BadPointer(dns.exception.FormError):
-    """Raised if a compression pointer points forward instead of backward."""
+    """A DNS compression pointer points forward instead of backward."""
     pass
 
 class BadLabelType(dns.exception.FormError):
-    """Raised if the label type of a wire format name is unknown."""
+    """The label type in DNS name wire format is unknown."""
     pass
 
 class NeedAbsoluteNameOrOrigin(dns.exception.DNSException):
-    """Raised if an attempt is made to convert a non-absolute name to
-    wire when there is also a non-absolute (or missing) origin."""
+    """An attempt was made to convert a non-absolute name to
+    wire when there was also a non-absolute (or missing) origin."""
     pass
 
 class NameTooLong(dns.exception.FormError):
-    """Raised if a name is > 255 octets long."""
+    """A DNS name is > 255 octets long."""
     pass
 
 class LabelTooLong(dns.exception.SyntaxError):
-    """Raised if a label is > 63 octets long."""
+    """A DNS label is > 63 octets long."""
     pass
 
 class AbsoluteConcatenation(dns.exception.DNSException):
-    """Raised if an attempt is made to append anything other than the
-    empty name to an absolute name."""
+    """An attempt was made to append anything other than the
+    empty name to an absolute DNS name."""
     pass
 
 class NoParent(dns.exception.DNSException):
-    """Raised if an attempt is made to get the parent of the root name
+    """An attempt was made to get the parent of the root name
     or the empty name."""
     pass
 

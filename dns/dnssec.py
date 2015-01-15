@@ -29,7 +29,7 @@ import dns.rdatatype
 import dns.rdataclass
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
-    """Raised if an algorithm is not supported."""
+    """The DNSSEC algorithm is not supported."""
     pass
 
 class ValidationFailure(dns.exception.DNSException):
