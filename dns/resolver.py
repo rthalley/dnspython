@@ -61,8 +61,19 @@ class YXDOMAIN(dns.exception.DNSException):
 Timeout = dns.exception.Timeout
 
 class NoAnswer(dns.exception.DNSException):
-    """The response did not contain an answer to the question."""
-    pass
+    """The DNS response does not contain an answer to the question."""
+    def __init__(self, question=None):
+        super(dns.exception.DNSException, self).__init__()
+        self.question = question
+
+    def __str__(self):
+        message = self.__doc__
+        if self.question:
+            message = message[0:-1]
+            for q in self.question:
+                message += ' %s' % q
+        return message
+
 
 class NoNameservers(dns.exception.DNSException):
     """No non-broken nameservers are available to answer the query."""
@@ -139,11 +150,11 @@ class Answer(object):
                         continue
                     except KeyError:
                         if raise_on_no_answer:
-                            raise NoAnswer
+                            raise NoAnswer(question=response.question)
                 if raise_on_no_answer:
-                    raise NoAnswer
+                    raise NoAnswer(question=response.question)
         if rrset is None and raise_on_no_answer:
-            raise NoAnswer
+            raise NoAnswer(question=response.question)
         self.canonical_name = qname
         self.rrset = rrset
         if rrset is None:
