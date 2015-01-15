@@ -44,11 +44,11 @@ if sys.platform == 'win32':
     import _winreg
 
 class NXDOMAIN(dns.exception.DNSException):
-    """The query name does not exist."""
+    """The DNS query name does not exist."""
     pass
 
 class YXDOMAIN(dns.exception.DNSException):
-    """The query name is too long after DNAME substitution."""
+    """The DNS query name is too long after DNAME substitution."""
     pass
 
 # The definition of the Timeout exception has moved from here to the
@@ -66,19 +66,15 @@ class NoNameservers(dns.exception.DNSException):
     pass
 
 class NotAbsolute(dns.exception.DNSException):
-    """Raised if an absolute domain name is required but a relative name
-    was provided."""
+    """An absolute domain name is required but a relative name was provided."""
     pass
 
 class NoRootSOA(dns.exception.DNSException):
-    """Raised if for some reason there is no SOA at the root name.
-    This should never happen!"""
+    """There is no SOA RR at the DNS root name. This should never happen!"""
     pass
 
 class NoMetaqueries(dns.exception.DNSException):
-    """Metaqueries are not allowed."""
-    pass
-
+    """DNS metaqueries are not allowed."""
 
 class Answer(object):
     """DNS stub resolver answer

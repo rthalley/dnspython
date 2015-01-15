@@ -29,12 +29,12 @@ import dns.set
 SimpleSet = dns.set.Set
 
 class DifferingCovers(dns.exception.DNSException):
-    """Raised if an attempt is made to add a SIG/RRSIG whose covered type
+    """An attempt was made to add a DNS SIG/RRSIG whose covered type
     is not the same as that of the other rdatas in the rdataset."""
     pass
 
 class IncompatibleTypes(dns.exception.DNSException):
-    """Raised if an attempt is made to add rdata of an incompatible type."""
+    """An attempt was made to add DNS RR data of an incompatible type."""
     pass
 
 class Rdataset(dns.set.Set):

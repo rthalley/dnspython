@@ -180,7 +180,7 @@ _singletons = {
 _unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I);
 
 class UnknownRdatatype(dns.exception.DNSException):
-    """Raised if a type is unknown."""
+    """DNS resource record type is unknown."""
     pass
 
 def from_text(text):

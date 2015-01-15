@@ -66,7 +66,7 @@ _metaclasses = {
 _unknown_class_pattern = re.compile('CLASS([0-9]+)$', re.I);
 
 class UnknownRdataclass(dns.exception.DNSException):
-    """Raised when a class is unknown."""
+    """A DNS class is unknown."""
     pass
 
 def from_text(text):

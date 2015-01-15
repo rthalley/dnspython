@@ -33,13 +33,13 @@ class SyntaxError(DNSException):
     pass
 
 class UnexpectedEnd(SyntaxError):
-    """Raised if text input ends unexpectedly."""
+    """Text input ended unexpectedly."""
     pass
 
 class TooBig(DNSException):
-    """The message is too big."""
+    """The DNS message is too big."""
     pass
 
 class Timeout(DNSException):
-    """The operation timed out."""
+    """The DNS operation timed out."""
     pass
