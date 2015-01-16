@@ -33,11 +33,9 @@ import dns.rdatatype
 
 class UnexpectedSource(dns.exception.DNSException):
     """A DNS query response came from an unexpected address or port."""
-    pass
 
 class BadResponse(dns.exception.FormError):
     """A DNS query response does not respond to the question asked."""
-    pass
 
 def _compute_expiration(timeout):
     if timeout is None:

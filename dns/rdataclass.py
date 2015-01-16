@@ -67,7 +67,6 @@ _unknown_class_pattern = re.compile('CLASS([0-9]+)$', re.I);
 
 class UnknownRdataclass(dns.exception.DNSException):
     """A DNS class is unknown."""
-    pass
 
 def from_text(text):
     """Convert text into a DNS rdata class value.
