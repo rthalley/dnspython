@@ -18,7 +18,7 @@
 import dns.exception
 
 class BadTTL(dns.exception.SyntaxError):
-    pass
+    """DNS TTL value is not well-formed."""
 
 def from_text(text):
     """Convert the text form of a TTL to an integer.
