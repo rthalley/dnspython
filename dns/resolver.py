@@ -48,11 +48,9 @@ if sys.platform == 'win32':
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
-    pass
 
 class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
-    pass
 
 # The definition of the Timeout exception has moved from here to the
 # dns.exception module.  We keep dns.resolver.Timeout defined for
@@ -97,11 +95,9 @@ class NoNameservers(dns.exception.DNSException):
 
 class NotAbsolute(dns.exception.DNSException):
     """An absolute domain name is required but a relative name was provided."""
-    pass
 
 class NoRootSOA(dns.exception.DNSException):
     """There is no SOA RR at the DNS root name. This should never happen!"""
-    pass
 
 class NoMetaqueries(dns.exception.DNSException):
     """DNS metaqueries are not allowed."""

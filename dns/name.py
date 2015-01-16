@@ -39,42 +39,33 @@ NAMERELN_COMMONANCESTOR = 4
 
 class EmptyLabel(dns.exception.SyntaxError):
     """A DNS label is empty."""
-    pass
 
 class BadEscape(dns.exception.SyntaxError):
     """An escaped code in a text format of DNS name is invalid."""
-    pass
 
 class BadPointer(dns.exception.FormError):
     """A DNS compression pointer points forward instead of backward."""
-    pass
 
 class BadLabelType(dns.exception.FormError):
     """The label type in DNS name wire format is unknown."""
-    pass
 
 class NeedAbsoluteNameOrOrigin(dns.exception.DNSException):
     """An attempt was made to convert a non-absolute name to
     wire when there was also a non-absolute (or missing) origin."""
-    pass
 
 class NameTooLong(dns.exception.FormError):
     """A DNS name is > 255 octets long."""
-    pass
 
 class LabelTooLong(dns.exception.SyntaxError):
     """A DNS label is > 63 octets long."""
-    pass
 
 class AbsoluteConcatenation(dns.exception.DNSException):
     """An attempt was made to append anything other than the
     empty name to an absolute DNS name."""
-    pass
 
 class NoParent(dns.exception.DNSException):
     """An attempt was made to get the parent of the root name
     or the empty name."""
-    pass
 
 class LabelMixesUnicodeAndASCII(dns.exception.SyntaxError):
     """Raised if a label mixes Unicode characters and ASCII escapes."""

@@ -173,7 +173,6 @@ _unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I);
 
 class UnknownRdatatype(dns.exception.DNSException):
     """DNS resource record type is unknown."""
-    pass
 
 def from_text(text):
     """Convert text into a DNS rdata type value.

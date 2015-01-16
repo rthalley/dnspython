@@ -35,19 +35,15 @@ import dns.grange
 
 class BadZone(dns.exception.DNSException):
     """The DNS zone is malformed."""
-    pass
 
 class NoSOA(BadZone):
     """The DNS zone has no SOA RR at its origin."""
-    pass
 
 class NoNS(BadZone):
     """The DNS zone has no NS RRset at its origin."""
-    pass
 
 class UnknownOrigin(BadZone):
     """The DNS zone's origin is unknown."""
-    pass
 
 class Zone(object):
     """A DNS zone.

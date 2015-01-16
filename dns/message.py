@@ -38,30 +38,24 @@ import dns.wiredata
 
 class ShortHeader(dns.exception.FormError):
     """The DNS packet passed to from_wire() is too short."""
-    pass
 
 class TrailingJunk(dns.exception.FormError):
     """The DNS packet passed to from_wire() has extra junk at the end of it."""
-    pass
 
 class UnknownHeaderField(dns.exception.DNSException):
     """The header field name was not recognized when converting from text
     into a message."""
-    pass
 
 class BadEDNS(dns.exception.FormError):
     """OPT record occured somewhere other than the start of
     the additional data section."""
-    pass
 
 class BadTSIG(dns.exception.FormError):
     """A TSIG record occured somewhere other than the end of
     the additional data section."""
-    pass
 
 class UnknownTSIGKey(dns.exception.DNSException):
     """A TSIG with an unknown key was received."""
-    pass
 
 class Message(object):
     """A DNS message.

@@ -35,7 +35,6 @@ DELIMITER = 6
 
 class UngetBufferFull(dns.exception.DNSException):
     """An attempt was made to unget a token when the unget buffer was full."""
-    pass
 
 class Token(object):
     """A DNS master file format token.

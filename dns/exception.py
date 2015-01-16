@@ -26,20 +26,15 @@ class DNSException(Exception):
 
 class FormError(DNSException):
     """DNS message is malformed."""
-    pass
 
 class SyntaxError(DNSException):
     """Text input is malformed."""
-    pass
 
 class UnexpectedEnd(SyntaxError):
     """Text input ended unexpectedly."""
-    pass
 
 class TooBig(DNSException):
     """The DNS message is too big."""
-    pass
 
 class Timeout(DNSException):
     """The DNS operation timed out."""
-    pass
