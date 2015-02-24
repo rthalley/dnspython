@@ -412,7 +412,7 @@ def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
     @type relativize: bool
     @rtype: dns.rdata.Rdata instance"""
 
-    if isinstance(tok, str):
+    if isinstance(tok, (str, unicode)):
         tok = dns.tokenizer.Tokenizer(tok)
     cls = get_rdata_class(rdclass, rdtype)
     if cls != GenericRdata:

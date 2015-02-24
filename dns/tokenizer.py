@@ -197,7 +197,7 @@ class Tokenizer(object):
         @type filename: string
         """
 
-        if isinstance(f, str):
+        if isinstance(f, (str, unicode)):
             f = cStringIO.StringIO(f)
             if filename is None:
                 filename = '<string>'
