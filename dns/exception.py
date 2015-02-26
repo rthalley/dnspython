@@ -17,24 +17,24 @@
 
 class DNSException(Exception):
     """Abstract base class shared by all dnspython exceptions."""
-    pass
+    def __init__(self, *args):
+        if args:
+            super(DNSException, self).__init__(*args)
+        else:
+            # doc string is better implicit message than empty string
+            super(DNSException, self).__init__(self.__doc__)
 
 class FormError(DNSException):
     """DNS message is malformed."""
-    pass
 
 class SyntaxError(DNSException):
     """Text input is malformed."""
-    pass
 
 class UnexpectedEnd(SyntaxError):
-    """Raised if text input ends unexpectedly."""
-    pass
+    """Text input ended unexpectedly."""
 
 class TooBig(DNSException):
-    """The message is too big."""
-    pass
+    """The DNS message is too big."""
 
 class Timeout(DNSException):
-    """The operation timed out."""
-    pass
+    """The DNS operation timed out."""

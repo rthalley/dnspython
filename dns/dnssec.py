@@ -29,12 +29,10 @@ import dns.rdatatype
 import dns.rdataclass
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
-    """Raised if an algorithm is not supported."""
-    pass
+    """The DNSSEC algorithm is not supported."""
 
 class ValidationFailure(dns.exception.DNSException):
     """The DNSSEC signature is invalid."""
-    pass
 
 RSAMD5 = 1
 DH = 2

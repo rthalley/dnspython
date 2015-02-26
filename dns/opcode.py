@@ -39,8 +39,7 @@ _by_value = dict([(y, x) for x, y in _by_text.iteritems()])
 
 
 class UnknownOpcode(dns.exception.DNSException):
-    """Raised if an opcode is unknown."""
-    pass
+    """An DNS opcode is unknown."""
 
 def from_text(text):
     """Convert text into an opcode.

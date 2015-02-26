@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2006, 2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -13,7 +13,26 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.nsbase
+import binascii
+import unittest
 
-class NSAP_PTR(dns.rdtypes.nsbase.UncompressedNS):
-    """NSAP-PTR record"""
+from dns.exception import DNSException
+
+class ExceptionTestCase(unittest.TestCase):
+
+    def test_custom_message(self):
+        msg = "this is a custom message"
+        try:
+            raise DNSException(msg)
+        except DNSException as ex:
+            self.assertEqual(str(ex), msg)
+
+    def test_implicit_message(self):
+        try:
+            raise DNSException()
+        except DNSException as ex:
+            self.assertEqual(ex.__class__.__doc__, str(ex))
+
+
+if __name__ == '__main__':
+    unittest.main()

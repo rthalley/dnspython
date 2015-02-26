@@ -42,9 +42,7 @@ COMMENT = 5
 DELIMITER = 6
 
 class UngetBufferFull(dns.exception.DNSException):
-    """Raised when an attempt is made to unget a token when the unget
-    buffer is full."""
-    pass
+    """An attempt was made to unget a token when the unget buffer was full."""
 
 class Token(object):
     """A DNS master file format token.

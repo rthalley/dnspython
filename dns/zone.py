@@ -37,20 +37,16 @@ except ImportError:
     from io import StringIO
 
 class BadZone(dns.exception.DNSException):
-    """The zone is malformed."""
-    pass
+    """The DNS zone is malformed."""
 
 class NoSOA(BadZone):
-    """The zone has no SOA RR at its origin."""
-    pass
+    """The DNS zone has no SOA RR at its origin."""
 
 class NoNS(BadZone):
-    """The zone has no NS RRset at its origin."""
-    pass
+    """The DNS zone has no NS RRset at its origin."""
 
 class UnknownOrigin(BadZone):
-    """The zone's origin is unknown."""
-    pass
+    """The DNS zone's origin is unknown."""
 
 class Zone(object):
     """A DNS zone.
