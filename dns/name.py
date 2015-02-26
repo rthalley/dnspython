@@ -152,6 +152,13 @@ class Name(object):
     def __deepcopy__(self, memo):
         return Name(copy.deepcopy(self.labels, memo))
 
+    def __getstate__(self):
+        return { 'labels' : self.labels }
+
+    def __setstate__(self, state):
+        super(Name, self).__setattr__('labels', state['labels'])
+        _validate_labels(self.labels)
+
     def is_absolute(self):
         """Is the most significant label of this name the root label?
         @rtype: bool
