@@ -231,26 +231,26 @@ class LOC(dns.rdata.Rdata):
         t = tok.get_string()
         if t[-1] == 'm':
             t = t[0 : -1]
-        altitude = float(t) * 100.0	# m -> cm
+        altitude = float(t) * 100.0        # m -> cm
 
         token = tok.get().unescape()
         if not token.is_eol_or_eof():
             value = token.value
             if value[-1] == 'm':
                 value = value[0 : -1]
-            size = float(value) * 100.0	# m -> cm
+            size = float(value) * 100.0        # m -> cm
             token = tok.get().unescape()
             if not token.is_eol_or_eof():
                 value = token.value
                 if value[-1] == 'm':
                     value = value[0 : -1]
-                hprec = float(value) * 100.0	# m -> cm
+                hprec = float(value) * 100.0        # m -> cm
                 token = tok.get().unescape()
                 if not token.is_eol_or_eof():
                     value = token.value
                     if value[-1] == 'm':
                         value = value[0 : -1]
-                    vprec = float(value) * 100.0	# m -> cm
+                    vprec = float(value) * 100.0        # m -> cm
                     tok.get_eol()
 
         return cls(rdclass, rdtype, latitude, longitude, altitude,

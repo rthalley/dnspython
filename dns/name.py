@@ -562,7 +562,7 @@ def from_unicode(text, origin = root):
         text = u''
     if text:
         if text == u'.':
-            return Name([''])	# no Unicode "u" on this constant!
+            return Name([''])        # no Unicode "u" on this constant!
         for c in text:
             if escaping:
                 if edigits == 0:
