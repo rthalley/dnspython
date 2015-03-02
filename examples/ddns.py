@@ -12,15 +12,15 @@
 #
 # E.g. on my systems I have this
 #
-#	#!/bin/sh
+#        #!/bin/sh
 #
-#	DEVICE=$1
+#        DEVICE=$1
 #
-#	if [ "X${DEVICE}" == "Xeth0" ]; then
-#        	IPADDR=`LANG= LC_ALL= ifconfig ${DEVICE} | grep 'inet addr' |
-#                	awk -F: '{ print $2 } ' | awk '{ print $1 }'`
-#		/usr/local/sbin/ddns.py $IPADDR
-#	fi
+#        if [ "X${DEVICE}" == "Xeth0" ]; then
+#                IPADDR=`LANG= LC_ALL= ifconfig ${DEVICE} | grep 'inet addr' |
+#                        awk -F: '{ print $2 } ' | awk '{ print $1 }'`
+#                /usr/local/sbin/ddns.py $IPADDR
+#        fi
 #
 # in /etc/ifup-local.
 #

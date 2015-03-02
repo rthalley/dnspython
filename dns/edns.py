@@ -114,7 +114,7 @@ class GenericOption(Option):
     from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
-	return cmp(self.data, other.data)
+        return cmp(self.data, other.data)
 
 _type_to_class = {
 }

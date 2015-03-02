@@ -28,9 +28,9 @@ for filename in sys.argv[1:]:
                               relativize=False)
     for (name, ttl, rdata) in zone.iterate_rdatas('A'):
         try:
-	    reverse_map[rdata.address].append(name.to_text())
-	except KeyError:
-	    reverse_map[rdata.address] = [name.to_text()]
+            reverse_map[rdata.address].append(name.to_text())
+        except KeyError:
+            reverse_map[rdata.address] = [name.to_text()]
 
 keys = reverse_map.keys()
 keys.sort(lambda a1, a2: cmp(dns.ipv4.inet_aton(a1), dns.ipv4.inet_aton(a2)))
