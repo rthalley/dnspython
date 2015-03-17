@@ -89,6 +89,7 @@ AXFR = 252
 MAILB = 253
 MAILA = 254
 ANY = 255
+URI = 256
 CAA = 257
 TA = 32768
 DLV = 32769
@@ -153,6 +154,7 @@ _by_text = {
     'MAILB' : MAILB,
     'MAILA' : MAILA,
     'ANY' : ANY,
+    'URI' : URI,
     'CAA' : CAA,
     'TA' : TA,
     'DLV' : DLV,
