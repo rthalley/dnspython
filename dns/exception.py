@@ -15,14 +15,62 @@
 
 """Common DNS Exceptions."""
 
+
 class DNSException(Exception):
-    """Abstract base class shared by all dnspython exceptions."""
-    def __init__(self, *args):
+    """Abstract base class shared by all dnspython exceptions.
+
+    It supports two basic modes of operation:
+
+    a) Old/compatible mode is used if __init__ was called with
+       empty **kwargs.
+    In compatible mode all *args are passed to standard Python Exception class
+    as before and all *args are printed by standard __str__ implementation.
+
+    b) New/parametrized mode is used if __init__ was called with
+       non-empty **kwargs.
+    In the new mode *args has to be empty and all kwargs has to exactly match
+    set in class variable self.supp_kwargs. All kwargs are stored inside
+    self.kwargs and used in new __str__ implementation to construct
+    formated message based on self.fmt string.
+
+    In the simplest case it is enough to override supp_kwargs and fmt
+    class variables to get nice parametrized messages.
+    """
+    supp_kwargs = set()
+    fmt = None
+
+    def __init__(self, *args, **kwargs):
+        self._check_params(*args, **kwargs)
+        self._check_kwargs(**kwargs)
+        self.kwargs = kwargs
         if args:
             super(DNSException, self).__init__(*args)
         else:
             # doc string is better implicit message than empty string
             super(DNSException, self).__init__(self.__doc__)
+
+    def _check_params(self, *args, **kwargs):
+        """Old exceptions supported only args and not kwargs.
+
+        For sanity we do not allow to mix old and new behavior."""
+        if args or kwargs:
+            assert bool(args) != bool(kwargs), \
+                'keyword arguments are mutually exclusive with positional args'
+
+    def _check_kwargs(self, **kwargs):
+        if kwargs:
+            assert set(kwargs.keys()) == self.supp_kwargs, \
+                'following set of keyword args is required: %s' % (
+                    self.supp_kwargs)
+
+    def __str__(self):
+        if self.kwargs and self.fmt:
+            # provide custom message constructed from keyword arguments
+            return self.fmt.format(**self.kwargs)
+        else:
+            # print *args directly in the same way as old DNSException
+            return super(DNSException, self).__str__()
+
 
 class FormError(DNSException):
     """DNS message is malformed."""
