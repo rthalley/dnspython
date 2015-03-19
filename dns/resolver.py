@@ -48,6 +48,21 @@ if sys.platform == 'win32':
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
+    supp_kwargs = set(['qname'])
+
+    def __str__(self):
+        if not 'qname' in self.kwargs:
+            return super(NXDOMAIN, self).__str__()
+
+        qname = self.kwargs['qname']
+        msg = self.__doc__[:-1]
+        if isinstance(qname, (list, set)):
+            if len(qname) > 1:
+                msg = 'None of DNS query names exist'
+                qname = list(map(str, qname))
+            else:
+                qname = qname[0]
+        return "%s: %s" % (msg, (str(qname)))
 
 class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
@@ -932,7 +947,7 @@ class Resolver(object):
             all_nxdomain = False
             break
         if all_nxdomain:
-            raise NXDOMAIN
+            raise NXDOMAIN(qname=qnames_to_try)
         answer = Answer(qname, rdtype, rdclass, response,
                         raise_on_no_answer)
         if self.cache:
