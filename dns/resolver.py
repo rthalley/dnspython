@@ -742,18 +742,18 @@ class Resolver(object):
 
     def _compute_timeout(self, start):
         now = time.time()
-        if now < start:
-            if start - now > 1:
+        duration = now - start
+        if duration < 0:
+            if duration < -1:
                 # Time going backwards is bad.  Just give up.
-                raise Timeout
+                raise Timeout(timeout=duration)
             else:
                 # Time went backwards, but only a little.  This can
                 # happen, e.g. under vmware with older linux kernels.
                 # Pretend it didn't happen.
                 now = start
-        duration = now - start
         if duration >= self.lifetime:
-            raise Timeout
+            raise Timeout(timeout=duration)
         return min(self.lifetime - duration, self.timeout)
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
