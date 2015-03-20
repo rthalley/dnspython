@@ -63,10 +63,29 @@ class DNSException(Exception):
                 'following set of keyword args is required: %s' % (
                     self.supp_kwargs)
 
+    def _fmt_kwargs(self, **kwargs):
+        """Format kwargs before printing them.
+
+        Resulting dictionary has to have keys necessary for str.format call
+        on fmt class variable.
+        """
+        fmtargs = {}
+        for kw, data in kwargs.items():
+            if isinstance(data, (list, set)):
+                # convert list of <someobj> to list of str(<someobj>)
+                fmtargs[kw] = list(map(str, data))
+                if len(fmtargs[kw]) == 1:
+                    # remove list brackets [] from single-item lists
+                    fmtargs[kw] = fmtargs[kw].pop()
+            else:
+                fmtargs[kw] = data
+        return fmtargs
+
     def __str__(self):
         if self.kwargs and self.fmt:
             # provide custom message constructed from keyword arguments
-            return self.fmt.format(**self.kwargs)
+            fmtargs = self._fmt_kwargs(**self.kwargs)
+            return self.fmt.format(**fmtargs)
         else:
             # print *args directly in the same way as old DNSException
             return super(DNSException, self).__str__()
