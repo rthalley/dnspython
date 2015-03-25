@@ -25,6 +25,8 @@ class DNSException(Exception):
        empty **kwargs.
     In compatible mode all *args are passed to standard Python Exception class
     as before and all *args are printed by standard __str__ implementation.
+    Class variable msg (or doc string if msg is None) is returned from str()
+    if *args is empty.
 
     b) New/parametrized mode is used if __init__ was called with
        non-empty **kwargs.
@@ -36,18 +38,21 @@ class DNSException(Exception):
     In the simplest case it is enough to override supp_kwargs and fmt
     class variables to get nice parametrized messages.
     """
-    supp_kwargs = set()
-    fmt = None
+    msg = None  # non-parametrized message
+    supp_kwargs = set()  # accepted parameters for _fmt_kwargs (sanity check)
+    fmt = None  # message parametrized with results from _fmt_kwargs
 
     def __init__(self, *args, **kwargs):
         self._check_params(*args, **kwargs)
         self._check_kwargs(**kwargs)
         self.kwargs = kwargs
+        if self.msg is None:
+            # doc string is better implicit message than empty string
+            self.msg = self.__doc__
         if args:
             super(DNSException, self).__init__(*args)
         else:
-            # doc string is better implicit message than empty string
-            super(DNSException, self).__init__(self.__doc__)
+            super(DNSException, self).__init__(self.msg)
 
     def _check_params(self, *args, **kwargs):
         """Old exceptions supported only args and not kwargs.
