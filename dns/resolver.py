@@ -81,24 +81,24 @@ class NoAnswer(dns.exception.DNSException):
             query=kwargs['response'].question)
 
 class NoNameservers(dns.exception.DNSException):
-    """No non-broken nameservers are available to answer the query."""
-    def __init__(self, errors=[]):
-        """Optionally construct message with list of servers and errors.
+    """All nameservers failed to answer the query.
 
-        @param errors: list of servers and respective errors
-        @type errors: [(server ip address, any object convertible to string)]
-        """
-        super(dns.exception.DNSException, self).__init__()
-        self.errors = errors
+    @param errors: list of servers and respective errors
+    @type errors: [(server ip address, any object convertible to string)]
+    Non-empty errors list will add explanatory message ()
+    """
 
-    def __str__(self):
-        message = self.__doc__
-        if self.errors:
-            srv_msgs = []
-            for err in self.errors:
-                srv_msgs.append('Server %s %s' % (err[0], err[1]))
-            message += ' %s' % '; '.join(srv_msgs)
-        return message
+    msg = "All nameservers failed to answer the query."
+    fmt = "%s {query}: {errors}" % msg[:-1]
+    supp_kwargs = set(['query', 'errors'])
+
+    def _fmt_kwargs(self, **kwargs):
+        srv_msgs = []
+        for err in kwargs['errors']:
+            srv_msgs.append('Server %s anwered %s' % (err[0], err[1]))
+        return super(NoNameservers, self)._fmt_kwargs(query=kwargs['query'],
+                                                      errors='; '.join(srv_msgs))
+
 
 class NotAbsolute(dns.exception.DNSException):
     """An absolute domain name is required but a relative name was provided."""
@@ -851,7 +851,7 @@ class Resolver(object):
             backoff = 0.10
             while response is None:
                 if len(nameservers) == 0:
-                    raise NoNameservers(errors)
+                    raise NoNameservers(query=request.question, errors=errors)
                 for nameserver in nameservers[:]:
                     timeout = self._compute_timeout(start)
                     try:
