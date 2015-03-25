@@ -70,19 +70,11 @@ class YXDOMAIN(dns.exception.DNSException):
 
 Timeout = dns.exception.Timeout
 
+
 class NoAnswer(dns.exception.DNSException):
     """The DNS response does not contain an answer to the question."""
-    def __init__(self, question=None):
-        super(dns.exception.DNSException, self).__init__()
-        self.question = question
-
-    def __str__(self):
-        message = self.__doc__
-        if self.question:
-            message = message[0:-1]
-            for q in self.question:
-                message += ' %s' % q
-        return message
+    fmt = '%s: {question}' % __doc__[:-1]
+    supp_kwargs = set(['question'])
 
 
 class NoNameservers(dns.exception.DNSException):
@@ -178,7 +170,7 @@ class Answer(object):
                 if raise_on_no_answer:
                     raise NoAnswer(question=response.question)
         if rrset is None and raise_on_no_answer:
-            raise NoAnswer(question=response.question)
+            raise NoAnswer(question=request.question)
         self.canonical_name = qname
         self.rrset = rrset
         if rrset is None:
