@@ -76,9 +76,12 @@ Timeout = dns.exception.Timeout
 
 class NoAnswer(dns.exception.DNSException):
     """The DNS response does not contain an answer to the question."""
-    fmt = '%s: {question}' % __doc__[:-1]
-    supp_kwargs = set(['question'])
+    fmt = '%s: {query}' % __doc__[:-1]
+    supp_kwargs = set(['response'])
 
+    def _fmt_kwargs(self, **kwargs):
+        return super(NoAnswer, self)._fmt_kwargs(
+            query=kwargs['response'].question)
 
 class NoNameservers(dns.exception.DNSException):
     """No non-broken nameservers are available to answer the query."""
@@ -171,9 +174,9 @@ class Answer(object):
                         if raise_on_no_answer:
                             raise NoAnswer(question=response.question)
                 if raise_on_no_answer:
-                    raise NoAnswer(question=response.question)
+                    raise NoAnswer(response=response)
         if rrset is None and raise_on_no_answer:
-            raise NoAnswer(question=request.question)
+            raise NoAnswer(response=response)
         self.canonical_name = qname
         self.rrset = rrset
         if rrset is None:
