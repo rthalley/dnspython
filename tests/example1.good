@@ -20,10 +20,13 @@ caa03 3600 IN CAA 0 iodef "http://iodef.example.com/"
 caa04 3600 IN CAA 0 issue "ca.example.net; account=230123"
 caa05 3600 IN CAA 0 issue "ca.example.net; policy=ev"
 caa06 3600 IN CAA 128 tbs "Unknown"
+cdnskey01 3600 IN CDNSKEY 512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRu niJDBzC7w0aRyzWZriO6i2odGWWQVucZ qKVsENW91IOW4vqudngPZsY3GvQ/xVA8 /7pyFj6b7Esga60zyGW6LFe9r8n6paHr lG5ojqf0BaqHT+8=
+cds01 3600 IN CDS 12345 3 1 123456789abcdef67890123456789abcdef67890
 cert01 3600 IN CERT 65534 65535 PRIVATEOID MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
 cname01 3600 IN CNAME cname-target.
 cname02 3600 IN CNAME cname-target
 cname03 3600 IN CNAME .
+csync01 3600 IN CSYNC 66 3 A NS AAAA
 d 300 IN A 73.80.65.49
 dhcid01 3600 IN DHCID AAIBY2/AuCccgoJbsaxcQc9TUapptP69 lOjxfNuVAA2kjEA=
 dhcid02 3600 IN DHCID AAEBOSD+XR3Os/0LozeXVqcNc7FwCfQd WL3b/NaiUDlW2No=
@@ -68,6 +71,7 @@ mx01 3600 IN MX 10 mail
 mx02 3600 IN MX 10 .
 naptr01 3600 IN NAPTR 0 0 "" "" "" .
 naptr02 3600 IN NAPTR 65535 65535 "blurgh" "blorf" "blegh" foo.
+ninfo01 300 IN NINFO "This is some network info"
 ns1 300 IN A 10.53.0.1
 ns2 300 IN A 10.53.0.2
 nsap-ptr01 3600 IN NSAP-PTR foo.
@@ -84,6 +88,7 @@ nsec3param02 3600 IN NSEC3PARAM 1 1 12 -
 ptr01 3600 IN PTR @
 px01 3600 IN PX 65535 foo. bar.
 px02 3600 IN PX 65535 . .
+rkey01 3600 IN RKEY 512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRu niJDBzC7w0aRyzWZriO6i2odGWWQVucZ qKVsENW91IOW4vqudngPZsY3GvQ/xVA8 /7pyFj6b7Esga60zyGW6LFe9r8n6paHr lG5ojqf0BaqHT+8=
 rp01 3600 IN RP mbox-dname txt-dname
 rp02 3600 IN RP . .
 rrsig01 3600 IN RRSIG NSEC 1 3 3600 20200101000000 20030101000000 2143 foo MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
@@ -117,6 +122,7 @@ a.u 300 IN A 73.80.65.49
 b.u 300 IN A 73.80.65.49
 unknown2 3600 IN TYPE999 \# 8 0a0000010a000001
 unknown3 3600 IN A 127.0.0.2
+uri0q 3600 IN URI 10 1 "http://www.example.com/"
 wks01 3600 IN WKS 10.0.0.1 6 0 1 2 21 23
 wks02 3600 IN WKS 10.0.0.1 17 0 1 2 53
 wks03 3600 IN WKS 10.0.0.2 6 65535
