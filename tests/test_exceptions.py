@@ -18,6 +18,12 @@ import unittest
 
 from dns.exception import DNSException
 
+
+class FormatedError(DNSException):
+    fmt = "Custom format: {parameter}"
+    supp_kwargs = set(['parameter'])
+
+
 class ExceptionTestCase(unittest.TestCase):
 
     def test_custom_message(self):
@@ -33,6 +39,24 @@ class ExceptionTestCase(unittest.TestCase):
         except DNSException as ex:
             self.assertEqual(ex.__class__.__doc__, str(ex))
 
+    def test_formatted_error(self):
+        """Exceptions with explicit format has to respect it."""
+        params = {'parameter': 'value'}
+        try:
+            raise FormatedError(**params)
+        except FormatedError as ex:
+            msg = FormatedError.fmt.format(**params)
+            self.assertEqual(msg, str(ex))
+
+    def test_kwargs_only(self):
+        """Kwargs cannot be combined with args."""
+        with self.assertRaises(AssertionError):
+            raise FormatedError(1, a=2)
+
+    def test_kwargs_unsupported(self):
+        """Only supported kwargs are accepted."""
+        with self.assertRaises(AssertionError):
+            raise FormatedError(unsupported=2)
 
 if __name__ == '__main__':
     unittest.main()
