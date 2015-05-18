@@ -45,7 +45,7 @@ def _float_to_tuple(what):
         what *= -1
     else:
         sign = 1
-    what = long(round(what * 3600000))
+    what = int(round(what * 3600000))
     degrees = int(what // 3600000)
     what -= degrees * 3600000
     minutes = int(what // 60000)
@@ -68,7 +68,7 @@ def _tuple_to_float(what):
     return sign * value
 
 def _encode_size(what, desc):
-    what = long(what);
+    what = int(what);
     exponent = _exponent_of(what, desc) & 0xF
     base = what // pow(10, exponent) & 0xF
     return base * 16 + exponent
@@ -80,7 +80,7 @@ def _decode_size(what, desc):
     base = (what & 0xF0) >> 4
     if base > 9:
         raise dns.exception.SyntaxError("bad %s base" % desc)
-    return long(base) * pow(10, exponent)
+    return int(base) * pow(10, exponent)
 
 class LOC(dns.rdata.Rdata):
     """LOC record
@@ -261,10 +261,10 @@ class LOC(dns.rdata.Rdata):
     def to_wire(self, file, compress = None, origin = None):
         if self.latitude[0] < 0:
             sign = -1
-            degrees = long(-1 * self.latitude[0])
+            degrees = -1 * self.latitude[0]
         else:
             sign = 1
-            degrees = long(self.latitude[0])
+            degrees = self.latitude[0]
         milliseconds = (degrees * 3600000 +
                         self.latitude[1] * 60000 +
                         self.latitude[2] * 1000 +
@@ -272,16 +272,16 @@ class LOC(dns.rdata.Rdata):
         latitude = 0x80000000L + milliseconds
         if self.longitude[0] < 0:
             sign = -1
-            degrees = long(-1 * self.longitude[0])
+            degrees = -1 * self.longitude[0]
         else:
             sign = 1
-            degrees = long(self.longitude[0])
+            degrees = self.longitude[0]
         milliseconds = (degrees * 3600000 +
                         self.longitude[1] * 60000 +
                         self.longitude[2] * 1000 +
                         self.longitude[3]) * sign
         longitude = 0x80000000L + milliseconds
-        altitude = long(self.altitude) + 10000000L
+        altitude = self.altitude + 10000000L
         size = _encode_size(self.size, "size")
         hprec = _encode_size(self.horizontal_precision, "horizontal precision")
         vprec = _encode_size(self.vertical_precision, "vertical precision")

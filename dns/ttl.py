@@ -32,7 +32,7 @@ def from_text(text):
     """
 
     if text.isdigit():
-        total = long(text)
+        total = int(text)
     else:
         if not text[0].isdigit():
             raise BadTTL
@@ -41,7 +41,7 @@ def from_text(text):
         for c in text:
             if c.isdigit():
                 current *= 10
-                current += long(c)
+                current += int(c)
             else:
                 c = c.lower()
                 if c == 'w':
