@@ -47,6 +47,7 @@ class DSBase(dns.rdata.Rdata):
                                 dns.rdata._hexify(self.digest,
                                                   chunksize=128))
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         key_tag = tok.get_uint16()
         algorithm = tok.get_uint8()
@@ -64,19 +65,16 @@ class DSBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
                    digest)
 
-    from_text = classmethod(from_text)
-
     def to_wire(self, file, compress = None, origin = None):
         header = struct.pack("!HBB", self.key_tag, self.algorithm,
                              self.digest_type)
         file.write(header)
         file.write(self.digest)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         header = struct.unpack("!HBB", wire[current : current + 4])
         current += 4
         rdlen -= 4
         digest = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)
-
-    from_wire = classmethod(from_wire)

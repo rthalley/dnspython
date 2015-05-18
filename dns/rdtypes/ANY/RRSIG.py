@@ -96,6 +96,7 @@ class RRSIG(dns.rdata.Rdata):
             dns.rdata._base64ify(self.signature)
             )
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         type_covered = dns.rdatatype.from_text(tok.get_string())
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
@@ -120,8 +121,6 @@ class RRSIG(dns.rdata.Rdata):
                    original_ttl, expiration, inception, key_tag, signer,
                    signature)
 
-    from_text = classmethod(from_text)
-
     def to_wire(self, file, compress = None, origin = None):
         header = struct.pack('!HBBIIIH', self.type_covered,
                              self.algorithm, self.labels,
@@ -131,6 +130,7 @@ class RRSIG(dns.rdata.Rdata):
         self.signer.to_wire(file, None, origin)
         file.write(self.signature)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         header = struct.unpack('!HBBIIIH', wire[current : current + 18])
         current += 18
@@ -144,8 +144,6 @@ class RRSIG(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    header[3], header[4], header[5], header[6], signer,
                    signature)
-
-    from_wire = classmethod(from_wire)
 
     def choose_relativity(self, origin = None, relativize = True):
         self.signer = self.signer.choose_relativity(origin, relativize)
