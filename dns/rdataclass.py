@@ -108,6 +108,6 @@ def is_metaclass(rdclass):
     @type rdclass: int
     @rtype: bool"""
 
-    if _metaclasses.has_key(rdclass):
+    if rdclass in _metaclasses:
         return True
     return False

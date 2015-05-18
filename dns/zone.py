@@ -208,7 +208,7 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if self.nodes.has_key(name):
+        if name in self.nodes:
             del self.nodes[name]
 
     def find_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
