@@ -486,7 +486,7 @@ class Tokenizer(object):
         if not token.value.isdigit():
             raise dns.exception.SyntaxError('expecting an integer')
         value = int(token.value)
-        if value < 0 or value > 4294967296L:
+        if value < 0 or value > 4294967296:
             raise dns.exception.SyntaxError('%d is not an unsigned 32-bit integer' % value)
         return value
 

@@ -19,8 +19,8 @@ import struct
 import dns.exception
 import dns.rdata
 
-_pows = (1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L,
-         100000000L, 1000000000L, 10000000000L)
+_pows = (1, 10, 100, 1000, 10000, 100000, 1000000, 10000000,
+         100000000, 1000000000, 10000000000)
 
 # default values are in centimeters
 _default_size = 100.0
@@ -32,7 +32,7 @@ def _exponent_of(what, desc):
         return 0
     exp = None
     for i in xrange(len(_pows)):
-        if what // _pows[i] == 0L:
+        if what // _pows[i] == 0:
             exp = i - 1
             break
     if exp is None or exp < 0:
@@ -269,7 +269,7 @@ class LOC(dns.rdata.Rdata):
                         self.latitude[1] * 60000 +
                         self.latitude[2] * 1000 +
                         self.latitude[3]) * sign
-        latitude = 0x80000000L + milliseconds
+        latitude = 0x80000000 + milliseconds
         if self.longitude[0] < 0:
             sign = -1
             degrees = -1 * self.longitude[0]
@@ -280,8 +280,8 @@ class LOC(dns.rdata.Rdata):
                         self.longitude[1] * 60000 +
                         self.longitude[2] * 1000 +
                         self.longitude[3]) * sign
-        longitude = 0x80000000L + milliseconds
-        altitude = self.altitude + 10000000L
+        longitude = 0x80000000 + milliseconds
+        altitude = self.altitude + 10000000
         size = _encode_size(self.size, "size")
         hprec = _encode_size(self.horizontal_precision, "horizontal precision")
         vprec = _encode_size(self.vertical_precision, "vertical precision")
@@ -292,16 +292,16 @@ class LOC(dns.rdata.Rdata):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (version, size, hprec, vprec, latitude, longitude, altitude) = \
                   struct.unpack("!BBBBIII", wire[current : current + rdlen])
-        if latitude > 0x80000000L:
-            latitude = float(latitude - 0x80000000L) / 3600000
+        if latitude > 0x80000000:
+            latitude = float(latitude - 0x80000000) / 3600000
         else:
-            latitude = -1 * float(0x80000000L - latitude) / 3600000
+            latitude = -1 * float(0x80000000 - latitude) / 3600000
         if latitude < -90.0 or latitude > 90.0:
             raise dns.exception.FormError("bad latitude")
-        if longitude > 0x80000000L:
-            longitude = float(longitude - 0x80000000L) / 3600000
+        if longitude > 0x80000000:
+            longitude = float(longitude - 0x80000000) / 3600000
         else:
-            longitude = -1 * float(0x80000000L - longitude) / 3600000
+            longitude = -1 * float(0x80000000 - longitude) / 3600000
         if longitude < -180.0 or longitude > 180.0:
             raise dns.exception.FormError("bad longitude")
         altitude = float(altitude) - 10000000.0
