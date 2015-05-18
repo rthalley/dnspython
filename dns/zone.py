@@ -892,7 +892,7 @@ class _MasterReader(object):
                     continue
                 self.tok.unget(token)
                 self._rr_line()
-        except dns.exception.SyntaxError, detail:
+        except dns.exception.SyntaxError as detail:
             (filename, line_number) = self.tok.where()
             if detail is None:
                 detail = "syntax error"

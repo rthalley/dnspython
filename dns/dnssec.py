@@ -390,7 +390,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         try:
             _validate_rrsig(rrset, rrsig, keys, origin, now)
             return
-        except ValidationFailure, e:
+        except ValidationFailure as e:
             pass
     raise ValidationFailure, "no RRSIGs validated"
 

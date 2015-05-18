@@ -113,7 +113,7 @@ def _wait_for(fd, readable, writable, error, expiration):
         try:
             if not _polling_backend(fd, readable, writable, error, timeout):
                 raise dns.exception.Timeout
-        except select.error, e:
+        except select.error as e:
             if e.args[0] != errno.EINTR:
                 raise e
         done = True
