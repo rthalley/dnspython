@@ -166,7 +166,7 @@ class Message(object):
         self.index = {}
 
     def __repr__(self):
-        return '<DNS message, ID ' + `self.id` + '>'
+        return '<DNS message, ID ' + repr(self.id) + '>'
 
     def __str__(self):
         return self.to_text()

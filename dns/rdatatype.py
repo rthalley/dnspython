@@ -213,7 +213,7 @@ def to_text(value):
         raise ValueError("type must be between >= 0 and <= 65535")
     text = _by_value.get(value)
     if text is None:
-        text = 'TYPE' + `value`
+        text = 'TYPE' + repr(value)
     return text
 
 def is_metatype(rdtype):

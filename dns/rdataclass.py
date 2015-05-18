@@ -99,7 +99,7 @@ def to_text(value):
         raise ValueError("class must be between >= 0 and <= 65535")
     text = _by_value.get(value)
     if text is None:
-        text = 'CLASS' + `value`
+        text = 'CLASS' + repr(value)
     return text
 
 def is_metaclass(rdclass):
