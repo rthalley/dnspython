@@ -165,15 +165,22 @@ class Answer(object):
                                                      qname,
                                                      rdclass,
                                                      dns.rdatatype.CNAME)
+                    except KeyError:
+                        if raise_on_no_answer:
+                            # Hide the chain of KeyErrors leading up to here.
+                            # This would be:
+                            #   raise NoAnswer(...) from None
+                            # but let's use py2-compatible syntax
+                            error = NoAnswer(response=response)
+                            error.__cause__ = None
+                            raise error
+                    else:
                         if min_ttl == -1 or crrset.ttl < min_ttl:
                             min_ttl = crrset.ttl
                         for rd in crrset:
                             qname = rd.target
                             break
                         continue
-                    except KeyError:
-                        if raise_on_no_answer:
-                            raise NoAnswer(question=response.question)
                 if raise_on_no_answer:
                     raise NoAnswer(response=response)
         if rrset is None and raise_on_no_answer:
