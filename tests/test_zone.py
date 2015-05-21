@@ -121,12 +121,25 @@ class ZoneTestCase(unittest.TestCase):
                 os.unlink('example2.out')
         self.assertTrue(ok)
 
+    def testFromFile2b(self):
+        """Test to_file with a binary file"""
+        z = dns.zone.from_file('example', 'example', relativize=False)
+        ok = False
+        try:
+            with open('example2b.out', 'wb') as f:
+                z.to_file(f, relativize=False, nl='\x0a', binary=True)
+            ok = filecmp.cmp('example2b.out', 'example2.good')
+        finally:
+            if not _keep_output:
+                os.unlink('example2b.out')
+        self.assertTrue(ok)
+
     def testToText(self):
         z = dns.zone.from_file('example', 'example')
         ok = False
         try:
             text_zone = z.to_text(nl='\x0a')
-            f = open('example3.out', 'wb')
+            f = open('example3.out', 'w')
             f.write(text_zone)
             f.close()
             ok = filecmp.cmp('example3.out', 'example3.good')

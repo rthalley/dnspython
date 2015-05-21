@@ -21,6 +21,7 @@ import builtins
 import io
 import re
 import sys
+import os
 
 import dns.exception
 import dns.name
@@ -444,7 +445,7 @@ class Zone(object):
                     for rdata in rds:
                         yield (name, rds.ttl, rdata)
 
-    def to_file(self, f, sorted=True, relativize=True, nl=None):
+    def to_file(self, f, sorted=True, relativize=True, nl=None, binary=False):
         """Write a zone to a file.
 
         @param f: file or string.  If I{f} is a string, it is treated
@@ -460,17 +461,23 @@ class Zone(object):
         output will use the platform's native end-of-line marker (i.e.
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
+        @param binary: True if the file is open in binary mode
+        @type binary: bool
         """
 
         if nl is None:
-            opts = 'w'
-        else:
-            opts = 'wb'
+            nl = os.linesep
+
         if isinstance(f, str):
-            f = open(f, opts)
+            if binary:
+                mode = 'wb'
+            else:
+                mode = 'w'
+            f = open(f, mode)
             want_close = True
         else:
             want_close = False
+
         try:
             if sorted:
                 names = builtins.sorted(self.keys())
@@ -479,11 +486,12 @@ class Zone(object):
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize)
-                if nl is None:
-                    print(l, file=f)
-                else:
+                if binary:
                     f.write(l.encode('ascii'))
                     f.write(nl.encode('ascii'))
+                else:
+                    f.write(l)
+                    f.write(nl)
         finally:
             if want_close:
                 f.close()
