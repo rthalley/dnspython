@@ -40,6 +40,7 @@ __all__ = [
     'SOA',
     'SPF',
     'SSHFP',
+    'TLSA',
     'TXT',
     'X25',
 ]
