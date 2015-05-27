@@ -52,7 +52,7 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_class_totext1(self):
         self.assertTrue(dns.rdataclass.to_text(dns.rdataclass.IN) == 'IN')
 
-    def test_class_totext1(self):
+    def test_class_totext2(self):
         self.assertTrue(dns.rdataclass.to_text(999) == 'CLASS999')
 
     def test_class_totext_bounds1(self):
@@ -106,7 +106,7 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_type_totext1(self):
         self.assertTrue(dns.rdatatype.to_text(dns.rdatatype.A) == 'A')
 
-    def test_type_totext1(self):
+    def test_type_totext2(self):
         self.assertTrue(dns.rdatatype.to_text(999) == 'TYPE999')
 
     def test_type_totext_bounds1(self):

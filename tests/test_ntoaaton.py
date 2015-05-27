@@ -67,22 +67,6 @@ class NtoAAtoNTestCase(unittest.TestCase):
             a = aton6('1:2:3:4:5:6:7:8:9')
         self.assertRaises(dns.exception.SyntaxError, bad)
 
-    def test_aton1(self):
-        a = aton6('::')
-        self.assertTrue(a == b'\x00' * 16)
-
-    def test_aton2(self):
-        a = aton6('::1')
-        self.assertTrue(a == b'\x00' * 15 + b'\x01')
-
-    def test_aton3(self):
-        a = aton6('::10.0.0.1')
-        self.assertTrue(a == b'\x00' * 12 + b'\x0a\x00\x00\x01')
-
-    def test_aton4(self):
-        a = aton6('abcd::dcba')
-        self.assertTrue(a == b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
-
     def test_ntoa1(self):
         b = bytes.fromhex('00010002000300040005000600070008')
         t = ntoa6(b)

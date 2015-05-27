@@ -113,7 +113,7 @@ class NameTestCase(unittest.TestCase):
     def testAbs3(self):
         self.assertTrue(self.origin.is_absolute())
 
-    def testAbs3(self):
+    def testAbs4(self):
         n = dns.name.from_text('foo', origin=None)
         self.assertTrue(not n.is_absolute())
 
@@ -299,7 +299,7 @@ class NameTestCase(unittest.TestCase):
         r = n1 + n2
         self.assertTrue(r == e)
 
-    def testConcat2(self):
+    def testConcat2a(self):
         n1 = dns.name.Name([])
         n2 = dns.name.Name(['a', 'b'])
         e = dns.name.Name(['a', 'b'])

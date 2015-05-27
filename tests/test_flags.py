@@ -38,7 +38,7 @@ class FlagsTestCase(unittest.TestCase):
         self.assertTrue(dns.rcode.from_flags(0, 0x01000000) == \
                         dns.rcode.BADVERS)
 
-    def test_rcode6(self):
+    def test_rcode6a(self):
         self.assertTrue(dns.rcode.from_flags(5, 0) == dns.rcode.REFUSED)
 
     def test_rcode7(self):
