@@ -73,12 +73,13 @@ def query(number, domains, resolver=None):
     """
     if resolver is None:
         resolver = dns.resolver.get_default_resolver()
+    e_nx = dns.resolver.NXDOMAIN()
     for domain in domains:
         if isinstance(domain, string_types):
             domain = dns.name.from_text(domain)
         qname = dns.e164.from_e164(number, domain)
         try:
             return resolver.query(qname, 'NAPTR')
-        except dns.resolver.NXDOMAIN:
-            pass
-    raise dns.resolver.NXDOMAIN
+        except dns.resolver.NXDOMAIN as e:
+            e_nx += e
+    raise e_nx
