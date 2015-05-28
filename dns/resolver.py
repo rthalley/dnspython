@@ -48,21 +48,54 @@ if sys.platform == 'win32':
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
-    supp_kwargs = set(['qname'])
+    supp_kwargs = set(['qnames', 'responses'])
+
+    def __init__(self, qnames, responses=None):
+        if not isinstance(qnames, (list, tuple, set)):
+            qnames=[qnames]
+        if responses is None:
+            responses = {}
+        return super(NXDOMAIN, self).__init__(
+            qnames=qnames, responses=responses)
 
     def __str__(self):
-        if not 'qname' in self.kwargs:
+        if not 'qnames' in self.kwargs:
             return super(NXDOMAIN, self).__str__()
 
-        qname = self.kwargs['qname']
-        msg = self.__doc__[:-1]
-        if isinstance(qname, (list, set)):
-            if len(qname) > 1:
-                msg = 'None of DNS query names exist'
-                qname = list(map(str, qname))
-            else:
-                qname = qname[0]
-        return "%s: %s" % (msg, (str(qname)))
+        qnames = self.kwargs['qnames']
+        if len(qnames) > 1:
+            msg = 'None of DNS query names exist'
+        else:
+            msg = self.__doc__[:-1]
+        qnames = ', '.join(map(str, qnames))
+        return "%s: %s" % (msg, qnames)
+
+    def canonical_name(self):
+        IN = dns.rdataclass.IN
+        CNAME = dns.rdatatype.CNAME
+        cname = None
+        for qname in self.kwargs['qnames']:
+            response = self.kwargs['responses'][qname]
+            for answer in response.answer:
+                if answer.rdtype != CNAME or answer.rdclass != IN:
+                    continue
+                cname = answer.items[0].target.to_text()
+            if cname is not None:
+                return dns.name.from_text(cname)
+    canonical_name = property(canonical_name, doc=(
+        "Return the unresolved canonical name."))
+
+    def __add__(self, e_nx):
+        """Augment by results from another NXDOMAIN exception."""
+        qnames0 = self.kwargs['qnames']
+        responses0 = self.kwargs['responses']
+        responses1 = e_nx.kwargs['responses']
+        for qname1 in e_nx.kwargs['qnames']:
+            if qname1 not in qnames0:
+                qnames0.append(qname1)
+            responses0[qname1] = responses1[qname1]
+        return self
+
 
 class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
@@ -823,6 +856,7 @@ class Resolver(object):
             else:
                 qnames_to_try.append(qname.concatenate(self.domain))
         all_nxdomain = True
+        nxdomain_responses = {}
         start = time.time()
         for qname in qnames_to_try:
             if self.cache:
@@ -947,11 +981,12 @@ class Resolver(object):
                     backoff *= 2
                     time.sleep(sleep_time)
             if response.rcode() == dns.rcode.NXDOMAIN:
+                nxdomain_responses[qname] = response
                 continue
             all_nxdomain = False
             break
         if all_nxdomain:
-            raise NXDOMAIN(qname=qnames_to_try)
+            raise NXDOMAIN(qnames=qnames_to_try, responses=nxdomain_responses)
         answer = Answer(qname, rdtype, rdclass, response,
                         raise_on_no_answer)
         if self.cache:

@@ -47,6 +47,34 @@ example. 1 IN A 10.0.0.1
 ;ADDITIONAL
 """
 
+dangling_cname_1_message_text = """id 10001
+opcode QUERY
+rcode NOERROR
+flags QR AA RD RA
+;QUESTION
+91.11.17.172.in-addr.arpa. IN PTR
+;ANSWER
+11.17.172.in-addr.arpa. 86400 IN DNAME 11.8-22.17.172.in-addr.arpa.
+91.11.17.172.in-addr.arpa. 86400 IN CNAME 91.11.8-22.17.172.in-addr.arpa.
+;AUTHORITY
+;ADDITIONAL
+"""
+
+dangling_cname_2_message_text = """id 10002
+opcode QUERY
+rcode NOERROR
+flags QR AA RD RA
+;QUESTION
+91.11.17.172.in-addr.arpa.example. IN PTR
+;ANSWER
+91.11.17.172.in-addr.arpa.example. 86400 IN CNAME 91.11.17.172.in-addr.arpa.base.
+91.11.17.172.in-addr.arpa.base. 86400 IN CNAME 91.11.17.172.clients.example.
+91.11.17.172.clients.example. 86400 IN CNAME 91-11-17-172.dynamic.example.
+;AUTHORITY
+;ADDITIONAL
+"""
+
+
 class BaseResolverTests(object):
 
     if sys.platform != 'win32':
@@ -122,6 +150,39 @@ if hasattr(select, 'poll'):
     class PollResolverTestCase(PollingMonkeyPatchMixin, BaseResolverTests, unittest.TestCase):
         def polling_backend(self):
             return dns.query._poll_for
+
+class NXDOMAINExceptionTestCase(unittest.TestCase):
+
+    def test_nxdomain_merge(self):
+        n1 = dns.name.Name(('a', 'b', ''))
+        n2 = dns.name.Name(('a', 'b', ''))
+        n3 = dns.name.Name(('a', 'b', 'c', ''))
+        n4 = dns.name.Name(('a', 'b', 'd', ''))
+        responses1 = {n1: 'r1.1', n2: 'r1.2', n4: 'r1.4'}
+        qnames1 = [n1, n4]   # n2 == n1
+        responses2 = {n2: 'r2.2', n3: 'r2.3'}
+        qnames2 = [n2, n3]
+        e1 = dns.resolver.NXDOMAIN(qnames=qnames1, responses=responses1)
+        e2 = dns.resolver.NXDOMAIN(qnames=qnames2, responses=responses2)
+        e = e1 + e2
+        self.failUnless(e.kwargs['qnames'] == [n1, n4, n3])
+        self.failUnless(e.kwargs['responses'][n1].startswith('r2.'))
+        self.failUnless(e.kwargs['responses'][n2].startswith('r2.'))
+        self.failUnless(e.kwargs['responses'][n3].startswith('r2.'))
+        self.failUnless(e.kwargs['responses'][n4].startswith('r1.'))
+
+    def test_nxdomain_canonical_name(self):
+        cname1 = "91.11.8-22.17.172.in-addr.arpa."
+        cname2 = "91-11-17-172.dynamic.example."
+        message1 = dns.message.from_text(dangling_cname_1_message_text)
+        message2 = dns.message.from_text(dangling_cname_2_message_text)
+        qname1 = message1.question[0].name
+        qname2 = message2.question[0].name
+        responses = {qname1: message1, qname2: message2}
+        e1 = dns.resolver.NXDOMAIN(qnames=[qname1, qname2], responses=responses)
+        e2 = dns.resolver.NXDOMAIN(qnames=[qname2, qname1], responses=responses)
+        self.failUnless(e1.canonical_name == dns.name.from_text(cname1))
+        self.failUnless(e2.canonical_name == dns.name.from_text(cname2))
 
 if __name__ == '__main__':
     unittest.main()
