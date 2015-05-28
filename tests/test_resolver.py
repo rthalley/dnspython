@@ -153,6 +153,20 @@ if hasattr(select, 'poll'):
 
 class NXDOMAINExceptionTestCase(unittest.TestCase):
 
+    def test_nxdomain_compatible(self):
+        def do0():
+            raise dns.resolver.NXDOMAIN
+        def do(*args, **kwargs):
+            raise dns.resolver.NXDOMAIN(*args, **kwargs)
+        n1 = dns.name.Name(('a', 'b', ''))
+        self.failUnlessRaises(dns.resolver.NXDOMAIN, do0)
+        self.failUnlessRaises(dns.resolver.NXDOMAIN, do)
+        self.failUnlessRaises(dns.resolver.NXDOMAIN, do, "errmsg")
+        self.failUnlessRaises(dns.resolver.NXDOMAIN, do, "errmsg", -1)
+        self.failUnlessRaises(dns.resolver.NXDOMAIN, do, qnames=[])
+        self.failUnlessRaises(dns.resolver.NXDOMAIN, do, qnames=[n1])
+        self.failUnlessRaises(dns.resolver.NXDOMAIN, do, qnames=[n1], responses=['r1.1'])
+
     def test_nxdomain_merge(self):
         n1 = dns.name.Name(('a', 'b', ''))
         n2 = dns.name.Name(('a', 'b', ''))

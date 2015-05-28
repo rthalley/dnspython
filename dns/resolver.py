@@ -50,9 +50,12 @@ class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
     supp_kwargs = set(['qnames', 'responses'])
 
-    def __init__(self, qnames, responses=None):
-        if not isinstance(qnames, (list, tuple, set)):
-            qnames=[qnames]
+    def __init__(self, qnames=None, responses=None):
+        if qnames is not None:
+            if not isinstance(qnames, (list, tuple, set)):
+                qnames=[qnames]
+        else:
+            qnames = []
         if responses is None:
             responses = {}
         return super(NXDOMAIN, self).__init__(
