@@ -47,6 +47,17 @@ example. 1 IN A 10.0.0.1
 ;ADDITIONAL
 """
 
+dangling_cname_0_message_text = """id 10000
+opcode QUERY
+rcode NOERROR
+flags QR AA RD RA
+;QUESTION
+91.11.17.172.in-addr.arpa.none. IN PTR
+;ANSWER
+;AUTHORITY
+;ADDITIONAL
+"""
+
 dangling_cname_1_message_text = """id 10001
 opcode QUERY
 rcode NOERROR
@@ -186,15 +197,20 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         self.failUnless(e.kwargs['responses'][n4].startswith('r1.'))
 
     def test_nxdomain_canonical_name(self):
+        cname0 = "91.11.8-22.17.172.in-addr.arpa.none."
         cname1 = "91.11.8-22.17.172.in-addr.arpa."
         cname2 = "91-11-17-172.dynamic.example."
+        message0 = dns.message.from_text(dangling_cname_0_message_text)
         message1 = dns.message.from_text(dangling_cname_1_message_text)
         message2 = dns.message.from_text(dangling_cname_2_message_text)
+        qname0 = message0.question[0].name
         qname1 = message1.question[0].name
         qname2 = message2.question[0].name
-        responses = {qname1: message1, qname2: message2}
-        e1 = dns.resolver.NXDOMAIN(qnames=[qname1, qname2], responses=responses)
-        e2 = dns.resolver.NXDOMAIN(qnames=[qname2, qname1], responses=responses)
+        responses = {qname0: message0, qname1: message1, qname2: message2}
+        e0 = dns.resolver.NXDOMAIN(qnames=[qname0], responses=responses)
+        e1 = dns.resolver.NXDOMAIN(qnames=[qname0, qname1, qname2], responses=responses)
+        e2 = dns.resolver.NXDOMAIN(qnames=[qname0, qname2, qname1], responses=responses)
+        self.failUnless(e0.canonical_name == qname0)
         self.failUnless(e1.canonical_name == dns.name.from_text(cname1))
         self.failUnless(e2.canonical_name == dns.name.from_text(cname2))
 
