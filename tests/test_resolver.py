@@ -263,6 +263,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         e1 = dns.resolver.NXDOMAIN(qnames=qnames1, responses=responses1)
         e2 = dns.resolver.NXDOMAIN(qnames=qnames2, responses=responses2)
         e = e1 + e0 + e2
+        self.assertRaises(AttributeError, lambda : e0 + e0)
         self.assertTrue(e.kwargs['qnames'] == [n1, n4, n3], repr(e.kwargs['qnames']))
         self.assertTrue(e.kwargs['responses'][n1].startswith('r2.'))
         self.assertTrue(e.kwargs['responses'][n2].startswith('r2.'))
@@ -280,9 +281,11 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         qname1 = message1.question[0].name
         qname2 = message2.question[0].name
         responses = {qname0: message0, qname1: message1, qname2: message2}
+        eX = dns.resolver.NXDOMAIN()
         e0 = dns.resolver.NXDOMAIN(qnames=[qname0], responses=responses)
         e1 = dns.resolver.NXDOMAIN(qnames=[qname0, qname1, qname2], responses=responses)
         e2 = dns.resolver.NXDOMAIN(qnames=[qname0, qname2, qname1], responses=responses)
+        self.assertRaises(TypeError, lambda : eX.canonical_name)
         self.assertTrue(e0.canonical_name == qname0)
         self.assertTrue(e1.canonical_name == dns.name.from_text(cname1))
         self.assertTrue(e2.canonical_name == dns.name.from_text(cname2))

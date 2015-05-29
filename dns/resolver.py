@@ -75,6 +75,8 @@ class NXDOMAIN(dns.exception.DNSException):
         return "%s: %s" % (msg, qnames)
 
     def canonical_name(self):
+        if not 'qnames' in self.kwargs:
+            raise TypeError("parametrized exception required")
         IN = dns.rdataclass.IN
         CNAME = dns.rdatatype.CNAME
         cname = None
@@ -86,10 +88,7 @@ class NXDOMAIN(dns.exception.DNSException):
                 cname = answer.items[0].target.to_text()
             if cname is not None:
                 return dns.name.from_text(cname)
-        try:
-            return self.kwargs['qnames'][0]
-        except KeyError:
-            return NOne
+        return self.kwargs['qnames'][0]
     canonical_name = property(canonical_name, doc=(
         "Return the unresolved canonical name."))
 
