@@ -44,8 +44,10 @@ class DNSException(Exception):
 
     def __init__(self, *args, **kwargs):
         self._check_params(*args, **kwargs)
-        self._check_kwargs(**kwargs)
-        self.kwargs = kwargs
+        if kwargs:
+            self.kwargs = self._check_kwargs(**kwargs)
+        else:
+            self.kwargs = dict()  # defined but empty for old mode exceptions
         if self.msg is None:
             # doc string is better implicit message than empty string
             self.msg = self.__doc__
@@ -67,6 +69,7 @@ class DNSException(Exception):
             assert set(kwargs.keys()) == self.supp_kwargs, \
                 'following set of keyword args is required: %s' % (
                     self.supp_kwargs)
+        return kwargs
 
     def _fmt_kwargs(self, **kwargs):
         """Format kwargs before printing them.

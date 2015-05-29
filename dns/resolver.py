@@ -49,22 +49,23 @@ if sys.platform == 'win32':
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
     supp_kwargs = set(['qnames', 'responses'])
+    fmt = None  # we have our own __str__ implementation
 
-    def __init__(self, qnames=None, responses=None):
-        if qnames is not None:
-            if not isinstance(qnames, (list, tuple, set)):
-                qnames=[qnames]
-        else:
-            qnames = []
+    def _check_kwargs(self, qnames, responses=None):
+        if not isinstance(qnames, (list, tuple, set)):
+            raise AttributeError("qnames must be a list, tuple or set")
+        if len(qnames) == 0:
+            raise AttributeError("qnames must contain at least one element")
         if responses is None:
             responses = {}
-        return super(NXDOMAIN, self).__init__(
-            qnames=qnames, responses=responses)
+        elif not isinstance(responses, dict):
+            raise AttributeError("responses must be a dict(qname=response)")
+        kwargs = dict(qnames=qnames, responses=responses)
+        return kwargs
 
     def __str__(self):
         if not 'qnames' in self.kwargs:
             return super(NXDOMAIN, self).__str__()
-
         qnames = self.kwargs['qnames']
         if len(qnames) > 1:
             msg = 'None of DNS query names exist'
@@ -94,14 +95,15 @@ class NXDOMAIN(dns.exception.DNSException):
 
     def __add__(self, e_nx):
         """Augment by results from another NXDOMAIN exception."""
-        qnames0 = self.kwargs['qnames']
-        responses0 = self.kwargs['responses']
-        responses1 = e_nx.kwargs['responses']
-        for qname1 in e_nx.kwargs['qnames']:
+        qnames0 = list(self.kwargs.get('qnames', []))
+        responses0 = dict(self.kwargs.get('responses', {}))
+        responses1 = e_nx.kwargs.get('responses', {})
+        for qname1 in e_nx.kwargs.get('qnames', []):
             if qname1 not in qnames0:
                 qnames0.append(qname1)
-            responses0[qname1] = responses1[qname1]
-        return self
+            if qname1 in responses1:
+                responses0[qname1] = responses1[qname1]
+        return NXDOMAIN(qnames=qnames0, responses=responses0)
 
 
 class YXDOMAIN(dns.exception.DNSException):
