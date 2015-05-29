@@ -68,7 +68,7 @@ def query(number, domains, resolver=None):
     """
     if resolver is None:
         resolver = dns.resolver.get_default_resolver()
-    e_nx = dns.resolver.NXDOMAIN(qnames=[])
+    e_nx = dns.resolver.NXDOMAIN()
     for domain in domains:
         if isinstance(domain, str):
             domain = dns.name.from_text(domain)

@@ -46,6 +46,7 @@ class DNSException(Exception):
         self._check_params(*args, **kwargs)
         if kwargs:
             self.kwargs = self._check_kwargs(**kwargs)
+            self.msg = str(self)
         else:
             self.kwargs = dict()  # defined but empty for old mode exceptions
         if self.msg is None:
