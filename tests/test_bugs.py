@@ -14,6 +14,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import binascii
+import io
 import unittest
 
 import dns.rdata
@@ -59,6 +60,17 @@ class BugsTestCase(unittest.TestCase):
                                      b"", 0, 0)
         self.assertTrue(rdata == rdata2)
 
+    def test_CAA_from_wire(self):
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CAA,
+                                    '0 issue "ca.example.net"');
+        f = io.BytesIO()
+        rdata.to_wire(f)
+        wire = f.getvalue()
+        rdlen = len(wire)
+        wire += b"trailing garbage"
+        rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.CAA,
+                                     wire, 0, rdlen)
+        self.failUnless(rdata == rdata2)
 
 if __name__ == '__main__':
     unittest.main()
