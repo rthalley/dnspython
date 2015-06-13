@@ -13,6 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import cStringIO
 import unittest
 
 import dns.rdata
@@ -50,6 +51,18 @@ class BugsTestCase(unittest.TestCase):
                                     "")
         rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.APL,
                                      "", 0, 0)
+        self.failUnless(rdata == rdata2)
+
+    def test_CAA_from_wire(self):
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CAA,
+                                    '0 issue "ca.example.net"');
+        f = cStringIO.StringIO()
+        rdata.to_wire(f)
+        wire = f.getvalue()
+        rdlen = len(wire)
+        wire += "trailing garbage"
+        rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.CAA,
+                                     wire, 0, rdlen)
         self.failUnless(rdata == rdata2)
 
 if __name__ == '__main__':

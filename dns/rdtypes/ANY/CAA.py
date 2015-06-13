@@ -67,7 +67,7 @@ class CAA(dns.rdata.Rdata):
         (flags, l) = struct.unpack('!BB', wire[current : current + 2])
         current += 2
         tag = wire[current : current + l].unwrap()
-        value = wire[current + l:].unwrap()
+        value = wire[current + l:current + rdlen - 2].unwrap()
         return cls(rdclass, rdtype, flags, tag, value)
 
     from_wire = classmethod(from_wire)
