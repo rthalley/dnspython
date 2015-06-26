@@ -15,6 +15,8 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
+import os
+
 import dns.rdataset
 import dns.rdatatype
 import dns.renderer
@@ -48,14 +50,14 @@ class Node(object):
         the records will be written in whatever order they happen to have
         in the node.
         """
-
+        nl = kw.get('nl', os.linesep)
         texts = []
         for rds in self.rdatasets:
             if len(rds) > 0:
-                texts += rds.to_text(name, **kw).split('\n')
+                texts += rds.to_text(name, **kw).split(nl)
         if sorted:
             texts.sort()
-        return '\n'.join(texts)
+        return nl.join(texts)
 
     def __repr__(self):
         return '<DNS node ' + str(id(self)) + '>'
