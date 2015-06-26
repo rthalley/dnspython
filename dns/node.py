@@ -15,8 +15,6 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-import StringIO
-
 import dns.rdataset
 import dns.rdatatype
 import dns.renderer
@@ -37,7 +35,7 @@ class Node(object):
 
         self.rdatasets = [];
 
-    def to_text(self, name, **kw):
+    def to_text(self, name, sorted=True, **kw):
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
@@ -45,13 +43,19 @@ class Node(object):
         @param name: the owner name of the rdatasets
         @type name: dns.name.Name object
         @rtype: string
+        @param sorted: if True, the text will be written with the
+        records sorted in DNSSEC order from least to greatest.  Otherwise
+        the records will be written in whatever order they happen to have
+        in the node.
         """
 
-        s = StringIO.StringIO()
+        texts = []
         for rds in self.rdatasets:
             if len(rds) > 0:
-                print >> s, rds.to_text(name, **kw)
-        return s.getvalue()[:-1]
+                texts += rds.to_text(name, **kw).split('\n')
+        if sorted:
+            texts.sort()
+        return '\n'.join(texts)
 
     def __repr__(self):
         return '<DNS node ' + str(id(self)) + '>'
