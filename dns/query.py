@@ -184,7 +184,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     @param port: The port to which to send the message.  The default is 53.
     @type port: int
     @param af: the address family to use.  The default is None, which
-    causes the address family to use to be inferred from the form of of where.
+    causes the address family to use to be inferred from the form of where.
     If the inference attempt fails, AF_INET is used.
     @type af: int
     @rtype: dns.message.Message object
@@ -284,7 +284,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     @param port: The port to which to send the message.  The default is 53.
     @type port: int
     @param af: the address family to use.  The default is None, which
-    causes the address family to use to be inferred from the form of of where.
+    causes the address family to use to be inferred from the form of where.
     If the inference attempt fails, AF_INET is used.
     @type af: int
     @rtype: dns.message.Message object
@@ -359,7 +359,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     the one specified to dns.zone.from_xfr().
     @type relativize: bool
     @param af: the address family to use.  The default is None, which
-    causes the address family to use to be inferred from the form of of where.
+    causes the address family to use to be inferred from the form of where.
     If the inference attempt fails, AF_INET is used.
     @type af: int
     @param lifetime: The total number of seconds to spend doing the transfer.
