@@ -463,8 +463,8 @@ class Resolver(object):
     @ivar domain: The domain of this host
     @type domain: dns.name.Name object
     @ivar nameservers: A list of nameservers to query.  Each nameserver is
-    a tuple containing the IP address and port of of a nameserver.
-    @type nameservers: list of (str, int) tuples.
+    a string which contains the IP address of a nameserver.
+    @type nameservers: list of strings
     @ivar search: The search list.  If the query name is a relative name,
     the resolver will construct an absolute query name by appending the search
     names one by one to the query name.
@@ -527,6 +527,7 @@ class Resolver(object):
             self.domain = dns.name.root
         self.nameservers = []
         self.search = []
+        self.port = 53
         self.timeout = 2.0
         self.lifetime = 30.0
         self.keyring = None
@@ -550,7 +551,7 @@ class Resolver(object):
             except IOError:
                 # /etc/resolv.conf doesn't exist, can't be read, etc.
                 # We'll just use the default resolver configuration.
-                self.nameservers = [('127.0.0.1', 53)]
+                self.nameservers = ['127.0.0.1']
                 return
             want_close = True
         else:
@@ -563,7 +564,7 @@ class Resolver(object):
                 if len(tokens) == 0:
                     continue
                 if tokens[0] == 'nameserver':
-                    self.nameservers.append((tokens[1], 53))
+                    self.nameservers.append(tokens[1])
                 elif tokens[0] == 'domain':
                     self.domain = dns.name.from_text(tokens[1])
                 elif tokens[0] == 'search':
@@ -576,7 +577,7 @@ class Resolver(object):
             if want_close:
                 f.close()
         if len(self.nameservers) == 0:
-            self.nameservers.append(('127.0.0.1', 53))
+            self.nameservers.append('127.0.0.1')
 
     def _determine_split_char(self, entry):
         #
@@ -598,9 +599,9 @@ class Resolver(object):
         # we call str() on nameservers to convert it from unicode to ascii
         nameservers = str(nameservers)
         split_char = self._determine_split_char(nameservers)
-        ns_list = [(ns, 53) for ns in nameservers.split(split_char)]
+        ns_list = nameservers.split(split_char)
         for ns in ns_list:
-            if ns not in self.nameservers:
+            if not ns in self.nameservers:
                 self.nameservers.append(ns)
 
     def _config_win32_domain(self, domain):
@@ -852,18 +853,18 @@ class Resolver(object):
             while response is None:
                 if len(nameservers) == 0:
                     raise NoNameservers(request=request, errors=errors)
-                for nameserver, port in nameservers[:]:
+                for nameserver in nameservers[:]:
                     timeout = self._compute_timeout(start)
                     try:
                         tcp_attempt = tcp
                         if tcp:
                             response = dns.query.tcp(request, nameserver,
-                                                     timeout, port,
+                                                     timeout, self.port,
                                                      source=source,
                                                      source_port=source_port)
                         else:
                             response = dns.query.udp(request, nameserver,
-                                                     timeout, port,
+                                                     timeout, self.port,
                                                      source=source,
                                                      source_port=source_port)
                             if response.flags & dns.flags.TC:
@@ -871,7 +872,7 @@ class Resolver(object):
                                 tcp_attempt = True
                                 timeout = self._compute_timeout(start)
                                 response = dns.query.tcp(request, nameserver,
-                                                       timeout, port,
+                                                       timeout, self.port,
                                                        source=source,
                                                        source_port=source_port)
                     except (socket.error, dns.exception.Timeout) as ex:
@@ -879,7 +880,7 @@ class Resolver(object):
                         # Communication failure or timeout.  Go to the
                         # next server
                         #
-                        errors.append((nameserver, tcp_attempt, port, ex,
+                        errors.append((nameserver, tcp_attempt, self.port, ex,
                                        response))
                         response = None
                         continue
@@ -887,7 +888,7 @@ class Resolver(object):
                         #
                         # Who knows?  Keep going.
                         #
-                        errors.append((nameserver, tcp_attempt, port, ex,
+                        errors.append((nameserver, tcp_attempt, self.port, ex,
                                        response))
                         response = None
                         continue
@@ -897,8 +898,8 @@ class Resolver(object):
                         # saying.  Take it out of the mix and
                         # continue.
                         #
-                        nameservers.remove((nameserver, port))
-                        errors.append((nameserver, tcp_attempt, port, ex,
+                        nameservers.remove(nameserver)
+                        errors.append((nameserver, tcp_attempt, self.port, ex,
                                        response))
                         response = None
                         continue
@@ -909,15 +910,15 @@ class Resolver(object):
                         # they're supposed to!).  Take it out of the
                         # mix and continue.
                         #
-                        nameservers.remove((nameserver, port))
-                        errors.append((nameserver, tcp_attempt, port, ex,
+                        nameservers.remove(nameserver)
+                        errors.append((nameserver, tcp_attempt, self.port, ex,
                                        response))
                         response = None
                         continue
                     rcode = response.rcode()
                     if rcode == dns.rcode.YXDOMAIN:
                         ex = YXDOMAIN()
-                        errors.append((nameserver, tcp_attempt, port, ex,
+                        errors.append((nameserver, tcp_attempt, self.port, ex,
                                        response))
                         raise ex
                     if rcode == dns.rcode.NOERROR or \
@@ -929,8 +930,8 @@ class Resolver(object):
                     # the rcode isn't SERVFAIL.
                     #
                     if rcode != dns.rcode.SERVFAIL or not self.retry_servfail:
-                        nameservers.remove((nameserver, port))
-                    errors.append((nameserver, tcp_attempt, port,
+                        nameservers.remove(nameserver)
+                    errors.append((nameserver, tcp_attempt, self.port,
                                    dns.rcode.to_text(rcode), response))
                     response = None
                 if not response is None:
