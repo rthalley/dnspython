@@ -93,6 +93,7 @@ class DNSKEY(dns.rdata.Rdata):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
                                 dns.rdata._base64ify(self.key))
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         flags = tok.get_uint16()
         protocol = tok.get_uint8()
@@ -109,13 +110,12 @@ class DNSKEY(dns.rdata.Rdata):
         key = b64.decode('base64_codec')
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)
 
-    from_text = classmethod(from_text)
-
     def to_wire(self, file, compress = None, origin = None):
         header = struct.pack("!HBB", self.flags, self.protocol, self.algorithm)
         file.write(header)
         file.write(self.key)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         if rdlen < 4:
             raise dns.exception.FormError
@@ -125,8 +125,6 @@ class DNSKEY(dns.rdata.Rdata):
         key = wire[current : current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
-
-    from_wire = classmethod(from_wire)
 
     def flags_to_text_set(self):
         """Convert a DNSKEY flags value to set texts

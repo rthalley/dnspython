@@ -41,14 +41,13 @@ class MXBase(dns.rdata.Rdata):
         exchange = self.exchange.choose_relativity(origin, relativize)
         return '%d %s' % (self.preference, exchange)
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         preference = tok.get_uint16()
         exchange = tok.get_name()
         exchange = exchange.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, preference, exchange)
-
-    from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         pref = struct.pack("!H", self.preference)
@@ -59,6 +58,7 @@ class MXBase(dns.rdata.Rdata):
         return struct.pack("!H", self.preference) + \
             self.exchange.to_digestable(origin)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (preference, ) = struct.unpack('!H', wire[current : current + 2])
         current += 2
@@ -70,8 +70,6 @@ class MXBase(dns.rdata.Rdata):
         if not origin is None:
             exchange = exchange.relativize(origin)
         return cls(rdclass, rdtype, preference, exchange)
-
-    from_wire = classmethod(from_wire)
 
     def choose_relativity(self, origin = None, relativize = True):
         self.exchange = self.exchange.choose_relativity(origin, relativize)

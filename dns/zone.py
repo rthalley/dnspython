@@ -208,7 +208,7 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if self.nodes.has_key(name):
+        if name in self.nodes:
             del self.nodes[name]
 
     def find_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
@@ -892,7 +892,7 @@ class _MasterReader(object):
                     continue
                 self.tok.unget(token)
                 self._rr_line()
-        except dns.exception.SyntaxError, detail:
+        except dns.exception.SyntaxError as detail:
             (filename, line_number) = self.tok.where()
             if detail is None:
                 detail = "syntax error"

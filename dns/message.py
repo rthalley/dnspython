@@ -166,7 +166,7 @@ class Message(object):
         self.index = {}
 
     def __repr__(self):
-        return '<DNS message, ID ' + `self.id` + '>'
+        return '<DNS message, ID ' + repr(self.id) + '>'
 
     def __str__(self):
         return self.to_text()
@@ -492,7 +492,7 @@ class Message(object):
             options = []
         else:
             # make sure the EDNS version in ednsflags agrees with edns
-            ednsflags &= 0xFF00FFFFL
+            ednsflags &= 0xFF00FFFF
             ednsflags |= (edns << 16)
             if options is None:
                 options = []
@@ -530,7 +530,7 @@ class Message(object):
         (value, evalue) = dns.rcode.to_flags(rcode)
         self.flags &= 0xFFF0
         self.flags |= value
-        self.ednsflags &= 0x00FFFFFFL
+        self.ednsflags &= 0x00FFFFFF
         self.ednsflags |= evalue
         if self.ednsflags != 0 and self.edns < 0:
             self.edns = 0

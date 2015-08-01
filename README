@@ -520,7 +520,7 @@ the prior release.
 
 REQUIREMENTS
 
-Python 2.4 or later.
+Python 2.6 or later (but not 3.x).
 
 
 INSTALLATION

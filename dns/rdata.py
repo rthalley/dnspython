@@ -257,6 +257,7 @@ class Rdata(object):
     def __hash__(self):
         return hash(self.to_digestable(dns.name.root))
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         """Build an rdata object from text format.
 
@@ -275,8 +276,7 @@ class Rdata(object):
 
         raise NotImplementedError
 
-    from_text = classmethod(from_text)
-
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         """Build an rdata object from wire format
 
@@ -296,8 +296,6 @@ class Rdata(object):
         """
 
         raise NotImplementedError
-
-    from_wire = classmethod(from_wire)
 
     def choose_relativity(self, origin = None, relativize = True):
         """Convert any domain names in the rdata to the specified
@@ -323,6 +321,7 @@ class GenericRdata(Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         return r'\# %d ' % len(self.data) + _hexify(self.data)
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         token = tok.get()
         if not token.is_identifier() or token.value != '\#':
@@ -340,15 +339,12 @@ class GenericRdata(Rdata):
             raise dns.exception.SyntaxError('generic rdata hex data has wrong length')
         return cls(rdclass, rdtype, data)
 
-    from_text = classmethod(from_text)
-
     def to_wire(self, file, compress = None, origin = None):
         file.write(self.data)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         return cls(rdclass, rdtype, wire[current : current + rdlen])
-
-    from_wire = classmethod(from_wire)
 
 _rdata_modules = {}
 _module_prefix = 'dns.rdtypes'

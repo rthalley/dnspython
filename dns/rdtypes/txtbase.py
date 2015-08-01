@@ -42,6 +42,7 @@ class TXTBase(dns.rdata.Rdata):
             prefix = ' '
         return txt
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         strings = []
         while 1:
@@ -57,8 +58,6 @@ class TXTBase(dns.rdata.Rdata):
             raise dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
 
-    from_text = classmethod(from_text)
-
     def to_wire(self, file, compress = None, origin = None):
         for s in self.strings:
             l = len(s)
@@ -67,6 +66,7 @@ class TXTBase(dns.rdata.Rdata):
             file.write(byte)
             file.write(s)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         strings = []
         while rdlen > 0:
@@ -80,5 +80,3 @@ class TXTBase(dns.rdata.Rdata):
             rdlen -= l
             strings.append(s)
         return cls(rdclass, rdtype, strings)
-
-    from_wire = classmethod(from_wire)

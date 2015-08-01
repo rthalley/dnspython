@@ -316,7 +316,7 @@ class Cache(object):
         try:
             self.lock.acquire()
             if not key is None:
-                if self.data.has_key(key):
+                if key in self.data:
                     del self.data[key]
             else:
                 self.data = {}

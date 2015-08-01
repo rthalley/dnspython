@@ -86,9 +86,9 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
         ctx.update(keyname.to_digestable())
         ctx.update(struct.pack('!H', dns.rdataclass.ANY))
         ctx.update(struct.pack('!I', 0))
-    long_time = time + 0L
-    upper_time = (long_time >> 32) & 0xffffL
-    lower_time = long_time & 0xffffffffL
+    long_time = time + 0
+    upper_time = (long_time >> 32) & 0xffff
+    lower_time = long_time & 0xffffffff
     time_mac = struct.pack('!HIH', upper_time, lower_time, fudge)
     pre_mac = algorithm_name + time_mac
     ol = len(other_data)
@@ -138,7 +138,7 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
     current = current + used
     (upper_time, lower_time, fudge, mac_size) = \
                  struct.unpack("!HIHH", wire[current:current + 10])
-    time = ((upper_time + 0L) << 32) + (lower_time + 0L)
+    time = ((upper_time + 0) << 32) + (lower_time + 0)
     current += 10
     mac = wire[current:current + mac_size]
     current += mac_size

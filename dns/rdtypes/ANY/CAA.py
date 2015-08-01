@@ -43,6 +43,7 @@ class CAA(dns.rdata.Rdata):
                                dns.rdata._escapify(self.tag),
                                dns.rdata._escapify(self.value))
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         flags = tok.get_uint8()
         tag = tok.get_string()
@@ -52,8 +53,6 @@ class CAA(dns.rdata.Rdata):
             raise dns.exception.SyntaxError("tag is not alphanumeric")
         value = tok.get_string()
         return cls(rdclass, rdtype, flags, tag, value)
-
-    from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         file.write(chr(self.flags))

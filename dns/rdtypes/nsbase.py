@@ -37,13 +37,12 @@ class NSBase(dns.rdata.Rdata):
         target = self.target.choose_relativity(origin, relativize)
         return str(target)
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
         target = tok.get_name()
         target = target.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, target)
-
-    from_text = classmethod(from_text)
 
     def to_wire(self, file, compress = None, origin = None):
         self.target.to_wire(file, compress, origin)
@@ -51,6 +50,7 @@ class NSBase(dns.rdata.Rdata):
     def to_digestable(self, origin = None):
         return self.target.to_digestable(origin)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
         (target, cused) = dns.name.from_wire(wire[: current + rdlen],
                                              current)
@@ -59,8 +59,6 @@ class NSBase(dns.rdata.Rdata):
         if not origin is None:
             target = target.relativize(origin)
         return cls(rdclass, rdtype, target)
-
-    from_wire = classmethod(from_wire)
 
     def choose_relativity(self, origin = None, relativize = True):
         self.target = self.target.choose_relativity(origin, relativize)

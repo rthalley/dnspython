@@ -33,6 +33,7 @@ class Option(object):
         """
         raise NotImplementedError
 
+    @classmethod
     def from_wire(cls, otype, wire, current, olen):
         """Build an EDNS option object from wire format
 
@@ -46,8 +47,6 @@ class Option(object):
         @type olen: int
         @rtype: dns.edns.Option instance"""
         raise NotImplementedError
-
-    from_wire = classmethod(from_wire)
 
     def _cmp(self, other):
         """Compare an EDNS option with another option of the same type.
@@ -108,13 +107,12 @@ class GenericOption(Option):
     def to_wire(self, file):
         file.write(self.data)
 
-    def from_wire(cls, otype, wire, current, olen):
-        return cls(otype, wire[current : current + olen])
-
-    from_wire = classmethod(from_wire)
-
     def _cmp(self, other):
         return cmp(self.data, other.data)
+
+    @classmethod
+    def from_wire(cls, otype, wire, current, olen):
+        return cls(otype, wire[current : current + olen])
 
 _type_to_class = {
 }
