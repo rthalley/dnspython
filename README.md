@@ -23,7 +23,7 @@ development by continuing to employ the author :).
 - If you have pip installed, you can do this
 `pip install dnspython`
 - If not just download the source file and unzip it, then run this
-`python setup.py install`
+`sudo python setup.py install`
 
 ## ABOUT THIS RELEASE
 
