@@ -1,6 +1,6 @@
 dnspython
 
-INTRODUCTION
+## INTRODUCTION
 
 dnspython is a DNS toolkit for Python. It supports almost all record
 types. It can be used for queries, zone transfers, and dynamic
@@ -19,8 +19,13 @@ the testing of DNS software.  Nominum has generously allowed it to be
 open sourced under a BSD-style license, and helps support its future
 development by continuing to employ the author :).
 
+## Installation
+- If you have pip installed, you can do this
+`pip install dnspython`
+- If not just download the source file and unzip it, then run this
+`sudo python setup.py install`
 
-ABOUT THIS RELEASE
+## ABOUT THIS RELEASE
 
 This is dnspython 1.12.0
 
