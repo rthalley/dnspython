@@ -1074,7 +1074,7 @@ _original_gethostbyname = socket.gethostbyname
 _original_gethostbyname_ex = socket.gethostbyname_ex
 _original_gethostbyaddr = socket.gethostbyaddr
 
-def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
+def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, type=0,
                  proto=0, flags=0):
     if flags & (socket.AI_ADDRCONFIG|socket.AI_V4MAPPED) != 0:
         raise NotImplementedError
@@ -1150,10 +1150,10 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
     if port is None:
         raise socket.gaierror(socket.EAI_NONAME)
     tuples = []
-    if socktype == 0:
+    if type == 0:
         socktypes = [socket.SOCK_DGRAM, socket.SOCK_STREAM]
     else:
-        socktypes = [socktype]
+        socktypes = [type]
     if flags & socket.AI_CANONNAME != 0:
         cname = canonical_name
     else:
