@@ -80,6 +80,11 @@ NSEC3 = 50
 NSEC3PARAM = 51
 TLSA = 52
 HIP = 55
+NINFO = 56
+RKEY = 57
+CDS = 59
+CDNSKEY = 60
+CSYNC = 62
 SPF = 99
 UNSPEC = 103
 TKEY = 249
@@ -89,6 +94,7 @@ AXFR = 252
 MAILB = 253
 MAILA = 254
 ANY = 255
+URI = 256
 CAA = 257
 TA = 32768
 DLV = 32769
@@ -144,6 +150,11 @@ _by_text = {
     'NSEC3PARAM' : NSEC3PARAM,
     'TLSA' : TLSA,
     'HIP' : HIP,
+    'NINFO' : NINFO,
+    'RKEY' : RKEY,
+    'CDS' : CDS,
+    'CDNSKEY' : CDNSKEY,
+    'CSYNC' : CSYNC,
     'SPF' : SPF,
     'UNSPEC' : UNSPEC,
     'TKEY' : TKEY,
@@ -153,6 +164,7 @@ _by_text = {
     'MAILB' : MAILB,
     'MAILA' : MAILA,
     'ANY' : ANY,
+    'URI' : URI,
     'CAA' : CAA,
     'TA' : TA,
     'DLV' : DLV,
