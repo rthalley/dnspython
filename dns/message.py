@@ -1095,7 +1095,7 @@ def make_response(query, recursion_available=False, our_payload=8192,
     if query.edns >= 0:
         response.use_edns(0, 0, our_payload, query.payload)
     if query.had_tsig:
-        response.use_tsig(query.keyring, query.keyname, fudge, None, 0, '',
+        response.use_tsig(query.keyring, query.keyname, fudge, None, 0, b'',
                           query.keyalgorithm)
         response.request_mac = query.mac
     return response
