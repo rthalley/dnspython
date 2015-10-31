@@ -13,35 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""Class ANY (generic) rdata type classes."""
+import dns.rdtypes.dsbase
 
-__all__ = [
-    'AFSDB',
-    'CDS',
-    'CERT',
-    'CNAME',
-    'DLV',
-    'DNAME',
-    'DNSKEY',
-    'DS',
-    'GPOS',
-    'HINFO',
-    'HIP',
-    'ISDN',
-    'LOC',
-    'MX',
-    'NS',
-    'NSEC',
-    'NSEC3',
-    'NSEC3PARAM',
-    'TLSA',
-    'PTR',
-    'RP',
-    'RRSIG',
-    'RT',
-    'SOA',
-    'SPF',
-    'SSHFP',
-    'TXT',
-    'X25',
-]
+class CDS(dns.rdtypes.dsbase.DSBase):
+    """CDS record"""
