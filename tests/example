@@ -212,6 +212,12 @@ dnskey02		DNSKEY	257 3 RSAMD5 (
 				yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3
 				GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o
 				jqf0BaqHT+8= )
+cdnskey01		CDNSKEY	256 3 8 (
+				AwEAAbmiLgh411Pz3v3XCSBrvYf52A/Gv55ItN1NbOLH
+				Cqt3Ec3p+VB/kQ87VjjMrycanZFnZT4l9uCFuYh21Ccy
+				xVpcxExbM0UuhX5rJoDyeFSXoQlkHrB01osPl5Vri5Ym
+				KtcmqGxZ9An0VSunohkyiX1SrNRZSdQnk9/pIHDe/c8D
+				)
 ;
 ; test known type using unknown RR syntax
 ;

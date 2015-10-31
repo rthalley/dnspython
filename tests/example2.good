@@ -20,6 +20,7 @@ caa03.example. 3600 IN CAA 0 iodef "http://iodef.example.com/"
 caa04.example. 3600 IN CAA 0 issue "ca.example.net; account=230123"
 caa05.example. 3600 IN CAA 0 issue "ca.example.net; policy=ev"
 caa06.example. 3600 IN CAA 128 tbs "Unknown"
+cdnskey01.example. 3600 IN CDNSKEY 256 3 8 AwEAAbmiLgh411Pz3v3XCSBrvYf52A/G v55ItN1NbOLHCqt3Ec3p+VB/kQ87VjjM rycanZFnZT4l9uCFuYh21CcyxVpcxExb M0UuhX5rJoDyeFSXoQlkHrB01osPl5Vr i5YmKtcmqGxZ9An0VSunohkyiX1SrNRZ SdQnk9/pIHDe/c8D
 cds01.example. 3600 IN CDS 12345 3 1 123456789abcdef67890123456789abcdef67890
 cert01.example. 3600 IN CERT 65534 65535 PRIVATEOID MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
 cname01.example. 3600 IN CNAME cname-target.

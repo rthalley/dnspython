@@ -81,6 +81,7 @@ NSEC3PARAM = 51
 TLSA = 52
 HIP = 55
 CDS = 59
+CDNSKEY = 60
 SPF = 99
 UNSPEC = 103
 TKEY = 249
@@ -147,6 +148,7 @@ _by_text = {
     'TLSA' : TLSA,
     'HIP' : HIP,
     'CDS' : CDS,
+    'CDNSKEY' : CDNSKEY,
     'SPF' : SPF,
     'UNSPEC' : UNSPEC,
     'TKEY' : TKEY,
