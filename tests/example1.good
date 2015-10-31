@@ -20,6 +20,7 @@ caa03 3600 IN CAA 0 iodef "http://iodef.example.com/"
 caa04 3600 IN CAA 0 issue "ca.example.net; account=230123"
 caa05 3600 IN CAA 0 issue "ca.example.net; policy=ev"
 caa06 3600 IN CAA 128 tbs "Unknown"
+cds01 3600 IN CDS 12345 3 1 123456789abcdef67890123456789abcdef67890
 cert01 3600 IN CERT 65534 65535 PRIVATEOID MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
 cname01 3600 IN CNAME cname-target.
 cname02 3600 IN CNAME cname-target
