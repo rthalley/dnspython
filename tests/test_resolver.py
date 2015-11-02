@@ -47,6 +47,45 @@ example. 1 IN A 10.0.0.1
 ;ADDITIONAL
 """
 
+dangling_cname_0_message_text = """id 10000
+opcode QUERY
+rcode NOERROR
+flags QR AA RD RA
+;QUESTION
+91.11.17.172.in-addr.arpa.none. IN PTR
+;ANSWER
+;AUTHORITY
+;ADDITIONAL
+"""
+
+dangling_cname_1_message_text = """id 10001
+opcode QUERY
+rcode NOERROR
+flags QR AA RD RA
+;QUESTION
+91.11.17.172.in-addr.arpa. IN PTR
+;ANSWER
+11.17.172.in-addr.arpa. 86400 IN DNAME 11.8-22.17.172.in-addr.arpa.
+91.11.17.172.in-addr.arpa. 86400 IN CNAME 91.11.8-22.17.172.in-addr.arpa.
+;AUTHORITY
+;ADDITIONAL
+"""
+
+dangling_cname_2_message_text = """id 10002
+opcode QUERY
+rcode NOERROR
+flags QR AA RD RA
+;QUESTION
+91.11.17.172.in-addr.arpa.example. IN PTR
+;ANSWER
+91.11.17.172.in-addr.arpa.example. 86400 IN CNAME 91.11.17.172.in-addr.arpa.base.
+91.11.17.172.in-addr.arpa.base. 86400 IN CNAME 91.11.17.172.clients.example.
+91.11.17.172.clients.example. 86400 IN CNAME 91-11-17-172.dynamic.example.
+;AUTHORITY
+;ADDITIONAL
+"""
+
+
 class BaseResolverTests(object):
 
     if sys.platform != 'win32':
@@ -122,6 +161,144 @@ if hasattr(select, 'poll'):
     class PollResolverTestCase(PollingMonkeyPatchMixin, BaseResolverTests, unittest.TestCase):
         def polling_backend(self):
             return dns.query._poll_for
+
+class NXDOMAINExceptionTestCase(unittest.TestCase):
+
+    def test_nxdomain_compatible(self):
+        n1 = dns.name.Name(('a', 'b', ''))
+        n2 = dns.name.Name(('a', 'b', 's', ''))
+        py3 = (sys.version_info[0] > 2)
+
+        try:
+            raise dns.resolver.NXDOMAIN
+        except Exception as e:
+            if not py3: self.assertTrue((e.message == e.__doc__))
+            self.assertTrue((e.args == (e.__doc__,)))
+            self.assertTrue(('kwargs' in dir(e)))
+            self.assertTrue((str(e) == e.__doc__), str(e))
+            self.assertTrue(('qnames' not in e.kwargs))
+            self.assertTrue(('responses' not in e.kwargs))
+
+        try:
+            raise dns.resolver.NXDOMAIN("errmsg")
+        except Exception as e:
+            if not py3: self.assertTrue((e.message == "errmsg"))
+            self.assertTrue((e.args == ("errmsg",)))
+            self.assertTrue(('kwargs' in dir(e)))
+            self.assertTrue((str(e) == "errmsg"), str(e))
+            self.assertTrue(('qnames' not in e.kwargs))
+            self.assertTrue(('responses' not in e.kwargs))
+
+        try:
+            raise dns.resolver.NXDOMAIN("errmsg", -1)
+        except Exception as e:
+            if not py3: self.assertTrue((e.message == ""))
+            self.assertTrue((e.args == ("errmsg", -1)))
+            self.assertTrue(('kwargs' in dir(e)))
+            self.assertTrue((str(e) == "('errmsg', -1)"), str(e))
+            self.assertTrue(('qnames' not in e.kwargs))
+            self.assertTrue(('responses' not in e.kwargs))
+
+        try:
+            raise dns.resolver.NXDOMAIN(qnames=None)
+        except Exception as e:
+            self.assertTrue((isinstance(e, AttributeError)))
+
+        try:
+            raise dns.resolver.NXDOMAIN(qnames=n1)
+        except Exception as e:
+            self.assertTrue((isinstance(e, AttributeError)))
+
+        try:
+            raise dns.resolver.NXDOMAIN(qnames=[])
+        except Exception as e:
+            self.assertTrue((isinstance(e, AttributeError)))
+
+        try:
+            raise dns.resolver.NXDOMAIN(qnames=[n1])
+        except Exception as e:
+            MSG = "The DNS query name does not exist: a.b."
+            if not py3: self.assertTrue((e.message == MSG), e.message)
+            self.assertTrue((e.args == (MSG,)), repr(e.args))
+            self.assertTrue(('kwargs' in dir(e)))
+            self.assertTrue((str(e) == MSG), str(e))
+            self.assertTrue(('qnames' in e.kwargs))
+            self.assertTrue((e.kwargs['qnames'] == [n1]))
+            self.assertTrue(('responses' in e.kwargs))
+            self.assertTrue((e.kwargs['responses'] == {}))
+
+        try:
+            raise dns.resolver.NXDOMAIN(qnames=[n2, n1])
+        except Exception as e:
+            e0 = dns.resolver.NXDOMAIN("errmsg")
+            e = e0 + e
+            MSG = "None of DNS query names exist: a.b.s., a.b."
+            if not py3: self.assertTrue((e.message == MSG), e.message)
+            self.assertTrue((e.args == (MSG,)), repr(e.args))
+            self.assertTrue(('kwargs' in dir(e)))
+            self.assertTrue((str(e) == MSG), str(e))
+            self.assertTrue(('qnames' in e.kwargs))
+            self.assertTrue((e.kwargs['qnames'] == [n2, n1]))
+            self.assertTrue(('responses' in e.kwargs))
+            self.assertTrue((e.kwargs['responses'] == {}))
+
+        try:
+            raise dns.resolver.NXDOMAIN(qnames=[n1], responses=['r1.1'])
+        except Exception as e:
+            self.assertTrue((isinstance(e, AttributeError)))
+
+        try:
+            raise dns.resolver.NXDOMAIN(qnames=[n1], responses={n1: 'r1.1'})
+        except Exception as e:
+            MSG = "The DNS query name does not exist: a.b."
+            if not py3: self.assertTrue((e.message == MSG), e.message)
+            self.assertTrue((e.args == (MSG,)), repr(e.args))
+            self.assertTrue(('kwargs' in dir(e)))
+            self.assertTrue((str(e) == MSG), str(e))
+            self.assertTrue(('qnames' in e.kwargs))
+            self.assertTrue((e.kwargs['qnames'] == [n1]))
+            self.assertTrue(('responses' in e.kwargs))
+            self.assertTrue((e.kwargs['responses'] == {n1: 'r1.1'}))
+
+    def test_nxdomain_merge(self):
+        n1 = dns.name.Name(('a', 'b', ''))
+        n2 = dns.name.Name(('a', 'b', ''))
+        n3 = dns.name.Name(('a', 'b', 'c', ''))
+        n4 = dns.name.Name(('a', 'b', 'd', ''))
+        responses1 = {n1: 'r1.1', n2: 'r1.2', n4: 'r1.4'}
+        qnames1 = [n1, n4]   # n2 == n1
+        responses2 = {n2: 'r2.2', n3: 'r2.3'}
+        qnames2 = [n2, n3]
+        e0 = dns.resolver.NXDOMAIN()
+        e1 = dns.resolver.NXDOMAIN(qnames=qnames1, responses=responses1)
+        e2 = dns.resolver.NXDOMAIN(qnames=qnames2, responses=responses2)
+        e = e1 + e0 + e2
+        self.assertRaises(AttributeError, lambda : e0 + e0)
+        self.assertTrue(e.kwargs['qnames'] == [n1, n4, n3], repr(e.kwargs['qnames']))
+        self.assertTrue(e.kwargs['responses'][n1].startswith('r2.'))
+        self.assertTrue(e.kwargs['responses'][n2].startswith('r2.'))
+        self.assertTrue(e.kwargs['responses'][n3].startswith('r2.'))
+        self.assertTrue(e.kwargs['responses'][n4].startswith('r1.'))
+
+    def test_nxdomain_canonical_name(self):
+        cname0 = "91.11.8-22.17.172.in-addr.arpa.none."
+        cname1 = "91.11.8-22.17.172.in-addr.arpa."
+        cname2 = "91-11-17-172.dynamic.example."
+        message0 = dns.message.from_text(dangling_cname_0_message_text)
+        message1 = dns.message.from_text(dangling_cname_1_message_text)
+        message2 = dns.message.from_text(dangling_cname_2_message_text)
+        qname0 = message0.question[0].name
+        qname1 = message1.question[0].name
+        qname2 = message2.question[0].name
+        responses = {qname0: message0, qname1: message1, qname2: message2}
+        eX = dns.resolver.NXDOMAIN()
+        e0 = dns.resolver.NXDOMAIN(qnames=[qname0], responses=responses)
+        e1 = dns.resolver.NXDOMAIN(qnames=[qname0, qname1, qname2], responses=responses)
+        e2 = dns.resolver.NXDOMAIN(qnames=[qname0, qname2, qname1], responses=responses)
+        self.assertRaises(TypeError, lambda : eX.canonical_name)
+        self.assertTrue(e0.canonical_name == qname0)
+        self.assertTrue(e1.canonical_name == dns.name.from_text(cname1))
+        self.assertTrue(e2.canonical_name == dns.name.from_text(cname2))
 
 if __name__ == '__main__':
     unittest.main()
