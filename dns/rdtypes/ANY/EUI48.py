@@ -1,11 +1,12 @@
-# Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2015 Red Hat, Inc.
+# Author: Petr Spacek <pspacek@redhat.com>
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
 # provided that the above copyright notice and this permission notice
 # appear in all copies.
 #
-# THE SOFTWARE IS PROVIDED "AS IS" AND NOMINUM DISCLAIMS ALL WARRANTIES
+# THE SOFTWARE IS PROVIDED 'AS IS' AND RED HAT DISCLAIMS ALL WARRANTIES
 # WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL NOMINUM BE LIABLE FOR
 # ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
@@ -13,12 +14,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""DNS rdata type classes"""
+import dns.rdtypes.euibase
 
-__all__ = [
-    'ANY',
-    'IN',
-    'euibase',
-    'mxbase',
-    'nsbase',
-]
+
+class EUI48(dns.rdtypes.euibase.EUIBase):
+    """EUI48 record
+
+    @ivar fingerprint: 48-bit Extended Unique Identifier (EUI-48)
+    @type fingerprint: string
+    @see: rfc7043.txt"""
+
+    byte_len = 6  # 0123456789ab (in hex)
+    text_len = byte_len * 3 - 1  # 01-23-45-67-89-ab
