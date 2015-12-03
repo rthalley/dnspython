@@ -47,6 +47,10 @@ example. 1 IN A 10.0.0.1
 ;ADDITIONAL
 """
 
+class FakeAnswer(object):
+    def __init__(self, expiration):
+        self.expiration = expiration
+
 class BaseResolverTests(object):
 
     if sys.platform != 'win32':
@@ -101,6 +105,59 @@ class BaseResolverTests(object):
             name = dns.name.from_text('dnspython.org', None)
             zname = dns.resolver.zone_for_name(name)
         self.assertRaises(dns.resolver.NotAbsolute, bad)
+
+    def testLRUReplace(self):
+        cache = dns.resolver.LRUCache(4)
+        for i in range(0, 5):
+            name = dns.name.from_text('example%d.' % i)
+            answer = FakeAnswer(time.time() + 1)
+            cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        for i in range(0, 5):
+            name = dns.name.from_text('example%d.' % i)
+            if i == 0:
+                self.assertTrue(cache.get((name, dns.rdatatype.A,
+                                           dns.rdataclass.IN))
+                                is None)
+            else:
+                self.assertTrue(not cache.get((name, dns.rdatatype.A,
+                                               dns.rdataclass.IN))
+                                is None)
+
+    def testLRUDoesLRU(self):
+        cache = dns.resolver.LRUCache(4)
+        for i in range(0, 4):
+            name = dns.name.from_text('example%d.' % i)
+            answer = FakeAnswer(time.time() + 1)
+            cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        name = dns.name.from_text('example0.')
+        cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
+        # The LRU is now example1.
+        name = dns.name.from_text('example4.')
+        answer = FakeAnswer(time.time() + 1)
+        cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        for i in range(0, 5):
+            name = dns.name.from_text('example%d.' % i)
+            if i == 1:
+                self.assertTrue(cache.get((name, dns.rdatatype.A,
+                                           dns.rdataclass.IN))
+                                is None)
+            else:
+                self.assertTrue(not cache.get((name, dns.rdatatype.A,
+                                               dns.rdataclass.IN))
+                                is None)
+
+    def testLRUExpiration(self):
+        cache = dns.resolver.LRUCache(4)
+        for i in range(0, 4):
+            name = dns.name.from_text('example%d.' % i)
+            answer = FakeAnswer(time.time() + 1)
+            cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        time.sleep(2)
+        for i in range(0, 4):
+            name = dns.name.from_text('example%d.' % i)
+            self.assertTrue(cache.get((name, dns.rdatatype.A,
+                                       dns.rdataclass.IN))
+                            is None)
 
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
