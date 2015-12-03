@@ -25,6 +25,8 @@ __all__ = [
     'DNAME',
     'DNSKEY',
     'DS',
+    'EUI48',
+    'EUI64',
     'GPOS',
     'HINFO',
     'HIP',

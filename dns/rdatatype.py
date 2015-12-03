@@ -84,6 +84,8 @@ CDS = 59
 CDNSKEY = 60
 SPF = 99
 UNSPEC = 103
+EUI48 = 108
+EUI64 = 109
 TKEY = 249
 TSIG = 250
 IXFR = 251
@@ -151,6 +153,8 @@ _by_text = {
     'CDNSKEY' : CDNSKEY,
     'SPF' : SPF,
     'UNSPEC' : UNSPEC,
+    'EUI48': EUI48,
+    'EUI64': EUI64,
     'TKEY' : TKEY,
     'TSIG' : TSIG,
     'IXFR' : IXFR,
