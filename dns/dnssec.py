@@ -43,6 +43,8 @@ DSANSEC3SHA1 = 6
 RSASHA1NSEC3SHA1 = 7
 RSASHA256 = 8
 RSASHA512 = 10
+ECDSAP256SHA256 = 13
+ECDSAP384SHA384 = 14
 INDIRECT = 252
 PRIVATEDNS = 253
 PRIVATEOID = 254
@@ -58,6 +60,8 @@ _algorithm_by_text = {
     'RSASHA256' : RSASHA256,
     'RSASHA512' : RSASHA512,
     'INDIRECT' : INDIRECT,
+    'ECDSAP256SHA256' : ECDSAP256SHA256,
+    'ECDSAP384SHA384' : ECDSAP384SHA384,
     'PRIVATEDNS' : PRIVATEDNS,
     'PRIVATEOID' : PRIVATEOID,
     }
@@ -151,6 +155,9 @@ def _is_rsa(algorithm):
 def _is_dsa(algorithm):
     return algorithm in (DSA, DSANSEC3SHA1)
 
+def _is_ecdsa(algorithm):
+    return _have_ecdsa and (algorithm in (ECDSAP256SHA256, ECDSAP384SHA384))
+
 def _is_md5(algorithm):
     return algorithm == RSAMD5
 
@@ -159,7 +166,10 @@ def _is_sha1(algorithm):
                          DSANSEC3SHA1, RSASHA1NSEC3SHA1)
 
 def _is_sha256(algorithm):
-    return algorithm == RSASHA256
+    return algorithm in (RSASHA256, ECDSAP256SHA256)
+
+def _is_sha384(algorithm):
+    return algorithm == ECDSAP384SHA384
 
 def _is_sha512(algorithm):
     return algorithm == RSASHA512
@@ -171,6 +181,8 @@ def _make_hash(algorithm):
         return dns.hash.get('SHA1')()
     if _is_sha256(algorithm):
         return dns.hash.get('SHA256')()
+    if _is_sha384(algorithm):
+        return dns.hash.get('SHA384')()
     if _is_sha512(algorithm):
         return dns.hash.get('SHA512')()
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
@@ -272,6 +284,30 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             (dsa_r, dsa_s) = struct.unpack('!20s20s', rrsig.signature[1:])
             sig = (Crypto.Util.number.bytes_to_long(dsa_r),
                    Crypto.Util.number.bytes_to_long(dsa_s))
+        elif _is_ecdsa(rrsig.algorithm):
+            if rrsig.algorithm == ECDSAP256SHA256:
+                curve = ecdsa.curves.NIST256p
+                key_len = 32
+                digest_len = 32
+            elif rrsig.algorithm == ECDSAP384SHA384:
+                curve = ecdsa.curves.NIST384p
+                key_len = 48
+                digest_len = 48
+            else:
+                # shouldn't happen
+                raise ValidationFailure('unknown ECDSA curve')
+            keyptr = candidate_key.key
+            x = Crypto.Util.number.bytes_to_long(keyptr[0:key_len])
+            y = Crypto.Util.number.bytes_to_long(keyptr[key_len:key_len * 2])
+            assert ecdsa.ecdsa.point_is_valid(curve.generator, x, y)
+            point = ecdsa.ellipticcurve.Point(curve.curve, x, y, curve.order)
+            verifying_key = ecdsa.keys.VerifyingKey.from_public_point(point,
+                                                                      curve)
+            pubkey = ECKeyWrapper(verifying_key, key_len)
+            r = rrsig.signature[:key_len]
+            s = rrsig.signature[key_len:]
+            sig = ecdsa.ecdsa.Signature(Crypto.Util.number.bytes_to_long(r),
+                                        Crypto.Util.number.bytes_to_long(s))
         else:
             raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
 
@@ -301,7 +337,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             padlen = keylen // 8 - len(digest) - 3
             digest = bytes([0]) + bytes([1]) + bytes([0xFF]) * padlen + \
                      bytes([0]) + digest
-        elif _is_dsa(rrsig.algorithm):
+        elif _is_dsa(rrsig.algorithm) or _is_ecdsa(rrsig.algorithm):
             pass
         else:
             # Raise here for code clarity; this won't actually ever happen
@@ -373,3 +409,21 @@ except ImportError:
     validate = _need_pycrypto
     validate_rrsig = _need_pycrypto
     _have_pycrypto = False
+
+try:
+    import ecdsa
+    import ecdsa.ecdsa
+    import ecdsa.ellipticcurve
+    import ecdsa.keys
+    _have_ecdsa = True
+
+    class ECKeyWrapper(object):
+        def __init__(self, key, key_len):
+            self.key = key
+            self.key_len = key_len
+        def verify(self, digest, sig):
+            diglong = Crypto.Util.number.bytes_to_long(digest)
+            return self.key.pubkey.verifies(diglong, sig)
+
+except ImportError:
+    _have_ecdsa = False
