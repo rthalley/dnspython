@@ -18,6 +18,7 @@ import unittest
 import io
 import socket
 import sys
+import pickle
 
 import dns.name
 import dns.reversename
@@ -698,6 +699,12 @@ class NameTestCase(unittest.TestCase):
         e = '+16505551212'
         text = dns.e164.to_e164(n)
         self.assertTrue(text == e)
+
+    def testPickling(self):
+        n = dns.name.from_text('foo.bar')
+        pickled = pickle.dumps(n)
+        unpickled = pickle.loads(pickled)
+        self.assertEqual(n, unpickled)
 
 if __name__ == '__main__':
     unittest.main()
