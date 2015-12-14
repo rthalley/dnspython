@@ -54,7 +54,7 @@ class Update(dns.message.Message):
         if isinstance(zone, (str, unicode)):
             zone = dns.name.from_text(zone)
         self.origin = zone
-        if isinstance(rdclass, str):
+        if isinstance(rdclass, (str, unicode)):
             rdclass = dns.rdataclass.from_text(rdclass)
         self.zone_rdclass = rdclass
         self.find_rrset(self.question, self.origin, rdclass, dns.rdatatype.SOA,
@@ -103,7 +103,7 @@ class Update(dns.message.Message):
                     self._add_rr(name, ttl, rd, section=section)
             else:
                 rdtype = args.pop(0)
-                if isinstance(rdtype, str):
+                if isinstance(rdtype, (str, unicode)):
                     rdtype = dns.rdatatype.from_text(rdtype)
                 if replace:
                     self.delete(name, rdtype)
