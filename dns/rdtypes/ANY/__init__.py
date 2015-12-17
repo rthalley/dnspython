@@ -21,6 +21,7 @@ __all__ = [
     'CDS',
     'CERT',
     'CNAME',
+    'CSYNC',
     'DLV',
     'DNAME',
     'DNSKEY',
