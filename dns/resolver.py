@@ -95,7 +95,7 @@ class NoNameservers(dns.exception.DNSException):
     def _fmt_kwargs(self, **kwargs):
         srv_msgs = []
         for err in kwargs['errors']:
-            srv_msgs.append('Server %s %s port %s anwered %s' % (err[0],
+            srv_msgs.append('Server %s %s port %s answered %s' % (err[0],
                             'TCP' if err[1] else 'UDP', err[2], err[3]))
         return super(NoNameservers, self)._fmt_kwargs(
             query=kwargs['request'].question, errors='; '.join(srv_msgs))
