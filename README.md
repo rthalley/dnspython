@@ -19,9 +19,11 @@ the testing of DNS software.  Nominum has generously allowed it to be
 open sourced under a BSD-style license, and helps support its future
 development by continuing to employ the author :).
 
-## Installation
-- If you have pip installed, you can do this
+## INSTALLATION
+- If you have pip installed and are using Python 2.x, you can do this
 `pip install dnspython`
+- If you have pip installed and are using Python 3.x, you can do this
+`pip install dnspython3`
 - If not just download the source file and unzip it, then run this
 `sudo python setup.py install`
 
@@ -523,19 +525,12 @@ See the ChangeLog file for more detailed information on changes since
 the prior release.
 
 
-REQUIREMENTS
+## REQUIREMENTS
 
-Python 2.4 or later.
-
-
-INSTALLATION
-
-To build and install dnspython, type
-
-	python setup.py install
+Python 2.6 or later.
 
 
-HOME PAGE
+## HOME PAGE
 
 For the latest in releases, documentation, and information, visit the
 dnspython home page at
@@ -544,19 +539,19 @@ dnspython home page at
 
 
 
-DOCUMENTATION
+## DOCUMENTATION
 
 Documentation is sparse at the moment.  Use pydoc, or read the HTML
 documentation at the dnspython home page, or download the HTML
 documentation.
 
 
-BUG REPORTS
+## BUG REPORTS
 
 Bug reports may be sent to bugs@dnspython.org
 
 
-MAILING LISTS
+## MAILING LISTS
 
 A number of mailing lists are available.  Visit the dnspython home
 page to subscribe or unsubscribe.
