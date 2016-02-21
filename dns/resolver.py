@@ -174,7 +174,7 @@ class Answer(object):
                         continue
                     except KeyError:
                         if raise_on_no_answer:
-                            raise NoAnswer(question=response.question)
+                            raise NoAnswer(response=response)
                 if raise_on_no_answer:
                     raise NoAnswer(response=response)
         if rrset is None and raise_on_no_answer:
