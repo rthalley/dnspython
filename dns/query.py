@@ -204,6 +204,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     (af, destination, source) = _destination_and_source(af, where, port, source,
                                                         source_port)
     s = socket.socket(af, socket.SOCK_DGRAM, 0)
+    begin_time = None
     try:
         expiration = _compute_expiration(timeout)
         s.setblocking(0)
@@ -224,7 +225,10 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
                                        '%s instead of %s' % (from_address,
                                                              destination))
     finally:
-        response_time = time.time() - begin_time
+        if begin_time is None:
+            response_time = 0
+        else:
+            response_time = time.time() - begin_time
         s.close()
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
                               one_rr_per_rrset=one_rr_per_rrset)
@@ -301,6 +305,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     (af, destination, source) = _destination_and_source(af, where, port, source,
                                                         source_port)
     s = socket.socket(af, socket.SOCK_STREAM, 0)
+    begin_time = None
     try:
         expiration = _compute_expiration(timeout)
         s.setblocking(0)
@@ -320,7 +325,10 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         (l,) = struct.unpack("!H", ldata)
         wire = _net_read(s, l, expiration)
     finally:
-        response_time = time.time() - begin_time
+        if begin_time is None:
+            response_time = 0
+        else:
+            response_time = time.time() - begin_time
         s.close()
     r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
                               one_rr_per_rrset=one_rr_per_rrset)
