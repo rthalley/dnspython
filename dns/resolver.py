@@ -562,8 +562,11 @@ class Resolver(object):
                 if len(l) == 0 or l[0] == '#' or l[0] == ';':
                     continue
                 tokens = l.split()
-                if len(tokens) == 0:
+
+                # Any line containing less than 2 tokens is malformed
+                if len(tokens) < 2:
                     continue
+
                 if tokens[0] == 'nameserver':
                     self.nameservers.append(tokens[1])
                 elif tokens[0] == 'domain':
