@@ -39,6 +39,7 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 import dns.reversename
+import dns.tsig
 
 if sys.platform == 'win32':
     import _winreg
