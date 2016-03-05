@@ -82,6 +82,7 @@ TLSA = 52
 HIP = 55
 CDS = 59
 CDNSKEY = 60
+CSYNC = 62
 SPF = 99
 UNSPEC = 103
 EUI48 = 108
@@ -151,6 +152,7 @@ _by_text = {
     'HIP' : HIP,
     'CDS' : CDS,
     'CDNSKEY' : CDNSKEY,
+    'CSYNC' : CSYNC,
     'SPF' : SPF,
     'UNSPEC' : UNSPEC,
     'EUI48': EUI48,
