@@ -496,7 +496,8 @@ class Zone(object):
                 names = self.iterkeys()
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
-                                    relativize=relativize)
+                                    relativize=relativize,
+                                    sorted=sorted)
                 if nl is None:
                     print >> f, l
                 else:
