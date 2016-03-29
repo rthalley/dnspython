@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import sys
-from distutils.core import setup
+from setuptools import setup
 
 version = '1.12.0'
 
@@ -51,6 +51,7 @@ direct manipulation of DNS zones, messages, names, and records.""",
         "Topic :: Internet :: Name Service (DNS)",
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
+    'test_suite': 'tests',
     }
 
 if sys.hexversion >= 0x02050000:
