@@ -18,13 +18,11 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import BytesIO as StringIO
+from io import BytesIO, StringIO
 
 import dns.rrset
 import dns.rdtypes.ANY.EUI48
+import dns.rdtypes.ANY.EUI64
 import dns.exception
 
 
@@ -94,7 +92,7 @@ class RdtypeAnyEUI48TestCase(unittest.TestCase):
         inst = dns.rdtypes.ANY.EUI48.EUI48(dns.rdataclass.IN,
                                            dns.rdatatype.EUI48,
                                            eui)
-        buff = StringIO()
+        buff = BytesIO()
         inst.to_wire(buff)
         self.assertEqual(buff.getvalue(), eui)
 
@@ -193,7 +191,7 @@ class RdtypeAnyEUI64TestCase(unittest.TestCase):
         inst = dns.rdtypes.ANY.EUI64.EUI64(dns.rdataclass.IN,
                                            dns.rdatatype.EUI64,
                                            eui)
-        buff = StringIO()
+        buff = BytesIO()
         inst.to_wire(buff)
         self.assertEqual(buff.getvalue(), eui)
 

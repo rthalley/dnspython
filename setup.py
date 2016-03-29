@@ -52,10 +52,7 @@ direct manipulation of DNS zones, messages, names, and records.""",
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
     'test_suite': 'tests',
+    'provides': ['dns'],
     }
-
-if sys.hexversion >= 0x02050000:
-    kwargs['requires'] = []
-    kwargs['provides'] = ['dns']
 
 setup(**kwargs)

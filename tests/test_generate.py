@@ -16,7 +16,6 @@
 import sys
 sys.path.insert(0, '../')  # Force the local project to be *the* dns
 
-import cStringIO
 import filecmp
 import os
 try:
@@ -30,8 +29,10 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 import dns.zone
+from dns._compat import long
 
 import pprint
+
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -136,6 +137,9 @@ ns2 3600 IN A 10.0.0.2
 $GENERATE 27-28 $.2 PTR zlb${-26}.oob
 """
 
+def _rdata_sort(a):
+    return (a[0], a[2].rdclass, a[2].to_text())
+
 
 class GenerateTestCase(unittest.TestCase):
 
@@ -152,7 +156,7 @@ class GenerateTestCase(unittest.TestCase):
     def testIterateAllRdatas2(self):
         z = dns.zone.from_text(example_text2, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
@@ -190,13 +194,13 @@ class GenerateTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.5'))]
 
-        exl.sort()
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
 
     def testIterateAllRdatas3(self):
         z = dns.zone.from_text(example_text3, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
@@ -230,271 +234,271 @@ class GenerateTestCase(unittest.TestCase):
                 (dns.name.from_text('foo8', None), 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.8'))]
-        exl.sort()
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
     def testGenerate1(self):
         z = dns.zone.from_text(example_text4, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns1')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns2')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                     'foo bar 1 2 3 4 5')),
                (dns.name.from_text('bar.foo', None),
-                300L,
+                long(300),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                     '0 blaz.foo')),
                (dns.name.from_text('ns1', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.1')),
                (dns.name.from_text('ns2', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2')),
 
                 (dns.name.from_text('wp-db01.services.mozilla.com', None),
-                    0L,
+                    long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.')),
 
                 (dns.name.from_text('wp-db02.services.mozilla.com', None),
-                    0L,
+                    long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.')),
 
                 (dns.name.from_text('wp-db03.services.mozilla.com', None),
-                    0L,
+                    long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.'))]
-        exl.sort()
-        self.failUnless(l == exl)
+        exl.sort(key=_rdata_sort)
+        self.assertEqual(l, exl)
 
     def testGenerate2(self):
         z = dns.zone.from_text(example_text5, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns1')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns2')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                     'foo bar 1 2 3 4 5')),
                (dns.name.from_text('bar.foo', None),
-                300L,
+                long(300),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                     '0 blaz.foo')),
                (dns.name.from_text('ns1', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.1')),
                (dns.name.from_text('ns2', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2')),
 
-                (dns.name.from_text('wp-db21.services.mozilla.com', None), 0L,
+                (dns.name.from_text('wp-db21.services.mozilla.com', None), long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.')),
 
-                (dns.name.from_text('wp-db22.services.mozilla.com', None), 0L,
+                (dns.name.from_text('wp-db22.services.mozilla.com', None), long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.')),
 
-                (dns.name.from_text('wp-db23.services.mozilla.com', None), 0L,
+                (dns.name.from_text('wp-db23.services.mozilla.com', None), long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.'))]
-        exl.sort()
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
 
     def testGenerate3(self):
         z = dns.zone.from_text(example_text6, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
 
         exl = [(dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns1')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns2')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                     'foo bar 1 2 3 4 5')),
                (dns.name.from_text('bar.foo', None),
-                300L,
+                long(300),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                     '0 blaz.foo')),
                (dns.name.from_text('ns1', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.1')),
                (dns.name.from_text('ns2', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2')),
-                (dns.name.from_text('wp-db21.services.mozilla.com', None), 0L,
+                (dns.name.from_text('wp-db21.services.mozilla.com', None), long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.')),
 
-                (dns.name.from_text('wp-db22.services.mozilla.com', None), 0L,
+                (dns.name.from_text('wp-db22.services.mozilla.com', None), long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.')),
 
-                (dns.name.from_text('wp-db23.services.mozilla.com', None), 0L,
+                (dns.name.from_text('wp-db23.services.mozilla.com', None), long(0),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.'))]
-        exl.sort()
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
 
     def testGenerate4(self):
         z = dns.zone.from_text(example_text7, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns1')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns2')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                     'foo bar 1 2 3 4 5')),
                (dns.name.from_text('bar.foo', None),
-                300L,
+                long(300),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                     '0 blaz.foo')),
                (dns.name.from_text('ns1', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.1')),
                (dns.name.from_text('ns2', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2')),
 
-                (dns.name.from_text('sync1.db', None), 3600L,
+                (dns.name.from_text('sync1.db', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0')),
 
-                (dns.name.from_text('sync2.db', None), 3600L,
+                (dns.name.from_text('sync2.db', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0')),
 
-                (dns.name.from_text('sync3.db', None), 3600L,
+                (dns.name.from_text('sync3.db', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0'))]
-        exl.sort()
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
 
     def testGenerate6(self):
         z = dns.zone.from_text(example_text9, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns1')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns2')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                     'foo bar 1 2 3 4 5')),
                (dns.name.from_text('bar.foo', None),
-                300L,
+                long(300),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                     '0 blaz.foo')),
                (dns.name.from_text('ns1', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.1')),
                (dns.name.from_text('ns2', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2')),
 
-                (dns.name.from_text('wp-db01', None), 3600L,
+                (dns.name.from_text('wp-db01', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0')),
-                (dns.name.from_text('wp-db02', None), 3600L,
-                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
-                                    '10.10.16.0')),
-
-                (dns.name.from_text('sync1.db', None), 3600L,
+                (dns.name.from_text('wp-db02', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0')),
 
-                (dns.name.from_text('sync2.db', None), 3600L,
+                (dns.name.from_text('sync1.db', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0')),
 
-                (dns.name.from_text('sync3.db', None), 3600L,
+                (dns.name.from_text('sync2.db', None), long(3600),
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.10.16.0')),
+
+                (dns.name.from_text('sync3.db', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0'))]
-        exl.sort()
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
 
     def testGenerate7(self):
         z = dns.zone.from_text(example_text10, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns1')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     'ns2')),
                (dns.name.from_text('@', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                     'foo bar 1 2 3 4 5')),
                (dns.name.from_text('bar.foo', None),
-                300L,
+                long(300),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                     '0 blaz.foo')),
                (dns.name.from_text('ns1', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.1')),
                (dns.name.from_text('ns2', None),
-                3600L,
+                long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2')),
 
-                (dns.name.from_text('27.2', None), 3600L,
+                (dns.name.from_text('27.2', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.PTR,
                                     'zlb1.oob')),
 
-                (dns.name.from_text('28.2', None), 3600L,
+                (dns.name.from_text('28.2', None), long(3600),
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.PTR,
                                     'zlb2.oob'))]
 
-        exl.sort()
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
 
 

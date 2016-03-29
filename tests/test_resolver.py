@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+from io import StringIO
 import select
 import sys
 import time
@@ -28,8 +28,9 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
+from dns._compat import xrange
 
-resolv_conf = """
+resolv_conf = u"""
     /t/t
 # comment 1
 ; comment 2
@@ -58,7 +59,7 @@ class BaseResolverTests(object):
 
     if sys.platform != 'win32':
         def testRead(self):
-            f = cStringIO.StringIO(resolv_conf)
+            f = StringIO(resolv_conf)
             r = dns.resolver.Resolver(f)
             self.failUnless(r.nameservers == ['10.0.0.1', '10.0.0.2'] and
                             r.domain == dns.name.from_text('foo'))

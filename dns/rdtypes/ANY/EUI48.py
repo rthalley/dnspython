@@ -18,6 +18,7 @@ import dns.rdtypes.euibase
 
 
 class EUI48(dns.rdtypes.euibase.EUIBase):
+
     """EUI48 record
 
     @ivar fingerprint: 48-bit Extended Unique Identifier (EUI-48)

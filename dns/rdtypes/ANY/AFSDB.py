@@ -15,7 +15,9 @@
 
 import dns.rdtypes.mxbase
 
+
 class AFSDB(dns.rdtypes.mxbase.UncompressedDowncasingMX):
+
     """AFSDB record
 
     @ivar subtype: the subtype value

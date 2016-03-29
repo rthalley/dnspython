@@ -20,6 +20,7 @@ import dns.rdata
 
 
 class EUIBase(dns.rdata.Rdata):
+
     """EUIxx record
 
     @ivar fingerprint: xx-bit Extended Unique Identifier (EUI-xx)
@@ -41,6 +42,7 @@ class EUIBase(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         return dns.rdata._hexify(self.eui, chunksize=2).replace(' ', '-')
 
+    @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         text = tok.get_string()
         tok.get_eol()
@@ -54,18 +56,16 @@ class EUIBase(dns.rdata.Rdata):
                                                 % i)
         text = text.replace('-', '')
         try:
-            data = binascii.unhexlify(text)
+            data = binascii.unhexlify(text.encode())
         except (ValueError, TypeError) as ex:
             raise dns.exception.SyntaxError('Hex decoding error: %s' % str(ex))
         return cls(rdclass, rdtype, data)
 
-    from_text = classmethod(from_text)
-
     def to_wire(self, file, compress=None, origin=None):
         file.write(self.eui)
 
+    @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         eui = wire[current:current + rdlen].unwrap()
         return cls(rdclass, rdtype, eui)
 
-    from_wire = classmethod(from_wire)

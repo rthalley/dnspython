@@ -233,4 +233,4 @@ if __name__ == '__main__':
     if import_ok:
         unittest.main()
     else:
-        print 'skipping DNSSEC tests because pycrypto is not installed'
+        print('skipping DNSSEC tests because pycrypto is not installed')

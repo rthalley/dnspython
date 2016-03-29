@@ -15,9 +15,9 @@
 
 """DNS Wire Data Helper"""
 
-import sys
 
 import dns.exception
+from ._compat import binary_type, string_types
 
 # Figure out what constant python passes for an unspecified slice bound.
 # It's supposed to be sys.maxint, yet on 64-bit windows sys.maxint is 2^31 - 1
@@ -25,19 +25,26 @@ import dns.exception
 # extra comparisons, duplicating code, or weakening WireData, we just figure
 # out what constant Python will use.
 
+
 class _SliceUnspecifiedBound(str):
+
     def __getslice__(self, i, j):
         return j
 
 _unspecified_bound = _SliceUnspecifiedBound('')[1:]
 
-class WireData(str):
+
+class WireData(binary_type):
     # WireData is a string with stricter slicing
+
     def __getitem__(self, key):
         try:
-            return WireData(super(WireData, self).__getitem__(key))
+            if isinstance(key, slice):
+                return WireData(super(WireData, self).__getitem__(key))
+            return bytearray(self.unwrap())[key]
         except IndexError:
             raise dns.exception.FormError
+
     def __getslice__(self, i, j):
         try:
             if j == _unspecified_bound:
@@ -53,6 +60,7 @@ class WireData(str):
             return WireData(super(WireData, self).__getslice__(i, j))
         except IndexError:
             raise dns.exception.FormError
+
     def __iter__(self):
         i = 0
         while 1:
@@ -61,11 +69,16 @@ class WireData(str):
                 i += 1
             except dns.exception.FormError:
                 raise StopIteration
+
     def unwrap(self):
-        return str(self)
+        return binary_type(self)
+
 
 def maybe_wrap(wire):
-    if not isinstance(wire, WireData):
-        return WireData(wire)
-    else:
+    if isinstance(wire, WireData):
         return wire
+    elif isinstance(wire, binary_type):
+        return WireData(wire)
+    elif isinstance(wire, string_types):
+        return WireData(wire.encode())
+    raise ValueError("unhandled type %s" % type(wire))

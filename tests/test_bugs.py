@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from six import BytesIO
+from io import BytesIO
 try:
     import unittest2 as unittest
 except ImportError:
@@ -28,15 +28,15 @@ class BugsTestCase(unittest.TestCase):
 
     def test_float_LOC(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC,
-                                    "30 30 0.000 N 100 30 0.000 W 10.00m 20m 2000m 20m")
+                                    u"30 30 0.000 N 100 30 0.000 W 10.00m 20m 2000m 20m")
         self.failUnless(rdata.float_latitude == 30.5)
         self.failUnless(rdata.float_longitude == -100.5)
 
     def test_SOA_BIND8_TTL(self):
         rdata1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
-                                     "a b 100 1s 1m 1h 1d")
+                                     u"a b 100 1s 1m 1h 1d")
         rdata2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
-                                     "a b 100 1 60 3600 86400")
+                                     u"a b 100 1 60 3600 86400")
         self.failUnless(rdata1 == rdata2)
 
     def test_TTL_bounds_check(self):
@@ -46,7 +46,7 @@ class BugsTestCase(unittest.TestCase):
 
     def test_empty_NSEC3_window(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NSEC3,
-                                    "1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715")
+                                    u"1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715")
         self.failUnless(rdata.windows == [])
 
     def test_zero_size_APL(self):
@@ -58,12 +58,12 @@ class BugsTestCase(unittest.TestCase):
 
     def test_CAA_from_wire(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CAA,
-                                    '0 issue "ca.example.net"');
-        f = cStringIO.StringIO()
+                                    u'0 issue "ca.example.net"');
+        f = BytesIO()
         rdata.to_wire(f)
         wire = f.getvalue()
         rdlen = len(wire)
-        wire += "trailing garbage"
+        wire += b"trailing garbage"
         rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.CAA,
                                      wire, 0, rdlen)
         self.failUnless(rdata == rdata2)

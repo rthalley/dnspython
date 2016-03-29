@@ -17,7 +17,9 @@ import dns.exception
 import dns.rdata
 import dns.name
 
+
 class RP(dns.rdata.Rdata):
+
     """RP record
 
     @ivar mbox: The responsible person's mailbox
@@ -39,7 +41,8 @@ class RP(dns.rdata.Rdata):
         txt = self.txt.choose_relativity(origin, relativize)
         return "%s %s" % (str(mbox), str(txt))
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         mbox = tok.get_name()
         txt = tok.get_name()
         mbox = mbox.choose_relativity(origin, relativize)
@@ -47,17 +50,16 @@ class RP(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, mbox, txt)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         self.mbox.to_wire(file, None, origin)
         self.txt.to_wire(file, None, origin)
 
-    def to_digestable(self, origin = None):
+    def to_digestable(self, origin=None):
         return self.mbox.to_digestable(origin) + \
             self.txt.to_digestable(origin)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (mbox, cused) = dns.name.from_wire(wire[: current + rdlen],
                                            current)
         current += cused
@@ -68,13 +70,11 @@ class RP(dns.rdata.Rdata):
                                           current)
         if cused != rdlen:
             raise dns.exception.FormError
-        if not origin is None:
+        if origin is not None:
             mbox = mbox.relativize(origin)
             txt = txt.relativize(origin)
         return cls(rdclass, rdtype, mbox, txt)
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         self.mbox = self.mbox.choose_relativity(origin, relativize)
         self.txt = self.txt.choose_relativity(origin, relativize)

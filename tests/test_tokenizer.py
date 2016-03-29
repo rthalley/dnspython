@@ -14,6 +14,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns.exception
 import dns.tokenizer

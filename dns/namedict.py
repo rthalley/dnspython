@@ -25,8 +25,10 @@
 
 """DNS name dictionary"""
 
-import dns.name
 import collections
+import dns.name
+from ._compat import xrange
+
 
 class NameDict(collections.MutableMapping):
 
@@ -46,7 +48,7 @@ class NameDict(collections.MutableMapping):
         self.max_depth_items = 0
         self.update(dict(*args, **kwargs))
 
-    def __update_max_depth(self,key):
+    def __update_max_depth(self, key):
         if len(key) == self.max_depth:
             self.max_depth_items = self.max_depth_items + 1
         elif len(key) > self.max_depth:
@@ -77,8 +79,8 @@ class NameDict(collections.MutableMapping):
     def __len__(self):
         return len(self.__store)
 
-    def has_key(self,key):
-        return self.__store.has_key(key)
+    def has_key(self, key):
+        return key in self.__store
 
     def get_deepest_match(self, name):
         """Find the deepest match to I{name} in the dictionary.
@@ -96,7 +98,7 @@ class NameDict(collections.MutableMapping):
             depth = self.max_depth
         for i in xrange(-depth, 0):
             n = dns.name.Name(name[i:])
-            if self.has_key(n):
+            if n in self:
                 return (n, self[n])
         v = self[dns.name.empty]
         return (dns.name.empty, v)

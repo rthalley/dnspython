@@ -13,8 +13,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
 import struct
+import base64
 
 import dns.exception
 import dns.dnssec
@@ -22,34 +22,38 @@ import dns.rdata
 import dns.tokenizer
 
 _ctype_by_value = {
-    1 : 'PKIX',
-    2 : 'SPKI',
-    3 : 'PGP',
-    253 : 'URI',
-    254 : 'OID',
-    }
+    1: 'PKIX',
+    2: 'SPKI',
+    3: 'PGP',
+    253: 'URI',
+    254: 'OID',
+}
 
 _ctype_by_name = {
-    'PKIX' : 1,
-    'SPKI' : 2,
-    'PGP' : 3,
-    'URI' : 253,
-    'OID' : 254,
-    }
+    'PKIX': 1,
+    'SPKI': 2,
+    'PGP': 3,
+    'URI': 253,
+    'OID': 254,
+}
+
 
 def _ctype_from_text(what):
     v = _ctype_by_name.get(what)
-    if not v is None:
+    if v is not None:
         return v
     return int(what)
 
+
 def _ctype_to_text(what):
     v = _ctype_by_value.get(what)
-    if not v is None:
+    if v is not None:
         return v
     return str(what)
 
+
 class CERT(dns.rdata.Rdata):
+
     """CERT record
 
     @ivar certificate_type: certificate type
@@ -78,7 +82,8 @@ class CERT(dns.rdata.Rdata):
                                 dns.dnssec.algorithm_to_text(self.algorithm),
                                 dns.rdata._base64ify(self.certificate))
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         certificate_type = _ctype_from_text(tok.get_string())
         key_tag = tok.get_uint16()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
@@ -91,29 +96,27 @@ class CERT(dns.rdata.Rdata):
                 break
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        b64 = ''.join(chunks)
-        certificate = b64.decode('base64_codec')
+            chunks.append(t.value.encode())
+        b64 = b''.join(chunks)
+        certificate = base64.b64decode(b64)
         return cls(rdclass, rdtype, certificate_type, key_tag,
                    algorithm, certificate)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         prefix = struct.pack("!HHB", self.certificate_type, self.key_tag,
                              self.algorithm)
         file.write(prefix)
         file.write(self.certificate)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        prefix = wire[current : current + 5].unwrap()
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        prefix = wire[current: current + 5].unwrap()
         current += 5
         rdlen -= 5
         if rdlen < 0:
             raise dns.exception.FormError
         (certificate_type, key_tag, algorithm) = struct.unpack("!HHB", prefix)
-        certificate = wire[current : current + rdlen].unwrap()
+        certificate = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, certificate_type, key_tag, algorithm,
                    certificate)
 
-    from_wire = classmethod(from_wire)

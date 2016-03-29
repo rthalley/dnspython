@@ -13,15 +13,17 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
-import string
 import struct
+import base64
+import binascii
 
 import dns.exception
 import dns.rdata
 import dns.rdatatype
 
+
 class HIP(dns.rdata.Rdata):
+
     """HIP record
 
     @ivar hit: the host identity tag
@@ -44,22 +46,23 @@ class HIP(dns.rdata.Rdata):
         self.servers = servers
 
     def to_text(self, origin=None, relativize=True, **kw):
-        hit = self.hit.encode('hex-codec')
-        key = self.key.encode('base64-codec').replace('\n', '')
-        text = ''
+        hit = binascii.hexlify(self.hit).decode()
+        key = base64.b64encode(self.key).replace(b'\n', b'').decode()
+        text = u''
         servers = []
         for server in self.servers:
-            servers.append(str(server.choose_relativity(origin, relativize)))
+            servers.append(server.choose_relativity(origin, relativize))
         if len(servers) > 0:
-            text += (' ' + ' '.join(servers))
-        return '%u %s %s%s' % (self.algorithm, hit, key, text)
+            text += (u' ' + u' '.join(map(lambda x: x.to_unicode(), servers)))
+        return u'%u %s %s%s' % (self.algorithm, hit, key, text)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         algorithm = tok.get_uint8()
-        hit = tok.get_string().decode('hex-codec')
+        hit = binascii.unhexlify(tok.get_string().encode())
         if len(hit) > 255:
             raise dns.exception.SyntaxError("HIT too long")
-        key = tok.get_string().decode('base64-codec')
+        key = base64.b64decode(tok.get_string().encode())
         servers = []
         while 1:
             token = tok.get()
@@ -70,9 +73,7 @@ class HIP(dns.rdata.Rdata):
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         lh = len(self.hit)
         lk = len(self.key)
         file.write(struct.pack("!BBH", lh, self.algorithm, lk))
@@ -81,15 +82,16 @@ class HIP(dns.rdata.Rdata):
         for server in self.servers:
             server.to_wire(file, None, origin)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (lh, algorithm, lk) = struct.unpack('!BBH',
-                                            wire[current : current + 4])
+                                            wire[current: current + 4])
         current += 4
         rdlen -= 4
-        hit = wire[current : current + lh].unwrap()
+        hit = wire[current: current + lh].unwrap()
         current += lh
         rdlen -= lh
-        key = wire[current : current + lk].unwrap()
+        key = wire[current: current + lk].unwrap()
         current += lk
         rdlen -= lk
         servers = []
@@ -98,14 +100,12 @@ class HIP(dns.rdata.Rdata):
                                                  current)
             current += cused
             rdlen -= cused
-            if not origin is None:
+            if origin is not None:
                 server = server.relativize(origin)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         servers = []
         for server in self.servers:
             server = server.choose_relativity(origin, relativize)

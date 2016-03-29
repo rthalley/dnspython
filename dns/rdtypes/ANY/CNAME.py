@@ -15,7 +15,9 @@
 
 import dns.rdtypes.nsbase
 
+
 class CNAME(dns.rdtypes.nsbase.NSBase):
+
     """CNAME record
 
     Note: although CNAME is officially a singleton type, dnspython allows
