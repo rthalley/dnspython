@@ -158,9 +158,6 @@ class NameTestCase(unittest.TestCase):
     def testCompare4(self):
         self.failUnless(dns.name.root != 1)
 
-    def testCompare5(self):
-        self.failUnless(dns.name.root < 1 or dns.name.root > 1)
-
     def testSubdomain1(self):
         self.failUnless(not dns.name.empty.is_subdomain(dns.name.root))
 
