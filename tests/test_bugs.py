@@ -13,8 +13,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
-import unittest
+from six import BytesIO
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns.rdata
 import dns.rdataclass

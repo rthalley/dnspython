@@ -16,7 +16,10 @@
 import cStringIO
 import filecmp
 import os
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns.exception
 import dns.rdata

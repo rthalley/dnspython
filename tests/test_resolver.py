@@ -17,7 +17,10 @@ import cStringIO
 import select
 import sys
 import time
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns.name
 import dns.message

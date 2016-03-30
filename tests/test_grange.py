@@ -19,7 +19,10 @@ sys.path.insert(0, '../')
 import cStringIO
 import filecmp
 import os
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns
 import dns.exception

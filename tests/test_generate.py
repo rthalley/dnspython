@@ -19,7 +19,10 @@ sys.path.insert(0, '../')  # Force the local project to be *the* dns
 import cStringIO
 import filecmp
 import os
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns.exception
 import dns.rdata
