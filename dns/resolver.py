@@ -769,7 +769,7 @@ class Resolver(object):
         return min(self.lifetime - duration, self.timeout)
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-              tcp=False, source=None, raise_on_no_answer=True, source_port=0):
+              tcp=False, source=None, raise_on_no_answer=True, source_port=0, ipttl=128):
         """Query nameservers to find the answer to the question.
 
         The I{qname}, I{rdtype}, and I{rdclass} parameters may be objects
@@ -865,7 +865,8 @@ class Resolver(object):
                             response = dns.query.udp(request, nameserver,
                                                      timeout, self.port,
                                                      source=source,
-                                                     source_port=source_port)
+                                                     source_port=source_port,
+                                                     ipttl=ipttl)
                             if response.flags & dns.flags.TC:
                                 # Response truncated; retry with TCP.
                                 tcp_attempt = True
