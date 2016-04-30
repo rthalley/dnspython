@@ -18,7 +18,7 @@
 import sys
 from distutils.core import setup
 
-version = '1.12.0'
+version = '1.12.0-ttl'
 
 kwargs = {
     'name' : 'dnspython3',
