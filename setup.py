@@ -18,7 +18,7 @@
 import sys
 from setuptools import setup
 
-version = '1.12.0'
+version = '1.13.0'
 
 kwargs = {
     'name' : 'dnspython',

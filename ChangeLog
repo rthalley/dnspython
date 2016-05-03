@@ -1,3 +1,7 @@
+2016-05-03  Arthur Gautier
+
+        * Single source support for python 2 and 3
+
 2014-09-04  Bob Halley  <halley@dnspython.org>
 
 	* Comparing two rdata is now always done by comparing the binary

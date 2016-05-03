@@ -20,16 +20,28 @@ open sourced under a BSD-style license, and helps support its future
 development by continuing to employ the author :).
 
 ## INSTALLATION
-- If you have pip installed and are using Python 2.x, you can do this
+- If you have pip installed,  you can do this
 `pip install dnspython`
-- If you have pip installed and are using Python 3.x, you can do this
-`pip install dnspython3`
 - If not just download the source file and unzip it, then run this
 `sudo python setup.py install`
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 1.12.0
+This is dnspython 1.13.0
+
+New since 1.12.0:
+
+        Single source support for python 2 and python 3.  Thank
+	you so much to Arthur Gautier for taking on this
+	challenge and making it work!  It was a big job!
+
+	Support for Python older than 2.6 dropped.
+
+	XXX TBD XXX
+
+Bugs fixed since 1.12.0:
+
+	XXX TBD XXX
 
 New since 1.11.1:
     
