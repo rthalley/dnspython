@@ -21,12 +21,16 @@
 @type ipv6_reverse_domain: dns.name.Name object
 """
 
+import binascii
+import sys
+
 import dns.name
 import dns.ipv6
 import dns.ipv4
 
 ipv4_reverse_domain = dns.name.from_text('in-addr.arpa.')
 ipv6_reverse_domain = dns.name.from_text('ip6.arpa.')
+
 
 def from_address(text):
     """Convert an IPv4 or IPv6 address in textual form into a Name object whose
@@ -39,16 +43,21 @@ def from_address(text):
     try:
         v6 = dns.ipv6.inet_aton(text)
         if dns.ipv6.is_mapped(v6):
-            parts = ['%d' % ord(byte) for byte in v6[12:]]
+            if sys.version_info >= (3,):
+                parts = ['%d' % byte for byte in v6[12:]]
+            else:
+                parts = ['%d' % ord(byte) for byte in v6[12:]]
             origin = ipv4_reverse_domain
         else:
-            parts = list(v6.encode('hex_codec'))
+            parts = [x for x in str(binascii.hexlify(v6).decode())]
             origin = ipv6_reverse_domain
     except:
-        parts = ['%d' % ord(byte) for byte in dns.ipv4.inet_aton(text)]
+        parts = ['%d' %
+                 byte for byte in bytearray(dns.ipv4.inet_aton(text))]
         origin = ipv4_reverse_domain
     parts.reverse()
     return dns.name.from_text('.'.join(parts), origin=origin)
+
 
 def to_address(name):
     """Convert a reverse map domain name into textual address form.
@@ -60,7 +69,7 @@ def to_address(name):
         name = name.relativize(ipv4_reverse_domain)
         labels = list(name.labels)
         labels.reverse()
-        text = '.'.join(labels)
+        text = b'.'.join(labels)
         # run through inet_aton() to check syntax and make pretty.
         return dns.ipv4.inet_ntoa(dns.ipv4.inet_aton(text))
     elif name.is_subdomain(ipv6_reverse_domain):
@@ -71,9 +80,9 @@ def to_address(name):
         i = 0
         l = len(labels)
         while i < l:
-            parts.append(''.join(labels[i:i+4]))
+            parts.append(b''.join(labels[i:i + 4]))
             i += 4
-        text = ':'.join(parts)
+        text = b':'.join(parts)
         # run through inet_aton() to check syntax and make pretty.
         return dns.ipv6.inet_ntoa(dns.ipv6.inet_aton(text))
     else:

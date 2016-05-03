@@ -14,7 +14,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import binascii
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from dns.exception import DNSException
 

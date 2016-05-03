@@ -15,7 +15,9 @@
 
 """A simple Set class."""
 
+
 class Set(object):
+
     """A simple set class.
 
     Sets are not in Python until 2.3, and rdata are not immutable so
@@ -35,7 +37,7 @@ class Set(object):
         """
 
         self.items = []
-        if not items is None:
+        if items is not None:
             for item in items:
                 self.add(item)
 
@@ -44,7 +46,7 @@ class Set(object):
 
     def add(self, item):
         """Add an item to the set."""
-        if not item in self.items:
+        if item not in self.items:
             self.items.append(item)
 
     def remove(self, item):
@@ -208,10 +210,10 @@ class Set(object):
         # Yes, this is inefficient but the sets we're dealing with are
         # usually quite small, so it shouldn't hurt too much.
         for item in self.items:
-            if not item in other.items:
+            if item not in other.items:
                 return False
         for item in other.items:
-            if not item in self.items:
+            if item not in self.items:
                 return False
         return True
 
@@ -245,7 +247,7 @@ class Set(object):
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
         for item in self.items:
-            if not item in other.items:
+            if item not in other.items:
                 return False
         return True
 
@@ -258,6 +260,6 @@ class Set(object):
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
         for item in other.items:
-            if not item in self.items:
+            if item not in self.items:
                 return False
         return True

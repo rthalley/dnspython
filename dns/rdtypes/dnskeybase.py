@@ -21,7 +21,8 @@ import dns.dnssec
 import dns.rdata
 
 # wildcard import
-__all__ = [ "SEP", "REVOKE", "ZONE", "flags_to_text_set", "flags_from_text_set" ]
+__all__ = ["SEP", "REVOKE", "ZONE",
+           "flags_to_text_set", "flags_from_text_set"]
 
 # flag constants
 SEP = 0x0001
@@ -32,12 +33,13 @@ _flag_by_text = {
     'SEP': SEP,
     'REVOKE': REVOKE,
     'ZONE': ZONE
-    }
+}
 
 # We construct the inverse mapping programmatically to ensure that we
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
-_flag_by_value = dict([(y, x) for x, y in _flag_by_text.items()])
+_flag_by_value = dict((y, x) for x, y in _flag_by_text.items())
+
 
 def flags_to_text_set(flags):
     """Convert a DNSKEY flags value to set texts
@@ -68,7 +70,9 @@ def flags_from_text_set(texts_set):
                 "DNSKEY flag '%s' is not supported" % text)
     return flags
 
+
 class DNSKEYBase(dns.rdata.Rdata):
+
     """Base class for rdata that is like a DNSKEY record
 
     @ivar flags: the key flags
@@ -93,7 +97,8 @@ class DNSKEYBase(dns.rdata.Rdata):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
                                 dns.rdata._base64ify(self.key))
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         flags = tok.get_uint16()
         protocol = tok.get_uint8()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
@@ -104,29 +109,26 @@ class DNSKEYBase(dns.rdata.Rdata):
                 break
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        b64 = ''.join(chunks)
-        key = b64.decode('base64_codec')
+            chunks.append(t.value.encode())
+        b64 = b''.join(chunks)
+        key = base64.b64decode(b64)
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!HBB", self.flags, self.protocol, self.algorithm)
         file.write(header)
         file.write(self.key)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         if rdlen < 4:
             raise dns.exception.FormError
-        header = struct.unpack('!HBB', wire[current : current + 4])
+        header = struct.unpack('!HBB', wire[current: current + 4])
         current += 4
         rdlen -= 4
-        key = wire[current : current + rdlen].unwrap()
+        key = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
-
-    from_wire = classmethod(from_wire)
 
     def flags_to_text_set(self):
         """Convert a DNSKEY flags value to set texts

@@ -13,7 +13,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+import binascii
 
 import dns.update
 import dns.rdata
@@ -34,7 +38,7 @@ goodhex = '0001 2800 0001 0005 0007 0000' \
           '04626c617ac00c 0001 00ff 00000000 0000' \
           'c049 00ff 00ff 00000000 0000'
 
-goodwire = goodhex.replace(' ', '').decode('hex_codec')
+goodwire = binascii.unhexlify(goodhex.replace(' ', '').encode())
 
 update_text="""id 1
 opcode UPDATE

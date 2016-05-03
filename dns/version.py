@@ -31,4 +31,4 @@ else:
               (MAJOR, MINOR, MICRO, RELEASELEVEL, SERIAL)
 
 hexversion = MAJOR << 24 | MINOR << 16 | MICRO << 8 | RELEASELEVEL << 4 | \
-             SERIAL
+    SERIAL

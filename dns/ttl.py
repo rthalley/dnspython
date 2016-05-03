@@ -16,9 +16,13 @@
 """DNS TTL conversion."""
 
 import dns.exception
+from ._compat import long
+
 
 class BadTTL(dns.exception.SyntaxError):
+
     """DNS TTL value is not well-formed."""
+
 
 def from_text(text):
     """Convert the text form of a TTL to an integer.
@@ -36,8 +40,8 @@ def from_text(text):
     else:
         if not text[0].isdigit():
             raise BadTTL
-        total = 0L
-        current = 0L
+        total = long(0)
+        current = long(0)
         for c in text:
             if c.isdigit():
                 current *= 10
@@ -45,13 +49,13 @@ def from_text(text):
             else:
                 c = c.lower()
                 if c == 'w':
-                    total += current * 604800L
+                    total += current * long(604800)
                 elif c == 'd':
-                    total += current * 86400L
+                    total += current * long(86400)
                 elif c == 'h':
-                    total += current * 3600L
+                    total += current * long(3600)
                 elif c == 'm':
-                    total += current * 60L
+                    total += current * long(60)
                 elif c == 's':
                     total += current
                 else:
@@ -59,6 +63,6 @@ def from_text(text):
                 current = 0
         if not current == 0:
             raise BadTTL("trailing integer")
-    if total < 0L or total > 2147483647L:
+    if total < long(0) or total > long(2147483647):
         raise BadTTL("TTL should be between 0 and 2^31 - 1 (inclusive)")
     return total

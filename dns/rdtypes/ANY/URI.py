@@ -19,8 +19,11 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.name
+from dns._compat import text_type
+
 
 class URI(dns.rdata.Rdata):
+
     """URI record
 
     @ivar priority: the priority
@@ -39,12 +42,17 @@ class URI(dns.rdata.Rdata):
         self.weight = weight
         if len(target) < 1:
             raise dns.exception.SyntaxError("URI target cannot be empty")
-        self.target = target
+        if isinstance(target, text_type):
+            self.target = target.encode()
+        else:
+            self.target = target
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '%d %d "%s"' % (self.priority, self.weight, self.target)
+        return '%d %d "%s"' % (self.priority, self.weight,
+                               self.target.decode())
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         priority = tok.get_uint16()
         weight = tok.get_uint16()
         target = tok.get().unescape()
@@ -53,23 +61,21 @@ class URI(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, priority, weight, target.value)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         two_ints = struct.pack("!HH", self.priority, self.weight)
         file.write(two_ints)
         file.write(self.target)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         if rdlen < 5:
             raise dns.exception.FormError('URI RR is shorter than 5 octets')
 
-        (priority, weight) = struct.unpack('!HH', wire[current : current + 4])
+        (priority, weight) = struct.unpack('!HH', wire[current: current + 4])
         current += 4
         rdlen -= 4
-        target = wire[current : current + rdlen]
+        target = wire[current: current + rdlen]
         current += rdlen
 
         return cls(rdclass, rdtype, priority, weight, target)
 
-    from_wire = classmethod(from_wire)

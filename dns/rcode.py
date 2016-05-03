@@ -16,6 +16,8 @@
 """DNS Result Codes."""
 
 import dns.exception
+from ._compat import long
+
 
 NOERROR = 0
 FORMERR = 1
@@ -31,29 +33,31 @@ NOTZONE = 10
 BADVERS = 16
 
 _by_text = {
-    'NOERROR' : NOERROR,
-    'FORMERR' : FORMERR,
-    'SERVFAIL' : SERVFAIL,
-    'NXDOMAIN' : NXDOMAIN,
-    'NOTIMP' : NOTIMP,
-    'REFUSED' : REFUSED,
-    'YXDOMAIN' : YXDOMAIN,
-    'YXRRSET' : YXRRSET,
-    'NXRRSET' : NXRRSET,
-    'NOTAUTH' : NOTAUTH,
-    'NOTZONE' : NOTZONE,
-    'BADVERS' : BADVERS
+    'NOERROR': NOERROR,
+    'FORMERR': FORMERR,
+    'SERVFAIL': SERVFAIL,
+    'NXDOMAIN': NXDOMAIN,
+    'NOTIMP': NOTIMP,
+    'REFUSED': REFUSED,
+    'YXDOMAIN': YXDOMAIN,
+    'YXRRSET': YXRRSET,
+    'NXRRSET': NXRRSET,
+    'NOTAUTH': NOTAUTH,
+    'NOTZONE': NOTZONE,
+    'BADVERS': BADVERS
 }
 
 # We construct the inverse mapping programmatically to ensure that we
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be a true inverse.
 
-_by_value = dict([(y, x) for x, y in _by_text.iteritems()])
+_by_value = dict((y, x) for x, y in _by_text.items())
 
 
 class UnknownRcode(dns.exception.DNSException):
+
     """A DNS rcode is unknown."""
+
 
 def from_text(text):
     """Convert text into an rcode.
@@ -73,6 +77,7 @@ def from_text(text):
         raise UnknownRcode
     return v
 
+
 def from_flags(flags, ednsflags):
     """Return the rcode value encoded by flags and ednsflags.
 
@@ -89,6 +94,7 @@ def from_flags(flags, ednsflags):
         raise ValueError('rcode must be >= 0 and <= 4095')
     return value
 
+
 def to_flags(value):
     """Return a (flags, ednsflags) tuple which encodes the rcode.
 
@@ -103,6 +109,7 @@ def to_flags(value):
     v = value & 0xf
     ev = long(value & 0xff0) << 20
     return (v, ev)
+
 
 def to_text(value):
     """Convert rcode into text.
