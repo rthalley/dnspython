@@ -768,7 +768,7 @@ class Resolver(object):
             raise Timeout(timeout=duration)
         return min(self.lifetime - duration, self.timeout)
 
-    def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
+    def query(self, qname, rdtype=dns.rdatatype.A, af=None, rdclass=dns.rdataclass.IN,
               tcp=False, source=None, raise_on_no_answer=True, source_port=0, ipttl=128):
         """Query nameservers to find the answer to the question.
 
@@ -787,6 +787,10 @@ class Resolver(object):
         @type tcp: bool
         @param source: bind to this IP address (defaults to machine default IP).
         @type source: IP address in dotted quad notation
+        @param af: the address family to use.  The default is None, which
+        causes the address family to use to be inferred from the form of of where.
+        If the inference attempt fails, AF_INET is used.
+        @type af: int
         @param raise_on_no_answer: raise NoAnswer if there's no answer
         (defaults is True).
         @type raise_on_no_answer: bool
@@ -860,13 +864,15 @@ class Resolver(object):
                             response = dns.query.tcp(request, nameserver,
                                                      timeout, self.port,
                                                      source=source,
-                                                     source_port=source_port)
+                                                     source_port=source_port,
+                                                     af=af)
                         else:
                             response = dns.query.udp(request, nameserver,
                                                      timeout, self.port,
                                                      source=source,
                                                      source_port=source_port,
-                                                     ipttl=ipttl)
+                                                     ipttl=ipttl,
+                                                     af=af)
                             if response.flags & dns.flags.TC:
                                 # Response truncated; retry with TCP.
                                 tcp_attempt = True
