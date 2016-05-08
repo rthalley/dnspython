@@ -422,5 +422,16 @@ class ZoneTestCase(unittest.TestCase):
         rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
         self.failUnless(rds.ttl == 0)
 
+    def testZoneOrigin(self):
+        z = dns.zone.Zone('example.')
+        self.failUnless(z.origin == dns.name.from_text('example.'))
+        def bad1():
+            o = dns.name.from_text('example', None)
+            z = dns.zone.Zone(o)
+        self.failUnlessRaises(ValueError, bad1)
+        def bad2():
+            z = dns.zone.Zone(1.0)
+        self.failUnlessRaises(ValueError, bad2)
+
 if __name__ == '__main__':
     unittest.main()
