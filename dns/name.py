@@ -624,14 +624,14 @@ def from_unicode(text, origin=root):
                     edigits += 1
                     if edigits == 3:
                         escaping = False
-                        label += chr(total)
+                        label += unichr(total)
             elif c in [u'.', u'\u3002', u'\uff0e', u'\uff61']:
                 if len(label) == 0:
                     raise EmptyLabel
-                if len(label) > 63:
-                    # otherwise encodings.idna raises UnicodeError later
+                try:
+                    labels.append(encodings.idna.ToASCII(label))
+                except UnicodeError:
                     raise LabelTooLong
-                labels.append(encodings.idna.ToASCII(label))
                 label = u''
             elif c == u'\\':
                 escaping = True
@@ -641,11 +641,11 @@ def from_unicode(text, origin=root):
                 label += c
         if escaping:
             raise BadEscape
-        if len(label) > 63:
-            # otherwise encodings.idna raises UnicodeError later
-            raise LabelTooLong
         if len(label) > 0:
-            labels.append(encodings.idna.ToASCII(label))
+            try:
+                labels.append(encodings.idna.ToASCII(label))
+            except UnicodeError:
+                raise LabelTooLong
         else:
             labels.append(b'')
 
