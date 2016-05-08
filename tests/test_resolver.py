@@ -18,7 +18,6 @@ import select
 import sys
 import time
 import unittest
-import urllib
 
 import dns.name
 import dns.message
@@ -47,13 +46,6 @@ example. 1 IN A 10.0.0.1
 ;AUTHORITY
 ;ADDITIONAL
 """
-
-try:
-    with network = urllib.request.urlopen('http://www.dnspython.org/',
-                                  timeout=1) as response:
-        network = (response.getcode() == 200)
-except urllib.error.URLError:
-    network = False
 
 class FakeAnswer(object):
     def __init__(self, expiration):
@@ -90,21 +82,18 @@ class BaseResolverTests(object):
         self.assertTrue(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
                         is None)
 
-    @unittest.skipUnless(network, "requires network access")
     def testZoneForName1(self):
         name = dns.name.from_text('www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.assertTrue(zname == ezname)
 
-    @unittest.skipUnless(network, "requires network access")
     def testZoneForName2(self):
         name = dns.name.from_text('a.b.www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.assertTrue(zname == ezname)
 
-    @unittest.skipUnless(network, "requires network access")
     def testZoneForName3(self):
         name = dns.name.from_text('dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
