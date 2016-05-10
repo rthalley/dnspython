@@ -31,17 +31,35 @@ This is dnspython 1.13.0
 
 New since 1.12.0:
 
-        Single source support for python 2 and python 3.  Thank
-	you so much to Arthur Gautier for taking on this
+	Dnspython now uses a single source for Python 2 and Python 3,
+	eliminating the painful merging between the Python 2 and Python 3
+	branches.  Thank you so much to Arthur Gautier for taking on this
 	challenge and making it work!  It was a big job!
 
 	Support for Python older than 2.6 dropped.
 
-	XXX TBD XXX
+	Support for Python older than 3.3 dropped.
+
+	Zone origin can be specified as a string.
+
+	A rich string representation for all DNSExceptions.
+
+	setuptools has replaced distutils
+
+	Added support for CAA, CDS, CDNSKEY, EUI48, EUI64, and URI RR
+	types.
+
+	Names now support the pickle protocol.
+
+	Ports can be specified per-nameserver in the stub resolver.
 
 Bugs fixed since 1.12.0:
 
-	XXX TBD XXX
+    A number of Unicode name bugs have been fixed.
+
+	resolv.conf processing now rejects lines with too few tokens.
+
+	NameDicts now keep the max-depth value correct, and update properly.
 
 New since 1.11.1:
     

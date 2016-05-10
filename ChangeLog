@@ -1,6 +1,34 @@
+2016-05-10  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.13.0 released)
+
+2016-05-10  Bob Halley  <halley@dnspython.org>
+
+	* Dropped support for Python 2.4 and 2.5.
+
+	* Zone origin can be specified as a string.
+
+	* Support string representation for all DNSExceptions.
+
+	* Use setuptools not distutils
+
+	* A number of Unicode name bug fixes.
+
+	* Added support for CAA, CDS, CDNSKEY, EUI48, EUI64, and URI RR
+	  types.
+
+	* Names now support the pickle protocol.
+
+	* NameDicts now keep the max-depth value correct, and update
+	  properly.
+
+	* resolv.conf processing rejects lines with too few tokens.
+
+	* Ports can be specified per-nameserver in the stub resolver.
+
 2016-05-03  Arthur Gautier
 
-        * Single source support for python 2 and 3
+        * Single source support for python 2.6+ and 3.3+
 
 2014-09-04  Bob Halley  <halley@dnspython.org>
 
