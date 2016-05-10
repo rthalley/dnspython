@@ -30,8 +30,7 @@ import encodings.idna
 import dns.exception
 import dns.wiredata
 
-from ._compat import long, binary_type, text_type
-
+from ._compat import long, binary_type, text_type, unichr
 
 try:
     maxint = sys.maxint
