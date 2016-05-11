@@ -433,5 +433,8 @@ class ZoneTestCase(unittest.TestCase):
             z = dns.zone.Zone(1.0)
         self.failUnlessRaises(ValueError, bad2)
 
+    def testZoneOriginNone(self):
+        z = dns.zone.Zone(None)
+
 if __name__ == '__main__':
     unittest.main()
