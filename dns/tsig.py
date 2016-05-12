@@ -210,7 +210,7 @@ def get_algorithm(algorithm):
         algorithm = dns.name.from_text(algorithm)
 
     try:
-        return (algorithm.to_digestable(), _hashes[algorithm])
+        return (algorithm.to_digestable(), dns.hash.hashes[_hashes[algorithm]])
     except KeyError:
         raise NotImplementedError("TSIG algorithm " + str(algorithm) +
                                   " is not supported")
