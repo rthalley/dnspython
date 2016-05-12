@@ -25,7 +25,6 @@ import dns.rdataclass
 import dns.name
 from ._compat import long, string_types
 
-
 class BadTime(dns.exception.DNSException):
 
     """The current time is not within the TSIG's validity time."""
@@ -68,6 +67,15 @@ HMAC_SHA224 = dns.name.from_text("hmac-sha224")
 HMAC_SHA256 = dns.name.from_text("hmac-sha256")
 HMAC_SHA384 = dns.name.from_text("hmac-sha384")
 HMAC_SHA512 = dns.name.from_text("hmac-sha512")
+
+_hashes = {
+    HMAC_SHA224: 'SHA224',
+    HMAC_SHA256: 'SHA256',
+    HMAC_SHA384: 'SHA384',
+    HMAC_SHA512: 'SHA512',
+    HMAC_SHA1: 'SHA1',
+    HMAC_MD5: 'MD5',
+}
 
 default_algorithm = HMAC_MD5
 
@@ -202,7 +210,7 @@ def get_algorithm(algorithm):
         algorithm = dns.name.from_text(algorithm)
 
     try:
-        return (algorithm.to_digestable(), dns.hash.hashes[algorithm])
+        return (algorithm.to_digestable(), _hashes[algorithm])
     except KeyError:
         raise NotImplementedError("TSIG algorithm " + str(algorithm) +
                                   " is not supported")
