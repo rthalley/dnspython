@@ -80,7 +80,8 @@ Timeout = dns.exception.Timeout
 class NoAnswer(dns.exception.DNSException):
 
     """The DNS response does not contain an answer to the question."""
-    fmt = '%s: {query}' % __doc__[:-1]
+    fmt = 'The DNS response does not contain an answer ' + \
+          'to the question: {query}'
     supp_kwargs = set(['response'])
 
     def _fmt_kwargs(self, **kwargs):

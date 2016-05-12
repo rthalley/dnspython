@@ -121,4 +121,4 @@ class Timeout(DNSException):
 
     """The DNS operation timed out."""
     supp_kwargs = set(['timeout'])
-    fmt = "%s after {timeout} seconds" % __doc__[:-1]
+    fmt = "The DNS operation timed out after {timeout} seconds"
