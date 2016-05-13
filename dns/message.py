@@ -1043,7 +1043,7 @@ def from_file(f):
 
 
 def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
-               want_dnssec=False, ednsflags=0, payload=1280,
+               want_dnssec=False, ednsflags=None, payload=None,
                request_payload=None, options=None):
     """Make a query message.
 
@@ -1088,7 +1088,28 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     m.flags |= dns.flags.RD
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
                  force_unique=True)
-    m.use_edns(use_edns, ednsflags, payload, request_payload, options)
+    # only pass keywords on to use_edns if they have been set to a
+    # non-None value.  Setting a field will turn EDNS on if it hasn't
+    # been configured.
+    kwargs = {}
+    if ednsflags is not None:
+        kwargs['ednsflags'] = ednsflags
+        if use_edns is None:
+            use_edns = 0
+    if payload is not None:
+        kwargs['payload'] = payload
+        if use_edns is None:
+            use_edns = 0
+    if request_payload is not None:
+        kwargs['request_payload'] = request_payload
+        if use_edns is None:
+            use_edns = 0
+    if options is not None:
+        kwargs['options'] = options
+        if use_edns is None:
+            use_edns = 0
+    kwargs['edns'] = use_edns
+    m.use_edns(**kwargs)
     m.want_dnssec(want_dnssec)
     return m
 

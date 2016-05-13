@@ -21,6 +21,7 @@ except ImportError:
 import binascii
 
 import dns.exception
+import dns.flags
 import dns.message
 from dns._compat import xrange
 
@@ -178,6 +179,26 @@ class MessageTestCase(unittest.TestCase):
         m = dns.message.make_query('foo', 'A')
         m.use_edns(1)
         self.failUnless((m.ednsflags >> 16) & 0xFF == 1)
+
+    def test_SettingNoEDNSOptionsImpliesNoEDNS(self):
+        m = dns.message.make_query('foo', 'A')
+        self.failUnless(m.edns == -1)
+
+    def test_SettingEDNSFlagsImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', ednsflags=dns.flags.DO)
+        self.failUnless(m.edns == 0)
+
+    def test_SettingEDNSPayloadImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', payload=4096)
+        self.failUnless(m.edns == 0)
+
+    def test_SettingEDNSRequestPayloadImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', request_payload=4096)
+        self.failUnless(m.edns == 0)
+
+    def test_SettingOptionsImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', options=[])
+        self.failUnless(m.edns == 0)
 
 if __name__ == '__main__':
     unittest.main()
