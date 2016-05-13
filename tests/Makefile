@@ -15,9 +15,10 @@
 
 # $Id: Makefile,v 1.5 2004/03/19 00:17:27 halley Exp $
 
-PYTHON=python
-
 check: test
 
 test:
-	${PYTHON} ./utest.py
+	python ./utest.py
+
+test3:
+	python3 ./utest.py
