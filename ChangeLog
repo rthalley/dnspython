@@ -1,3 +1,13 @@
+2016-05-13  Bob Halley  <halley@dnspython.org>
+
+	* dns/message.py (make_query): Setting any value which implies
+	  EDNS will turn on EDNS if 'use_edns' has not been specified.
+
+2016-05-12  Bob Halley  <halley@dnspython.org>
+
+	* TSIG signature algorithm setting was broken by the Python 2
+	  and Python 3 code line merge.  Fixed.
+
 2016-05-10  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.13.0 released)
