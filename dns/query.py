@@ -264,11 +264,11 @@ def _net_read(sock, count, expiration):
     A Timeout exception will be raised if the operation is not completed
     by the expiration time.
     """
-    s = ''
+    s = b''
     while count > 0:
         _wait_for_readable(sock, expiration)
         n = sock.recv(count)
-        if n == '':
+        if n == b'':
             raise EOFError
         count = count - len(n)
         s = s + n
