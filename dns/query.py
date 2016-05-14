@@ -292,9 +292,12 @@ def _connect(s, address):
         s.connect(address)
     except socket.error:
         (ty, v) = sys.exc_info()[:2]
-        if v[0] != errno.EINPROGRESS and \
-            v[0] != errno.EWOULDBLOCK and \
-                v[0] != errno.EALREADY:
+
+        if hasattr(v, 'errno'):
+            v_err = v.errno
+        else:
+            v_err = v[0]
+        if v_err not in [errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY]:
             raise v
 
 
