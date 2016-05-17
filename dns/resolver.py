@@ -43,8 +43,10 @@ import dns.tsig
 from ._compat import xrange, string_types
 
 if sys.platform == 'win32':
-    import _winreg
-
+    try:
+        import winreg as _winreg
+    except ImportError:
+        import _winreg
 
 class NXDOMAIN(dns.exception.DNSException):
 
