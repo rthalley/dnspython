@@ -55,20 +55,15 @@ def _float_to_tuple(what):
     seconds = int(what // 1000)
     what -= int(seconds * 1000)
     what = int(what)
-    return (degrees * sign, minutes, seconds, what)
+    return (degrees, minutes, seconds, what, sign)
 
 
 def _tuple_to_float(what):
-    if what[0] < 0:
-        sign = -1
-        value = float(what[0]) * -1
-    else:
-        sign = 1
-        value = float(what[0])
+    value = float(what[0])
     value += float(what[1]) / 60.0
     value += float(what[2]) / 3600.0
     value += float(what[3]) / 3600000.0
-    return sign * value
+    return float(what[4]) * value
 
 
 def _encode_size(what, desc):
@@ -93,11 +88,11 @@ class LOC(dns.rdata.Rdata):
     """LOC record
 
     @ivar latitude: latitude
-    @type latitude: (int, int, int, int) tuple specifying the degrees, minutes,
-    seconds, and milliseconds of the coordinate.
+    @type latitude: (int, int, int, int, sign) tuple specifying the degrees, minutes,
+    seconds, milliseconds, and sign of the coordinate.
     @ivar longitude: longitude
-    @type longitude: (int, int, int, int) tuple specifying the degrees,
-    minutes, seconds, and milliseconds of the coordinate.
+    @type longitude: (int, int, int, int, sign) tuple specifying the degrees,
+    minutes, seconds, milliseconds, and sign of the coordinate.
     @ivar altitude: altitude
     @type altitude: float
     @ivar size: size of the sphere
@@ -139,22 +134,24 @@ class LOC(dns.rdata.Rdata):
         self.vertical_precision = float(vprec)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        if self.latitude[0] > 0:
+        if self.latitude[4] > 0:
             lat_hemisphere = 'N'
             lat_degrees = self.latitude[0]
         else:
             lat_hemisphere = 'S'
             lat_degrees = -1 * self.latitude[0]
-        if self.longitude[0] > 0:
+        if self.longitude[4] > 0:
             long_hemisphere = 'E'
             long_degrees = self.longitude[0]
         else:
             long_hemisphere = 'W'
             long_degrees = -1 * self.longitude[0]
         text = "%d %d %d.%03d %s %d %d %d.%03d %s %0.2fm" % (
-            lat_degrees, self.latitude[1], self.latitude[2], self.latitude[3],
-            lat_hemisphere, long_degrees, self.longitude[1], self.longitude[2],
-            self.longitude[3], long_hemisphere, self.altitude / 100.0
+            self.latitude[0], self.latitude[1],
+            self.latitude[2], self.latitude[3], lat_hemisphere,
+            self.longitude[0], self.longitude[1], self.longitude[2],
+            self.longitude[3], long_hemisphere,
+            self.altitude / 100.0
         )
 
         # do not print default values
@@ -169,8 +166,8 @@ class LOC(dns.rdata.Rdata):
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        latitude = [0, 0, 0, 0]
-        longitude = [0, 0, 0, 0]
+        latitude = [0, 0, 0, 0, 1]
+        longitude = [0, 0, 0, 0, 1]
         size = _default_size
         hprec = _default_hprec
         vprec = _default_vprec
@@ -204,7 +201,7 @@ class LOC(dns.rdata.Rdata):
                 latitude[2] = int(t)
                 t = tok.get_string()
         if t == 'S':
-            latitude[0] *= -1
+            latitude[4] = -1
         elif t != 'N':
             raise dns.exception.SyntaxError('bad latitude hemisphere value')
 
@@ -237,7 +234,7 @@ class LOC(dns.rdata.Rdata):
                 longitude[2] = int(t)
                 t = tok.get_string()
         if t == 'W':
-            longitude[0] *= -1
+            longitude[4] = -1
         elif t != 'E':
             raise dns.exception.SyntaxError('bad longitude hemisphere value')
 
@@ -270,27 +267,15 @@ class LOC(dns.rdata.Rdata):
                    size, hprec, vprec)
 
     def to_wire(self, file, compress=None, origin=None):
-        if self.latitude[0] < 0:
-            sign = -1
-            degrees = long(-1 * self.latitude[0])
-        else:
-            sign = 1
-            degrees = long(self.latitude[0])
-        milliseconds = (degrees * 3600000 +
+        milliseconds = (self.latitude[0] * 3600000 +
                         self.latitude[1] * 60000 +
                         self.latitude[2] * 1000 +
-                        self.latitude[3]) * sign
+                        self.latitude[3]) * self.latitude[4]
         latitude = long(0x80000000) + milliseconds
-        if self.longitude[0] < 0:
-            sign = -1
-            degrees = long(-1 * self.longitude[0])
-        else:
-            sign = 1
-            degrees = long(self.longitude[0])
-        milliseconds = (degrees * 3600000 +
+        milliseconds = (self.longitude[0] * 3600000 +
                         self.longitude[1] * 60000 +
                         self.longitude[2] * 1000 +
-                        self.longitude[3]) * sign
+                        self.longitude[3]) * self.longitude[4]
         longitude = long(0x80000000) + milliseconds
         altitude = long(self.altitude) + long(10000000)
         size = _encode_size(self.size, "size")

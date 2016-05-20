@@ -119,6 +119,8 @@ loc02			LOC	60 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m
 loc03			LOC	60 9 0.000 N 24 39 0.000 E 10.00m 90000000.00m 2000m 20m
 loc04			LOC	60 9 1.5 N 24 39 0.000 E 10.00m 20m 2000m 20m
 loc05			LOC	60 9 1.51 N 24 39 0.000 E 10.00m 20m 2000m 20m
+loc06			LOC	0 9 1.51 N 0 39 0.000 E 10.00m 20m 2000m 20m
+loc07			LOC	0 9 1.51 S 0 39 0.000 W 10.00m 20m 2000m 20m
 ;;
 ;; XXXRTH  These are all obsolete and unused.  dnspython doesn't implement
 ;; them
