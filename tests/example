@@ -195,3 +195,4 @@ caa03			CAA 0 iodef "http://iodef.example.com/"
 caa04			CAA 0 issue "ca.example.net; account=230123"
 caa05			CAA 0 issue "ca.example.net; policy=ev"
 caa06			CAA 128 tbs "Unknown"
+csync0			CSYNC 12345 0 A MX RRSIG NSEC TYPE1234

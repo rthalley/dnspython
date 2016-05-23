@@ -28,6 +28,7 @@ cert01.example. 3600 IN CERT 65534 65535 PRIVATEOID MxFcby9k/yvedMfQgKzhH5er0Mu/
 cname01.example. 3600 IN CNAME cname-target.
 cname02.example. 3600 IN CNAME cname-target.example.
 cname03.example. 3600 IN CNAME .
+csync0.example. 3600 IN CSYNC 12345 0 A MX RRSIG NSEC TYPE1234
 d.example. 300 IN A 73.80.65.49
 dhcid01.example. 3600 IN DHCID AAIBY2/AuCccgoJbsaxcQc9TUapptP69 lOjxfNuVAA2kjEA=
 dhcid02.example. 3600 IN DHCID AAEBOSD+XR3Os/0LozeXVqcNc7FwCfQd WL3b/NaiUDlW2No=
