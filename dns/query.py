@@ -191,7 +191,7 @@ def _destination_and_source(af, where, port, source, source_port):
 
 
 def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
-        ignore_unexpected=False, one_rr_per_rrset=False, ipttl = 128):
+        ignore_unexpected=False, one_rr_per_rrset=False, ip_ttl = None):
     """Return the response obtained after sending a query via UDP.
 
     @param q: the query
@@ -218,13 +218,17 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     @type ignore_unexpected: bool
     @param one_rr_per_rrset: Put each RR into its own RRset
     @type one_rr_per_rrset: bool
+    @param ip_ttl: Set IP TTL flag for outgoing query. Do not set unless you
+    know what you are doing.
+    @type ip_ttl: int
     """
 
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,
                                                         source, source_port)
     s = socket.socket(af, socket.SOCK_DGRAM, 0)
-    s.setsockopt(socket.SOL_IP, socket.IP_TTL, ipttl)
+    if ip_ttl:
+        s.setsockopt(socket.SOL_IP, socket.IP_TTL, ip_ttl)
     begin_time = None
     try:
         expiration = _compute_expiration(timeout)
