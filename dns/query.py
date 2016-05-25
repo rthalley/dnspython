@@ -171,7 +171,7 @@ def _destination_and_source(af, where, port, source, source_port):
     return (af, destination, source)
 
 def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
-        ignore_unexpected=False, one_rr_per_rrset=False):
+        ignore_unexpected=False, one_rr_per_rrset=False, ipttl = 128):
     """Return the response obtained after sending a query via UDP.
 
     @param q: the query
@@ -204,6 +204,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     (af, destination, source) = _destination_and_source(af, where, port, source,
                                                         source_port)
     s = socket.socket(af, socket.SOCK_DGRAM, 0)
+    s.setsockopt(socket.SOL_IP, socket.IP_TTL, ipttl)
     begin_time = None
     try:
         expiration = _compute_expiration(timeout)
