@@ -18,6 +18,7 @@ import dns.rdtypes.euibase
 
 
 class EUI64(dns.rdtypes.euibase.EUIBase):
+
     """EUI64 record
 
     @ivar fingerprint: 64-bit Extended Unique Identifier (EUI-64)

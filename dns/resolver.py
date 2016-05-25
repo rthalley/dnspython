@@ -40,16 +40,21 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.reversename
 import dns.tsig
+from ._compat import xrange, string_types
 
 if sys.platform == 'win32':
-    import _winreg
+    try:
+        import winreg as _winreg
+    except ImportError:
+        import _winreg
 
 class NXDOMAIN(dns.exception.DNSException):
+
     """The DNS query name does not exist."""
     supp_kwargs = set(['qname'])
 
     def __str__(self):
-        if not 'qname' in self.kwargs:
+        if 'qname' not in self.kwargs:
             return super(NXDOMAIN, self).__str__()
 
         qname = self.kwargs['qname']
@@ -62,7 +67,9 @@ class NXDOMAIN(dns.exception.DNSException):
                 qname = qname[0]
         return "%s: %s" % (msg, (str(qname)))
 
+
 class YXDOMAIN(dns.exception.DNSException):
+
     """The DNS query name is too long after DNAME substitution."""
 
 # The definition of the Timeout exception has moved from here to the
@@ -73,15 +80,19 @@ Timeout = dns.exception.Timeout
 
 
 class NoAnswer(dns.exception.DNSException):
+
     """The DNS response does not contain an answer to the question."""
-    fmt = '%s: {query}' % __doc__[:-1]
+    fmt = 'The DNS response does not contain an answer ' + \
+          'to the question: {query}'
     supp_kwargs = set(['response'])
 
     def _fmt_kwargs(self, **kwargs):
         return super(NoAnswer, self)._fmt_kwargs(
             query=kwargs['response'].question)
 
+
 class NoNameservers(dns.exception.DNSException):
+
     """All nameservers failed to answer the query.
 
     @param errors: list of servers and respective errors
@@ -103,15 +114,22 @@ class NoNameservers(dns.exception.DNSException):
 
 
 class NotAbsolute(dns.exception.DNSException):
+
     """An absolute domain name is required but a relative name was provided."""
 
+
 class NoRootSOA(dns.exception.DNSException):
+
     """There is no SOA RR at the DNS root name. This should never happen!"""
 
+
 class NoMetaqueries(dns.exception.DNSException):
+
     """DNS metaqueries are not allowed."""
 
+
 class Answer(object):
+
     """DNS stub resolver answer
 
     Instances of this class bundle up the result of a successful DNS
@@ -141,6 +159,7 @@ class Answer(object):
     @ivar canonical_name: The canonical name of the query name
     @type canonical_name: dns.name.Name object
     """
+
     def __init__(self, qname, rdtype, rdclass, response,
                  raise_on_no_answer=True):
         self.qname = qname
@@ -184,7 +203,7 @@ class Answer(object):
                 # of qname.
                 try:
                     srrset = response.find_rrset(response.authority, qname,
-                                                rdclass, dns.rdatatype.SOA)
+                                                 rdclass, dns.rdatatype.SOA)
                     if min_ttl == -1 or srrset.ttl < min_ttl:
                         min_ttl = srrset.ttl
                     if srrset[0].minimum < min_ttl:
@@ -229,7 +248,9 @@ class Answer(object):
     def __delslice__(self, i, j):
         del self.rrset[i:j]
 
+
 class Cache(object):
+
     """Simple DNS answer cache.
 
     @ivar data: A dictionary of cached data
@@ -261,7 +282,7 @@ class Cache(object):
         now = time.time()
         if self.next_cleaning <= now:
             keys_to_delete = []
-            for (k, v) in self.data.iteritems():
+            for (k, v) in self.data.items():
                 if v.expiration <= now:
                     keys_to_delete.append(k)
             for k in keys_to_delete:
@@ -316,8 +337,8 @@ class Cache(object):
 
         try:
             self.lock.acquire()
-            if not key is None:
-                if self.data.has_key(key):
+            if key is not None:
+                if key in self.data:
                     del self.data[key]
             else:
                 self.data = {}
@@ -325,9 +346,12 @@ class Cache(object):
         finally:
             self.lock.release()
 
+
 class LRUCacheNode(object):
+
     """LRUCache node.
     """
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
@@ -350,7 +374,9 @@ class LRUCacheNode(object):
         self.next.prev = self.prev
         self.prev.next = self.next
 
+
 class LRUCache(object):
+
     """Bounded least-recently-used DNS answer cache.
 
     This cache is better than the simple cache (above) if you're
@@ -370,7 +396,8 @@ class LRUCache(object):
     def __init__(self, max_size=100000):
         """Initialize a DNS cache.
 
-        @param max_size: The maximum number of nodes to cache; the default is 100000.  Must be > 1.
+        @param max_size: The maximum number of nodes to cache; the default is
+        100000. Must be > 1.
         @type max_size: int
         """
         self.data = {}
@@ -418,7 +445,7 @@ class LRUCache(object):
         try:
             self.lock.acquire()
             node = self.data.get(key)
-            if not node is None:
+            if node is not None:
                 node.unlink()
                 del self.data[node.key]
             while len(self.data) >= self.max_size:
@@ -442,9 +469,9 @@ class LRUCache(object):
         """
         try:
             self.lock.acquire()
-            if not key is None:
+            if key is not None:
                 node = self.data.get(key)
-                if not node is None:
+                if node is not None:
                     node.unlink()
                     del self.data[node.key]
             else:
@@ -458,7 +485,9 @@ class LRUCache(object):
         finally:
             self.lock.release()
 
+
 class Resolver(object):
+
     """DNS stub resolver
 
     @ivar domain: The domain of this host
@@ -492,7 +521,8 @@ class Resolver(object):
     @type ednsflags: int
     @ivar payload: The EDNS payload size.  The default is 0.
     @type payload: int
-    @ivar flags: The message flags to use.  The default is None (i.e. not overwritten)
+    @ivar flags: The message flags to use.  The default is None (i.e. not
+    overwritten)
     @type flags: int
     @ivar cache: The cache to use.  The default is None.
     @type cache: dns.resolver.Cache object
@@ -500,6 +530,7 @@ class Resolver(object):
     The default is 'false'.
     @type retry_servfail: bool
     """
+
     def __init__(self, filename='/etc/resolv.conf', configure=True):
         """Initialize a resolver instance.
 
@@ -547,7 +578,7 @@ class Resolver(object):
         """Process f as a file in the /etc/resolv.conf format.  If f is
         a string, it is used as the name of the file to open; otherwise it
         is treated as the file itself."""
-        if isinstance(f, str) or isinstance(f, unicode):
+        if isinstance(f, string_types):
             try:
                 f = open(f, 'r')
             except IOError:
@@ -606,7 +637,7 @@ class Resolver(object):
         split_char = self._determine_split_char(nameservers)
         ns_list = nameservers.split(split_char)
         for ns in ns_list:
-            if not ns in self.nameservers:
+            if ns not in self.nameservers:
                 self.nameservers.append(ns)
 
     def _config_win32_domain(self, domain):
@@ -621,7 +652,7 @@ class Resolver(object):
         split_char = self._determine_split_char(search)
         search_list = search.split(split_char)
         for s in search_list:
-            if not s in self.search:
+            if s not in self.search:
                 self.search.append(dns.name.from_text(s))
 
     def _config_win32_fromkey(self, key):
@@ -704,59 +735,59 @@ class Resolver(object):
             lm.Close()
 
     def _win32_is_nic_enabled(self, lm, guid, interface_key):
-         # Look in the Windows Registry to determine whether the network
-         # interface corresponding to the given guid is enabled.
-         #
-         # (Code contributed by Paul Marks, thanks!)
-         #
-         try:
-             # This hard-coded location seems to be consistent, at least
-             # from Windows 2000 through Vista.
-             connection_key = _winreg.OpenKey(
-                 lm,
-                 r'SYSTEM\CurrentControlSet\Control\Network'
-                 r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
-                 r'\%s\Connection' % guid)
+        # Look in the Windows Registry to determine whether the network
+        # interface corresponding to the given guid is enabled.
+        #
+        # (Code contributed by Paul Marks, thanks!)
+        #
+        try:
+            # This hard-coded location seems to be consistent, at least
+            # from Windows 2000 through Vista.
+            connection_key = _winreg.OpenKey(
+                lm,
+                r'SYSTEM\CurrentControlSet\Control\Network'
+                r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
+                r'\%s\Connection' % guid)
 
-             try:
-                 # The PnpInstanceID points to a key inside Enum
-                 (pnp_id, ttype) = _winreg.QueryValueEx(
-                     connection_key, 'PnpInstanceID')
+            try:
+                # The PnpInstanceID points to a key inside Enum
+                (pnp_id, ttype) = _winreg.QueryValueEx(
+                    connection_key, 'PnpInstanceID')
 
-                 if ttype != _winreg.REG_SZ:
-                     raise ValueError
+                if ttype != _winreg.REG_SZ:
+                    raise ValueError
 
-                 device_key = _winreg.OpenKey(
-                     lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
+                device_key = _winreg.OpenKey(
+                    lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
 
-                 try:
-                     # Get ConfigFlags for this device
-                     (flags, ttype) = _winreg.QueryValueEx(
-                         device_key, 'ConfigFlags')
+                try:
+                    # Get ConfigFlags for this device
+                    (flags, ttype) = _winreg.QueryValueEx(
+                        device_key, 'ConfigFlags')
 
-                     if ttype != _winreg.REG_DWORD:
-                         raise ValueError
+                    if ttype != _winreg.REG_DWORD:
+                        raise ValueError
 
-                     # Based on experimentation, bit 0x1 indicates that the
-                     # device is disabled.
-                     return not (flags & 0x1)
+                    # Based on experimentation, bit 0x1 indicates that the
+                    # device is disabled.
+                    return not (flags & 0x1)
 
-                 finally:
-                     device_key.Close()
-             finally:
-                 connection_key.Close()
-         except (EnvironmentError, ValueError):
-             # Pre-vista, enabled interfaces seem to have a non-empty
-             # NTEContextList; this was how dnspython detected enabled
-             # nics before the code above was contributed.  We've retained
-             # the old method since we don't know if the code above works
-             # on Windows 95/98/ME.
-             try:
-                 (nte, ttype) = _winreg.QueryValueEx(interface_key,
-                                                     'NTEContextList')
-                 return nte is not None
-             except WindowsError:
-                 return False
+                finally:
+                    device_key.Close()
+            finally:
+                connection_key.Close()
+        except (EnvironmentError, ValueError):
+            # Pre-vista, enabled interfaces seem to have a non-empty
+            # NTEContextList; this was how dnspython detected enabled
+            # nics before the code above was contributed.  We've retained
+            # the old method since we don't know if the code above works
+            # on Windows 95/98/ME.
+            try:
+                (nte, ttype) = _winreg.QueryValueEx(interface_key,
+                                                    'NTEContextList')
+                return nte is not None
+            except WindowsError:
+                return False
 
     def _compute_timeout(self, start):
         now = time.time()
@@ -791,7 +822,8 @@ class Resolver(object):
         @type rdclass: int or string
         @param tcp: use TCP to make the query (default is False).
         @type tcp: bool
-        @param source: bind to this IP address (defaults to machine default IP).
+        @param source: bind to this IP address (defaults to machine default
+        IP).
         @type source: IP address in dotted quad notation
         @param af: the address family to use.  The default is None, which
         causes the address family to use to be inferred from the form of of where.
@@ -812,13 +844,13 @@ class Resolver(object):
         @raises NoNameservers: no non-broken nameservers are available to
         answer the question."""
 
-        if isinstance(qname, (str, unicode)):
+        if isinstance(qname, string_types):
             qname = dns.name.from_text(qname, None)
-        if isinstance(rdtype, (str, unicode)):
+        if isinstance(rdtype, string_types):
             rdtype = dns.rdatatype.from_text(rdtype)
         if dns.rdatatype.is_metatype(rdtype):
             raise NoMetaqueries
-        if isinstance(rdclass, (str, unicode)):
+        if isinstance(rdclass, string_types):
             rdclass = dns.rdataclass.from_text(rdclass)
         if dns.rdataclass.is_metaclass(rdclass):
             raise NoMetaqueries
@@ -838,13 +870,13 @@ class Resolver(object):
         for qname in qnames_to_try:
             if self.cache:
                 answer = self.cache.get((qname, rdtype, rdclass))
-                if not answer is None:
+                if answer is not None:
                     if answer.rrset is None and raise_on_no_answer:
                         raise NoAnswer
                     else:
                         return answer
             request = dns.message.make_query(qname, rdtype, rdclass)
-            if not self.keyname is None:
+            if self.keyname is not None:
                 request.use_tsig(self.keyring, self.keyname,
                                  algorithm=self.keyalgorithm)
             request.use_edns(self.edns, self.ednsflags, self.payload)
@@ -884,10 +916,11 @@ class Resolver(object):
                                 # Response truncated; retry with TCP.
                                 tcp_attempt = True
                                 timeout = self._compute_timeout(start)
-                                response = dns.query.tcp(request, nameserver,
-                                                       timeout, port,
-                                                       source=source,
-                                                       source_port=source_port)
+                                response = \
+                                    dns.query.tcp(request, nameserver,
+                                                  timeout, port,
+                                                  source=source,
+                                                  source_port=source_port)
                     except (socket.error, dns.exception.Timeout) as ex:
                         #
                         # Communication failure or timeout.  Go to the
@@ -935,7 +968,7 @@ class Resolver(object):
                                        response))
                         raise ex
                     if rcode == dns.rcode.NOERROR or \
-                           rcode == dns.rcode.NXDOMAIN:
+                            rcode == dns.rcode.NXDOMAIN:
                         break
                     #
                     # We got a response, but we're not happy with the
@@ -947,7 +980,7 @@ class Resolver(object):
                     errors.append((nameserver, tcp_attempt, port,
                                    dns.rcode.to_text(rcode), response))
                     response = None
-                if not response is None:
+                if response is not None:
                     break
                 #
                 # All nameservers failed!
@@ -990,7 +1023,7 @@ class Resolver(object):
         @type algorithm: string"""
         self.keyring = keyring
         if keyname is None:
-            self.keyname = self.keyring.keys()[0]
+            self.keyname = list(self.keyring.keys())[0]
         else:
             self.keyname = keyname
         self.keyalgorithm = algorithm
@@ -1020,12 +1053,14 @@ class Resolver(object):
 
 default_resolver = None
 
+
 def get_default_resolver():
     """Get the default resolver, initializing it if necessary."""
     global default_resolver
     if default_resolver is None:
         default_resolver = Resolver()
     return default_resolver
+
 
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
           tcp=False, source=None, raise_on_no_answer=True,
@@ -1038,6 +1073,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
     parameters."""
     return get_default_resolver().query(qname, rdtype, rdclass, tcp, source,
                                         raise_on_no_answer, source_port)
+
 
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     """Find the name of the zone which contains the specified name.
@@ -1052,7 +1088,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     @type resolver: dns.resolver.Resolver object or None
     @rtype: dns.name.Name"""
 
-    if isinstance(name, (str, unicode)):
+    if isinstance(name, string_types):
         name = dns.name.from_text(name, dns.name.root)
     if resolver is None:
         resolver = get_default_resolver()
@@ -1077,9 +1113,9 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
 #
 
 _protocols_for_socktype = {
-    socket.SOCK_DGRAM : [socket.SOL_UDP],
-    socket.SOCK_STREAM : [socket.SOL_TCP],
-    }
+    socket.SOCK_DGRAM: [socket.SOL_UDP],
+    socket.SOCK_STREAM: [socket.SOL_TCP],
+}
 
 _resolver = None
 _original_getaddrinfo = socket.getaddrinfo
@@ -1089,9 +1125,10 @@ _original_gethostbyname = socket.gethostbyname
 _original_gethostbyname_ex = socket.gethostbyname_ex
 _original_gethostbyaddr = socket.gethostbyaddr
 
+
 def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
                  proto=0, flags=0):
-    if flags & (socket.AI_ADDRCONFIG|socket.AI_V4MAPPED) != 0:
+    if flags & (socket.AI_ADDRCONFIG | socket.AI_V4MAPPED) != 0:
         raise NotImplementedError
     if host is None and service is None:
         raise socket.gaierror(socket.EAI_NONAME)
@@ -1126,7 +1163,6 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
         except:
             if flags & socket.AI_NUMERICHOST == 0:
                 try:
-                    qname = None
                     if family == socket.AF_INET6 or family == socket.AF_UNSPEC:
                         v6 = _resolver.query(host, dns.rdatatype.AAAA,
                                              raise_on_no_answer=False)
@@ -1189,6 +1225,7 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
         raise socket.gaierror(socket.EAI_NONAME)
     return tuples
 
+
 def _getnameinfo(sockaddr, flags=0):
     host = sockaddr[0]
     port = sockaddr[1]
@@ -1228,6 +1265,7 @@ def _getnameinfo(sockaddr, flags=0):
         service = socket.getservbyport(port, pname)
     return (hostname, service)
 
+
 def _getfqdn(name=None):
     if name is None:
         name = socket.gethostname()
@@ -1236,23 +1274,26 @@ def _getfqdn(name=None):
     except:
         return name
 
+
 def _gethostbyname(name):
     return _gethostbyname_ex(name)[2][0]
+
 
 def _gethostbyname_ex(name):
     aliases = []
     addresses = []
     tuples = _getaddrinfo(name, 0, socket.AF_INET, socket.SOCK_STREAM,
-                         socket.SOL_TCP, socket.AI_CANONNAME)
+                          socket.SOL_TCP, socket.AI_CANONNAME)
     canonical = tuples[0][3]
     for item in tuples:
         addresses.append(item[4][0])
     # XXX we just ignore aliases
     return (canonical, aliases, addresses)
 
+
 def _gethostbyaddr(ip):
     try:
-        addr = dns.ipv6.inet_aton(ip)
+        dns.ipv6.inet_aton(ip)
         sockaddr = (ip, 80, 0, 0)
         family = socket.AF_INET6
     except:
@@ -1268,6 +1309,7 @@ def _gethostbyaddr(ip):
         addresses.append(item[4][0])
     # XXX we just ignore aliases
     return (canonical, aliases, addresses)
+
 
 def override_system_resolver(resolver=None):
     """Override the system resolver routines in the socket module with
@@ -1293,6 +1335,7 @@ def override_system_resolver(resolver=None):
     socket.gethostbyname = _gethostbyname
     socket.gethostbyname_ex = _gethostbyname_ex
     socket.gethostbyaddr = _gethostbyaddr
+
 
 def restore_system_resolver():
     """Undo the effects of override_system_resolver().

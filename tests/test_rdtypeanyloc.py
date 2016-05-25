@@ -14,7 +14,10 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns.rrset
 import dns.rdtypes.ANY.LOC
@@ -32,10 +35,12 @@ class RdtypeAnyLocTestCase(unittest.TestCase):
 
     def testEqual2(self):
         '''Test default values for size, horizontal and vertical precision.'''
-        r1 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400),
-                                     (16, 36, 29, 600), 22764.0) # centimeters
-        r2 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400),
-                                     (16, 36, 29, 600), 22764.0, # centimeters
+        r1 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400, 1),
+                                     (16, 36, 29, 600, 1),
+                                     22764.0) # centimeters
+        r2 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400, 1),
+                                     (16, 36, 29, 600, 1),
+                                     22764.0, # centimeters
                                      100.0, 1000000.00, 1000.0)  # centimeters
         self.failUnless(r1 == r2, '"%s" != "%s"' % (r1, r2))
 
@@ -43,8 +48,8 @@ class RdtypeAnyLocTestCase(unittest.TestCase):
         '''Test size, horizontal and vertical precision parsers: 100 cm == 1 m.
 
         Parsers in from_text() and __init__() have to produce equal results.'''
-        r1 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400),
-                                     (16, 36, 29, 600), 22764.0,
+        r1 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400, 1),
+                                     (16, 36, 29, 600, 1), 22764.0,
                                      200.0, 1000.00, 200.0)      # centimeters
         r2 = dns.rrset.from_text('FOO', 600, 'in', 'loc',
                                  '49 11 42.400 N 16 36 29.600 E 227.64m '
@@ -56,8 +61,8 @@ class RdtypeAnyLocTestCase(unittest.TestCase):
 
         Parsers in from_text() and __init__() have produce equal result
         for values with and without trailing "m".'''
-        r1 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400),
-                                     (16, 36, 29, 600), 22764.0,
+        r1 = dns.rdtypes.ANY.LOC.LOC(1, 29, (49, 11, 42, 400, 1),
+                                     (16, 36, 29, 600, 1), 22764.0,
                                      200.0, 1000.00, 200.0)      # centimeters
         r2 = dns.rrset.from_text('FOO', 600, 'in', 'loc',
                                  '49 11 42.400 N 16 36 29.600 E 227.64 '

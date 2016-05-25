@@ -13,12 +13,17 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
 import os
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+import binascii
 
 import dns.exception
+import dns.flags
 import dns.message
+from dns._compat import xrange
 
 query_text = """id 1234
 opcode QUERY
@@ -33,10 +38,10 @@ wwww.dnspython.org. IN A
 ;AUTHORITY
 ;ADDITIONAL"""
 
-goodhex = '04d201000001000000000001047777777709646e73707974686f6e' \
-          '036f726700000100010000291000000080000000'
+goodhex = b'04d201000001000000000001047777777709646e73707974686f6e' \
+          b'036f726700000100010000291000000080000000'
 
-goodwire = goodhex.decode('hex_codec')
+goodwire = binascii.unhexlify(goodhex)
 
 answer_text = """id 1234
 opcode QUERY
@@ -66,7 +71,7 @@ goodhex2 = '04d2 8500 0001 0001 0003 0001' \
            'c091 0001 0001 00000e10 0004 cc98ba96'
 
 
-goodwire2 = goodhex2.replace(' ', '').decode('hex_codec')
+goodwire2 = binascii.unhexlify(goodhex2.replace(' ', '').encode())
 
 query_text_2 = """id 1234
 opcode QUERY
@@ -81,10 +86,10 @@ wwww.dnspython.org. IN A
 ;AUTHORITY
 ;ADDITIONAL"""
 
-goodhex3 = '04d2010f0001000000000001047777777709646e73707974686f6e' \
-          '036f726700000100010000291000ff0080000000'
+goodhex3 = b'04d2010f0001000000000001047777777709646e73707974686f6e' \
+           b'036f726700000100010000291000ff0080000000'
 
-goodwire3 = goodhex3.decode('hex_codec')
+goodwire3 = binascii.unhexlify(goodhex3)
 
 class MessageTestCase(unittest.TestCase):
 
@@ -116,7 +121,7 @@ class MessageTestCase(unittest.TestCase):
 
     def test_EDNS_from_wire1(self):
         m = dns.message.from_wire(goodwire)
-        self.failUnless(str(m) == query_text)
+        self.assertEqual(str(m), query_text)
 
     def test_EDNS_to_wire2(self):
         q = dns.message.from_text(query_text_2)
@@ -146,13 +151,13 @@ class MessageTestCase(unittest.TestCase):
 
     def test_TrailingJunk(self):
         def bad():
-            badwire = goodwire + '\x00'
+            badwire = goodwire + b'\x00'
             m = dns.message.from_wire(badwire)
         self.failUnlessRaises(dns.message.TrailingJunk, bad)
 
     def test_ShortHeader(self):
         def bad():
-            badwire = '\x00' * 11
+            badwire = b'\x00' * 11
             m = dns.message.from_wire(badwire)
         self.failUnlessRaises(dns.message.ShortHeader, bad)
 
@@ -174,6 +179,26 @@ class MessageTestCase(unittest.TestCase):
         m = dns.message.make_query('foo', 'A')
         m.use_edns(1)
         self.failUnless((m.ednsflags >> 16) & 0xFF == 1)
+
+    def test_SettingNoEDNSOptionsImpliesNoEDNS(self):
+        m = dns.message.make_query('foo', 'A')
+        self.failUnless(m.edns == -1)
+
+    def test_SettingEDNSFlagsImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', ednsflags=dns.flags.DO)
+        self.failUnless(m.edns == 0)
+
+    def test_SettingEDNSPayloadImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', payload=4096)
+        self.failUnless(m.edns == 0)
+
+    def test_SettingEDNSRequestPayloadImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', request_payload=4096)
+        self.failUnless(m.edns == 0)
+
+    def test_SettingOptionsImpliesEDNS(self):
+        m = dns.message.make_query('foo', 'A', options=[])
+        self.failUnless(m.edns == 0)
 
 if __name__ == '__main__':
     unittest.main()

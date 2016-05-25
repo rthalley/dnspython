@@ -13,31 +13,33 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
 import struct
 
 import dns.exception
 import dns.rdata
+from dns._compat import long, xrange
 
-_pows = (1L, 10L, 100L, 1000L, 10000L, 100000L, 1000000L, 10000000L,
-         100000000L, 1000000000L, 10000000000L)
+
+_pows = tuple(long(10**i) for i in range(0, 11))
 
 # default values are in centimeters
 _default_size = 100.0
 _default_hprec = 1000000.0
 _default_vprec = 1000.0
 
+
 def _exponent_of(what, desc):
     if what == 0:
         return 0
     exp = None
     for i in xrange(len(_pows)):
-        if what // _pows[i] == 0L:
+        if what // _pows[i] == long(0):
             exp = i - 1
             break
     if exp is None or exp < 0:
         raise dns.exception.SyntaxError("%s value out of bounds" % desc)
     return exp
+
 
 def _float_to_tuple(what):
     if what < 0:
@@ -53,25 +55,23 @@ def _float_to_tuple(what):
     seconds = int(what // 1000)
     what -= int(seconds * 1000)
     what = int(what)
-    return (degrees * sign, minutes, seconds, what)
+    return (degrees, minutes, seconds, what, sign)
+
 
 def _tuple_to_float(what):
-    if what[0] < 0:
-        sign = -1
-        value = float(what[0]) * -1
-    else:
-        sign = 1
-        value = float(what[0])
+    value = float(what[0])
     value += float(what[1]) / 60.0
     value += float(what[2]) / 3600.0
     value += float(what[3]) / 3600000.0
-    return sign * value
+    return float(what[4]) * value
+
 
 def _encode_size(what, desc):
-    what = long(what);
+    what = long(what)
     exponent = _exponent_of(what, desc) & 0xF
     base = what // pow(10, exponent) & 0xF
     return base * 16 + exponent
+
 
 def _decode_size(what, desc):
     exponent = what & 0x0F
@@ -82,15 +82,17 @@ def _decode_size(what, desc):
         raise dns.exception.SyntaxError("bad %s base" % desc)
     return long(base) * pow(10, exponent)
 
+
 class LOC(dns.rdata.Rdata):
+
     """LOC record
 
     @ivar latitude: latitude
-    @type latitude: (int, int, int, int) tuple specifying the degrees, minutes,
-    seconds, and milliseconds of the coordinate.
+    @type latitude: (int, int, int, int, sign) tuple specifying the degrees, minutes,
+    seconds, milliseconds, and sign of the coordinate.
     @ivar longitude: longitude
-    @type longitude: (int, int, int, int) tuple specifying the degrees,
-    minutes, seconds, and milliseconds of the coordinate.
+    @type longitude: (int, int, int, int, sign) tuple specifying the degrees,
+    minutes, seconds, milliseconds, and sign of the coordinate.
     @ivar altitude: altitude
     @type altitude: float
     @ivar size: size of the sphere
@@ -105,7 +107,8 @@ class LOC(dns.rdata.Rdata):
                  'horizontal_precision', 'vertical_precision']
 
     def __init__(self, rdclass, rdtype, latitude, longitude, altitude,
-                 size=_default_size, hprec=_default_hprec, vprec=_default_vprec):
+                 size=_default_size, hprec=_default_hprec,
+                 vprec=_default_vprec):
         """Initialize a LOC record instance.
 
         The parameters I{latitude} and I{longitude} may be either a 4-tuple
@@ -131,37 +134,40 @@ class LOC(dns.rdata.Rdata):
         self.vertical_precision = float(vprec)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        if self.latitude[0] > 0:
+        if self.latitude[4] > 0:
             lat_hemisphere = 'N'
             lat_degrees = self.latitude[0]
         else:
             lat_hemisphere = 'S'
             lat_degrees = -1 * self.latitude[0]
-        if self.longitude[0] > 0:
+        if self.longitude[4] > 0:
             long_hemisphere = 'E'
             long_degrees = self.longitude[0]
         else:
             long_hemisphere = 'W'
             long_degrees = -1 * self.longitude[0]
         text = "%d %d %d.%03d %s %d %d %d.%03d %s %0.2fm" % (
-            lat_degrees, self.latitude[1], self.latitude[2], self.latitude[3],
-            lat_hemisphere, long_degrees, self.longitude[1], self.longitude[2],
-            self.longitude[3], long_hemisphere, self.altitude / 100.0
-            )
+            self.latitude[0], self.latitude[1],
+            self.latitude[2], self.latitude[3], lat_hemisphere,
+            self.longitude[0], self.longitude[1], self.longitude[2],
+            self.longitude[3], long_hemisphere,
+            self.altitude / 100.0
+        )
 
         # do not print default values
         if self.size != _default_size or \
             self.horizontal_precision != _default_hprec or \
-            self.vertical_precision != _default_vprec:
+                self.vertical_precision != _default_vprec:
             text += " %0.2fm %0.2fm %0.2fm" % (
                 self.size / 100.0, self.horizontal_precision / 100.0,
                 self.vertical_precision / 100.0
             )
         return text
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
-        latitude = [0, 0, 0, 0]
-        longitude = [0, 0, 0, 0]
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+        latitude = [0, 0, 0, 0, 1]
+        longitude = [0, 0, 0, 0, 1]
         size = _default_size
         hprec = _default_hprec
         vprec = _default_vprec
@@ -174,13 +180,15 @@ class LOC(dns.rdata.Rdata):
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
                 if not seconds.isdigit():
-                    raise dns.exception.SyntaxError('bad latitude seconds value')
+                    raise dns.exception.SyntaxError(
+                        'bad latitude seconds value')
                 latitude[2] = int(seconds)
                 if latitude[2] >= 60:
                     raise dns.exception.SyntaxError('latitude seconds >= 60')
                 l = len(milliseconds)
                 if l == 0 or l > 3 or not milliseconds.isdigit():
-                    raise dns.exception.SyntaxError('bad latitude milliseconds value')
+                    raise dns.exception.SyntaxError(
+                        'bad latitude milliseconds value')
                 if l == 1:
                     m = 100
                 elif l == 2:
@@ -193,7 +201,7 @@ class LOC(dns.rdata.Rdata):
                 latitude[2] = int(t)
                 t = tok.get_string()
         if t == 'S':
-            latitude[0] *= -1
+            latitude[4] = -1
         elif t != 'N':
             raise dns.exception.SyntaxError('bad latitude hemisphere value')
 
@@ -205,13 +213,15 @@ class LOC(dns.rdata.Rdata):
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
                 if not seconds.isdigit():
-                    raise dns.exception.SyntaxError('bad longitude seconds value')
+                    raise dns.exception.SyntaxError(
+                        'bad longitude seconds value')
                 longitude[2] = int(seconds)
                 if longitude[2] >= 60:
                     raise dns.exception.SyntaxError('longitude seconds >= 60')
                 l = len(milliseconds)
                 if l == 0 or l > 3 or not milliseconds.isdigit():
-                    raise dns.exception.SyntaxError('bad longitude milliseconds value')
+                    raise dns.exception.SyntaxError(
+                        'bad longitude milliseconds value')
                 if l == 1:
                     m = 100
                 elif l == 2:
@@ -224,64 +234,50 @@ class LOC(dns.rdata.Rdata):
                 longitude[2] = int(t)
                 t = tok.get_string()
         if t == 'W':
-            longitude[0] *= -1
+            longitude[4] = -1
         elif t != 'E':
             raise dns.exception.SyntaxError('bad longitude hemisphere value')
 
         t = tok.get_string()
         if t[-1] == 'm':
-            t = t[0 : -1]
+            t = t[0: -1]
         altitude = float(t) * 100.0        # m -> cm
 
         token = tok.get().unescape()
         if not token.is_eol_or_eof():
             value = token.value
             if value[-1] == 'm':
-                value = value[0 : -1]
+                value = value[0: -1]
             size = float(value) * 100.0        # m -> cm
             token = tok.get().unescape()
             if not token.is_eol_or_eof():
                 value = token.value
                 if value[-1] == 'm':
-                    value = value[0 : -1]
+                    value = value[0: -1]
                 hprec = float(value) * 100.0        # m -> cm
                 token = tok.get().unescape()
                 if not token.is_eol_or_eof():
                     value = token.value
                     if value[-1] == 'm':
-                        value = value[0 : -1]
+                        value = value[0: -1]
                     vprec = float(value) * 100.0        # m -> cm
                     tok.get_eol()
 
         return cls(rdclass, rdtype, latitude, longitude, altitude,
                    size, hprec, vprec)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
-        if self.latitude[0] < 0:
-            sign = -1
-            degrees = long(-1 * self.latitude[0])
-        else:
-            sign = 1
-            degrees = long(self.latitude[0])
-        milliseconds = (degrees * 3600000 +
+    def to_wire(self, file, compress=None, origin=None):
+        milliseconds = (self.latitude[0] * 3600000 +
                         self.latitude[1] * 60000 +
                         self.latitude[2] * 1000 +
-                        self.latitude[3]) * sign
-        latitude = 0x80000000L + milliseconds
-        if self.longitude[0] < 0:
-            sign = -1
-            degrees = long(-1 * self.longitude[0])
-        else:
-            sign = 1
-            degrees = long(self.longitude[0])
-        milliseconds = (degrees * 3600000 +
+                        self.latitude[3]) * self.latitude[4]
+        latitude = long(0x80000000) + milliseconds
+        milliseconds = (self.longitude[0] * 3600000 +
                         self.longitude[1] * 60000 +
                         self.longitude[2] * 1000 +
-                        self.longitude[3]) * sign
-        longitude = 0x80000000L + milliseconds
-        altitude = long(self.altitude) + 10000000L
+                        self.longitude[3]) * self.longitude[4]
+        longitude = long(0x80000000) + milliseconds
+        altitude = long(self.altitude) + long(10000000)
         size = _encode_size(self.size, "size")
         hprec = _encode_size(self.horizontal_precision, "horizontal precision")
         vprec = _encode_size(self.vertical_precision, "vertical precision")
@@ -289,19 +285,20 @@ class LOC(dns.rdata.Rdata):
                            longitude, altitude)
         file.write(wire)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (version, size, hprec, vprec, latitude, longitude, altitude) = \
-                  struct.unpack("!BBBBIII", wire[current : current + rdlen])
-        if latitude > 0x80000000L:
-            latitude = float(latitude - 0x80000000L) / 3600000
+            struct.unpack("!BBBBIII", wire[current: current + rdlen])
+        if latitude > long(0x80000000):
+            latitude = float(latitude - long(0x80000000)) / 3600000
         else:
-            latitude = -1 * float(0x80000000L - latitude) / 3600000
+            latitude = -1 * float(long(0x80000000) - latitude) / 3600000
         if latitude < -90.0 or latitude > 90.0:
             raise dns.exception.FormError("bad latitude")
-        if longitude > 0x80000000L:
-            longitude = float(longitude - 0x80000000L) / 3600000
+        if longitude > long(0x80000000):
+            longitude = float(longitude - long(0x80000000)) / 3600000
         else:
-            longitude = -1 * float(0x80000000L - longitude) / 3600000
+            longitude = -1 * float(long(0x80000000) - longitude) / 3600000
         if longitude < -180.0 or longitude > 180.0:
             raise dns.exception.FormError("bad longitude")
         altitude = float(altitude) - 10000000.0
@@ -310,8 +307,6 @@ class LOC(dns.rdata.Rdata):
         vprec = _decode_size(vprec, "vertical precision")
         return cls(rdclass, rdtype, latitude, longitude, altitude,
                    size, hprec, vprec)
-
-    from_wire = classmethod(from_wire)
 
     def _get_float_latitude(self):
         return _tuple_to_float(self.latitude)

@@ -13,10 +13,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
+from io import BytesIO, StringIO
 import filecmp
 import os
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import dns.exception
 import dns.rdata
@@ -24,6 +27,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 import dns.zone
+
+def here(filename):
+    return os.path.join(os.path.dirname(__file__), filename)
 
 example_text = """$TTL 3600
 $ORIGIN example.
@@ -83,8 +89,8 @@ $ORIGIN example.
 @ soa foo bar 1 2 3 4 5
 """
 
-include_text = """$INCLUDE "example"
-"""
+include_text = """$INCLUDE "%s"
+""" % here("example")
 
 bad_directive_text = """$FOO bar
 $ORIGIN example.
@@ -95,54 +101,61 @@ ns1 1d1s a 10.0.0.1
 ns2 1w1D1h1m1S a 10.0.0.2
 """
 
-_keep_output = False
+_keep_output = True
+
+def _rdata_sort(a):
+    return (a[0], a[2].rdclass, a[2].to_text())
 
 class ZoneTestCase(unittest.TestCase):
 
     def testFromFile1(self):
-        z = dns.zone.from_file('example', 'example')
+        z = dns.zone.from_file(here('example'), 'example')
         ok = False
         try:
-            z.to_file('example1.out', nl='\x0a')
-            ok = filecmp.cmp('example1.out', 'example1.good')
+            z.to_file(here('example1.out'), nl=b'\x0a')
+            ok = filecmp.cmp(here('example1.out'),
+                             here('example1.good'))
         finally:
             if not _keep_output:
-                os.unlink('example1.out')
+                os.unlink(here('example1.out'))
         self.failUnless(ok)
 
     def testFromFile2(self):
-        z = dns.zone.from_file('example', 'example', relativize=False)
+        z = dns.zone.from_file(here('example'), 'example', relativize=False)
         ok = False
         try:
-            z.to_file('example2.out', relativize=False, nl='\x0a')
-            ok = filecmp.cmp('example2.out', 'example2.good')
+            z.to_file(here('example2.out'), relativize=False, nl=b'\x0a')
+            ok = filecmp.cmp(here('example2.out'),
+                             here('example2.good'))
         finally:
             if not _keep_output:
-                os.unlink('example2.out')
+                os.unlink(here('example2.out'))
         self.failUnless(ok)
 
     def testToText(self):
-        z = dns.zone.from_file('example', 'example')
+        z = dns.zone.from_file(here('example'), 'example')
         ok = False
         try:
-            text_zone = z.to_text(nl='\x0a')
-            f = open('example3.out', 'wb')
+            text_zone = z.to_text(nl=b'\x0a')
+            f = open(here('example3.out'), 'wb')
             f.write(text_zone)
             f.close()
-            ok = filecmp.cmp('example3.out', 'example3.good')
+            ok = filecmp.cmp(here('example3.out'),
+                             here('example3.good'))
         finally:
             if not _keep_output:
-                os.unlink('example3.out')
+                os.unlink(here('example3.out'))
         self.failUnless(ok)
 
     def testFromText(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
-        f = cStringIO.StringIO()
-        names = z.nodes.keys()
+        f = StringIO()
+        names = list(z.nodes.keys())
         names.sort()
         for n in names:
-            print >> f, z[n].to_text(n)
-        self.failUnless(f.getvalue() == example_text_output)
+            f.write(z[n].to_text(n))
+            f.write(u'\n')
+        self.assertEqual(f.getvalue(), example_text_output)
 
     def testTorture1(self):
         #
@@ -150,10 +163,10 @@ class ZoneTestCase(unittest.TestCase):
         # for each RR in the zone, convert the rdata into wire format
         # and then back out, and see if we get equal rdatas.
         #
-        f = cStringIO.StringIO()
+        f = BytesIO()
         o = dns.name.from_text('example.')
-        z = dns.zone.from_file('example', o)
-        for (name, node) in z.iteritems():
+        z = dns.zone.from_file(here('example'), o)
+        for (name, node) in z.items():
             for rds in node:
                 for rd in rds:
                     f.seek(0)
@@ -336,7 +349,7 @@ class ZoneTestCase(unittest.TestCase):
     def testIterateAllRdatas(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
-        l.sort()
+        l.sort(key=_rdata_sort)
         exl = [(dns.name.from_text('@', None),
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
@@ -361,6 +374,7 @@ class ZoneTestCase(unittest.TestCase):
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2'))]
+        exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
 
     def testTTLs(self):
@@ -390,7 +404,7 @@ class ZoneTestCase(unittest.TestCase):
     def testInclude(self):
         z1 = dns.zone.from_text(include_text, 'example.', relativize=True,
                                 allow_include=True)
-        z2 = dns.zone.from_file('example', 'example.', relativize=True)
+        z2 = dns.zone.from_file(here('example'), 'example.', relativize=True)
         self.failUnless(z1 == z2)
 
     def testBadDirective(self):
@@ -407,6 +421,20 @@ class ZoneTestCase(unittest.TestCase):
         n = z['@']
         rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
         self.failUnless(rds.ttl == 0)
+
+    def testZoneOrigin(self):
+        z = dns.zone.Zone('example.')
+        self.failUnless(z.origin == dns.name.from_text('example.'))
+        def bad1():
+            o = dns.name.from_text('example', None)
+            z = dns.zone.Zone(o)
+        self.failUnlessRaises(ValueError, bad1)
+        def bad2():
+            z = dns.zone.Zone(1.0)
+        self.failUnlessRaises(ValueError, bad2)
+
+    def testZoneOriginNone(self):
+        z = dns.zone.Zone(None)
 
 if __name__ == '__main__':
     unittest.main()

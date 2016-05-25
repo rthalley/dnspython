@@ -17,6 +17,7 @@
 
 
 class DNSException(Exception):
+
     """Abstract base class shared by all dnspython exceptions.
 
     It supports two basic modes of operation:
@@ -97,18 +98,27 @@ class DNSException(Exception):
 
 
 class FormError(DNSException):
+
     """DNS message is malformed."""
 
+
 class SyntaxError(DNSException):
+
     """Text input is malformed."""
 
+
 class UnexpectedEnd(SyntaxError):
+
     """Text input ended unexpectedly."""
 
+
 class TooBig(DNSException):
+
     """The DNS message is too big."""
 
+
 class Timeout(DNSException):
+
     """The DNS operation timed out."""
     supp_kwargs = set(['timeout'])
-    fmt = "%s after {timeout} seconds" % __doc__[:-1]
+    fmt = "The DNS operation timed out after {timeout} seconds"

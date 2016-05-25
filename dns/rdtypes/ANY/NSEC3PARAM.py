@@ -13,13 +13,16 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
 import struct
+import binascii
 
 import dns.exception
 import dns.rdata
+from dns._compat import text_type
+
 
 class NSEC3PARAM(dns.rdata.Rdata):
+
     """NSEC3PARAM record
 
     @ivar algorithm: the hash algorithm number
@@ -38,16 +41,21 @@ class NSEC3PARAM(dns.rdata.Rdata):
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations
-        self.salt = salt
+        if isinstance(salt, text_type):
+            self.salt = salt.encode()
+        else:
+            self.salt = salt
 
     def to_text(self, origin=None, relativize=True, **kw):
-        if self.salt == '':
+        if self.salt == b'':
             salt = '-'
         else:
-            salt = self.salt.encode('hex-codec')
-        return '%u %u %u %s' % (self.algorithm, self.flags, self.iterations, salt)
+            salt = binascii.hexlify(self.salt).decode()
+        return '%u %u %u %s' % (self.algorithm, self.flags, self.iterations,
+                                salt)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         algorithm = tok.get_uint8()
         flags = tok.get_uint8()
         iterations = tok.get_uint16()
@@ -55,28 +63,27 @@ class NSEC3PARAM(dns.rdata.Rdata):
         if salt == '-':
             salt = ''
         else:
-            salt = salt.decode('hex-codec')
+            salt = binascii.unhexlify(salt.encode())
         tok.get_eol()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         l = len(self.salt)
         file.write(struct.pack("!BBHB", self.algorithm, self.flags,
                                self.iterations, l))
         file.write(self.salt)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        (algorithm, flags, iterations, slen) = struct.unpack('!BBHB',
-                                                             wire[current : current + 5])
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        (algorithm, flags, iterations, slen) = \
+             struct.unpack('!BBHB',
+                           wire[current: current + 5])
         current += 5
         rdlen -= 5
-        salt = wire[current : current + slen].unwrap()
+        salt = wire[current: current + slen].unwrap()
         current += slen
         rdlen -= slen
         if rdlen != 0:
             raise dns.exception.FormError
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
-    from_wire = classmethod(from_wire)

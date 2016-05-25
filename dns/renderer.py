@@ -15,20 +15,25 @@
 
 """Help for building DNS wire format messages"""
 
-import cStringIO
+from io import BytesIO
 import struct
 import random
 import time
+import sys
 
 import dns.exception
 import dns.tsig
+from ._compat import long
+
 
 QUESTION = 0
 ANSWER = 1
 AUTHORITY = 2
 ADDITIONAL = 3
 
+
 class Renderer(object):
+
     """Helper class for building DNS wire-format messages.
 
     Most applications can use the higher-level L{dns.message.Message}
@@ -51,7 +56,7 @@ class Renderer(object):
         wire = r.get_wire()
 
     @ivar output: where rendering is written
-    @type output: cStringIO.StringIO object
+    @type output: BytesIO object
     @ivar id: the message id
     @type id: int
     @ivar flags: the message flags
@@ -86,7 +91,7 @@ class Renderer(object):
         @type origin: dns.name.Namem or None.
         """
 
-        self.output = cStringIO.StringIO()
+        self.output = BytesIO()
         if id is None:
             self.id = random.randint(0, 65535)
         else:
@@ -97,7 +102,7 @@ class Renderer(object):
         self.compress = {}
         self.section = QUESTION
         self.counts = [0, 0, 0, 0]
-        self.output.write('\x00' * 12)
+        self.output.write(b'\x00' * 12)
         self.mac = ''
 
     def _rollback(self, where):
@@ -112,7 +117,7 @@ class Renderer(object):
         self.output.seek(where)
         self.output.truncate()
         keys_to_delete = []
-        for k, v in self.compress.iteritems():
+        for k, v in self.compress.items():
             if v >= where:
                 keys_to_delete.append(k)
         for k in keys_to_delete:
@@ -218,13 +223,13 @@ class Renderer(object):
         """
 
         # make sure the EDNS version in ednsflags agrees with edns
-        ednsflags &= 0xFF00FFFFL
+        ednsflags &= long(0xFF00FFFF)
         ednsflags |= (edns << 16)
         self._set_section(ADDITIONAL)
         before = self.output.tell()
         self.output.write(struct.pack('!BHHIH', 0, dns.rdatatype.OPT, payload,
                                       ednsflags, 0))
-        if not options is None:
+        if options is not None:
             lstart = self.output.tell()
             for opt in options:
                 stuff = struct.pack("!HH", opt.otype, 0)

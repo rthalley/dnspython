@@ -16,11 +16,13 @@
 """IPv6 helper functions."""
 
 import re
+import binascii
 
 import dns.exception
 import dns.ipv4
+from ._compat import xrange, binary_type
 
-_leading_zero = re.compile(r'0+([0-9a-f]+)')
+_leading_zero = re.compile(b'0+([0-9a-f]+)')
 
 def inet_ntoa(address):
     """Convert a network format IPv6 address into text.
@@ -33,7 +35,7 @@ def inet_ntoa(address):
 
     if len(address) != 16:
         raise ValueError("IPv6 addresses are 16 bytes long")
-    hex = address.encode('hex_codec')
+    hex = binascii.hexlify(address)
     chunks = []
     i = 0
     l = len(hex)
@@ -55,7 +57,7 @@ def inet_ntoa(address):
     start = -1
     last_was_zero = False
     for i in xrange(8):
-        if chunks[i] != '0':
+        if chunks[i] != b'0':
             if last_was_zero:
                 end = i
                 current_len = end - start
@@ -75,23 +77,23 @@ def inet_ntoa(address):
     if best_len > 1:
         if best_start == 0 and \
            (best_len == 6 or
-            best_len == 5 and chunks[5] == 'ffff'):
+            best_len == 5 and chunks[5] == b'ffff'):
             # We have an embedded IPv4 address
             if best_len == 6:
-                prefix = '::'
+                prefix = b'::'
             else:
-                prefix = '::ffff:'
+                prefix = b'::ffff:'
             hex = prefix + dns.ipv4.inet_ntoa(address[12:])
         else:
-            hex = ':'.join(chunks[:best_start]) + '::' + \
-                  ':'.join(chunks[best_start + best_len:])
+            hex = b':'.join(chunks[:best_start]) + b'::' + \
+                  b':'.join(chunks[best_start + best_len:])
     else:
-        hex = ':'.join(chunks)
+        hex = b':'.join(chunks)
     return hex
 
-_v4_ending = re.compile(r'(.*):(\d+\.\d+\.\d+\.\d+)$')
-_colon_colon_start = re.compile(r'::.*')
-_colon_colon_end = re.compile(r'.*::$')
+_v4_ending = re.compile(b'(.*):(\d+\.\d+\.\d+\.\d+)$')
+_colon_colon_start = re.compile(b'::.*')
+_colon_colon_end = re.compile(b'.*::$')
 
 def inet_aton(text):
     """Convert a text format IPv6 address into network format.
@@ -105,17 +107,19 @@ def inet_aton(text):
     #
     # Our aim here is not something fast; we just want something that works.
     #
+    if not isinstance(text, binary_type):
+        text = text.encode()
 
-    if text == '::':
-        text = '0::'
+    if text == b'::':
+        text = b'0::'
     #
     # Get rid of the icky dot-quad syntax if we have it.
     #
     m = _v4_ending.match(text)
     if not m is None:
-        b = dns.ipv4.inet_aton(m.group(2))
-        text = "%s:%02x%02x:%02x%02x" % (m.group(1), ord(b[0]), ord(b[1]),
-                                         ord(b[2]), ord(b[3]))
+        b = bytearray(dns.ipv4.inet_aton(m.group(2)))
+        text = (u"%s:%02x%02x:%02x%02x" % (m.group(1).decode(), b[0], b[1],
+                                           b[2], b[3])).encode()
     #
     # Try to turn '::<whatever>' into ':<whatever>'; if no match try to
     # turn '<whatever>::' into '<whatever>:'
@@ -130,39 +134,39 @@ def inet_aton(text):
     #
     # Now canonicalize into 8 chunks of 4 hex digits each
     #
-    chunks = text.split(':')
+    chunks = text.split(b':')
     l = len(chunks)
     if l > 8:
         raise dns.exception.SyntaxError
     seen_empty = False
     canonical = []
     for c in chunks:
-        if c == '':
+        if c == b'':
             if seen_empty:
                 raise dns.exception.SyntaxError
             seen_empty = True
             for i in xrange(0, 8 - l + 1):
-                canonical.append('0000')
+                canonical.append(b'0000')
         else:
             lc = len(c)
             if lc > 4:
                 raise dns.exception.SyntaxError
             if lc != 4:
-                c = ('0' * (4 - lc)) + c
+                c = (b'0' * (4 - lc)) + c
             canonical.append(c)
     if l < 8 and not seen_empty:
         raise dns.exception.SyntaxError
-    text = ''.join(canonical)
+    text = b''.join(canonical)
 
     #
     # Finally we can go to binary.
     #
     try:
-        return text.decode('hex_codec')
-    except TypeError:
+        return binascii.unhexlify(text)
+    except (binascii.Error, TypeError):
         raise dns.exception.SyntaxError
 
-_mapped_prefix = '\x00' * 10 + '\xff\xff'
+_mapped_prefix = b'\x00' * 10 + b'\xff\xff'
 
 def is_mapped(address):
     return address.startswith(_mapped_prefix)

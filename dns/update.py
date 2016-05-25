@@ -15,6 +15,7 @@
 
 """DNS Dynamic Update Support"""
 
+
 import dns.message
 import dns.name
 import dns.opcode
@@ -22,8 +23,11 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.tsig
+from ._compat import string_types
+
 
 class Update(dns.message.Message):
+
     def __init__(self, zone, rdclass=dns.rdataclass.IN, keyring=None,
                  keyname=None, keyalgorithm=dns.tsig.default_algorithm):
         """Initialize a new DNS Update object.
@@ -51,15 +55,15 @@ class Update(dns.message.Message):
         """
         super(Update, self).__init__()
         self.flags |= dns.opcode.to_flags(dns.opcode.UPDATE)
-        if isinstance(zone, (str, unicode)):
+        if isinstance(zone, string_types):
             zone = dns.name.from_text(zone)
         self.origin = zone
-        if isinstance(rdclass, (str, unicode)):
+        if isinstance(rdclass, string_types):
             rdclass = dns.rdataclass.from_text(rdclass)
         self.zone_rdclass = rdclass
         self.find_rrset(self.question, self.origin, rdclass, dns.rdatatype.SOA,
                         create=True, force_unique=True)
-        if not keyring is None:
+        if keyring is not None:
             self.use_tsig(keyring, keyname, algorithm=keyalgorithm)
 
     def _add_rr(self, name, ttl, rd, deleting=None, section=None):
@@ -85,7 +89,7 @@ class Update(dns.message.Message):
 
                 - ttl, rdtype, string..."""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, string_types):
             name = dns.name.from_text(name, None)
         if isinstance(args[0], dns.rdataset.Rdataset):
             for rds in args:
@@ -103,7 +107,7 @@ class Update(dns.message.Message):
                     self._add_rr(name, ttl, rd, section=section)
             else:
                 rdtype = args.pop(0)
-                if isinstance(rdtype, (str, unicode)):
+                if isinstance(rdtype, string_types):
                     rdtype = dns.rdatatype.from_text(rdtype)
                 if replace:
                     self.delete(name, rdtype)
@@ -135,12 +139,12 @@ class Update(dns.message.Message):
 
                 - rdtype, [string...]"""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, string_types):
             name = dns.name.from_text(name, None)
         if len(args) == 0:
-            rrset = self.find_rrset(self.authority, name, dns.rdataclass.ANY,
-                                    dns.rdatatype.ANY, dns.rdatatype.NONE,
-                                    dns.rdatatype.ANY, True, True)
+            self.find_rrset(self.authority, name, dns.rdataclass.ANY,
+                            dns.rdatatype.ANY, dns.rdatatype.NONE,
+                            dns.rdatatype.ANY, True, True)
         elif isinstance(args[0], dns.rdataset.Rdataset):
             for rds in args:
                 for rd in rds:
@@ -152,14 +156,14 @@ class Update(dns.message.Message):
                     self._add_rr(name, 0, rd, dns.rdataclass.NONE)
             else:
                 rdtype = args.pop(0)
-                if isinstance(rdtype, (str, unicode)):
+                if isinstance(rdtype, string_types):
                     rdtype = dns.rdatatype.from_text(rdtype)
                 if len(args) == 0:
-                    rrset = self.find_rrset(self.authority, name,
-                                            self.zone_rdclass, rdtype,
-                                            dns.rdatatype.NONE,
-                                            dns.rdataclass.ANY,
-                                            True, True)
+                    self.find_rrset(self.authority, name,
+                                    self.zone_rdclass, rdtype,
+                                    dns.rdatatype.NONE,
+                                    dns.rdataclass.ANY,
+                                    True, True)
                 else:
                     for s in args:
                         rd = dns.rdata.from_text(self.zone_rdclass, rdtype, s,
@@ -193,16 +197,16 @@ class Update(dns.message.Message):
 
                 - rdtype, string..."""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, string_types):
             name = dns.name.from_text(name, None)
         if len(args) == 0:
-            rrset = self.find_rrset(self.answer, name,
-                                    dns.rdataclass.ANY, dns.rdatatype.ANY,
-                                    dns.rdatatype.NONE, None,
-                                    True, True)
+            self.find_rrset(self.answer, name,
+                            dns.rdataclass.ANY, dns.rdatatype.ANY,
+                            dns.rdatatype.NONE, None,
+                            True, True)
         elif isinstance(args[0], dns.rdataset.Rdataset) or \
-             isinstance(args[0], dns.rdata.Rdata) or \
-             len(args) > 1:
+            isinstance(args[0], dns.rdata.Rdata) or \
+                len(args) > 1:
             if not isinstance(args[0], dns.rdataset.Rdataset):
                 # Add a 0 TTL
                 args = list(args)
@@ -210,31 +214,31 @@ class Update(dns.message.Message):
             self._add(False, self.answer, name, *args)
         else:
             rdtype = args[0]
-            if isinstance(rdtype, (str, unicode)):
+            if isinstance(rdtype, string_types):
                 rdtype = dns.rdatatype.from_text(rdtype)
-            rrset = self.find_rrset(self.answer, name,
-                                    dns.rdataclass.ANY, rdtype,
-                                    dns.rdatatype.NONE, None,
-                                    True, True)
+            self.find_rrset(self.answer, name,
+                            dns.rdataclass.ANY, rdtype,
+                            dns.rdatatype.NONE, None,
+                            True, True)
 
     def absent(self, name, rdtype=None):
         """Require that an owner name (and optionally an rdata type) does
         not exist as a prerequisite to the execution of the update."""
 
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, string_types):
             name = dns.name.from_text(name, None)
         if rdtype is None:
-            rrset = self.find_rrset(self.answer, name,
-                                    dns.rdataclass.NONE, dns.rdatatype.ANY,
-                                    dns.rdatatype.NONE, None,
-                                    True, True)
+            self.find_rrset(self.answer, name,
+                            dns.rdataclass.NONE, dns.rdatatype.ANY,
+                            dns.rdatatype.NONE, None,
+                            True, True)
         else:
-            if isinstance(rdtype, (str, unicode)):
+            if isinstance(rdtype, string_types):
                 rdtype = dns.rdatatype.from_text(rdtype)
-            rrset = self.find_rrset(self.answer, name,
-                                    dns.rdataclass.NONE, rdtype,
-                                    dns.rdatatype.NONE, None,
-                                    True, True)
+            self.find_rrset(self.answer, name,
+                            dns.rdataclass.NONE, rdtype,
+                            dns.rdatatype.NONE, None,
+                            True, True)
 
     def to_wire(self, origin=None, max_size=65535):
         """Return a string containing the update in DNS compressed wire

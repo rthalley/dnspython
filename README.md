@@ -20,16 +20,46 @@ open sourced under a BSD-style license, and helps support its future
 development by continuing to employ the author :).
 
 ## INSTALLATION
-- If you have pip installed and are using Python 2.x, you can do this
+- If you have pip installed,  you can do this
 `pip install dnspython`
-- If you have pip installed and are using Python 3.x, you can do this
-`pip install dnspython3`
 - If not just download the source file and unzip it, then run this
 `sudo python setup.py install`
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 1.12.0
+This is dnspython 1.13.0
+
+New since 1.12.0:
+
+	Dnspython now uses a single source for Python 2 and Python 3,
+	eliminating the painful merging between the Python 2 and Python 3
+	branches.  Thank you so much to Arthur Gautier for taking on this
+	challenge and making it work!  It was a big job!
+
+	Support for Python older than 2.6 dropped.
+
+	Support for Python older than 3.3 dropped.
+
+	Zone origin can be specified as a string.
+
+	A rich string representation for all DNSExceptions.
+
+	setuptools has replaced distutils
+
+	Added support for CAA, CDS, CDNSKEY, EUI48, EUI64, and URI RR
+	types.
+
+	Names now support the pickle protocol.
+
+	Ports can be specified per-nameserver in the stub resolver.
+
+Bugs fixed since 1.12.0:
+
+    A number of Unicode name bugs have been fixed.
+
+	resolv.conf processing now rejects lines with too few tokens.
+
+	NameDicts now keep the max-depth value correct, and update properly.
 
 New since 1.11.1:
     

@@ -17,6 +17,7 @@
 
 import dns
 
+
 def from_text(text):
     """Convert the text form of a range in a GENERATE statement to an
     integer.
@@ -28,7 +29,6 @@ def from_text(text):
     """
     # TODO, figure out the bounds on start, stop and step.
 
-    import pdb
     step = 1
     cur = ''
     state = 0

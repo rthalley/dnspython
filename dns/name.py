@@ -21,16 +21,21 @@
 @type empty: dns.name.Name object
 """
 
-import cStringIO
+from io import BytesIO
 import struct
 import sys
 import copy
-
-if sys.hexversion >= 0x02030000:
-    import encodings.idna
+import encodings.idna
 
 import dns.exception
 import dns.wiredata
+
+from ._compat import long, binary_type, text_type, unichr
+
+try:
+    maxint = sys.maxint
+except:
+    maxint = (1 << (8 * struct.calcsize("P"))) / 2 - 1
 
 NAMERELN_NONE = 0
 NAMERELN_SUPERDOMAIN = 1
@@ -38,46 +43,56 @@ NAMERELN_SUBDOMAIN = 2
 NAMERELN_EQUAL = 3
 NAMERELN_COMMONANCESTOR = 4
 
+
 class EmptyLabel(dns.exception.SyntaxError):
+
     """A DNS label is empty."""
 
+
 class BadEscape(dns.exception.SyntaxError):
+
     """An escaped code in a text format of DNS name is invalid."""
 
+
 class BadPointer(dns.exception.FormError):
+
     """A DNS compression pointer points forward instead of backward."""
 
+
 class BadLabelType(dns.exception.FormError):
+
     """The label type in DNS name wire format is unknown."""
 
+
 class NeedAbsoluteNameOrOrigin(dns.exception.DNSException):
+
     """An attempt was made to convert a non-absolute name to
     wire when there was also a non-absolute (or missing) origin."""
 
+
 class NameTooLong(dns.exception.FormError):
+
     """A DNS name is > 255 octets long."""
 
+
 class LabelTooLong(dns.exception.SyntaxError):
+
     """A DNS label is > 63 octets long."""
 
+
 class AbsoluteConcatenation(dns.exception.DNSException):
+
     """An attempt was made to append anything other than the
     empty name to an absolute DNS name."""
 
+
 class NoParent(dns.exception.DNSException):
+
     """An attempt was made to get the parent of the root name
     or the empty name."""
 
-_escaped = {
-    '"' : True,
-    '(' : True,
-    ')' : True,
-    '.' : True,
-    ';' : True,
-    '\\' : True,
-    '@' : True,
-    '$' : True
-    }
+_escaped = bytearray(b'"().;\\@$')
+
 
 def _escapify(label, unicode_mode=False):
     """Escape the characters in label which need it.
@@ -85,24 +100,38 @@ def _escapify(label, unicode_mode=False):
     characters
     @returns: the escaped string
     @rtype: string"""
-    text = ''
+    if not unicode_mode:
+        text = ''
+        if isinstance(label, text_type):
+            label = label.encode()
+        for c in bytearray(label):
+            packed = struct.pack('!B', c).decode()
+            if c in _escaped:
+                text += '\\' + packed
+            elif c > 0x20 and c < 0x7F:
+                text += packed
+            else:
+                text += '\\%03d' % c
+        return text.encode()
+
+    text = u''
+    if isinstance(label, binary_type):
+        label = label.decode()
     for c in label:
-        if c in _escaped:
-            text += '\\' + c
-        elif ord(c) > 0x20 and ord(c) < 0x7F:
+        if c > u'\x20' and c < u'\x7f':
             text += c
         else:
-            if unicode_mode and ord(c) >= 0x7F:
+            if c >= u'\x7f':
                 text += c
             else:
-                text += '\\%03d' % ord(c)
+                text += u'\\%03d' % c
     return text
+
 
 def _validate_labels(labels):
     """Check for empty labels in the middle of a label sequence,
     labels that are too long, and for too many labels.
     @raises NameTooLong: the name as a whole is too long
-    @raises LabelTooLong: an individual label is too long
     @raises EmptyLabel: a label is empty (i.e. the root label) and appears
     in a position other than the end of the label sequence"""
 
@@ -115,7 +144,7 @@ def _validate_labels(labels):
         total += ll + 1
         if ll > 63:
             raise LabelTooLong
-        if i < 0 and label == '':
+        if i < 0 and label == b'':
             i = j
         j += 1
     if total > 255:
@@ -123,7 +152,17 @@ def _validate_labels(labels):
     if i >= 0 and i != l - 1:
         raise EmptyLabel
 
+
+def _ensure_bytes(label):
+    if isinstance(label, binary_type):
+        return label
+    if isinstance(label, text_type):
+        return label.encode()
+    raise ValueError
+
+
 class Name(object):
+
     """A DNS name.
 
     The dns.name.Name class represents a DNS name as a tuple of labels.
@@ -139,7 +178,7 @@ class Name(object):
         @param labels: the labels
         @type labels: any iterable whose values are strings
         """
-
+        labels = [_ensure_bytes(x) for x in labels]
         super(Name, self).__setattr__('labels', tuple(labels))
         _validate_labels(self.labels)
 
@@ -153,7 +192,7 @@ class Name(object):
         return Name(copy.deepcopy(self.labels, memo))
 
     def __getstate__(self):
-        return { 'labels' : self.labels }
+        return {'labels': self.labels}
 
     def __setstate__(self, state):
         super(Name, self).__setattr__('labels', state['labels'])
@@ -164,25 +203,25 @@ class Name(object):
         @rtype: bool
         """
 
-        return len(self.labels) > 0 and self.labels[-1] == ''
+        return len(self.labels) > 0 and self.labels[-1] == b''
 
     def is_wild(self):
         """Is this name wild?  (I.e. Is the least significant label '*'?)
         @rtype: bool
         """
 
-        return len(self.labels) > 0 and self.labels[0] == '*'
+        return len(self.labels) > 0 and self.labels[0] == b'*'
 
     def __hash__(self):
         """Return a case-insensitive hash of the name.
         @rtype: int
         """
 
-        h = 0L
+        h = long(0)
         for label in self.labels:
-            for c in label:
-                h += ( h << 3 ) + ord(c.lower())
-        return int(h % sys.maxint)
+            for c in bytearray(label.lower()):
+                h += (h << 3) + c
+        return int(h % maxint)
 
     def fullcompare(self, other):
         """Compare two names, returning a 3-tuple (relation, order, nlabels).
@@ -317,9 +356,9 @@ class Name(object):
         return '<DNS name ' + self.__str__() + '>'
 
     def __str__(self):
-        return self.to_text(False)
+        return self.to_text(False).decode()
 
-    def to_text(self, omit_final_dot = False):
+    def to_text(self, omit_final_dot=False):
         """Convert name to text format.
         @param omit_final_dot: If True, don't emit the final dot (denoting the
         root label) for absolute names.  The default is False.
@@ -327,17 +366,17 @@ class Name(object):
         """
 
         if len(self.labels) == 0:
-            return '@'
-        if len(self.labels) == 1 and self.labels[0] == '':
-            return '.'
+            return b'@'
+        if len(self.labels) == 1 and self.labels[0] == b'':
+            return b'.'
         if omit_final_dot and self.is_absolute():
             l = self.labels[:-1]
         else:
             l = self.labels
-        s = '.'.join(map(_escapify, l))
+        s = b'.'.join(map(_escapify, l))
         return s
 
-    def to_unicode(self, omit_final_dot = False):
+    def to_unicode(self, omit_final_dot=False):
         """Convert name to Unicode text format.
 
         IDN ACE lables are converted to Unicode.
@@ -355,7 +394,8 @@ class Name(object):
             l = self.labels[:-1]
         else:
             l = self.labels
-        s = u'.'.join([_escapify(encodings.idna.ToUnicode(x), True) for x in l])
+        s = u'.'.join([_escapify(encodings.idna.ToUnicode(x), True)
+                      for x in l])
         return s
 
     def to_digestable(self, origin=None):
@@ -379,14 +419,15 @@ class Name(object):
             labels.extend(list(origin.labels))
         else:
             labels = self.labels
-        dlabels = ["%s%s" % (chr(len(x)), x.lower()) for x in labels]
-        return ''.join(dlabels)
+        dlabels = [struct.pack('!B%ds' % len(x), len(x), x.lower())
+                   for x in labels]
+        return b''.join(dlabels)
 
-    def to_wire(self, file = None, compress = None, origin = None):
+    def to_wire(self, file=None, compress=None, origin=None):
         """Convert name to wire format, possibly compressing it.
 
         @param file: the file where the name is emitted (typically
-        a cStringIO file).  If None, a string containing the wire name
+        a BytesIO file).  If None, a string containing the wire name
         will be returned.
         @type file: file or None
         @param compress: The compression table.  If None (the default) names
@@ -401,7 +442,7 @@ class Name(object):
         """
 
         if file is None:
-            file = cStringIO.StringIO()
+            file = BytesIO()
             want_return = True
         else:
             want_return = False
@@ -417,22 +458,22 @@ class Name(object):
         for label in labels:
             n = Name(labels[i:])
             i += 1
-            if not compress is None:
+            if compress is not None:
                 pos = compress.get(n)
             else:
                 pos = None
-            if not pos is None:
+            if pos is not None:
                 value = 0xc000 + pos
                 s = struct.pack('!H', value)
                 file.write(s)
                 break
             else:
-                if not compress is None and len(n) > 1:
+                if compress is not None and len(n) > 1:
                     pos = file.tell()
                     if pos <= 0x3fff:
                         compress[n] = pos
                 l = len(label)
-                file.write(chr(l))
+                file.write(struct.pack('!B', l))
                 if l > 0:
                     file.write(label)
         if want_return:
@@ -474,8 +515,9 @@ class Name(object):
         elif depth == l:
             return (dns.name.empty, self)
         elif depth < 0 or depth > l:
-            raise ValueError('depth must be >= 0 and <= the length of the name')
-        return (Name(self[: -depth]), Name(self[-depth :]))
+            raise ValueError(
+                'depth must be >= 0 and <= the length of the name')
+        return (Name(self[: -depth]), Name(self[-depth:]))
 
     def concatenate(self, other):
         """Return a new name which is the concatenation of self and other.
@@ -496,7 +538,7 @@ class Name(object):
         @rtype: dns.name.Name object
         """
 
-        if not origin is None and self.is_subdomain(origin):
+        if origin is not None and self.is_subdomain(origin):
             return Name(self[: -len(origin)])
         else:
             return self
@@ -538,10 +580,11 @@ class Name(object):
             raise NoParent
         return Name(self.labels[1:])
 
-root = Name([''])
+root = Name([b''])
 empty = Name([])
 
-def from_unicode(text, origin = root):
+
+def from_unicode(text, origin=root):
     """Convert unicode text into a Name object.
 
     Lables are encoded in IDN ACE form.
@@ -549,7 +592,7 @@ def from_unicode(text, origin = root):
     @rtype: dns.name.Name object
     """
 
-    if not isinstance(text, unicode):
+    if not isinstance(text, text_type):
         raise ValueError("input to from_unicode() must be a unicode string")
     if not (origin is None or isinstance(origin, Name)):
         raise ValueError("origin must be a Name or None")
@@ -562,7 +605,7 @@ def from_unicode(text, origin = root):
         text = u''
     if text:
         if text == u'.':
-            return Name([''])        # no Unicode "u" on this constant!
+            return Name([b''])        # no Unicode "u" on this constant!
         for c in text:
             if escaping:
                 if edigits == 0:
@@ -580,15 +623,14 @@ def from_unicode(text, origin = root):
                     edigits += 1
                     if edigits == 3:
                         escaping = False
-                        label += chr(total)
-            elif c == u'.' or c == u'\u3002' or \
-                 c == u'\uff0e' or c == u'\uff61':
+                        label += unichr(total)
+            elif c in [u'.', u'\u3002', u'\uff0e', u'\uff61']:
                 if len(label) == 0:
                     raise EmptyLabel
-                if len(label) > 63:
-                    # otherwise encodings.idna raises UnicodeError later
+                try:
+                    labels.append(encodings.idna.ToASCII(label))
+                except UnicodeError:
                     raise LabelTooLong
-                labels.append(encodings.idna.ToASCII(label))
                 label = u''
             elif c == u'\\':
                 escaping = True
@@ -598,77 +640,80 @@ def from_unicode(text, origin = root):
                 label += c
         if escaping:
             raise BadEscape
-        if len(label) > 63:
-            # otherwise encodings.idna raises UnicodeError later
-            raise LabelTooLong
         if len(label) > 0:
-            labels.append(encodings.idna.ToASCII(label))
+            try:
+                labels.append(encodings.idna.ToASCII(label))
+            except UnicodeError:
+                raise LabelTooLong
         else:
-            labels.append('')
-    if (len(labels) == 0 or labels[-1] != '') and not origin is None:
+            labels.append(b'')
+
+    if (len(labels) == 0 or labels[-1] != b'') and origin is not None:
         labels.extend(list(origin.labels))
     return Name(labels)
 
-def from_text(text, origin = root):
+
+def from_text(text, origin=root):
     """Convert text into a Name object.
     @rtype: dns.name.Name object
     """
 
-    if not isinstance(text, str):
-        if isinstance(text, unicode) and sys.hexversion >= 0x02030000:
-            return from_unicode(text, origin)
-        else:
-            raise ValueError("input to from_text() must be a string")
+    if isinstance(text, text_type):
+        return from_unicode(text, origin)
+    if not isinstance(text, binary_type):
+        raise ValueError("input to from_text() must be a string")
     if not (origin is None or isinstance(origin, Name)):
         raise ValueError("origin must be a Name or None")
     labels = []
-    label = ''
+    label = b''
     escaping = False
     edigits = 0
     total = 0
-    if text == '@':
-        text = ''
+    if text == b'@':
+        text = b''
     if text:
-        if text == '.':
-            return Name([''])
-        for c in text:
+        if text == b'.':
+            return Name([b''])
+        for c in bytearray(text):
+            byte_ = struct.pack('!B', c)
             if escaping:
                 if edigits == 0:
-                    if c.isdigit():
-                        total = int(c)
+                    if byte_.isdigit():
+                        total = int(byte_)
                         edigits += 1
                     else:
-                        label += c
+                        label += byte_
                         escaping = False
                 else:
-                    if not c.isdigit():
+                    if not byte_.isdigit():
                         raise BadEscape
                     total *= 10
-                    total += int(c)
+                    total += int(byte_)
                     edigits += 1
                     if edigits == 3:
                         escaping = False
-                        label += chr(total)
-            elif c == '.':
+                        label += struct.pack('!B', total)
+            elif byte_ == b'.':
                 if len(label) == 0:
                     raise EmptyLabel
                 labels.append(label)
-                label = ''
-            elif c == '\\':
+                label = b''
+            elif byte_ == b'\\':
                 escaping = True
                 edigits = 0
                 total = 0
             else:
-                label += c
+                label += byte_
         if escaping:
             raise BadEscape
         if len(label) > 0:
             labels.append(label)
         else:
-            labels.append('')
-    if (len(labels) == 0 or labels[-1] != '') and not origin is None:
+            labels.append(b'')
+    if (len(labels) == 0 or labels[-1] != b'') and origin is not None:
         labels.extend(list(origin.labels))
     return Name(labels)
+
 
 def from_wire(message, current):
     """Convert possibly compressed wire format into a Name.
@@ -685,23 +730,23 @@ def from_wire(message, current):
     @rtype: (dns.name.Name object, int) tuple
     """
 
-    if not isinstance(message, str):
+    if not isinstance(message, binary_type):
         raise ValueError("input to from_wire() must be a byte string")
     message = dns.wiredata.maybe_wrap(message)
     labels = []
     biggest_pointer = current
     hops = 0
-    count = ord(message[current])
+    count = message[current]
     current += 1
     cused = 1
     while count != 0:
         if count < 64:
-            labels.append(message[current : current + count].unwrap())
+            labels.append(message[current: current + count].unwrap())
             current += count
             if hops == 0:
                 cused += count
         elif count >= 192:
-            current = (count & 0x3f) * 256 + ord(message[current])
+            current = (count & 0x3f) * 256 + message[current]
             if hops == 0:
                 cused += 1
             if current >= biggest_pointer:
@@ -710,7 +755,7 @@ def from_wire(message, current):
             hops += 1
         else:
             raise BadLabelType
-        count = ord(message[current])
+        count = message[current]
         current += 1
         if hops == 0:
             cused += 1

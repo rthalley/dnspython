@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2004-2007, 2009-2011, 2016 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -21,25 +21,26 @@ import dns.rdatatype
 import dns.name
 from dns._compat import xrange
 
+class CSYNC(dns.rdata.Rdata):
 
-class NSEC(dns.rdata.Rdata):
+    """CSYNC record
 
-    """NSEC record
-
-    @ivar next: the next name
-    @type next: dns.name.Name object
+    @ivar serial: the SOA serial number
+    @type serial: int
+    @ivar flags: the CSYNC flags
+    @type flags: int
     @ivar windows: the windowed bitmap list
     @type windows: list of (window number, string) tuples"""
 
-    __slots__ = ['next', 'windows']
+    __slots__ = ['serial', 'flags', 'windows']
 
-    def __init__(self, rdclass, rdtype, next, windows):
-        super(NSEC, self).__init__(rdclass, rdtype)
-        self.next = next
+    def __init__(self, rdclass, rdtype, serial, flags, windows):
+        super(CSYNC, self).__init__(rdclass, rdtype)
+        self.serial = serial
+        self.flags = flags
         self.windows = windows
 
     def to_text(self, origin=None, relativize=True, **kw):
-        next = self.next.choose_relativity(origin, relativize)
         text = ''
         for (window, bitmap) in self.windows:
             bits = []
@@ -50,12 +51,12 @@ class NSEC(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
-        return '%s%s' % (next, text)
+        return '%d %d%s' % (self.serial, self.flags, text)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        next = tok.get_name()
-        next = next.choose_relativity(origin, relativize)
+        serial = tok.get_uint32()
+        flags = tok.get_uint16()
         rdtypes = []
         while 1:
             token = tok.get().unescape()
@@ -63,9 +64,9 @@ class NSEC(dns.rdata.Rdata):
                 break
             nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
-                raise dns.exception.SyntaxError("NSEC with bit 0")
+                raise dns.exception.SyntaxError("CSYNC with bit 0")
             if nrdtype > 65535:
-                raise dns.exception.SyntaxError("NSEC with bit > 65535")
+                raise dns.exception.SyntaxError("CSYNC with bit > 65535")
             rdtypes.append(nrdtype)
         rdtypes.sort()
         window = 0
@@ -89,38 +90,35 @@ class NSEC(dns.rdata.Rdata):
             bitmap[byte] = bitmap[byte] | (0x80 >> bit)
 
         windows.append((window, bitmap[0:octets]))
-        return cls(rdclass, rdtype, next, windows)
+        return cls(rdclass, rdtype, serial, flags, windows)
 
     def to_wire(self, file, compress=None, origin=None):
-        self.next.to_wire(file, None, origin)
+        file.write(struct.pack('!IH', self.serial, self.flags))
         for (window, bitmap) in self.windows:
             file.write(struct.pack('!BB', window, len(bitmap)))
             file.write(bitmap)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (next, cused) = dns.name.from_wire(wire[: current + rdlen], current)
-        current += cused
-        rdlen -= cused
+        if rdlen < 6:
+            raise dns.exception.FormError("CSYNC too short")
+        (serial, flags) = struct.unpack("!IH", wire[current: current + 6])
+        current += 6
+        rdlen -= 6
         windows = []
         while rdlen > 0:
             if rdlen < 3:
-                raise dns.exception.FormError("NSEC too short")
+                raise dns.exception.FormError("CSYNC too short")
             window = wire[current]
             octets = wire[current + 1]
             if octets == 0 or octets > 32:
-                raise dns.exception.FormError("bad NSEC octets")
+                raise dns.exception.FormError("bad CSYNC octets")
             current += 2
             rdlen -= 2
             if rdlen < octets:
-                raise dns.exception.FormError("bad NSEC bitmap length")
+                raise dns.exception.FormError("bad CSYNC bitmap length")
             bitmap = bytearray(wire[current: current + octets].unwrap())
             current += octets
             rdlen -= octets
             windows.append((window, bitmap))
-        if origin is not None:
-            next = next.relativize(origin)
-        return cls(rdclass, rdtype, next, windows)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.next = self.next.choose_relativity(origin, relativize)
+        return cls(rdclass, rdtype, serial, flags, windows)

@@ -16,9 +16,9 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import sys
-from distutils.core import setup
+from setuptools import setup
 
-version = '1.12.0'
+version = '1.13.0'
 
 kwargs = {
     'name' : 'dnspython',
@@ -50,11 +50,16 @@ direct manipulation of DNS zones, messages, names, and records.""",
         "Programming Language :: Python",
         "Topic :: Internet :: Name Service (DNS)",
         "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         ],
+    'test_suite': 'tests',
+    'provides': ['dns'],
     }
-
-if sys.hexversion >= 0x02050000:
-    kwargs['requires'] = []
-    kwargs['provides'] = ['dns']
 
 setup(**kwargs)

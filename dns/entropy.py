@@ -15,12 +15,15 @@
 
 import os
 import time
+from ._compat import long, binary_type
 try:
     import threading as _threading
 except ImportError:
     import dummy_threading as _threading
 
+
 class EntropyPool(object):
+
     def __init__(self, seed=None):
         self.pool_index = 0
         self.digest = None
@@ -39,9 +42,9 @@ class EntropyPool(object):
                 import md5
                 self.hash = md5.new()
                 self.hash_len = 16
-        self.pool = '\0' * self.hash_len
-        if not seed is None:
-            self.stir(seed)
+        self.pool = bytearray(b'\0' * self.hash_len)
+        if seed is not None:
+            self.stir(bytearray(seed))
             self.seeded = True
         else:
             self.seeded = False
@@ -50,14 +53,12 @@ class EntropyPool(object):
         if not already_locked:
             self.lock.acquire()
         try:
-            bytes = [ord(c) for c in self.pool]
             for c in entropy:
                 if self.pool_index == self.hash_len:
                     self.pool_index = 0
-                b = ord(c) & 0xff
-                bytes[self.pool_index] ^= b
+                b = c & 0xff
+                self.pool[self.pool_index] ^= b
                 self.pool_index += 1
-            self.pool = ''.join([chr(c) for c in bytes])
         finally:
             if not already_locked:
                 self.lock.release()
@@ -68,7 +69,7 @@ class EntropyPool(object):
                 seed = os.urandom(16)
             except:
                 try:
-                    r = file('/dev/urandom', 'r', 0)
+                    r = open('/dev/urandom', 'rb', 0)
                     try:
                         seed = r.read(16)
                     finally:
@@ -76,18 +77,19 @@ class EntropyPool(object):
                 except:
                     seed = str(time.time())
             self.seeded = True
+            seed = bytearray(seed)
             self.stir(seed, True)
 
     def random_8(self):
         self.lock.acquire()
-        self._maybe_seed()
         try:
+            self._maybe_seed()
             if self.digest is None or self.next_byte == self.hash_len:
-                self.hash.update(self.pool)
-                self.digest = self.hash.digest()
+                self.hash.update(binary_type(self.pool))
+                self.digest = bytearray(self.hash.digest())
                 self.stir(self.digest, True)
                 self.next_byte = 0
-            value = ord(self.digest[self.next_byte])
+            value = self.digest[self.next_byte]
             self.next_byte += 1
         finally:
             self.lock.release()
@@ -101,11 +103,11 @@ class EntropyPool(object):
 
     def random_between(self, first, last):
         size = last - first + 1
-        if size > 4294967296L:
+        if size > long(4294967296):
             raise ValueError('too big')
         if size > 65536:
             rand = self.random_32
-            max = 4294967295L
+            max = long(4294967295)
         elif size > 256:
             rand = self.random_16
             max = 65535
@@ -116,8 +118,10 @@ class EntropyPool(object):
 
 pool = EntropyPool()
 
+
 def random_16():
     return pool.random_16()
+
 
 def between(first, last):
     return pool.random_between(first, last)

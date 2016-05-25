@@ -82,6 +82,7 @@ TLSA = 52
 HIP = 55
 CDS = 59
 CDNSKEY = 60
+CSYNC = 62
 SPF = 99
 UNSPEC = 103
 EUI48 = 108
@@ -99,98 +100,102 @@ TA = 32768
 DLV = 32769
 
 _by_text = {
-    'NONE' : NONE,
-    'A' : A,
-    'NS' : NS,
-    'MD' : MD,
-    'MF' : MF,
-    'CNAME' : CNAME,
-    'SOA' : SOA,
-    'MB' : MB,
-    'MG' : MG,
-    'MR' : MR,
-    'NULL' : NULL,
-    'WKS' : WKS,
-    'PTR' : PTR,
-    'HINFO' : HINFO,
-    'MINFO' : MINFO,
-    'MX' : MX,
-    'TXT' : TXT,
-    'RP' : RP,
-    'AFSDB' : AFSDB,
-    'X25' : X25,
-    'ISDN' : ISDN,
-    'RT' : RT,
-    'NSAP' : NSAP,
-    'NSAP-PTR' : NSAP_PTR,
-    'SIG' : SIG,
-    'KEY' : KEY,
-    'PX' : PX,
-    'GPOS' : GPOS,
-    'AAAA' : AAAA,
-    'LOC' : LOC,
-    'NXT' : NXT,
-    'SRV' : SRV,
-    'NAPTR' : NAPTR,
-    'KX' : KX,
-    'CERT' : CERT,
-    'A6' : A6,
-    'DNAME' : DNAME,
-    'OPT' : OPT,
-    'APL' : APL,
-    'DS' : DS,
-    'SSHFP' : SSHFP,
-    'IPSECKEY' : IPSECKEY,
-    'RRSIG' : RRSIG,
-    'NSEC' : NSEC,
-    'DNSKEY' : DNSKEY,
-    'DHCID' : DHCID,
-    'NSEC3' : NSEC3,
-    'NSEC3PARAM' : NSEC3PARAM,
-    'TLSA' : TLSA,
-    'HIP' : HIP,
-    'CDS' : CDS,
-    'CDNSKEY' : CDNSKEY,
-    'SPF' : SPF,
-    'UNSPEC' : UNSPEC,
+    'NONE': NONE,
+    'A': A,
+    'NS': NS,
+    'MD': MD,
+    'MF': MF,
+    'CNAME': CNAME,
+    'SOA': SOA,
+    'MB': MB,
+    'MG': MG,
+    'MR': MR,
+    'NULL': NULL,
+    'WKS': WKS,
+    'PTR': PTR,
+    'HINFO': HINFO,
+    'MINFO': MINFO,
+    'MX': MX,
+    'TXT': TXT,
+    'RP': RP,
+    'AFSDB': AFSDB,
+    'X25': X25,
+    'ISDN': ISDN,
+    'RT': RT,
+    'NSAP': NSAP,
+    'NSAP-PTR': NSAP_PTR,
+    'SIG': SIG,
+    'KEY': KEY,
+    'PX': PX,
+    'GPOS': GPOS,
+    'AAAA': AAAA,
+    'LOC': LOC,
+    'NXT': NXT,
+    'SRV': SRV,
+    'NAPTR': NAPTR,
+    'KX': KX,
+    'CERT': CERT,
+    'A6': A6,
+    'DNAME': DNAME,
+    'OPT': OPT,
+    'APL': APL,
+    'DS': DS,
+    'SSHFP': SSHFP,
+    'IPSECKEY': IPSECKEY,
+    'RRSIG': RRSIG,
+    'NSEC': NSEC,
+    'DNSKEY': DNSKEY,
+    'DHCID': DHCID,
+    'NSEC3': NSEC3,
+    'NSEC3PARAM': NSEC3PARAM,
+    'TLSA': TLSA,
+    'HIP': HIP,
+    'CDS': CDS,
+    'CDNSKEY': CDNSKEY,
+    'CSYNC': CSYNC,
+    'SPF': SPF,
+    'UNSPEC': UNSPEC,
     'EUI48': EUI48,
     'EUI64': EUI64,
-    'TKEY' : TKEY,
-    'TSIG' : TSIG,
-    'IXFR' : IXFR,
-    'AXFR' : AXFR,
-    'MAILB' : MAILB,
-    'MAILA' : MAILA,
-    'ANY' : ANY,
-    'URI' : URI,
-    'CAA' : CAA,
-    'TA' : TA,
-    'DLV' : DLV,
-    }
+    'TKEY': TKEY,
+    'TSIG': TSIG,
+    'IXFR': IXFR,
+    'AXFR': AXFR,
+    'MAILB': MAILB,
+    'MAILA': MAILA,
+    'ANY': ANY,
+    'URI': URI,
+    'CAA': CAA,
+    'TA': TA,
+    'DLV': DLV,
+}
 
 # We construct the inverse mapping programmatically to ensure that we
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
 
-_by_value = dict([(y, x) for x, y in _by_text.iteritems()])
+_by_value = dict((y, x) for x, y in _by_text.items())
 
 
 _metatypes = {
-    OPT : True
-    }
+    OPT: True
+}
 
 _singletons = {
-    SOA : True,
-    NXT : True,
-    DNAME : True,
-    NSEC : True,
+    SOA: True,
+    NXT: True,
+    DNAME: True,
+    NSEC: True,
     # CNAME is technically a singleton, but we allow multiple CNAMEs.
-    }
+}
 
-_unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I);
+_unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I)
+
 
 class UnknownRdatatype(dns.exception.DNSException):
+
     """DNS resource record type is unknown."""
+
 
 def from_text(text):
     """Convert text into a DNS rdata type value.
@@ -203,12 +208,13 @@ def from_text(text):
     value = _by_text.get(text.upper())
     if value is None:
         match = _unknown_type_pattern.match(text)
-        if match == None:
+        if match is None:
             raise UnknownRdatatype
         value = int(match.group(1))
         if value < 0 or value > 65535:
             raise ValueError("type must be between >= 0 and <= 65535")
     return value
+
 
 def to_text(value):
     """Convert a DNS rdata type to text.
@@ -221,8 +227,9 @@ def to_text(value):
         raise ValueError("type must be between >= 0 and <= 65535")
     text = _by_value.get(value)
     if text is None:
-        text = 'TYPE' + `value`
+        text = 'TYPE' + repr(value)
     return text
+
 
 def is_metatype(rdtype):
     """True if the type is a metatype.
@@ -230,9 +237,10 @@ def is_metatype(rdtype):
     @type rdtype: int
     @rtype: bool"""
 
-    if rdtype >= TKEY and rdtype <= ANY or _metatypes.has_key(rdtype):
+    if rdtype >= TKEY and rdtype <= ANY or rdtype in _metatypes:
         return True
     return False
+
 
 def is_singleton(rdtype):
     """True if the type is a singleton.
@@ -240,6 +248,6 @@ def is_singleton(rdtype):
     @type rdtype: int
     @rtype: bool"""
 
-    if _singletons.has_key(rdtype):
+    if rdtype in _singletons:
         return True
     return False

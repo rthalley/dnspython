@@ -14,7 +14,12 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.dnskeybase
-from dns.rdtypes.dnskeybase import *
+from dns.rdtypes.dnskeybase import flags_to_text_set, flags_from_text_set
+
+
+__all__ = ['flags_to_text_set', 'flags_from_text_set']
+
 
 class DNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):
+
     """DNSKEY record"""

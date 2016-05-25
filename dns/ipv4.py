@@ -18,6 +18,7 @@
 import struct
 
 import dns.exception
+from ._compat import binary_type
 
 def inet_ntoa(address):
     """Convert an IPv4 address in network form to text form.
@@ -28,8 +29,10 @@ def inet_ntoa(address):
     """
     if len(address) != 4:
         raise dns.exception.SyntaxError
-    return '%u.%u.%u.%u' % (ord(address[0]), ord(address[1]),
-                            ord(address[2]), ord(address[3]))
+    if not isinstance(address, bytearray):
+        address = bytearray(address)
+    return (u'%u.%u.%u.%u' % (address[0], address[1],
+                              address[2], address[3])).encode()
 
 def inet_aton(text):
     """Convert an IPv4 address in text form to network form.
@@ -38,7 +41,9 @@ def inet_aton(text):
     @type text: string
     @returns: string
     """
-    parts = text.split('.')
+    if not isinstance(text, binary_type):
+        text = text.encode()
+    parts = text.split(b'.')
     if len(parts) != 4:
         raise dns.exception.SyntaxError
     for part in parts:
