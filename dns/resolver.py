@@ -806,7 +806,7 @@ class Resolver(object):
         return min(self.lifetime - duration, self.timeout)
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-              tcp=False, source=None, raise_on_no_answer=True, source_port=0):
+              tcp=False, source=None, raise_on_no_answer=True, source_port=0, ip_ttl=None):
         """Query nameservers to find the answer to the question.
 
         The I{qname}, I{rdtype}, and I{rdclass} parameters may be objects
@@ -831,6 +831,9 @@ class Resolver(object):
         @param source_port: The port from which to send the message.
         The default is 0.
         @type source_port: int
+        @param ip_ttl: Set IP TTL flag for outgoing query. Do not set unless you
+        what you are doing.
+        @type ip_ttl: int
         @rtype: dns.resolver.Answer instance
         @raises Timeout: no answers could be found in the specified lifetime
         @raises NXDOMAIN: the query name does not exist
@@ -904,7 +907,8 @@ class Resolver(object):
                             response = dns.query.udp(request, nameserver,
                                                      timeout, port,
                                                      source=source,
-                                                     source_port=source_port)
+                                                     source_port=source_port,
+                                                     ip_ttl=ip_ttl)
                             if response.flags & dns.flags.TC:
                                 # Response truncated; retry with TCP.
                                 tcp_attempt = True
