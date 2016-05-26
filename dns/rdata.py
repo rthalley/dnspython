@@ -286,7 +286,7 @@ class Rdata(object):
         @type rdtype: int
         @param wire: The wire-format message
         @type wire: string
-        @param current: The offet in wire of the beginning of the rdata.
+        @param current: The offset in wire of the beginning of the rdata.
         @type current: int
         @param rdlen: The length of the wire-format rdata
         @type rdlen: int
@@ -451,7 +451,7 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
     @type rdtype: int
     @param wire: The wire-format message
     @type wire: string
-    @param current: The offet in wire of the beginning of the rdata.
+    @param current: The offset in wire of the beginning of the rdata.
     @type current: int
     @param rdlen: The length of the wire-format rdata
     @type rdlen: int

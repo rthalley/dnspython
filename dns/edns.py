@@ -43,7 +43,7 @@ class Option(object):
         @type otype: int
         @param wire: The wire-format message
         @type wire: string
-        @param current: The offet in wire of the beginning of the rdata.
+        @param current: The offset in wire of the beginning of the rdata.
         @type current: int
         @param olen: The length of the wire-format option data
         @type olen: int
@@ -140,7 +140,7 @@ def option_from_wire(otype, wire, current, olen):
     @type otype: int
     @param wire: The wire-format message
     @type wire: string
-    @param current: The offet in wire of the beginning of the rdata.
+    @param current: The offset in wire of the beginning of the rdata.
     @type current: int
     @param olen: The length of the wire-format option data
     @type olen: int

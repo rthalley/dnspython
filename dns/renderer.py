@@ -88,7 +88,7 @@ class Renderer(object):
         then L{dns.exception.TooBig} will be raised.
         @type max_size: int
         @param origin: the origin to use when rendering relative names
-        @type origin: dns.name.Namem or None.
+        @type origin: dns.name.Name or None.
         """
 
         self.output = BytesIO()

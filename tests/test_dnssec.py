@@ -209,13 +209,13 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
     @unittest.skipIf(not dns.dnssec._have_ecdsa,
-                     "python ECDSA can not be imported")
+                     "python ECDSA cannot be imported")
     def testAbsoluteECDSA384Good(self):
         dns.dnssec.validate(abs_ecdsa384_soa, abs_ecdsa384_soa_rrsig,
                             abs_ecdsa384_keys, None, when4)
 
     @unittest.skipIf(not dns.dnssec._have_ecdsa,
-                     "python ECDSA can not be imported")
+                     "python ECDSA cannot be imported")
     def testAbsoluteECDSA384Bad(self):
         def bad():
             dns.dnssec.validate(abs_other_ecdsa384_soa, abs_ecdsa384_soa_rrsig,

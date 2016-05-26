@@ -414,7 +414,7 @@ class ZoneTestCase(unittest.TestCase):
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testFirstRRStartsWithWhitespace(self):
-        # no name is specified, so default to the intial origin
+        # no name is specified, so default to the initial origin
         # no ttl is specified, so default to the initial TTL of 0
         z = dns.zone.from_text(' IN A 10.0.0.1', origin='example.',
                                check_origin=False)

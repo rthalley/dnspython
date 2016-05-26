@@ -44,7 +44,7 @@
 
 	* Comparing two rdata is now always done by comparing the binary
 	  data of the DNSSEC digestable forms.  This corrects a number of
-	  errors where dnspython's rdata comparsion order was not the
+	  errors where dnspython's rdata comparison order was not the
 	  DNSSEC order.
 
 	* Add CAA implementation.  Thanks to Brian Wellington for the
@@ -926,7 +926,7 @@
 2003-11-13  Bob Halley  <halley@dnspython.org>
 
         * dns/rdtypes/ANY/LOC.py (LOC.to_wire): We encoded and decoded LOC
-        incorrectly, since we were interpreting the values of altitiude,
+        incorrectly, since we were interpreting the values of altitude,
         size, hprec, and vprec in meters instead of centimeters.
 
         * dns/rdtypes/IN/WKS.py (WKS.from_wire): The WKS protocol value is
@@ -1210,7 +1210,7 @@
 
                 bar.foo 300 IN MX 0 blaz.foo
 
-        after the second step (relativiation to zone origin).
+        after the second step (relativization to zone origin).
 
         * dns/namedict.py: added.
 
@@ -1231,7 +1231,7 @@
         * dns/renderer.py: added new wire format rendering module and
         converted message.py to use it.  Applications which want
         fine-grained control over the conversion to wire format may call
-        the renderer directy, instead of having it called on their behalf
+        the renderer directly, instead of having it called on their behalf
         by the message code.
 
 2003-07-02  Bob Halley  <halley@dnspython.org>
