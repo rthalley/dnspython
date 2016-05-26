@@ -62,7 +62,7 @@ class UnknownRcode(dns.exception.DNSException):
 def from_text(text):
     """Convert text into an rcode.
 
-    @param text: the texual rcode
+    @param text: the textual rcode
     @type text: string
     @raises UnknownRcode: the rcode is unknown
     @rtype: int

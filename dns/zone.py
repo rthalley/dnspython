@@ -94,7 +94,7 @@ class Zone(object):
             if isinstance(origin, string_types):
                 origin = dns.name.from_text(origin)
             elif not isinstance(origin, dns.name.Name):
-                raise ValueError("origin parameter must be convertable to a "
+                raise ValueError("origin parameter must be convertible to a "
                                  "DNS name")
             if not origin.is_absolute():
                 raise ValueError("origin parameter must be an absolute name")
@@ -128,7 +128,7 @@ class Zone(object):
         if isinstance(name, string_types):
             name = dns.name.from_text(name, None)
         elif not isinstance(name, dns.name.Name):
-            raise KeyError("name parameter must be convertable to a DNS name")
+            raise KeyError("name parameter must be convertible to a DNS name")
         if name.is_absolute():
             if not name.is_subdomain(self.origin):
                 raise KeyError(

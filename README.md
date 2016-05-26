@@ -156,7 +156,7 @@ New since 1.9.4:
 	dns.resolver.query() will try TCP if a UDP response is
 	truncated.
 
-	The python socket module's DNS methods can be now be overriden
+	The python socket module's DNS methods can be now be overridden
 	with implementations that use dnspython's resolver.
 
 	Old DNSSEC types KEY, NXT, and SIG have been removed.
@@ -310,7 +310,7 @@ New since 1.7.0:
 
 Bugs fixed since 1.7.0:
 
-     	The 1.7.0 kitting process inadventently omitted the code for the
+     	The 1.7.0 kitting process inadvertently omitted the code for the
 	DLV RR.
 
 	Negative DDNS prerequisites are now handled correctly.

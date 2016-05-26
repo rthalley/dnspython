@@ -58,13 +58,13 @@ class UnknownHeaderField(dns.exception.DNSException):
 
 class BadEDNS(dns.exception.FormError):
 
-    """OPT record occured somewhere other than the start of
+    """OPT record occurred somewhere other than the start of
     the additional data section."""
 
 
 class BadTSIG(dns.exception.FormError):
 
-    """A TSIG record occured somewhere other than the end of
+    """A TSIG record occurred somewhere other than the end of
     the additional data section."""
 
 
@@ -1050,7 +1050,7 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     The query name, type, and class may all be specified either
     as objects of the appropriate type, or as strings.
 
-    The query will have a randomly choosen query id, and its DNS flags
+    The query will have a randomly chosen query id, and its DNS flags
     will be set to dns.flags.RD.
 
     @param qname: The query name.

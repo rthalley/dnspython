@@ -199,7 +199,7 @@ The differences shown will be logical differences, not textual differences.
         p.print_help()
         sys.exit(64)
 
-    # Open file desriptors
+    # Open file descriptors
     if not opts.use_vc:
         oldn, newn = args
     else:

@@ -34,7 +34,7 @@ class DNSException(Exception):
     In the new mode *args has to be empty and all kwargs has to exactly match
     set in class variable self.supp_kwargs. All kwargs are stored inside
     self.kwargs and used in new __str__ implementation to construct
-    formated message based on self.fmt string.
+    formatted message based on self.fmt string.
 
     In the simplest case it is enough to override supp_kwargs and fmt
     class variables to get nice parametrized messages.
