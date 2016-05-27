@@ -1,3 +1,22 @@
+2016-05-27  Bob Halley  <halley@dnspython.org>
+
+	* (Version 1.14.0 released)
+
+	* Add CSYNC RR support
+
+	* Fix bug in LOC which destroyed N/S and E/W distinctions within
+	  a degree of the equator or prime merdian respectively.
+
+	* Misc. fixes to deal with fallout from the Python 2 & 3 merge.
+	  [issue #156], [issue #157], [issue #158], [issue #159],
+	  [issue #160].
+
+	* Running with python optimization on caused issues when
+	  stripped docstrings were referenced. [issue #154]
+
+	* dns.zone.from_text() erroneously required the zone to be provided.
+	  [issue #153]
+
 2016-05-13  Bob Halley  <halley@dnspython.org>
 
 	* dns/message.py (make_query): Setting any value which implies

@@ -27,7 +27,32 @@ development by continuing to employ the author :).
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 1.13.0
+This is dnspython 1.14.0
+
+New since 1.13.0:
+
+	CSYNC RRs are now supported.
+
+	dns/message.py (make_query): Setting any value which implies
+	EDNS will turn on EDNS if 'use_edns' has not been specified.
+
+Bugs fixed since 1.13.0:
+
+	TSIG signature algorithm setting was broken by the Python 2
+	and Python 3 code line merge.
+	  
+	A bug in the LOC RR destroyed N/S and E/W distinctions within
+	a degree of the equator or prime merdian respectively.
+
+	Misc. fixes to deal with fallout from the Python 2 & 3 merge.
+	[issue #156], [issue #157], [issue #158], [issue #159],
+	[issue #160].
+
+	Running with python optimization on caused issues when
+	stripped docstrings were referenced. [issue #154]
+
+	dns.zone.from_text() erroneously required the zone to be provided.
+	[issue #153]
 
 New since 1.12.0:
 
