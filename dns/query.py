@@ -37,6 +37,9 @@ if sys.version_info > (3,):
 else:
     select_error = select.error
 
+# Function used to create a socket.  Can be overridden if needed in special
+# situations.
+socket_factory = socket.socket
 
 class UnexpectedSource(dns.exception.DNSException):
 
@@ -223,7 +226,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,
                                                         source, source_port)
-    s = socket.socket(af, socket.SOCK_DGRAM, 0)
+    s = socket_factory(af, socket.SOCK_DGRAM, 0)
     begin_time = None
     try:
         expiration = _compute_expiration(timeout)
@@ -331,7 +334,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,
                                                         source, source_port)
-    s = socket.socket(af, socket.SOCK_STREAM, 0)
+    s = socket_factory(af, socket.SOCK_STREAM, 0)
     begin_time = None
     try:
         expiration = _compute_expiration(timeout)
@@ -435,9 +438,9 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     if use_udp:
         if rdtype != dns.rdatatype.IXFR:
             raise ValueError('cannot do a UDP AXFR')
-        s = socket.socket(af, socket.SOCK_DGRAM, 0)
+        s = socket_factory(af, socket.SOCK_DGRAM, 0)
     else:
-        s = socket.socket(af, socket.SOCK_STREAM, 0)
+        s = socket_factory(af, socket.SOCK_STREAM, 0)
     s.setblocking(0)
     if source is not None:
         s.bind(source)
