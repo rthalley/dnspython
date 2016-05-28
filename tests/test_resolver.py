@@ -16,6 +16,7 @@
 from io import StringIO
 import select
 import sys
+import socket
 import time
 try:
     import unittest2 as unittest
@@ -29,6 +30,14 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
 from dns._compat import xrange
+
+# Some tests require the internet to be available to run, so let's
+# skip those if it's not there.
+_network_available = True
+try:
+    socket.gethostbyname('dnspython.org')
+except socket.gaierror:
+    _network_available = False
 
 resolv_conf = u"""
     /t/t
@@ -86,18 +95,21 @@ class BaseResolverTests(object):
         self.failUnless(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
                         is None)
 
+    @unittest.skipIf(not _network_available,"Internet not reachable")
     def testZoneForName1(self):
         name = dns.name.from_text('www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.failUnless(zname == ezname)
 
+    @unittest.skipIf(not _network_available,"Internet not reachable")
     def testZoneForName2(self):
         name = dns.name.from_text('a.b.www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.failUnless(zname == ezname)
 
+    @unittest.skipIf(not _network_available,"Internet not reachable")
     def testZoneForName3(self):
         name = dns.name.from_text('dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
