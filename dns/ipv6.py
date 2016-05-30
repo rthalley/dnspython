@@ -91,9 +91,9 @@ def inet_ntoa(address):
         hex = b':'.join(chunks)
     return hex
 
-_v4_ending = re.compile(b'(.*):(\d+\.\d+\.\d+\.\d+)$')
-_colon_colon_start = re.compile(b'::.*')
-_colon_colon_end = re.compile(b'.*::$')
+_v4_ending = re.compile('(.*):(\d+\.\d+\.\d+\.\d+)$')
+_colon_colon_start = re.compile('::.*')
+_colon_colon_end = re.compile('.*::$')
 
 def inet_aton(text):
     """Convert a text format IPv6 address into network format.
@@ -104,14 +104,8 @@ def inet_aton(text):
     @raises dns.exception.SyntaxError: the text was not properly formatted
     """
 
-    #
-    # Our aim here is not something fast; we just want something that works.
-    #
-    if not isinstance(text, binary_type):
-        text = text.encode()
-
-    if text == b'::':
-        text = b'0::'
+    if text == '::':
+        text = '0::'
     #
     # Get rid of the icky dot-quad syntax if we have it.
     #
@@ -134,29 +128,29 @@ def inet_aton(text):
     #
     # Now canonicalize into 8 chunks of 4 hex digits each
     #
-    chunks = text.split(b':')
+    chunks = text.split(':')
     l = len(chunks)
     if l > 8:
         raise dns.exception.SyntaxError
     seen_empty = False
     canonical = []
     for c in chunks:
-        if c == b'':
+        if c == '':
             if seen_empty:
                 raise dns.exception.SyntaxError
             seen_empty = True
             for i in xrange(0, 8 - l + 1):
-                canonical.append(b'0000')
+                canonical.append('0000')
         else:
             lc = len(c)
             if lc > 4:
                 raise dns.exception.SyntaxError
             if lc != 4:
-                c = (b'0' * (4 - lc)) + c
+                c = ('0' * (4 - lc)) + c
             canonical.append(c)
     if l < 8 and not seen_empty:
         raise dns.exception.SyntaxError
-    text = b''.join(canonical)
+    text = ''.join(canonical)
 
     #
     # Finally we can go to binary.
