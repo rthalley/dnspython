@@ -16,10 +16,14 @@ if sys.version_info > (3,):
     unichr = chr
     def maybe_decode(x):
         return x.decode()
+    def maybe_encode(x):
+        return x.encode()
 else:
     text_type = unicode
     binary_type = str
     string_types = (basestring,)
     unichr = unichr
     def maybe_decode(x):
+        return x
+    def maybe_encode(x):
         return x
