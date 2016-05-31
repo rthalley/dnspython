@@ -58,4 +58,4 @@ tags:
 check: test
 
 test:
-	cd tests; make test
+	cd tests; make PYTHON=${PYTHON} test

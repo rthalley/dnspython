@@ -20,7 +20,7 @@ import binascii
 
 import dns.exception
 import dns.ipv4
-from ._compat import xrange, binary_type
+from ._compat import xrange, binary_type, maybe_decode
 
 _leading_zero = re.compile(b'0+([0-9a-f]+)')
 
@@ -89,7 +89,7 @@ def inet_ntoa(address):
                   b':'.join(chunks[best_start + best_len:])
     else:
         hex = b':'.join(chunks)
-    return hex
+    return maybe_decode(hex)
 
 _v4_ending = re.compile(b'(.*):(\d+\.\d+\.\d+\.\d+)$')
 _colon_colon_start = re.compile(b'::.*')

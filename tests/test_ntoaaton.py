@@ -90,72 +90,72 @@ class NtoAAtoNTestCase(unittest.TestCase):
     def test_ntoa1(self):
         b = binascii.unhexlify(b'00010002000300040005000600070008')
         t = ntoa6(b)
-        self.assertEqual(t, b'1:2:3:4:5:6:7:8')
+        self.assertEqual(t, '1:2:3:4:5:6:7:8')
 
     def test_ntoa2(self):
         b = b'\x00' * 16
         t = ntoa6(b)
-        self.assertEqual(t, b'::')
+        self.assertEqual(t, '::')
 
     def test_ntoa3(self):
         b = b'\x00' * 15 + b'\x01'
         t = ntoa6(b)
-        self.assertEqual(t, b'::1')
+        self.assertEqual(t, '::1')
 
     def test_ntoa4(self):
         b = b'\x80' + b'\x00' * 15
         t = ntoa6(b)
-        self.assertEqual(t, b'8000::')
+        self.assertEqual(t, '8000::')
 
     def test_ntoa5(self):
         b = b'\x01\xcd' + b'\x00' * 12 + b'\x03\xef'
         t = ntoa6(b)
-        self.assertEqual(t, b'1cd::3ef')
+        self.assertEqual(t, '1cd::3ef')
 
     def test_ntoa6(self):
         b = binascii.unhexlify(b'ffff00000000ffff000000000000ffff')
         t = ntoa6(b)
-        self.assertEqual(t, b'ffff:0:0:ffff::ffff')
+        self.assertEqual(t, 'ffff:0:0:ffff::ffff')
 
     def test_ntoa7(self):
         b = binascii.unhexlify(b'00000000ffff000000000000ffffffff')
         t = ntoa6(b)
-        self.assertEqual(t, b'0:0:ffff::ffff:ffff')
+        self.assertEqual(t, '0:0:ffff::ffff:ffff')
 
     def test_ntoa8(self):
         b = binascii.unhexlify(b'ffff0000ffff00000000ffff00000000')
         t = ntoa6(b)
-        self.assertEqual(t, b'ffff:0:ffff::ffff:0:0')
+        self.assertEqual(t, 'ffff:0:ffff::ffff:0:0')
 
     def test_ntoa9(self):
         b = binascii.unhexlify(b'0000000000000000000000000a000001')
         t = ntoa6(b)
-        self.assertEqual(t, b'::10.0.0.1')
+        self.assertEqual(t, '::10.0.0.1')
 
     def test_ntoa10(self):
         b = binascii.unhexlify(b'0000000000000000000000010a000001')
         t = ntoa6(b)
-        self.assertEqual(t, b'::1:a00:1')
+        self.assertEqual(t, '::1:a00:1')
 
     def test_ntoa11(self):
         b = binascii.unhexlify(b'00000000000000000000ffff0a000001')
         t = ntoa6(b)
-        self.assertEqual(t, b'::ffff:10.0.0.1')
+        self.assertEqual(t, '::ffff:10.0.0.1')
 
     def test_ntoa12(self):
         b = binascii.unhexlify(b'000000000000000000000000ffffffff')
         t = ntoa6(b)
-        self.assertEqual(t, b'::255.255.255.255')
+        self.assertEqual(t, '::255.255.255.255')
 
     def test_ntoa13(self):
         b = binascii.unhexlify(b'00000000000000000000ffffffffffff')
         t = ntoa6(b)
-        self.assertEqual(t, b'::ffff:255.255.255.255')
+        self.assertEqual(t, '::ffff:255.255.255.255')
 
     def test_ntoa14(self):
         b = binascii.unhexlify(b'0000000000000000000000000001ffff')
         t = ntoa6(b)
-        self.assertEqual(t, b'::0.1.255.255')
+        self.assertEqual(t, '::0.1.255.255')
 
     def test_bad_ntoa1(self):
         def bad():
@@ -199,7 +199,7 @@ class NtoAAtoNTestCase(unittest.TestCase):
             self.failUnlessRaises(dns.exception.SyntaxError, make_bad(addr))
 
     def test_rfc5952_section_4_2_2(self):
-        addr = b'2001:db8:0:1:1:1:1:1'
+        addr = '2001:db8:0:1:1:1:1:1'
         b1 = aton6(addr)
         t1 = ntoa6(b1)
         self.assertEqual(t1, addr)

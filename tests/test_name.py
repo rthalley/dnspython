@@ -682,7 +682,7 @@ class NameTestCase(unittest.TestCase):
 
     def testForwardIPv6(self):
         n = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.')
-        e = b'::1'
+        e = '::1'
         text = dns.reversename.to_address(n)
         self.assertEqual(text, e)
 
