@@ -23,7 +23,7 @@ import dns.exception
 import dns.hash
 import dns.rdataclass
 import dns.name
-from ._compat import long, string_types
+from ._compat import long, string_types, text_type
 
 class BadTime(dns.exception.DNSException):
 
@@ -96,6 +96,8 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
+    if isinstance(other_data, text_type):
+        other_data = other_data.encode()
     (algorithm_name, digestmod) = get_algorithm(algorithm)
     if first:
         ctx = hmac.new(secret, digestmod=digestmod)
