@@ -75,11 +75,7 @@ def _base64ify(data, chunksize=_base64_chunksize):
                       for i
                       in range(0, len(line), chunksize)]).decode()
 
-__escaped = {
-    '"': True,
-    '\\': True,
-}
-
+__escaped = bytearray(b'"\\')
 
 def _escapify(qstring):
     """Escape the characters in a quoted string which need it.
@@ -97,11 +93,10 @@ def _escapify(qstring):
 
     text = ''
     for c in qstring:
-        packed = struct.pack('!B', c).decode()
-        if packed in __escaped:
-            text += '\\' + packed
+        if c in __escaped:
+            text += '\\' + chr(c)
         elif c >= 0x20 and c < 0x7F:
-            text += packed
+            text += chr(c)
         else:
             text += '\\%03d' % c
     return text

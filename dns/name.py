@@ -105,11 +105,10 @@ def _escapify(label, unicode_mode=False):
         if isinstance(label, text_type):
             label = label.encode()
         for c in bytearray(label):
-            packed = struct.pack('!B', c).decode()
             if c in _escaped:
-                text += '\\' + packed
+                text += '\\' + chr(c)
             elif c > 0x20 and c < 0x7F:
-                text += packed
+                text += chr(c)
             else:
                 text += '\\%03d' % c
         return text.encode()
