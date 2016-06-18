@@ -123,7 +123,7 @@ def _escapify(label, unicode_mode=False):
             if c >= u'\x7f':
                 text += c
             else:
-                text += u'\\%03d' % c
+                text += u'\\%03d' % ord(c)
     return text
 
 
