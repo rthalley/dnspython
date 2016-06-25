@@ -238,9 +238,9 @@ class NameTestCase(unittest.TestCase):
         self.assertEqual(t, b'FOO\.bar')
 
     def testToText9(self):
-        n = dns.name.from_text(r'\x80\.bar', origin=None)
-        t = n.to_text()
-        self.assertEqual(t, br'x80\.bar')
+        n = dns.name.from_text('FOO bar', origin=None)
+        t = n.to_unicode()
+        self.assertEqual(t, r'FOO\032bar')
 
     def testSlice1(self):
         n = dns.name.from_text(r'a.b.c.', origin=None)
