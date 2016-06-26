@@ -112,8 +112,8 @@ def _truncate_bitmap(what):
 
     for i in xrange(len(what) - 1, -1, -1):
         if what[i] != 0:
-            break
-    return what[0: i + 1]
+            return what[0: i + 1]
+    return what[0:1]
 
 
 class Rdata(object):

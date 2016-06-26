@@ -42,7 +42,6 @@ disable=
     round-builtin,
     superfluous-parens,
     too-many-lines,
-    undefined-loop-variable,
     undefined-variable,
     unichr-builtin,
     unicode-builtin,

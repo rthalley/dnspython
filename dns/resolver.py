@@ -904,15 +904,15 @@ class Resolver(object):
         all_nxdomain = True
         nxdomain_responses = {}
         start = time.time()
-        for qname in qnames_to_try:
+        for _qname in qnames_to_try:
             if self.cache:
-                answer = self.cache.get((qname, rdtype, rdclass))
+                answer = self.cache.get((_qname, rdtype, rdclass))
                 if answer is not None:
                     if answer.rrset is None and raise_on_no_answer:
                         raise NoAnswer
                     else:
                         return answer
-            request = dns.message.make_query(qname, rdtype, rdclass)
+            request = dns.message.make_query(_qname, rdtype, rdclass)
             if self.keyname is not None:
                 request.use_tsig(self.keyring, self.keyname,
                                  algorithm=self.keyalgorithm)
@@ -1029,7 +1029,7 @@ class Resolver(object):
                     backoff *= 2
                     time.sleep(sleep_time)
             if response.rcode() == dns.rcode.NXDOMAIN:
-                nxdomain_responses[qname] = response
+                nxdomain_responses[_qname] = response
                 continue
             all_nxdomain = False
             break
