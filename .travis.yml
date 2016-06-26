@@ -12,6 +12,7 @@ python:
   - "3.5-dev" # 3.5 development branch
   - "nightly" # currently points to 3.6-dev
 install:
- - pip install unittest2
+ - pip install unittest2 pylint
 script:
+ - if [[ $TRAVIS_PYTHON_VERSION != '2.6' ]]; then make lint; fi
  - make test
