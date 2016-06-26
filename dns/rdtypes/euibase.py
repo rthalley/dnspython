@@ -17,6 +17,7 @@
 import binascii
 
 import dns.rdata
+from dns._compat import xrange
 
 
 class EUIBase(dns.rdata.Rdata):
@@ -49,7 +50,7 @@ class EUIBase(dns.rdata.Rdata):
         if len(text) != cls.text_len:
             raise dns.exception.SyntaxError(
                 'Input text must have %s characters' % cls.text_len)
-        expected_dash_idxs = range(2, cls.byte_len * 3 - 1, 3)
+        expected_dash_idxs = xrange(2, cls.byte_len * 3 - 1, 3)
         for i in expected_dash_idxs:
             if text[i] != '-':
                 raise dns.exception.SyntaxError('Dash expected at position %s'

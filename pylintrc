@@ -35,7 +35,6 @@ disable=
     no-member,
     old-division,
     protected-access,
-    range-builtin-not-iterating,
     redefined-builtin,
     round-builtin,
     superfluous-parens,
