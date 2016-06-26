@@ -20,7 +20,6 @@ disable=
     attribute-defined-outside-init,
     bad-builtin,
     bad-continuation,
-    bad-whitespace,
     bare-except,
     deprecated-method,
     dict-iter-method,
