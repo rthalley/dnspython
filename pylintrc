@@ -22,7 +22,6 @@ disable=
     bad-continuation,
     bad-whitespace,
     bare-except,
-    delslice-method,
     deprecated-method,
     dict-iter-method,
     fixme,

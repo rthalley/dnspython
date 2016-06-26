@@ -285,9 +285,6 @@ class Answer(object):
     def __getslice__(self, i, j):
         return self.rrset[i:j]
 
-    def __delslice__(self, i, j):
-        del self.rrset[i:j]
-
 
 class Cache(object):
 
