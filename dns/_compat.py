@@ -19,10 +19,10 @@ if sys.version_info > (3,):
     def maybe_encode(x):
         return x.encode()
 else:
-    text_type = unicode  # pylint: disable=unicode-builtin
+    text_type = unicode  # pylint: disable=unicode-builtin, undefined-variable
     binary_type = str
     string_types = (
-        basestring,  # pylint: disable=basestring-builtin
+        basestring,  # pylint: disable=basestring-builtin, undefined-variable
     )
     unichr = unichr  # pylint: disable=unichr-builtin
     def maybe_decode(x):

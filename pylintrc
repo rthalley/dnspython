@@ -40,7 +40,6 @@ disable=
     round-builtin,
     superfluous-parens,
     too-many-lines,
-    undefined-variable,
     unused-argument,
     unused-variable,
     wrong-import-order,

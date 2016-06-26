@@ -699,7 +699,7 @@ class Resolver(object):
         """Extract DNS info from a registry key."""
         try:
             servers, rtype = _winreg.QueryValueEx(key, 'NameServer')
-        except WindowsError:
+        except WindowsError:  # pylint: disable=undefined-variable
             servers = None
         if servers:
             self._config_win32_nameservers(servers)
@@ -707,12 +707,12 @@ class Resolver(object):
                 dom, rtype = _winreg.QueryValueEx(key, 'Domain')
                 if dom:
                     self._config_win32_domain(dom)
-            except WindowsError:
+            except WindowsError:  # pylint: disable=undefined-variable
                 pass
         else:
             try:
                 servers, rtype = _winreg.QueryValueEx(key, 'DhcpNameServer')
-            except WindowsError:
+            except WindowsError:  # pylint: disable=undefined-variable
                 servers = None
             if servers:
                 self._config_win32_nameservers(servers)
@@ -720,11 +720,11 @@ class Resolver(object):
                     dom, rtype = _winreg.QueryValueEx(key, 'DhcpDomain')
                     if dom:
                         self._config_win32_domain(dom)
-                except WindowsError:
+                except WindowsError:  # pylint: disable=undefined-variable
                     pass
         try:
             search, rtype = _winreg.QueryValueEx(key, 'SearchList')
-        except WindowsError:
+        except WindowsError:  # pylint: disable=undefined-variable
             search = None
         if search:
             self._config_win32_search(search)
@@ -826,7 +826,7 @@ class Resolver(object):
                 (nte, ttype) = _winreg.QueryValueEx(interface_key,
                                                     'NTEContextList')
                 return nte is not None
-            except WindowsError:
+            except WindowsError:  # pylint: disable=undefined-variable
                 return False
 
     def _compute_timeout(self, start):
