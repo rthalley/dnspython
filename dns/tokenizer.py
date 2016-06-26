@@ -332,7 +332,7 @@ class Tokenizer(object):
                         self.skip_whitespace()
                         continue
                     elif c == ')':
-                        if not self.multiline > 0:
+                        if self.multiline <= 0:
                             raise dns.exception.SyntaxError
                         self.multiline -= 1
                         self.skip_whitespace()

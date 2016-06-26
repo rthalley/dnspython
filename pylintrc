@@ -45,7 +45,6 @@ disable=
     undefined-variable,
     unichr-builtin,
     unicode-builtin,
-    unneeded-not,
     unused-argument,
     unused-variable,
     wrong-import-order,
