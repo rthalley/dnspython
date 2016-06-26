@@ -22,7 +22,6 @@ disable=
     bad-continuation,
     bad-whitespace,
     bare-except,
-    basestring-builtin,
     delslice-method,
     deprecated-lambda,
     deprecated-method,
@@ -31,7 +30,6 @@ disable=
     getslice-method,
     global-statement,
     invalid-name,
-    long-builtin,
     missing-docstring,
     no-absolute-import,
     no-member,
@@ -43,13 +41,10 @@ disable=
     superfluous-parens,
     too-many-lines,
     undefined-variable,
-    unichr-builtin,
-    unicode-builtin,
     unused-argument,
     unused-variable,
     wrong-import-order,
     wrong-import-position,
-    xrange-builtin
 
 
 [REPORTS]
