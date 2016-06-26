@@ -114,7 +114,7 @@ class EntropyPool(object):
         else:
             rand = self.random_8
             max = 255
-        return (first + size * rand() // (max + 1))
+        return first + size * rand() // (max + 1)
 
 pool = EntropyPool()
 

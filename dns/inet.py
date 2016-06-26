@@ -102,10 +102,10 @@ def is_multicast(text):
     """
     try:
         first = ord(dns.ipv4.inet_aton(text)[0])
-        return (first >= 224 and first <= 239)
+        return first >= 224 and first <= 239
     except:
         try:
             first = ord(dns.ipv6.inet_aton(text)[0])
-            return (first == 255)
+            return first == 255
         except:
             raise ValueError

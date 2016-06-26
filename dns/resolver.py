@@ -807,7 +807,7 @@ class Resolver(object):
 
                     # Based on experimentation, bit 0x1 indicates that the
                     # device is disabled.
-                    return not (flags & 0x1)
+                    return not flags & 0x1
 
                 finally:
                     device_key.Close()
