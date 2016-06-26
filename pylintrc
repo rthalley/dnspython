@@ -30,7 +30,6 @@ disable=
     fixme,
     getslice-method,
     global-statement,
-    import-error,
     invalid-name,
     long-builtin,
     missing-docstring,

@@ -46,7 +46,7 @@ if sys.platform == 'win32':
     try:
         import winreg as _winreg
     except ImportError:
-        import _winreg
+        import _winreg  # pylint: disable=import-error
 
 class NXDOMAIN(dns.exception.DNSException):
 

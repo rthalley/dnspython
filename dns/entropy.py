@@ -33,13 +33,13 @@ class EntropyPool(object):
             import hashlib
             self.hash = hashlib.sha1()
             self.hash_len = 20
-        except:
+        except ImportError:
             try:
                 import sha
                 self.hash = sha.new()
                 self.hash_len = 20
-            except:
-                import md5
+            except ImportError:
+                import md5  # pylint: disable=import-error
                 self.hash = md5.new()
                 self.hash_len = 16
         self.pool = bytearray(b'\0' * self.hash_len)
