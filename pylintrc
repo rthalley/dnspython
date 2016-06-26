@@ -23,7 +23,6 @@ disable=
     bad-whitespace,
     bare-except,
     delslice-method,
-    deprecated-lambda,
     deprecated-method,
     dict-iter-method,
     fixme,
