@@ -15,7 +15,6 @@
 
 """Hashing backwards compatibility wrapper"""
 
-import sys
 import hashlib
 
 

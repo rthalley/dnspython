@@ -19,7 +19,6 @@ from io import BytesIO
 import struct
 import random
 import time
-import sys
 
 import dns.exception
 import dns.tsig

@@ -28,7 +28,6 @@ chunk of hexstring that _hexify() produces before whitespace occurs.
 from io import BytesIO
 import base64
 import binascii
-import struct
 
 import dns.exception
 import dns.name

@@ -49,7 +49,6 @@ disable=
     unnecessary-lambda,
     unneeded-not,
     unused-argument,
-    unused-import,
     unused-variable,
     wrong-import-order,
     wrong-import-position,
