@@ -722,7 +722,7 @@ class _MasterReader(object):
             base = 'd'
 
         if base != 'd':
-            raise NotImplemented
+            raise NotImplementedError()
 
         return mod, sign, offset, width, base
 
