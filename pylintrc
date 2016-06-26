@@ -45,7 +45,6 @@ disable=
     undefined-variable,
     unichr-builtin,
     unicode-builtin,
-    unnecessary-lambda,
     unneeded-not,
     unused-argument,
     unused-variable,
