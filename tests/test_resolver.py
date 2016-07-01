@@ -23,7 +23,6 @@ try:
 except ImportError:
     import unittest
 
-import dns.name
 import dns.message
 import dns.name
 import dns.rdataclass
