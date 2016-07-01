@@ -91,7 +91,7 @@ class APL(dns.rdata.Rdata):
         self.items = items
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return ' '.join(map(lambda x: str(x), self.items))
+        return ' '.join(map(str, self.items))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):

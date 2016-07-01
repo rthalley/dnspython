@@ -28,7 +28,6 @@ chunk of hexstring that _hexify() produces before whitespace occurs.
 from io import BytesIO
 import base64
 import binascii
-import struct
 
 import dns.exception
 import dns.name
@@ -113,8 +112,8 @@ def _truncate_bitmap(what):
 
     for i in xrange(len(what) - 1, -1, -1):
         if what[i] != 0:
-            break
-    return what[0: i + 1]
+            return what[0: i + 1]
+    return what[0:1]
 
 
 class Rdata(object):

@@ -96,7 +96,7 @@ class Token(object):
         return self.ttype == DELIMITER
 
     def is_eol_or_eof(self):
-        return (self.ttype == EOL or self.ttype == EOF)
+        return self.ttype == EOL or self.ttype == EOF
 
     def __eq__(self, other):
         if not isinstance(other, Token):
@@ -332,7 +332,7 @@ class Tokenizer(object):
                         self.skip_whitespace()
                         continue
                     elif c == ')':
-                        if not self.multiline > 0:
+                        if self.multiline <= 0:
                             raise dns.exception.SyntaxError
                         self.multiline -= 1
                         self.skip_whitespace()

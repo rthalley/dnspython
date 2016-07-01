@@ -35,7 +35,7 @@ from ._compat import long, binary_type, text_type, unichr
 try:
     maxint = sys.maxint
 except:
-    maxint = (1 << (8 * struct.calcsize("P"))) / 2 - 1
+    maxint = (1 << (8 * struct.calcsize("P"))) // 2 - 1
 
 NAMERELN_NONE = 0
 NAMERELN_SUPERDOMAIN = 1

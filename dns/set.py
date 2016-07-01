@@ -235,9 +235,6 @@ class Set(object):
     def __getslice__(self, i, j):
         return self.items[i:j]
 
-    def __delslice__(self, i, j):
-        del self.items[i:j]
-
     def issubset(self, other):
         """Is I{self} a subset of I{other}?
 

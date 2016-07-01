@@ -56,7 +56,7 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     """
     if origin is not None:
         name = name.relativize(origin)
-    dlabels = [d for d in name.labels if (d.isdigit() and len(d) == 1)]
+    dlabels = [d for d in name.labels if d.isdigit() and len(d) == 1]
     if len(dlabels) != len(name.labels):
         raise dns.exception.SyntaxError('non-digit labels in ENUM domain name')
     dlabels.reverse()

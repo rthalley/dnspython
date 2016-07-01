@@ -5,8 +5,8 @@ if sys.version_info > (3,):
     long = int
     xrange = range
 else:
-    long = long
-    xrange = xrange
+    long = long  # pylint: disable=long-builtin
+    xrange = xrange  # pylint: disable=xrange-builtin
 
 # unicode / binary types
 if sys.version_info > (3,):
@@ -19,10 +19,12 @@ if sys.version_info > (3,):
     def maybe_encode(x):
         return x.encode()
 else:
-    text_type = unicode
+    text_type = unicode  # pylint: disable=unicode-builtin, undefined-variable
     binary_type = str
-    string_types = (basestring,)
-    unichr = unichr
+    string_types = (
+        basestring,  # pylint: disable=basestring-builtin, undefined-variable
+    )
+    unichr = unichr  # pylint: disable=unichr-builtin
     def maybe_decode(x):
         return x
     def maybe_encode(x):

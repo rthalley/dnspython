@@ -19,7 +19,6 @@ from __future__ import absolute_import
 
 from io import StringIO
 import struct
-import sys
 import time
 
 import dns.edns
@@ -188,7 +187,7 @@ class Message(object):
     def __str__(self):
         return self.to_text()
 
-    def to_text(self,  origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, **kw):
         """Convert the message to text.
 
         The I{origin}, I{relativize}, and any other keyword

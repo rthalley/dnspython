@@ -104,6 +104,4 @@ def is_update(flags):
     @rtype: bool
     """
 
-    if (from_flags(flags) == UPDATE):
-        return True
-    return False
+    return from_flags(flags) == UPDATE

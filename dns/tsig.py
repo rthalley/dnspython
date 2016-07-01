@@ -17,7 +17,6 @@
 
 import hmac
 import struct
-import sys
 
 import dns.exception
 import dns.hash
@@ -195,7 +194,7 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
     (junk, our_mac, ctx) = sign(new_wire, keyname, secret, time, fudge,
                                 original_id, error, other_data,
                                 request_mac, ctx, multi, first, aname)
-    if (our_mac != mac):
+    if our_mac != mac:
         raise BadSignature
     return ctx
 

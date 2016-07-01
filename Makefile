@@ -59,3 +59,6 @@ check: test
 
 test:
 	cd tests; make PYTHON=${PYTHON} test
+
+lint:
+	pylint dns

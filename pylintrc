@@ -1,0 +1,55 @@
+[MASTER]
+# Pickle collected data for later comparisons.
+persistent=no
+
+# Use multiple processes to speed up Pylint.
+jobs=1
+
+[MESSAGES CONTROL]
+
+enable=
+    all,
+    python3
+
+disable=
+    R,
+    I,
+    anomalous-backslash-in-string,
+    arguments-differ,
+    assigning-non-slot,
+    attribute-defined-outside-init,
+    bad-builtin,
+    bad-continuation,
+    bare-except,
+    deprecated-method,
+    dict-iter-method,
+    fixme,
+    getslice-method,
+    global-statement,
+    invalid-name,
+    missing-docstring,
+    no-absolute-import,
+    no-member,
+    protected-access,
+    redefined-builtin,
+    round-builtin,
+    too-many-lines,
+    unused-argument,
+    unused-variable,
+    wrong-import-order,
+    wrong-import-position,
+
+
+[REPORTS]
+
+# Set the output format. Available formats are text, parseable, colorized, msvs
+# (visual studio) and html. You can also give a reporter class, eg
+# mypackage.mymodule.MyReporterClass.
+output-format=colorized
+
+# Tells whether to display a full report or only the messages
+reports=no
+
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details
+msg-template='{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})'
