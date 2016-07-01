@@ -19,7 +19,6 @@ except ImportError:
     import unittest
 
 from io import BytesIO
-import socket
 
 import dns.name
 import dns.reversename

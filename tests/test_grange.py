@@ -16,8 +16,6 @@
 import sys
 sys.path.insert(0, '../')
 
-import filecmp
-import os
 try:
     import unittest2 as unittest
 except ImportError:
@@ -26,9 +24,6 @@ except ImportError:
 import dns
 import dns.exception
 import dns.grange
-
-import pdb
-
 
 
 class GRangeTestCase(unittest.TestCase):

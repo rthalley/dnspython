@@ -226,9 +226,9 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 if __name__ == '__main__':
     import_ok = False
     try:
-        import Crypto.Util.number
+        import Crypto.Util.number  # pylint: disable=unused-import
         import_ok = True
-    except:
+    except ImportError:
         pass
     if import_ok:
         unittest.main()
