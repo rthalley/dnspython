@@ -13,6 +13,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from __future__ import print_function
+
 try:
     import unittest2 as unittest
 except ImportError:
