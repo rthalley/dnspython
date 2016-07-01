@@ -235,7 +235,7 @@ class ZoneTestCase(unittest.TestCase):
     def testGetRdataset2(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rds = z.get_rdataset('@', 'loc')
-        self.failUnless(rds == None)
+        self.failUnless(rds is None)
 
     def testGetRRset1(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -246,7 +246,7 @@ class ZoneTestCase(unittest.TestCase):
     def testGetRRset2(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rrs = z.get_rrset('@', 'loc')
-        self.failUnless(rrs == None)
+        self.failUnless(rrs is None)
 
     def testReplaceRdataset1(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -299,21 +299,21 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
-        self.failUnless(rds == None)
+        self.failUnless(rds is None)
 
     def testNodeDeleteRdataset1(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
         rds = node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
-        self.failUnless(rds == None)
+        self.failUnless(rds is None)
 
     def testNodeDeleteRdataset2(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
         rds = node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
-        self.failUnless(rds == None)
+        self.failUnless(rds is None)
 
     def testIterateRdatasets(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
