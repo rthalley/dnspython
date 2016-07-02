@@ -35,7 +35,7 @@ for filename in sys.argv[1:]:
             reverse_map[rdata.address] = [name.to_text()]
 
 keys = reverse_map.keys()
-keys.sort(lambda a1, a2: cmp(dns.ipv4.inet_aton(a1), dns.ipv4.inet_aton(a2)))
+keys.sort(key=dns.ipv4.inet_aton)
 for k in keys:
     v = reverse_map[k]
     v.sort()
