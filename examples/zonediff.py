@@ -162,7 +162,7 @@ def format_changes_html(oldf, newf, changes, ignore_ttl=False):
 
 # Make this module usable as a script too.
 def main():
-    import optparse
+    import argparse
     import subprocess
     import sys
     import traceback
@@ -172,20 +172,20 @@ def main():
 
 The differences shown will be logical differences, not textual differences.
 """
-    p = optparse.OptionParser(usage=usage)
-    p.add_option('-s', '--ignore-soa', action="store_true", default=False, dest="ignore_soa",
+    p = argparse.ArgumentParser(usage=usage)
+    p.add_argument('-s', '--ignore-soa', action="store_true", default=False, dest="ignore_soa",
                  help="Ignore SOA-only changes to records")
-    p.add_option('-t', '--ignore-ttl', action="store_true", default=False, dest="ignore_ttl",
+    p.add_argument('-t', '--ignore-ttl', action="store_true", default=False, dest="ignore_ttl",
                  help="Ignore TTL-only changes to Rdata")
-    p.add_option('-T', '--traceback', action="store_true", default=False, dest="tracebacks",
+    p.add_argument('-T', '--traceback', action="store_true", default=False, dest="tracebacks",
                  help="Show python tracebacks when errors occur")
-    p.add_option('-H', '--html', action="store_true", default=False, dest="html",
+    p.add_argument('-H', '--html', action="store_true", default=False, dest="html",
                  help="Print HTML output")
-    p.add_option('-g', '--git', action="store_true", default=False, dest="use_git",
+    p.add_argument('-g', '--git', action="store_true", default=False, dest="use_git",
                  help="Use git revisions instead of real files")
-    p.add_option('-b', '--bzr', action="store_true", default=False, dest="use_bzr",
+    p.add_argument('-b', '--bzr', action="store_true", default=False, dest="use_bzr",
                  help="Use bzr revisions instead of real files")
-    p.add_option('-r', '--rcs', action="store_true", default=False, dest="use_rcs",
+    p.add_argument('-r', '--rcs', action="store_true", default=False, dest="use_rcs",
                  help="Use rcs revisions instead of real files")
     opts, args = p.parse_args()
     opts.use_vc = opts.use_git or opts.use_bzr or opts.use_rcs
