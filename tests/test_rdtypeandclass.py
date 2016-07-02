@@ -24,7 +24,7 @@ import dns.rdatatype
 class RdTypeAndClassTestCase(unittest.TestCase):
 
     # Classes
-    
+
     def test_class_meta1(self):
         self.failUnless(dns.rdataclass.is_metaclass(dns.rdataclass.ANY))
 
@@ -69,7 +69,7 @@ class RdTypeAndClassTestCase(unittest.TestCase):
         self.failUnlessRaises(ValueError, bad)
 
     # Types
-    
+
     def test_type_meta1(self):
         self.failUnless(dns.rdatatype.is_metatype(dns.rdatatype.ANY))
 

@@ -175,7 +175,7 @@ class ZoneTestCase(unittest.TestCase):
                     wire = f.getvalue()
                     rd2 = dns.rdata.from_wire(rds.rdclass, rds.rdtype,
                                               wire, 0, len(wire),
-                                              origin = o)
+                                              origin=o)
                     self.failUnless(rd == rd2)
 
     def testEqual(self):

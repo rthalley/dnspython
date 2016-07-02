@@ -107,14 +107,14 @@ class TokenizerTestCase(unittest.TestCase):
 
     def testComment2(self):
         tok = dns.tokenizer.Tokenizer(' ;foo\n')
-        token1 = tok.get(want_comment = True)
+        token1 = tok.get(want_comment=True)
         token2 = tok.get()
         self.failUnless(token1 == Token(dns.tokenizer.COMMENT, 'foo') and
                         token2.is_eol())
 
     def testComment3(self):
         tok = dns.tokenizer.Tokenizer(' ;foo bar\n')
-        token1 = tok.get(want_comment = True)
+        token1 = tok.get(want_comment=True)
         token2 = tok.get()
         self.failUnless(token1 == Token(dns.tokenizer.COMMENT, 'foo bar') and
                         token2.is_eol())

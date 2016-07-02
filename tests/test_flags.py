@@ -25,7 +25,7 @@ import dns.opcode
 class FlagsTestCase(unittest.TestCase):
 
     def test_rcode1(self):
-        self.failUnless(dns.rcode.from_text('FORMERR') ==  dns.rcode.FORMERR)
+        self.failUnless(dns.rcode.from_text('FORMERR') == dns.rcode.FORMERR)
 
     def test_rcode2(self):
         self.failUnless(dns.rcode.to_text(dns.rcode.FORMERR) == "FORMERR")

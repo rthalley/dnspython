@@ -24,7 +24,7 @@ import dns.set
 S = dns.set.Set
 
 class SimpleSetTestCase(unittest.TestCase):
-        
+
     def testLen1(self):
         s1 = S()
         self.failUnless(len(s1) == 0)

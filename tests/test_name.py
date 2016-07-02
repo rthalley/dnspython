@@ -52,7 +52,7 @@ class NameTestCase(unittest.TestCase):
 
     def testFromTextAbs1(self):
         n = dns.name.from_text('foo.bar.')
-        self.assertEqual(n.labels,(b'foo', b'bar', b''))
+        self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
     def testTortureFromText(self):
         good = [
@@ -702,7 +702,7 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')
         e = b'+16505551212'
         text = dns.e164.to_e164(n)
-        self.assertEqual(text,e)
+        self.assertEqual(text, e)
 
 if __name__ == '__main__':
     unittest.main()

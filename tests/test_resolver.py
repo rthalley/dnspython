@@ -133,21 +133,21 @@ class BaseResolverTests(object):
         self.failUnless(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
                         is None)
 
-    @unittest.skipIf(not _network_available,"Internet not reachable")
+    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName1(self):
         name = dns.name.from_text('www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.failUnless(zname == ezname)
 
-    @unittest.skipIf(not _network_available,"Internet not reachable")
+    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName2(self):
         name = dns.name.from_text('a.b.www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.failUnless(zname == ezname)
 
-    @unittest.skipIf(not _network_available,"Internet not reachable")
+    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName3(self):
         name = dns.name.from_text('dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
@@ -345,7 +345,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         e1 = dns.resolver.NXDOMAIN(qnames=qnames1, responses=responses1)
         e2 = dns.resolver.NXDOMAIN(qnames=qnames2, responses=responses2)
         e = e1 + e0 + e2
-        self.assertRaises(AttributeError, lambda : e0 + e0)
+        self.assertRaises(AttributeError, lambda: e0 + e0)
         self.assertTrue(e.kwargs['qnames'] == [n1, n4, n3], repr(e.kwargs['qnames']))
         self.assertTrue(e.kwargs['responses'][n1].startswith('r2.'))
         self.assertTrue(e.kwargs['responses'][n2].startswith('r2.'))
@@ -367,7 +367,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         e0 = dns.resolver.NXDOMAIN(qnames=[qname0], responses=responses)
         e1 = dns.resolver.NXDOMAIN(qnames=[qname0, qname1, qname2], responses=responses)
         e2 = dns.resolver.NXDOMAIN(qnames=[qname0, qname2, qname1], responses=responses)
-        self.assertRaises(TypeError, lambda : eX.canonical_name)
+        self.assertRaises(TypeError, lambda: eX.canonical_name)
         self.assertTrue(e0.canonical_name == qname0)
         self.assertTrue(e1.canonical_name == dns.name.from_text(cname1))
         self.assertTrue(e2.canonical_name == dns.name.from_text(cname2))
