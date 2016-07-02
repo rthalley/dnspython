@@ -549,7 +549,7 @@ class NameTestCase(unittest.TestCase):
         self.failUnless(n.choose_relativity(o, False) == e)
 
     def testFromWire1(self):
-        w = '\x03foo\x00\xc0\x00'
+        w = b'\x03foo\x00\xc0\x00'
         (n1, cused1) = dns.name.from_wire(w, 0)
         (n2, cused2) = dns.name.from_wire(w, cused1)
         en1 = dns.name.from_text('foo.')
