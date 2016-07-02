@@ -31,7 +31,6 @@ disable=
     no-member,
     protected-access,
     redefined-builtin,
-    round-builtin,
     too-many-lines,
     unused-argument,
     unused-variable,
