@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# 
+#
 # Small library and commandline tool to do logical diffs of zonefiles
 # ./zonediff -h gives you help output
 #
@@ -11,7 +11,7 @@
 # documentation for any purpose with or without fee is hereby granted,
 # provided that the above copyright notice and this permission notice
 # appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 # WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -39,7 +39,7 @@ def diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False):
 
     If ignore_ttl is true, a node will not be added to this list if the
     only change is its TTL.
-    
+
     If ignore_soa is true, a node will not be added to this list if the
     only changes is a change in a SOA Rdata set.
 
@@ -89,20 +89,20 @@ def format_changes_plain(oldf, newf, changes, ignore_ttl=False):
 
     ret = "--- %s\n+++ %s\n" % (oldf, newf)
     for name, old, new in changes:
-        ret +=  "@ %s\n" % name
+        ret += "@ %s\n" % name
         if not old:
             for r in new.rdatasets:
-                ret += "+ %s\n" % str(r).replace('\n','\n+ ')
+                ret += "+ %s\n" % str(r).replace('\n', '\n+ ')
         elif not new:
             for r in old.rdatasets:
-                ret += "- %s\n" % str(r).replace('\n','\n+ ')
+                ret += "- %s\n" % str(r).replace('\n', '\n+ ')
         else:
             for r in old.rdatasets:
                 if r not in new.rdatasets or (r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += "- %s\n" % str(r).replace('\n','\n+ ')
+                    ret += "- %s\n" % str(r).replace('\n', '\n+ ')
             for r in new.rdatasets:
                 if r not in old.rdatasets or (r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += "+ %s\n" % str(r).replace('\n','\n+ ')
+                    ret += "+ %s\n" % str(r).replace('\n', '\n+ ')
     return ret
 
 def format_changes_html(oldf, newf, changes, ignore_ttl=False):
@@ -121,23 +121,23 @@ def format_changes_html(oldf, newf, changes, ignore_ttl=False):
   <tbody>\n''' % (oldf, newf)
 
     for name, old, new in changes:
-        ret +=  '    <tr class="rdata">\n      <td class="rdname">%s</td>\n' % name
+        ret += '    <tr class="rdata">\n      <td class="rdname">%s</td>\n' % name
         if not old:
             for r in new.rdatasets:
-                ret += '      <td class="old">&nbsp;</td>\n      <td class="new">%s</td>\n' % str(r).replace('\n','<br />')
+                ret += '      <td class="old">&nbsp;</td>\n      <td class="new">%s</td>\n' % str(r).replace('\n', '<br />')
         elif not new:
             for r in old.rdatasets:
-                ret += '      <td class="old">%s</td>\n      <td class="new">&nbsp;</td>\n' % str(r).replace('\n','<br />')
+                ret += '      <td class="old">%s</td>\n      <td class="new">&nbsp;</td>\n' % str(r).replace('\n', '<br />')
         else:
             ret += '      <td class="old">'
             for r in old.rdatasets:
                 if r not in new.rdatasets or (r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += str(r).replace('\n','<br />')
+                    ret += str(r).replace('\n', '<br />')
             ret += '</td>\n'
             ret += '      <td class="new">'
             for r in new.rdatasets:
                 if r not in old.rdatasets or (r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += str(r).replace('\n','<br />')
+                    ret += str(r).replace('\n', '<br />')
             ret += '</td>\n'
         ret += '    </tr>\n'
     return ret + '  </tbody>\n</table>'
@@ -197,7 +197,7 @@ The differences shown will be logical differences, not textual differences.
     if not opts.use_vc and len(args) != 2:
         p.print_help()
         sys.exit(64)
-    if opts.use_vc and len(args) not in (2,3):
+    if opts.use_vc and len(args) not in (2, 3):
         p.print_help()
         sys.exit(64)
 
@@ -215,7 +215,6 @@ The differences shown will be logical differences, not textual differences.
             oldn = "%s:%s" % (oldr, filename)
             newn = filename
 
-        
     old, new = None, None
     oldz, newz = None, None
     if opts.use_bzr:
@@ -246,13 +245,13 @@ The differences shown will be logical differences, not textual differences.
 
     # Parse the zones
     try:
-        oldz = dns.zone.from_file(old, origin = '.', check_origin=False)
+        oldz = dns.zone.from_file(old, origin='.', check_origin=False)
     except dns.exception.DNSException:
         sys.stderr.write("Incorrect zonefile: %s\n", old)
         if opts.tracebacks:
             traceback.print_exc()
     try:
-        newz = dns.zone.from_file(new, origin = '.', check_origin=False)
+        newz = dns.zone.from_file(new, origin='.', check_origin=False)
     except dns.exception.DNSException:
         sys.stderr.write("Incorrect zonefile: %s\n" % new)
         if opts.tracebacks:
