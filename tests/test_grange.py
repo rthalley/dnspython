@@ -80,7 +80,7 @@ class GRangeTestCase(unittest.TestCase):
             dns.grange.from_text('%s-%d/%d' % (start, stop, step))
         self.assertRaises(dns.exception.SyntaxError, bad)
 
-    def testFailFromText2(self):
+    def testFailFromText3(self):
         def bad():
             start = 1
             stop = 4

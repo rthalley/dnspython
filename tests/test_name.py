@@ -116,7 +116,7 @@ class NameTestCase(unittest.TestCase):
     def testAbs3(self):
         self.failUnless(self.origin.is_absolute())
 
-    def testAbs3(self):
+    def testAbs4(self):
         n = dns.name.from_text('foo', origin=None)
         self.failUnless(not n.is_absolute())
 
@@ -307,28 +307,28 @@ class NameTestCase(unittest.TestCase):
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat2(self):
+    def testConcat3(self):
         n1 = dns.name.Name([])
         n2 = dns.name.Name(['a', 'b'])
         e = dns.name.Name(['a', 'b'])
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat3(self):
+    def testConcat4(self):
         n1 = dns.name.Name(['a', 'b', ''])
         n2 = dns.name.Name([])
         e = dns.name.Name(['a', 'b', ''])
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat4(self):
+    def testConcat5(self):
         n1 = dns.name.Name(['a', 'b'])
         n2 = dns.name.Name(['c', ''])
         e = dns.name.Name(['a', 'b', 'c', ''])
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat5(self):
+    def testConcat6(self):
         def bad():
             n1 = dns.name.Name(['a', 'b', ''])
             n2 = dns.name.Name(['c'])
@@ -559,7 +559,7 @@ class NameTestCase(unittest.TestCase):
         self.failUnless(n1 == en1 and cused1 == ecused1 and \
                         n2 == en2 and cused2 == ecused2)
 
-    def testFromWire1(self):
+    def testFromWire2(self):
         w = b'\x03foo\x00\x01a\xc0\x00\x01b\xc0\x05'
         current = 0
         (n1, cused1) = dns.name.from_wire(w, current)
