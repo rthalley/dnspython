@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import dns.query
 import dns.resolver
 import dns.zone
@@ -11,4 +13,4 @@ z = dns.zone.from_xfr(dns.query.xfr(master_answer[0].address, 'dnspython.org'))
 names = z.nodes.keys()
 names.sort()
 for n in names:
-        print z[n].to_text(n)
+    print(z[n].to_text(n))

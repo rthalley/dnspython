@@ -21,6 +21,8 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """See diff_zones.__doc__ for more information"""
 
+from __future__ import print_function
+
 __all__ = ['diff_zones', 'format_changes_plain', 'format_changes_html']
 
 try:
@@ -264,7 +266,7 @@ The differences shown will be logical differences, not textual differences.
     if not changes:
         sys.exit(0)
     if opts.html:
-        print format_changes_html(oldn, newn, changes, opts.ignore_ttl)
+        print(format_changes_html(oldn, newn, changes, opts.ignore_ttl))
     else:
-        print format_changes_plain(oldn, newn, changes, opts.ignore_ttl)
+        print(format_changes_plain(oldn, newn, changes, opts.ignore_ttl))
     sys.exit(1)
