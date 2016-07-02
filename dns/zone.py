@@ -34,6 +34,9 @@ import dns.grange
 from ._compat import string_types, text_type
 
 
+_py3 = sys.version_info > (3,)
+
+
 class BadZone(dns.exception.DNSException):
 
     """The DNS zone is malformed."""
@@ -150,16 +153,22 @@ class Zone(object):
         del self.nodes[key]
 
     def __iter__(self):
-        return self.nodes.iterkeys()
+        return self.nodes.__iter__()
 
     def iterkeys(self):
-        return self.nodes.iterkeys()
+        if _py3:
+            return self.nodes.keys()
+        else:
+            return self.nodes.iterkeys()  # pylint: disable=dict-iter-method
 
     def keys(self):
         return self.nodes.keys()
 
     def itervalues(self):
-        return self.nodes.itervalues()
+        if _py3:
+            return self.nodes.values()
+        else:
+            return self.nodes.itervalues()  # pylint: disable=dict-iter-method
 
     def values(self):
         return self.nodes.values()
