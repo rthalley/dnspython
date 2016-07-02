@@ -234,7 +234,10 @@ if hasattr(select, 'poll'):
         def polling_backend(self):
             return dns.query._poll_for
 
+
 class NXDOMAINExceptionTestCase(unittest.TestCase):
+
+    # pylint: disable=broad-except
 
     def test_nxdomain_compatible(self):
         n1 = dns.name.Name(('a', 'b', ''))
