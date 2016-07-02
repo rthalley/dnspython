@@ -142,8 +142,9 @@ def format_changes_html(oldf, newf, changes, ignore_ttl=False):
         ret += '    </tr>\n'
     return ret + '  </tbody>\n</table>'
 
+
 # Make this module usable as a script too.
-if __name__ == '__main__':
+def main():
     import optparse
     import subprocess
     import sys
@@ -269,3 +270,6 @@ The differences shown will be logical differences, not textual differences.
     else:
         print(format_changes_plain(oldn, newn, changes, opts.ignore_ttl))
     sys.exit(1)
+
+if __name__ == '__main__':
+    main()
