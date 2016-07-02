@@ -19,7 +19,7 @@ import struct
 
 import dns.exception
 import dns.rdata
-from dns._compat import long, xrange
+from dns._compat import long, xrange, round_py2_compat
 
 
 _pows = tuple(long(10**i) for i in range(0, 11))
@@ -49,7 +49,7 @@ def _float_to_tuple(what):
         what *= -1
     else:
         sign = 1
-    what = long(round(what * 3600000))
+    what = round_py2_compat(what * 3600000)
     degrees = int(what // 3600000)
     what -= degrees * 3600000
     minutes = int(what // 60000)
