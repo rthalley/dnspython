@@ -26,6 +26,9 @@ import dns.name
 import dns.reversename
 import dns.e164
 
+# pylint: disable=line-too-long
+
+
 class NameTestCase(unittest.TestCase):
     def setUp(self):
         self.origin = dns.name.from_text('example.')

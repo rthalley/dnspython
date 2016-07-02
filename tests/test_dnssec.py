@@ -27,6 +27,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
+# pylint: disable=line-too-long
+
 abs_dnspython_org = dns.name.from_text('dnspython.org')
 
 abs_keys = {
