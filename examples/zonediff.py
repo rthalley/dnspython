@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# 
+#
 # Small library and commandline tool to do logical diffs of zonefiles
 # ./zonediff -h gives you help output
 #
@@ -11,7 +11,7 @@
 # documentation for any purpose with or without fee is hereby granted,
 # provided that the above copyright notice and this permission notice
 # appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 # WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -21,14 +21,15 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """See diff_zones.__doc__ for more information"""
 
+from __future__ import print_function
+
 __all__ = ['diff_zones', 'format_changes_plain', 'format_changes_html']
 
 try:
     import dns.zone
 except ImportError:
-    import sys
-    sys.stderr.write("Please install dnspython")
-    sys.exit(1)
+    raise SystemExit("Please install dnspython")
+
 
 def diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False):
     """diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False) -> changes
@@ -37,7 +38,7 @@ def diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False):
 
     If ignore_ttl is true, a node will not be added to this list if the
     only change is its TTL.
-    
+
     If ignore_soa is true, a node will not be added to this list if the
     only changes is a change in a SOA Rdata set.
 
@@ -87,20 +88,26 @@ def format_changes_plain(oldf, newf, changes, ignore_ttl=False):
 
     ret = "--- %s\n+++ %s\n" % (oldf, newf)
     for name, old, new in changes:
-        ret +=  "@ %s\n" % name
+        ret += "@ %s\n" % name
         if not old:
             for r in new.rdatasets:
-                ret += "+ %s\n" % str(r).replace('\n','\n+ ')
+                ret += "+ %s\n" % str(r).replace('\n', '\n+ ')
         elif not new:
             for r in old.rdatasets:
-                ret += "- %s\n" % str(r).replace('\n','\n+ ')
+                ret += "- %s\n" % str(r).replace('\n', '\n+ ')
         else:
             for r in old.rdatasets:
-                if r not in new.rdatasets or (r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += "- %s\n" % str(r).replace('\n','\n+ ')
+                if r not in new.rdatasets or (
+                    r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
+                    ret += "- %s\n" % str(r).replace('\n', '\n+ ')
             for r in new.rdatasets:
-                if r not in old.rdatasets or (r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += "+ %s\n" % str(r).replace('\n','\n+ ')
+                if r not in old.rdatasets or (
+                    r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
+                    ret += "+ %s\n" % str(r).replace('\n', '\n+ ')
     return ret
 
 def format_changes_html(oldf, newf, changes, ignore_ttl=False):
@@ -119,30 +126,43 @@ def format_changes_html(oldf, newf, changes, ignore_ttl=False):
   <tbody>\n''' % (oldf, newf)
 
     for name, old, new in changes:
-        ret +=  '    <tr class="rdata">\n      <td class="rdname">%s</td>\n' % name
+        ret += '    <tr class="rdata">\n      <td class="rdname">%s</td>\n' % name
         if not old:
             for r in new.rdatasets:
-                ret += '      <td class="old">&nbsp;</td>\n      <td class="new">%s</td>\n' % str(r).replace('\n','<br />')
+                ret += (
+                    '      <td class="old">&nbsp;</td>\n'
+                    '      <td class="new">%s</td>\n'
+                ) % str(r).replace('\n', '<br />')
         elif not new:
             for r in old.rdatasets:
-                ret += '      <td class="old">%s</td>\n      <td class="new">&nbsp;</td>\n' % str(r).replace('\n','<br />')
+                ret += (
+                    '      <td class="old">%s</td>\n'
+                    '      <td class="new">&nbsp;</td>\n'
+                ) % str(r).replace('\n', '<br />')
         else:
             ret += '      <td class="old">'
             for r in old.rdatasets:
-                if r not in new.rdatasets or (r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += str(r).replace('\n','<br />')
+                if r not in new.rdatasets or (
+                    r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
+                    ret += str(r).replace('\n', '<br />')
             ret += '</td>\n'
             ret += '      <td class="new">'
             for r in new.rdatasets:
-                if r not in old.rdatasets or (r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
-                    ret += str(r).replace('\n','<br />')
+                if r not in old.rdatasets or (
+                    r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
+                    ret += str(r).replace('\n', '<br />')
             ret += '</td>\n'
         ret += '    </tr>\n'
     return ret + '  </tbody>\n</table>'
 
+
 # Make this module usable as a script too.
-if __name__ == '__main__':
-    import optparse
+def main():
+    import argparse
     import subprocess
     import sys
     import traceback
@@ -152,34 +172,26 @@ if __name__ == '__main__':
 
 The differences shown will be logical differences, not textual differences.
 """
-    p = optparse.OptionParser(usage=usage)
-    p.add_option('-s', '--ignore-soa', action="store_true", default=False, dest="ignore_soa",
+    p = argparse.ArgumentParser(usage=usage)
+    p.add_argument('-s', '--ignore-soa', action="store_true", default=False, dest="ignore_soa",
                  help="Ignore SOA-only changes to records")
-    p.add_option('-t', '--ignore-ttl', action="store_true", default=False, dest="ignore_ttl",
+    p.add_argument('-t', '--ignore-ttl', action="store_true", default=False, dest="ignore_ttl",
                  help="Ignore TTL-only changes to Rdata")
-    p.add_option('-T', '--traceback', action="store_true", default=False, dest="tracebacks",
+    p.add_argument('-T', '--traceback', action="store_true", default=False, dest="tracebacks",
                  help="Show python tracebacks when errors occur")
-    p.add_option('-H', '--html', action="store_true", default=False, dest="html",
+    p.add_argument('-H', '--html', action="store_true", default=False, dest="html",
                  help="Print HTML output")
-    p.add_option('-g', '--git', action="store_true", default=False, dest="use_git",
+    p.add_argument('-g', '--git', action="store_true", default=False, dest="use_git",
                  help="Use git revisions instead of real files")
-    p.add_option('-b', '--bzr', action="store_true", default=False, dest="use_bzr",
+    p.add_argument('-b', '--bzr', action="store_true", default=False, dest="use_bzr",
                  help="Use bzr revisions instead of real files")
-    p.add_option('-r', '--rcs', action="store_true", default=False, dest="use_rcs",
+    p.add_argument('-r', '--rcs', action="store_true", default=False, dest="use_rcs",
                  help="Use rcs revisions instead of real files")
     opts, args = p.parse_args()
     opts.use_vc = opts.use_git or opts.use_bzr or opts.use_rcs
 
     def _open(what, err):
-        if isinstance(what, basestring):
-            # Open as normal file
-            try:
-                return open(what, 'rb')
-            except:
-                sys.stderr.write(err + "\n")
-                if opts.tracebacks:
-                    traceback.print_exc()
-        else:
+        if isinstance(what, list):
             # Must be a list, open subprocess
             try:
                 proc = subprocess.Popen(what, stdout=subprocess.PIPE)
@@ -191,11 +203,19 @@ The differences shown will be logical differences, not textual differences.
                 sys.stderr.write(err + "\n")
                 if opts.tracebacks:
                     traceback.print_exc()
+        else:
+            # Open as normal file
+            try:
+                return open(what, 'rb')
+            except:
+                sys.stderr.write(err + "\n")
+                if opts.tracebacks:
+                    traceback.print_exc()
 
     if not opts.use_vc and len(args) != 2:
         p.print_help()
         sys.exit(64)
-    if opts.use_vc and len(args) not in (2,3):
+    if opts.use_vc and len(args) not in (2, 3):
         p.print_help()
         sys.exit(64)
 
@@ -213,7 +233,6 @@ The differences shown will be logical differences, not textual differences.
             oldn = "%s:%s" % (oldr, filename)
             newn = filename
 
-        
     old, new = None, None
     oldz, newz = None, None
     if opts.use_bzr:
@@ -236,7 +255,7 @@ The differences shown will be logical differences, not textual differences.
                         "Unable to retrieve revision %s of %s" % (newr, filename))
     if not opts.use_vc:
         old = _open(oldn, "Unable to open %s" % oldn)
-    if not opts.use_vc or newr == None:
+    if not opts.use_vc or newr is None:
         new = _open(newn, "Unable to open %s" % newn)
 
     if not old or not new:
@@ -244,13 +263,13 @@ The differences shown will be logical differences, not textual differences.
 
     # Parse the zones
     try:
-        oldz = dns.zone.from_file(old, origin = '.', check_origin=False)
+        oldz = dns.zone.from_file(old, origin='.', check_origin=False)
     except dns.exception.DNSException:
         sys.stderr.write("Incorrect zonefile: %s\n", old)
         if opts.tracebacks:
             traceback.print_exc()
     try:
-        newz = dns.zone.from_file(new, origin = '.', check_origin=False)
+        newz = dns.zone.from_file(new, origin='.', check_origin=False)
     except dns.exception.DNSException:
         sys.stderr.write("Incorrect zonefile: %s\n" % new)
         if opts.tracebacks:
@@ -264,7 +283,10 @@ The differences shown will be logical differences, not textual differences.
     if not changes:
         sys.exit(0)
     if opts.html:
-        print format_changes_html(oldn, newn, changes, opts.ignore_ttl)
+        print(format_changes_html(oldn, newn, changes, opts.ignore_ttl))
     else:
-        print format_changes_plain(oldn, newn, changes, opts.ignore_ttl)
+        print(format_changes_plain(oldn, newn, changes, opts.ignore_ttl))
     sys.exit(1)
+
+if __name__ == '__main__':
+    main()

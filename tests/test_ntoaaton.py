@@ -13,6 +13,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from __future__ import print_function
+
 try:
     import unittest2 as unittest
 except ImportError:
@@ -37,19 +39,19 @@ class NtoAAtoNTestCase(unittest.TestCase):
 
     def test_aton1(self):
         a = aton6('::')
-        self.failUnless(a == '\x00' * 16)
+        self.failUnless(a == b'\x00' * 16)
 
     def test_aton2(self):
         a = aton6('::1')
-        self.failUnless(a == '\x00' * 15 + '\x01')
+        self.failUnless(a == b'\x00' * 15 + b'\x01')
 
     def test_aton3(self):
         a = aton6('::10.0.0.1')
-        self.failUnless(a == '\x00' * 12 + '\x0a\x00\x00\x01')
+        self.failUnless(a == b'\x00' * 12 + b'\x0a\x00\x00\x01')
 
     def test_aton4(self):
         a = aton6('abcd::dcba')
-        self.failUnless(a == '\xab\xcd' + '\x00' * 12 + '\xdc\xba')
+        self.failUnless(a == b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
 
     def test_aton5(self):
         a = aton6('1:2:3:4:5:6:7:8')
@@ -71,19 +73,19 @@ class NtoAAtoNTestCase(unittest.TestCase):
             a = aton6('1:2:3:4:5:6:7:8:9')
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
-    def test_aton1(self):
+    def test_aton6(self):
         a = aton6('::')
         self.assertEqual(a, b'\x00' * 16)
 
-    def test_aton2(self):
+    def test_aton7(self):
         a = aton6('::1')
         self.assertEqual(a, b'\x00' * 15 + b'\x01')
 
-    def test_aton3(self):
+    def test_aton8(self):
         a = aton6('::10.0.0.1')
         self.assertEqual(a, b'\x00' * 12 + b'\x0a\x00\x00\x01')
 
-    def test_aton4(self):
+    def test_aton9(self):
         a = aton6('abcd::dcba')
         self.assertEqual(a, b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
 

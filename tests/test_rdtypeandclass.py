@@ -24,7 +24,7 @@ import dns.rdatatype
 class RdTypeAndClassTestCase(unittest.TestCase):
 
     # Classes
-    
+
     def test_class_meta1(self):
         self.failUnless(dns.rdataclass.is_metaclass(dns.rdataclass.ANY))
 
@@ -55,7 +55,7 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_class_totext1(self):
         self.failUnless(dns.rdataclass.to_text(dns.rdataclass.IN) == 'IN')
 
-    def test_class_totext1(self):
+    def test_class_totext2(self):
         self.failUnless(dns.rdataclass.to_text(999) == 'CLASS999')
 
     def test_class_totext_bounds1(self):
@@ -69,7 +69,7 @@ class RdTypeAndClassTestCase(unittest.TestCase):
         self.failUnlessRaises(ValueError, bad)
 
     # Types
-    
+
     def test_type_meta1(self):
         self.failUnless(dns.rdatatype.is_metatype(dns.rdatatype.ANY))
 
@@ -109,7 +109,7 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_type_totext1(self):
         self.failUnless(dns.rdatatype.to_text(dns.rdatatype.A) == 'A')
 
-    def test_type_totext1(self):
+    def test_type_totext2(self):
         self.failUnless(dns.rdatatype.to_text(999) == 'TYPE999')
 
     def test_type_totext_bounds1(self):

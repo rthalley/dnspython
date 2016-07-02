@@ -58,7 +58,7 @@ class BugsTestCase(unittest.TestCase):
 
     def test_CAA_from_wire(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CAA,
-                                    u'0 issue "ca.example.net"');
+                                    u'0 issue "ca.example.net"')
         f = BytesIO()
         rdata.to_wire(f)
         wire = f.getvalue()

@@ -13,17 +13,21 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from __future__ import print_function
+
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
 
 from io import BytesIO
-import socket
 
 import dns.name
 import dns.reversename
 import dns.e164
+
+# pylint: disable=line-too-long
+
 
 class NameTestCase(unittest.TestCase):
     def setUp(self):
@@ -51,7 +55,7 @@ class NameTestCase(unittest.TestCase):
 
     def testFromTextAbs1(self):
         n = dns.name.from_text('foo.bar.')
-        self.assertEqual(n.labels,(b'foo', b'bar', b''))
+        self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
     def testTortureFromText(self):
         good = [
@@ -112,7 +116,7 @@ class NameTestCase(unittest.TestCase):
     def testAbs3(self):
         self.failUnless(self.origin.is_absolute())
 
-    def testAbs3(self):
+    def testAbs4(self):
         n = dns.name.from_text('foo', origin=None)
         self.failUnless(not n.is_absolute())
 
@@ -303,28 +307,28 @@ class NameTestCase(unittest.TestCase):
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat2(self):
+    def testConcat3(self):
         n1 = dns.name.Name([])
         n2 = dns.name.Name(['a', 'b'])
         e = dns.name.Name(['a', 'b'])
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat3(self):
+    def testConcat4(self):
         n1 = dns.name.Name(['a', 'b', ''])
         n2 = dns.name.Name([])
         e = dns.name.Name(['a', 'b', ''])
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat4(self):
+    def testConcat5(self):
         n1 = dns.name.Name(['a', 'b'])
         n2 = dns.name.Name(['c', ''])
         e = dns.name.Name(['a', 'b', 'c', ''])
         r = n1 + n2
         self.failUnless(r == e)
 
-    def testConcat5(self):
+    def testConcat6(self):
         def bad():
             n1 = dns.name.Name(['a', 'b', ''])
             n2 = dns.name.Name(['c'])
@@ -545,7 +549,7 @@ class NameTestCase(unittest.TestCase):
         self.failUnless(n.choose_relativity(o, False) == e)
 
     def testFromWire1(self):
-        w = '\x03foo\x00\xc0\x00'
+        w = b'\x03foo\x00\xc0\x00'
         (n1, cused1) = dns.name.from_wire(w, 0)
         (n2, cused2) = dns.name.from_wire(w, cused1)
         en1 = dns.name.from_text('foo.')
@@ -555,7 +559,7 @@ class NameTestCase(unittest.TestCase):
         self.failUnless(n1 == en1 and cused1 == ecused1 and \
                         n2 == en2 and cused2 == ecused2)
 
-    def testFromWire1(self):
+    def testFromWire2(self):
         w = b'\x03foo\x00\x01a\xc0\x00\x01b\xc0\x05'
         current = 0
         (n1, cused1) = dns.name.from_wire(w, current)
@@ -701,7 +705,7 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')
         e = b'+16505551212'
         text = dns.e164.to_e164(n)
-        self.assertEqual(text,e)
+        self.assertEqual(text, e)
 
 if __name__ == '__main__':
     unittest.main()

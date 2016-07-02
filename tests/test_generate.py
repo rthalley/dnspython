@@ -16,8 +16,6 @@
 import sys
 sys.path.insert(0, '../')  # Force the local project to be *the* dns
 
-import filecmp
-import os
 try:
     import unittest2 as unittest
 except ImportError:
@@ -36,7 +34,6 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=2)
 
-import pdb
 example_text = """$TTL 1h
 $ORIGIN 0.0.192.IN-ADDR.ARPA.
 $GENERATE 1-2 0 CNAME SERVER$.EXAMPLE.

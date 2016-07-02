@@ -40,7 +40,7 @@ goodhex = '0001 2800 0001 0005 0007 0000' \
 
 goodwire = binascii.unhexlify(goodhex.replace(' ', '').encode())
 
-update_text="""id 1
+update_text = """id 1
 opcode UPDATE
 rcode NOERROR
 ;ZONE
@@ -74,7 +74,7 @@ class UpdateTestCase(unittest.TestCase):
         update.replace('foo', 300, 'a', '10.0.0.1', '10.0.0.2')
         update.add('bar', 300, 'a', '10.0.0.3')
         update.delete('bar', 'a', '10.0.0.4')
-        update.delete('blaz','a')
+        update.delete('blaz', 'a')
         update.delete('blaz2')
         self.failUnless(update.to_wire() == goodwire)
 
@@ -89,7 +89,7 @@ class UpdateTestCase(unittest.TestCase):
         update.replace('foo', 300, 'a', '10.0.0.1', '10.0.0.2')
         update.add('bar', 300, dns.rdata.from_text(1, 1, '10.0.0.3'))
         update.delete('bar', 'a', '10.0.0.4')
-        update.delete('blaz','a')
+        update.delete('blaz', 'a')
         update.delete('blaz2')
         self.failUnless(update.to_wire() == goodwire)
 
@@ -104,7 +104,7 @@ class UpdateTestCase(unittest.TestCase):
         update.replace('foo', 300, 'a', '10.0.0.1', '10.0.0.2')
         update.add('bar', dns.rdataset.from_text(1, 1, 300, '10.0.0.3'))
         update.delete('bar', 'a', '10.0.0.4')
-        update.delete('blaz','a')
+        update.delete('blaz', 'a')
         update.delete('blaz2')
         self.failUnless(update.to_wire() == goodwire)
 

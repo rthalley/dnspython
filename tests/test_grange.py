@@ -16,8 +16,6 @@
 import sys
 sys.path.insert(0, '../')
 
-import filecmp
-import os
 try:
     import unittest2 as unittest
 except ImportError:
@@ -26,9 +24,6 @@ except ImportError:
 import dns
 import dns.exception
 import dns.grange
-
-import pdb
-
 
 
 class GRangeTestCase(unittest.TestCase):
@@ -85,7 +80,7 @@ class GRangeTestCase(unittest.TestCase):
             dns.grange.from_text('%s-%d/%d' % (start, stop, step))
         self.assertRaises(dns.exception.SyntaxError, bad)
 
-    def testFailFromText2(self):
+    def testFailFromText3(self):
         def bad():
             start = 1
             stop = 4
