@@ -387,7 +387,7 @@ class Name(object):
 
         if len(self.labels) == 0:
             return u'@'
-        if len(self.labels) == 1 and self.labels[0] == '':
+        if len(self.labels) == 1 and self.labels[0] == b'':
             return u'.'
         if omit_final_dot and self.is_absolute():
             l = self.labels[:-1]
