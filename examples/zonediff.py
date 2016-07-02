@@ -98,10 +98,16 @@ def format_changes_plain(oldf, newf, changes, ignore_ttl=False):
                 ret += "- %s\n" % str(r).replace('\n', '\n+ ')
         else:
             for r in old.rdatasets:
-                if r not in new.rdatasets or (r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
+                if r not in new.rdatasets or (
+                    r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
                     ret += "- %s\n" % str(r).replace('\n', '\n+ ')
             for r in new.rdatasets:
-                if r not in old.rdatasets or (r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
+                if r not in old.rdatasets or (
+                    r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
                     ret += "+ %s\n" % str(r).replace('\n', '\n+ ')
     return ret
 
@@ -124,19 +130,31 @@ def format_changes_html(oldf, newf, changes, ignore_ttl=False):
         ret += '    <tr class="rdata">\n      <td class="rdname">%s</td>\n' % name
         if not old:
             for r in new.rdatasets:
-                ret += '      <td class="old">&nbsp;</td>\n      <td class="new">%s</td>\n' % str(r).replace('\n', '<br />')
+                ret += (
+                    '      <td class="old">&nbsp;</td>\n'
+                    '      <td class="new">%s</td>\n'
+                ) % str(r).replace('\n', '<br />')
         elif not new:
             for r in old.rdatasets:
-                ret += '      <td class="old">%s</td>\n      <td class="new">&nbsp;</td>\n' % str(r).replace('\n', '<br />')
+                ret += (
+                    '      <td class="old">%s</td>\n'
+                    '      <td class="new">&nbsp;</td>\n'
+                ) % str(r).replace('\n', '<br />')
         else:
             ret += '      <td class="old">'
             for r in old.rdatasets:
-                if r not in new.rdatasets or (r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
+                if r not in new.rdatasets or (
+                    r.ttl != new.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
                     ret += str(r).replace('\n', '<br />')
             ret += '</td>\n'
             ret += '      <td class="new">'
             for r in new.rdatasets:
-                if r not in old.rdatasets or (r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and not ignore_ttl):
+                if r not in old.rdatasets or (
+                    r.ttl != old.find_rdataset(r.rdclass, r.rdtype).ttl and
+                    not ignore_ttl
+                ):
                     ret += str(r).replace('\n', '<br />')
             ret += '</td>\n'
         ret += '    </tr>\n'
