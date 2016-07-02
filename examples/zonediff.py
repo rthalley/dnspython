@@ -192,15 +192,7 @@ The differences shown will be logical differences, not textual differences.
     opts.use_vc = opts.use_git or opts.use_bzr or opts.use_rcs
 
     def _open(what, err):
-        if isinstance(what, basestring):
-            # Open as normal file
-            try:
-                return open(what, 'rb')
-            except:
-                sys.stderr.write(err + "\n")
-                if opts.tracebacks:
-                    traceback.print_exc()
-        else:
+        if isinstance(what, list):
             # Must be a list, open subprocess
             try:
                 proc = subprocess.Popen(what, stdout=subprocess.PIPE)
@@ -208,6 +200,14 @@ The differences shown will be logical differences, not textual differences.
                 if proc.returncode == 0:
                     return proc.stdout
                 sys.stderr.write(err + "\n")
+            except:
+                sys.stderr.write(err + "\n")
+                if opts.tracebacks:
+                    traceback.print_exc()
+        else:
+            # Open as normal file
+            try:
+                return open(what, 'rb')
             except:
                 sys.stderr.write(err + "\n")
                 if opts.tracebacks:
