@@ -61,4 +61,4 @@ test:
 	cd tests; make PYTHON=${PYTHON} test
 
 lint:
-	pylint dns tests
+	pylint dns tests examples/*.py
