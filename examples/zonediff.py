@@ -237,7 +237,7 @@ The differences shown will be logical differences, not textual differences.
                         "Unable to retrieve revision %s of %s" % (newr, filename))
     if not opts.use_vc:
         old = _open(oldn, "Unable to open %s" % oldn)
-    if not opts.use_vc or newr == None:
+    if not opts.use_vc or newr is None:
         new = _open(newn, "Unable to open %s" % newn)
 
     if not old or not new:
