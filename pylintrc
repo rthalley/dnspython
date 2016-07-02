@@ -22,7 +22,6 @@ disable=
     bad-continuation,
     bare-except,
     deprecated-method,
-    dict-iter-method,
     fixme,
     getslice-method,
     global-statement,
