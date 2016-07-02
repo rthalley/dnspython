@@ -28,9 +28,8 @@ __all__ = ['diff_zones', 'format_changes_plain', 'format_changes_html']
 try:
     import dns.zone
 except ImportError:
-    import sys
-    sys.stderr.write("Please install dnspython")
-    sys.exit(1)
+    raise SystemExit("Please install dnspython")
+
 
 def diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False):
     """diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False) -> changes
