@@ -1088,10 +1088,18 @@ default_resolver = None
 
 def get_default_resolver():
     """Get the default resolver, initializing it if necessary."""
-    global default_resolver
     if default_resolver is None:
-        default_resolver = Resolver()
+        reset_default_resolver()
     return default_resolver
+
+
+def reset_default_resolver():
+    """Re-initialize default resolver.
+
+    resolv.conf will be re-read immediatelly.
+    """
+    global default_resolver
+    default_resolver = Resolver()
 
 
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
