@@ -36,6 +36,7 @@ disable=
     unused-variable,
     wrong-import-order,
     wrong-import-position,
+    trailing-newlines,
 
 
 [REPORTS]
