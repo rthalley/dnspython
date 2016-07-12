@@ -57,7 +57,7 @@ tags:
 
 check: test
 
-test:
+test:	lint
 	cd tests; make PYTHON=${PYTHON} test
 
 lint:
