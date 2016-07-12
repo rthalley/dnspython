@@ -2,8 +2,8 @@
 # Pickle collected data for later comparisons.
 persistent=no
 
-# Use multiple processes to speed up Pylint.
-jobs=1
+# Use multiple processes to speed up Pylint, auto-detect number of cores.
+jobs=0
 
 [MESSAGES CONTROL]
 
