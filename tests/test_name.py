@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- 
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -12,7 +13,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 from __future__ import print_function
 
 try:
@@ -254,6 +254,10 @@ class NameTestCase(unittest.TestCase):
         t = dns.name.root.to_unicode()
         self.assertEqual(t, '.')
 
+    def testToText12(self):
+        n = dns.name.from_text(u'ýšáěíčýáíšěčýáíšěýáíčšěýčáíšěýáíčý.com')
+        t = n.to_ASCII(True)
+        self.assertEqual(t, u'xn--1caaaaaa3fbbbbb0rcccccc81adgbf34afeee19rhafff.com')
     def testSlice1(self):
         n = dns.name.from_text(r'a.b.c.', origin=None)
         s = n[:]
