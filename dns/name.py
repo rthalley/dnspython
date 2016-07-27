@@ -171,6 +171,7 @@ class Name(object):
     up to 63 octets."""
 
     __slots__ = ['labels']
+    
 
     def __init__(self, labels):
         """Initialize a domain name from a list of labels.
@@ -396,6 +397,22 @@ class Name(object):
         s = u'.'.join([_escapify(encodings.idna.ToUnicode(x), True)
                       for x in l])
         return s
+
+    def to_ASCII(self , omit_final_dot=False):
+        """ Decoding Name
+        IDN ACE labels are converted
+        """
+        if len(self.labels) == 0:
+            return u'@'
+        if len(self.labels) == 1 and self.labels[0] == b'':
+            return u'.'
+        if omit_final_dot and self.is_absolute():
+            l = self.labels[:-1]
+        else:
+            l = self.labels
+        v = u'.'.join([_escapify(encodings.idna.ToASCII(x), True)
+                          for x in l])
+        return v
 
     def to_digestable(self, origin=None):
         """Convert name to a format suitable for digesting in hashes.
