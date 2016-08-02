@@ -102,7 +102,8 @@ class FakeAnswer(object):
     def __init__(self, expiration):
         self.expiration = expiration
 
-class BaseResolverTests(object):
+
+class BaseResolverTests(unittest.TestCase):
 
     if sys.platform != 'win32':
         def testRead(self):
