@@ -19,7 +19,7 @@ disable=
     assigning-non-slot,
     bad-builtin,
     bad-continuation,
-    bare-except,
+    broad-except,
     deprecated-method,
     fixme,
     getslice-method,

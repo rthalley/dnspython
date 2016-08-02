@@ -70,14 +70,14 @@ class EntropyPool(object):
         if not self.seeded or self.seed_pid != os.getpid():
             try:
                 seed = os.urandom(16)
-            except:
+            except Exception:
                 try:
                     r = open('/dev/urandom', 'rb', 0)
                     try:
                         seed = r.read(16)
                     finally:
                         r.close()
-                except:
+                except Exception:
                     seed = str(time.time())
             self.seeded = True
             self.seed_pid = os.getpid()
@@ -125,7 +125,7 @@ pool = EntropyPool()
 
 try:
     system_random = random.SystemRandom()
-except:
+except Exception:
     system_random = None
 
 def random_16():

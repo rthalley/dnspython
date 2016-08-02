@@ -85,7 +85,7 @@ def af_for_address(text):
     try:
         dns.ipv4.inet_aton(text)
         return AF_INET
-    except:
+    except Exception:
         try:
             dns.ipv6.inet_aton(text)
             return AF_INET6
@@ -103,9 +103,9 @@ def is_multicast(text):
     try:
         first = ord(dns.ipv4.inet_aton(text)[0])
         return first >= 224 and first <= 239
-    except:
+    except Exception:
         try:
             first = ord(dns.ipv6.inet_aton(text)[0])
             return first == 255
-        except:
+        except Exception:
             raise ValueError

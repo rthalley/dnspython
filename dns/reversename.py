@@ -51,7 +51,7 @@ def from_address(text):
         else:
             parts = [x for x in str(binascii.hexlify(v6).decode())]
             origin = ipv6_reverse_domain
-    except:
+    except Exception:
         parts = ['%d' %
                  byte for byte in bytearray(dns.ipv4.inet_aton(text))]
         origin = ipv4_reverse_domain

@@ -898,7 +898,7 @@ class _TextReader(object):
                 raise dns.exception.SyntaxError
         except dns.exception.SyntaxError:
             raise dns.exception.SyntaxError
-        except:
+        except Exception:
             rdclass = dns.rdataclass.IN
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
@@ -931,7 +931,7 @@ class _TextReader(object):
                 raise dns.exception.SyntaxError
         except dns.exception.SyntaxError:
             raise dns.exception.SyntaxError
-        except:
+        except Exception:
             ttl = 0
         # Class
         try:
@@ -944,7 +944,7 @@ class _TextReader(object):
                 rdclass = self.zone_rdclass
         except dns.exception.SyntaxError:
             raise dns.exception.SyntaxError
-        except:
+        except Exception:
             rdclass = dns.rdataclass.IN
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
