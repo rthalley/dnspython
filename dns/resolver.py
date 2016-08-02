@@ -581,6 +581,24 @@ class Resolver(object):
         POSIX systems and from the registry on Windows systems.)
         @type configure: bool"""
 
+        self.domain = None
+        self.nameservers = None
+        self.nameserver_ports = None
+        self.port = None
+        self.search = None
+        self.timeout = None
+        self.lifetime = None
+        self.keyring = None
+        self.keyname = None
+        self.keyalgorithm = None
+        self.edns = None
+        self.ednsflags = None
+        self.payload = None
+        self.cache = None
+        self.flags = None
+        self.retry_servfail = False
+        self.rotate = False
+
         self.reset()
         if configure:
             if sys.platform == 'win32':

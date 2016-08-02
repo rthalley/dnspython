@@ -17,7 +17,6 @@ disable=
     anomalous-backslash-in-string,
     arguments-differ,
     assigning-non-slot,
-    attribute-defined-outside-init,
     bad-builtin,
     bad-continuation,
     bare-except,
