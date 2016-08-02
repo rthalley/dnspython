@@ -62,4 +62,3 @@ class X25(dns.rdata.Rdata):
             raise dns.exception.FormError
         address = wire[current: current + l].unwrap()
         return cls(rdclass, rdtype, address)
-

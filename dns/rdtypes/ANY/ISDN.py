@@ -95,4 +95,3 @@ class ISDN(dns.rdata.Rdata):
         else:
             subaddress = ''
         return cls(rdclass, rdtype, address, subaddress)
-

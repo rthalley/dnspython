@@ -57,4 +57,3 @@ class DHCID(dns.rdata.Rdata):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         data = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, data)
-

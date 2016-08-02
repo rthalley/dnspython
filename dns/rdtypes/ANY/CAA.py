@@ -71,4 +71,3 @@ class CAA(dns.rdata.Rdata):
         tag = wire[current: current + l]
         value = wire[current + l:current + rdlen - 2]
         return cls(rdclass, rdtype, flags, tag, value)
-

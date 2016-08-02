@@ -103,4 +103,3 @@ class WKS(dns.rdata.Rdata):
         rdlen -= 5
         bitmap = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, address, protocol, bitmap)
-

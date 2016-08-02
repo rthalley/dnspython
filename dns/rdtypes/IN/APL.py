@@ -159,4 +159,3 @@ class APL(dns.rdata.Rdata):
             item = APLItem(header[0], negation, address, header[1])
             items.append(item)
         return cls(rdclass, rdtype, items)
-

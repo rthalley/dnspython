@@ -86,4 +86,3 @@ class NSEC3PARAM(dns.rdata.Rdata):
         if rdlen != 0:
             raise dns.exception.FormError
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
-

@@ -82,4 +82,3 @@ class HINFO(dns.rdata.Rdata):
             raise dns.exception.FormError
         os = wire[current: current + l].unwrap()
         return cls(rdclass, rdtype, cpu, os)
-

@@ -88,4 +88,3 @@ class TXTBase(dns.rdata.Rdata):
             rdlen -= l
             strings.append(s)
         return cls(rdclass, rdtype, strings)
-
