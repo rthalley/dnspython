@@ -138,16 +138,12 @@ class LOC(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         if self.latitude[4] > 0:
             lat_hemisphere = 'N'
-            lat_degrees = self.latitude[0]
         else:
             lat_hemisphere = 'S'
-            lat_degrees = -1 * self.latitude[0]
         if self.longitude[4] > 0:
             long_hemisphere = 'E'
-            long_degrees = self.longitude[0]
         else:
             long_hemisphere = 'W'
-            long_degrees = -1 * self.longitude[0]
         text = "%d %d %d.%03d %s %d %d %d.%03d %s %0.2fm" % (
             self.latitude[0], self.latitude[1],
             self.latitude[2], self.latitude[3], lat_hemisphere,
