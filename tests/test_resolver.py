@@ -102,7 +102,8 @@ class FakeAnswer(object):
     def __init__(self, expiration):
         self.expiration = expiration
 
-class BaseResolverTests(object):
+
+class BaseResolverTests(unittest.TestCase):
 
     if sys.platform != 'win32':
         def testRead(self):
@@ -246,7 +247,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
 
         try:
             raise dns.resolver.NXDOMAIN
-        except Exception as e:
+        except dns.exception.DNSException as e:
             if not py3:
                 self.assertTrue((e.message == e.__doc__))
             self.assertTrue((e.args == (e.__doc__,)))
@@ -257,7 +258,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
 
         try:
             raise dns.resolver.NXDOMAIN("errmsg")
-        except Exception as e:
+        except dns.exception.DNSException as e:
             if not py3:
                 self.assertTrue((e.message == "errmsg"))
             self.assertTrue((e.args == ("errmsg",)))
@@ -268,7 +269,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
 
         try:
             raise dns.resolver.NXDOMAIN("errmsg", -1)
-        except Exception as e:
+        except dns.exception.DNSException as e:
             if not py3:
                 self.assertTrue((e.message == ""))
             self.assertTrue((e.args == ("errmsg", -1)))
@@ -294,7 +295,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
 
         try:
             raise dns.resolver.NXDOMAIN(qnames=[n1])
-        except Exception as e:
+        except dns.exception.DNSException as e:
             MSG = "The DNS query name does not exist: a.b."
             if not py3:
                 self.assertTrue((e.message == MSG), e.message)
