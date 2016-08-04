@@ -14,6 +14,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import os
+import random
 import time
 from ._compat import long, binary_type
 try:
@@ -122,10 +123,19 @@ class EntropyPool(object):
 
 pool = EntropyPool()
 
+try:
+    system_random = random.SystemRandom()
+except:
+    system_random = None
 
 def random_16():
-    return pool.random_16()
-
+    if system_random is not None:
+        return system_random.randrange(0, 65536)
+    else:
+        return pool.random_16()
 
 def between(first, last):
-    return pool.random_between(first, last)
+    if system_random is not None:
+        return system_random.randrange(first, last + 1)
+    else:
+        return pool.random_between(first, last)
