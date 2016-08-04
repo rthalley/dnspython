@@ -46,8 +46,10 @@ class EntropyPool(object):
         if seed is not None:
             self.stir(bytearray(seed))
             self.seeded = True
+            self.seed_pid = os.getpid()
         else:
             self.seeded = False
+            self.seed_pid = 0
 
     def stir(self, entropy, already_locked=False):
         if not already_locked:
@@ -64,7 +66,7 @@ class EntropyPool(object):
                 self.lock.release()
 
     def _maybe_seed(self):
-        if not self.seeded:
+        if not self.seeded or self.seed_pid != os.getpid():
             try:
                 seed = os.urandom(16)
             except:
@@ -77,6 +79,8 @@ class EntropyPool(object):
                 except:
                     seed = str(time.time())
             self.seeded = True
+            self.seed_pid = os.getpid()
+            self.digest = None
             seed = bytearray(seed)
             self.stir(seed, True)
 
