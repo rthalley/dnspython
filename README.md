@@ -31,7 +31,10 @@ development by continuing to employ the author :).
 Packages are available for some distributions:
  * [Ubuntu](http://packages.ubuntu.com/search?keywords=dnspython&searchon=names&suite=xenial&section=all)
  * [Debian](https://packages.debian.org/search?keywords=dnspython&searchon=names&suite=stable&section=all)
- * OpenSUSE: [py2](https://software.opensuse.org/package/python-dnspython), [py3](https://software.opensuse.org/package/python3-dnspython)
+ * OpenSUSE: [python-dnspython](https://software.opensuse.org/package/python-dnspython), [python3-dnspython](https://software.opensuse.org/package/python3-dnspython)
+ * Fedora: [python-dns](https://apps.fedoraproject.org/packages/python-dns/), [python3-dns](https://apps.fedoraproject.org/packages/python3-dns)
+
+If no package exists for your OS, please use pip as explained above.
 
 ## ABOUT THIS RELEASE
 
@@ -141,8 +144,8 @@ Bugs fixed since 1.11.0:
 	`dns.resolver.Resolver` erroneously referred to `retry_servfail`
 	instead of `self.retry_servfail`.
 
-		dns.tsigkeyring.to_text() would fail trying to convert the
-		keyname to text.
+	dns.tsigkeyring.to_text() would fail trying to convert the
+	keyname to text.
 
 	Multi-message TSIGs were broken for algorithms other than
 	HMAC-MD5 because we weren't passing the right digest module to
@@ -155,7 +158,7 @@ Bugs fixed since 1.11.0:
 
 New since 1.10.0:
 
-		$GENERATE support
+	$GENERATE support
 
 	TLSA RR support
 
