@@ -20,6 +20,8 @@ __all__ = [
     'AAAA',
     'APL',
     'DHCID',
+    'DYNA' : DYNA,                                                                                            
+    'DYNC' : DYNC,
     'KX',
     'NAPTR',
     'NSAP',
