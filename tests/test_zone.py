@@ -132,6 +132,59 @@ class ZoneTestCase(unittest.TestCase):
                 os.unlink(here('example2.out'))
         self.failUnless(ok)
 
+    def testToFileTextualStream(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        f = StringIO()
+        z.to_file(f)
+        out = f.getvalue()
+        f.close()
+        self.assertEqual(out, example_text_output)
+
+    def testToFileBinaryStream(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        f = BytesIO()
+        z.to_file(f)
+        out = f.getvalue()
+        f.close()
+        self.assertEqual(out, example_text_output.encode())
+
+    def testToFileTextual(self):
+        z = dns.zone.from_file(here('example'), 'example')
+        try:
+            f = open(here('example3-textual.out'), 'w')
+            z.to_file(f)
+            f.close()
+            ok = filecmp.cmp(here('example3-textual.out'),
+                             here('example3.good'))
+        finally:
+            if not _keep_output:
+                os.unlink(here('example3-textual.out'))
+        self.failUnless(ok)
+
+    def testToFileBinary(self):
+        z = dns.zone.from_file(here('example'), 'example')
+        try:
+            f = open(here('example3-binary.out'), 'wb')
+            z.to_file(f)
+            f.close()
+            ok = filecmp.cmp(here('example3-binary.out'),
+                             here('example3.good'))
+        finally:
+            if not _keep_output:
+                os.unlink(here('example3-binary.out'))
+        self.failUnless(ok)
+
+    def testToFileFilename(self):
+        z = dns.zone.from_file(here('example'), 'example')
+        try:
+            z.to_file('example3-filename.out')
+            ok = filecmp.cmp(here('example3-filename.out'),
+                             here('example3.good'))
+        finally:
+            if not _keep_output:
+                os.unlink(here('example3-filename.out'))
+        self.failUnless(ok)
+
     def testToText(self):
         z = dns.zone.from_file(here('example'), 'example')
         ok = False
