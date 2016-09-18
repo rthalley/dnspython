@@ -488,9 +488,6 @@ class Name(object):
     def __getitem__(self, index):
         return self.labels[index]
 
-    def __getslice__(self, start, stop):
-        return self.labels[start:stop]
-
     def __add__(self, other):
         return self.concatenate(other)
 

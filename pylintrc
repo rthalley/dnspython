@@ -23,7 +23,6 @@ disable=
     bare-except,
     deprecated-method,
     fixme,
-    getslice-method,
     global-statement,
     invalid-name,
     missing-docstring,
