@@ -221,7 +221,7 @@ class BaseResolverTests(unittest.TestCase):
         message = dns.message.from_text(dangling_cname_0_message_text)
         name = dns.name.from_text('example.')
         answer = dns.resolver.Answer(name, dns.rdatatype.A, dns.rdataclass.IN,
-                                     message,raise_on_no_answer=False)
+                                     message, raise_on_no_answer=False)
         def test_python_internal_truth(answer):
             if answer:
                 return True
