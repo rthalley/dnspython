@@ -22,17 +22,11 @@ BSD-style license, and helps support its future development by continuing to
 employ the author :).
 
 ## INSTALLATION
+- Many distributions have dnspython packaged for you, so you should
+  check there first.
 - If you have pip installed, you can do `pip install dnspython`
 - If not just download the source file and unzip it, then run
   `sudo python setup.py install`
-
-Packages are available for some distributions:
- * [Ubuntu](http://packages.ubuntu.com/search?keywords=dnspython&searchon=names&suite=xenial&section=all)
- * [Debian](https://packages.debian.org/search?keywords=dnspython&searchon=names&suite=stable&section=all)
- * OpenSUSE: [python-dnspython](https://software.opensuse.org/package/python-dnspython), [python3-dnspython](https://software.opensuse.org/package/python3-dnspython)
- * Fedora: [python-dns](https://apps.fedoraproject.org/packages/python-dns/), [python3-dns](https://apps.fedoraproject.org/packages/python3-dns)
-
-If no package exists for your OS, please use pip as explained above.
 
 ## ABOUT THIS RELEASE
 
