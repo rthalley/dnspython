@@ -19,6 +19,7 @@ from __future__ import generators
 
 import sys
 import re
+import os
 from io import BytesIO
 
 import dns.exception
@@ -498,18 +499,27 @@ class Zone(object):
         @type nl: string or None
         """
 
-        str_type = string_types
-
-        if nl is None:
-            opts = 'wb'
-        else:
-            opts = 'wb'
-
-        if isinstance(f, str_type):
-            f = open(f, opts)
+        if isinstance(f, string_types):
+            f = open(f, 'wb')
             want_close = True
         else:
             want_close = False
+
+        # must be in this way, f.encoding may contain None, or even attribute
+        # may not be there
+        file_enc = getattr(f, 'encoding', None)
+        if file_enc is None:
+            file_enc = 'utf-8'
+
+        if nl is None:
+            nl_b = os.linesep.encode(file_enc)  # binary mode, '\n' is not enough
+            nl = u'\n'
+        elif isinstance(nl, string_types):
+            nl_b = nl.encode(file_enc)
+        else:
+            nl_b = nl
+            nl = nl.decode()
+
         try:
             if sorted:
                 names = list(self.keys())
@@ -520,11 +530,15 @@ class Zone(object):
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize)
                 if isinstance(l, text_type):
-                    l = l.encode()
-                if nl is None:
-                    f.write(l)
-                    f.write('\n')
+                    l_b = l.encode(file_enc)
                 else:
+                    l_b = l
+                    l = l.decode()
+
+                try:
+                    f.write(l_b)
+                    f.write(nl_b)
+                except TypeError:  # textual mode
                     f.write(l)
                     f.write(nl)
         finally:
