@@ -56,4 +56,3 @@ class NSAP(dns.rdata.Rdata):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         address = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, address)
-

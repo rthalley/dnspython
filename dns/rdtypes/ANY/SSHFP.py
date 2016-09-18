@@ -75,4 +75,3 @@ class SSHFP(dns.rdata.Rdata):
         rdlen -= 2
         fingerprint = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], fingerprint)
-

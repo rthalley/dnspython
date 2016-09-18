@@ -158,7 +158,7 @@ class BaseResolverTests(unittest.TestCase):
     def testZoneForName4(self):
         def bad():
             name = dns.name.from_text('dnspython.org', None)
-            zname = dns.resolver.zone_for_name(name)
+            dns.resolver.zone_for_name(name)
         self.failUnlessRaises(dns.resolver.NotAbsolute, bad)
 
     def testLRUReplace(self):
@@ -363,7 +363,6 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         self.assertTrue(e.kwargs['responses'][n4].startswith('r1.'))
 
     def test_nxdomain_canonical_name(self):
-        cname0 = "91.11.8-22.17.172.in-addr.arpa.none."
         cname1 = "91.11.8-22.17.172.in-addr.arpa."
         cname2 = "91-11-17-172.dynamic.example."
         message0 = dns.message.from_text(dangling_cname_0_message_text)

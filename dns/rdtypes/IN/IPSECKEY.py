@@ -146,4 +146,3 @@ class IPSECKEY(dns.rdata.Rdata):
         key = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], gateway_type, header[2],
                    gateway, key)
-

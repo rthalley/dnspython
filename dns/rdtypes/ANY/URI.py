@@ -78,4 +78,3 @@ class URI(dns.rdata.Rdata):
         current += rdlen
 
         return cls(rdclass, rdtype, priority, weight, target)
-

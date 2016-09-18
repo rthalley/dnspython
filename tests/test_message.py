@@ -140,7 +140,7 @@ class MessageTestCase(unittest.TestCase):
                                             dns.rdatatype.A,
                                             '10.0.0.%d' % i)
                 q.additional.append(rrset)
-            w = q.to_wire(max_size=512)
+            q.to_wire(max_size=512)
         self.failUnlessRaises(dns.exception.TooBig, bad)
 
     def test_answer1(self):
@@ -151,20 +151,20 @@ class MessageTestCase(unittest.TestCase):
     def test_TrailingJunk(self):
         def bad():
             badwire = goodwire + b'\x00'
-            m = dns.message.from_wire(badwire)
+            dns.message.from_wire(badwire)
         self.failUnlessRaises(dns.message.TrailingJunk, bad)
 
     def test_ShortHeader(self):
         def bad():
             badwire = b'\x00' * 11
-            m = dns.message.from_wire(badwire)
+            dns.message.from_wire(badwire)
         self.failUnlessRaises(dns.message.ShortHeader, bad)
 
     def test_RespondingToResponse(self):
         def bad():
             q = dns.message.make_query('foo', 'A')
             r1 = dns.message.make_response(q)
-            r2 = dns.message.make_response(r1)
+            dns.message.make_response(r1)
         self.failUnlessRaises(dns.exception.FormError, bad)
 
     def test_ExtendedRcodeSetting(self):

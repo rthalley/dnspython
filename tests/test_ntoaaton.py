@@ -60,17 +60,17 @@ class NtoAAtoNTestCase(unittest.TestCase):
 
     def test_bad_aton1(self):
         def bad():
-            a = aton6('abcd:dcba')
+            aton6('abcd:dcba')
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def test_bad_aton2(self):
         def bad():
-            a = aton6('abcd::dcba::1')
+            aton6('abcd::dcba::1')
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def test_bad_aton3(self):
         def bad():
-            a = aton6('1:2:3:4:5:6:7:8:9')
+            aton6('1:2:3:4:5:6:7:8:9')
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def test_aton6(self):
@@ -161,12 +161,12 @@ class NtoAAtoNTestCase(unittest.TestCase):
 
     def test_bad_ntoa1(self):
         def bad():
-            a = ntoa6('')
+            ntoa6('')
         self.failUnlessRaises(ValueError, bad)
 
     def test_bad_ntoa2(self):
         def bad():
-            a = ntoa6('\x00' * 17)
+            ntoa6('\x00' * 17)
         self.failUnlessRaises(ValueError, bad)
 
     def test_good_v4_aton(self):

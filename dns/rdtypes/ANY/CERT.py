@@ -119,4 +119,3 @@ class CERT(dns.rdata.Rdata):
         certificate = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, certificate_type, key_tag, algorithm,
                    certificate)
-

@@ -85,14 +85,14 @@ class NameTestCase(unittest.TestCase):
             ]
         for t in good:
             try:
-                n = dns.name.from_text(t)
-            except:
+                dns.name.from_text(t)
+            except Exception:
                 self.fail("good test '%s' raised an exception" % t)
         for t in bad:
             caught = False
             try:
-                n = dns.name.from_text(t)
-            except:
+                dns.name.from_text(t)
+            except Exception:
                 caught = True
             if not caught:
                 self.fail("bad test '%s' did not raise an exception" % t)
@@ -271,12 +271,12 @@ class NameTestCase(unittest.TestCase):
 
     def testEmptyLabel1(self):
         def bad():
-            n = dns.name.Name(['a', '', 'b'])
+            dns.name.Name(['a', '', 'b'])
         self.failUnlessRaises(dns.name.EmptyLabel, bad)
 
     def testEmptyLabel2(self):
         def bad():
-            n = dns.name.Name(['', 'b'])
+            dns.name.Name(['', 'b'])
         self.failUnlessRaises(dns.name.EmptyLabel, bad)
 
     def testEmptyLabel3(self):
@@ -289,7 +289,7 @@ class NameTestCase(unittest.TestCase):
 
     def testLabelTooLong(self):
         def bad():
-            n = dns.name.Name(['a' * 64, 'b'])
+            dns.name.Name(['a' * 64, 'b'])
         self.failUnlessRaises(dns.name.LabelTooLong, bad)
 
     def testLongName(self):
@@ -298,7 +298,7 @@ class NameTestCase(unittest.TestCase):
 
     def testNameTooLong(self):
         def bad():
-            n = dns.name.Name(['a' * 63, 'a' * 63, 'a' * 63, 'a' * 63])
+            dns.name.Name(['a' * 63, 'a' * 63, 'a' * 63, 'a' * 63])
         self.failUnlessRaises(dns.name.NameTooLong, bad)
 
     def testConcat1(self):
@@ -340,7 +340,7 @@ class NameTestCase(unittest.TestCase):
         def bad():
             n1 = dns.name.Name(['a', 'b', ''])
             n2 = dns.name.Name(['c'])
-            r = n1 + n2
+            return n1 + n2
         self.failUnlessRaises(dns.name.AbsoluteConcatenation, bad)
 
     def testBadEscape(self):
@@ -373,7 +373,7 @@ class NameTestCase(unittest.TestCase):
     def testBadDigestable(self):
         def bad():
             n = dns.name.from_text('FOO.bar', None)
-            d = n.to_digestable()
+            n.to_digestable()
         self.failUnlessRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
 
     def testToWire1(self):
@@ -463,13 +463,13 @@ class NameTestCase(unittest.TestCase):
     def testBadSplit1(self):
         def bad():
             n = dns.name.from_text('foo.bar.')
-            (prefix, suffix) = n.split(-1)
+            n.split(-1)
         self.failUnlessRaises(ValueError, bad)
 
     def testBadSplit2(self):
         def bad():
             n = dns.name.from_text('foo.bar.')
-            (prefix, suffix) = n.split(4)
+            n.split(4)
         self.failUnlessRaises(ValueError, bad)
 
     def testRelativize1(self):
@@ -588,25 +588,25 @@ class NameTestCase(unittest.TestCase):
     def testBadFromWire1(self):
         def bad():
             w = b'\x03foo\xc0\x04'
-            (n, cused) = dns.name.from_wire(w, 0)
+            dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadPointer, bad)
 
     def testBadFromWire2(self):
         def bad():
             w = b'\x03foo\xc0\x05'
-            (n, cused) = dns.name.from_wire(w, 0)
+            dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadPointer, bad)
 
     def testBadFromWire3(self):
         def bad():
             w = b'\xbffoo'
-            (n, cused) = dns.name.from_wire(w, 0)
+            dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadLabelType, bad)
 
     def testBadFromWire4(self):
         def bad():
             w = b'\x41foo'
-            (n, cused) = dns.name.from_wire(w, 0)
+            dns.name.from_wire(w, 0)
         self.failUnlessRaises(dns.name.BadLabelType, bad)
 
     def testParent1(self):
@@ -683,12 +683,12 @@ class NameTestCase(unittest.TestCase):
 
     def testBadReverseIPv4(self):
         def bad():
-            n = dns.reversename.from_address('127.0.foo.1')
+            dns.reversename.from_address('127.0.foo.1')
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testBadReverseIPv6(self):
         def bad():
-            n = dns.reversename.from_address('::1::1')
+            dns.reversename.from_address('::1::1')
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testForwardIPv4(self):

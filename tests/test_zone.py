@@ -219,7 +219,7 @@ class ZoneTestCase(unittest.TestCase):
         f = BytesIO()
         o = dns.name.from_text('example.')
         z = dns.zone.from_file(here('example'), o)
-        for (name, node) in z.items():
+        for node in z.values():
             for rds in node:
                 for rd in rds:
                     f.seek(0)
@@ -264,7 +264,7 @@ class ZoneTestCase(unittest.TestCase):
     def testFindRdataset2(self):
         def bad():
             z = dns.zone.from_text(example_text, 'example.', relativize=True)
-            rds = z.find_rdataset('@', 'loc')
+            z.find_rdataset('@', 'loc')
         self.failUnlessRaises(KeyError, bad)
 
     def testFindRRset1(self):
@@ -276,7 +276,7 @@ class ZoneTestCase(unittest.TestCase):
     def testFindRRset2(self):
         def bad():
             z = dns.zone.from_text(example_text, 'example.', relativize=True)
-            rrs = z.find_rrset('@', 'loc')
+            z.find_rrset('@', 'loc')
         self.failUnlessRaises(KeyError, bad)
 
     def testGetRdataset1(self):
@@ -338,7 +338,7 @@ class ZoneTestCase(unittest.TestCase):
         def bad():
             z = dns.zone.from_text(example_text, 'example.', relativize=True)
             node = z['@']
-            rds = node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
+            node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
         self.failUnlessRaises(KeyError, bad)
 
     def testNodeGetRdataset1(self):
@@ -357,14 +357,14 @@ class ZoneTestCase(unittest.TestCase):
     def testNodeDeleteRdataset1(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
-        rds = node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
+        node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
         self.failUnless(rds is None)
 
     def testNodeDeleteRdataset2(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
-        rds = node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
+        node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
         self.failUnless(rds is None)
 
@@ -444,14 +444,12 @@ class ZoneTestCase(unittest.TestCase):
 
     def testNoSOA(self):
         def bad():
-            z = dns.zone.from_text(no_soa_text, 'example.',
-                                   relativize=True)
+            dns.zone.from_text(no_soa_text, 'example.', relativize=True)
         self.failUnlessRaises(dns.zone.NoSOA, bad)
 
     def testNoNS(self):
         def bad():
-            z = dns.zone.from_text(no_ns_text, 'example.',
-                                   relativize=True)
+            dns.zone.from_text(no_ns_text, 'example.', relativize=True)
         self.failUnlessRaises(dns.zone.NoNS, bad)
 
     def testInclude(self):
@@ -462,8 +460,7 @@ class ZoneTestCase(unittest.TestCase):
 
     def testBadDirective(self):
         def bad():
-            z = dns.zone.from_text(bad_directive_text, 'example.',
-                                   relativize=True)
+            dns.zone.from_text(bad_directive_text, 'example.', relativize=True)
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testFirstRRStartsWithWhitespace(self):
@@ -480,14 +477,14 @@ class ZoneTestCase(unittest.TestCase):
         self.failUnless(z.origin == dns.name.from_text('example.'))
         def bad1():
             o = dns.name.from_text('example', None)
-            z = dns.zone.Zone(o)
+            dns.zone.Zone(o)
         self.failUnlessRaises(ValueError, bad1)
         def bad2():
-            z = dns.zone.Zone(1.0)
+            dns.zone.Zone(1.0)
         self.failUnlessRaises(ValueError, bad2)
 
     def testZoneOriginNone(self):
-        z = dns.zone.Zone(None)
+        dns.zone.Zone(None)
 
 if __name__ == '__main__':
     unittest.main()

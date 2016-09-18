@@ -57,18 +57,18 @@ class NameTestCase(unittest.TestCase):
     def testLookup5(self):
         def bad():
             n = dns.name.from_text('a.b.c.')
-            (k, v) = self.ndict.get_deepest_match(n)
+            self.ndict.get_deepest_match(n)
         self.failUnlessRaises(KeyError, bad)
 
     def testLookup6(self):
         def bad():
-            (k, v) = self.ndict.get_deepest_match(dns.name.empty)
+            self.ndict.get_deepest_match(dns.name.empty)
         self.failUnlessRaises(KeyError, bad)
 
     def testLookup7(self):
         self.ndict[dns.name.empty] = 100
         n = dns.name.from_text('a.b.c.')
-        (k, v) = self.ndict.get_deepest_match(n)
+        v = self.ndict.get_deepest_match(n)[1]
         self.failUnless(v == 100)
 
     def testLookup8(self):
@@ -98,7 +98,7 @@ class NameTestCase(unittest.TestCase):
     def testRelLookup7(self):
         self.rndict[dns.name.empty] = 100
         n = dns.name.from_text('a.b.c', None)
-        (k, v) = self.rndict.get_deepest_match(n)
+        v = self.rndict.get_deepest_match(n)[1]
         self.failUnless(v == 100)
 
 if __name__ == '__main__':

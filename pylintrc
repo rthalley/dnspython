@@ -17,10 +17,9 @@ disable=
     anomalous-backslash-in-string,
     arguments-differ,
     assigning-non-slot,
-    attribute-defined-outside-init,
     bad-builtin,
     bad-continuation,
-    bare-except,
+    broad-except,
     deprecated-method,
     fixme,
     global-statement,
@@ -35,7 +34,6 @@ disable=
     unused-variable,
     wrong-import-order,
     wrong-import-position,
-    trailing-newlines,
 
 
 [REPORTS]

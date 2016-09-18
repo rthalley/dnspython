@@ -672,7 +672,7 @@ class _MasterReader(object):
                 raise dns.exception.SyntaxError
         except dns.exception.SyntaxError:
             raise dns.exception.SyntaxError
-        except:
+        except Exception:
             rdclass = self.zone.rdclass
         if rdclass != self.zone.rdclass:
             raise dns.exception.SyntaxError("RR class is not zone's class")
@@ -791,7 +791,7 @@ class _MasterReader(object):
                 raise dns.exception.SyntaxError
         except dns.exception.SyntaxError:
             raise dns.exception.SyntaxError
-        except:
+        except Exception:
             rdclass = self.zone.rdclass
         if rdclass != self.zone.rdclass:
             raise dns.exception.SyntaxError("RR class is not zone's class")
@@ -801,7 +801,7 @@ class _MasterReader(object):
             token = self.tok.get()
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
-        except:
+        except Exception:
             raise dns.exception.SyntaxError("unknown rdatatype '%s'" %
                                             token.value)
 

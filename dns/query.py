@@ -176,7 +176,7 @@ def _destination_and_source(af, where, port, source, source_port):
     if af is None:
         try:
             af = dns.inet.af_for_address(where)
-        except:
+        except Exception:
             af = dns.inet.AF_INET
     if af == dns.inet.AF_INET:
         destination = (where, port)

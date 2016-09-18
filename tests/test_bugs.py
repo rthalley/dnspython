@@ -41,7 +41,7 @@ class BugsTestCase(unittest.TestCase):
 
     def test_TTL_bounds_check(self):
         def bad():
-            ttl = dns.ttl.from_text("2147483648")
+            dns.ttl.from_text("2147483648")
         self.failUnlessRaises(dns.ttl.BadTTL, bad)
 
     def test_empty_NSEC3_window(self):

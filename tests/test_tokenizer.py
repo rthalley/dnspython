@@ -58,19 +58,19 @@ class TokenizerTestCase(unittest.TestCase):
     def testQuotedString5(self):
         def bad():
             tok = dns.tokenizer.Tokenizer(r'"foo')
-            token = tok.get()
+            tok.get()
         self.failUnlessRaises(dns.exception.UnexpectedEnd, bad)
 
     def testQuotedString6(self):
         def bad():
             tok = dns.tokenizer.Tokenizer(r'"foo\01')
-            token = tok.get()
+            tok.get()
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testQuotedString7(self):
         def bad():
             tok = dns.tokenizer.Tokenizer('"foo\nbar"')
-            token = tok.get()
+            tok.get()
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testEmpty1(self):
@@ -134,13 +134,13 @@ class TokenizerTestCase(unittest.TestCase):
     def testMultiline3(self):
         def bad():
             tok = dns.tokenizer.Tokenizer('foo)')
-            tokens = list(iter(tok))
+            list(iter(tok))
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testMultiline4(self):
         def bad():
             tok = dns.tokenizer.Tokenizer('((foo)')
-            tokens = list(iter(tok))
+            list(iter(tok))
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
 
     def testUnget1(self):

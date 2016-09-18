@@ -199,7 +199,7 @@ The differences shown will be logical differences, not textual differences.
                 if proc.returncode == 0:
                     return proc.stdout
                 sys.stderr.write(err + "\n")
-            except:
+            except Exception:
                 sys.stderr.write(err + "\n")
                 if opts.tracebacks:
                     traceback.print_exc()
@@ -207,7 +207,7 @@ The differences shown will be logical differences, not textual differences.
             # Open as normal file
             try:
                 return open(what, 'rb')
-            except:
+            except IOError:
                 sys.stderr.write(err + "\n")
                 if opts.tracebacks:
                     traceback.print_exc()

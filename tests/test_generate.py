@@ -142,12 +142,12 @@ class GenerateTestCase(unittest.TestCase):
 
     def testFromText(self):
         def bad():
-            z = dns.zone.from_text(example_text, 'example.', relativize=True)
+            dns.zone.from_text(example_text, 'example.', relativize=True)
         self.failUnlessRaises(dns.zone.NoSOA, bad)
 
     def testFromText1(self):
         def bad():
-            z = dns.zone.from_text(example_text1, 'example.', relativize=True)
+            dns.zone.from_text(example_text1, 'example.', relativize=True)
         self.failUnlessRaises(dns.zone.NoSOA, bad)
 
     def testIterateAllRdatas2(self):

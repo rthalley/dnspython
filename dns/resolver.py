@@ -578,6 +578,24 @@ class Resolver(object):
         POSIX systems and from the registry on Windows systems.)
         @type configure: bool"""
 
+        self.domain = None
+        self.nameservers = None
+        self.nameserver_ports = None
+        self.port = None
+        self.search = None
+        self.timeout = None
+        self.lifetime = None
+        self.keyring = None
+        self.keyname = None
+        self.keyalgorithm = None
+        self.edns = None
+        self.ednsflags = None
+        self.payload = None
+        self.cache = None
+        self.flags = None
+        self.retry_servfail = False
+        self.rotate = False
+
         self.reset()
         if configure:
             if sys.platform == 'win32':
@@ -1191,13 +1209,13 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
             addr = dns.ipv6.inet_aton(ahost)
             v6addrs.append(host)
             canonical_name = host
-    except:
+    except Exception:
         try:
             # Is it a V4 address literal?
             addr = dns.ipv4.inet_aton(host)
             v4addrs.append(host)
             canonical_name = host
-        except:
+        except Exception:
             if flags & socket.AI_NUMERICHOST == 0:
                 try:
                     if family == socket.AF_INET6 or family == socket.AF_UNSPEC:
@@ -1229,11 +1247,11 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
             port = 0
         else:
             port = int(service)
-    except:
+    except Exception:
         if flags & socket.AI_NUMERICSERV == 0:
             try:
                 port = socket.getservbyname(service)
-            except:
+            except Exception:
                 pass
     if port is None:
         raise socket.gaierror(socket.EAI_NONAME)
@@ -1308,7 +1326,7 @@ def _getfqdn(name=None):
         name = socket.gethostname()
     try:
         return _getnameinfo(_getaddrinfo(name, 80)[0][4])[0]
-    except:
+    except Exception:
         return name
 
 
@@ -1333,7 +1351,7 @@ def _gethostbyaddr(ip):
         dns.ipv6.inet_aton(ip)
         sockaddr = (ip, 80, 0, 0)
         family = socket.AF_INET6
-    except:
+    except Exception:
         sockaddr = (ip, 80)
         family = socket.AF_INET
     (name, port) = _getnameinfo(sockaddr, socket.NI_NAMEREQD)

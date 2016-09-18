@@ -44,12 +44,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
 
     def test_class_bytext_bounds2(self):
         def bad():
-            junk = dns.rdataclass.from_text('CLASS65536')
+            dns.rdataclass.from_text('CLASS65536')
         self.failUnlessRaises(ValueError, bad)
 
     def test_class_bytext_unknown(self):
         def bad():
-            junk = dns.rdataclass.from_text('XXX')
+            dns.rdataclass.from_text('XXX')
         self.failUnlessRaises(dns.rdataclass.UnknownRdataclass, bad)
 
     def test_class_totext1(self):
@@ -60,12 +60,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
 
     def test_class_totext_bounds1(self):
         def bad():
-            junk = dns.rdataclass.to_text(-1)
+            dns.rdataclass.to_text(-1)
         self.failUnlessRaises(ValueError, bad)
 
     def test_class_totext_bounds2(self):
         def bad():
-            junk = dns.rdataclass.to_text(65536)
+            dns.rdataclass.to_text(65536)
         self.failUnlessRaises(ValueError, bad)
 
     # Types
@@ -98,12 +98,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
 
     def test_type_bytext_bounds2(self):
         def bad():
-            junk = dns.rdatatype.from_text('TYPE65536')
+            dns.rdatatype.from_text('TYPE65536')
         self.failUnlessRaises(ValueError, bad)
 
     def test_type_bytext_unknown(self):
         def bad():
-            junk = dns.rdatatype.from_text('XXX')
+            dns.rdatatype.from_text('XXX')
         self.failUnlessRaises(dns.rdatatype.UnknownRdatatype, bad)
 
     def test_type_totext1(self):
@@ -114,12 +114,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
 
     def test_type_totext_bounds1(self):
         def bad():
-            junk = dns.rdatatype.to_text(-1)
+            dns.rdatatype.to_text(-1)
         self.failUnlessRaises(ValueError, bad)
 
     def test_type_totext_bounds2(self):
         def bad():
-            junk = dns.rdatatype.to_text(65536)
+            dns.rdatatype.to_text(65536)
         self.failUnlessRaises(ValueError, bad)
 
 if __name__ == '__main__':

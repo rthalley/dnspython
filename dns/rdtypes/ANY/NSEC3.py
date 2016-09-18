@@ -189,4 +189,3 @@ class NSEC3(dns.rdata.Rdata):
             windows.append((window, bitmap))
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
                    windows)
-
