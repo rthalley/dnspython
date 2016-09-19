@@ -214,6 +214,23 @@ class BaseResolverTests(unittest.TestCase):
                                        dns.rdataclass.IN))
                             is None)
 
+    def testEmptyAnswerSection(self):
+        # TODO: dangling_cname_0_message_text was the only sample message
+        #       with an empty answer section. Other than that it doesn't
+        #       apply.
+        message = dns.message.from_text(dangling_cname_0_message_text)
+        name = dns.name.from_text('example.')
+        answer = dns.resolver.Answer(name, dns.rdatatype.A, dns.rdataclass.IN,
+                                     message, raise_on_no_answer=False)
+        def test_python_internal_truth(answer):
+            if answer:
+                return True
+            else:
+                return False
+        self.assertFalse(test_python_internal_truth(answer))
+        for a in answer:
+            pass
+
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
         self.__native_polling_backend = dns.query._polling_backend

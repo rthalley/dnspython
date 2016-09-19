@@ -271,10 +271,10 @@ class Answer(object):
             raise AttributeError(attr)
 
     def __len__(self):
-        return len(self.rrset)
+        return self.rrset and len(self.rrset) or 0
 
     def __iter__(self):
-        return iter(self.rrset)
+        return self.rrset and iter(self.rrset) or iter(tuple())
 
     def __getitem__(self, i):
         return self.rrset[i]
