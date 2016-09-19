@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -25,6 +26,10 @@ from io import BytesIO
 import dns.name
 import dns.reversename
 import dns.e164
+
+if dns.name.have_idna_2008:
+    import idna
+dns.name.have_idna_2008 = False # XXXRTH
 
 # pylint: disable=line-too-long
 
@@ -243,8 +248,13 @@ class NameTestCase(unittest.TestCase):
 
     def testToText9(self):
         n = dns.name.from_text('FOO bar', origin=None)
-        t = n.to_unicode()
-        self.assertEqual(t, r'FOO\032bar')
+        if dns.name.have_idna_2008:
+            def bad():
+                return n.to_unicode()
+            self.failUnlessRaises(idna.InvalidCodepoint, bad)
+        else:
+            t = n.to_unicode()
+            self.assertEqual(t, r'FOO\032bar')
 
     def testToText10(self):
         t = dns.name.empty.to_unicode()
@@ -651,6 +661,17 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text(u'foo\uff61bar')
         self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
+    def testFromUnicodeIDNA2008(self):
+        if dns.name.have_idna_2008:
+            t = u'Königsgäßchen'
+            def bad():
+                return dns.name.from_unicode(t)
+            self.failUnlessRaises(idna.InvalidCodepoint, bad)
+            e1 = dns.name.from_unicode(t, uts46=True)
+            self.assertEqual(str(e1), b'xn--knigsgchen-b4a3dun.')
+            e2 = dns.name.from_unicode(t, uts46=True, transitional=True)
+            self.assertEqual(str(e2), b'xn--knigsgsschen-lcb0w.')
+
     def testToUnicode1(self):
         n = dns.name.from_text(u'foo.bar')
         s = n.to_unicode()
@@ -665,6 +686,13 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('foo.bar')
         s = n.to_unicode()
         self.assertEqual(s, u'foo.bar.')
+
+    def testToUnicode4(self):
+        if dns.name.have_idna_2008:
+            n = dns.name.from_text(u'ドメイン.テスト')
+            s = n.to_unicode()
+            self.assertEqual(str(n), b'xn--eckwd4c7c.xn--zckzah.')
+            self.assertEqual(s, u'ドメイン.テスト.')
 
     def testReverseIPv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')

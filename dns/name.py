@@ -26,6 +26,11 @@ import struct
 import sys
 import copy
 import encodings.idna
+try:
+    import idna
+    have_idna_2008 = True
+except ImportError:
+    have_idna_2008 = False
 
 import dns.exception
 import dns.wiredata
@@ -126,6 +131,30 @@ def _escapify(label, unicode_mode=False):
                 text += u'\\%03d' % ord(c)
     return text
 
+def _idna_encode(label, uts46, std3_rules, transitional):
+    if label == '':
+        return b''
+    if have_idna_2008:
+        if uts46:
+            label = idna.uts46_remap(label, std3_rules, transitional)
+        label = idna.alabel(label)
+    else:
+        try:
+            label = encodings.idna.ToASCII(label)
+        except UnicodeError:
+            raise LabelTooLong
+    return label
+
+def _idna_decode(label, uts46, std3_rules):
+    if label == b'':
+        return u''
+    if have_idna_2008:
+        if uts46:
+            label = idna.uts46_remap(label, std3_rules, False)
+        label = idna.ulabel(label)
+    else:
+        label = encodings.idna.ToUnicode(label)
+    return _escapify(label, True)
 
 def _validate_labels(labels):
     """Check for empty labels in the middle of a label sequence,
@@ -375,7 +404,8 @@ class Name(object):
         s = b'.'.join(map(_escapify, l))
         return s
 
-    def to_unicode(self, omit_final_dot=False):
+    def to_unicode(self, omit_final_dot=False, uts46=False,
+                   std3_rules=False):
         """Convert name to Unicode text format.
 
         IDN ACE labels are converted to Unicode.
@@ -393,9 +423,7 @@ class Name(object):
             l = self.labels[:-1]
         else:
             l = self.labels
-        s = u'.'.join([_escapify(encodings.idna.ToUnicode(x), True)
-                      for x in l])
-        return s
+        return u'.'.join([_idna_decode(x, uts46, std3_rules) for x in l])
 
     def to_digestable(self, origin=None):
         """Convert name to a format suitable for digesting in hashes.
@@ -580,7 +608,8 @@ root = Name([b''])
 empty = Name([])
 
 
-def from_unicode(text, origin=root):
+def from_unicode(text, origin=root, uts46=False, std3_rules=False,
+                 transitional=False):
     """Convert unicode text into a Name object.
 
     Labels are encoded in IDN ACE form.
@@ -623,10 +652,8 @@ def from_unicode(text, origin=root):
             elif c in [u'.', u'\u3002', u'\uff0e', u'\uff61']:
                 if len(label) == 0:
                     raise EmptyLabel
-                try:
-                    labels.append(encodings.idna.ToASCII(label))
-                except UnicodeError:
-                    raise LabelTooLong
+                labels.append(_idna_encode(label, uts46, std3_rules,
+                                           transitional))
                 label = u''
             elif c == u'\\':
                 escaping = True
@@ -637,10 +664,8 @@ def from_unicode(text, origin=root):
         if escaping:
             raise BadEscape
         if len(label) > 0:
-            try:
-                labels.append(encodings.idna.ToASCII(label))
-            except UnicodeError:
-                raise LabelTooLong
+            labels.append(_idna_encode(label, uts46, std3_rules,
+                                       transitional))
         else:
             labels.append(b'')
 
@@ -649,13 +674,14 @@ def from_unicode(text, origin=root):
     return Name(labels)
 
 
-def from_text(text, origin=root):
+def from_text(text, origin=root, uts46=False, std3_rules=False,
+              transitional=False):
     """Convert text into a Name object.
     @rtype: dns.name.Name object
     """
 
     if isinstance(text, text_type):
-        return from_unicode(text, origin)
+        return from_unicode(text, origin, uts46, std3_rules, transitional)
     if not isinstance(text, binary_type):
         raise ValueError("input to from_text() must be a string")
     if not (origin is None or isinstance(origin, Name)):

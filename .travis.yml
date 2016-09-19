@@ -15,7 +15,7 @@ matrix:
   allow_failures:
     - python: nightly
 install:
- - pip install unittest2 pylint
+ - pip install unittest2 pylint pycrypto ecdsa idna
 script:
  - if [[ $TRAVIS_PYTHON_VERSION != '2.6' ]]; then make lint; fi
  - make test
