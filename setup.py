@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2016 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -15,45 +15,21 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from setuptools import setup
 import sys
-from distutils.core import setup
 
-version = '1.12.0'
+version = '1.14.0'
+print("="*78+"""
+\033[0;31mdnspython3 is now superseded by the regular dnspython kit, which
+now supports Python 2 and Python 3.  Installing dnspython as a dependency.\033[0;0m
+"""+"="*78, file=sys.stdout)
 
-kwargs = {
-    'name' : 'dnspython3',
-    'version' : version,
-    'description' : 'DNS toolkit',
-    'long_description' : \
-    """dnspython3 is a DNS toolkit for Python 3. It supports almost all
-record types. It can be used for queries, zone transfers, and dynamic
-updates.  It supports TSIG authenticated messages and EDNS0.
-
-dnspython provides both high and low level access to DNS. The high
-level classes perform queries for data of a given name, type, and
-class, and return an answer set.  The low level classes allow
-direct manipulation of DNS zones, messages, names, and records.""",
-    'author' : 'Bob Halley',
-    'author_email' : 'halley@dnspython.org',
-    'license' : 'BSD-like',
-    'url' : 'http://www.dnspython.org',
-    'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY'],
-    'download_url' : \
-	'http://www.dnspython.org/kits3/%s/dnspython3-%s.tar.gz' % (version,
-                                                                   version),
-    'classifiers' : [
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "Intended Audience :: System Administrators",
-        "License :: Freeware",
-        "Operating System :: Microsoft :: Windows :: Windows 95/98/2000",
-        "Operating System :: POSIX",
-        "Programming Language :: Python",
-        "Topic :: Internet :: Name Service (DNS)",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        ],
-    'requires' : [],
-    'provides' : ['dns'],
-    }
-
-setup(**kwargs)
+setup(name='dnspython3',
+      version=version,
+      description='DNS toolkit',
+      url='http://www.dnspython.org',
+      license='BSD-like',
+      author='Bob Halley',
+      author_email='halley@dnspython.org',
+      install_requires=['dnspython=='+version],
+      )
