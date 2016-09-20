@@ -96,6 +96,7 @@ MAILA = 254
 ANY = 255
 URI = 256
 CAA = 257
+AVC = 258
 TA = 32768
 DLV = 32769
 
@@ -166,6 +167,7 @@ _by_text = {
     'ANY': ANY,
     'URI': URI,
     'CAA': CAA,
+    'AVC': AVC,
     'TA': TA,
     'DLV': DLV,
 }

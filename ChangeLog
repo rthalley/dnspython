@@ -7,8 +7,10 @@
 	  http://unicode.org/reports/tr46/ for more info on what this
 	  means.
 
-	* Problems with newlines in various output modes have been
-	  addressed, but I suspect there is more to come in this area.
+	* Add AVC RR support.
+
+	* Some problems with newlines in various output modes have been
+	  addressed.
 
 	* More miscellaneous fixes for the Python 2/3 codeline merge.
 
