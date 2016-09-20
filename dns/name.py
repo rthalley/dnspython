@@ -412,6 +412,16 @@ class Name(object):
 
         @param omit_final_dot: If True, don't emit the final dot (denoting the
         root label) for absolute names.  The default is False.
+        @type omit_final_dot: bool
+        @param uts46: If True, apply Unicode IDNA compatibility processing
+        as described in Unicode Technical Standard #46
+        (U{http://unicode.org/reports/tr46/})
+        @type uts46: bool
+        @param std3_rules: If True, apply STD3 rules for hostnames.
+        (You should only set this to True if you want to be very strict
+        about hostnames, and it's not appropropriate for domain names in
+        general.
+        @type std3_rules: bool
         @rtype: string
         """
 
@@ -614,6 +624,22 @@ def from_unicode(text, origin=root, uts46=False, std3_rules=False,
 
     Labels are encoded in IDN ACE form.
 
+    @param text: The text to convert into a name.
+    @type text: Unicode string
+    @param origin: The origin to append to non-absolute names.
+    @type origin: dns.name.Name
+    @param uts46: If True, apply Unicode IDNA compatibility processing
+    as described in Unicode Technical Standard #46
+    (U{http://unicode.org/reports/tr46/})
+    @type uts46: bool
+    @param std3_rules: If True, apply STD3 rules for hostnames.
+    (You should only set this to True if you want to be very strict
+    about hostnames, and it's not appropropriate for domain names in
+    general.
+    @type std3_rules: bool
+    @param transitional: If True, use the "transitional" mode described
+    in Unicode Technical Standard #46.
+    @type transitional: bool
     @rtype: dns.name.Name object
     """
 
