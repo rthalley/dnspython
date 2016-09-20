@@ -10,7 +10,7 @@ python:
   - "3.4"
   - "3.5"
   - "3.5-dev" # 3.5 development branch
-  - "nightly" # currently points to 3.6-dev
+  #- "nightly" # currently points to 3.6-dev
 matrix:
   allow_failures:
     - python: nightly
