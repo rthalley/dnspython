@@ -23,14 +23,14 @@ class DNSException(Exception):
     It supports two basic modes of operation:
 
     a) Old/compatible mode is used if __init__ was called with
-       empty **kwargs.
+    empty **kwargs.
     In compatible mode all *args are passed to standard Python Exception class
     as before and all *args are printed by standard __str__ implementation.
     Class variable msg (or doc string if msg is None) is returned from str()
     if *args is empty.
 
     b) New/parametrized mode is used if __init__ was called with
-       non-empty **kwargs.
+    non-empty **kwargs.
     In the new mode *args has to be empty and all kwargs has to exactly match
     set in class variable self.supp_kwargs. All kwargs are stored inside
     self.kwargs and used in new __str__ implementation to construct

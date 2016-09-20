@@ -135,8 +135,9 @@ class NoNameservers(dns.exception.DNSException):
 
     """All nameservers failed to answer the query.
 
-    @param errors: list of servers and respective errors
-    @type errors: [(server ip address, any object convertible to string)]
+    errors: list of servers and respective errors
+    The type of errors is
+    [(server ip address, any object convertible to string)].
     Non-empty errors list will add explanatory message ()
     """
 
@@ -431,7 +432,7 @@ class LRUCache(object):
         """Initialize a DNS cache.
 
         @param max_size: The maximum number of nodes to cache; the default is
-        100000. Must be > 1.
+        100,000. Must be greater than 1.
         @type max_size: int
         """
         self.data = {}
