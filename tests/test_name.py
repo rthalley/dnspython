@@ -662,10 +662,10 @@ class NameTestCase(unittest.TestCase):
                 return dns.name.from_unicode(t, idna_2008=True)
             self.failUnlessRaises(idna.InvalidCodepoint, bad)
             e1 = dns.name.from_unicode(t, idna_2008=True, uts_46=True)
-            self.assertEqual(str(e1), b'xn--knigsgchen-b4a3dun.')
+            self.assertEqual(str(e1), 'xn--knigsgchen-b4a3dun.')
             e2 = dns.name.from_unicode(t, idna_2008=True, uts_46=True,
                                        transitional=True)
-            self.assertEqual(str(e2), b'xn--knigsgsschen-lcb0w.')
+            self.assertEqual(str(e2), 'xn--knigsgsschen-lcb0w.')
 
     def testToUnicode1(self):
         n = dns.name.from_text(u'foo.bar')
@@ -686,7 +686,7 @@ class NameTestCase(unittest.TestCase):
         if dns.name.have_idna_2008:
             n = dns.name.from_text(u'ドメイン.テスト', idna_2008=True)
             s = n.to_unicode()
-            self.assertEqual(str(n), b'xn--eckwd4c7c.xn--zckzah.')
+            self.assertEqual(str(n), 'xn--eckwd4c7c.xn--zckzah.')
             self.assertEqual(s, u'ドメイン.テスト.')
 
     def testReverseIPv4(self):
