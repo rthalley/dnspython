@@ -1,11 +1,7 @@
 2016-09-20  Bob Halley  <halley@dnspython.org>
 
-	* If the "idna" module is installed ("pip install idna"), then
-	  dnspython will use IDNA 2008 instead of IDNA 2003.  Options have
-	  been added to unicode name routines for UTS46 support
-	  including "STD3 rules" and "transitional".  See
-	  http://unicode.org/reports/tr46/ for more info on what this
-	  means.
+	* IDNA 2008 support is now available on request if the "idna"
+	  module has been installed.
 
 	* Add AVC RR support.
 

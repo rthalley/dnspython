@@ -29,7 +29,6 @@ import dns.e164
 
 if dns.name.have_idna_2008:
     import idna
-dns.name.have_idna_2008 = False # XXXRTH
 
 # pylint: disable=line-too-long
 
@@ -248,13 +247,8 @@ class NameTestCase(unittest.TestCase):
 
     def testToText9(self):
         n = dns.name.from_text('FOO bar', origin=None)
-        if dns.name.have_idna_2008:
-            def bad():
-                return n.to_unicode()
-            self.failUnlessRaises(idna.InvalidCodepoint, bad)
-        else:
-            t = n.to_unicode()
-            self.assertEqual(t, r'FOO\032bar')
+        t = n.to_unicode()
+        self.assertEqual(t, r'FOO\032bar')
 
     def testToText10(self):
         t = dns.name.empty.to_unicode()
@@ -665,11 +659,12 @@ class NameTestCase(unittest.TestCase):
         if dns.name.have_idna_2008:
             t = u'Königsgäßchen'
             def bad():
-                return dns.name.from_unicode(t)
+                return dns.name.from_unicode(t, idna_2008=True)
             self.failUnlessRaises(idna.InvalidCodepoint, bad)
-            e1 = dns.name.from_unicode(t, uts46=True)
+            e1 = dns.name.from_unicode(t, idna_2008=True, uts_46=True)
             self.assertEqual(str(e1), b'xn--knigsgchen-b4a3dun.')
-            e2 = dns.name.from_unicode(t, uts46=True, transitional=True)
+            e2 = dns.name.from_unicode(t, idna_2008=True, uts_46=True,
+                                       transitional=True)
             self.assertEqual(str(e2), b'xn--knigsgsschen-lcb0w.')
 
     def testToUnicode1(self):
@@ -689,7 +684,7 @@ class NameTestCase(unittest.TestCase):
 
     def testToUnicode4(self):
         if dns.name.have_idna_2008:
-            n = dns.name.from_text(u'ドメイン.テスト')
+            n = dns.name.from_text(u'ドメイン.テスト', idna_2008=True)
             s = n.to_unicode()
             self.assertEqual(str(n), b'xn--eckwd4c7c.xn--zckzah.')
             self.assertEqual(s, u'ドメイン.テスト.')
