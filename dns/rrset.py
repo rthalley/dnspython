@@ -120,7 +120,7 @@ class RRset(dns.rdataset.Rdataset):
 
 
 def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
-                   idna=None):
+                   idna_codec=None):
     """Create an RRset with the specified name, TTL, class, and type, and with
     the specified list of rdatas in text format.
 
@@ -128,7 +128,7 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
     """
 
     if isinstance(name, string_types):
-        name = dns.name.from_text(name, None, idna=idna)
+        name = dns.name.from_text(name, None, idna_codec=idna_codec)
     if isinstance(rdclass, string_types):
         rdclass = dns.rdataclass.from_text(rdclass)
     if isinstance(rdtype, string_types):
@@ -151,7 +151,7 @@ def from_text(name, ttl, rdclass, rdtype, *text_rdatas):
     return from_text_list(name, ttl, rdclass, rdtype, text_rdatas)
 
 
-def from_rdata_list(name, ttl, rdatas, idna=None):
+def from_rdata_list(name, ttl, rdatas, idna_codec=None):
     """Create an RRset with the specified name and TTL, and with
     the specified list of rdata objects.
 
@@ -159,7 +159,7 @@ def from_rdata_list(name, ttl, rdatas, idna=None):
     """
 
     if isinstance(name, string_types):
-        name = dns.name.from_text(name, None, idna=idna)
+        name = dns.name.from_text(name, None, idna_codec=idna_codec)
 
     if len(rdatas) == 0:
         raise ValueError("rdata list must not be empty")

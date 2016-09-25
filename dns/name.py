@@ -177,7 +177,7 @@ class IDNA2008Codec(IDNACodec):
             if self.uts_46:
                 label = idna.uts46_remap(label, False, False)
             return _escapify(idna.ulabel(label), True)
-        except IDNAError as e:
+        except idna.IDNAError as e:
             raise IDNAException(idna_exception=e)
 
 
@@ -468,7 +468,7 @@ class Name(object):
         s = b'.'.join(map(_escapify, l))
         return s
 
-    def to_unicode(self, omit_final_dot=False, idna=None):
+    def to_unicode(self, omit_final_dot=False, idna_codec=None):
         """Convert name to Unicode text format.
 
         IDN ACE labels are converted to Unicode.
@@ -476,9 +476,10 @@ class Name(object):
         @param omit_final_dot: If True, don't emit the final dot (denoting the
         root label) for absolute names.  The default is False.
         @type omit_final_dot: bool
-        @param: idna: IDNA encoder/decoder.  If None, the default IDNA 2003
+        @param: idna_codec: IDNA encoder/decoder.  If None, the default IDNA
+        2003
         encoder/decoder is used.
-        @type idna: dns.name.IDNA
+        @type idna_codec: dns.name.IDNA
         @rtype: string
         """
 
@@ -490,9 +491,9 @@ class Name(object):
             l = self.labels[:-1]
         else:
             l = self.labels
-        if idna is None:
-            idna = IDNA_2003
-        return u'.'.join([idna.decode(x) for x in l])
+        if idna_codec is None:
+            idna_codec = IDNA_2003
+        return u'.'.join([idna_codec.decode(x) for x in l])
 
     def to_digestable(self, origin=None):
         """Convert name to a format suitable for digesting in hashes.
@@ -677,7 +678,7 @@ root = Name([b''])
 empty = Name([])
 
 
-def from_unicode(text, origin=root, idna=None):
+def from_unicode(text, origin=root, idna_codec=None):
     """Convert unicode text into a Name object.
 
     Labels are encoded in IDN ACE form.
@@ -686,9 +687,9 @@ def from_unicode(text, origin=root, idna=None):
     @type text: Unicode string
     @param origin: The origin to append to non-absolute names.
     @type origin: dns.name.Name
-    @param: idna: IDNA encoder/decoder.  If None, the default IDNA 2003
+    @param: idna_codec: IDNA encoder/decoder.  If None, the default IDNA 2003
     encoder/decoder is used.
-    @type idna: dns.name.IDNA
+    @type idna_codec: dns.name.IDNA
     @rtype: dns.name.Name object
     """
 
@@ -701,8 +702,8 @@ def from_unicode(text, origin=root, idna=None):
     escaping = False
     edigits = 0
     total = 0
-    if idna is None:
-        idna = IDNA_2003
+    if idna_codec is None:
+        idna_codec = IDNA_2003
     if text == u'@':
         text = u''
     if text:
@@ -729,7 +730,7 @@ def from_unicode(text, origin=root, idna=None):
             elif c in [u'.', u'\u3002', u'\uff0e', u'\uff61']:
                 if len(label) == 0:
                     raise EmptyLabel
-                labels.append(idna.encode(label))
+                labels.append(idna_codec.encode(label))
                 label = u''
             elif c == u'\\':
                 escaping = True
@@ -740,7 +741,7 @@ def from_unicode(text, origin=root, idna=None):
         if escaping:
             raise BadEscape
         if len(label) > 0:
-            labels.append(idna.encode(label))
+            labels.append(idna_codec.encode(label))
         else:
             labels.append(b'')
 
@@ -749,21 +750,21 @@ def from_unicode(text, origin=root, idna=None):
     return Name(labels)
 
 
-def from_text(text, origin=root, idna=None):
+def from_text(text, origin=root, idna_codec=None):
     """Convert text into a Name object.
 
     @param text: The text to convert into a name.
     @type text: string
     @param origin: The origin to append to non-absolute names.
     @type origin: dns.name.Name
-    @param: idna: IDNA encoder/decoder.  If None, the default IDNA 2003
+    @param: idna_codec: IDNA encoder/decoder.  If None, the default IDNA 2003
     encoder/decoder is used.
-    @type idna: dns.name.IDNA
+    @type idna_codec: dns.name.IDNA
     @rtype: dns.name.Name object
     """
 
     if isinstance(text, text_type):
-        return from_unicode(text, origin, idna)
+        return from_unicode(text, origin, idna_codec)
     if not isinstance(text, binary_type):
         raise ValueError("input to from_text() must be a string")
     if not (origin is None or isinstance(origin, Name)):

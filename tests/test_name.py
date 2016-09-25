@@ -27,9 +27,6 @@ import dns.name
 import dns.reversename
 import dns.e164
 
-if dns.name.have_idna_2008:
-    import idna
-
 # pylint: disable=line-too-long
 
 
@@ -657,7 +654,7 @@ class NameTestCase(unittest.TestCase):
 
     def testFromUnicodeIDNA2003Explicit(self):
         t = u'Königsgäßchen'
-        e = dns.name.from_unicode(t, idna=dns.name.IDNA_2003)
+        e = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2003)
         self.assertEqual(str(e), 'xn--knigsgsschen-lcb0w.')
 
     def testFromUnicodeIDNA2003Default(self):
@@ -669,12 +666,13 @@ class NameTestCase(unittest.TestCase):
         if dns.name.have_idna_2008:
             t = u'Königsgäßchen'
             def bad():
-                return dns.name.from_unicode(t,
-                                             idna=dns.name.IDNA_2008_Strict)
+                codec = dns.name.IDNA_2008_Strict
+                return dns.name.from_unicode(t, idna_codec=codec)
             self.failUnlessRaises(dns.name.IDNAException, bad)
-            e1 = dns.name.from_unicode(t, idna=dns.name.IDNA_2008)
+            e1 = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2008)
             self.assertEqual(str(e1), 'xn--knigsgchen-b4a3dun.')
-            e2 = dns.name.from_unicode(t, idna=dns.name.IDNA_2008_Transitional)
+            c2 = dns.name.IDNA_2008_Transitional
+            e2 = dns.name.from_unicode(t, idna_codec=c2)
             self.assertEqual(str(e2), 'xn--knigsgsschen-lcb0w.')
 
     def testToUnicode1(self):
@@ -694,7 +692,8 @@ class NameTestCase(unittest.TestCase):
 
     def testToUnicode4(self):
         if dns.name.have_idna_2008:
-            n = dns.name.from_text(u'ドメイン.テスト', idna=dns.name.IDNA_2008)
+            n = dns.name.from_text(u'ドメイン.テスト',
+                                   idna_codec=dns.name.IDNA_2008)
             s = n.to_unicode()
             self.assertEqual(str(n), 'xn--eckwd4c7c.xn--zckzah.')
             self.assertEqual(s, u'ドメイン.テスト.')
