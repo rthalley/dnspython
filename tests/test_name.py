@@ -655,16 +655,26 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text(u'foo\uff61bar')
         self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
+    def testFromUnicodeIDNA2003Explicit(self):
+        t = u'Königsgäßchen'
+        e = dns.name.from_unicode(t, idna=dns.name.IDNA_2003)
+        self.assertEqual(str(e), 'xn--knigsgsschen-lcb0w.')
+
+    def testFromUnicodeIDNA2003Default(self):
+        t = u'Königsgäßchen'
+        e = dns.name.from_unicode(t)
+        self.assertEqual(str(e), 'xn--knigsgsschen-lcb0w.')
+
     def testFromUnicodeIDNA2008(self):
         if dns.name.have_idna_2008:
             t = u'Königsgäßchen'
             def bad():
-                return dns.name.from_unicode(t, idna_2008=True)
-            self.failUnlessRaises(idna.InvalidCodepoint, bad)
-            e1 = dns.name.from_unicode(t, idna_2008=True, uts_46=True)
+                return dns.name.from_unicode(t,
+                                             idna=dns.name.IDNA_2008_Strict)
+            self.failUnlessRaises(dns.name.IDNAException, bad)
+            e1 = dns.name.from_unicode(t, idna=dns.name.IDNA_2008)
             self.assertEqual(str(e1), 'xn--knigsgchen-b4a3dun.')
-            e2 = dns.name.from_unicode(t, idna_2008=True, uts_46=True,
-                                       transitional=True)
+            e2 = dns.name.from_unicode(t, idna=dns.name.IDNA_2008_Transitional)
             self.assertEqual(str(e2), 'xn--knigsgsschen-lcb0w.')
 
     def testToUnicode1(self):
@@ -684,7 +694,7 @@ class NameTestCase(unittest.TestCase):
 
     def testToUnicode4(self):
         if dns.name.have_idna_2008:
-            n = dns.name.from_text(u'ドメイン.テスト', idna_2008=True)
+            n = dns.name.from_text(u'ドメイン.テスト', idna=dns.name.IDNA_2008)
             s = n.to_unicode()
             self.assertEqual(str(n), 'xn--eckwd4c7c.xn--zckzah.')
             self.assertEqual(s, u'ドメイン.テスト.')

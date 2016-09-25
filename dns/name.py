@@ -101,8 +101,92 @@ class NoIDNA2008(dns.exception.DNSException):
     """IDNA 2008 processing was requested but the idna module is not
     available."""
 
+
+class IDNAException(dns.exception.DNSException):
+
+    """IDNA 2008 processing raised an exception."""
+
+    supp_kwargs = set(['idna_exception'])
+    fmt = "IDNA processing exception: {idna_exception}"
+
+class IDNACodec(object):
+
+    """Abstract base class for IDNA encoder/decoders."""
+
+    def encode(self, label):
+        raise NotImplementedError
+
+    def decode(self, label):
+        raise NotImplementedError
+
+class IDNA2003Codec(IDNACodec):
+
+    """IDNA 2003 encoder/decoder."""
+
+    def encode(self, label):
+        if label == '':
+            return b''
+        try:
+            return encodings.idna.ToASCII(label)
+        except UnicodeError:
+            raise LabelTooLong
+
+    def decode(self, label):
+        if label == b'':
+            return u''
+        return _escapify(encodings.idna.ToUnicode(label), True)
+
+class IDNA2008Codec(IDNACodec):
+
+    """IDNA 2008 encoder/decoder."""
+
+    def __init__(self, uts_46=True, transitional=False):
+        """Initialize the IDNA 2008 encoder/decoder.
+        @param uts_46: If True, apply Unicode IDNA compatibility processing
+        as described in Unicode Technical Standard #46
+        (U{http://unicode.org/reports/tr46/}).  This parameter is only
+        meaningful if IDNA 2008 is in use.  If False, do not apply
+        the mapping.  The default is True.
+        @type uts_46: bool
+        @param transitional: If True, use the "transitional" mode described
+        in Unicode Technical Standard #46.  This parameter is only
+        meaningful if IDNA 2008 is in use.  The default is False.
+        @type transitional: bool
+        """
+        self.uts_46 = uts_46
+        self.transitional = transitional
+
+    def encode(self, label):
+        if label == '':
+            return b''
+        if not have_idna_2008:
+            raise NoIDNA2008
+        try:
+            if self.uts_46:
+                label = idna.uts46_remap(label, False, self.transitional)
+            return idna.alabel(label)
+        except idna.IDNAError as e:
+            raise IDNAException(idna_exception=e)
+
+    def decode(self, label):
+        if label == b'':
+            return u''
+        if not have_idna_2008:
+            raise NoIDNA2008
+        try:
+            if self.uts_46:
+                label = idna.uts46_remap(label, False, False)
+            return _escapify(idna.ulabel(label), True)
+        except IDNAError as e:
+            raise IDNAException(idna_exception=e)
+
+
 _escaped = bytearray(b'"().;\\@$')
 
+IDNA_2003 = IDNA2003Codec()
+IDNA_2008 = IDNA2008Codec()
+IDNA_2008_Strict = IDNA2008Codec(False)
+IDNA_2008_Transitional = IDNA2008Codec(True, True)
 
 def _escapify(label, unicode_mode=False):
     """Escape the characters in label which need it.
@@ -135,35 +219,6 @@ def _escapify(label, unicode_mode=False):
             else:
                 text += u'\\%03d' % ord(c)
     return text
-
-def _idna_encode(label, idna_2008, uts_46, std3_rules, transitional):
-    if label == '':
-        return b''
-    if idna_2008:
-        if not have_idna_2008:
-            raise NoIDNA2008
-        if uts_46:
-            label = idna.uts46_remap(label, std3_rules, transitional)
-        label = idna.alabel(label)
-    else:
-        try:
-            label = encodings.idna.ToASCII(label)
-        except UnicodeError:
-            raise LabelTooLong
-    return label
-
-def _idna_decode(label, idna_2008, uts_46, std3_rules):
-    if label == b'':
-        return u''
-    if idna_2008:
-        if not have_idna_2008:
-            raise NoIDNA2008
-        if uts_46:
-            label = idna.uts46_remap(label, std3_rules, False)
-        label = idna.ulabel(label)
-    else:
-        label = encodings.idna.ToUnicode(label)
-    return _escapify(label, True)
 
 def _validate_labels(labels):
     """Check for empty labels in the middle of a label sequence,
@@ -413,8 +468,7 @@ class Name(object):
         s = b'.'.join(map(_escapify, l))
         return s
 
-    def to_unicode(self, omit_final_dot=False, idna_2008=False, uts_46=False,
-                   std3_rules=False):
+    def to_unicode(self, omit_final_dot=False, idna=None):
         """Convert name to Unicode text format.
 
         IDN ACE labels are converted to Unicode.
@@ -422,19 +476,9 @@ class Name(object):
         @param omit_final_dot: If True, don't emit the final dot (denoting the
         root label) for absolute names.  The default is False.
         @type omit_final_dot: bool
-        @param: idna_2008: If True, IDNA 2008 will be used instead of IDNA 2003.
-        If the "idna" module is not available, a NoIDNA2008 exception will be
-        raised.
-        @type: idna_2008: bool
-        @param uts_46: If True, apply Unicode IDNA compatibility processing
-        as described in Unicode Technical Standard #46
-        (U{http://unicode.org/reports/tr46/})
-        @type uts_46: bool
-        @param std3_rules: If True, apply STD3 rules for hostnames.
-        (You should only set this to True if you want to be very strict
-        about hostnames, and it's not appropropriate for domain names in
-        general.
-        @type std3_rules: bool
+        @param: idna: IDNA encoder/decoder.  If None, the default IDNA 2003
+        encoder/decoder is used.
+        @type idna: dns.name.IDNA
         @rtype: string
         """
 
@@ -446,8 +490,9 @@ class Name(object):
             l = self.labels[:-1]
         else:
             l = self.labels
-        return u'.'.join([_idna_decode(x, idna_2008, uts_46, std3_rules)
-                          for x in l])
+        if idna is None:
+            idna = IDNA_2003
+        return u'.'.join([idna.decode(x) for x in l])
 
     def to_digestable(self, origin=None):
         """Convert name to a format suitable for digesting in hashes.
@@ -632,8 +677,7 @@ root = Name([b''])
 empty = Name([])
 
 
-def from_unicode(text, origin=root, idna_2008=False, uts_46=False,
-                 std3_rules=False, transitional=False):
+def from_unicode(text, origin=root, idna=None):
     """Convert unicode text into a Name object.
 
     Labels are encoded in IDN ACE form.
@@ -642,24 +686,9 @@ def from_unicode(text, origin=root, idna_2008=False, uts_46=False,
     @type text: Unicode string
     @param origin: The origin to append to non-absolute names.
     @type origin: dns.name.Name
-    @param: idna_2008: If True, IDNA 2008 will be used instead of IDNA 2003.
-    If the "idna" module is not available, a NoIDNA2008 exception will be
-    raised.
-    @type: idna_2008: bool
-    @param uts_46: If True, apply Unicode IDNA compatibility processing
-    as described in Unicode Technical Standard #46
-    (U{http://unicode.org/reports/tr46/}).  This parameter is only
-    meaningful if IDNA 2008 is in use.
-    @type uts_46: bool
-    @param std3_rules: If True, apply STD3 rules for hostnames.
-    (You should only set this to True if you want to be very strict
-    about hostnames, and it's not appropropriate for domain names in
-    general.  This parameter is only meaningful if IDNA 2008 is in use.
-    @type std3_rules: bool
-    @param transitional: If True, use the "transitional" mode described
-    in Unicode Technical Standard #46.  This parameter is only
-    meaningful if IDNA 2008 is in use.
-    @type transitional: bool
+    @param: idna: IDNA encoder/decoder.  If None, the default IDNA 2003
+    encoder/decoder is used.
+    @type idna: dns.name.IDNA
     @rtype: dns.name.Name object
     """
 
@@ -672,6 +701,8 @@ def from_unicode(text, origin=root, idna_2008=False, uts_46=False,
     escaping = False
     edigits = 0
     total = 0
+    if idna is None:
+        idna = IDNA_2003
     if text == u'@':
         text = u''
     if text:
@@ -698,8 +729,7 @@ def from_unicode(text, origin=root, idna_2008=False, uts_46=False,
             elif c in [u'.', u'\u3002', u'\uff0e', u'\uff61']:
                 if len(label) == 0:
                     raise EmptyLabel
-                labels.append(_idna_encode(label, idna_2008, uts_46,
-                                           std3_rules, transitional))
+                labels.append(idna.encode(label))
                 label = u''
             elif c == u'\\':
                 escaping = True
@@ -710,8 +740,7 @@ def from_unicode(text, origin=root, idna_2008=False, uts_46=False,
         if escaping:
             raise BadEscape
         if len(label) > 0:
-            labels.append(_idna_encode(label, idna_2008, uts_46,
-                                       std3_rules, transitional))
+            labels.append(idna.encode(label))
         else:
             labels.append(b'')
 
@@ -720,38 +749,21 @@ def from_unicode(text, origin=root, idna_2008=False, uts_46=False,
     return Name(labels)
 
 
-def from_text(text, origin=root, idna_2008=False, uts_46=False,
-              std3_rules=False, transitional=False):
+def from_text(text, origin=root, idna=None):
     """Convert text into a Name object.
 
     @param text: The text to convert into a name.
     @type text: string
     @param origin: The origin to append to non-absolute names.
     @type origin: dns.name.Name
-    @param: idna_2008: If True, IDNA 2008 will be used instead of IDNA 2003.
-    If the "idna" module is not available, a NoIDNA2008 exception will be
-    raised.
-    @type: idna_2008: bool
-    @param uts_46: If True, apply Unicode IDNA compatibility processing
-    as described in Unicode Technical Standard #46
-    (U{http://unicode.org/reports/tr46/}).  This parameter is only
-    meaningful if IDNA 2008 is in use.
-    @type uts_46: bool
-    @param std3_rules: If True, apply STD3 rules for hostnames.
-    (You should only set this to True if you want to be very strict
-    about hostnames, and it's not appropropriate for domain names in
-    general.  This parameter is only meaningful if IDNA 2008 is in use.
-    @type std3_rules: bool
-    @param transitional: If True, use the "transitional" mode described
-    in Unicode Technical Standard #46.  This parameter is only
-    meaningful if IDNA 2008 is in use.
-    @type transitional: bool
+    @param: idna: IDNA encoder/decoder.  If None, the default IDNA 2003
+    encoder/decoder is used.
+    @type idna: dns.name.IDNA
     @rtype: dns.name.Name object
     """
 
     if isinstance(text, text_type):
-        return from_unicode(text, origin, idna_2008, uts_46, std3_rules,
-                            transitional)
+        return from_unicode(text, origin, idna)
     if not isinstance(text, binary_type):
         raise ValueError("input to from_text() must be a string")
     if not (origin is None or isinstance(origin, Name)):
