@@ -922,7 +922,7 @@ class Resolver(object):
                 answer = self.cache.get((_qname, rdtype, rdclass))
                 if answer is not None:
                     if answer.rrset is None and raise_on_no_answer:
-                        raise NoAnswer
+                        raise NoAnswer(response=answer.response)
                     else:
                         return answer
             request = dns.message.make_query(_qname, rdtype, rdclass)
