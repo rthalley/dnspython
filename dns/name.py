@@ -140,25 +140,41 @@ class IDNA2008Codec(IDNACodec):
 
     """IDNA 2008 encoder/decoder."""
 
-    def __init__(self, uts_46=True, transitional=False):
+    def __init__(self, uts_46=False, transitional=False,
+                 allow_pure_ascii=False):
         """Initialize the IDNA 2008 encoder/decoder.
         @param uts_46: If True, apply Unicode IDNA compatibility processing
         as described in Unicode Technical Standard #46
         (U{http://unicode.org/reports/tr46/}).  This parameter is only
         meaningful if IDNA 2008 is in use.  If False, do not apply
-        the mapping.  The default is True.
+        the mapping.  The default is False
         @type uts_46: bool
         @param transitional: If True, use the "transitional" mode described
         in Unicode Technical Standard #46.  This parameter is only
         meaningful if IDNA 2008 is in use.  The default is False.
         @type transitional: bool
+        @param allow_pure_ascii: If True, then a label which
+        consists of only ASCII characters is allowed.  This is less strict
+        than regular IDNA 2008, but is also necessary for mixed names,
+        e.g. a name with starting with "_sip._tcp." and ending in an IDN
+        suffixm which would otherwise be disallowed.  The default is False
+        @type allow_pure_ascii: bool
         """
         self.uts_46 = uts_46
         self.transitional = transitional
+        self.allow_pure_ascii = allow_pure_ascii
+
+    def is_all_ascii(self, label):
+        for c in label:
+            if ord(c) > 0x7f:
+                return False
+        return True
 
     def encode(self, label):
         if label == '':
             return b''
+        if self.allow_pure_ascii and self.is_all_ascii(label):
+            return label.encode('ascii')
         if not have_idna_2008:
             raise NoIDNA2008
         try:
@@ -184,9 +200,11 @@ class IDNA2008Codec(IDNACodec):
 _escaped = bytearray(b'"().;\\@$')
 
 IDNA_2003 = IDNA2003Codec()
-IDNA_2008 = IDNA2008Codec()
-IDNA_2008_Strict = IDNA2008Codec(False)
-IDNA_2008_Transitional = IDNA2008Codec(True, True)
+IDNA_2008_Practical = IDNA2008Codec(True, False, True)
+IDNA_2008_UTS_46 = IDNA2008Codec(True, False, False)
+IDNA_2008_Strict = IDNA2008Codec(False, False, False)
+IDNA_2008_Transitional = IDNA2008Codec(True, True, False)
+IDNA_2008 = IDNA_2008_Practical
 
 def _escapify(label, unicode_mode=False):
     """Escape the characters in label which need it.

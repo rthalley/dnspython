@@ -675,6 +675,30 @@ class NameTestCase(unittest.TestCase):
             e2 = dns.name.from_unicode(t, idna_codec=c2)
             self.assertEqual(str(e2), 'xn--knigsgsschen-lcb0w.')
 
+    def testFromUnicodeIDNA2008Mixed(self):
+        # the IDN rules for names are very restrictive, disallowing
+        # practical names like u'_sip._tcp.Königsgäßchen'.  Dnspython
+        # has a "practical" mode which permits labels which are purely
+        # ASCII to go straight through, and thus not invalid useful
+        # things in the real world.
+        if dns.name.have_idna_2008:
+            t = u'_sip._tcp.Königsgäßchen'
+            def bad1():
+                codec = dns.name.IDNA_2008_Strict
+                return dns.name.from_unicode(t, idna_codec=codec)
+            def bad2():
+                codec = dns.name.IDNA_2008_UTS_46
+                return dns.name.from_unicode(t, idna_codec=codec)
+            def bad3():
+                codec = dns.name.IDNA_2008_Transitional
+                return dns.name.from_unicode(t, idna_codec=codec)
+            self.failUnlessRaises(dns.name.IDNAException, bad1)
+            self.failUnlessRaises(dns.name.IDNAException, bad2)
+            self.failUnlessRaises(dns.name.IDNAException, bad3)
+            e = dns.name.from_unicode(t,
+                                      idna_codec=dns.name.IDNA_2008_Practical)
+            self.assertEqual(str(e), '_sip._tcp.xn--knigsgchen-b4a3dun.')
+
     def testToUnicode1(self):
         n = dns.name.from_text(u'foo.bar')
         s = n.to_unicode()
