@@ -1048,10 +1048,10 @@ class Resolver(object):
             break
         if all_nxdomain:
             raise NXDOMAIN(qnames=qnames_to_try, responses=nxdomain_responses)
-        answer = Answer(qname, rdtype, rdclass, response,
+        answer = Answer(_qname, rdtype, rdclass, response,
                         raise_on_no_answer)
         if self.cache:
-            self.cache.put((qname, rdtype, rdclass), answer)
+            self.cache.put((_qname, rdtype, rdclass), answer)
         return answer
 
     def use_tsig(self, keyring, keyname=None,
