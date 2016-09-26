@@ -917,6 +917,7 @@ class Resolver(object):
         all_nxdomain = True
         nxdomain_responses = {}
         start = time.time()
+        _qname = None # make pylint happy
         for _qname in qnames_to_try:
             if self.cache:
                 answer = self.cache.get((_qname, rdtype, rdclass))
