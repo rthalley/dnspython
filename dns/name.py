@@ -35,7 +35,7 @@ except ImportError:
 import dns.exception
 import dns.wiredata
 
-from ._compat import long, binary_type, text_type, unichr
+from ._compat import long, binary_type, text_type, unichr, maybe_decode
 
 try:
     maxint = sys.maxint
@@ -466,7 +466,7 @@ class Name(object):
         return '<DNS name ' + self.__str__() + '>'
 
     def __str__(self):
-        return self.to_text(False).decode()
+        return self.to_text(False)
 
     def to_text(self, omit_final_dot=False):
         """Convert name to text format.
@@ -476,15 +476,15 @@ class Name(object):
         """
 
         if len(self.labels) == 0:
-            return b'@'
+            return maybe_decode(b'@')
         if len(self.labels) == 1 and self.labels[0] == b'':
-            return b'.'
+            return maybe_decode(b'.')
         if omit_final_dot and self.is_absolute():
             l = self.labels[:-1]
         else:
             l = self.labels
         s = b'.'.join(map(_escapify, l))
-        return s
+        return maybe_decode(s)
 
     def to_unicode(self, omit_final_dot=False, idna_codec=None):
         """Convert name to Unicode text format.

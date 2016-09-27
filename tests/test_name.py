@@ -207,45 +207,45 @@ class NameTestCase(unittest.TestCase):
     def testToText1(self):
         n = dns.name.from_text('FOO.bar', origin=self.origin)
         t = n.to_text()
-        self.assertEqual(t, b'FOO.bar.example.')
+        self.assertEqual(t, 'FOO.bar.example.')
 
     def testToText2(self):
         n = dns.name.from_text('FOO.bar', origin=self.origin)
         t = n.to_text(True)
-        self.assertEqual(t, b'FOO.bar.example')
+        self.assertEqual(t, 'FOO.bar.example')
 
     def testToText3(self):
         n = dns.name.from_text('FOO.bar', origin=None)
         t = n.to_text()
-        self.assertEqual(t, b'FOO.bar')
+        self.assertEqual(t, 'FOO.bar')
 
     def testToText4(self):
         t = dns.name.empty.to_text()
-        self.assertEqual(t, b'@')
+        self.assertEqual(t, '@')
 
     def testToText5(self):
         t = dns.name.root.to_text()
-        self.assertEqual(t, b'.')
+        self.assertEqual(t, '.')
 
     def testToText6(self):
         n = dns.name.from_text('FOO bar', origin=None)
         t = n.to_text()
-        self.assertEqual(t, br'FOO\032bar')
+        self.assertEqual(t, r'FOO\032bar')
 
     def testToText7(self):
         n = dns.name.from_text(r'FOO\.bar', origin=None)
         t = n.to_text()
-        self.assertEqual(t, b'FOO\.bar')
+        self.assertEqual(t, 'FOO\.bar')
 
     def testToText8(self):
         n = dns.name.from_text(r'\070OO\.bar', origin=None)
         t = n.to_text()
-        self.assertEqual(t, b'FOO\.bar')
+        self.assertEqual(t, 'FOO\.bar')
 
     def testToText9(self):
         n = dns.name.from_text('FOO bar', origin=None)
         t = n.to_unicode()
-        self.assertEqual(t, r'FOO\032bar')
+        self.assertEqual(t, 'FOO\\032bar')
 
     def testToText10(self):
         t = dns.name.empty.to_unicode()
