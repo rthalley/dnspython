@@ -722,6 +722,21 @@ class NameTestCase(unittest.TestCase):
             self.assertEqual(str(n), 'xn--eckwd4c7c.xn--zckzah.')
             self.assertEqual(s, u'ドメイン.テスト.')
 
+    def testDefaultDecodeIsJustPunycode(self):
+        # groß.com. in IDNA2008 form, pre-encoded.
+        n = dns.name.from_text('xn--gro-7ka.com')
+        # output using default codec which just decodes the punycode and
+        # doesn't test for IDNA2003 or IDNA2008.
+        self.assertEqual(n.to_unicode(), u'groß.com.')
+
+    def testStrictINDA2003Decode(self):
+        # groß.com. in IDNA2008 form, pre-encoded.
+        n = dns.name.from_text('xn--gro-7ka.com')
+        def bad():
+            # This throws in IDNA2003 because it doesn't "round trip".
+            n.to_unicode(idna_codec=dns.name.IDNA_2003_Strict)
+        self.failUnlessRaises(dns.name.IDNAException, bad)
+
     def testReverseIPv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
         n = dns.reversename.from_address('127.0.0.1')

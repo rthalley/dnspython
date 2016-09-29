@@ -104,7 +104,7 @@ class NoIDNA2008(dns.exception.DNSException):
 
 class IDNAException(dns.exception.DNSException):
 
-    """IDNA 2008 processing raised an exception."""
+    """IDNA processing raised an exception."""
 
     supp_kwargs = set(['idna_exception'])
     fmt = "IDNA processing exception: {idna_exception}"
@@ -113,15 +113,37 @@ class IDNACodec(object):
 
     """Abstract base class for IDNA encoder/decoders."""
 
+    def __init__(self):
+        pass
+
     def encode(self, label):
         raise NotImplementedError
 
     def decode(self, label):
-        raise NotImplementedError
+        # We do not apply any IDNA policy on decode; we just
+        downcased = label.lower()
+        if downcased.startswith(b'xn--'):
+            try:
+                label = downcased[4:].decode('punycode')
+            except Exception as e:
+                raise IDNAException(idna_exception=e)
+        else:
+            label = maybe_decode(label)
+        return _escapify(label, True)
 
 class IDNA2003Codec(IDNACodec):
 
     """IDNA 2003 encoder/decoder."""
+
+    def __init__(self, strict_decode=False):
+        """Initialize the IDNA 2003 encoder/decoder.
+        @param strict_decode: If True, then IDNA2003 checking is done when
+        decoding.  This can cause failures if the name was encoded with
+        IDNA2008.  The default is False.
+        @type strict_decode: bool
+        """
+        super(IDNA2003Codec, self).__init__()
+        self.strict_decode = strict_decode
 
     def encode(self, label):
         if label == '':
@@ -132,16 +154,21 @@ class IDNA2003Codec(IDNACodec):
             raise LabelTooLong
 
     def decode(self, label):
+        if not self.strict_decode:
+            return super(IDNA2003Codec, self).decode(label)
         if label == b'':
             return u''
-        return _escapify(encodings.idna.ToUnicode(label), True)
+        try:
+            return _escapify(encodings.idna.ToUnicode(label), True)
+        except Exception as e:
+            raise IDNAException(idna_exception=e)
 
 class IDNA2008Codec(IDNACodec):
 
     """IDNA 2008 encoder/decoder."""
 
     def __init__(self, uts_46=False, transitional=False,
-                 allow_pure_ascii=False):
+                 allow_pure_ascii=False, strict_decode=False):
         """Initialize the IDNA 2008 encoder/decoder.
         @param uts_46: If True, apply Unicode IDNA compatibility processing
         as described in Unicode Technical Standard #46
@@ -159,10 +186,16 @@ class IDNA2008Codec(IDNACodec):
         e.g. a name with starting with "_sip._tcp." and ending in an IDN
         suffixm which would otherwise be disallowed.  The default is False
         @type allow_pure_ascii: bool
+        @param strict_decode: If True, then IDNA2008 checking is done when
+        decoding.  This can cause failures if the name was encoded with
+        IDNA2003.  The default is False.
+        @type strict_decode: bool
         """
+        super(IDNA2008Codec, self).__init__()
         self.uts_46 = uts_46
         self.transitional = transitional
         self.allow_pure_ascii = allow_pure_ascii
+        self.strict_decode = strict_decode
 
     def is_all_ascii(self, label):
         for c in label:
@@ -185,6 +218,8 @@ class IDNA2008Codec(IDNACodec):
             raise IDNAException(idna_exception=e)
 
     def decode(self, label):
+        if not self.strict_decode:
+            return super(IDNA2008Codec, self).decode(label)
         if label == b'':
             return u''
         if not have_idna_2008:
@@ -196,14 +231,15 @@ class IDNA2008Codec(IDNACodec):
         except idna.IDNAError as e:
             raise IDNAException(idna_exception=e)
 
-
 _escaped = bytearray(b'"().;\\@$')
 
-IDNA_2003 = IDNA2003Codec()
-IDNA_2008_Practical = IDNA2008Codec(True, False, True)
-IDNA_2008_UTS_46 = IDNA2008Codec(True, False, False)
-IDNA_2008_Strict = IDNA2008Codec(False, False, False)
-IDNA_2008_Transitional = IDNA2008Codec(True, True, False)
+IDNA_2003_Practical = IDNA2003Codec(False)
+IDNA_2003_Strict = IDNA2003Codec(True)
+IDNA_2003 = IDNA_2003_Practical
+IDNA_2008_Practical = IDNA2008Codec(True, False, True, False)
+IDNA_2008_UTS_46 = IDNA2008Codec(True, False, False, False)
+IDNA_2008_Strict = IDNA2008Codec(False, False, False, True)
+IDNA_2008_Transitional = IDNA2008Codec(True, True, False, False)
 IDNA_2008 = IDNA_2008_Practical
 
 def _escapify(label, unicode_mode=False):
@@ -494,9 +530,11 @@ class Name(object):
         @param omit_final_dot: If True, don't emit the final dot (denoting the
         root label) for absolute names.  The default is False.
         @type omit_final_dot: bool
-        @param: idna_codec: IDNA encoder/decoder.  If None, the default IDNA
-        2003
-        encoder/decoder is used.
+        @param: idna_codec: IDNA encoder/decoder.  If None, the
+        IDNA_2003_Practical encoder/decoder is used.  The IDNA_2003_Practical
+        decoder does not impose any policy, it just decodes punycode, so if
+        you don't want checking for compliance, you can use this decoder for
+        IDNA2008 as well.
         @type idna_codec: dns.name.IDNA
         @rtype: string
         """
@@ -510,7 +548,7 @@ class Name(object):
         else:
             l = self.labels
         if idna_codec is None:
-            idna_codec = IDNA_2003
+            idna_codec = IDNA_2003_Practical
         return u'.'.join([idna_codec.decode(x) for x in l])
 
     def to_digestable(self, origin=None):
