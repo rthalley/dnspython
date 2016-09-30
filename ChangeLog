@@ -1,6 +1,18 @@
-2016-09-29  Bob Halley  <halley@dnspython.org>
+2016-09-30  Bob Halley  <halley@dnspython.org>
+
+	* Much of the internals of dns.query.udp() and dns.query.tcp()
+	  have been factored out into dns.query.send_udp(),
+	  dns.query.receive_udp(), dns.query.send_tcp(), and
+	  dns.query.receive_tcp().  Applications which want more control
+	  over the socket may find the new routines helpful; for example
+	  it would be easy to send multiple queries over a single TCP
+	  connection.
+
+2016-09-30  Bob Halley  <halley@dnspython.org>
 
 	* (Version 1.15.0 released)
+
+2016-09-29  Bob Halley  <halley@dnspython.org>
 
 	* IDNA 2008 support is now available if the "idna" module has been
 	  installed and IDNA 2008 is requested.  The default IDNA behavior
