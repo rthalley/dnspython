@@ -30,7 +30,36 @@ employ the author :).
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 1.14.0
+This is dnspython 1.15.0
+
+### New since 1.14.0:
+
+* IDNA 2008 support is now available if the "idna" module has been
+  installed and IDNA 2008 is requested.  The default IDNA behavior is
+  still IDNA 2003.  The new IDNA codec mechanism is currently only
+  useful for direct calls to dns.name.from_text() or
+  dns.name.from_unicode(), but in future releases it will be deployed
+  throughout dnspython, e.g. so that you can read a masterfile with an
+  IDNA 2008 codec in force.
+
+* By default, dns.name.to_unicode() is not strict about which
+  version of IDNA the input complies with.  Strictness can be
+  requested by using one of the strict IDNA codecs.
+
+* The AVC RR is now supported.
+
+### Bugs fixed since 1.14.0:
+
+* Some problems with newlines in various output modes have been
+  addressed.
+
+* dns.name.to_text() now returns text and not bytes on Python 3.x
+
+* Miscellaneous fixes for the Python 2/3 codeline merge.
+
+* Many "lint" fixes after the addition of pylint support.
+
+* The random number generator reseeds after a fork().
 
 ### New since 1.13.0:
 
