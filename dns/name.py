@@ -530,7 +530,7 @@ class Name(object):
         @param omit_final_dot: If True, don't emit the final dot (denoting the
         root label) for absolute names.  The default is False.
         @type omit_final_dot: bool
-        @param: idna_codec: IDNA encoder/decoder.  If None, the
+        @param idna_codec: IDNA encoder/decoder.  If None, the
         IDNA_2003_Practical encoder/decoder is used.  The IDNA_2003_Practical
         decoder does not impose any policy, it just decodes punycode, so if
         you don't want checking for compliance, you can use this decoder for
@@ -743,7 +743,7 @@ def from_unicode(text, origin=root, idna_codec=None):
     @type text: Unicode string
     @param origin: The origin to append to non-absolute names.
     @type origin: dns.name.Name
-    @param: idna_codec: IDNA encoder/decoder.  If None, the default IDNA 2003
+    @param idna_codec: IDNA encoder/decoder.  If None, the default IDNA 2003
     encoder/decoder is used.
     @type idna_codec: dns.name.IDNA
     @rtype: dns.name.Name object
@@ -813,7 +813,7 @@ def from_text(text, origin=root, idna_codec=None):
     @type text: string
     @param origin: The origin to append to non-absolute names.
     @type origin: dns.name.Name
-    @param: idna_codec: IDNA encoder/decoder.  If None, the default IDNA 2003
+    @param idna_codec: IDNA encoder/decoder.  If None, the default IDNA 2003
     encoder/decoder is used.
     @type idna_codec: dns.name.IDNA
     @rtype: dns.name.Name object
