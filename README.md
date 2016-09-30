@@ -61,6 +61,33 @@ This is dnspython 1.15.0
 
 * The random number generator reseeds after a fork().
 
+
+## REQUIREMENTS
+
+Python 2.6 or later.
+
+
+## HOME PAGE
+
+For the latest in releases, documentation, and information, visit the dnspython
+home page at http://www.dnspython.org/
+
+
+## BUG REPORTS
+
+Bug reports may be opened at
+https://github.com/rthalley/dnspython/issues or sent to
+bugs@dnspython.org
+
+
+## MAILING LISTS
+
+A number of mailing lists are available. Visit the dnspython home page to
+subscribe or unsubscribe.
+
+
+## PRIOR RELEASE INFORMATION
+
 ### New since 1.13.0:
 
 * CSYNC RRs are now supported.
@@ -571,32 +598,3 @@ This is dnspython 1.15.0
 
 * See the ChangeLog file for more detailed information on changes since the
   prior release.
-
-
-## REQUIREMENTS
-
-Python 2.6 or later.
-
-
-## HOME PAGE
-
-For the latest in releases, documentation, and information, visit the dnspython
-home page at http://www.dnspython.org/
-
-
-
-## DOCUMENTATION
-
-Documentation is sparse at the moment. Use pydoc, or read the HTML documentation
-at the dnspython home page, or download the HTML documentation.
-
-
-## BUG REPORTS
-
-Bug reports may be sent to bugs@dnspython.org
-
-
-## MAILING LISTS
-
-A number of mailing lists are available. Visit the dnspython home page to
-subscribe or unsubscribe.
