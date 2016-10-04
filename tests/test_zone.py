@@ -177,7 +177,7 @@ class ZoneTestCase(unittest.TestCase):
     def testToFileFilename(self):
         z = dns.zone.from_file(here('example'), 'example')
         try:
-            z.to_file('example3-filename.out')
+            z.to_file(here('example3-filename.out'))
             ok = filecmp.cmp(here('example3-filename.out'),
                              here('example3.good'))
         finally:
