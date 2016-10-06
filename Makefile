@@ -60,5 +60,11 @@ check: test
 test:
 	cd tests; make PYTHON=${PYTHON} test
 
+test2:
+	cd tests; make PYTHON=python test
+
+test3:
+	cd tests; make PYTHON=python3 test
+
 lint:
 	pylint dns tests examples/*.py
