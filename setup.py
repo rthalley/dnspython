@@ -60,6 +60,10 @@ direct manipulation of DNS zones, messages, names, and records.""",
         ],
     'test_suite': 'tests',
     'provides': ['dns'],
+    'extras_require': {
+        'IDNA': ['idna>=2.1'],
+        'DNSSEC': ['pycrypto>=2.6.1', 'ecdsa>=0.13'],
+        },
     }
 
 setup(**kwargs)
