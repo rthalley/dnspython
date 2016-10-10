@@ -1,3 +1,7 @@
+2016-10-10  Bob Halley  <halley@dnspython.org>
+
+	* Added OPENPGPKEY RR support.
+
 2016-09-30  Bob Halley  <halley@dnspython.org>
 
 	* Much of the internals of dns.query.udp() and dns.query.tcp()

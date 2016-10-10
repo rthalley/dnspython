@@ -82,6 +82,7 @@ TLSA = 52
 HIP = 55
 CDS = 59
 CDNSKEY = 60
+OPENPGPKEY = 61
 CSYNC = 62
 SPF = 99
 UNSPEC = 103
@@ -153,6 +154,7 @@ _by_text = {
     'HIP': HIP,
     'CDS': CDS,
     'CDNSKEY': CDNSKEY,
+    'OPENPGPKEY': OPENPGPKEY,
     'CSYNC': CSYNC,
     'SPF': SPF,
     'UNSPEC': UNSPEC,
