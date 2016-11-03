@@ -13,12 +13,14 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+"""EDNS Options"""
+
+from __future__ import absolute_import
+
 import struct
 
 import dns.inet
 
-
-"""EDNS Options"""
 
 NSID = 3
 ECS = 8
