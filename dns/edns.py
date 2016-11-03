@@ -13,9 +13,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import struct
+
+import dns.inet
+
+
 """EDNS Options"""
 
 NSID = 3
+ECS = 8
 
 
 class Option(object):
@@ -111,6 +117,9 @@ class GenericOption(Option):
     def to_wire(self, file):
         file.write(self.data)
 
+    def to_text(self):
+        return "Generic %d" % self.otype
+
     @classmethod
     def from_wire(cls, otype, wire, current, olen):
         return cls(otype, wire[current: current + olen])
@@ -122,9 +131,88 @@ class GenericOption(Option):
             return 1
         return -1
 
-_type_to_class = {
-}
 
+class ECSOption(Option):
+    """EDNS Client Subnet (ECS, RFC7871)"""
+
+    def __init__(self, address, srclen=None, scopelen=0):
+        """Generate an ECS option
+
+        @ivar address: client address information
+        @type address: string
+        @ivar srclen: prefix length, leftmost number of bits of the address
+        to be used for the lookup. Sent by client, mirrored by server in
+        responses. If not provided at init, will use /24 for v4 and /56 for v6
+        @ivar srclen: int
+        @ivar scopelen: prefix length, leftmost number of bits of the address
+        that the response covers. 0 in queries, set by server.
+        """
+        super(ECSOption, self).__init__(ECS)
+        af = dns.inet.af_for_address(address)
+
+        if af == dns.inet.AF_INET6:
+            self.family = 2
+            if srclen is None:
+                srclen = 56
+        elif af == dns.inet.AF_INET:
+            self.family = 1
+            if srclen is None:
+                srclen = 24
+        else:
+            raise ValueError('Bad ip family')
+
+        self.srclen = srclen
+        self.scopelen = scopelen
+        self.address = address
+
+        self.addrdata = dns.inet.inet_pton(af, address)
+
+        # Truncate to srclen and pad to the end of the last octet needed
+        # See RFC section 6
+        self.addrdata = self.addrdata[:-(-srclen//8)]
+        last = ord(self.addrdata[-1:]) & (0xff << srclen % 8)
+        self.addrdata = self.addrdata[:-1] + chr(last).encode('latin1')
+
+    def to_text(self):
+        return "ECS %s/%s scope/%s" % (self.address, self.srclen,
+                                       self.scopelen)
+
+    def to_wire(self, file):
+        """Opt type and len are handled by renderer"""
+        file.write(struct.pack('!H', self.family))
+        file.write(struct.pack('!BB', self.srclen, self.scopelen))
+        file.write(self.addrdata)
+
+    @classmethod
+    def from_wire(cls, otype, wire, cur, olen):
+        """Opt type and len are handled by Message.from_wire"""
+        family, src, scope = struct.unpack('!HBB', wire[cur:cur+4])
+        cur += 4
+
+        addrlen = -(-src//8)
+
+        if family == 1:
+            af = dns.inet.AF_INET
+            pad = 4 - addrlen
+        elif family == 2:
+            af = dns.inet.AF_INET6
+            pad = 16 - addrlen
+        else:
+            raise ValueError('unsupported family')
+
+        addr = dns.inet.inet_ntop(af, wire[cur:cur+addrlen] + '\x00' * pad)
+        return cls(addr, src, scope)
+
+    def _cmp(self, other):
+        if self.addrdata == other.addrdata:
+            return 0
+        if self.addrdata > other.addrdata:
+            return 1
+        return -1
+
+_type_to_class = {
+        ECS: ECSOption
+}
 
 def get_option_class(otype):
     cls = _type_to_class.get(otype)

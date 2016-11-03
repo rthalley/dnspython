@@ -209,6 +209,8 @@ class Message(object):
                 s.write(u'eflags %s\n' %
                         dns.flags.edns_to_text(self.ednsflags))
             s.write(u'payload %d\n' % self.payload)
+        for opt in self.options:
+            s.write(u'option %s\n' % opt.to_text())
         is_update = dns.opcode.is_update(self.flags)
         if is_update:
             s.write(u';ZONE\n')
