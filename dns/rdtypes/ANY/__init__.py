@@ -17,10 +17,13 @@
 
 __all__ = [
     'AFSDB',
+    'AVC',
+    'CAA',
     'CDNSKEY',
     'CDS',
     'CERT',
     'CNAME',
+    'CSYNC',
     'DLV',
     'DNAME',
     'DNSKEY',
@@ -37,7 +40,7 @@ __all__ = [
     'NSEC',
     'NSEC3',
     'NSEC3PARAM',
-    'TLSA',
+    'OPENPGPKEY',
     'PTR',
     'RP',
     'RRSIG',
@@ -45,6 +48,8 @@ __all__ = [
     'SOA',
     'SPF',
     'SSHFP',
+    'TLSA',
     'TXT',
+    'URI',
     'X25',
 ]
