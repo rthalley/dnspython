@@ -19,6 +19,8 @@ try:
 except ImportError:
     import unittest
 
+import binascii
+
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
@@ -67,6 +69,18 @@ class BugsTestCase(unittest.TestCase):
         rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.CAA,
                                      wire, 0, rdlen)
         self.failUnless(rdata == rdata2)
+
+    def test_trailing_zero_APL(self):
+        in4 = "!1:127.0.0.0/1"
+        rd4 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL, in4)
+        out4 = rd4.to_digestable(dns.name.from_text("test"))
+        text4 = binascii.hexlify(out4).decode('ascii')
+        self.failUnless(text4 == '000101817f')
+        in6 = "!2:::1000/1"
+        rd6 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL, in6)
+        out6 = rd6.to_digestable(dns.name.from_text("test"))
+        text6 = binascii.hexlify(out6).decode('ascii')
+        self.failUnless(text6 == '0002018f000000000000000000000000000010')
 
 if __name__ == '__main__':
     unittest.main()
