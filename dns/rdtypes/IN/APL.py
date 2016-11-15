@@ -20,7 +20,7 @@ import dns.exception
 import dns.inet
 import dns.rdata
 import dns.tokenizer
-from dns._compat import xrange
+from dns._compat import xrange, maybe_chr
 
 
 class APLItem(object):
@@ -63,7 +63,7 @@ class APLItem(object):
         #
         last = 0
         for i in xrange(len(address) - 1, -1, -1):
-            if address[i] != 0:
+            if address[i] != maybe_chr(0):
                 last = i + 1
                 break
         address = address[0: last]
