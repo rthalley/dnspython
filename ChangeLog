@@ -1,3 +1,9 @@
+2016-11-15  Bob Halley  <halley@dnspython.org>
+
+	* Fixed regression where trailing zeros in APL RRs were not
+	  suppressed, and then fixed the problem where trailing zeros
+	  were not added back properly on python 3 when needed.
+
 2016-10-10  Bob Halley  <halley@dnspython.org>
 
 	* Added OPENPGPKEY RR support.
