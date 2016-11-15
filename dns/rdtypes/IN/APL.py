@@ -142,11 +142,11 @@ class APL(dns.rdata.Rdata):
             l = len(address)
             if header[0] == 1:
                 if l < 4:
-                    address += '\x00' * (4 - l)
+                    address += b'\x00' * (4 - l)
                 address = dns.inet.inet_ntop(dns.inet.AF_INET, address)
             elif header[0] == 2:
                 if l < 16:
-                    address += '\x00' * (16 - l)
+                    address += b'\x00' * (16 - l)
                 address = dns.inet.inet_ntop(dns.inet.AF_INET6, address)
             else:
                 #
