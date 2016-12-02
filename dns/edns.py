@@ -176,10 +176,10 @@ class ECSOption(Option):
         # Truncate to srclen and pad to the end of the last octet needed
         # See RFC section 6
         self.addrdata = addrdata[:nbytes]
-        last = chr(ord(self.addrdata[-1:]) & (0xff << srclen % 8))
-        if sys.version_info >= (3,):
-            last = last.encode('latin1')
-        self.addrdata = self.addrdata[:-1] + last
+        nbits = srclen % 8
+        if nbits != 0:
+            last = struct.pack('B', ord(self.addrdata[-1:]) & (0xff << nbits))
+            self.addrdata = self.addrdata[:-1] + last
 
     def to_text(self):
         return "ECS %s/%s scope/%s" % (self.address, self.srclen,
