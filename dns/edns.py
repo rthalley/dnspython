@@ -19,7 +19,6 @@ from __future__ import absolute_import
 
 import math
 import struct
-import sys
 
 import dns.inet
 
