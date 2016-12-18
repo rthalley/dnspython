@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# This is just a toy, real code would check that the received message
+# really was a NOTIFY, and otherwise handle errors.
+
 import socket
 
 import dns.flags
