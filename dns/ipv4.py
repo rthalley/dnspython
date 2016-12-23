@@ -56,14 +56,14 @@ def inet_aton(text):
     try:
         bytes = [int(part) for part in parts]
         # Check for Python's major version
-        if version_info[0] < 3:
+        if(version_info[0] < 3):
             # In Python 2, the struct.pack() returns a String object,
             # while In Python 3, the struct.pack() returns a Bytes object
             return struct.pack('BBBB', *bytes)
         # In Python 3+, return the same String object as in Python 2
-        s = ''
+        s=''
         for byte in bytes:
-            s += chr(byte)
+            s+=chr(byte)
         return s
     except:
         raise dns.exception.SyntaxError
