@@ -19,7 +19,7 @@ import socket
 
 import dns.ipv4
 import dns.ipv6
-
+from sys import version_info
 
 # We assume that AF_INET is always defined.
 
@@ -101,7 +101,12 @@ def is_multicast(text):
     @rtype: bool
     """
     try:
-        first = ord(dns.ipv4.inet_aton(text)[0])
+        if version_info[0] < 3:
+            # In Python 2 the dns.ipv4.inet_aton() returns a String object
+            first = ord(dns.ipv4.inet_aton(text)[0])
+        else:
+            # In Python 3 the dns.ipv4.inet_aton() returns a Bytes object
+            first = dns.ipv4.inet_aton(text)[0]
         return first >= 224 and first <= 239
     except Exception:
         try:
