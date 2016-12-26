@@ -22,5 +22,5 @@ branches:
 install:
  - pip install unittest2 pylint pycrypto ecdsa idna
 script:
- - if [[ $TRAVIS_PYTHON_VERSION != '2.6' ]]; then make lint; fi
+ - if [[ ($TRAVIS_PYTHON_VERSION != '2.6') && ($TRAVIS_PYTHON_VERSION != '3.6') ]]; then make lint; fi
  - make test
