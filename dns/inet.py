@@ -20,6 +20,7 @@ import socket
 import dns.ipv4
 import dns.ipv6
 
+from ._compat import maybe_ord
 
 # We assume that AF_INET is always defined.
 
@@ -101,11 +102,11 @@ def is_multicast(text):
     @rtype: bool
     """
     try:
-        first = ord(dns.ipv4.inet_aton(text)[0])
+        first = maybe_ord(dns.ipv4.inet_aton(text)[0])
         return first >= 224 and first <= 239
     except Exception:
         try:
-            first = ord(dns.ipv6.inet_aton(text)[0])
+            first = maybe_ord(dns.ipv6.inet_aton(text)[0])
             return first == 255
         except Exception:
             raise ValueError
