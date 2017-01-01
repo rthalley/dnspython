@@ -7,4 +7,4 @@ Dnspython Manual
 
    py2vs3
    name
-
+   rdata
