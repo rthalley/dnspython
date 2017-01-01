@@ -34,11 +34,9 @@ the ``fullcompare()`` method.  For example ```www.dnspython.org.`` is
 a subdomain of ``dnspython.org.``.  See the method description for
 full details.
 
-:ref:`name-class`
+.. toctree::
 
-:ref:`name-make`
-
-:ref:`name-exceptions`
-     
-:ref:`name-codecs`
-     
+   name-class
+   name-make
+   name-exceptions
+   name-codecs
