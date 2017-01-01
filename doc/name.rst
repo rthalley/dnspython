@@ -1,7 +1,10 @@
+.. module:: dns.name
+.. _name:
+
 DNS Names
 =========
 
-Objects of the dns.name.Name class represent an immutable aomain name.
+Objects of the dns.name.Name class represent an immutable domain name.
 The representation is a tuple of labels, with each lable being a ``binary``
 object in the DNS wire format.  Typically names are not created by
 supplying the labels tuple directly, but rather by converting from DNS
