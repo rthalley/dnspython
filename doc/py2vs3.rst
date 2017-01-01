@@ -8,7 +8,7 @@ works for both.
 
 The most significant user-visible differences between the two are in
 the representations of binary data and textual data.  For Python 3,
-binary data stored using the `bytes` type, and textual data is stored
+binary data is stored using the `bytes` type, and textual data is stored
 using the `str` type.  For Python 2, binary data is stored using the
 `str` type, and textual data can use the `str` or `unicode` types.
 Because there is a single source tree, the documentation will refer to
