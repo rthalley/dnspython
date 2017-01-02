@@ -301,7 +301,7 @@ class Rdata(object):
 
 class GenericRdata(Rdata):
 
-    """Generate Rdata Class
+    """Generic Rdata Class
 
     This class is used for rdata types for which we have no better
     implementation.  It implements the DNS "unknown RRs" scheme.
