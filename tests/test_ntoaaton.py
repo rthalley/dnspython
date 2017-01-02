@@ -171,9 +171,9 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.failUnlessRaises(ValueError, bad)
 
     def test_good_v4_aton(self):
-        pairs = [(b'1.2.3.4', b'\x01\x02\x03\x04'),
-                 (b'255.255.255.255', b'\xff\xff\xff\xff'),
-                 (b'0.0.0.0', b'\x00\x00\x00\x00')]
+        pairs = [('1.2.3.4', b'\x01\x02\x03\x04'),
+                 ('255.255.255.255', b'\xff\xff\xff\xff'),
+                 ('0.0.0.0', b'\x00\x00\x00\x00')]
         for (t, b) in pairs:
             b1 = aton4(t)
             t1 = ntoa4(b1)

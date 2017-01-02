@@ -31,8 +31,8 @@ def inet_ntoa(address):
         raise dns.exception.SyntaxError
     if not isinstance(address, bytearray):
         address = bytearray(address)
-    return (u'%u.%u.%u.%u' % (address[0], address[1],
-                              address[2], address[3])).encode()
+    return ('%u.%u.%u.%u' % (address[0], address[1],
+                             address[2], address[3]))
 
 def inet_aton(text):
     """Convert an IPv4 address in text form to network form.

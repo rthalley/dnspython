@@ -22,7 +22,7 @@ import dns.exception
 import dns.ipv4
 from ._compat import xrange, binary_type, maybe_decode
 
-_leading_zero = re.compile(b'0+([0-9a-f]+)')
+_leading_zero = re.compile('0+([0-9a-f]+)')
 
 def inet_ntoa(address):
     """Convert a network format IPv6 address into text.
@@ -40,7 +40,7 @@ def inet_ntoa(address):
     i = 0
     l = len(hex)
     while i < l:
-        chunk = hex[i : i + 4]
+        chunk = maybe_decode(hex[i : i + 4])
         # strip leading zeros.  we do this with an re instead of
         # with lstrip() because lstrip() didn't support chars until
         # python 2.2.2
@@ -57,7 +57,7 @@ def inet_ntoa(address):
     start = -1
     last_was_zero = False
     for i in xrange(8):
-        if chunks[i] != b'0':
+        if chunks[i] != '0':
             if last_was_zero:
                 end = i
                 current_len = end - start
@@ -77,19 +77,19 @@ def inet_ntoa(address):
     if best_len > 1:
         if best_start == 0 and \
            (best_len == 6 or
-            best_len == 5 and chunks[5] == b'ffff'):
+            best_len == 5 and chunks[5] == 'ffff'):
             # We have an embedded IPv4 address
             if best_len == 6:
-                prefix = b'::'
+                prefix = '::'
             else:
-                prefix = b'::ffff:'
+                prefix = '::ffff:'
             hex = prefix + dns.ipv4.inet_ntoa(address[12:])
         else:
-            hex = b':'.join(chunks[:best_start]) + b'::' + \
-                  b':'.join(chunks[best_start + best_len:])
+            hex = ':'.join(chunks[:best_start]) + '::' + \
+                  ':'.join(chunks[best_start + best_len:])
     else:
-        hex = b':'.join(chunks)
-    return maybe_decode(hex)
+        hex = ':'.join(chunks)
+    return hex
 
 _v4_ending = re.compile(b'(.*):(\d+\.\d+\.\d+\.\d+)$')
 _colon_colon_start = re.compile(b'::.*')

@@ -764,7 +764,7 @@ class NameTestCase(unittest.TestCase):
 
     def testForwardIPv4(self):
         n = dns.name.from_text('1.0.0.127.in-addr.arpa.')
-        e = b'127.0.0.1'
+        e = '127.0.0.1'
         text = dns.reversename.to_address(n)
         self.assertEqual(text, e)
 

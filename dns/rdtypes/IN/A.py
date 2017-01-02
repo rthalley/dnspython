@@ -48,5 +48,5 @@ class A(dns.rdata.Rdata):
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = dns.ipv4.inet_ntoa(wire[current: current + rdlen]).decode()
+        address = dns.ipv4.inet_ntoa(wire[current: current + rdlen])
         return cls(rdclass, rdtype, address)

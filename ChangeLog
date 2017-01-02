@@ -1,7 +1,10 @@
 2017-01-02  Bob Halley  <halley@dnspython.org>
 
 	* dns/e164.py: to_e164() was returning binary instead of text,
-	  another Py2/Py3 merge bug.
+	  a Py2/Py3 merge bug.
+
+	* The IPv4 and IPv6 inet_ntoa() functions were returning binary
+	  instead of text, a Py2/Py3 merge bug.
 
 2017-01-01  Bob Halley  <halley@dnspython.org>
 

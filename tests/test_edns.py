@@ -44,7 +44,7 @@ class OptionTestCase(unittest.TestCase):
         opt = dns.edns.option_from_wire(8, b'\x00\x01\x14\x00\x01\x02\xf0',
                                         0, 7)
         self.assertEqual(opt.otype, dns.edns.ECS)
-        self.assertEqual(opt.address, b'1.2.240.0')
+        self.assertEqual(opt.address, '1.2.240.0')
         self.assertEqual(opt.srclen, 20)
         self.assertEqual(opt.scopelen, 0)
 
