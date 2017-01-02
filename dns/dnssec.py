@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2007, 2009, 2011 Nominum, Inc.
+# Copyright (C) 2003-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -31,12 +31,10 @@ from ._compat import string_types
 
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
-
     """The DNSSEC algorithm is not supported."""
 
 
 class ValidationFailure(dns.exception.DNSException):
-
     """The DNSSEC signature is invalid."""
 
 RSAMD5 = 1
@@ -79,8 +77,10 @@ _algorithm_by_value = dict((y, x) for x, y in _algorithm_by_text.items())
 
 
 def algorithm_from_text(text):
-    """Convert text into a DNSSEC algorithm value
-    @rtype: int"""
+    """Convert text into a DNSSEC algorithm value.
+
+    Returns an ``int``.
+    """
 
     value = _algorithm_by_text.get(text.upper())
     if value is None:
@@ -90,7 +90,9 @@ def algorithm_from_text(text):
 
 def algorithm_to_text(value):
     """Convert a DNSSEC algorithm value to text
-    @rtype: string"""
+
+    Returns a ``str``.
+    """
 
     text = _algorithm_by_value.get(value)
     if text is None:
@@ -105,6 +107,14 @@ def _to_rdata(record, origin):
 
 
 def key_id(key, origin=None):
+    """Return the key id (a 16-bit number) for the specified key.
+
+    Note the *origin* parameter of this function is historical and
+    is not needed.
+
+    Returns an ``int`` between 0 and 65535.
+    """
+
     rdata = _to_rdata(key, origin)
     rdata = bytearray(rdata)
     if key.algorithm == RSAMD5:
@@ -121,6 +131,22 @@ def key_id(key, origin=None):
 
 
 def make_ds(name, key, algorithm, origin=None):
+    """Create a DS record for a DNSSEC key.
+
+    *name* is the owner name of the DS record.
+
+    *key* is a ``dns.rdtypes.ANY.DNSKEY``.
+
+    *algorithm* is a string describing which hash algorithm to use.  The
+    currently supported hashes are "SHA1" and "SHA256".  Case does not
+    matter for these strings.
+
+    *origin* is a ``dns.name.Name`` and will be used as the origin
+    if *key* is a relative name.
+
+    Returns a ``dns.rdtypes.ANY.DS``.
+    """
+
     if algorithm.upper() == 'SHA1':
         dsalg = 1
         hash = dns.hash.hashes['SHA1']()
@@ -232,22 +258,22 @@ def _make_algorithm_id(algorithm):
 def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     """Validate an RRset against a single signature rdata
 
-    The owner name of the rrsig is assumed to be the same as the owner name
-    of the rrset.
+    The owner name of *rrsig* is assumed to be the same as the owner name
+    of *rrset*.
 
-    @param rrset: The RRset to validate
-    @type rrset: dns.rrset.RRset or (dns.name.Name, dns.rdataset.Rdataset)
-    tuple
-    @param rrsig: The signature rdata
-    @type rrsig: dns.rrset.Rdata
-    @param keys: The key dictionary.
-    @type keys: a dictionary keyed by dns.name.Name with node or rdataset
-    values
-    @param origin: The origin to use for relative names
-    @type origin: dns.name.Name or None
-    @param now: The time to use when validating the signatures.  The default
-    is the current time.
-    @type now: int
+    *rrset* is the RRset to validate.  It can be a ``dns.rrset.RRset`` or
+    a ``(dns.name.Name, dns.rdataset.Rdataset)`` tuple.
+
+    *rrsig* is a ``dns.rrset.Rdata``, the signature to validate.
+
+    *keys* is the key dictionary, used to find the DNSKEY associated with
+    a given name.  The dictionary is keyed by a ``dns.name.Name``, and has
+    ``dns.node.Node`` or ``dns.rdataset.Rdataset`` values.
+
+    *origin* is a ``dns.name.Name``, the origin to use for relative names.
+
+    *now* is an ``int``, the time to use when validating the signatures,
+    in seconds since the UNIX epoch.  The default is the current time.
     """
 
     if isinstance(origin, string_types):
@@ -374,22 +400,22 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
 
 def _validate(rrset, rrsigset, keys, origin=None, now=None):
-    """Validate an RRset
+    """Validate an RRset.
 
-    @param rrset: The RRset to validate
-    @type rrset: dns.rrset.RRset or (dns.name.Name, dns.rdataset.Rdataset)
-    tuple
-    @param rrsigset: The signature RRset
-    @type rrsigset: dns.rrset.RRset or (dns.name.Name, dns.rdataset.Rdataset)
-    tuple
-    @param keys: The key dictionary.
-    @type keys: a dictionary keyed by dns.name.Name with node or rdataset
-    values
-    @param origin: The origin to use for relative names
-    @type origin: dns.name.Name or None
-    @param now: The time to use when validating the signatures.  The default
-    is the current time.
-    @type now: int
+    *rrset* is the RRset to validate.  It can be a ``dns.rrset.RRset`` or
+    a ``(dns.name.Name, dns.rdataset.Rdataset)`` tuple.
+
+    *rrsigset* is the signature RRset to be validated.  It can be a
+    ``dns.rrset.RRset`` or a ``(dns.name.Name, dns.rdataset.Rdataset)`` tuple.
+
+    *keys* is the key dictionary, used to find the DNSKEY associated with
+    a given name.  The dictionary is keyed by a ``dns.name.Name``, and has
+    ``dns.node.Node`` or ``dns.rdataset.Rdataset`` values.
+
+    *origin* is a ``dns.name.Name``, the origin to use for relative names.
+
+    *now* is an ``int``, the time to use when validating the signatures,
+    in seconds since the UNIX epoch.  The default is the current time.
     """
 
     if isinstance(origin, string_types):
