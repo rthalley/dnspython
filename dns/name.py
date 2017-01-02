@@ -325,8 +325,7 @@ class Name(object):
     __slots__ = ['labels']
 
     def __init__(self, labels):
-        """Initialize a domain name from a list of labels.
-        *labels* is any iterable whose values are ``text`` or ``binary``.
+        """*labels* is any iterable whose values are ``text`` or ``binary``.
         """
 
         labels = [_maybe_convert_to_binary(x) for x in labels]
