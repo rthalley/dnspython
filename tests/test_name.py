@@ -782,7 +782,7 @@ class NameTestCase(unittest.TestCase):
 
     def testEnumToE164(self):
         n = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')
-        e = b'+16505551212'
+        e = '+16505551212'
         text = dns.e164.to_e164(n)
         self.assertEqual(text, e)
 

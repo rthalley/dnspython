@@ -1,3 +1,8 @@
+2017-01-02  Bob Halley  <halley@dnspython.org>
+
+	* dns/e164.py: to_e164() was returning binary instead of text,
+	  another Py2/Py3 merge bug.
+
 2017-01-01  Bob Halley  <halley@dnspython.org>
 
 	* dns/rdatatype.py: CNAME is now a singleton, as the reasons
