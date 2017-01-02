@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2011 Nominum, Inc.
+# Copyright (C) 2009-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -29,13 +29,12 @@ ECS = 8
 
 class Option(object):
 
-    """Base class for all EDNS option types.
-    """
+    """Base class for all EDNS option types."""
 
     def __init__(self, otype):
         """Initialize an option.
-        @param otype: The rdata type
-        @type otype: int
+
+        *otype*, an ``int``, is the option type.
         """
         self.otype = otype
 
@@ -46,23 +45,26 @@ class Option(object):
 
     @classmethod
     def from_wire(cls, otype, wire, current, olen):
-        """Build an EDNS option object from wire format
+        """Build an EDNS option object from wire format.
 
-        @param otype: The option type
-        @type otype: int
-        @param wire: The wire-format message
-        @type wire: string
-        @param current: The offset in wire of the beginning of the rdata.
-        @type current: int
-        @param olen: The length of the wire-format option data
-        @type olen: int
-        @rtype: dns.edns.Option instance"""
+        *otype*, an ``int``, is the option type.
+
+        *wire*, a ``binary``, is the wire-format message.
+
+        *current*, an ``int``, is the offset in *wire* of the beginning
+        of the rdata.
+
+        *olen*, an ``int``, is the length of the wire-format option data
+
+        Returns a ``dns.edns.Option``.
+        """
+
         raise NotImplementedError
 
     def _cmp(self, other):
         """Compare an EDNS option with another option of the same type.
-        Return < 0 if self < other, 0 if self == other,
-        and > 0 if self > other.
+
+        Returns < 0 if < *other*, 0 if == *other*, and > 0 if > *other*.
         """
         raise NotImplementedError
 
@@ -107,7 +109,7 @@ class Option(object):
 
 class GenericOption(Option):
 
-    """Generate Rdata Class
+    """Generic Option Class
 
     This class is used for EDNS option types for which we have no better
     implementation.
@@ -139,18 +141,16 @@ class ECSOption(Option):
     """EDNS Client Subnet (ECS, RFC7871)"""
 
     def __init__(self, address, srclen=None, scopelen=0):
-        """Generate an ECS option
+        """*address*, a ``text``, is the client address information.
 
-        @ivar address: client address information
-        @type address: string
-        @ivar srclen: prefix length, leftmost number of bits of the address
-        to be used for the lookup. Sent by client, mirrored by server in
-        responses. If not provided at init, will use /24 for v4 and /56 for v6
-        @type srclen: int
-        @ivar scopelen: prefix length, leftmost number of bits of the address
-        that the response covers. 0 in queries, set by server.
-        @type scopelen: int
+        *srclen*, an ``int``, the source prefix length, which is the
+        leftmost number of bits of the address to be used for the
+        lookup.  The default is 24 for IPv4 and 56 for IPv6.
+
+        *scopelen*, an ``int``, the scope prefix length.  This value
+        must be 0 in queries, and should be set in responses.
         """
+
         super(ECSOption, self).__init__(ECS)
         af = dns.inet.af_for_address(address)
 
@@ -165,9 +165,9 @@ class ECSOption(Option):
         else:
             raise ValueError('Bad ip family')
 
+        self.address = address
         self.srclen = srclen
         self.scopelen = scopelen
-        self.address = address
 
         addrdata = dns.inet.inet_pton(af, address)
         nbytes = int(math.ceil(srclen/8.0))
@@ -185,14 +185,12 @@ class ECSOption(Option):
                                        self.scopelen)
 
     def to_wire(self, file):
-        """Opt type and len are handled by renderer"""
         file.write(struct.pack('!H', self.family))
         file.write(struct.pack('!BB', self.srclen, self.scopelen))
         file.write(self.addrdata)
 
     @classmethod
     def from_wire(cls, otype, wire, cur, olen):
-        """Opt type and len are handled by Message.from_wire"""
         family, src, scope = struct.unpack('!HBB', wire[cur:cur+4])
         cur += 4
 
@@ -229,17 +227,19 @@ def get_option_class(otype):
 
 
 def option_from_wire(otype, wire, current, olen):
-    """Build an EDNS option object from wire format
+    """Build an EDNS option object from wire format.
 
-    @param otype: The option type
-    @type otype: int
-    @param wire: The wire-format message
-    @type wire: string
-    @param current: The offset in wire of the beginning of the rdata.
-    @type current: int
-    @param olen: The length of the wire-format option data
-    @type olen: int
-    @rtype: dns.edns.Option instance"""
+    *otype*, an ``int``, is the option type.
+
+    *wire*, a ``binary``, is the wire-format message.
+
+    *current*, an ``int``, is the offset in *wire* of the beginning
+    of the rdata.
+
+    *olen*, an ``int``, is the length of the wire-format option data
+
+    Returns an instance of a subclass of ``dns.edns.Option``.
+    """
 
     cls = get_option_class(otype)
     return cls.from_wire(otype, wire, current, olen)
