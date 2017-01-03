@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2003-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -25,12 +25,12 @@ from ._compat import xrange, binary_type, maybe_decode
 _leading_zero = re.compile('0+([0-9a-f]+)')
 
 def inet_ntoa(address):
-    """Convert a network format IPv6 address into text.
+    """Convert an IPv6 address in binary form to text form.
 
-    @param address: the binary address
-    @type address: string
-    @rtype: string
-    @raises ValueError: the address isn't 16 bytes long
+    *address*, a ``binary``, the IPv6 address in binary form.
+
+    Raises ``ValueError`` if the address isn't 16 bytes long.
+    Returns a ``text``.
     """
 
     if len(address) != 16:
@@ -96,12 +96,11 @@ _colon_colon_start = re.compile(b'::.*')
 _colon_colon_end = re.compile(b'.*::$')
 
 def inet_aton(text):
-    """Convert a text format IPv6 address into network format.
+    """Convert an IPv6 address in text form to binary form.
 
-    @param text: the textual address
-    @type text: string
-    @rtype: string
-    @raises dns.exception.SyntaxError: the text was not properly formatted
+    *text*, a ``text``, the IPv6 address in textual form.
+
+    Returns a ``binary``.
     """
 
     #
@@ -169,4 +168,11 @@ def inet_aton(text):
 _mapped_prefix = b'\x00' * 10 + b'\xff\xff'
 
 def is_mapped(address):
+    """Is the specified address a mapped IPv4 address?
+
+    *address*, a ``binary`` is an IPv6 address in binary form.
+
+    Returns a ``bool``.
+    """
+
     return address.startswith(_mapped_prefix)

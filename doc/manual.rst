@@ -9,3 +9,4 @@ Dnspython Manual
    name
    rdata
    exceptions
+   utilities
