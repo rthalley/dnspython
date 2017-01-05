@@ -38,5 +38,4 @@ full details.
 
    name-class
    name-make
-   name-exceptions
    name-codecs
