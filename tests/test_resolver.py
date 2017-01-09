@@ -134,6 +134,26 @@ class BaseResolverTests(unittest.TestCase):
         self.failUnless(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
                         is None)
 
+    def testIndexErrorOnEmptyRRsetAccess(self):
+        def bad():
+            message = dns.message.from_text(message_text)
+            name = dns.name.from_text('example.')
+            answer = dns.resolver.Answer(name, dns.rdatatype.MX,
+                                         dns.rdataclass.IN, message,
+                                         False)
+            return answer[0]
+        self.failUnlessRaises(IndexError, bad)
+
+    def testIndexErrorOnEmptyRRsetDelete(self):
+        def bad():
+            message = dns.message.from_text(message_text)
+            name = dns.name.from_text('example.')
+            answer = dns.resolver.Answer(name, dns.rdatatype.MX,
+                                         dns.rdataclass.IN, message,
+                                         False)
+            del answer[0]
+        self.failUnlessRaises(IndexError, bad)
+
     @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName1(self):
         name = dns.name.from_text('www.dnspython.org.')

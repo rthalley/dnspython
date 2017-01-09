@@ -278,9 +278,13 @@ class Answer(object):
         return self.rrset and iter(self.rrset) or iter(tuple())
 
     def __getitem__(self, i):
+        if self.rrset is None:
+            raise IndexError
         return self.rrset[i]
 
     def __delitem__(self, i):
+        if self.rrset is None:
+            raise IndexError
         del self.rrset[i]
 
 
