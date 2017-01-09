@@ -18,15 +18,22 @@
 # Standard DNS flags
 
 QR = 0x8000
+# Authoritative Answer
 AA = 0x0400
+# Truncated Response
 TC = 0x0200
+# Recursion Desired
 RD = 0x0100
+# Recursion Available
 RA = 0x0080
+# Authentic Data
 AD = 0x0020
+# Checking Disabled
 CD = 0x0010
 
 # EDNS flags
 
+# DNSSEC answer OK
 DO = 0x8000
 
 _by_text = {
