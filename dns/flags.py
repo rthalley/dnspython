@@ -1,4 +1,4 @@
-# Copyright (C) 2001-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2001-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -17,23 +17,24 @@
 
 # Standard DNS flags
 
+#: Query Response
 QR = 0x8000
-# Authoritative Answer
+#: Authoritative Answer
 AA = 0x0400
-# Truncated Response
+#: Truncated Response
 TC = 0x0200
-# Recursion Desired
+#: Recursion Desired
 RD = 0x0100
-# Recursion Available
+#: Recursion Available
 RA = 0x0080
-# Authentic Data
+#: Authentic Data
 AD = 0x0020
-# Checking Disabled
+#: Checking Disabled
 CD = 0x0010
 
 # EDNS flags
 
-# DNSSEC answer OK
+#: DNSSEC answer OK
 DO = 0x8000
 
 _by_text = {
