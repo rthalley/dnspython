@@ -285,7 +285,7 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas):
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified list of rdatas in text format.
 
-    @rtype: dns.rdataset.Rdataset object
+    Returns a ``dns.rdataset.Rdataset`` object.
     """
 
     if isinstance(rdclass, string_types):
@@ -304,7 +304,7 @@ def from_text(rdclass, rdtype, ttl, *text_rdatas):
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified rdatas in text format.
 
-    @rtype: dns.rdataset.Rdataset object
+    Returns a ``dns.rdataset.Rdataset`` object.
     """
 
     return from_text_list(rdclass, rdtype, ttl, text_rdatas)
@@ -314,7 +314,7 @@ def from_rdata_list(ttl, rdatas):
     """Create an rdataset with the specified TTL, and with
     the specified list of rdata objects.
 
-    @rtype: dns.rdataset.Rdataset object
+    Returns a ``dns.rdataset.Rdataset`` object.
     """
 
     if len(rdatas) == 0:
@@ -332,7 +332,7 @@ def from_rdata(ttl, *rdatas):
     """Create an rdataset with the specified TTL, and with
     the specified rdata objects.
 
-    @rtype: dns.rdataset.Rdataset object
+    Returns a ``dns.rdataset.Rdataset`` object.
     """
 
     return from_rdata_list(ttl, rdatas)

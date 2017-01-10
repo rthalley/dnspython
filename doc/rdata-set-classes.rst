@@ -1,7 +1,7 @@
 .. _rdata-set-classes:
 
-DNS Rdataset Class
-==================
+Rdataset and RRset Classes
+==========================
 
 An ``Rdataset`` is a set of ``Rdata`` objects which all have the same
 rdatatype, rdataclass, and covered type.  ``Rdatasets`` also have a

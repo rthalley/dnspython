@@ -124,7 +124,7 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
     """Create an RRset with the specified name, TTL, class, and type, and with
     the specified list of rdatas in text format.
 
-    @rtype: dns.rrset.RRset object
+    Returns a ``dns.rrset.RRset`` object.
     """
 
     if isinstance(name, string_types):
@@ -145,7 +145,7 @@ def from_text(name, ttl, rdclass, rdtype, *text_rdatas):
     """Create an RRset with the specified name, TTL, class, and type and with
     the specified rdatas in text format.
 
-    @rtype: dns.rrset.RRset object
+    Returns a ``dns.rrset.RRset`` object.
     """
 
     return from_text_list(name, ttl, rdclass, rdtype, text_rdatas)
@@ -155,7 +155,7 @@ def from_rdata_list(name, ttl, rdatas, idna_codec=None):
     """Create an RRset with the specified name and TTL, and with
     the specified list of rdata objects.
 
-    @rtype: dns.rrset.RRset object
+    Returns a ``dns.rrset.RRset`` object.
     """
 
     if isinstance(name, string_types):
@@ -176,7 +176,7 @@ def from_rdata(name, ttl, *rdatas):
     """Create an RRset with the specified name and TTL, and with
     the specified rdata objects.
 
-    @rtype: dns.rrset.RRset object
+    Returns a ``dns.rrset.RRset`` object.
     """
 
     return from_rdata_list(name, ttl, rdatas)

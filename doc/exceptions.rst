@@ -1,13 +1,16 @@
 .. _exceptions:
 
+Exceptions
+==========
+
 Common Exceptions
-=================
+-----------------
 
 .. automodule:: dns.exception
    :members:
 
 dns.name Exceptions
-===================
+-------------------
 
 .. autoexception:: dns.name.AbsoluteConcatenation
 .. autoexception:: dns.name.BadEscape
@@ -21,8 +24,13 @@ dns.name Exceptions
 .. autoexception:: dns.name.NoIDNA2008
 .. autoexception:: dns.name.NoParent
 
+dns.rcode Exceptions
+--------------------
+
+.. autoexception:: dns.rcode.UnknownRcode
+
 dns.rdataset Exceptions
-=======================
+-----------------------
                    
 .. autoexception:: dns.rdataset.DifferingCovers
 .. autoexception:: dns.rdataset.IncompatibleTypes
