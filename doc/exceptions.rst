@@ -9,6 +9,16 @@ Common Exceptions
 .. automodule:: dns.exception
    :members:
 
+dns.message Exceptions
+----------------------
+
+.. autoexception:: dns.message.BadEDNS
+.. autoexception:: dns.message.BadTSIG
+.. autoexception:: dns.message.ShortHeader
+.. autoexception:: dns.message.TrailingJunk
+.. autoexception:: dns.message.UnknownHeaderField
+.. autoexception:: dns.message.UnknownTSIGKey
+
 dns.name Exceptions
 -------------------
 
