@@ -764,8 +764,8 @@ def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
     *keyring*, a ``dict``, the keyring to use if the message is signed.
 
     *request_mac*, a ``binary``.  If the message is a response to a
-    *TSIG-signed request, request_mac* should be set to the MAC of
-    *that request.
+    TSIG-signed request, *request_mac* should be set to the MAC of
+    that request.
 
     *xfr*, a ``bool``, should be set to ``True`` if this message is part of
     a zone transfer.
@@ -1071,7 +1071,7 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
 
     *rdtype*, an ``int`` or ``text``, the desired rdata type.
 
-    *rdclass*, an ``int`` or ``text`,  the desired rdata class; the default
+    *rdclass*, an ``int`` or ``text``,  the desired rdata class; the default
     is class IN.
 
     *use_edns*, an ``int``, ``bool`` or ``None``.  The EDNS level to use; the
