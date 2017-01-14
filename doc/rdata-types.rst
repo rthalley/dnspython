@@ -17,6 +17,10 @@ module does the same for rdata types.  Examples of the constants are::
 
 .. automodule:: dns.rdataclass
    :members:
-  
+
 .. automodule:: dns.rdatatype
    :members:
+
+.. toctree::
+   rdataclass-list
+   rdatatype-list
