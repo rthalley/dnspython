@@ -1,21 +1,21 @@
 Rdataclasses
 ============
 
-.. py:data::
-   ANY = 255
-.. py:data::
-   CH = 3
-.. py:data::
-   CHAOS = 3
-.. py:data::
-   HESIOD = 4
-.. py:data::
-   HS = 4
-.. py:data::
-   IN = 1
-.. py:data::
-   INTERNET = 1
-.. py:data::
-   NONE = 254
-.. py:data::
-   RESERVED0 = 0
+.. py:data:: dns.rdataclass.ANY
+   :annotation: = 255
+.. py:data:: dns.rdataclass.CH
+   :annotation: = 3
+.. py:data:: dns.rdataclass.CHAOS
+   :annotation: = 3
+.. py:data:: dns.rdataclass.HESIOD
+   :annotation: = 4
+.. py:data:: dns.rdataclass.HS
+   :annotation: = 4
+.. py:data:: dns.rdataclass.IN
+   :annotation: = 1
+.. py:data:: dns.rdataclass.INTERNET
+   :annotation: = 1
+.. py:data:: dns.rdataclass.NONE
+   :annotation: = 254
+.. py:data:: dns.rdataclass.RESERVED0
+   :annotation: = 0
