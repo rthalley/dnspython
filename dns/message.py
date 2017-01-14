@@ -503,7 +503,7 @@ class Message(object):
 
         *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS
         options.
-o        """
+        """
 
         if edns is None or edns is False:
             edns = -1
