@@ -1,4 +1,4 @@
-.. module:: dns.messages
+.. module:: dns.message
 .. _message:
 
 DNS Messages
