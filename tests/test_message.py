@@ -22,6 +22,9 @@ import binascii
 import dns.exception
 import dns.flags
 import dns.message
+import dns.name
+import dns.rdataclass
+import dns.rdatatype
 from dns._compat import xrange
 
 query_text = """id 1234
@@ -198,6 +201,14 @@ class MessageTestCase(unittest.TestCase):
     def test_SettingOptionsImpliesEDNS(self):
         m = dns.message.make_query('foo', 'A', options=[])
         self.failUnless(m.edns == 0)
+
+    def test_FindRRset(self):
+        a = dns.message.from_text(answer_text)
+        n = dns.name.from_text('dnspython.org.')
+        rrs1 = a.find_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        rrs2 = a.find_rrset(dns.message.ANSWER, n, dns.rdataclass.IN,
+                            dns.rdatatype.SOA)
+        self.failUnless(rrs1 == rrs2)
 
 if __name__ == '__main__':
     unittest.main()

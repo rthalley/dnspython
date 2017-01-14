@@ -66,10 +66,20 @@ class UnknownTSIGKey(dns.exception.DNSException):
     """A TSIG with an unknown key was received."""
 
 
-class Message(object):
-    """A DNS message.
+#: The question section number
+QUESTION = 0
 
-    """
+#: The answer section number
+ANSWER = 1
+
+#: The authority section number
+AUTHORITY = 2
+
+#: The additional section number
+ADDITIONAL = 3
+
+class Message(object):
+    """A DNS message."""
 
     def __init__(self, id=None):
         if id is None:
@@ -112,10 +122,10 @@ class Message(object):
     def to_text(self, origin=None, relativize=True, **kw):
         """Convert the message to text.
 
-        The I{origin}, I{relativize}, and any other keyword
-        arguments are passed to the rrset to_wire() method.
+        The *origin*, *relativize*, and any other keyword
+        arguments are passed to the RRset ``to_wire()`` method.
 
-        @rtype: string
+        Returns a ``text``.
         """
 
         s = StringIO()
@@ -169,7 +179,10 @@ class Message(object):
     def __eq__(self, other):
         """Two messages are equal if they have the same content in the
         header, question, answer, and authority sections.
-        @rtype: bool"""
+
+        Returns a ``bool``.
+        """
+
         if not isinstance(other, Message):
             return False
         if self.id != other.id:
@@ -197,13 +210,14 @@ class Message(object):
         return True
 
     def __ne__(self, other):
-        """Are two messages not equal?
-        @rtype: bool"""
         return not self.__eq__(other)
 
     def is_response(self, other):
-        """Is other a response to self?
-        @rtype: bool"""
+        """Is this message a response to *other*?
+
+        Returns a ``bool``.
+        """
+
         if other.flags & dns.flags.QR == 0 or \
            self.id != other.id or \
            dns.opcode.from_flags(self.flags) != \
@@ -223,14 +237,48 @@ class Message(object):
         return True
 
     def section_number(self, section):
+        """Return the "section number" of the specified section for use
+        in indexing.  The question section is 0, the answer section is 1,
+        the authority section is 2, and the additional section is 3.
+
+        *section* is one of the section attributes of this message.
+
+        Raises ``ValueError`` if the section isn't known.
+
+        Returns an ``int``.
+        """
+
         if section is self.question:
-            return 0
+            return QUESTION
         elif section is self.answer:
-            return 1
+            return ANSWER
         elif section is self.authority:
-            return 2
+            return AUTHORITY
         elif section is self.additional:
-            return 3
+            return ADDITIONAL
+        else:
+            raise ValueError('unknown section')
+
+    def section_from_number(self, number):
+        """Return the "section number" of the specified section for use
+        in indexing.  The question section is 0, the answer section is 1,
+        the authority section is 2, and the additional section is 3.
+
+        *section* is one of the section attributes of this message.
+
+        Raises ``ValueError`` if the section isn't known.
+
+        Returns an ``int``.
+        """
+
+        if number == QUESTION:
+            return self.question
+        elif number == ANSWER:
+            return self.answer
+        elif number == AUTHORITY:
+            return self.authority
+        elif number == ADDITIONAL:
+            return self.additional
         else:
             raise ValueError('unknown section')
 
@@ -239,30 +287,45 @@ class Message(object):
                    force_unique=False):
         """Find the RRset with the given attributes in the specified section.
 
-        @param section: the section of the message to look in, e.g.
-        self.answer.
-        @type section: list of dns.rrset.RRset objects
-        @param name: the name of the RRset
-        @type name: dns.name.Name object
-        @param rdclass: the class of the RRset
-        @type rdclass: int
-        @param rdtype: the type of the RRset
-        @type rdtype: int
-        @param covers: the covers value of the RRset
-        @type covers: int
-        @param deleting: the deleting value of the RRset
-        @type deleting: int
-        @param create: If True, create the RRset if it is not found.
-        The created RRset is appended to I{section}.
-        @type create: bool
-        @param force_unique: If True and create is also True, create a
-        new RRset regardless of whether a matching RRset exists already.
-        @type force_unique: bool
-        @raises KeyError: the RRset was not found and create was False
-        @rtype: dns.rrset.RRset object"""
+        *section*, an ``int`` section number, or one of the section
+        attributes of this message.  This specifies the
+        the section of the message to search.  For example::
 
-        key = (self.section_number(section),
-               name, rdclass, rdtype, covers, deleting)
+            my_message.find_rrset(my_message.answer, name, rdclass, rdtype)
+            my_message.find_rrset(dns.message.ANSWER, name, rdclass, rdtype)
+
+        *name*, a ``dns.name.Name``, the name of the RRset.
+
+        *rdclass*, an ``int``, the class of the RRset.
+
+        *rdtype*, an ``int``, the type of the RRset.
+
+        *covers*, an ``int`` or ``None``, the covers value of the RRset.
+        The default is ``None``.
+
+        *deleting*, an ``int`` or ``None``, the deleting value of the RRset.
+        The default is ``None``.
+
+        *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
+        The created RRset is appended to *section*.
+
+        *force_unique*, a ``bool``.  If ``True`` and *create* is also ``True``,
+        create a new RRset regardless of whether a matching RRset exists
+        already.  The default is ``False``.  This is useful when creating
+        DDNS Update messages, as order matters for them.
+
+        Raises ``KeyError`` if the RRset was not found and create was
+        ``False``.
+
+        Returns a ``dns.rrset.RRset object``.
+        """
+
+        if isinstance(section, int):
+            section_number = section
+            section = self.section_from_number(section_number)
+        else:
+            section_number = self.section_number(section)
+        key = (section_number, name, rdclass, rdtype, covers, deleting)
         if not force_unique:
             if self.index is not None:
                 rrset = self.index.get(key)
@@ -287,26 +350,35 @@ class Message(object):
 
         If the RRset is not found, None is returned.
 
-        @param section: the section of the message to look in, e.g.
-        self.answer.
-        @type section: list of dns.rrset.RRset objects
-        @param name: the name of the RRset
-        @type name: dns.name.Name object
-        @param rdclass: the class of the RRset
-        @type rdclass: int
-        @param rdtype: the type of the RRset
-        @type rdtype: int
-        @param covers: the covers value of the RRset
-        @type covers: int
-        @param deleting: the deleting value of the RRset
-        @type deleting: int
-        @param create: If True, create the RRset if it is not found.
-        The created RRset is appended to I{section}.
-        @type create: bool
-        @param force_unique: If True and create is also True, create a
-        new RRset regardless of whether a matching RRset exists already.
-        @type force_unique: bool
-        @rtype: dns.rrset.RRset object or None"""
+        *section*, an ``int`` section number, or one of the section
+        attributes of this message.  This specifies the
+        the section of the message to search.  For example::
+
+            my_message.get_rrset(my_message.answer, name, rdclass, rdtype)
+            my_message.get_rrset(dns.message.ANSWER, name, rdclass, rdtype)
+
+        *name*, a ``dns.name.Name``, the name of the RRset.
+
+        *rdclass*, an ``int``, the class of the RRset.
+
+        *rdtype*, an ``int``, the type of the RRset.
+
+        *covers*, an ``int`` or ``None``, the covers value of the RRset.
+        The default is ``None``.
+
+        *deleting*, an ``int`` or ``None``, the deleting value of the RRset.
+        The default is ``None``.
+
+        *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
+        The created RRset is appended to *section*.
+
+        *force_unique*, a ``bool``.  If ``True`` and *create* is also ``True``,
+        create a new RRset regardless of whether a matching RRset exists
+        already.  The default is ``False``.  This is useful when creating
+        DDNS Update messages, as order matters for them.
+
+        Returns a ``dns.rrset.RRset object`` or ``None``.
+        """
 
         try:
             rrset = self.find_rrset(section, name, rdclass, rdtype, covers,
@@ -319,17 +391,19 @@ class Message(object):
         """Return a string containing the message in DNS compressed wire
         format.
 
-        Additional keyword arguments are passed to the rrset to_wire()
+        Additional keyword arguments are passed to the RRset ``to_wire()``
         method.
 
-        @param origin: The origin to be appended to any relative names.
-        @type origin: dns.name.Name object
-        @param max_size: The maximum size of the wire format output; default
-        is 0, which means 'the message's request payload, if nonzero, or
-        65536'.
-        @type max_size: int
-        @raises dns.exception.TooBig: max_size was exceeded
-        @rtype: string
+        *origin*, a ``dns.name.Name`` or ``None``, the origin to be appended
+        to any relative names.
+
+        *max_size*, an ``int``, the maximum size of the wire format
+        output; default is 0, which means "the message's request
+        payload, if nonzero, or 65535".
+
+        Raises ``dns.exception.TooBig`` if *max_size* was exceeded.
+
+        Returns a ``binary``.
         """
 
         if max_size == 0:
@@ -362,30 +436,34 @@ class Message(object):
         return r.get_wire()
 
     def use_tsig(self, keyring, keyname=None, fudge=300,
-                 original_id=None, tsig_error=0, other_data='',
+                 original_id=None, tsig_error=0, other_data=b'',
                  algorithm=dns.tsig.default_algorithm):
         """When sending, a TSIG signature using the specified keyring
         and keyname should be added.
 
-        @param keyring: The TSIG keyring to use; defaults to None.
-        @type keyring: dict
-        @param keyname: The name of the TSIG key to use; defaults to None.
-        The key must be defined in the keyring.  If a keyring is specified
-        but a keyname is not, then the key used will be the first key in the
-        keyring.  Note that the order of keys in a dictionary is not defined,
-        so applications should supply a keyname when a keyring is used, unless
-        they know the keyring contains only one key.
-        @type keyname: dns.name.Name or string
-        @param fudge: TSIG time fudge; default is 300 seconds.
-        @type fudge: int
-        @param original_id: TSIG original id; defaults to the message's id
-        @type original_id: int
-        @param tsig_error: TSIG error code; default is 0.
-        @type tsig_error: int
-        @param other_data: TSIG other data.
-        @type other_data: string
-        @param algorithm: The TSIG algorithm to use; defaults to
-        dns.tsig.default_algorithm
+        See the documentation of the Message class for a complete
+        description of the keyring dictionary.
+
+        *keyring*, a ``dict``, the TSIG keyring to use.  If a
+        *keyring* is specified but a *keyname* is not, then the key
+        used will be the first key in the *keyring*.  Note that the
+        order of keys in a dictionary is not defined, so applications
+        should supply a keyname when a keyring is used, unless they
+        know the keyring contains only one key.
+
+        *keyname*, a ``dns.name.Name`` or ``None``, the name of the TSIG key
+        to use; defaults to ``None``. The key must be defined in the keyring.
+
+        *fudge*, an ``int``, the TSIG time fudge.
+
+        *original_id*, an ``int``, the TSIG original id.  If ``None``,
+        the message's id is used.
+
+        *tsig_error*, an ``int``, the TSIG error code.
+
+        *other_data*, a ``binary``, the TSIG other data.
+
+        *algorithm*, a ``dns.name.Name``, the TSIG algorithm to use.
         """
 
         self.keyring = keyring
@@ -407,23 +485,26 @@ class Message(object):
     def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None,
                  options=None):
         """Configure EDNS behavior.
-        @param edns: The EDNS level to use.  Specifying None, False, or -1
-        means 'do not use EDNS', and in this case the other parameters are
-        ignored.  Specifying True is equivalent to specifying 0, i.e. 'use
-        EDNS0'.
-        @type edns: int or bool or None
-        @param ednsflags: EDNS flag values.
-        @type ednsflags: int
-        @param payload: The EDNS sender's payload field, which is the maximum
-        size of UDP datagram the sender can handle.
-        @type payload: int
-        @param request_payload: The EDNS payload size to use when sending
-        this message.  If not specified, defaults to the value of payload.
-        @type request_payload: int or None
-        @param options: The EDNS options
-        @type options: None or list of dns.edns.Option objects
-        @see: RFC 2671
-        """
+
+        *edns*, an ``int``, is the EDNS level to use.  Specifying
+        ``None``, ``False``, or ``-1`` means "do not use EDNS", and in this case
+        the other parameters are ignored.  Specifying ``True`` is
+        equivalent to specifying 0, i.e. "use EDNS0".
+
+        *ednsflags*, an ``int``, the EDNS flag values.
+
+        *payload*, an ``int``, is the EDNS sender's payload field, which is the
+        maximum size of UDP datagram the sender can handle.  I.e. how big
+        a response to this message can be.
+
+        *request_payload*, an ``int``, is the EDNS payload size to use when
+        sending this message.  If not specified, defaults to the value of
+        *payload*.
+
+        *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS
+        options.
+o        """
+
         if edns is None or edns is False:
             edns = -1
         if edns is True:
@@ -449,11 +530,13 @@ class Message(object):
 
     def want_dnssec(self, wanted=True):
         """Enable or disable 'DNSSEC desired' flag in requests.
-        @param wanted: Is DNSSEC desired?  If True, EDNS is enabled if
-        required, and then the DO bit is set.  If False, the DO bit is
-        cleared if EDNS is enabled.
-        @type wanted: bool
+
+        *wanted*, a ``bool``.  If ``True``, then DNSSEC data is
+        desired in the response, EDNS is enabled if required, and then
+        the DO bit is set.  If ``False``, the DO bit is cleared if
+        EDNS is enabled.
         """
+
         if wanted:
             if self.edns < 0:
                 self.use_edns()
@@ -463,14 +546,15 @@ class Message(object):
 
     def rcode(self):
         """Return the rcode.
-        @rtype: int
+
+        Returns an ``int``.
         """
         return dns.rcode.from_flags(self.flags, self.ednsflags)
 
     def set_rcode(self, rcode):
         """Set the rcode.
-        @param rcode: the rcode
-        @type rcode: int
+
+        *rcode*, an ``int``, is the rcode to set.
         """
         (value, evalue) = dns.rcode.to_flags(rcode)
         self.flags &= 0xFFF0
@@ -482,14 +566,15 @@ class Message(object):
 
     def opcode(self):
         """Return the opcode.
-        @rtype: int
+
+        Returns an ``int``.
         """
         return dns.opcode.from_flags(self.flags)
 
     def set_opcode(self, opcode):
         """Set the opcode.
-        @param opcode: the opcode
-        @type opcode: int
+
+        *opcode*, an ``int``, is the opcode to set.
         """
         self.flags &= 0x87FF
         self.flags |= dns.opcode.to_flags(opcode)
@@ -499,23 +584,16 @@ class _WireReader(object):
 
     """Wire format reader.
 
-    @ivar wire: the wire-format message.
-    @type wire: string
-    @ivar message: The message object being built
-    @type message: dns.message.Message object
-    @ivar current: When building a message object from wire format, this
+    wire: a binary, is the wire-format message.
+    message: The message object being built
+    current: When building a message object from wire format, this
     variable contains the offset from the beginning of wire of the next octet
     to be read.
-    @type current: int
-    @ivar updating: Is the message a dynamic update?
-    @type updating: bool
-    @ivar one_rr_per_rrset: Put each RR into its own RRset?
-    @type one_rr_per_rrset: bool
-    @ivar ignore_trailing: Ignore trailing junk at end of request?
-    @type ignore_trailing: bool
-    @ivar zone_rdclass: The class of the zone in messages which are
+    updating: Is the message a dynamic update?
+    one_rr_per_rrset: Put each RR into its own RRset?
+    ignore_trailing: Ignore trailing junk at end of request?
+    zone_rdclass: The class of the zone in messages which are
     DNS dynamic updates.
-    @type zone_rdclass: int
     """
 
     def __init__(self, wire, message, question_only=False,
@@ -530,10 +608,9 @@ class _WireReader(object):
         self.ignore_trailing = ignore_trailing
 
     def _get_question(self, qcount):
-        """Read the next I{qcount} records from the wire data and add them to
+        """Read the next *qcount* records from the wire data and add them to
         the question section.
-        @param qcount: the number of questions in the message
-        @type qcount: int"""
+        """
 
         if self.updating and qcount > 1:
             raise dns.exception.FormError
@@ -556,10 +633,10 @@ class _WireReader(object):
     def _get_section(self, section, count):
         """Read the next I{count} records from the wire data and add them to
         the specified section.
-        @param section: the section of the message to which to add records
-        @type section: list of dns.rrset.RRset objects
-        @param count: the number of records to read
-        @type count: int"""
+
+        section: the section of the message to which to add records
+        count: the number of records to read
+        """
 
         if self.updating or self.one_rr_per_rrset:
             force_unique = True
@@ -684,38 +761,51 @@ def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
     """Convert a DNS wire format message into a message
     object.
 
-    @param keyring: The keyring to use if the message is signed.
-    @type keyring: dict
-    @param request_mac: If the message is a response to a TSIG-signed request,
-    I{request_mac} should be set to the MAC of that request.
-    @type request_mac: string
-    @param xfr: Is this message part of a zone transfer?
-    @type xfr: bool
-    @param origin: If the message is part of a zone transfer, I{origin}
-    should be the origin name of the zone.
-    @type origin: dns.name.Name object
-    @param tsig_ctx: The ongoing TSIG context, used when validating zone
-    transfers.
-    @type tsig_ctx: hmac.HMAC object
-    @param multi: Is this message part of a multiple message sequence?
-    @type multi: bool
-    @param first: Is this message standalone, or the first of a multi
-    message sequence?
-    @type first: bool
-    @param question_only: Read only up to the end of the question section?
-    @type question_only: bool
-    @param one_rr_per_rrset: Put each RR into its own RRset
-    @type one_rr_per_rrset: bool
-    @param ignore_trailing: Ignore trailing junk at end of request?
-    @type ignore_trailing: bool
-    @raises ShortHeader: The message is less than 12 octets long.
-    @raises TrailingJunk: There were octets in the message past the end
-    of the proper DNS message.
-    @raises BadEDNS: An OPT record was in the wrong section, or occurred more
-    than once.
-    @raises BadTSIG: A TSIG record was not the last record of the additional
-    data section.
-    @rtype: dns.message.Message object"""
+    *keyring*, a ``dict``, the keyring to use if the message is signed.
+
+    *request_mac*, a ``binary``.  If the message is a response to a
+    *TSIG-signed request, request_mac* should be set to the MAC of
+    *that request.
+
+    *xfr*, a ``bool``, should be set to ``True`` if this message is part of
+    a zone transfer.
+
+    *origin*, a ``dns.name.Name`` or ``None``.  If the message is part
+    of a zone transfer, *origin* should be the origin name of the
+    zone.
+
+    *tsig_ctx*, a ``hmac.HMAC`` objext, the ongoing TSIG context, used
+    when validating zone transfers.
+
+    *multi*, a ``bool``, should be set to ``True`` if this message
+    part of a multiple message sequence.
+
+    *first*, a ``bool``, should be set to ``True`` if this message is
+    stand-alone, or the first message in a multi-message sequence.
+
+    *question_only*, a ``bool``.  If ``True``, read only up to
+    the end of the question section.
+
+    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its
+    own RRset.
+
+    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
+    junk at end of the message.
+
+    Raises ``dns.message.ShortHeader`` if the message is less than 12 octets
+    long.
+
+    Raises ``dns.messaage.TrailingJunk`` if there were octets in the message
+    past the end of the proper DNS message, and *ignore_trailing* is ``False``.
+
+    Raises ``dns.message.BadEDNS`` if an OPT record was in the
+    wrong section, or occurred more than once.
+
+    Raises ``dns.message.BadTSIG`` if a TSIG record was not the last
+    record of the additional data section.
+
+    Returns a ``dns.message.Message``.
+    """
 
     m = Message(id=0)
     m.keyring = keyring
@@ -737,18 +827,12 @@ class _TextReader(object):
 
     """Text format reader.
 
-    @ivar tok: the tokenizer
-    @type tok: dns.tokenizer.Tokenizer object
-    @ivar message: The message object being built
-    @type message: dns.message.Message object
-    @ivar updating: Is the message a dynamic update?
-    @type updating: bool
-    @ivar zone_rdclass: The class of the zone in messages which are
+    tok: the tokenizer.
+    message: The message object being built.
+    updating: Is the message a dynamic update?
+    zone_rdclass: The class of the zone in messages which are
     DNS dynamic updates.
-    @type zone_rdclass: int
-    @ivar last_name: The most recently read name when building a message object
-    from text format.
-    @type last_name: dns.name.Name object
+    last_name: The most recently read name when building a message object.
     """
 
     def __init__(self, text, message):
@@ -921,11 +1005,14 @@ class _TextReader(object):
 def from_text(text):
     """Convert the text format message into a message object.
 
-    @param text: The text format message.
-    @type text: string
-    @raises UnknownHeaderField:
-    @raises dns.exception.SyntaxError:
-    @rtype: dns.message.Message object"""
+    *text*, a ``text``, the text format message.
+
+    Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
+
+    Raises ``dns.exception.SyntaxError`` if the text is badly formed.
+
+    Returns a ``dns.message.Message object``
+    """
 
     # 'text' can also be a file, but we don't publish that fact
     # since it's an implementation detail.  The official file
@@ -942,11 +1029,15 @@ def from_text(text):
 def from_file(f):
     """Read the next text format message from the specified file.
 
-    @param f: file or string.  If I{f} is a string, it is treated
-    as the name of a file to open.
-    @raises UnknownHeaderField:
-    @raises dns.exception.SyntaxError:
-    @rtype: dns.message.Message object"""
+    *f*, a ``file`` or ``text``.  If *f* is text, it is treated as the
+    pathname of a file to open.
+
+    Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
+
+    Raises ``dns.exception.SyntaxError`` if the text is badly formed.
+
+    Returns a ``dns.message.Message object``
+    """
 
     str_type = string_types
     opts = 'rU'
@@ -976,30 +1067,35 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     The query will have a randomly chosen query id, and its DNS flags
     will be set to dns.flags.RD.
 
-    @param qname: The query name.
-    @type qname: dns.name.Name object or string
-    @param rdtype: The desired rdata type.
-    @type rdtype: int
-    @param rdclass: The desired rdata class; the default is class IN.
-    @type rdclass: int
-    @param use_edns: The EDNS level to use; the default is None (no EDNS).
+    qname, a ``dns.name.Name`` or ``text``, the query name.
+
+    *rdtype*, an ``int`` or ``text``, the desired rdata type.
+
+    *rdclass*, an ``int`` or ``text`,  the desired rdata class; the default
+    is class IN.
+
+    *use_edns*, an ``int``, ``bool`` or ``None``.  The EDNS level to use; the
+    default is None (no EDNS).
     See the description of dns.message.Message.use_edns() for the possible
     values for use_edns and their meanings.
-    @type use_edns: int or bool or None
-    @param want_dnssec: Should the query indicate that DNSSEC is desired?
-    @type want_dnssec: bool
-    @param ednsflags: EDNS flag values.
-    @type ednsflags: int
-    @param payload: The EDNS sender's payload field, which is the maximum
-    size of UDP datagram the sender can handle.
-    @type payload: int
-    @param request_payload: The EDNS payload size to use when sending
-    this message.  If not specified, defaults to the value of payload.
-    @type request_payload: int or None
-    @param options: The EDNS options
-    @type options: None or list of dns.edns.Option objects
-    @see: RFC 2671
-    @rtype: dns.message.Message object"""
+
+    *want_dnssec*, a ``bool``.  If ``True``, DNSSEC data is desired.
+
+    *ednsflags*, an ``int``, the EDNS flag values.
+
+    *payload*, an ``int``, is the EDNS sender's payload field, which is the
+    maximum size of UDP datagram the sender can handle.  I.e. how big
+    a response to this message can be.
+
+    *request_payload*, an ``int``, is the EDNS payload size to use when
+    sending this message.  If not specified, defaults to the value of
+    *payload*.
+
+    *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS
+    options.
+
+    Returns a ``dns.message.Message``
+    """
 
     if isinstance(qname, string_types):
         qname = dns.name.from_text(qname)
@@ -1048,16 +1144,17 @@ def make_response(query, recursion_available=False, our_payload=8192,
     question section, so the query's question RRsets should not be
     changed.
 
-    @param query: the query to respond to
-    @type query: dns.message.Message object
-    @param recursion_available: should RA be set in the response?
-    @type recursion_available: bool
-    @param our_payload: payload size to advertise in EDNS responses; default
-    is 8192.
-    @type our_payload: int
-    @param fudge: TSIG time fudge; default is 300 seconds.
-    @type fudge: int
-    @rtype: dns.message.Message object"""
+    *query*, a ``dns.message.Message``, the query to respond to.
+
+    *recursion_available*, a ``bool``, should RA be set in the response?
+
+    *our_payload*, an ``int``, the payload size to advertise in EDNS
+    responses.
+
+    *fudge*, an ``int``, the TSIG time fudge.
+
+    Returns a ``dns.message.Message`` object.
+    """
 
     if query.flags & dns.flags.QR:
         raise dns.exception.FormError('specified query message is not a query')

@@ -66,7 +66,7 @@ The dns.message.Message Class
 
    .. attribute:: keyalgorithm
 
-      A ``text``, the TSIG algorithm to use.  Defaults to
+      A ``dns.name.Name``, the TSIG algorithm to use.  Defaults to
       ``dns.tsig.default_algorithm``.  Constants for TSIG algorithms are
       defined the in ``dns.tsig`` module.
 
@@ -137,3 +137,11 @@ The dns.message.Message Class
       ``(section, name, rdclass, rdtype, covers, deleting)``.  The default
       is ``{}``.  Indexing improves the performance of finding RRsets.
       Indexing can be disabled by setting the index to ``None``.
+
+The following constants may be used to specify sections in the
+``find_rrset()`` and ``get_rrset()`` methods:
+
+.. autodata:: dns.message.QUESTION
+.. autodata:: dns.message.ANSWER
+.. autodata:: dns.message.AUTHORITY
+.. autodata:: dns.message.ADDITIONAL
