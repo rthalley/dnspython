@@ -40,113 +40,35 @@ from ._compat import long, xrange, string_types
 
 
 class ShortHeader(dns.exception.FormError):
-
     """The DNS packet passed to from_wire() is too short."""
 
 
 class TrailingJunk(dns.exception.FormError):
-
     """The DNS packet passed to from_wire() has extra junk at the end of it."""
 
 
 class UnknownHeaderField(dns.exception.DNSException):
-
     """The header field name was not recognized when converting from text
     into a message."""
 
 
 class BadEDNS(dns.exception.FormError):
-
-    """OPT record occurred somewhere other than the start of
+    """An OPT record occurred somewhere other than the start of
     the additional data section."""
 
 
 class BadTSIG(dns.exception.FormError):
-
     """A TSIG record occurred somewhere other than the end of
     the additional data section."""
 
 
 class UnknownTSIGKey(dns.exception.DNSException):
-
     """A TSIG with an unknown key was received."""
 
 
 class Message(object):
-
     """A DNS message.
 
-    @ivar id: The query id; the default is a randomly chosen id.
-    @type id: int
-    @ivar flags: The DNS flags of the message.  @see: RFC 1035 for an
-    explanation of these flags.
-    @type flags: int
-    @ivar question: The question section.
-    @type question: list of dns.rrset.RRset objects
-    @ivar answer: The answer section.
-    @type answer: list of dns.rrset.RRset objects
-    @ivar authority: The authority section.
-    @type authority: list of dns.rrset.RRset objects
-    @ivar additional: The additional data section.
-    @type additional: list of dns.rrset.RRset objects
-    @ivar edns: The EDNS level to use.  The default is -1, no Edns.
-    @type edns: int
-    @ivar ednsflags: The EDNS flags
-    @type ednsflags: long
-    @ivar payload: The EDNS payload size.  The default is 0.
-    @type payload: int
-    @ivar options: The EDNS options
-    @type options: list of dns.edns.Option objects
-    @ivar request_payload: The associated request's EDNS payload size.
-    @type request_payload: int
-    @ivar keyring: The TSIG keyring to use.  The default is None.
-    @type keyring: dict
-    @ivar keyname: The TSIG keyname to use.  The default is None.
-    @type keyname: dns.name.Name object
-    @ivar keyalgorithm: The TSIG algorithm to use; defaults to
-    dns.tsig.default_algorithm.  Constants for TSIG algorithms are defined
-    in dns.tsig, and the currently implemented algorithms are
-    HMAC_MD5, HMAC_SHA1, HMAC_SHA224, HMAC_SHA256, HMAC_SHA384, and
-    HMAC_SHA512.
-    @type keyalgorithm: string
-    @ivar request_mac: The TSIG MAC of the request message associated with
-    this message; used when validating TSIG signatures.   @see: RFC 2845 for
-    more information on TSIG fields.
-    @type request_mac: string
-    @ivar fudge: TSIG time fudge; default is 300 seconds.
-    @type fudge: int
-    @ivar original_id: TSIG original id; defaults to the message's id
-    @type original_id: int
-    @ivar tsig_error: TSIG error code; default is 0.
-    @type tsig_error: int
-    @ivar other_data: TSIG other data.
-    @type other_data: string
-    @ivar mac: The TSIG MAC for this message.
-    @type mac: string
-    @ivar xfr: Is the message being used to contain the results of a DNS
-    zone transfer?  The default is False.
-    @type xfr: bool
-    @ivar origin: The origin of the zone in messages which are used for
-    zone transfers or for DNS dynamic updates.  The default is None.
-    @type origin: dns.name.Name object
-    @ivar tsig_ctx: The TSIG signature context associated with this
-    message.  The default is None.
-    @type tsig_ctx: hmac.HMAC object
-    @ivar had_tsig: Did the message decoded from wire format have a TSIG
-    signature?
-    @type had_tsig: bool
-    @ivar multi: Is this message part of a multi-message sequence?  The
-    default is false.  This variable is used when validating TSIG signatures
-    on messages which are part of a zone transfer.
-    @type multi: bool
-    @ivar first: Is this message standalone, or the first of a multi
-    message sequence?  This variable is used when validating TSIG signatures
-    on messages which are part of a zone transfer.
-    @type first: bool
-    @ivar index: An index of rrsets in the message.  The index key is
-    (section, name, rdclass, rdtype, covers, deleting).  Indexing can be
-    disabled by setting the index to None.
-    @type index: dict
     """
 
     def __init__(self, id=None):
