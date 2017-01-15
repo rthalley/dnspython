@@ -28,6 +28,9 @@ def from_e164(text, origin=public_enum_domain):
     """Convert an E.164 number in textual form into a Name object whose
     value is the ENUM domain name for that number.
 
+    Non-digits in the text are ignored, i.e. "16505551212",
+    "+1.650.555.1212" and "1 (650) 555-1212" are all the same.
+
     *text*, a ``text``, is an E.164 number in textual form.
 
     *origin*, a ``dns.name.Name``, the domain in which the number
@@ -44,9 +47,14 @@ def from_e164(text, origin=public_enum_domain):
 def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     """Convert an ENUM domain name into an E.164 number.
 
+    Note that dnspython does not have any information about preferred
+    number formats within national numbering plans, so all numbers are
+    emitted as a simple string of digits, prefixed by a '+' (unless
+    *want_plus_prefix* is ``False``).
+
     *name* is a ``dns.name.Name``, the ENUM domain name.
 
-    *origin* is a ``dns.anme.Name``, a domain containing the ENUM
+    *origin* is a ``dns.name.Name``, a domain containing the ENUM
     domain name.  The name is relativized to this domain before being
     converted to text.  If ``None``, no relativization is done.
 
@@ -54,6 +62,7 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     the returned number.
 
     Returns a ``text``.
+
     """
     if origin is not None:
         name = name.relativize(origin)

@@ -38,4 +38,5 @@ full details.
 
    name-class
    name-make
+   name-helpers
    name-codecs
