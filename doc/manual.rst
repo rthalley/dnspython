@@ -9,5 +9,6 @@ Dnspython Manual
    name
    rdata
    message
+   dnssec
    exceptions
    utilities

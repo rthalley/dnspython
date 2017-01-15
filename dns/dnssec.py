@@ -37,19 +37,34 @@ class UnsupportedAlgorithm(dns.exception.DNSException):
 class ValidationFailure(dns.exception.DNSException):
     """The DNSSEC signature is invalid."""
 
+
+#: RSAMD5
 RSAMD5 = 1
+#: DH
 DH = 2
+#: DSA
 DSA = 3
+#: ECC
 ECC = 4
+#: RSASHA1
 RSASHA1 = 5
+#: DSANSEC3SHA1
 DSANSEC3SHA1 = 6
+#: RSASHA1NSEC3SHA1
 RSASHA1NSEC3SHA1 = 7
+#: RSASHA256
 RSASHA256 = 8
+#: RSASHA512
 RSASHA512 = 10
+#: ECDSAP256SHA256
 ECDSAP256SHA256 = 13
+#: ECDSAP384SHA384
 ECDSAP384SHA384 = 14
+#: INDIRECT
 INDIRECT = 252
+#: PRIVATEDNS
 PRIVATEDNS = 253
+#: PRIVATEOID
 PRIVATEOID = 254
 
 _algorithm_by_text = {

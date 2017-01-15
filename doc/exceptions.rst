@@ -9,6 +9,13 @@ Common Exceptions
 .. automodule:: dns.exception
    :members:
 
+dns.dnssec Exceptions
+---------------------
+
+.. autoexception:: dns.dnssec.UnsupportedAlgorithm
+.. autoexception:: dns.dnssec.ValidationFailure
+
+      
 dns.message Exceptions
 ----------------------
 
