@@ -49,3 +49,8 @@ dns.rdataset Exceptions
                    
 .. autoexception:: dns.rdataset.DifferingCovers
 .. autoexception:: dns.rdataset.IncompatibleTypes
+
+dns.ttl Exceptions
+------------------
+
+.. autoexception:: dns.ttl.BadTTL

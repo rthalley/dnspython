@@ -11,3 +11,8 @@ Miscellaneous Utilities
 
 .. automodule:: dns.ipv6
    :members:
+
+.. autofunction:: dns.ttl.from_text
+
+.. automodule:: dns.set
+   :members:

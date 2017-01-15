@@ -28,8 +28,7 @@ class Set(object):
     def __init__(self, items=None):
         """Initialize the set.
 
-        @param items: the initial set of items
-        @type items: any iterable or None
+        *items*, an iterable or ``None``, the initial set of items.
         """
 
         self.items = []
