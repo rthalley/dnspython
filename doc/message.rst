@@ -18,3 +18,4 @@ a textual form, and also read from that form.
    message-opcode
    message-rcode
    message-edns
+   message-update
