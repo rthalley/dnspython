@@ -16,3 +16,6 @@ Miscellaneous Utilities
 
 .. automodule:: dns.set
    :members:
+
+.. automodule:: dns.version
+   :members:
