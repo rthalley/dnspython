@@ -26,6 +26,7 @@ continuing to employ the author.
    community
    installation
    manual
+   rfc
 
 Indices and tables
 ==================
