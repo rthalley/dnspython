@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Nominum, Inc.
+# Copyright (C) 2011,2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -40,7 +40,7 @@ _unspecified_bound = _SliceUnspecifiedBound()[1:]
 
 
 class WireData(binary_type):
-    # WireData is a string with stricter slicing
+    # WireData is a binary type with stricter slicing
 
     def __getitem__(self, key):
         try:
