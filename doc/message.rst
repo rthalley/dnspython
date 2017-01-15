@@ -14,3 +14,7 @@ a textual form, and also read from that form.
 
    message-class
    message-make
+   message-flags
+   message-opcode
+   message-rcode
+   message-edns

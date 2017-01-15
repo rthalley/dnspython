@@ -91,7 +91,9 @@ def _to_text(flags, table, order):
 def from_text(text):
     """Convert a space-separated list of flag text values into a flags
     value.
-    @rtype: int"""
+
+    Returns an ``int``
+    """
 
     return _from_text(text, _by_text)
 
@@ -99,7 +101,9 @@ def from_text(text):
 def to_text(flags):
     """Convert a flags value into a space-separated list of flag text
     values.
-    @rtype: string"""
+
+    Returns a ``text``.
+    """
 
     return _to_text(flags, _by_value, _flags_order)
 
@@ -107,7 +111,9 @@ def to_text(flags):
 def edns_from_text(text):
     """Convert a space-separated list of EDNS flag text values into a EDNS
     flags value.
-    @rtype: int"""
+
+    Returns an ``int``
+    """
 
     return _from_text(text, _edns_by_text)
 
@@ -115,6 +121,8 @@ def edns_from_text(text):
 def edns_to_text(flags):
     """Convert an EDNS flags value into a space-separated list of EDNS flag
     text values.
-    @rtype: string"""
+
+    Returns a ``text``.
+    """
 
     return _to_text(flags, _edns_by_value, _edns_flags_order)

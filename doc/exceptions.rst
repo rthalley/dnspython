@@ -34,6 +34,11 @@ dns.name Exceptions
 .. autoexception:: dns.name.NoIDNA2008
 .. autoexception:: dns.name.NoParent
 
+dns.opcode Exceptions
+---------------------
+
+.. autoexception:: dns.opcode.UnknownOpcode
+                   
 dns.rcode Exceptions
 --------------------
 

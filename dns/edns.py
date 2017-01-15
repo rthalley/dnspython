@@ -22,10 +22,26 @@ import struct
 
 import dns.inet
 
-
+#: NSID
 NSID = 3
+#: DAU
+DAU = 5
+#: DHU
+DHU = 6
+#: N3U
+N3U = 7
+#: ECS (client-subnet)
 ECS = 8
-
+#: EXPIRE
+EXPIRE = 9
+#: COOKIE
+COOKIE = 10
+#: KEEPALIVE
+KEEPALIVE = 11
+#: PADDING
+PADDING = 12
+#: CHAIN
+CHAIN = 13
 
 class Option(object):
 
@@ -220,6 +236,12 @@ _type_to_class = {
 }
 
 def get_option_class(otype):
+    """Return the class for the specified option type.
+
+    The GenericOption class is used if a more specific class is not
+    known.
+    """
+
     cls = _type_to_class.get(otype)
     if cls is None:
         cls = GenericOption
