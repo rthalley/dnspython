@@ -38,5 +38,6 @@ full details.
 
    name-class
    name-make
+   name-dict
    name-helpers
    name-codecs
