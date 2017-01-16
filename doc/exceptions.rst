@@ -45,7 +45,14 @@ dns.opcode Exceptions
 ---------------------
 
 .. autoexception:: dns.opcode.UnknownOpcode
-                   
+
+dns.query Exceptions
+--------------------
+
+.. autoexception:: dns.query.BadResponse
+.. autoexception:: dns.query.UnexpectedSource
+
+
 dns.rcode Exceptions
 --------------------
 

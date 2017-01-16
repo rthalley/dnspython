@@ -10,5 +10,7 @@ Dnspython Manual
    rdata
    message
    dnssec
+   query
+   resolver
    exceptions
    utilities
