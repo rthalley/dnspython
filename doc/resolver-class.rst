@@ -1,7 +1,7 @@
 .. _resolver-class:
 
-The dns.resolver.Resolver Class
--------------------------------
+The dns.resolver.Resolver and dns.resolver.Answer Classes
+---------------------------------------------------------
 
 .. autoclass:: dns.resolver.Resolver
    :members:
@@ -11,3 +11,6 @@ The dns.resolver.Resolver Class
       A ``dns.name.Name``, the domain of this host.
 
    .. more attributes here!      
+
+.. autoclass:: dns.resolver.Answer
+   :members:
