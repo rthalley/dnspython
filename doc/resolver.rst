@@ -6,3 +6,7 @@ Stub Resolver
 
 This is a placeholder.
 
+.. toctree::
+
+   resolver-class
+   resolver-override

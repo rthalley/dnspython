@@ -49,7 +49,6 @@ if sys.platform == 'win32':
         import _winreg  # pylint: disable=import-error
 
 class NXDOMAIN(dns.exception.DNSException):
-
     """The DNS query name does not exist."""
     supp_kwargs = set(['qnames', 'responses'])
     fmt = None  # we have our own __str__ implementation
@@ -109,7 +108,6 @@ class NXDOMAIN(dns.exception.DNSException):
 
 
 class YXDOMAIN(dns.exception.DNSException):
-
     """The DNS query name is too long after DNAME substitution."""
 
 # The definition of the Timeout exception has moved from here to the
@@ -120,7 +118,6 @@ Timeout = dns.exception.Timeout
 
 
 class NoAnswer(dns.exception.DNSException):
-
     """The DNS response does not contain an answer to the question."""
     fmt = 'The DNS response does not contain an answer ' + \
           'to the question: {query}'
@@ -132,7 +129,6 @@ class NoAnswer(dns.exception.DNSException):
 
 
 class NoNameservers(dns.exception.DNSException):
-
     """All nameservers failed to answer the query.
 
     errors: list of servers and respective errors
@@ -155,22 +151,18 @@ class NoNameservers(dns.exception.DNSException):
 
 
 class NotAbsolute(dns.exception.DNSException):
-
     """An absolute domain name is required but a relative name was provided."""
 
 
 class NoRootSOA(dns.exception.DNSException):
-
     """There is no SOA RR at the DNS root name. This should never happen!"""
 
 
 class NoMetaqueries(dns.exception.DNSException):
-
     """DNS metaqueries are not allowed."""
 
 
 class Answer(object):
-
     """DNS stub resolver answer
 
     Instances of this class bundle up the result of a successful DNS
@@ -289,7 +281,6 @@ class Answer(object):
 
 
 class Cache(object):
-
     """Simple DNS answer cache.
 
     @ivar data: A dictionary of cached data
@@ -387,9 +378,7 @@ class Cache(object):
 
 
 class LRUCacheNode(object):
-
-    """LRUCache node.
-    """
+    """LRUCache node."""
 
     def __init__(self, key, value):
         self.key = key
@@ -415,7 +404,6 @@ class LRUCacheNode(object):
 
 
 class LRUCache(object):
-
     """Bounded least-recently-used DNS answer cache.
 
     This cache is better than the simple cache (above) if you're
@@ -526,7 +514,6 @@ class LRUCache(object):
 
 
 class Resolver(object):
-
     """DNS stub resolver
 
     @ivar domain: The domain of this host
@@ -1383,9 +1370,9 @@ def override_system_resolver(resolver=None):
     The resolver to use may be specified; if it's not, the default
     resolver will be used.
 
-    @param resolver: the resolver to use
-    @type resolver: dns.resolver.Resolver object or None
+    resolver, a ``dns.resolver.Resolver`` or ``None``, the resolver to use.
     """
+
     if resolver is None:
         resolver = get_default_resolver()
     global _resolver
@@ -1399,8 +1386,8 @@ def override_system_resolver(resolver=None):
 
 
 def restore_system_resolver():
-    """Undo the effects of override_system_resolver().
-    """
+    """Undo the effects of prior override_system_resolver()."""
+
     global _resolver
     _resolver = None
     socket.getaddrinfo = _original_getaddrinfo

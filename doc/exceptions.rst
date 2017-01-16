@@ -64,6 +64,17 @@ dns.rdataset Exceptions
 .. autoexception:: dns.rdataset.DifferingCovers
 .. autoexception:: dns.rdataset.IncompatibleTypes
 
+dns.resolver Exceptions
+-----------------------
+
+.. autoexception:: dns.resolver.NoAnswer
+.. autoexception:: dns.resolver.NoMetaqueries
+.. autoexception:: dns.resolver.NoNameservers
+.. autoexception:: dns.resolver.NoRootSOA
+.. autoexception:: dns.resolver.NotAbsolute
+.. autoexception:: dns.resolver.NXDOMAIN
+.. autoexception:: dns.resolver.YXDOMAIN
+
 dns.tokenizer Exceptions
 ------------------------
 
