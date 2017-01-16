@@ -13,10 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""DNS stub resolver.
-
-@var default_resolver: The default resolver object
-@type default_resolver: dns.resolver.Resolver object"""
+"""DNS stub resolver."""
 
 import socket
 import sys
@@ -163,34 +160,19 @@ class NoMetaqueries(dns.exception.DNSException):
 
 
 class Answer(object):
-    """DNS stub resolver answer
+    """DNS stub resolver answer.
 
     Instances of this class bundle up the result of a successful DNS
     resolution.
 
     For convenience, the answer object implements much of the sequence
-    protocol, forwarding to its rrset.  E.g. "for a in answer" is
-    equivalent to "for a in answer.rrset", "answer[i]" is equivalent
-    to "answer.rrset[i]", and "answer[i:j]" is equivalent to
-    "answer.rrset[i:j]".
+    protocol, forwarding to its ``rrset`` attribute.  E.g.
+    ``for a in answer`` is equivalent to ``for a in answer.rrset``.
+    ``answer[i]`` is equivalent to ``answer.rrset[i]``, and
+    ``answer[i:j]`` is equivalent to ``answer.rrset[i:j]``.
 
     Note that CNAMEs or DNAMEs in the response may mean that answer
-    node's name might not be the query name.
-
-    @ivar qname: The query name
-    @type qname: dns.name.Name object
-    @ivar rdtype: The query type
-    @type rdtype: int
-    @ivar rdclass: The query class
-    @type rdclass: int
-    @ivar response: The response message
-    @type response: dns.message.Message object
-    @ivar rrset: The answer
-    @type rrset: dns.rrset.RRset object
-    @ivar expiration: The time when the answer expires
-    @type expiration: float (seconds since the epoch)
-    @ivar canonical_name: The canonical name of the query name
-    @type canonical_name: dns.name.Name object
+    RRset's name might not be the query name.
     """
 
     def __init__(self, qname, rdtype, rdclass, response,
@@ -1091,6 +1073,8 @@ class Resolver(object):
         @type flags: int"""
         self.flags = flags
 
+
+#: The default resolver.
 default_resolver = None
 
 
@@ -1104,8 +1088,10 @@ def get_default_resolver():
 def reset_default_resolver():
     """Re-initialize default resolver.
 
-    resolv.conf will be re-read immediatelly.
+    Note that the resolver configuration (i.e. /etc/resolv.conf on UNIX
+    systems) will be re-read immediately.
     """
+
     global default_resolver
     default_resolver = Resolver()
 
