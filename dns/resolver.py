@@ -263,24 +263,11 @@ class Answer(object):
 
 
 class Cache(object):
-    """Simple DNS answer cache.
-
-    @ivar data: A dictionary of cached data
-    @type data: dict
-    @ivar cleaning_interval: The number of seconds between cleanings.  The
-    default is 300 (5 minutes).
-    @type cleaning_interval: float
-    @ivar next_cleaning: The time the cache should next be cleaned (in seconds
-    since the epoch.)
-    @type next_cleaning: float
-    """
+    """Simple thread-safe DNS answer cache."""
 
     def __init__(self, cleaning_interval=300.0):
-        """Initialize a DNS cache.
-
-        @param cleaning_interval: the number of seconds between periodic
-        cleanings.  The default is 300.0
-        @type cleaning_interval: float.
+        """*cleaning_interval*, a ``float`` is the number of seconds between
+        periodic cleanings.
         """
 
         self.data = {}
@@ -303,12 +290,14 @@ class Cache(object):
             self.next_cleaning = now + self.cleaning_interval
 
     def get(self, key):
-        """Get the answer associated with I{key}.  Returns None if
-        no answer is cached for the key.
-        @param key: the key
-        @type key: (dns.name.Name, int, int) tuple whose values are the
-        query name, rdtype, and rdclass.
-        @rtype: dns.resolver.Answer object or None
+        """Get the answer associated with *key*.
+
+        Returns None if no answer is cached for the key.
+
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
+
+        Returns a ``dns.resolver.Answer`` or ``None``.
         """
 
         try:
@@ -323,11 +312,11 @@ class Cache(object):
 
     def put(self, key, value):
         """Associate key and value in the cache.
-        @param key: the key
-        @type key: (dns.name.Name, int, int) tuple whose values are the
-        query name, rdtype, and rdclass.
-        @param value: The answer being cached
-        @type value: dns.resolver.Answer object
+
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
+
+        *value*, a ``dns.resolver.Answer``, the answer.
         """
 
         try:
@@ -340,11 +329,11 @@ class Cache(object):
     def flush(self, key=None):
         """Flush the cache.
 
-        If I{key} is specified, only that item is flushed.  Otherwise
+        If *key* is not ``None``, only that item is flushed.  Otherwise
         the entire cache is flushed.
 
-        @param key: the key to flush
-        @type key: (dns.name.Name, int, int) tuple or None
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
         """
 
         try:
@@ -386,29 +375,20 @@ class LRUCacheNode(object):
 
 
 class LRUCache(object):
-    """Bounded least-recently-used DNS answer cache.
+    """Thread-safe, bounded, least-recently-used DNS answer cache.
 
     This cache is better than the simple cache (above) if you're
     running a web crawler or other process that does a lot of
     resolutions.  The LRUCache has a maximum number of nodes, and when
     it is full, the least-recently used node is removed to make space
     for a new one.
-
-    @ivar data: A dictionary of cached data
-    @type data: dict
-    @ivar sentinel: sentinel node for circular doubly linked list of nodes
-    @type sentinel: LRUCacheNode object
-    @ivar max_size: The maximum number of nodes
-    @type max_size: int
     """
 
     def __init__(self, max_size=100000):
-        """Initialize a DNS cache.
-
-        @param max_size: The maximum number of nodes to cache; the default is
-        100,000. Must be greater than 1.
-        @type max_size: int
+        """*max_size*, an ``int``, is the maximum number of nodes to cache;
+        it must be greater than 0.
         """
+
         self.data = {}
         self.set_max_size(max_size)
         self.sentinel = LRUCacheNode(None, None)
@@ -420,13 +400,16 @@ class LRUCache(object):
         self.max_size = max_size
 
     def get(self, key):
-        """Get the answer associated with I{key}.  Returns None if
-        no answer is cached for the key.
-        @param key: the key
-        @type key: (dns.name.Name, int, int) tuple whose values are the
-        query name, rdtype, and rdclass.
-        @rtype: dns.resolver.Answer object or None
+        """Get the answer associated with *key*.
+
+        Returns None if no answer is cached for the key.
+
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
+
+        Returns a ``dns.resolver.Answer`` or ``None``.
         """
+
         try:
             self.lock.acquire()
             node = self.data.get(key)
@@ -445,12 +428,13 @@ class LRUCache(object):
 
     def put(self, key, value):
         """Associate key and value in the cache.
-        @param key: the key
-        @type key: (dns.name.Name, int, int) tuple whose values are the
-        query name, rdtype, and rdclass.
-        @param value: The answer being cached
-        @type value: dns.resolver.Answer object
+
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
+
+        *value*, a ``dns.resolver.Answer``, the answer.
         """
+
         try:
             self.lock.acquire()
             node = self.data.get(key)
@@ -470,12 +454,13 @@ class LRUCache(object):
     def flush(self, key=None):
         """Flush the cache.
 
-        If I{key} is specified, only that item is flushed.  Otherwise
+        If *key* is not ``None``, only that item is flushed.  Otherwise
         the entire cache is flushed.
 
-        @param key: the key to flush
-        @type key: (dns.name.Name, int, int) tuple or None
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
         """
+
         try:
             self.lock.acquire()
             if key is not None:

@@ -11,7 +11,3 @@ This is a placeholder.
 .. autoclass:: dns.resolver.LRUCache
    :members:
 
-.. autoclass:: dns.resolver.LRUCacheNode
-   :members:
-   
-
