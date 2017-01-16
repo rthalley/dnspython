@@ -130,7 +130,7 @@ class NoNameservers(dns.exception.DNSException):
 
     errors: list of servers and respective errors
     The type of errors is
-    [(server ip address, any object convertible to string)].
+    [(server IP address, any object convertible to string)].
     Non-empty errors list will add explanatory message ()
     """
 
