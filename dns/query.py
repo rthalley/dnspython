@@ -242,7 +242,7 @@ def receive_udp(sock, destination, expiration=None,
     while 1:
         _wait_for_readable(sock, expiration)
         (wire, from_address) = sock.recvfrom(65535)
-        if _addresses_equal(socket.family, from_address, destination) or \
+        if _addresses_equal(sock.family, from_address, destination) or \
            (dns.inet.is_multicast(destination[0]) and
             from_address[1:] == destination[1:]):
             break
@@ -301,7 +301,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         if source is not None:
             s.bind(source)
         (_, sent_time) = send_udp(s, wire, destination, expiration)
-        (r, received_time) = receive_udp(s, destination, expiration, af,
+        (r, received_time) = receive_udp(s, destination, expiration,
                                          ignore_unexpected, one_rr_per_rrset,
                                          q.keyring, q.request_mac)
     finally:
