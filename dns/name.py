@@ -628,7 +628,6 @@ class Name(object):
         relative and no origin was provided.
 
         Returns a ``binary`` or ``None``.
-
         """
 
         if file is None:
