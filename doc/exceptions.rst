@@ -64,6 +64,11 @@ dns.rdataset Exceptions
 .. autoexception:: dns.rdataset.DifferingCovers
 .. autoexception:: dns.rdataset.IncompatibleTypes
 
+dns.tokenizer Exceptions
+------------------------
+
+.. autoexception:: dns.tokenizer.UngetBufferFull
+
 dns.ttl Exceptions
 ------------------
 
