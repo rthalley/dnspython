@@ -452,6 +452,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
                                                         source, source_port)
     s = socket_factory(af, socket.SOCK_STREAM, 0)
     begin_time = None
+    received_time = None
     try:
         expiration = _compute_expiration(timeout)
         s.setblocking(0)
