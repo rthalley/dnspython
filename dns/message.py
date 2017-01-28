@@ -1,4 +1,4 @@
-# Copyright (C) 2001-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2001-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -99,12 +99,12 @@ class Message(object):
         self.keyring = None
         self.keyname = None
         self.keyalgorithm = dns.tsig.default_algorithm
-        self.request_mac = ''
-        self.other_data = ''
+        self.request_mac = b''
+        self.other_data = b''
         self.tsig_error = 0
         self.fudge = 300
         self.original_id = self.id
-        self.mac = ''
+        self.mac = b''
         self.xfr = False
         self.origin = None
         self.tsig_ctx = None
@@ -754,7 +754,7 @@ class _WireReader(object):
             self.message.tsig_ctx.update(self.wire)
 
 
-def from_wire(wire, keyring=None, request_mac='', xfr=False, origin=None,
+def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
               tsig_ctx=None, multi=False, first=True,
               question_only=False, one_rr_per_rrset=False,
               ignore_trailing=False):
@@ -1167,7 +1167,7 @@ def make_response(query, recursion_available=False, our_payload=8192,
     if query.edns >= 0:
         response.use_edns(0, 0, our_payload, query.payload)
     if query.had_tsig:
-        response.use_tsig(query.keyring, query.keyname, fudge, None, 0, '',
+        response.use_tsig(query.keyring, query.keyname, fudge, None, 0, b'',
                           query.keyalgorithm)
         response.request_mac = query.mac
     return response
