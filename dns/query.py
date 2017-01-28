@@ -303,7 +303,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         (_, sent_time) = send_udp(s, wire, destination, expiration)
         (r, received_time) = receive_udp(s, destination, expiration,
                                          ignore_unexpected, one_rr_per_rrset,
-                                         q.keyring, q.request_mac)
+                                         q.keyring, q.mac)
     finally:
         if sent_time is None or received_time is None:
             response_time = 0
@@ -462,7 +462,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         _connect(s, destination)
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(s, expiration, one_rr_per_rrset,
-                                         q.keyring, q.request_mac)
+                                         q.keyring, q.mac)
     finally:
         if begin_time is None or received_time is None:
             response_time = 0
