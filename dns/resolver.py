@@ -103,6 +103,28 @@ class NXDOMAIN(dns.exception.DNSException):
                 responses0[qname1] = responses1[qname1]
         return NXDOMAIN(qnames=qnames0, responses=responses0)
 
+    def qnames(self):
+        """All of the names that were tried.
+
+        Returns a list of ``dns.name.Name``.
+        """
+        return self.kwargs['qnames']
+
+    def responses(self):
+        """A map from queried names to their NXDOMAIN responses.
+
+        Returns a dict mapping a ``dns.name.Name`` to a
+        ``dns.message.Message``.
+        """
+        return self.kwargs['responses']
+
+    def response(self, qname):
+        """The response for query *qname*.
+
+        Returns a ``dns.message.Message``.
+        """
+        return self.kwargs['responses'][qname]
+
 
 class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
