@@ -51,6 +51,7 @@ dns.query Exceptions
 
 .. autoexception:: dns.query.BadResponse
 .. autoexception:: dns.query.UnexpectedSource
+.. autoexception:: dns.query.TransferError
 
 
 dns.rcode Exceptions

@@ -28,6 +28,7 @@ import dns.exception
 import dns.inet
 import dns.name
 import dns.message
+import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 from ._compat import long, string_types
@@ -47,6 +48,15 @@ class UnexpectedSource(dns.exception.DNSException):
 
 class BadResponse(dns.exception.FormError):
     """A DNS query response does not respond to the question asked."""
+
+
+class TransferError(dns.exception.DNSException):
+    """A zone transfer response got a non-zero rcode."""
+
+    def __init__(self, rcode):
+        message = 'Zone transfer error: %s' % dns.rcode.to_text(rcode)
+        super(TransferError, self).__init__(message)
+        self.rcode = rcode
 
 
 def _compute_expiration(timeout):
@@ -531,6 +541,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
 
     *keyalgorithm*, a ``dns.name.Name`` or ``text``, the TSIG algorithm to use.
 
+    Raises on errors, and so does the generator.
+
     Returns a generator of ``dns.message.Message`` objects.
     """
 
@@ -594,6 +606,9 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                                   xfr=True, origin=origin, tsig_ctx=tsig_ctx,
                                   multi=True, first=first,
                                   one_rr_per_rrset=is_ixfr)
+        rcode = r.rcode()
+        if rcode != dns.rcode.NOERROR:
+            raise TransferError(rcode)
         tsig_ctx = r.tsig_ctx
         first = False
         answer_index = 0
