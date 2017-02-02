@@ -13,11 +13,11 @@ resolver.cache = dns.resolver.LRUCache(4)
 
 def current_status():
     print("-------------------CACHE STATUS-------------------")
-    print("  Usage rate:        %i" % resolver.cache.get_usage_rate())
-    print("  Positive hits:     %i" % resolver.cache.get_positive_hits())
-    print("  Negative hits:     %i" % resolver.cache.get_negative_hits())
-    print("  Positive misses:   %i" % resolver.cache.get_positive_miss())
-    print("  Negative misses:   %i" % resolver.cache.get_negative_miss())
+    print("  Usage rate:        " + str(resolver.cache.get_usage_rate()))
+    print("  Positive hits:     " + str(resolver.cache.get_positive_hits()))
+    print("  Negative hits:     " + str(resolver.cache.get_negative_hits()))
+    print("  Positive misses:   " + str(resolver.cache.get_positive_miss()))
+    print("  Negative misses:   " + str(resolver.cache.get_negative_miss()))
 
 print("--------------------CACHE URLS--------------------")
 print("--------------------------------------------------")
