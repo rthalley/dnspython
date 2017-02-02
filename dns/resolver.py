@@ -144,7 +144,7 @@ class NoAnswer(dns.exception.DNSException):
 
     def _fmt_kwargs(self, **kwargs):
         return super(NoAnswer, self)._fmt_kwargs(
-        query=kwargs['response'].question)
+            query=kwargs['response'].question)
 
 
 class NoNameservers(dns.exception.DNSException):
@@ -166,7 +166,7 @@ class NoNameservers(dns.exception.DNSException):
             srv_msgs.append('Server %s %s port %s answered %s' % (err[0],
                             'TCP' if err[1] else 'UDP', err[2], err[3]))
         return super(NoNameservers, self)._fmt_kwargs(
-                query=kwargs['request'].question, errors='; '.join(srv_msgs))
+            query=kwargs['request'].question, errors='; '.join(srv_msgs))
 
 
 class NotAbsolute(dns.exception.DNSException):

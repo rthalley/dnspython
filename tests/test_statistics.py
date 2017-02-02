@@ -5,9 +5,12 @@ import dns.resolver
 import dns.name
 import dns.reversename
 
-urls_cache = ['www.amazon.com', 'www.google.com', 'www.cern.ch', 'www.netflix.com', 'www.facebook.com', 'www.google.com', 'www.google.com']
-urls_lru = ['www.amazon.com', 'www.google.com', 'www.cern.ch','www.amazon.com', 'www.netflix.com', 'www.facebook.com']
-urls_rev = ['172.217.6.142', '172.217.6.132', '157.240.0.35', '52.0.47.132', '188.184.9.234']
+urls_cache = ['www.amazon.com', 'www.google.com', 'www.cern.ch',
+              'www.netflix.com', 'www.facebook.com', 'www.google.com', 'www.google.com']
+urls_lru = ['www.amazon.com', 'www.google.com', 'www.cern.ch',
+            'www.amazon.com', 'www.netflix.com', 'www.facebook.com']
+urls_rev = ['172.217.6.142', '172.217.6.132', '157.240.0.35',
+            '52.0.47.132', '188.184.9.234']
 resolver = dns.resolver.Resolver()
 resolver.cache = dns.resolver.LRUCache(4)
 
