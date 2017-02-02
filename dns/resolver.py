@@ -45,7 +45,6 @@ if sys.platform == 'win32':
     except ImportError:
         import _winreg  # pylint: disable=import-error
 
-
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
     supp_kwargs = set(['qnames', 'responses'])
@@ -89,7 +88,6 @@ class NXDOMAIN(dns.exception.DNSException):
             if cname is not None:
                 return dns.name.from_text(cname)
         return self.kwargs['qnames'][0]
-
     canonical_name = property(canonical_name, doc=(
         "Return the unresolved canonical name."))
 
@@ -131,7 +129,6 @@ class NXDOMAIN(dns.exception.DNSException):
 class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
 
-
 # The definition of the Timeout exception has moved from here to the
 # dns.exception module.  We keep dns.resolver.Timeout defined for
 # backwards compatibility.
@@ -147,7 +144,7 @@ class NoAnswer(dns.exception.DNSException):
 
     def _fmt_kwargs(self, **kwargs):
         return super(NoAnswer, self)._fmt_kwargs(
-                query=kwargs['response'].question)
+        query=kwargs['response'].question)
 
 
 class NoNameservers(dns.exception.DNSException):
@@ -167,7 +164,7 @@ class NoNameservers(dns.exception.DNSException):
         srv_msgs = []
         for err in kwargs['errors']:
             srv_msgs.append('Server %s %s port %s answered %s' % (err[0],
-                                                                  'TCP' if err[1] else 'UDP', err[2], err[3]))
+                            'TCP' if err[1] else 'UDP', err[2], err[3]))
         return super(NoNameservers, self)._fmt_kwargs(
                 query=kwargs['request'].question, errors='; '.join(srv_msgs))
 
@@ -413,6 +410,7 @@ class LRUCache(object):
         """*max_size*, an ``int``, is the maximum number of nodes to cache;
         it must be greater than 0.
         """
+
         self.data = {}
         self.set_max_size(max_size)
         self.sentinel = LRUCacheNode(None, None)
@@ -525,7 +523,7 @@ class LRUCache(object):
 
     # Statistics functions
     def get_usage_rate(self):
-        return (len(self.data)*100)/self.max_size
+        return (len(self.data)*100)/(self.max_size*1.0)  # The 1.0 is because the result must be a float
 
     def get_positive_hits(self):
         return self.positive_hits
@@ -772,26 +770,26 @@ class Resolver(object):
             # This hard-coded location seems to be consistent, at least
             # from Windows 2000 through Vista.
             connection_key = _winreg.OpenKey(
-                    lm,
-                    r'SYSTEM\CurrentControlSet\Control\Network'
-                    r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
-                    r'\%s\Connection' % guid)
+                lm,
+                r'SYSTEM\CurrentControlSet\Control\Network'
+                r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
+                r'\%s\Connection' % guid)
 
             try:
                 # The PnpInstanceID points to a key inside Enum
                 (pnp_id, ttype) = _winreg.QueryValueEx(
-                        connection_key, 'PnpInstanceID')
+                    connection_key, 'PnpInstanceID')
 
                 if ttype != _winreg.REG_SZ:
                     raise ValueError
 
                 device_key = _winreg.OpenKey(
-                        lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
+                    lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
 
                 try:
                     # Get ConfigFlags for this device
                     (flags, ttype) = _winreg.QueryValueEx(
-                            device_key, 'ConfigFlags')
+                        device_key, 'ConfigFlags')
 
                     if ttype != _winreg.REG_DWORD:
                         raise ValueError
@@ -899,7 +897,7 @@ class Resolver(object):
         all_nxdomain = True
         nxdomain_responses = {}
         start = time.time()
-        _qname = None  # make pylint happy
+        _qname = None # make pylint happy
         for _qname in qnames_to_try:
             if self.cache:
                 answer = self.cache.get((_qname, rdtype, rdclass))
@@ -998,7 +996,7 @@ class Resolver(object):
                                        response))
                         raise ex
                     if rcode == dns.rcode.NOERROR or \
-                                    rcode == dns.rcode.NXDOMAIN:
+                            rcode == dns.rcode.NXDOMAIN:
                         break
                     #
                     # We got a response, but we're not happy with the
@@ -1162,14 +1160,13 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
             answer = resolver.query(name, dns.rdatatype.SOA, rdclass, tcp)
             if answer.rrset.name == name:
                 return name
-                # otherwise we were CNAMEd or DNAMEd and need to look higher
+            # otherwise we were CNAMEd or DNAMEd and need to look higher
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
             pass
         try:
             name = name.parent()
         except dns.name.NoParent:
             raise NoRootSOA
-
 
 #
 # Support for overriding the system resolver for all python code in the

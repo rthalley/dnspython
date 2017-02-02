@@ -3,6 +3,7 @@
 # A higher-level way
 import dns.resolver
 import dns.name
+import dns.reversename
 
 urls_cache = ['www.amazon.com', 'www.google.com', 'www.cern.ch', 'www.netflix.com', 'www.facebook.com', 'www.google.com', 'www.google.com']
 urls_lru = ['www.amazon.com', 'www.google.com', 'www.cern.ch','www.amazon.com', 'www.netflix.com', 'www.facebook.com']
