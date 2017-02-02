@@ -103,6 +103,22 @@ class FakeAnswer(object):
         self.expiration = expiration
 
 
+class FakeResponse(object):
+    def __init__(self, answer):
+        self.answer = answer
+
+
+class FakePositiveAnswer(object):
+    def __init__(self, expiration):
+        self.response = FakeResponse(dns.message.ANSWER)
+        self.expiration = expiration
+
+
+class FakeNegativeAnswer(object):
+    def __init__(self):
+        self.response = FakeResponse(dns.message.QUESTION)
+
+
 class BaseResolverTests(unittest.TestCase):
 
     if sys.platform != 'win32':
@@ -226,6 +242,70 @@ class BaseResolverTests(unittest.TestCase):
         for i in xrange(0, 4):
             name = dns.name.from_text('example%d.' % i)
             answer = FakeAnswer(time.time() + 1)
+            cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        time.sleep(2)
+        for i in xrange(0, 4):
+            name = dns.name.from_text('example%d.' % i)
+            self.failUnless(cache.get((name, dns.rdatatype.A,
+                                       dns.rdataclass.IN))
+                            is None)
+
+    def testLRUPosNegReplace(self):
+        cache = dns.resolver.LRUPosNegCache(4) # Same test than LRU suits here
+        for i in xrange(0, 5):
+            name = dns.name.from_text('example%d.' % i)
+            answer = FakePositiveAnswer(time.time() + 1)
+            cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        for i in xrange(0, 5):
+            name = dns.name.from_text('example%d.' % i)
+            if i == 0:
+                self.failUnless(cache.get((name, dns.rdatatype.A,
+                                           dns.rdataclass.IN))
+                                is None)
+            else:
+                self.failUnless(not cache.get((name, dns.rdatatype.A,
+                                               dns.rdataclass.IN))
+                                    is None)
+
+    def testLRUPosNegDoesLRU(self):
+        cache = dns.resolver.LRUPosNegCache(4) # Same test than LRU suits here
+        for i in xrange(0, 4):
+            name = dns.name.from_text('example%d.' % i)
+            answer = FakePositiveAnswer(time.time() + 1)
+            cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        name = dns.name.from_text('example0.')
+        cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
+        # The LRU is now example1.
+        name = dns.name.from_text('example4.')
+        answer = FakePositiveAnswer(time.time() + 1)
+        cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        for i in xrange(0, 5):
+            name = dns.name.from_text('example%d.' % i)
+            if i == 1:
+                self.failUnless(cache.get((name, dns.rdatatype.A,
+                                           dns.rdataclass.IN))
+                                is None)
+            else:
+                self.failUnless(not cache.get((name, dns.rdatatype.A,
+                                               dns.rdataclass.IN))
+                                    is None)
+
+    def testLRUPosNegExpiration(self):
+        # Same test than LRU suits here, plus negative expiration
+        cache = dns.resolver.LRUPosNegCache(4, 1)
+        for i in xrange(0, 4): # Positive
+            name = dns.name.from_text('example%d.' % i)
+            answer = FakePositiveAnswer(time.time() + 1)
+            cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
+        time.sleep(2)
+        for i in xrange(0, 4):
+            name = dns.name.from_text('example%d.' % i)
+            self.failUnless(cache.get((name, dns.rdatatype.A,
+                                       dns.rdataclass.IN))
+                            is None)
+        for i in xrange(0, 4): # Negative
+            name = dns.name.from_text('example%d.' % i)
+            answer = FakeNegativeAnswer()
             cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
         time.sleep(2)
         for i in xrange(0, 4):

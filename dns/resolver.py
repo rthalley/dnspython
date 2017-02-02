@@ -284,18 +284,105 @@ class Answer(object):
         del self.rrset[i]
 
 
-class Cache(object):
+class CacheStats(object):
+
+    def __init__(self):
+        self.hits = 0
+        self.misses = 0
+        self.max_size = 0
+        self.positive_data = 0
+        self.negative_data = 0
+        self.positive_hits = 0
+        self.positive_miss = 0
+        self.negative_hits = 0
+        self.negative_miss = 0
+
+    def set_max_size(self, max_size):
+        self.max_size = max_size
+
+    # Statistics functions
+    def get_cache_occupancy(self):
+        if self.max_size >= 0:
+            # The 1.0 is because the result must be a float
+            return ((self.positive_data + self.negative_data)*100)//self.max_size
+        else:
+            # If there is no size it will always be at its full capacity but it will be extensible
+            return 100
+
+    def get_num_entries(self):
+        return self.positive_data + self.negative_data
+
+    def get_max_size(self):
+        return self.max_size
+
+    def get_positive_entries_rate(self):
+        if self.max_size >= 0:
+            # The 1.0 is because the result must be a float
+            return (self.positive_data*100)//self.max_size
+        else:
+            return 100
+
+    def get_positive_entries_num(self):
+        return self.positive_data
+
+    def get_negative_entries_rate(self):
+        if self.max_size >= 0:
+            # The 1.0 is because the result must be a float
+            return (self.negative_data*100)//self.max_size
+        else:
+            return 100
+
+    def get_negative_entries_num(self):
+        return self.negative_data
+
+    def inc_positive_hits(self):
+        self.hits += 1
+        self.positive_hits += 1
+
+    def get_positive_hits(self):
+        return self.positive_hits
+
+    def inc_positive_miss(self):
+        self.misses += 1
+        self.positive_miss += 1
+
+    def get_positive_misses(self):
+        return self.positive_miss
+
+    def inc_negative_hits(self):
+        self.hits += 1
+        self.negative_hits += 1
+
+    def get_negative_hits(self):
+        return self.negative_hits
+
+    def inc_negative_miss(self):
+        self.misses += 1
+        self.negative_miss += 1
+
+    def get_negative_misses(self):
+        return self.negative_miss
+
+    def get_total_hits(self):
+        return self.hits
+
+    def get_total_misses(self):
+        return self.misses
+
+
+class Cache(CacheStats):
     """Simple thread-safe DNS answer cache."""
 
     def __init__(self, cleaning_interval=300.0):
         """*cleaning_interval*, a ``float`` is the number of seconds between
         periodic cleanings.
         """
-
+        CacheStats.__init__(self)
         self.data = {}
         self.cleaning_interval = cleaning_interval
         self.next_cleaning = time.time() + self.cleaning_interval
         self.lock = _threading.Lock()
+        super(Cache, self).set_max_size(-1)
 
     def _maybe_clean(self):
         """Clean the cache if it's time to do so."""
@@ -307,6 +394,7 @@ class Cache(object):
                 if v.expiration <= now:
                     keys_to_delete.append(k)
             for k in keys_to_delete:
+                self.positive_data -= 1
                 del self.data[k]
             now = time.time()
             self.next_cleaning = now + self.cleaning_interval
@@ -327,6 +415,7 @@ class Cache(object):
             self._maybe_clean()
             v = self.data.get(key)
             if v is None or v.expiration <= time.time():
+                self.positive_data -= 1
                 return None
             return v
         finally:
@@ -344,6 +433,7 @@ class Cache(object):
         try:
             self.lock.acquire()
             self._maybe_clean()
+            self.positive_data += 1
             self.data[key] = value
         finally:
             self.lock.release()
@@ -362,9 +452,11 @@ class Cache(object):
             self.lock.acquire()
             if key is not None:
                 if key in self.data:
+                    self.positive_data -= 1
                     del self.data[key]
             else:
                 self.data = {}
+                self.positive_data = 0
                 self.next_cleaning = time.time() + self.cleaning_interval
         finally:
             self.lock.release()
@@ -396,7 +488,7 @@ class LRUCacheNode(object):
         self.prev.next = self.next
 
 
-class LRUCache(object):
+class LRUCache(CacheStats):
     """Thread-safe, bounded, least-recently-used DNS answer cache.
 
     This cache is better than the simple cache (above) if you're
@@ -410,7 +502,7 @@ class LRUCache(object):
         """*max_size*, an ``int``, is the maximum number of nodes to cache;
         it must be greater than 0.
         """
-
+        CacheStats.__init__(self)
         self.data = {}
         self.set_max_size(max_size)
         self.sentinel = LRUCacheNode(None, None)
@@ -419,6 +511,7 @@ class LRUCache(object):
     def set_max_size(self, max_size):
         if max_size < 1:
             max_size = 1
+        super(LRUCache, self).set_max_size(max_size)
         self.max_size = max_size
 
     def get(self, key):
@@ -441,6 +534,7 @@ class LRUCache(object):
             # of the LRU list or we're going to free it.
             node.unlink()
             if node.value.expiration <= time.time():
+                self.positive_data -= 1
                 del self.data[node.key]
                 return None
             node.link_after(self.sentinel)
@@ -463,10 +557,12 @@ class LRUCache(object):
             if node is not None:
                 node.unlink()
                 del self.data[node.key]
+                self.positive_data -= 1
             while len(self.data) >= self.max_size:
                 node = self.sentinel.prev
                 node.unlink()
                 del self.data[node.key]
+            self.positive_data += 1
             node = LRUCacheNode(key, value)
             node.link_after(self.sentinel)
             self.data[key] = node
@@ -489,6 +585,7 @@ class LRUCache(object):
                 node = self.data.get(key)
                 if node is not None:
                     node.unlink()
+                    self.positive_data -= 1
                     del self.data[node.key]
             else:
                 node = self.sentinel.next
@@ -498,6 +595,136 @@ class LRUCache(object):
                     node.next = None
                     node = next
                 self.data = {}
+                self.positive_data = 0
+        finally:
+            self.lock.release()
+
+
+class LRUPosNegCache(CacheStats):
+    """Thread-safe, bounded, least-recently-used DNS answer cache.
+
+    This cache is identical to the LRUCache but allows to store both positive and negative entries.
+    """
+
+    def __init__(self, max_size=100000, negative_ttl=600):
+        """*max_size*, an ``int``, is the maximum number of nodes to cache;
+        it must be greater than 0.
+        """
+        CacheStats.__init__(self)
+        self.data = {}
+        self.set_max_size(max_size)
+        self.set_negative_ttl(negative_ttl)
+        self.sentinel = LRUCacheNode(None, None)
+        self.lock = _threading.Lock()
+
+    def set_max_size(self, max_size):
+        if max_size < 1:
+            max_size = 1
+        super(LRUPosNegCache, self).set_max_size(max_size)
+        self.max_size = max_size
+
+    def set_negative_ttl(self, negative_ttl):
+        if negative_ttl < 1:
+            negative_ttl = 600
+        self.negative_ttl = negative_ttl
+
+    def get(self, key):
+        """Get the answer associated with *key*.
+
+        Returns None if no answer is cached for the key.
+
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
+
+        Returns a ``dns.resolver.Answer`` or ``None``.
+        """
+
+        try:
+            self.lock.acquire()
+            node = self.data.get(key)
+            if node is None:
+                return None
+            # Unlink because we're either going to move the node to the front
+            # of the LRU list or we're going to free it.
+            node.unlink()
+            if node.value.expiration <= time.time():
+                if node.value.response.answer == dns.message.QUESTION:
+                    self.negative_data -= 1
+                else:
+                    self.positive_data -= 1
+                del self.data[node.key]
+                return None
+            node.link_after(self.sentinel)
+            return node.value
+        finally:
+            self.lock.release()
+
+    def put(self, key, value):
+        """Associate key and value in the cache.
+
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
+
+        *value*, a ``dns.resolver.Answer``, the answer.
+        """
+
+        try:
+
+            self.lock.acquire()
+            node = self.data.get(key)
+            if node is not None:
+                node.unlink()
+                del self.data[node.key]
+            while len(self.data) >= self.max_size:
+                node = self.sentinel.prev
+                if node.value.response.answer == dns.message.QUESTION:
+                    self.negative_data -= 1
+                else:
+                    self.positive_data -= 1
+                node.unlink()
+                del self.data[node.key]
+            node = LRUCacheNode(key, value)
+            if node.value.response.answer == dns.message.QUESTION:
+                node.value.expiration = time.time() + self.negative_ttl
+                self.negative_data += 1
+            else:
+                self.positive_data += 1
+            node.link_after(self.sentinel)
+            self.data[key] = node
+        finally:
+            self.lock.release()
+
+    def flush(self, key=None):
+        """Flush the cache.
+
+        If *key* is not ``None``, only that item is flushed.  Otherwise
+        the entire cache is flushed.
+
+        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        query name, rdtype, and rdclass respectively.
+        """
+
+        try:
+            self.lock.acquire()
+            if key is not None:
+                node = self.data.get(key)
+                if node is not None:
+                    if node.value.response.answer == dns.message.QUESTION:
+                        self.negative_data -= 1
+                    else:
+                        self.positive_data -= 1
+                    node.unlink()
+                    del self.data[node.key]
+            else:
+                node = self.sentinel.next
+                while node != self.sentinel:
+                    next = node.next
+                    node.prev = None
+                    node.next = None
+                    node = next
+                self.data = {}
+                self.positive_data = 0
+                self.negative_data = 0
         finally:
             self.lock.release()
 
@@ -869,6 +1096,12 @@ class Resolver(object):
                     if answer.rrset is None and raise_on_no_answer:
                         raise NoAnswer(response=answer.response)
                     else:
+                        if answer.response.answer == dns.message.QUESTION:
+                            # There is no need to check for Cache type
+                            # because if not LRUPosNeg it wont get in here
+                            self.cache.inc_negative_hits()
+                        else:
+                            self.cache.inc_positive_hits()
                         return answer
             request = dns.message.make_query(_qname, rdtype, rdclass)
             if self.keyname is not None:
@@ -991,12 +1224,24 @@ class Resolver(object):
                 continue
             all_nxdomain = False
             break
+
         if all_nxdomain:
+            if self.cache:
+                if isinstance(self.cache, LRUPosNegCache):
+                    #response.answer
+                    response.answer = dns.message.QUESTION
+                    answer = Answer(_qname, rdtype, rdclass, response,
+                                    raise_on_no_answer) # DNS reg found
+                    self.cache.put((_qname, rdtype, rdclass), answer)
+                    self.cache.inc_negative_miss()
+                    return answer
+            # Not found (Normal/LRU or no cache is the same use case
             raise NXDOMAIN(qnames=qnames_to_try, responses=nxdomain_responses)
         answer = Answer(_qname, rdtype, rdclass, response,
-                        raise_on_no_answer)
+                        raise_on_no_answer) # DNS reg found
         if self.cache:
             self.cache.put((_qname, rdtype, rdclass), answer)
+            self.cache.inc_positive_miss()
         return answer
 
     def use_tsig(self, keyring, keyname=None,
