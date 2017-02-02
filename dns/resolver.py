@@ -525,7 +525,7 @@ class LRUCache(object):
 
     # Statistics functions
     def get_usage_rate(self):
-        return (len(self.data)/self.max_size)*100
+        return (len(self.data)*100)/self.max_size
 
     def get_positive_hits(self):
         return self.positive_hits
