@@ -645,13 +645,14 @@ class Resolver(object):
             if s not in self.search:
                 self.search.append(dns.name.from_text(s))
 
-    def _config_win32_fromkey(self, key):
+    def _config_win32_fromkey(self, key, always_try_domain):
         try:
             servers, rtype = _winreg.QueryValueEx(key, 'NameServer')
         except WindowsError:  # pylint: disable=undefined-variable
             servers = None
         if servers:
             self._config_win32_nameservers(servers)
+        if servers or always_try_domain:
             try:
                 dom, rtype = _winreg.QueryValueEx(key, 'Domain')
                 if dom:
@@ -696,7 +697,7 @@ class Resolver(object):
                                              r'SYSTEM\CurrentControlSet'
                                              r'\Services\VxD\MSTCP')
             try:
-                self._config_win32_fromkey(tcp_params)
+                self._config_win32_fromkey(tcp_params, True)
             finally:
                 tcp_params.Close()
             if want_scan:
@@ -714,7 +715,7 @@ class Resolver(object):
                             if not self._win32_is_nic_enabled(lm, guid, key):
                                 continue
                             try:
-                                self._config_win32_fromkey(key)
+                                self._config_win32_fromkey(key, False)
                             finally:
                                 key.Close()
                         except EnvironmentError:
