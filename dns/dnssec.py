@@ -364,7 +364,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             keyptr = candidate_key.key
             x = Crypto.Util.number.bytes_to_long(keyptr[0:key_len])
             y = Crypto.Util.number.bytes_to_long(keyptr[key_len:key_len * 2])
-            assert ecdsa.ecdsa.point_is_valid(curve.generator, x, y)
+            if not ecdsa.ecdsa.point_is_valid(curve.generator, x, y):
+                raise ValidationFailure('invalid ECDSA key')
             point = ecdsa.ellipticcurve.Point(curve.curve, x, y, curve.order)
             verifying_key = ecdsa.keys.VerifyingKey.from_public_point(point,
                                                                       curve)
