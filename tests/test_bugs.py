@@ -1,4 +1,4 @@
-# Copyright (C) 2006, 2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2006-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -24,6 +24,7 @@ import binascii
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdtypes.ANY.TXT
 import dns.ttl
 
 class BugsTestCase(unittest.TestCase):
@@ -81,6 +82,19 @@ class BugsTestCase(unittest.TestCase):
         out6 = rd6.to_digestable(dns.name.from_text("test"))
         text6 = binascii.hexlify(out6).decode('ascii')
         self.failUnless(text6 == '0002018f000000000000000000000000000010')
+
+    def test_TXT_conversions(self):
+        t1 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
+                                     [b'foo'])
+        t2 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
+                                     b'foo')
+        t3 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
+                                     'foo')
+        t4 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
+                                     ['foo'])
+        self.failUnless(t1 == t2)
+        self.failUnless(t1 == t2)
+        self.failUnless(t1 == t4)
 
 if __name__ == '__main__':
     unittest.main()
