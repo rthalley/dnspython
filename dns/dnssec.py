@@ -294,10 +294,11 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     if isinstance(origin, string_types):
         origin = dns.name.from_text(origin, dns.name.root)
 
-    for candidate_key in _find_candidate_keys(keys, rrsig):
-        if not candidate_key:
-            raise ValidationFailure('unknown key')
+    candidate_keys = _find_candidate_keys(keys, rrsig)
+    if candidate_keys is None:
+        raise ValidationFailure('unknown key')
 
+    for candidate_key in candidate_keys:
         # For convenience, allow the rrset to be specified as a (name,
         # rdataset) tuple as well as a proper rrset
         if isinstance(rrset, tuple):
