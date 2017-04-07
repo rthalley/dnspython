@@ -180,7 +180,10 @@ class NoRootSOA(dns.exception.DNSException):
 class NoMetaqueries(dns.exception.DNSException):
     """DNS metaqueries are not allowed."""
 
-
+class AllNameserversFailed(dns.exception.DNSException):
+	""" All nameservers failed for one reason or another."""
+	pass
+	
 class Answer(object):
     """DNS stub resolver answer.
 
@@ -987,6 +990,8 @@ class Resolver(object):
                     sleep_time = min(timeout, backoff)
                     backoff *= 2
                     time.sleep(sleep_time)
+                else:
+                	raise AllNameserversFailed
             if response.rcode() == dns.rcode.NXDOMAIN:
                 nxdomain_responses[_qname] = response
                 continue
