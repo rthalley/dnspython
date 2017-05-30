@@ -76,6 +76,33 @@ ns1 1d1s a 10.0.0.1
 ns2 1w1D1h1m1S a 10.0.0.2
 """
 
+# No $TTL so default TTL for RRs should be inherited from SOA minimum TTL (
+# not from the last explicit RR TTL).
+ttl_from_soa_text = """$ORIGIN example.
+@ 1h soa foo bar 1 2 3 4 5
+@ 1h ns ns1
+@ 1h ns ns2
+ns1 1w1D1h1m1S a 10.0.0.2
+ns2 a 10.0.0.1
+"""
+
+# No $TTL and no SOA, so default TTL for RRs should be inherited from last
+# explicit RR TTL.
+ttl_from_last_text = """$ORIGIN example.
+@ 1h ns ns1
+@ 1h ns ns2
+ns1 a 10.0.0.1
+ns2 1w1D1h1m1S a 10.0.0.2
+"""
+
+# No $TTL and no SOA should raise SyntaxError as no TTL can be determined.
+no_ttl_text = """$ORIGIN example.
+@ ns ns1
+@ ns ns2
+ns1 a 10.0.0.1
+ns2 a 10.0.0.2
+"""
+
 no_soa_text = """$TTL 1h
 $ORIGIN example.
 @ ns ns1
@@ -442,6 +469,36 @@ class ZoneTestCase(unittest.TestCase):
         rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
         self.failUnless(rds.ttl == 694861)
 
+    def testTTLFromSOA(self):
+        z = dns.zone.from_text(ttl_from_soa_text, 'example.', relativize=True)
+        n = z['@']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
+        self.failUnless(rds.ttl == 3600)
+        soa_rd = rds[0]
+        n = z['ns1']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
+        self.failUnless(rds.ttl == 694861)
+        n = z['ns2']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
+        self.failUnless(rds.ttl == soa_rd.minimum)
+
+    def testTTLFromLast(self):
+        z = dns.zone.from_text(ttl_from_last_text, 'example.', check_origin=False)
+        n = z['@']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.NS)
+        self.failUnless(rds.ttl == 3600)
+        n = z['ns1']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
+        self.failUnless(rds.ttl == 3600)
+        n = z['ns2']
+        rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
+        self.failUnless(rds.ttl == 694861)
+
+    def testNoTTL(self):
+        def bad():
+            dns.zone.from_text(no_ttl_text, 'example.', check_origin=False)
+        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+
     def testNoSOA(self):
         def bad():
             dns.zone.from_text(no_soa_text, 'example.', relativize=True)
@@ -465,12 +522,11 @@ class ZoneTestCase(unittest.TestCase):
 
     def testFirstRRStartsWithWhitespace(self):
         # no name is specified, so default to the initial origin
-        # no ttl is specified, so default to the initial TTL of 0
-        z = dns.zone.from_text(' IN A 10.0.0.1', origin='example.',
+        z = dns.zone.from_text(' 300 IN A 10.0.0.1', origin='example.',
                                check_origin=False)
         n = z['@']
         rds = n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
-        self.failUnless(rds.ttl == 0)
+        self.failUnless(rds.ttl == 300)
 
     def testZoneOrigin(self):
         z = dns.zone.Zone('example.')

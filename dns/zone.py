@@ -28,6 +28,7 @@ import dns.node
 import dns.rdataclass
 import dns.rdatatype
 import dns.rdata
+import dns.rdtypes.ANY.SOA
 import dns.rrset
 import dns.tokenizer
 import dns.ttl
@@ -589,8 +590,14 @@ class _MasterReader(object):
 
     @ivar tok: The tokenizer
     @type tok: dns.tokenizer.Tokenizer object
-    @ivar ttl: The default TTL
-    @type ttl: int
+    @ivar last_ttl: The last seen explicit TTL for an RR
+    @type last_ttl: int
+    @ivar last_ttl_known: Has last TTL been detected
+    @type last_ttl_known: bool
+    @ivar default_ttl: The default TTL from a $TTL directive or SOA RR
+    @type default_ttl: int
+    @ivar default_ttl_known: Has default TTL been detected
+    @type default_ttl_known: bool
     @ivar last_name: The last name read
     @type last_name: dns.name.Name object
     @ivar current_origin: The current origin
@@ -600,8 +607,8 @@ class _MasterReader(object):
     @ivar zone: the zone
     @type zone: dns.zone.Zone object
     @ivar saved_state: saved reader state (used when processing $INCLUDE)
-    @type saved_state: list of (tokenizer, current_origin, last_name, file)
-    tuples.
+    @type saved_state: list of (tokenizer, current_origin, last_name, file,
+    last_ttl, last_ttl_known, default_ttl, default_ttl_known) tuples.
     @ivar current_file: the file object of the $INCLUDed file being parsed
     (None if no $INCLUDE is active).
     @ivar allow_include: is $INCLUDE allowed?
@@ -618,7 +625,10 @@ class _MasterReader(object):
         self.tok = tok
         self.current_origin = origin
         self.relativize = relativize
-        self.ttl = 0
+        self.last_ttl = 0
+        self.last_ttl_known = False
+        self.default_ttl = 0
+        self.default_ttl_known = False
         self.last_name = self.current_origin
         self.zone = zone_factory(origin, rdclass, relativize=relativize)
         self.saved_state = []
@@ -659,11 +669,18 @@ class _MasterReader(object):
         # TTL
         try:
             ttl = dns.ttl.from_text(token.value)
+            self.last_ttl = ttl
+            self.last_ttl_known = True
             token = self.tok.get()
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
         except dns.ttl.BadTTL:
-            ttl = self.ttl
+            if not (self.last_ttl_known or self.default_ttl_known):
+                raise dns.exception.SyntaxError("Missing default TTL value")
+            if self.default_ttl_known:
+                ttl = self.default_ttl
+            else:
+                ttl = self.last_ttl
         # Class
         try:
             rdclass = dns.rdataclass.from_text(token.value)
@@ -702,6 +719,13 @@ class _MasterReader(object):
             (ty, va) = sys.exc_info()[:2]
             raise dns.exception.SyntaxError(
                 "caught exception %s: %s" % (str(ty), str(va)))
+
+        if not self.default_ttl_known and isinstance(rd, dns.rdtypes.ANY.SOA.SOA):
+            # The pre-RFC2308 and pre-BIND9 behavior inherits the zone default
+            # TTL from the SOA minttl if no $TTL statement is present before the
+            # SOA is parsed.
+            self.default_ttl = rd.minimum
+            self.default_ttl_known = True
 
         rd.choose_relativity(self.zone.origin, self.relativize)
         covers = rd.covers()
@@ -778,11 +802,18 @@ class _MasterReader(object):
         # TTL
         try:
             ttl = dns.ttl.from_text(token.value)
+            self.last_ttl = ttl
+            self.last_ttl_known = True
             token = self.tok.get()
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
         except dns.ttl.BadTTL:
-            ttl = self.ttl
+            if not (self.last_ttl_known or self.default_ttl_known):
+                raise dns.exception.SyntaxError("Missing default TTL value")
+            if self.default_ttl_known:
+                ttl = self.default_ttl
+            else:
+                ttl = self.last_ttl
         # Class
         try:
             rdclass = dns.rdataclass.from_text(token.value)
@@ -884,7 +915,10 @@ class _MasterReader(object):
                          self.current_origin,
                          self.last_name,
                          self.current_file,
-                         self.ttl) = self.saved_state.pop(-1)
+                         self.last_ttl,
+                         self.last_ttl_known,
+                         self.default_ttl,
+                         self.default_ttl_known) = self.saved_state.pop(-1)
                         continue
                     break
                 elif token.is_eol():
@@ -898,7 +932,8 @@ class _MasterReader(object):
                         token = self.tok.get()
                         if not token.is_identifier():
                             raise dns.exception.SyntaxError("bad $TTL")
-                        self.ttl = dns.ttl.from_text(token.value)
+                        self.default_ttl = dns.ttl.from_text(token.value)
+                        self.default_ttl_known = True
                         self.tok.get_eol()
                     elif c == u'$ORIGIN':
                         self.current_origin = self.tok.get_name()
@@ -923,7 +958,10 @@ class _MasterReader(object):
                                                  self.current_origin,
                                                  self.last_name,
                                                  self.current_file,
-                                                 self.ttl))
+                                                 self.last_ttl,
+                                                 self.last_ttl_known,
+                                                 self.default_ttl,
+                                                 self.default_ttl_known))
                         self.current_file = open(filename, 'r')
                         self.tok = dns.tokenizer.Tokenizer(self.current_file,
                                                            filename)
