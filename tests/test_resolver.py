@@ -275,7 +275,7 @@ if hasattr(select, 'poll'):
 
 class NXDOMAINExceptionTestCase(unittest.TestCase):
 
-    # pylint: disable=broad-except
+    # pylint: disable=broad-except,exception-message-attribute
 
     def test_nxdomain_compatible(self):
         n1 = dns.name.Name(('a', 'b', ''))

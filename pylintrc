@@ -12,7 +12,8 @@ enable=
     python3
 
 # It's worth looking at len-as-condition for optimization, but it's disabled
-# here as it is not a correctness thing.
+# here as it is not a correctness thing.  Similarly eq-without-hash is
+# probably worth improving.
 
 disable=
     R,
@@ -38,6 +39,7 @@ disable=
     wrong-import-order,
     wrong-import-position,
     len-as-condition,
+    eq-without-hash,
 
 [REPORTS]
 

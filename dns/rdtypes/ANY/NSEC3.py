@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2004-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -22,6 +22,8 @@ import dns.exception
 import dns.rdata
 import dns.rdatatype
 from dns._compat import xrange, text_type
+
+# pylint: disable=deprecated-string-function
 
 try:
     b32_hex_to_normal = string.maketrans('0123456789ABCDEFGHIJKLMNOPQRSTUV',

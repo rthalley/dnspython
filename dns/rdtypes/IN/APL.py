@@ -1,4 +1,4 @@
-# Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2003-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -121,6 +121,10 @@ class APL(dns.rdata.Rdata):
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+
+        # pylint complains about this on Python 2.7, not sure why...
+        # pylint: disable=invalid-str-codec
+
         items = []
         while 1:
             if rdlen == 0:
