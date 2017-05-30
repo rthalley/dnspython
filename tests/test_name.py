@@ -1,5 +1,5 @@
 # -*- coding: utf-8
-# Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) 2003-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -27,7 +27,7 @@ import dns.name
 import dns.reversename
 import dns.e164
 
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,unsupported-assignment-operation
 
 
 class NameTestCase(unittest.TestCase):

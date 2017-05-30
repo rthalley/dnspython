@@ -11,6 +11,9 @@ enable=
     all,
     python3
 
+# It's worth looking at len-as-condition for optimization, but it's disabled
+# here as it is not a correctness thing.
+
 disable=
     R,
     I,
@@ -34,7 +37,7 @@ disable=
     unused-variable,
     wrong-import-order,
     wrong-import-position,
-
+    len-as-condition,
 
 [REPORTS]
 
