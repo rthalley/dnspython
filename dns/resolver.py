@@ -415,6 +415,11 @@ class LRUCache(object):
         self.set_max_size(max_size)
         self.sentinel = LRUCacheNode(None, None)
         self.lock = _threading.Lock()
+        # For usage statistics
+        self.positive_hits = 0
+        self.positive_miss = 0
+        self.negative_hits = 0
+        self.negative_miss = 0
 
     def set_max_size(self, max_size):
         if max_size < 1:
@@ -433,6 +438,10 @@ class LRUCache(object):
         """
 
         try:
+            ptr = True # To know if it is a PTR registry or an A one (negative or positive hit/miss)
+            if key[1] != dns.rdatatype.PTR:
+                ptr = False
+
             self.lock.acquire()
             node = self.data.get(key)
             if node is None:
@@ -444,6 +453,10 @@ class LRUCache(object):
                 del self.data[node.key]
                 return None
             node.link_after(self.sentinel)
+            if ptr:
+                self.negative_hits += 1
+            else:
+                self.positive_hits += 1
             return node.value
         finally:
             self.lock.release()
@@ -458,6 +471,9 @@ class LRUCache(object):
         """
 
         try:
+            ptr = True # To know if it is a PTR registry or an A one (negative or positive hit/miss)
+            if key[1] != dns.rdatatype.PTR:
+                ptr = False
             self.lock.acquire()
             node = self.data.get(key)
             if node is not None:
@@ -470,6 +486,10 @@ class LRUCache(object):
             node = LRUCacheNode(key, value)
             node.link_after(self.sentinel)
             self.data[key] = node
+            if ptr:
+                self.negative_miss += 1
+            else:
+                self.positive_miss += 1
         finally:
             self.lock.release()
 
@@ -500,6 +520,22 @@ class LRUCache(object):
                 self.data = {}
         finally:
             self.lock.release()
+
+    # Statistics functions
+    def get_usage_rate(self):
+        return (len(self.data)*100)/(self.max_size*1.0)  # The 1.0 is because the result must be a float
+
+    def get_positive_hits(self):
+        return self.positive_hits
+
+    def get_positive_miss(self):
+        return self.positive_miss
+
+    def get_negative_hits(self):
+        return self.negative_hits
+
+    def get_negative_miss(self):
+        return self.negative_miss
 
 
 class Resolver(object):
