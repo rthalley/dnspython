@@ -28,8 +28,8 @@ class AAAA(dns.rdata.Rdata):
 
     __slots__ = ['address']
 
-    def __init__(self, rdclass, rdtype, address):
-        super(AAAA, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, comment=None):
+        super(AAAA, self).__init__(rdclass, rdtype, comment)
         # check that it's OK
         dns.inet.inet_pton(dns.inet.AF_INET6, address)
         self.address = address

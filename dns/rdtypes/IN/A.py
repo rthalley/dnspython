@@ -28,8 +28,8 @@ class A(dns.rdata.Rdata):
 
     __slots__ = ['address']
 
-    def __init__(self, rdclass, rdtype, address):
-        super(A, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, comment=None):
+        super(A, self).__init__(rdclass, rdtype, comment)
         # check that it's OK
         dns.ipv4.inet_aton(address)
         self.address = address

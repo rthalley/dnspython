@@ -63,8 +63,8 @@ class NSEC3(dns.rdata.Rdata):
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt', 'next', 'windows']
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt,
-                 next, windows):
-        super(NSEC3, self).__init__(rdclass, rdtype)
+                 next, windows, comment=None):
+        super(NSEC3, self).__init__(rdclass, rdtype, comment)
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations

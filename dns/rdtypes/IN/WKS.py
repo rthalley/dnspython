@@ -38,8 +38,8 @@ class WKS(dns.rdata.Rdata):
 
     __slots__ = ['address', 'protocol', 'bitmap']
 
-    def __init__(self, rdclass, rdtype, address, protocol, bitmap):
-        super(WKS, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, protocol, bitmap, comment=None):
+        super(WKS, self).__init__(rdclass, rdtype, comment)
         self.address = address
         self.protocol = protocol
         if not isinstance(bitmap, bytearray):

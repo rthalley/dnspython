@@ -34,8 +34,8 @@ class MXBase(dns.rdata.Rdata):
 
     __slots__ = ['preference', 'exchange']
 
-    def __init__(self, rdclass, rdtype, preference, exchange):
-        super(MXBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, preference, exchange, comment=None):
+        super(MXBase, self).__init__(rdclass, rdtype, comment)
         self.preference = preference
         self.exchange = exchange
 

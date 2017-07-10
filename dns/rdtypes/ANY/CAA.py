@@ -34,8 +34,8 @@ class CAA(dns.rdata.Rdata):
 
     __slots__ = ['flags', 'tag', 'value']
 
-    def __init__(self, rdclass, rdtype, flags, tag, value):
-        super(CAA, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, flags, tag, value, comment=None):
+        super(CAA, self).__init__(rdclass, rdtype, comment)
         self.flags = flags
         self.tag = tag
         self.value = value

@@ -86,8 +86,8 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     __slots__ = ['flags', 'protocol', 'algorithm', 'key']
 
-    def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
-        super(DNSKEYBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key, comment=None):
+        super(DNSKEYBase, self).__init__(rdclass, rdtype, comment)
         self.flags = flags
         self.protocol = protocol
         self.algorithm = algorithm

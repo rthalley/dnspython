@@ -86,8 +86,8 @@ class APL(dns.rdata.Rdata):
 
     __slots__ = ['items']
 
-    def __init__(self, rdclass, rdtype, items):
-        super(APL, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, items, comment=None):
+        super(APL, self).__init__(rdclass, rdtype, comment)
         self.items = items
 
     def to_text(self, origin=None, relativize=True, **kw):

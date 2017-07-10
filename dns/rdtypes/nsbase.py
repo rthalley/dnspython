@@ -31,8 +31,8 @@ class NSBase(dns.rdata.Rdata):
 
     __slots__ = ['target']
 
-    def __init__(self, rdclass, rdtype, target):
-        super(NSBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, target, comment=None):
+        super(NSBase, self).__init__(rdclass, rdtype, comment)
         self.target = target
 
     def to_text(self, origin=None, relativize=True, **kw):

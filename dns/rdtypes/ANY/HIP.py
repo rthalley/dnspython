@@ -38,8 +38,9 @@ class HIP(dns.rdata.Rdata):
 
     __slots__ = ['hit', 'algorithm', 'key', 'servers']
 
-    def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
-        super(HIP, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, hit, algorithm, key, servers, 
+                 comment=None):
+        super(HIP, self).__init__(rdclass, rdtype, comment)
         self.hit = hit
         self.algorithm = algorithm
         self.key = key

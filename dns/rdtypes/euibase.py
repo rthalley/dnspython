@@ -33,8 +33,8 @@ class EUIBase(dns.rdata.Rdata):
     # byte_len = 6  # 0123456789ab (in hex)
     # text_len = byte_len * 3 - 1  # 01-23-45-67-89-ab
 
-    def __init__(self, rdclass, rdtype, eui):
-        super(EUIBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, eui, comment=None):
+        super(EUIBase, self).__init__(rdclass, rdtype, comment)
         if len(eui) != self.byte_len:
             raise dns.exception.FormError('EUI%s rdata has to have %s bytes'
                                           % (self.byte_len * 8, self.byte_len))

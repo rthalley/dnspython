@@ -37,8 +37,8 @@ class DSBase(dns.rdata.Rdata):
     __slots__ = ['key_tag', 'algorithm', 'digest_type', 'digest']
 
     def __init__(self, rdclass, rdtype, key_tag, algorithm, digest_type,
-                 digest):
-        super(DSBase, self).__init__(rdclass, rdtype)
+                 digest, comment=None):
+        super(DSBase, self).__init__(rdclass, rdtype, comment)
         self.key_tag = key_tag
         self.algorithm = algorithm
         self.digest_type = digest_type

@@ -37,8 +37,8 @@ class TLSA(dns.rdata.Rdata):
     __slots__ = ['usage', 'selector', 'mtype', 'cert']
 
     def __init__(self, rdclass, rdtype, usage, selector,
-                 mtype, cert):
-        super(TLSA, self).__init__(rdclass, rdtype)
+                 mtype, cert, comment=None):
+        super(TLSA, self).__init__(rdclass, rdtype, comment)
         self.usage = usage
         self.selector = selector
         self.mtype = mtype

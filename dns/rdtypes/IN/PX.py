@@ -34,8 +34,8 @@ class PX(dns.rdata.Rdata):
 
     __slots__ = ['preference', 'map822', 'mapx400']
 
-    def __init__(self, rdclass, rdtype, preference, map822, mapx400):
-        super(PX, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, preference, map822, mapx400, comment=None):
+        super(PX, self).__init__(rdclass, rdtype, comment)
         self.preference = preference
         self.map822 = map822
         self.mapx400 = mapx400

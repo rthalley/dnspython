@@ -55,8 +55,9 @@ class GPOS(dns.rdata.Rdata):
 
     __slots__ = ['latitude', 'longitude', 'altitude']
 
-    def __init__(self, rdclass, rdtype, latitude, longitude, altitude):
-        super(GPOS, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, latitude, longitude, altitude, 
+                 comment=None):
+        super(GPOS, self).__init__(rdclass, rdtype, comment)
         if isinstance(latitude, float) or \
            isinstance(latitude, int) or \
            isinstance(latitude, long):

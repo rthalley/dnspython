@@ -35,8 +35,8 @@ class SSHFP(dns.rdata.Rdata):
     __slots__ = ['algorithm', 'fp_type', 'fingerprint']
 
     def __init__(self, rdclass, rdtype, algorithm, fp_type,
-                 fingerprint):
-        super(SSHFP, self).__init__(rdclass, rdtype)
+                 fingerprint, comment=None):
+        super(SSHFP, self).__init__(rdclass, rdtype, comment)
         self.algorithm = algorithm
         self.fp_type = fp_type
         self.fingerprint = fingerprint

@@ -29,8 +29,8 @@ class DHCID(dns.rdata.Rdata):
 
     __slots__ = ['data']
 
-    def __init__(self, rdclass, rdtype, data):
-        super(DHCID, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, data, comment=None):
+        super(DHCID, self).__init__(rdclass, rdtype, comment)
         self.data = data
 
     def to_text(self, origin=None, relativize=True, **kw):

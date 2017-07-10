@@ -31,8 +31,8 @@ class X25(dns.rdata.Rdata):
 
     __slots__ = ['address']
 
-    def __init__(self, rdclass, rdtype, address):
-        super(X25, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, comment=None):
+        super(X25, self).__init__(rdclass, rdtype, comment)
         if isinstance(address, text_type):
             self.address = address.encode()
         else:

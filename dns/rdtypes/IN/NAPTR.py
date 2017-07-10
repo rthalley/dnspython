@@ -56,8 +56,8 @@ class NAPTR(dns.rdata.Rdata):
                  'replacement']
 
     def __init__(self, rdclass, rdtype, order, preference, flags, service,
-                 regexp, replacement):
-        super(NAPTR, self).__init__(rdclass, rdtype)
+                 regexp, replacement, comment=None):
+        super(NAPTR, self).__init__(rdclass, rdtype, comment)
         self.flags = _sanitize(flags)
         self.service = _sanitize(service)
         self.regexp = _sanitize(regexp)

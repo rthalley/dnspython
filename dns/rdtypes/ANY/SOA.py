@@ -45,8 +45,8 @@ class SOA(dns.rdata.Rdata):
                  'minimum']
 
     def __init__(self, rdclass, rdtype, mname, rname, serial, refresh, retry,
-                 expire, minimum):
-        super(SOA, self).__init__(rdclass, rdtype)
+                 expire, minimum, comment=None):
+        super(SOA, self).__init__(rdclass, rdtype, comment)
         self.mname = mname
         self.rname = rname
         self.serial = serial

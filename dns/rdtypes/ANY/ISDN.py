@@ -33,8 +33,8 @@ class ISDN(dns.rdata.Rdata):
 
     __slots__ = ['address', 'subaddress']
 
-    def __init__(self, rdclass, rdtype, address, subaddress):
-        super(ISDN, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, subaddress, comment=None):
+        super(ISDN, self).__init__(rdclass, rdtype, comment)
         if isinstance(address, text_type):
             self.address = address.encode()
         else:

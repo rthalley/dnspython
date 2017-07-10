@@ -34,8 +34,8 @@ class CSYNC(dns.rdata.Rdata):
 
     __slots__ = ['serial', 'flags', 'windows']
 
-    def __init__(self, rdclass, rdtype, serial, flags, windows):
-        super(CSYNC, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, serial, flags, windows, comment=None):
+        super(CSYNC, self).__init__(rdclass, rdtype, comment)
         self.serial = serial
         self.flags = flags
         self.windows = windows

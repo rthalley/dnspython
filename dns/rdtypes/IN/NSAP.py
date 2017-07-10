@@ -30,8 +30,8 @@ class NSAP(dns.rdata.Rdata):
 
     __slots__ = ['address']
 
-    def __init__(self, rdclass, rdtype, address):
-        super(NSAP, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, comment=None):
+        super(NSAP, self).__init__(rdclass, rdtype, comment)
         self.address = address
 
     def to_text(self, origin=None, relativize=True, **kw):

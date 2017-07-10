@@ -28,8 +28,8 @@ class OPENPGPKEY(dns.rdata.Rdata):
     @see: RFC 7929
     """
 
-    def __init__(self, rdclass, rdtype, key):
-        super(OPENPGPKEY, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, key, comment=None):
+        super(OPENPGPKEY, self).__init__(rdclass, rdtype, comment)
         self.key = key
 
     def to_text(self, origin=None, relativize=True, **kw):

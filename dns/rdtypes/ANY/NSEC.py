@@ -33,8 +33,8 @@ class NSEC(dns.rdata.Rdata):
 
     __slots__ = ['next', 'windows']
 
-    def __init__(self, rdclass, rdtype, next, windows):
-        super(NSEC, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, next, windows, comment=None):
+        super(NSEC, self).__init__(rdclass, rdtype, comment)
         self.next = next
         self.windows = windows
 

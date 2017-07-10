@@ -36,8 +36,8 @@ class URI(dns.rdata.Rdata):
 
     __slots__ = ['priority', 'weight', 'target']
 
-    def __init__(self, rdclass, rdtype, priority, weight, target):
-        super(URI, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, priority, weight, target, comment=None):
+        super(URI, self).__init__(rdclass, rdtype, comment)
         self.priority = priority
         self.weight = weight
         if len(target) < 1:

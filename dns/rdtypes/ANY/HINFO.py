@@ -33,8 +33,8 @@ class HINFO(dns.rdata.Rdata):
 
     __slots__ = ['cpu', 'os']
 
-    def __init__(self, rdclass, rdtype, cpu, os):
-        super(HINFO, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, cpu, os, comment=None):
+        super(HINFO, self).__init__(rdclass, rdtype, comment)
         if isinstance(cpu, text_type):
             self.cpu = cpu.encode()
         else:

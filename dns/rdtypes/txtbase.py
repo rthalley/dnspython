@@ -33,8 +33,8 @@ class TXTBase(dns.rdata.Rdata):
 
     __slots__ = ['strings']
 
-    def __init__(self, rdclass, rdtype, strings):
-        super(TXTBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, strings, comment=None):
+        super(TXTBase, self).__init__(rdclass, rdtype, comment)
         if isinstance(strings, binary_type) or \
            isinstance(strings, string_types):
             strings = [strings]

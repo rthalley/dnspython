@@ -36,8 +36,8 @@ class SRV(dns.rdata.Rdata):
 
     __slots__ = ['priority', 'weight', 'port', 'target']
 
-    def __init__(self, rdclass, rdtype, priority, weight, port, target):
-        super(SRV, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, priority, weight, port, target, comment=None):
+        super(SRV, self).__init__(rdclass, rdtype, comment)
         self.priority = priority
         self.weight = weight
         self.port = port

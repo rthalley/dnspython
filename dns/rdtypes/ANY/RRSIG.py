@@ -75,8 +75,8 @@ class RRSIG(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, type_covered, algorithm, labels,
                  original_ttl, expiration, inception, key_tag, signer,
-                 signature):
-        super(RRSIG, self).__init__(rdclass, rdtype)
+                 signature, comment=None):
+        super(RRSIG, self).__init__(rdclass, rdtype, comment)
         self.type_covered = type_covered
         self.algorithm = algorithm
         self.labels = labels

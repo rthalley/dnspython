@@ -36,8 +36,9 @@ class NSEC3PARAM(dns.rdata.Rdata):
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
 
-    def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt):
-        super(NSEC3PARAM, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt, 
+                 comment=None):
+        super(NSEC3PARAM, self).__init__(rdclass, rdtype, comment)
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations

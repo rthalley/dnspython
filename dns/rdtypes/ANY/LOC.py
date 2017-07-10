@@ -110,7 +110,7 @@ class LOC(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, latitude, longitude, altitude,
                  size=_default_size, hprec=_default_hprec,
-                 vprec=_default_vprec):
+                 vprec=_default_vprec, comment=None):
         """Initialize a LOC record instance.
 
         The parameters I{latitude} and I{longitude} may be either a 4-tuple
@@ -119,7 +119,7 @@ class LOC(dns.rdata.Rdata):
         degrees. The other parameters are floats. Size, horizontal precision,
         and vertical precision are specified in centimeters."""
 
-        super(LOC, self).__init__(rdclass, rdtype)
+        super(LOC, self).__init__(rdclass, rdtype, comment)
         if isinstance(latitude, int) or isinstance(latitude, long):
             latitude = float(latitude)
         if isinstance(latitude, float):

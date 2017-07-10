@@ -40,8 +40,8 @@ class IPSECKEY(dns.rdata.Rdata):
     __slots__ = ['precedence', 'gateway_type', 'algorithm', 'gateway', 'key']
 
     def __init__(self, rdclass, rdtype, precedence, gateway_type, algorithm,
-                 gateway, key):
-        super(IPSECKEY, self).__init__(rdclass, rdtype)
+                 gateway, key, comment=None):
+        super(IPSECKEY, self).__init__(rdclass, rdtype, comment)
         if gateway_type == 0:
             if gateway != '.' and gateway is not None:
                 raise SyntaxError('invalid gateway for gateway type 0')

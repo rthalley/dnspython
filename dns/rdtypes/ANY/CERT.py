@@ -69,8 +69,8 @@ class CERT(dns.rdata.Rdata):
     __slots__ = ['certificate_type', 'key_tag', 'algorithm', 'certificate']
 
     def __init__(self, rdclass, rdtype, certificate_type, key_tag, algorithm,
-                 certificate):
-        super(CERT, self).__init__(rdclass, rdtype)
+                 certificate, comment=None):
+        super(CERT, self).__init__(rdclass, rdtype, comment)
         self.certificate_type = certificate_type
         self.key_tag = key_tag
         self.algorithm = algorithm

@@ -88,17 +88,19 @@ def _truncate_bitmap(what):
 class Rdata(object):
     """Base class for all DNS rdata types."""
 
-    __slots__ = ['rdclass', 'rdtype']
+    __slots__ = ['rdclass', 'rdtype', 'comment']
 
-    def __init__(self, rdclass, rdtype):
+    def __init__(self, rdclass, rdtype, comment=None):
         """Initialize an rdata.
 
         *rdclass*, an ``int`` is the rdataclass of the Rdata.
         *rdtype*, an ``int`` is the rdatatype of the Rdata.
+        *comment*, an ``string`` is the comment behind the record.
         """
 
         self.rdclass = rdclass
         self.rdtype = rdtype
+        self.comment = comment
 
     def covers(self):
         """Return the type a Rdata covers.
@@ -264,8 +266,8 @@ class GenericRdata(Rdata):
 
     __slots__ = ['data']
 
-    def __init__(self, rdclass, rdtype, data):
-        super(GenericRdata, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, data, comment=None):
+        super(GenericRdata, self).__init__(rdclass, rdtype, comment)
         self.data = data
 
     def to_text(self, origin=None, relativize=True, **kw):
