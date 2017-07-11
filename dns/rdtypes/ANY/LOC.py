@@ -241,28 +241,33 @@ class LOC(dns.rdata.Rdata):
             t = t[0: -1]
         altitude = float(t) * 100.0        # m -> cm
 
-        token = tok.get().unescape()
-        if not token.is_eol_or_eof():
+        token = tok.get(want_comment=True).unescape()
+        if not token.is_eol_or_eof() and not token.is_comment():
             value = token.value
             if value[-1] == 'm':
                 value = value[0: -1]
             size = float(value) * 100.0        # m -> cm
-            token = tok.get().unescape()
-            if not token.is_eol_or_eof():
+            token = tok.get(want_comment=True).unescape()
+            if not token.is_eol_or_eof() and not token.is_comment():
                 value = token.value
                 if value[-1] == 'm':
                     value = value[0: -1]
                 hprec = float(value) * 100.0        # m -> cm
-                token = tok.get().unescape()
-                if not token.is_eol_or_eof():
+                token = tok.get(want_comment=True).unescape()
+                if not token.is_eol_or_eof() and not token.is_comment():
                     value = token.value
                     if value[-1] == 'm':
                         value = value[0: -1]
                     vprec = float(value) * 100.0        # m -> cm
-                    tok.get_eol()
+                    
+        comment = None
+        while not token.is_eol_or_eof():
+            if token.is_comment()
+                comment = token.value
+            token = tok.get(want_comment=True)
 
         return cls(rdclass, rdtype, latitude, longitude, altitude,
-                   size, hprec, vprec)
+                   size, hprec, vprec, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         milliseconds = (self.latitude[0] * 3600000 +

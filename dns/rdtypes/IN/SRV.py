@@ -55,8 +55,13 @@ class SRV(dns.rdata.Rdata):
         port = tok.get_uint16()
         target = tok.get_name(None)
         target = target.choose_relativity(origin, relativize)
-        tok.get_eol()
-        return cls(rdclass, rdtype, priority, weight, port, target)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, priority, weight, port, target, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         three_ints = struct.pack("!HHH", self.priority, self.weight, self.port)

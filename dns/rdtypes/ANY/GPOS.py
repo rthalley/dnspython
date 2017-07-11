@@ -90,8 +90,13 @@ class GPOS(dns.rdata.Rdata):
         latitude = tok.get_string()
         longitude = tok.get_string()
         altitude = tok.get_string()
-        tok.get_eol()
-        return cls(rdclass, rdtype, latitude, longitude, altitude)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, latitude, longitude, altitude, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.latitude)

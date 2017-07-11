@@ -57,16 +57,20 @@ class TLSA(dns.rdata.Rdata):
         selector = tok.get_uint8()
         mtype = tok.get_uint8()
         cert_chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment = t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             cert_chunks.append(t.value.encode())
         cert = b''.join(cert_chunks)
         cert = binascii.unhexlify(cert)
-        return cls(rdclass, rdtype, usage, selector, mtype, cert)
+        return cls(rdclass, rdtype, usage, selector, mtype, cert, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!BBB", self.usage, self.selector, self.mtype)

@@ -73,9 +73,13 @@ class SOA(dns.rdata.Rdata):
         retry = tok.get_ttl()
         expire = tok.get_ttl()
         minimum = tok.get_ttl()
-        tok.get_eol()
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
         return cls(rdclass, rdtype, mname, rname, serial, refresh, retry,
-                   expire, minimum)
+                   expire, minimum, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         self.mname.to_wire(file, compress, origin)

@@ -67,9 +67,12 @@ class WKS(dns.rdata.Rdata):
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             if token.value.isdigit():
                 serv = int(token.value)
             else:
@@ -87,7 +90,7 @@ class WKS(dns.rdata.Rdata):
                     bitmap.append(0)
             bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
-        return cls(rdclass, rdtype, address, protocol, bitmap)
+        return cls(rdclass, rdtype, address, protocol, bitmap, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(dns.ipv4.inet_aton(self.address))

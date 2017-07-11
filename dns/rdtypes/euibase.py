@@ -45,8 +45,13 @@ class EUIBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+        comment=None
         text = tok.get_string()
-        tok.get_eol()
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = tok.value
+            token = tok.get(want_comment=True)
         if len(text) != cls.text_len:
             raise dns.exception.SyntaxError(
                 'Input text must have %s characters' % cls.text_len)
@@ -60,7 +65,7 @@ class EUIBase(dns.rdata.Rdata):
             data = binascii.unhexlify(text.encode())
         except (ValueError, TypeError) as ex:
             raise dns.exception.SyntaxError('Hex decoding error: %s' % str(ex))
-        return cls(rdclass, rdtype, data)
+        return cls(rdclass, rdtype, data, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(self.eui)

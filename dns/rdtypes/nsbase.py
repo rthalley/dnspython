@@ -41,10 +41,15 @@ class NSBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+        comment=None
         target = tok.get_name()
         target = target.choose_relativity(origin, relativize)
-        tok.get_eol()
-        return cls(rdclass, rdtype, target)
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, target, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         self.target.to_wire(file, compress, origin)

@@ -109,10 +109,14 @@ class NSEC3(dns.rdata.Rdata):
             'ascii').upper().translate(b32_hex_to_normal)
         next = base64.b32decode(next)
         rdtypes = []
+        comment = None
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError("NSEC3 with bit 0")
@@ -143,7 +147,7 @@ class NSEC3(dns.rdata.Rdata):
         if octets != 0:
             windows.append((window, bitmap[0:octets]))
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
-                   windows)
+                   windows, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.salt)

@@ -52,8 +52,13 @@ class PX(dns.rdata.Rdata):
         map822 = map822.choose_relativity(origin, relativize)
         mapx400 = tok.get_name(None)
         mapx400 = mapx400.choose_relativity(origin, relativize)
-        tok.get_eol()
-        return cls(rdclass, rdtype, preference, map822, mapx400)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, preference, map822, mapx400, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         pref = struct.pack("!H", self.preference)

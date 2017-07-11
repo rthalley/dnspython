@@ -96,10 +96,14 @@ class APL(dns.rdata.Rdata):
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         items = []
+        comment = None
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             item = token.value
             if item[0] == '!':
                 negation = True
@@ -113,7 +117,7 @@ class APL(dns.rdata.Rdata):
             item = APLItem(family, negation, address, prefix)
             items.append(item)
 
-        return cls(rdclass, rdtype, items)
+        return cls(rdclass, rdtype, items, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         for item in self.items:

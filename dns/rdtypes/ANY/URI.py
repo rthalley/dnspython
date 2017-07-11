@@ -53,13 +53,17 @@ class URI(dns.rdata.Rdata):
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+        comment=None
         priority = tok.get_uint16()
         weight = tok.get_uint16()
         target = tok.get().unescape()
         if not (target.is_quoted_string() or target.is_identifier()):
             raise dns.exception.SyntaxError("URI target must be a string")
-        tok.get_eol()
-        return cls(rdclass, rdtype, priority, weight, target.value)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, priority, weight, target.value, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         two_ints = struct.pack("!HH", self.priority, self.weight)

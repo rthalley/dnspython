@@ -52,16 +52,20 @@ class SSHFP(dns.rdata.Rdata):
         algorithm = tok.get_uint8()
         fp_type = tok.get_uint8()
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment = t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
         fingerprint = b''.join(chunks)
         fingerprint = binascii.unhexlify(fingerprint)
-        return cls(rdclass, rdtype, algorithm, fp_type, fingerprint)
+        return cls(rdclass, rdtype, algorithm, fp_type, fingerprint, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!BB", self.algorithm, self.fp_type)

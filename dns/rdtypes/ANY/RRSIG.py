@@ -115,10 +115,14 @@ class RRSIG(dns.rdata.Rdata):
         signer = tok.get_name()
         signer = signer.choose_relativity(origin, relativize)
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment = t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
@@ -126,7 +130,7 @@ class RRSIG(dns.rdata.Rdata):
         signature = base64.b64decode(b64)
         return cls(rdclass, rdtype, type_covered, algorithm, labels,
                    original_ttl, expiration, inception, key_tag, signer,
-                   signature)
+                   signature, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack('!HBBIIIH', self.type_covered,

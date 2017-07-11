@@ -58,10 +58,14 @@ class CSYNC(dns.rdata.Rdata):
         serial = tok.get_uint32()
         flags = tok.get_uint16()
         rdtypes = []
+        comment = None
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError("CSYNC with bit 0")
@@ -90,7 +94,7 @@ class CSYNC(dns.rdata.Rdata):
             bitmap[byte] = bitmap[byte] | (0x80 >> bit)
 
         windows.append((window, bitmap[0:octets]))
-        return cls(rdclass, rdtype, serial, flags, windows)
+        return cls(rdclass, rdtype, serial, flags, windows, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(struct.pack('!IH', self.serial, self.flags))

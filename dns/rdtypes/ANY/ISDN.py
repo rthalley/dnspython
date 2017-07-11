@@ -54,15 +54,21 @@ class ISDN(dns.rdata.Rdata):
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         address = tok.get_string()
-        t = tok.get()
-        if not t.is_eol_or_eof():
+        comment = None
+        t = tok.get(want_comment=True)
+        if t.is_comment():
+            comment = t.value
+        elif not t.is_eol_or_eof():
             tok.unget(t)
             subaddress = tok.get_string()
         else:
             tok.unget(t)
             subaddress = ''
-        tok.get_eol()
-        return cls(rdclass, rdtype, address, subaddress)
+        while not t.is_eol_or_eof():
+            if t.is_comment():
+                comment = t.value
+            t = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, address, subaddress, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.address)

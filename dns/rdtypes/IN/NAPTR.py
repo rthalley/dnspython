@@ -83,9 +83,14 @@ class NAPTR(dns.rdata.Rdata):
         regexp = tok.get_string()
         replacement = tok.get_name()
         replacement = replacement.choose_relativity(origin, relativize)
-        tok.get_eol()
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
         return cls(rdclass, rdtype, order, preference, flags, service,
-                   regexp, replacement)
+                   regexp, replacement, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         two_ints = struct.pack("!HH", self.order, self.preference)

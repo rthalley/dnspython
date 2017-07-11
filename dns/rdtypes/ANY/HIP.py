@@ -66,13 +66,16 @@ class HIP(dns.rdata.Rdata):
         key = base64.b64decode(tok.get_string().encode())
         servers = []
         while 1:
-            token = tok.get()
+            token = tok.get(want_comment=True)
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             server = dns.name.from_text(token.value, origin)
             server.choose_relativity(origin, relativize)
             servers.append(server)
-        return cls(rdclass, rdtype, hit, algorithm, key, servers)
+        return cls(rdclass, rdtype, hit, algorithm, key, servers, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         lh = len(self.hit)

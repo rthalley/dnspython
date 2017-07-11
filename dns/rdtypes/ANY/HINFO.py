@@ -52,8 +52,13 @@ class HINFO(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         cpu = tok.get_string()
         os = tok.get_string()
-        tok.get_eol()
-        return cls(rdclass, rdtype, cpu, os)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, cpu, os, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.cpu)

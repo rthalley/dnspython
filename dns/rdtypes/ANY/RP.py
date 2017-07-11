@@ -47,8 +47,13 @@ class RP(dns.rdata.Rdata):
         txt = tok.get_name()
         mbox = mbox.choose_relativity(origin, relativize)
         txt = txt.choose_relativity(origin, relativize)
-        tok.get_eol()
-        return cls(rdclass, rdtype, mbox, txt)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, mbox, txt, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         self.mbox.to_wire(file, None, origin)

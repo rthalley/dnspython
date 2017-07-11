@@ -40,8 +40,13 @@ class AAAA(dns.rdata.Rdata):
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         address = tok.get_identifier()
-        tok.get_eol()
-        return cls(rdclass, rdtype, address)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, address, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(dns.inet.inet_pton(dns.inet.AF_INET6, self.address))
