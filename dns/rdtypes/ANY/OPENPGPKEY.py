@@ -32,7 +32,9 @@ class OPENPGPKEY(dns.rdata.Rdata):
         super(OPENPGPKEY, self).__init__(rdclass, rdtype, comment)
         self.key = key
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s ;%s' % (dns.rdata._base64ify(self.key), self.comment)
         return dns.rdata._base64ify(self.key)
 
     @classmethod

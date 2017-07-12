@@ -34,7 +34,9 @@ class A(dns.rdata.Rdata):
         dns.ipv4.inet_aton(address)
         self.address = address
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s ;%s' % (self.address, self.comment)
         return self.address
 
     @classmethod

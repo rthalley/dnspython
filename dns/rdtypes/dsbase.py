@@ -44,7 +44,13 @@ class DSBase(dns.rdata.Rdata):
         self.digest_type = digest_type
         self.digest = digest
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%d %d %d %s ;%s' % (self.key_tag, self.algorithm,
+                                self.digest_type,
+                                dns.rdata._hexify(self.digest,
+                                                  chunksize=128),
+                                self.comment)
         return '%d %d %d %s' % (self.key_tag, self.algorithm,
                                 self.digest_type,
                                 dns.rdata._hexify(self.digest,

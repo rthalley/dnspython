@@ -65,8 +65,15 @@ class NAPTR(dns.rdata.Rdata):
         self.preference = preference
         self.replacement = replacement
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         replacement = self.replacement.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%d %d "%s" "%s" "%s" %s' % \
+                   (self.order, self.preference,
+                    dns.rdata._escapify(self.flags),
+                    dns.rdata._escapify(self.service),
+                    dns.rdata._escapify(self.regexp),
+                    replacement, self.comment)
         return '%d %d "%s" "%s" "%s" %s' % \
                (self.order, self.preference,
                 dns.rdata._escapify(self.flags),

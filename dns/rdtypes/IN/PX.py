@@ -40,9 +40,12 @@ class PX(dns.rdata.Rdata):
         self.map822 = map822
         self.mapx400 = mapx400
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         map822 = self.map822.choose_relativity(origin, relativize)
         mapx400 = self.mapx400.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%d %s %s ;%s' % (self.preference, map822, mapx400, 
+                                     self.comment)
         return '%d %s %s' % (self.preference, map822, mapx400)
 
     @classmethod

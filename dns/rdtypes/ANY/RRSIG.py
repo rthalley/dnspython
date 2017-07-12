@@ -90,7 +90,19 @@ class RRSIG(dns.rdata.Rdata):
     def covers(self):
         return self.type_covered
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s %d %d %d %s %s %d %s %s ;%s' % (
+            dns.rdatatype.to_text(self.type_covered),
+            self.algorithm,
+            self.labels,
+            self.original_ttl,
+            posixtime_to_sigtime(self.expiration),
+            posixtime_to_sigtime(self.inception),
+            self.key_tag,
+            self.signer.choose_relativity(origin, relativize),
+            dns.rdata._base64ify(self.signature),
+            self.comment)
         return '%s %d %d %d %s %s %d %s %s' % (
             dns.rdatatype.to_text(self.type_covered),
             self.algorithm,

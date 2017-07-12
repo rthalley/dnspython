@@ -34,7 +34,9 @@ class AAAA(dns.rdata.Rdata):
         dns.inet.inet_pton(dns.inet.AF_INET6, address)
         self.address = address
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s ;%s' % (self.address, self.comment)
         return self.address
 
     @classmethod

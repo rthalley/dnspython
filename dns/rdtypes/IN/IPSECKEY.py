@@ -63,7 +63,7 @@ class IPSECKEY(dns.rdata.Rdata):
         self.gateway = gateway
         self.key = key
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if self.gateway_type == 0:
             gateway = '.'
         elif self.gateway_type == 1:
@@ -74,6 +74,11 @@ class IPSECKEY(dns.rdata.Rdata):
             gateway = str(self.gateway.choose_relativity(origin, relativize))
         else:
             raise ValueError('invalid gateway type')
+        if want_comment and self.comment:
+            return '%d %d %d %s %s ;%s' % (self.precedence, self.gateway_type,
+                                       self.algorithm, gateway,
+                                       dns.rdata._base64ify(self.key),
+                                       self.comment)
         return '%d %d %d %s %s' % (self.precedence, self.gateway_type,
                                    self.algorithm, gateway,
                                    dns.rdata._base64ify(self.key))

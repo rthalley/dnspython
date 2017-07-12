@@ -47,7 +47,7 @@ class WKS(dns.rdata.Rdata):
         else:
             self.bitmap = bitmap
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         bits = []
         for i in xrange(0, len(self.bitmap)):
             byte = self.bitmap[i]
@@ -55,6 +55,9 @@ class WKS(dns.rdata.Rdata):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
         text = ' '.join(bits)
+        if want_comment and self.comment:
+            return '%s %d %s ;%s' % (self.address, self.protocol, text,
+                                     self.comment)
         return '%s %d %s' % (self.address, self.protocol, text)
 
     @classmethod

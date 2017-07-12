@@ -40,7 +40,12 @@ class CAA(dns.rdata.Rdata):
         self.tag = tag
         self.value = value
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%u %s "%s" ;%s' % (self.flags,
+                                       dns.rdata._escapify(self.tag),
+                                       dns.rdata._escapify(self.value),
+                                       self.comment)
         return '%u %s "%s"' % (self.flags,
                                dns.rdata._escapify(self.tag),
                                dns.rdata._escapify(self.value))

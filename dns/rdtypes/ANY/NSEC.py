@@ -38,7 +38,7 @@ class NSEC(dns.rdata.Rdata):
         self.next = next
         self.windows = windows
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         next = self.next.choose_relativity(origin, relativize)
         text = ''
         for (window, bitmap) in self.windows:
@@ -50,6 +50,8 @@ class NSEC(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
+        if want_comment and self.comment:
+            return '%s%s ;%s' % (next, text, self.comment)
         return '%s%s' % (next, text)
 
     @classmethod

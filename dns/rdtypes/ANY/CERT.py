@@ -76,8 +76,13 @@ class CERT(dns.rdata.Rdata):
         self.algorithm = algorithm
         self.certificate = certificate
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)
+        if want_comment and self.comment:
+            return "%s %d %s %s ;%s" % (certificate_type, self.key_tag, 
+                                    dns.dnssec.algorithm_to_text(self.algorithm),
+                                    dns.rdata._base64ify(self.certificate),
+                                    self.comment)
         return "%s %d %s %s" % (certificate_type, self.key_tag,
                                 dns.dnssec.algorithm_to_text(self.algorithm),
                                 dns.rdata._base64ify(self.certificate))

@@ -39,8 +39,10 @@ class MXBase(dns.rdata.Rdata):
         self.preference = preference
         self.exchange = exchange
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         exchange = self.exchange.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%d %s ;%s' % (self.preference, exchange, self.comment)
         return '%d %s' % (self.preference, exchange)
 
     @classmethod

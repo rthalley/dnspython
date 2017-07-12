@@ -33,7 +33,9 @@ class DHCID(dns.rdata.Rdata):
         super(DHCID, self).__init__(rdclass, rdtype, comment)
         self.data = data
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s ;%s' % (dns.rdata._base64ify(self.data), self.comment)
         return dns.rdata._base64ify(self.data)
 
     @classmethod

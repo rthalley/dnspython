@@ -55,9 +55,14 @@ class SOA(dns.rdata.Rdata):
         self.expire = expire
         self.minimum = minimum
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         mname = self.mname.choose_relativity(origin, relativize)
         rname = self.rname.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%s %s %d %d %d %d %d ;%s' % (mname, rname, self.serial, 
+                                             self.refresh, self.retry,
+                                             self.expire, self.minimum,
+                                             self.comment)
         return '%s %s %d %d %d %d %d' % (
             mname, rname, self.serial, self.refresh, self.retry,
             self.expire, self.minimum)

@@ -90,7 +90,9 @@ class APL(dns.rdata.Rdata):
         super(APL, self).__init__(rdclass, rdtype, comment)
         self.items = items
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s ;%s' % (' '.join(map(str, self.items)), self.comment)
         return ' '.join(map(str, self.items))
 
     @classmethod

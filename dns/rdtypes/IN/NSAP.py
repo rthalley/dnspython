@@ -34,7 +34,10 @@ class NSAP(dns.rdata.Rdata):
         super(NSAP, self).__init__(rdclass, rdtype, comment)
         self.address = address
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return "0x%s ;%s" % (binascii.hexlify(self.address).decode(), 
+                                 self.comment)
         return "0x%s" % binascii.hexlify(self.address).decode()
 
     @classmethod

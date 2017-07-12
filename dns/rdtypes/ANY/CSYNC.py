@@ -40,7 +40,7 @@ class CSYNC(dns.rdata.Rdata):
         self.flags = flags
         self.windows = windows
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         text = ''
         for (window, bitmap) in self.windows:
             bits = []
@@ -51,6 +51,9 @@ class CSYNC(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
+        if want_comment and self.comment:
+            return '%d %d%s ;%s' % (self.serial, self.flags, text, 
+                                    self.comment)
         return '%d %d%s' % (self.serial, self.flags, text)
 
     @classmethod

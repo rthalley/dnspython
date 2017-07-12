@@ -36,9 +36,11 @@ class RP(dns.rdata.Rdata):
         self.mbox = mbox
         self.txt = txt
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         mbox = self.mbox.choose_relativity(origin, relativize)
         txt = self.txt.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return "%s %s ;%s" % (str(mbox), str(txt), self.comment)
         return "%s %s" % (str(mbox), str(txt))
 
     @classmethod

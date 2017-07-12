@@ -93,7 +93,11 @@ class DNSKEYBase(dns.rdata.Rdata):
         self.algorithm = algorithm
         self.key = key
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%d %d %d %s ;%s' % (self.flags, self.protocol, 
+                                    self.algorithm,
+                                    dns.rdata._base64ify(self.key), self.comment)
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
                                 dns.rdata._base64ify(self.key))
 

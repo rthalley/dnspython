@@ -40,7 +40,10 @@ class EUIBase(dns.rdata.Rdata):
                                           % (self.byte_len * 8, self.byte_len))
         self.eui = eui
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s ;%s' % (dns.rdata._hexify(self.eui, chunksize=2) \
+                                .replace(' ', '-'), self.comment)
         return dns.rdata._hexify(self.eui, chunksize=2).replace(' ', '-')
 
     @classmethod

@@ -47,7 +47,10 @@ class URI(dns.rdata.Rdata):
         else:
             self.target = target
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%d %d "%s" ;%s' % (self.priority, self.weight,
+                                       self.target.decode(), self.comment)
         return '%d %d "%s"' % (self.priority, self.weight,
                                self.target.decode())
 

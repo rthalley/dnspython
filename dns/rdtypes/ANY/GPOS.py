@@ -80,7 +80,12 @@ class GPOS(dns.rdata.Rdata):
         self.longitude = longitude
         self.altitude = altitude
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s %s %s ;%s' % (self.latitude.decode(),
+                                 self.longitude.decode(),
+                                 self.altitude.decode(),
+                                 self.comment)
         return '%s %s %s' % (self.latitude.decode(),
                              self.longitude.decode(),
                              self.altitude.decode())

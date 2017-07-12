@@ -43,8 +43,11 @@ class SRV(dns.rdata.Rdata):
         self.port = port
         self.target = target
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         target = self.target.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%d %d %d %s ;%s' % (self.priority, self.weight, self.port,
+                                        target, self.comment)
         return '%d %d %d %s' % (self.priority, self.weight, self.port,
                                 target)
 

@@ -44,12 +44,14 @@ class TXTBase(dns.rdata.Rdata):
                 string = string.encode()
             self.strings.append(string)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         txt = ''
         prefix = ''
         for s in self.strings:
             txt += '%s"%s"' % (prefix, dns.rdata._escapify(s))
             prefix = ' '
+        if want_comment and self.comment:
+            txt += ' ;%s' % (self.comment)
         return txt
 
     @classmethod

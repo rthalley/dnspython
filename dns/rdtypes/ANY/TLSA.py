@@ -44,7 +44,14 @@ class TLSA(dns.rdata.Rdata):
         self.mtype = mtype
         self.cert = cert
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%d %d %d %s ;%s' % (self.usage,
+                                self.selector,
+                                self.mtype,
+                                dns.rdata._hexify(self.cert,
+                                                  chunksize=128),
+                                self.comment)
         return '%d %d %d %s' % (self.usage,
                                 self.selector,
                                 self.mtype,

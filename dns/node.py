@@ -32,13 +32,15 @@ class Node(object):
         #: the set of rdatsets, represented as a list.
         self.rdatasets = []
 
-    def to_text(self, name, **kw):
+    def to_text(self, name, want_comment=False, **kw):
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
         to this method are passed on to the rdataset's to_text() method.
 
         *name*, a ``dns.name.Name``, the owner name of the rdatasets.
+        *want_comment*, a ``bool`` if True, stored comments will be printed 
+        behind the records.
 
         Returns a ``text``.
         """
@@ -46,7 +48,7 @@ class Node(object):
         s = StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                s.write(rds.to_text(name, **kw))
+                s.write(rds.to_text(name, want_comment=want_comment, **kw))
                 s.write(u'\n')
         return s.getvalue()[:-1]
 

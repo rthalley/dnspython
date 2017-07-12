@@ -47,11 +47,14 @@ class NSEC3PARAM(dns.rdata.Rdata):
         else:
             self.salt = salt
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if self.salt == b'':
             salt = '-'
         else:
             salt = binascii.hexlify(self.salt).decode()
+        if want_comment and self.comment:
+            return '%u %u %u %s ;%s' % (self.algorithm, self.flags, 
+                                    self.iterations, salt, self.comment)
         return '%u %u %u %s' % (self.algorithm, self.flags, self.iterations,
                                 salt)
 

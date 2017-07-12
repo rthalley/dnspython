@@ -75,7 +75,7 @@ class NSEC3(dns.rdata.Rdata):
         self.next = next
         self.windows = windows
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         next = base64.b32encode(self.next).translate(
             b32_normal_to_hex).lower().decode()
         if self.salt == b'':
@@ -92,6 +92,10 @@ class NSEC3(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (u' ' + u' '.join(bits))
+        if want_comment and self.comment:
+            return u'%u %u %u %s %s%s ;%s' % (self.algorithm, self.flags,
+                                              self.iterations, salt, next, 
+                                              text, self.comment)
         return u'%u %u %u %s %s%s' % (self.algorithm, self.flags,
                                       self.iterations, salt, next, text)
 

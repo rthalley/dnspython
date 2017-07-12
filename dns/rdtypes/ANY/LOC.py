@@ -135,7 +135,7 @@ class LOC(dns.rdata.Rdata):
         self.horizontal_precision = float(hprec)
         self.vertical_precision = float(vprec)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if self.latitude[4] > 0:
             lat_hemisphere = 'N'
         else:
@@ -160,6 +160,8 @@ class LOC(dns.rdata.Rdata):
                 self.size / 100.0, self.horizontal_precision / 100.0,
                 self.vertical_precision / 100.0
             )
+        if want_comment and self.comment:
+            return '%s ;%s' % (text, self.comment)
         return text
 
     @classmethod

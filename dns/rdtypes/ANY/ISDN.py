@@ -44,10 +44,17 @@ class ISDN(dns.rdata.Rdata):
         else:
             self.subaddress = subaddress
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        if self.subaddress:
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if self.subaddress and want_comment and self.comment:
+            return '"%s" "%s" ;%s' % (dns.rdata._escapify(self.address),
+                                  dns.rdata._escapify(self.subaddress),
+                                  self.comment)
+        elif self.subaddress:
             return '"%s" "%s"' % (dns.rdata._escapify(self.address),
                                   dns.rdata._escapify(self.subaddress))
+        elif want_comment and self.comment:
+            return '"%s" ;%s' % (dns.rdata._escapify(self.address), 
+                                 self.comment)
         else:
             return '"%s"' % dns.rdata._escapify(self.address)
 

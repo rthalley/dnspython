@@ -46,7 +46,7 @@ class HIP(dns.rdata.Rdata):
         self.key = key
         self.servers = servers
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         hit = binascii.hexlify(self.hit).decode()
         key = base64.b64encode(self.key).replace(b'\n', b'').decode()
         text = u''
@@ -55,6 +55,9 @@ class HIP(dns.rdata.Rdata):
             servers.append(server.choose_relativity(origin, relativize))
         if len(servers) > 0:
             text += (u' ' + u' '.join((x.to_unicode() for x in servers)))
+        if want_comment and self.comment:
+            return u'%u %s %s%s ;%s' % (self.algorithm, hit, key, text, 
+                                        self.comment)
         return u'%u %s %s%s' % (self.algorithm, hit, key, text)
 
     @classmethod
