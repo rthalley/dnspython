@@ -481,7 +481,9 @@ class Zone(object):
                     for rdata in rds:
                         yield (name, rds.ttl, rdata)
 
-    def to_file(self, f, sorted=True, relativize=True, nl=None):
+    def to_file(self, f, sorted=True, relativize=True, nl=None,
+                pprint=u'%(name)s%(ttl)d %(rdclass)s %(rdtype)s %(rdata)s%(rcomment)s\n',
+                want_comment=False):
         """Write a zone to a file.
 
         @param f: file or string.  If I{f} is a string, it is treated
@@ -497,6 +499,13 @@ class Zone(object):
         output will use the platform's native end-of-line marker (i.e.
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
+        @param pprint: A printf format string for pretty printing
+        the output. The following mapping keys need to be used:
+        ``name``, ``ttl``, ``rdclass``, ``rdtype``, ``rdata`` and ``rcomment``.
+        @type pprint: string
+        @param want_comment: if True, stored comments will be printed
+        behind the records
+        @type want_comment: bool
         """
 
         if isinstance(f, string_types):
@@ -528,7 +537,8 @@ class Zone(object):
                 names = self.iterkeys()
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
-                                    relativize=relativize)
+                                    relativize=relativize, pprint=pprint,
+                                    want_comment=want_comment)
                 if isinstance(l, text_type):
                     l_b = l.encode(file_enc)
                 else:
@@ -545,7 +555,9 @@ class Zone(object):
             if want_close:
                 f.close()
 
-    def to_text(self, sorted=True, relativize=True, nl=None):
+    def to_text(self, sorted=True, relativize=True, nl=None,
+                pprint=u'%(name)s%(ttl)d %(rdclass)s %(rdtype)s %(rdata)s%(rcomment)s\n',
+                want_comment=False):
         """Return a zone's text as though it were written to a file.
 
         @param sorted: if True, the file will be written with the
@@ -559,9 +571,17 @@ class Zone(object):
         output will use the platform's native end-of-line marker (i.e.
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
+        @param pprint: A printf format string for pretty printing
+        the output. The following mapping keys need to be used:
+        ``name``, ``ttl``, ``rdclass``, ``rdtype``, ``rdata`` and ``rcomment``.
+        @type pprint: string
+        @param want_comment: if True, stored comments will be printed
+        behind the records
+        @type want_comment: bool
         """
         temp_buffer = BytesIO()
-        self.to_file(temp_buffer, sorted, relativize, nl)
+        self.to_file(temp_buffer, sorted, relativize, nl, pprint=pprint,
+                     want_comment=want_comment)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
         return return_value

@@ -34,22 +34,29 @@ class MXBase(dns.rdata.Rdata):
 
     __slots__ = ['preference', 'exchange']
 
-    def __init__(self, rdclass, rdtype, preference, exchange):
-        super(MXBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, preference, exchange, comment=None):
+        super(MXBase, self).__init__(rdclass, rdtype, comment)
         self.preference = preference
         self.exchange = exchange
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         exchange = self.exchange.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%d %s ;%s' % (self.preference, exchange, self.comment)
         return '%d %s' % (self.preference, exchange)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+        comment = None
         preference = tok.get_uint16()
         exchange = tok.get_name()
         exchange = exchange.choose_relativity(origin, relativize)
-        tok.get_eol()
-        return cls(rdclass, rdtype, preference, exchange)
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, preference, exchange, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         pref = struct.pack("!H", self.preference)

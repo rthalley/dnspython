@@ -37,14 +37,21 @@ class TLSA(dns.rdata.Rdata):
     __slots__ = ['usage', 'selector', 'mtype', 'cert']
 
     def __init__(self, rdclass, rdtype, usage, selector,
-                 mtype, cert):
-        super(TLSA, self).__init__(rdclass, rdtype)
+                 mtype, cert, comment=None):
+        super(TLSA, self).__init__(rdclass, rdtype, comment)
         self.usage = usage
         self.selector = selector
         self.mtype = mtype
         self.cert = cert
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%d %d %d %s ;%s' % (self.usage,
+                                self.selector,
+                                self.mtype,
+                                dns.rdata._hexify(self.cert,
+                                                  chunksize=128),
+                                self.comment)
         return '%d %d %d %s' % (self.usage,
                                 self.selector,
                                 self.mtype,
@@ -57,16 +64,20 @@ class TLSA(dns.rdata.Rdata):
         selector = tok.get_uint8()
         mtype = tok.get_uint8()
         cert_chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment = t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             cert_chunks.append(t.value.encode())
         cert = b''.join(cert_chunks)
         cert = binascii.unhexlify(cert)
-        return cls(rdclass, rdtype, usage, selector, mtype, cert)
+        return cls(rdclass, rdtype, usage, selector, mtype, cert, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!BBB", self.usage, self.selector, self.mtype)

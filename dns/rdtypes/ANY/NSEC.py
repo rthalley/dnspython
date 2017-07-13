@@ -33,12 +33,12 @@ class NSEC(dns.rdata.Rdata):
 
     __slots__ = ['next', 'windows']
 
-    def __init__(self, rdclass, rdtype, next, windows):
-        super(NSEC, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, next, windows, comment=None):
+        super(NSEC, self).__init__(rdclass, rdtype, comment)
         self.next = next
         self.windows = windows
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         next = self.next.choose_relativity(origin, relativize)
         text = ''
         for (window, bitmap) in self.windows:
@@ -50,6 +50,8 @@ class NSEC(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
+        if want_comment and self.comment:
+            return '%s%s ;%s' % (next, text, self.comment)
         return '%s%s' % (next, text)
 
     @classmethod
@@ -57,10 +59,14 @@ class NSEC(dns.rdata.Rdata):
         next = tok.get_name()
         next = next.choose_relativity(origin, relativize)
         rdtypes = []
+        comment = None
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError("NSEC with bit 0")
@@ -89,7 +95,7 @@ class NSEC(dns.rdata.Rdata):
             bitmap[byte] = bitmap[byte] | (0x80 >> bit)
 
         windows.append((window, bitmap[0:octets]))
-        return cls(rdclass, rdtype, next, windows)
+        return cls(rdclass, rdtype, next, windows, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         self.next.to_wire(file, None, origin)

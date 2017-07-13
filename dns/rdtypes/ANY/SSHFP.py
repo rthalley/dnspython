@@ -35,13 +35,19 @@ class SSHFP(dns.rdata.Rdata):
     __slots__ = ['algorithm', 'fp_type', 'fingerprint']
 
     def __init__(self, rdclass, rdtype, algorithm, fp_type,
-                 fingerprint):
-        super(SSHFP, self).__init__(rdclass, rdtype)
+                 fingerprint, comment=None):
+        super(SSHFP, self).__init__(rdclass, rdtype, comment)
         self.algorithm = algorithm
         self.fp_type = fp_type
         self.fingerprint = fingerprint
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%d %d %s ;%s' % (self.algorithm,
+                                 self.fp_type,
+                                 dns.rdata._hexify(self.fingerprint,
+                                                   chunksize=128),
+                                 self.comment)
         return '%d %d %s' % (self.algorithm,
                              self.fp_type,
                              dns.rdata._hexify(self.fingerprint,
@@ -52,16 +58,20 @@ class SSHFP(dns.rdata.Rdata):
         algorithm = tok.get_uint8()
         fp_type = tok.get_uint8()
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment = t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
         fingerprint = b''.join(chunks)
         fingerprint = binascii.unhexlify(fingerprint)
-        return cls(rdclass, rdtype, algorithm, fp_type, fingerprint)
+        return cls(rdclass, rdtype, algorithm, fp_type, fingerprint, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!BB", self.algorithm, self.fp_type)

@@ -34,13 +34,18 @@ class CAA(dns.rdata.Rdata):
 
     __slots__ = ['flags', 'tag', 'value']
 
-    def __init__(self, rdclass, rdtype, flags, tag, value):
-        super(CAA, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, flags, tag, value, comment=None):
+        super(CAA, self).__init__(rdclass, rdtype, comment)
         self.flags = flags
         self.tag = tag
         self.value = value
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%u %s "%s" ;%s' % (self.flags,
+                                       dns.rdata._escapify(self.tag),
+                                       dns.rdata._escapify(self.value),
+                                       self.comment)
         return '%u %s "%s"' % (self.flags,
                                dns.rdata._escapify(self.tag),
                                dns.rdata._escapify(self.value))
@@ -54,7 +59,13 @@ class CAA(dns.rdata.Rdata):
         if not tag.isalnum():
             raise dns.exception.SyntaxError("tag is not alphanumeric")
         value = tok.get_string().encode()
-        return cls(rdclass, rdtype, flags, tag, value)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, flags, tag, value, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(struct.pack('!B', self.flags))

@@ -33,8 +33,8 @@ class TXTBase(dns.rdata.Rdata):
 
     __slots__ = ['strings']
 
-    def __init__(self, rdclass, rdtype, strings):
-        super(TXTBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, strings, comment=None):
+        super(TXTBase, self).__init__(rdclass, rdtype, comment)
         if isinstance(strings, binary_type) or \
            isinstance(strings, string_types):
             strings = [strings]
@@ -44,21 +44,27 @@ class TXTBase(dns.rdata.Rdata):
                 string = string.encode()
             self.strings.append(string)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         txt = ''
         prefix = ''
         for s in self.strings:
             txt += '%s"%s"' % (prefix, dns.rdata._escapify(s))
             prefix = ' '
+        if want_comment and self.comment:
+            txt += ' ;%s' % (self.comment)
         return txt
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         strings = []
+        comment=None
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment=token.value
+                continue
             if not (token.is_quoted_string() or token.is_identifier()):
                 raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
@@ -70,7 +76,7 @@ class TXTBase(dns.rdata.Rdata):
                 strings.append(value.encode())
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd
-        return cls(rdclass, rdtype, strings)
+        return cls(rdclass, rdtype, strings,comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         for s in self.strings:

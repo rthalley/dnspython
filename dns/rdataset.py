@@ -166,7 +166,9 @@ class Rdataset(dns.set.Set):
         return not self.__eq__(other)
 
     def to_text(self, name=None, origin=None, relativize=True,
-                override_rdclass=None, **kw):
+                override_rdclass=None,
+                pprint=u'%(name)s%(ttl)d %(rdclass)s %(rdtype)s %(rdata)s%(rcomment)s\n',
+                want_comment=False, **kw):
         """Convert the rdataset into DNS master file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
@@ -184,36 +186,43 @@ class Rdataset(dns.set.Set):
 
         *relativize*, a ``bool``.  If ``True``, names will be relativized
         to *origin*.
+
+        *pprint*, a ``string``. A printf format string for pretty printing
+        the output. The following mapping keys need to be used:
+        ``name``, ``ttl``, ``rdclass``, ``rdtype``, ``rdata`` and ``rcomment``.
+
+        *want_comment*, a ``bool`` if True, stored comments will be printed
+        behind the records.
         """
 
         if name is not None:
             name = name.choose_relativity(origin, relativize)
-            ntext = str(name)
-            pad = ' '
+            ntext = str(name) + ' '
         else:
             ntext = ''
-            pad = ''
         s = StringIO()
         if override_rdclass is not None:
             rdclass = override_rdclass
         else:
             rdclass = self.rdclass
         if len(self) == 0:
-            #
-            # Empty rdatasets are used for the question section, and in
-            # some dynamic updates, so we don't need to print out the TTL
-            # (which is meaningless anyway).
-            #
-            s.write(u'%s%s%s %s\n' % (ntext, pad,
-                                      dns.rdataclass.to_text(rdclass),
-                                      dns.rdatatype.to_text(self.rdtype)))
+            s.write(pprint % {"name" : ntext, "ttl" : self.ttl,
+                              "rdclass" : dns.rdataclass.to_text(rdclass),
+                              "rdtype" : dns.rdatatype.to_text(self.rdtype),
+                              "rdata" : '', "rcomment": ''})
         else:
             for rd in self:
-                s.write(u'%s%s%d %s %s %s\n' %
-                        (ntext, pad, self.ttl, dns.rdataclass.to_text(rdclass),
-                         dns.rdatatype.to_text(self.rdtype),
-                         rd.to_text(origin=origin, relativize=relativize,
-                         **kw)))
+                rdata = rd.to_text(origin=origin, relativize=relativize,
+                                   want_comment=want_comment, **kw).split(';')
+                rcomment = ''
+                if want_comment:
+                    rcomment = ';' + rdata[1]
+                rdata = rdata[0]
+                s.write(pprint %
+                        {"name" : ntext, "ttl" : self.ttl,
+                              "rdclass" : dns.rdataclass.to_text(rdclass),
+                              "rdtype" : dns.rdatatype.to_text(self.rdtype),
+                              "rdata" : rdata, "rcomment": rcomment})
         #
         # We strip off the final \n for the caller's convenience in printing
         #

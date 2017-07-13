@@ -28,26 +28,32 @@ class OPENPGPKEY(dns.rdata.Rdata):
     @see: RFC 7929
     """
 
-    def __init__(self, rdclass, rdtype, key):
-        super(OPENPGPKEY, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, key, comment=None):
+        super(OPENPGPKEY, self).__init__(rdclass, rdtype, comment)
         self.key = key
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s ;%s' % (dns.rdata._base64ify(self.key), self.comment)
         return dns.rdata._base64ify(self.key)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment = t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
         b64 = b''.join(chunks)
         key = base64.b64decode(b64)
-        return cls(rdclass, rdtype, key)
+        return cls(rdclass, rdtype, key, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(self.key)

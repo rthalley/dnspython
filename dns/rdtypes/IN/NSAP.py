@@ -30,24 +30,32 @@ class NSAP(dns.rdata.Rdata):
 
     __slots__ = ['address']
 
-    def __init__(self, rdclass, rdtype, address):
-        super(NSAP, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, comment=None):
+        super(NSAP, self).__init__(rdclass, rdtype, comment)
         self.address = address
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return "0x%s ;%s" % (binascii.hexlify(self.address).decode(),
+                                 self.comment)
         return "0x%s" % binascii.hexlify(self.address).decode()
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         address = tok.get_string()
-        tok.get_eol()
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
         if address[0:2] != '0x':
             raise dns.exception.SyntaxError('string does not start with 0x')
         address = address[2:].replace('.', '')
         if len(address) % 2 != 0:
             raise dns.exception.SyntaxError('hexstring has odd length')
         address = binascii.unhexlify(address.encode())
-        return cls(rdclass, rdtype, address)
+        return cls(rdclass, rdtype, address, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(self.address)

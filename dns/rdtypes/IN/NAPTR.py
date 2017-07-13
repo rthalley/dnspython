@@ -56,8 +56,8 @@ class NAPTR(dns.rdata.Rdata):
                  'replacement']
 
     def __init__(self, rdclass, rdtype, order, preference, flags, service,
-                 regexp, replacement):
-        super(NAPTR, self).__init__(rdclass, rdtype)
+                 regexp, replacement, comment=None):
+        super(NAPTR, self).__init__(rdclass, rdtype, comment)
         self.flags = _sanitize(flags)
         self.service = _sanitize(service)
         self.regexp = _sanitize(regexp)
@@ -65,8 +65,15 @@ class NAPTR(dns.rdata.Rdata):
         self.preference = preference
         self.replacement = replacement
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         replacement = self.replacement.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%d %d "%s" "%s" "%s" %s' % \
+                   (self.order, self.preference,
+                    dns.rdata._escapify(self.flags),
+                    dns.rdata._escapify(self.service),
+                    dns.rdata._escapify(self.regexp),
+                    replacement, self.comment)
         return '%d %d "%s" "%s" "%s" %s' % \
                (self.order, self.preference,
                 dns.rdata._escapify(self.flags),
@@ -83,9 +90,14 @@ class NAPTR(dns.rdata.Rdata):
         regexp = tok.get_string()
         replacement = tok.get_name()
         replacement = replacement.choose_relativity(origin, relativize)
-        tok.get_eol()
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
         return cls(rdclass, rdtype, order, preference, flags, service,
-                   regexp, replacement)
+                   regexp, replacement, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         two_ints = struct.pack("!HH", self.order, self.preference)

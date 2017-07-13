@@ -38,8 +38,8 @@ class WKS(dns.rdata.Rdata):
 
     __slots__ = ['address', 'protocol', 'bitmap']
 
-    def __init__(self, rdclass, rdtype, address, protocol, bitmap):
-        super(WKS, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, protocol, bitmap, comment=None):
+        super(WKS, self).__init__(rdclass, rdtype, comment)
         self.address = address
         self.protocol = protocol
         if not isinstance(bitmap, bytearray):
@@ -47,7 +47,7 @@ class WKS(dns.rdata.Rdata):
         else:
             self.bitmap = bitmap
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         bits = []
         for i in xrange(0, len(self.bitmap)):
             byte = self.bitmap[i]
@@ -55,6 +55,9 @@ class WKS(dns.rdata.Rdata):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
         text = ' '.join(bits)
+        if want_comment and self.comment:
+            return '%s %d %s ;%s' % (self.address, self.protocol, text,
+                                     self.comment)
         return '%s %d %s' % (self.address, self.protocol, text)
 
     @classmethod
@@ -67,9 +70,12 @@ class WKS(dns.rdata.Rdata):
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             if token.value.isdigit():
                 serv = int(token.value)
             else:
@@ -87,7 +93,7 @@ class WKS(dns.rdata.Rdata):
                     bitmap.append(0)
             bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
-        return cls(rdclass, rdtype, address, protocol, bitmap)
+        return cls(rdclass, rdtype, address, protocol, bitmap, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(dns.ipv4.inet_aton(self.address))

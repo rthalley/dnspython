@@ -37,14 +37,20 @@ class DSBase(dns.rdata.Rdata):
     __slots__ = ['key_tag', 'algorithm', 'digest_type', 'digest']
 
     def __init__(self, rdclass, rdtype, key_tag, algorithm, digest_type,
-                 digest):
-        super(DSBase, self).__init__(rdclass, rdtype)
+                 digest, comment=None):
+        super(DSBase, self).__init__(rdclass, rdtype, comment)
         self.key_tag = key_tag
         self.algorithm = algorithm
         self.digest_type = digest_type
         self.digest = digest
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%d %d %d %s ;%s' % (self.key_tag, self.algorithm,
+                                self.digest_type,
+                                dns.rdata._hexify(self.digest,
+                                                  chunksize=128),
+                                self.comment)
         return '%d %d %d %s' % (self.key_tag, self.algorithm,
                                 self.digest_type,
                                 dns.rdata._hexify(self.digest,
@@ -56,17 +62,21 @@ class DSBase(dns.rdata.Rdata):
         algorithm = tok.get_uint8()
         digest_type = tok.get_uint8()
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment=t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
         digest = b''.join(chunks)
         digest = binascii.unhexlify(digest)
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
-                   digest)
+                   digest, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!HBB", self.key_tag, self.algorithm,

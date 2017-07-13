@@ -45,8 +45,8 @@ class SOA(dns.rdata.Rdata):
                  'minimum']
 
     def __init__(self, rdclass, rdtype, mname, rname, serial, refresh, retry,
-                 expire, minimum):
-        super(SOA, self).__init__(rdclass, rdtype)
+                 expire, minimum, comment=None):
+        super(SOA, self).__init__(rdclass, rdtype, comment)
         self.mname = mname
         self.rname = rname
         self.serial = serial
@@ -55,9 +55,14 @@ class SOA(dns.rdata.Rdata):
         self.expire = expire
         self.minimum = minimum
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         mname = self.mname.choose_relativity(origin, relativize)
         rname = self.rname.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%s %s %d %d %d %d %d ;%s' % (mname, rname, self.serial,
+                                             self.refresh, self.retry,
+                                             self.expire, self.minimum,
+                                             self.comment)
         return '%s %s %d %d %d %d %d' % (
             mname, rname, self.serial, self.refresh, self.retry,
             self.expire, self.minimum)
@@ -73,9 +78,13 @@ class SOA(dns.rdata.Rdata):
         retry = tok.get_ttl()
         expire = tok.get_ttl()
         minimum = tok.get_ttl()
-        tok.get_eol()
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
         return cls(rdclass, rdtype, mname, rname, serial, refresh, retry,
-                   expire, minimum)
+                   expire, minimum, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         self.mname.to_wire(file, compress, origin)

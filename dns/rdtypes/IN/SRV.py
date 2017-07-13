@@ -36,15 +36,18 @@ class SRV(dns.rdata.Rdata):
 
     __slots__ = ['priority', 'weight', 'port', 'target']
 
-    def __init__(self, rdclass, rdtype, priority, weight, port, target):
-        super(SRV, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, priority, weight, port, target, comment=None):
+        super(SRV, self).__init__(rdclass, rdtype, comment)
         self.priority = priority
         self.weight = weight
         self.port = port
         self.target = target
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         target = self.target.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%d %d %d %s ;%s' % (self.priority, self.weight, self.port,
+                                        target, self.comment)
         return '%d %d %d %s' % (self.priority, self.weight, self.port,
                                 target)
 
@@ -55,8 +58,13 @@ class SRV(dns.rdata.Rdata):
         port = tok.get_uint16()
         target = tok.get_name(None)
         target = target.choose_relativity(origin, relativize)
-        tok.get_eol()
-        return cls(rdclass, rdtype, priority, weight, port, target)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, priority, weight, port, target, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         three_ints = struct.pack("!HHH", self.priority, self.weight, self.port)

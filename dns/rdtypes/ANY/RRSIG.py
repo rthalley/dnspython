@@ -75,8 +75,8 @@ class RRSIG(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, type_covered, algorithm, labels,
                  original_ttl, expiration, inception, key_tag, signer,
-                 signature):
-        super(RRSIG, self).__init__(rdclass, rdtype)
+                 signature, comment=None):
+        super(RRSIG, self).__init__(rdclass, rdtype, comment)
         self.type_covered = type_covered
         self.algorithm = algorithm
         self.labels = labels
@@ -90,7 +90,19 @@ class RRSIG(dns.rdata.Rdata):
     def covers(self):
         return self.type_covered
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s %d %d %d %s %s %d %s %s ;%s' % (
+            dns.rdatatype.to_text(self.type_covered),
+            self.algorithm,
+            self.labels,
+            self.original_ttl,
+            posixtime_to_sigtime(self.expiration),
+            posixtime_to_sigtime(self.inception),
+            self.key_tag,
+            self.signer.choose_relativity(origin, relativize),
+            dns.rdata._base64ify(self.signature),
+            self.comment)
         return '%s %d %d %d %s %s %d %s %s' % (
             dns.rdatatype.to_text(self.type_covered),
             self.algorithm,
@@ -115,10 +127,14 @@ class RRSIG(dns.rdata.Rdata):
         signer = tok.get_name()
         signer = signer.choose_relativity(origin, relativize)
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment = t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
@@ -126,7 +142,7 @@ class RRSIG(dns.rdata.Rdata):
         signature = base64.b64decode(b64)
         return cls(rdclass, rdtype, type_covered, algorithm, labels,
                    original_ttl, expiration, inception, key_tag, signer,
-                   signature)
+                   signature, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack('!HBBIIIH', self.type_covered,

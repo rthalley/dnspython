@@ -69,15 +69,20 @@ class CERT(dns.rdata.Rdata):
     __slots__ = ['certificate_type', 'key_tag', 'algorithm', 'certificate']
 
     def __init__(self, rdclass, rdtype, certificate_type, key_tag, algorithm,
-                 certificate):
-        super(CERT, self).__init__(rdclass, rdtype)
+                 certificate, comment=None):
+        super(CERT, self).__init__(rdclass, rdtype, comment)
         self.certificate_type = certificate_type
         self.key_tag = key_tag
         self.algorithm = algorithm
         self.certificate = certificate
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)
+        if want_comment and self.comment:
+            return "%s %d %s %s ;%s" % (certificate_type, self.key_tag,
+                                    dns.dnssec.algorithm_to_text(self.algorithm),
+                                    dns.rdata._base64ify(self.certificate),
+                                    self.comment)
         return "%s %d %s %s" % (certificate_type, self.key_tag,
                                 dns.dnssec.algorithm_to_text(self.algorithm),
                                 dns.rdata._base64ify(self.certificate))
@@ -90,17 +95,21 @@ class CERT(dns.rdata.Rdata):
         if algorithm < 0 or algorithm > 255:
             raise dns.exception.SyntaxError("bad algorithm type")
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment=t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
         b64 = b''.join(chunks)
         certificate = base64.b64decode(b64)
         return cls(rdclass, rdtype, certificate_type, key_tag,
-                   algorithm, certificate)
+                   algorithm, certificate, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         prefix = struct.pack("!HHB", self.certificate_type, self.key_tag,

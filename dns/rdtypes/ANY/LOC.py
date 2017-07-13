@@ -110,7 +110,7 @@ class LOC(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, latitude, longitude, altitude,
                  size=_default_size, hprec=_default_hprec,
-                 vprec=_default_vprec):
+                 vprec=_default_vprec, comment=None):
         """Initialize a LOC record instance.
 
         The parameters I{latitude} and I{longitude} may be either a 4-tuple
@@ -119,7 +119,7 @@ class LOC(dns.rdata.Rdata):
         degrees. The other parameters are floats. Size, horizontal precision,
         and vertical precision are specified in centimeters."""
 
-        super(LOC, self).__init__(rdclass, rdtype)
+        super(LOC, self).__init__(rdclass, rdtype, comment)
         if isinstance(latitude, int) or isinstance(latitude, long):
             latitude = float(latitude)
         if isinstance(latitude, float):
@@ -135,7 +135,7 @@ class LOC(dns.rdata.Rdata):
         self.horizontal_precision = float(hprec)
         self.vertical_precision = float(vprec)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if self.latitude[4] > 0:
             lat_hemisphere = 'N'
         else:
@@ -160,6 +160,8 @@ class LOC(dns.rdata.Rdata):
                 self.size / 100.0, self.horizontal_precision / 100.0,
                 self.vertical_precision / 100.0
             )
+        if want_comment and self.comment:
+            return '%s ;%s' % (text, self.comment)
         return text
 
     @classmethod
@@ -241,28 +243,33 @@ class LOC(dns.rdata.Rdata):
             t = t[0: -1]
         altitude = float(t) * 100.0        # m -> cm
 
-        token = tok.get().unescape()
-        if not token.is_eol_or_eof():
+        token = tok.get(want_comment=True).unescape()
+        if not token.is_eol_or_eof() and not token.is_comment():
             value = token.value
             if value[-1] == 'm':
                 value = value[0: -1]
             size = float(value) * 100.0        # m -> cm
-            token = tok.get().unescape()
-            if not token.is_eol_or_eof():
+            token = tok.get(want_comment=True).unescape()
+            if not token.is_eol_or_eof() and not token.is_comment():
                 value = token.value
                 if value[-1] == 'm':
                     value = value[0: -1]
                 hprec = float(value) * 100.0        # m -> cm
-                token = tok.get().unescape()
-                if not token.is_eol_or_eof():
+                token = tok.get(want_comment=True).unescape()
+                if not token.is_eol_or_eof() and not token.is_comment():
                     value = token.value
                     if value[-1] == 'm':
                         value = value[0: -1]
                     vprec = float(value) * 100.0        # m -> cm
-                    tok.get_eol()
+
+        comment = None
+        while not token.is_eol_or_eof():
+            if token.is_comment()
+                comment = token.value
+            token = tok.get(want_comment=True)
 
         return cls(rdclass, rdtype, latitude, longitude, altitude,
-                   size, hprec, vprec)
+                   size, hprec, vprec, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         milliseconds = (self.latitude[0] * 3600000 +

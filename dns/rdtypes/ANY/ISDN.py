@@ -33,8 +33,8 @@ class ISDN(dns.rdata.Rdata):
 
     __slots__ = ['address', 'subaddress']
 
-    def __init__(self, rdclass, rdtype, address, subaddress):
-        super(ISDN, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, subaddress, comment=None):
+        super(ISDN, self).__init__(rdclass, rdtype, comment)
         if isinstance(address, text_type):
             self.address = address.encode()
         else:
@@ -44,25 +44,38 @@ class ISDN(dns.rdata.Rdata):
         else:
             self.subaddress = subaddress
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        if self.subaddress:
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if self.subaddress and want_comment and self.comment:
+            return '"%s" "%s" ;%s' % (dns.rdata._escapify(self.address),
+                                  dns.rdata._escapify(self.subaddress),
+                                  self.comment)
+        elif self.subaddress:
             return '"%s" "%s"' % (dns.rdata._escapify(self.address),
                                   dns.rdata._escapify(self.subaddress))
+        elif want_comment and self.comment:
+            return '"%s" ;%s' % (dns.rdata._escapify(self.address),
+                                 self.comment)
         else:
             return '"%s"' % dns.rdata._escapify(self.address)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         address = tok.get_string()
-        t = tok.get()
-        if not t.is_eol_or_eof():
+        comment = None
+        t = tok.get(want_comment=True)
+        if t.is_comment():
+            comment = t.value
+        elif not t.is_eol_or_eof():
             tok.unget(t)
             subaddress = tok.get_string()
         else:
             tok.unget(t)
             subaddress = ''
-        tok.get_eol()
-        return cls(rdclass, rdtype, address, subaddress)
+        while not t.is_eol_or_eof():
+            if t.is_comment():
+                comment = t.value
+            t = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, address, subaddress, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.address)

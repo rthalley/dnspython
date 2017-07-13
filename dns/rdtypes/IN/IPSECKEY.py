@@ -40,8 +40,8 @@ class IPSECKEY(dns.rdata.Rdata):
     __slots__ = ['precedence', 'gateway_type', 'algorithm', 'gateway', 'key']
 
     def __init__(self, rdclass, rdtype, precedence, gateway_type, algorithm,
-                 gateway, key):
-        super(IPSECKEY, self).__init__(rdclass, rdtype)
+                 gateway, key, comment=None):
+        super(IPSECKEY, self).__init__(rdclass, rdtype, comment)
         if gateway_type == 0:
             if gateway != '.' and gateway is not None:
                 raise SyntaxError('invalid gateway for gateway type 0')
@@ -63,7 +63,7 @@ class IPSECKEY(dns.rdata.Rdata):
         self.gateway = gateway
         self.key = key
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if self.gateway_type == 0:
             gateway = '.'
         elif self.gateway_type == 1:
@@ -74,6 +74,11 @@ class IPSECKEY(dns.rdata.Rdata):
             gateway = str(self.gateway.choose_relativity(origin, relativize))
         else:
             raise ValueError('invalid gateway type')
+        if want_comment and self.comment:
+            return '%d %d %d %s %s ;%s' % (self.precedence, self.gateway_type,
+                                       self.algorithm, gateway,
+                                       dns.rdata._base64ify(self.key),
+                                       self.comment)
         return '%d %d %d %s %s' % (self.precedence, self.gateway_type,
                                    self.algorithm, gateway,
                                    dns.rdata._base64ify(self.key))
@@ -88,17 +93,21 @@ class IPSECKEY(dns.rdata.Rdata):
         else:
             gateway = tok.get_string()
         chunks = []
+        comment = None
         while 1:
-            t = tok.get().unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
+            if t.is_comment():
+                comment=t.value
+                continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
             chunks.append(t.value.encode())
         b64 = b''.join(chunks)
         key = base64.b64decode(b64)
         return cls(rdclass, rdtype, precedence, gateway_type, algorithm,
-                   gateway, key)
+                   gateway, key, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!BBB", self.precedence, self.gateway_type,

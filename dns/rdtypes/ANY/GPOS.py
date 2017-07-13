@@ -55,8 +55,9 @@ class GPOS(dns.rdata.Rdata):
 
     __slots__ = ['latitude', 'longitude', 'altitude']
 
-    def __init__(self, rdclass, rdtype, latitude, longitude, altitude):
-        super(GPOS, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, latitude, longitude, altitude,
+                 comment=None):
+        super(GPOS, self).__init__(rdclass, rdtype, comment)
         if isinstance(latitude, float) or \
            isinstance(latitude, int) or \
            isinstance(latitude, long):
@@ -79,7 +80,12 @@ class GPOS(dns.rdata.Rdata):
         self.longitude = longitude
         self.altitude = altitude
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '%s %s %s ;%s' % (self.latitude.decode(),
+                                 self.longitude.decode(),
+                                 self.altitude.decode(),
+                                 self.comment)
         return '%s %s %s' % (self.latitude.decode(),
                              self.longitude.decode(),
                              self.altitude.decode())
@@ -89,8 +95,13 @@ class GPOS(dns.rdata.Rdata):
         latitude = tok.get_string()
         longitude = tok.get_string()
         altitude = tok.get_string()
-        tok.get_eol()
-        return cls(rdclass, rdtype, latitude, longitude, altitude)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, latitude, longitude, altitude, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.latitude)

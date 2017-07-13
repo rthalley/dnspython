@@ -31,20 +31,27 @@ class NSBase(dns.rdata.Rdata):
 
     __slots__ = ['target']
 
-    def __init__(self, rdclass, rdtype, target):
-        super(NSBase, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, target, comment=None):
+        super(NSBase, self).__init__(rdclass, rdtype, comment)
         self.target = target
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         target = self.target.choose_relativity(origin, relativize)
+        if want_comment and self.comment:
+            return '%s ;%s' % (str(target), self.comment)
         return str(target)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+        comment=None
         target = tok.get_name()
         target = target.choose_relativity(origin, relativize)
-        tok.get_eol()
-        return cls(rdclass, rdtype, target)
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, target, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         self.target.to_wire(file, compress, origin)

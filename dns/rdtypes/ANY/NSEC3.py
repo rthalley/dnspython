@@ -63,8 +63,8 @@ class NSEC3(dns.rdata.Rdata):
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt', 'next', 'windows']
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt,
-                 next, windows):
-        super(NSEC3, self).__init__(rdclass, rdtype)
+                 next, windows, comment=None):
+        super(NSEC3, self).__init__(rdclass, rdtype, comment)
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations
@@ -75,7 +75,7 @@ class NSEC3(dns.rdata.Rdata):
         self.next = next
         self.windows = windows
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         next = base64.b32encode(self.next).translate(
             b32_normal_to_hex).lower().decode()
         if self.salt == b'':
@@ -92,6 +92,10 @@ class NSEC3(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (u' ' + u' '.join(bits))
+        if want_comment and self.comment:
+            return u'%u %u %u %s %s%s ;%s' % (self.algorithm, self.flags,
+                                              self.iterations, salt, next,
+                                              text, self.comment)
         return u'%u %u %u %s %s%s' % (self.algorithm, self.flags,
                                       self.iterations, salt, next, text)
 
@@ -109,10 +113,14 @@ class NSEC3(dns.rdata.Rdata):
             'ascii').upper().translate(b32_hex_to_normal)
         next = base64.b32decode(next)
         rdtypes = []
+        comment = None
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError("NSEC3 with bit 0")
@@ -143,7 +151,7 @@ class NSEC3(dns.rdata.Rdata):
         if octets != 0:
             windows.append((window, bitmap[0:octets]))
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
-                   windows)
+                   windows, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.salt)

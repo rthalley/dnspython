@@ -36,8 +36,9 @@ class NSEC3PARAM(dns.rdata.Rdata):
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
 
-    def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt):
-        super(NSEC3PARAM, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt,
+                 comment=None):
+        super(NSEC3PARAM, self).__init__(rdclass, rdtype, comment)
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations
@@ -46,11 +47,14 @@ class NSEC3PARAM(dns.rdata.Rdata):
         else:
             self.salt = salt
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if self.salt == b'':
             salt = '-'
         else:
             salt = binascii.hexlify(self.salt).decode()
+        if want_comment and self.comment:
+            return '%u %u %u %s ;%s' % (self.algorithm, self.flags,
+                                    self.iterations, salt, self.comment)
         return '%u %u %u %s' % (self.algorithm, self.flags, self.iterations,
                                 salt)
 
@@ -64,8 +68,13 @@ class NSEC3PARAM(dns.rdata.Rdata):
             salt = ''
         else:
             salt = binascii.unhexlify(salt.encode())
-        tok.get_eol()
-        return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
+        comment = None
+        token = tok.get(want_comment=True)
+        while not token.is_eol():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, algorithm, flags, iterations, salt, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.salt)

@@ -31,21 +31,29 @@ class X25(dns.rdata.Rdata):
 
     __slots__ = ['address']
 
-    def __init__(self, rdclass, rdtype, address):
-        super(X25, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, address, comment=None):
+        super(X25, self).__init__(rdclass, rdtype, comment)
         if isinstance(address, text_type):
             self.address = address.encode()
         else:
             self.address = address
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
+        if want_comment and self.comment:
+            return '"%s" ;%s' % (dns.rdata._escapify(self.address),
+                                 self.comment)
         return '"%s"' % dns.rdata._escapify(self.address)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+        comment = None
         address = tok.get_string()
-        tok.get_eol()
-        return cls(rdclass, rdtype, address)
+        token = tok.get(want_comment=True)
+        while not token.is_eol_or_eof():
+            if token.is_comment():
+                comment = token.value
+            token = tok.get(want_comment=True)
+        return cls(rdclass, rdtype, address, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         l = len(self.address)

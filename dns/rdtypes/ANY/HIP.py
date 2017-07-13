@@ -38,14 +38,15 @@ class HIP(dns.rdata.Rdata):
 
     __slots__ = ['hit', 'algorithm', 'key', 'servers']
 
-    def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
-        super(HIP, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, hit, algorithm, key, servers,
+                 comment=None):
+        super(HIP, self).__init__(rdclass, rdtype, comment)
         self.hit = hit
         self.algorithm = algorithm
         self.key = key
         self.servers = servers
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         hit = binascii.hexlify(self.hit).decode()
         key = base64.b64encode(self.key).replace(b'\n', b'').decode()
         text = u''
@@ -54,6 +55,9 @@ class HIP(dns.rdata.Rdata):
             servers.append(server.choose_relativity(origin, relativize))
         if len(servers) > 0:
             text += (u' ' + u' '.join((x.to_unicode() for x in servers)))
+        if want_comment and self.comment:
+            return u'%u %s %s%s ;%s' % (self.algorithm, hit, key, text,
+                                        self.comment)
         return u'%u %s %s%s' % (self.algorithm, hit, key, text)
 
     @classmethod
@@ -65,13 +69,16 @@ class HIP(dns.rdata.Rdata):
         key = base64.b64decode(tok.get_string().encode())
         servers = []
         while 1:
-            token = tok.get()
+            token = tok.get(want_comment=True)
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             server = dns.name.from_text(token.value, origin)
             server.choose_relativity(origin, relativize)
             servers.append(server)
-        return cls(rdclass, rdtype, hit, algorithm, key, servers)
+        return cls(rdclass, rdtype, hit, algorithm, key, servers, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         lh = len(self.hit)

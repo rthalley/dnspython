@@ -34,13 +34,13 @@ class CSYNC(dns.rdata.Rdata):
 
     __slots__ = ['serial', 'flags', 'windows']
 
-    def __init__(self, rdclass, rdtype, serial, flags, windows):
-        super(CSYNC, self).__init__(rdclass, rdtype)
+    def __init__(self, rdclass, rdtype, serial, flags, windows, comment=None):
+        super(CSYNC, self).__init__(rdclass, rdtype, comment)
         self.serial = serial
         self.flags = flags
         self.windows = windows
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         text = ''
         for (window, bitmap) in self.windows:
             bits = []
@@ -51,6 +51,9 @@ class CSYNC(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
+        if want_comment and self.comment:
+            return '%d %d%s ;%s' % (self.serial, self.flags, text,
+                                    self.comment)
         return '%d %d%s' % (self.serial, self.flags, text)
 
     @classmethod
@@ -58,10 +61,14 @@ class CSYNC(dns.rdata.Rdata):
         serial = tok.get_uint32()
         flags = tok.get_uint16()
         rdtypes = []
+        comment = None
         while 1:
-            token = tok.get().unescape()
+            token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
+            if token.is_comment():
+                comment = token.value
+                continue
             nrdtype = dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
                 raise dns.exception.SyntaxError("CSYNC with bit 0")
@@ -90,7 +97,7 @@ class CSYNC(dns.rdata.Rdata):
             bitmap[byte] = bitmap[byte] | (0x80 >> bit)
 
         windows.append((window, bitmap[0:octets]))
-        return cls(rdclass, rdtype, serial, flags, windows)
+        return cls(rdclass, rdtype, serial, flags, windows, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         file.write(struct.pack('!IH', self.serial, self.flags))
