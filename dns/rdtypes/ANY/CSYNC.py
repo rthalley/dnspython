@@ -52,7 +52,7 @@ class CSYNC(dns.rdata.Rdata):
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
         if want_comment and self.comment:
-            return '%d %d%s ;%s' % (self.serial, self.flags, text, 
+            return '%d %d%s ;%s' % (self.serial, self.flags, text,
                                     self.comment)
         return '%d %d%s' % (self.serial, self.flags, text)
 

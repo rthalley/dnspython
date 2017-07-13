@@ -53,7 +53,7 @@ class ISDN(dns.rdata.Rdata):
             return '"%s" "%s"' % (dns.rdata._escapify(self.address),
                                   dns.rdata._escapify(self.subaddress))
         elif want_comment and self.comment:
-            return '"%s" ;%s' % (dns.rdata._escapify(self.address), 
+            return '"%s" ;%s' % (dns.rdata._escapify(self.address),
                                  self.comment)
         else:
             return '"%s"' % dns.rdata._escapify(self.address)

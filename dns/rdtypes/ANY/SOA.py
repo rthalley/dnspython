@@ -59,7 +59,7 @@ class SOA(dns.rdata.Rdata):
         mname = self.mname.choose_relativity(origin, relativize)
         rname = self.rname.choose_relativity(origin, relativize)
         if want_comment and self.comment:
-            return '%s %s %d %d %d %d %d ;%s' % (mname, rname, self.serial, 
+            return '%s %s %d %d %d %d %d ;%s' % (mname, rname, self.serial,
                                              self.refresh, self.retry,
                                              self.expire, self.minimum,
                                              self.comment)

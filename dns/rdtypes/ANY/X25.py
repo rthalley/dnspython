@@ -40,7 +40,7 @@ class X25(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if want_comment and self.comment:
-            return '"%s" ;%s' % (dns.rdata._escapify(self.address), 
+            return '"%s" ;%s' % (dns.rdata._escapify(self.address),
                                  self.comment)
         return '"%s"' % dns.rdata._escapify(self.address)
 

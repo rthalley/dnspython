@@ -503,7 +503,7 @@ class Zone(object):
         the output. The following mapping keys need to be used:
         ``name``, ``ttl``, ``rdclass``, ``rdtype``, ``rdata`` and ``rcomment``.
         @type pprint: string
-        @param want_comment: if True, stored comments will be printed 
+        @param want_comment: if True, stored comments will be printed
         behind the records
         @type want_comment: bool
         """
@@ -537,7 +537,7 @@ class Zone(object):
                 names = self.iterkeys()
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
-                                    relativize=relativize, pprint=pprint, 
+                                    relativize=relativize, pprint=pprint,
                                     want_comment=want_comment)
                 if isinstance(l, text_type):
                     l_b = l.encode(file_enc)
@@ -575,7 +575,7 @@ class Zone(object):
         the output. The following mapping keys need to be used:
         ``name``, ``ttl``, ``rdclass``, ``rdtype``, ``rdata`` and ``rcomment``.
         @type pprint: string
-        @param want_comment: if True, stored comments will be printed 
+        @param want_comment: if True, stored comments will be printed
         behind the records
         @type want_comment: bool
         """

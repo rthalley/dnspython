@@ -38,7 +38,7 @@ class HIP(dns.rdata.Rdata):
 
     __slots__ = ['hit', 'algorithm', 'key', 'servers']
 
-    def __init__(self, rdclass, rdtype, hit, algorithm, key, servers, 
+    def __init__(self, rdclass, rdtype, hit, algorithm, key, servers,
                  comment=None):
         super(HIP, self).__init__(rdclass, rdtype, comment)
         self.hit = hit
@@ -56,7 +56,7 @@ class HIP(dns.rdata.Rdata):
         if len(servers) > 0:
             text += (u' ' + u' '.join((x.to_unicode() for x in servers)))
         if want_comment and self.comment:
-            return u'%u %s %s%s ;%s' % (self.algorithm, hit, key, text, 
+            return u'%u %s %s%s ;%s' % (self.algorithm, hit, key, text,
                                         self.comment)
         return u'%u %s %s%s' % (self.algorithm, hit, key, text)
 

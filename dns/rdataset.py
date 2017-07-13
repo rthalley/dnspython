@@ -186,12 +186,12 @@ class Rdataset(dns.set.Set):
 
         *relativize*, a ``bool``.  If ``True``, names will be relativized
         to *origin*.
-        
+
         *pprint*, a ``string``. A printf format string for pretty printing
         the output. The following mapping keys need to be used:
         ``name``, ``ttl``, ``rdclass``, ``rdtype``, ``rdata`` and ``rcomment``.
-        
-        *want_comment*, a ``bool`` if True, stored comments will be printed 
+
+        *want_comment*, a ``bool`` if True, stored comments will be printed
         behind the records.
         """
 
