@@ -32,9 +32,8 @@ import dns.wiredata
 
 from ._compat import long, binary_type, text_type, unichr, maybe_decode
 
-# pylint: disable=sys-max-int
 try:
-    maxint = sys.maxint
+    maxint = sys.maxint  # pylint: disable=sys-max-int
 except AttributeError:
     maxint = (1 << (8 * struct.calcsize("P"))) // 2 - 1
 

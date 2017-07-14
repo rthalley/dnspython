@@ -24,7 +24,6 @@ import dns.rdatatype
 from dns._compat import xrange, text_type
 
 # pylint: disable=deprecated-string-function
-
 try:
     b32_hex_to_normal = string.maketrans('0123456789ABCDEFGHIJKLMNOPQRSTUV',
                                          'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
@@ -35,6 +34,7 @@ except AttributeError:
                                         b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
     b32_normal_to_hex = bytes.maketrans(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
                                         b'0123456789ABCDEFGHIJKLMNOPQRSTUV')
+# pylint: enable=deprecated-string-function
 
 # hash algorithm constants
 SHA1 = 1
