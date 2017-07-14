@@ -17,15 +17,14 @@ import base64
 import binascii
 import string
 import struct
-import sys
 
 import dns.exception
 import dns.rdata
 import dns.rdatatype
-from dns._compat import xrange, text_type
+from dns._compat import xrange, text_type, PY3
 
 # pylint: disable=deprecated-string-function
-if sys.version_info > (3,):
+if PY3:
     b32_hex_to_normal = bytes.maketrans(b'0123456789ABCDEFGHIJKLMNOPQRSTUV',
                                         b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
     b32_normal_to_hex = bytes.maketrans(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
