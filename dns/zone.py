@@ -1094,11 +1094,14 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
     @type zone: dns.zone.Zone
     @param zone_factory: The zone factory to use
     @type zone_factory: function returning a Zone
+    @raises KeyError: if zone parameter is not a Zone object.
+    @rtype: dict
     """
     import dns.reversename
     import dns.rdtypes.ANY.PTR
     import copy
-
+    if not isinstance(zone, Zone):
+            raise KeyError("zone parameter must be a Zone object")
     # Deep copy to be able to change the encaplusated rdata object without
     # modifying the original Zone.
     SOA = copy.deepcopy(zone.find_rdataset(zone.origin,dns.rdatatype.SOA))
