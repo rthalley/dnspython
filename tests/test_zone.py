@@ -101,7 +101,9 @@ ns1 1d1s a 10.0.0.1
 ns2 1w1D1h1m1S a 10.0.0.2
 """
 
-good_ptr_dict = {'65.80.73.in-addr.arpa.' : b'49 0 IN PTR a.u.example.\
+good_ptr_dict = {'65.80.73.in-addr.arpa.' :
+b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
+\n49 0 IN PTR a.u.example.\
 \n49 0 IN PTR ns.s.example.\
 \n49 0 IN PTR c.example.\
 \n49 0 IN PTR d.example.\
@@ -112,15 +114,25 @@ good_ptr_dict = {'65.80.73.in-addr.arpa.' : b'49 0 IN PTR a.u.example.\
 \n51 0 IN PTR e.example.\
 \n52 0 IN PTR e.example.\
 \n52 0 IN PTR f.example.\n',
-                 '0.0.0.in-addr.arpa.' : b'0 0 IN PTR a01.example.\n',
-                 '0.53.10.in-addr.arpa.' : b'1 0 IN PTR ns1.example.\
+                 '0.0.0.in-addr.arpa.' :
+b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
+\n0 0 IN PTR a01.example.\n',
+                 '0.53.10.in-addr.arpa.' :
+b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
+\n1 0 IN PTR ns1.example.\
 \n2 0 IN PTR ns2.example.\n',
-                 '255.255.255.in-addr.arpa.' : b'255 0 IN PTR a02.example.\n',
+                 '255.255.255.in-addr.arpa.' :
+b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
+\n255 0 IN PTR a02.example.\n',
                  'f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.ip6.arpa.' : \
-b'f 0 IN PTR aaaa01.example.\n',
+b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
+\nf 0 IN PTR aaaa01.example.\n',
                  '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.' : \
-b'1 0 IN PTR aaaa02.example.\n',
-                 '0.0.127.in-addr.arpa.' : b'2 0 IN PTR unknown3.example.\n'}
+b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
+\n1 0 IN PTR aaaa02.example.\n',
+                 '0.0.127.in-addr.arpa.' :
+b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
+\n2 0 IN PTR unknown3.example.\n'}
 
 
 _keep_output = True
