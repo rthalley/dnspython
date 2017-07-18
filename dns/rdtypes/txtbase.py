@@ -57,13 +57,13 @@ class TXTBase(dns.rdata.Rdata):
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         strings = []
-        comment=None
+        comment = None
         while 1:
             token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
                 break
             if token.is_comment():
-                comment=token.value
+                comment = token.value
                 continue
             if not (token.is_quoted_string() or token.is_identifier()):
                 raise dns.exception.SyntaxError("expected a string")
@@ -76,7 +76,7 @@ class TXTBase(dns.rdata.Rdata):
                 strings.append(value.encode())
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd
-        return cls(rdclass, rdtype, strings,comment=comment)
+        return cls(rdclass, rdtype, strings, comment=comment)
 
     def to_wire(self, file, compress=None, origin=None):
         for s in self.strings:

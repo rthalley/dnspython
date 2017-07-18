@@ -184,8 +184,8 @@ class Rdataset(dns.set.Set):
 
         *relativize*, a ``bool``.  If ``True``, names will be relativized
         to *origin*.
-        
-        *want_comment*, a ``bool`` if True, stored comments will be printed 
+
+        *want_comment*, a ``bool`` if True, stored comments will be printed
         behind the records.
         """
 

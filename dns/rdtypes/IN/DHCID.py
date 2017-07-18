@@ -47,7 +47,7 @@ class DHCID(dns.rdata.Rdata):
             if t.is_eol_or_eof():
                 break
             if t.is_comment():
-                comment=t.value
+                comment = t.value
                 continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError

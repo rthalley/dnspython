@@ -43,7 +43,7 @@ class NSBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        comment=None
+        comment = None
         target = tok.get_name()
         target = target.choose_relativity(origin, relativize)
         token = tok.get(want_comment=True)

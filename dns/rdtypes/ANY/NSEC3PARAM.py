@@ -36,7 +36,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
 
-    def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt, 
+    def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt,
                  comment=None):
         super(NSEC3PARAM, self).__init__(rdclass, rdtype, comment)
         self.algorithm = algorithm
@@ -53,7 +53,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
         else:
             salt = binascii.hexlify(self.salt).decode()
         if want_comment and self.comment:
-            return '%u %u %u %s ;%s' % (self.algorithm, self.flags, 
+            return '%u %u %u %s ;%s' % (self.algorithm, self.flags,
                                     self.iterations, salt, self.comment)
         return '%u %u %u %s' % (self.algorithm, self.flags, self.iterations,
                                 salt)

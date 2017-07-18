@@ -94,7 +94,7 @@ class NSEC3(dns.rdata.Rdata):
             text += (u' ' + u' '.join(bits))
         if want_comment and self.comment:
             return u'%u %u %u %s %s%s ;%s' % (self.algorithm, self.flags,
-                                              self.iterations, salt, next, 
+                                              self.iterations, salt, next,
                                               text, self.comment)
         return u'%u %u %u %s %s%s' % (self.algorithm, self.flags,
                                       self.iterations, salt, next, text)

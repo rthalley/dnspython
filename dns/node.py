@@ -39,7 +39,7 @@ class Node(object):
         to this method are passed on to the rdataset's to_text() method.
 
         *name*, a ``dns.name.Name``, the owner name of the rdatasets.
-        *want_comment*, a ``bool`` if True, stored comments will be printed 
+        *want_comment*, a ``bool`` if True, stored comments will be printed
         behind the records.
 
         Returns a ``text``.

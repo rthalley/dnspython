@@ -48,7 +48,7 @@ class EUIBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        comment=None
+        comment = None
         text = tok.get_string()
         token = tok.get(want_comment=True)
         while not token.is_eol_or_eof():

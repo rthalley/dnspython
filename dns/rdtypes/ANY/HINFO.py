@@ -47,7 +47,7 @@ class HINFO(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if want_comment and self.comment:
             return '"%s" "%s" ;%s' % (dns.rdata._escapify(self.cpu),
-                                      dns.rdata._escapify(self.os), 
+                                      dns.rdata._escapify(self.os),
                                       self.comment)
         return '"%s" "%s"' % (dns.rdata._escapify(self.cpu),
                               dns.rdata._escapify(self.os))

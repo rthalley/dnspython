@@ -261,7 +261,7 @@ class LOC(dns.rdata.Rdata):
                     if value[-1] == 'm':
                         value = value[0: -1]
                     vprec = float(value) * 100.0        # m -> cm
-                    
+
         comment = None
         while not token.is_eol_or_eof():
             if token.is_comment():

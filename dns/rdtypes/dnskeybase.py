@@ -95,7 +95,7 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         if want_comment and self.comment:
-            return '%d %d %d %s ;%s' % (self.flags, self.protocol, 
+            return '%d %d %d %s ;%s' % (self.flags, self.protocol,
                                     self.algorithm,
                                     dns.rdata._base64ify(self.key), self.comment)
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
@@ -107,13 +107,13 @@ class DNSKEYBase(dns.rdata.Rdata):
         protocol = tok.get_uint8()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         chunks = []
-        comment=None
+        comment = None
         while 1:
             t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
             if t.is_comment():
-                comment=t.value
+                comment = t.value
                 continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError

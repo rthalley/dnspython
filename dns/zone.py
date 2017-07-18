@@ -497,7 +497,7 @@ class Zone(object):
         output will use the platform's native end-of-line marker (i.e.
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
-        @param want_comment: if True, stored comments will be printed 
+        @param want_comment: if True, stored comments will be printed
         behind the records
         @type want_comment: bool
         """
@@ -531,7 +531,7 @@ class Zone(object):
                 names = self.iterkeys()
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
-                                    relativize=relativize, 
+                                    relativize=relativize,
                                     want_comment=want_comment)
                 if isinstance(l, text_type):
                     l_b = l.encode(file_enc)
@@ -563,7 +563,7 @@ class Zone(object):
         output will use the platform's native end-of-line marker (i.e.
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
-        @param want_comment: if True, stored comments will be printed 
+        @param want_comment: if True, stored comments will be printed
         behind the records
         @type want_comment: bool
         """

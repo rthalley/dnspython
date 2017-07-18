@@ -79,7 +79,7 @@ class CERT(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, want_comment=False, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)
         if want_comment and self.comment:
-            return "%s %d %s %s ;%s" % (certificate_type, self.key_tag, 
+            return "%s %d %s %s ;%s" % (certificate_type, self.key_tag,
                                     dns.dnssec.algorithm_to_text(self.algorithm),
                                     dns.rdata._base64ify(self.certificate),
                                     self.comment)
@@ -101,7 +101,7 @@ class CERT(dns.rdata.Rdata):
             if t.is_eol_or_eof():
                 break
             if t.is_comment():
-                comment=t.value
+                comment = t.value
                 continue
             if not t.is_identifier():
                 raise dns.exception.SyntaxError
