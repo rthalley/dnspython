@@ -43,12 +43,32 @@ $ORIGIN foo.example.
 bar mx 0 blaz
 """
 
+example_text_comment = """$TTL 3600
+$ORIGIN example.
+@ soa foo bar 1 2 3 4 5;felis eget velit aliquet sagittis
+@ ns ns1
+@ ns ns2
+ns1 a 10.0.0.1
+ns2 a 10.0.0.2 ;porttitor rhoncus dolor purus non
+$TTL 300
+$ORIGIN foo.example.
+bar mx 0 blaz ; felis imperdiet proin fermentum leo
+"""
+
 example_text_output = """@ 3600 IN SOA foo bar 1 2 3 4 5
 @ 3600 IN NS ns1
 @ 3600 IN NS ns2
 bar.foo 300 IN MX 0 blaz.foo
 ns1 3600 IN A 10.0.0.1
 ns2 3600 IN A 10.0.0.2
+"""
+
+example_text_comment_output = """@ 3600 IN SOA foo bar 1 2 3 4 5 ;felis eget velit aliquet sagittis
+@ 3600 IN NS ns1
+@ 3600 IN NS ns2
+bar.foo 300 IN MX 0 blaz.foo ; felis imperdiet proin fermentum leo
+ns1 3600 IN A 10.0.0.1
+ns2 3600 IN A 10.0.0.2 ;porttitor rhoncus dolor purus non
 """
 
 something_quite_similar = """@ 3600 IN SOA foo bar 1 2 3 4 5
@@ -485,6 +505,14 @@ class ZoneTestCase(unittest.TestCase):
 
     def testZoneOriginNone(self):
         dns.zone.Zone(None)
+
+    def testCommentPrint(self):
+        z = dns.zone.from_text(example_text_comment, 'example.', relativize=True)
+        f = StringIO()
+        z.to_file(f, want_comment=True)
+        out = f.getvalue()
+        f.close()
+        self.assertEqual(out, example_text_comment_output)
 
 if __name__ == '__main__':
     unittest.main()

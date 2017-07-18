@@ -32,5 +32,11 @@ class RdataTestCase(unittest.TestCase):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, u"1.2.3.4")
         self.failUnless(rdata.address == "1.2.3.4")
 
+    def testComment(self):
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4;lorem ipsum")
+        self.assertEqual(rdata.comment, 'lorem ipsum')
+        self.assertEqual(rdata.to_text(want_comment=True),"1.2.3.4 ;lorem ipsum")
+        self.assertEqual(rdata.to_text(), "1.2.3.4")
+
 if __name__ == '__main__':
     unittest.main()
