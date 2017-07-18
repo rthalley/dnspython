@@ -264,7 +264,7 @@ class LOC(dns.rdata.Rdata):
                     
         comment = None
         while not token.is_eol_or_eof():
-            if token.is_comment()
+            if token.is_comment():
                 comment = token.value
             token = tok.get(want_comment=True)
 

@@ -79,6 +79,7 @@ class SOA(dns.rdata.Rdata):
         expire = tok.get_ttl()
         minimum = tok.get_ttl()
         token = tok.get(want_comment=True)
+        comment = None
         while not token.is_eol_or_eof():
             if token.is_comment():
                 comment = token.value

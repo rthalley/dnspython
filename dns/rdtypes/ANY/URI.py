@@ -62,6 +62,7 @@ class URI(dns.rdata.Rdata):
         target = tok.get().unescape()
         if not (target.is_quoted_string() or target.is_identifier()):
             raise dns.exception.SyntaxError("URI target must be a string")
+        token = tok.get(want_comment=True)
         while not token.is_eol_or_eof():
             if token.is_comment():
                 comment = token.value

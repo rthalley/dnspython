@@ -66,7 +66,7 @@ class TLSA(dns.rdata.Rdata):
         cert_chunks = []
         comment = None
         while 1:
-            t = tok.get(want_comment).unescape()
+            t = tok.get(want_comment=True).unescape()
             if t.is_eol_or_eof():
                 break
             if t.is_comment():

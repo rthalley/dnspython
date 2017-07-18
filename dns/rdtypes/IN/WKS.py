@@ -69,6 +69,7 @@ class WKS(dns.rdata.Rdata):
         else:
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
+        comment = None
         while 1:
             token = tok.get(want_comment=True).unescape()
             if token.is_eol_or_eof():
