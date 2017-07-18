@@ -1101,13 +1101,13 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
     @rtype: dict
     """
     if not isinstance(zone, Zone):
-            raise KeyError("zone parameter must be a Zone object")
+        raise KeyError("zone parameter must be a Zone object")
     # Deep copy to be able to change the encaplusated rdata object without
     # modifying the original Zone.
-    soa = copy.deepcopy(zone.find_rdataset(zone.origin,dns.rdatatype.SOA))
+    soa = copy.deepcopy(zone.find_rdataset(zone.origin, dns.rdatatype.SOA))
     # As SOA is a singleton type we can simply choose relativity
     # for the encapsulated rdata object for the first object in the set.
-    soa.items[0].choose_relativity(origin=zone.origin,relativize=False)
+    soa.items[0].choose_relativity(origin=zone.origin, relativize=False)
     ptr_zones = {}
     for rdt in (dns.rdatatype.A, dns.rdatatype.AAAA):
         for name, rdataset in zone.iterate_rdatasets(rdtype=rdt):
