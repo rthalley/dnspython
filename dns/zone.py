@@ -1120,6 +1120,7 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
                                          zone_factory(ptr_origin,
                                                       soa.rdclass,
                                                       relativize=relativize))
+                z.replace_rdataset(ptr_origin, soa)
                 n = z.get_node(ptr_addr, create=True)
                 rd = dns.rdtypes.ANY.PTR.PTR(soa.rdclass, dns.rdatatype.PTR, c_name)
                 rd.choose_relativity(ptr_origin, relativize)
