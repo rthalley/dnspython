@@ -102,37 +102,37 @@ ns2 1w1D1h1m1S a 10.0.0.2
 """
 
 good_ptr_dict = {'65.80.73.in-addr.arpa.' :
-b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
-\n49 0 IN PTR a.u.example.\
-\n49 0 IN PTR ns.s.example.\
-\n49 0 IN PTR c.example.\
-\n49 0 IN PTR d.example.\
-\n49 0 IN PTR e.example.\
-\n49 0 IN PTR t.example.\
-\n49 0 IN PTR b.u.example.\
-\n50 0 IN PTR e.example.\
-\n51 0 IN PTR e.example.\
-\n52 0 IN PTR e.example.\
-\n52 0 IN PTR f.example.\n',
+(b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5',
+b'49 0 IN PTR a.u.example.',
+b'49 0 IN PTR ns.s.example.',
+b'49 0 IN PTR c.example.',
+b'49 0 IN PTR d.example.',
+b'49 0 IN PTR e.example.',
+b'49 0 IN PTR t.example.',
+b'49 0 IN PTR b.u.example.',
+b'50 0 IN PTR e.example.',
+b'51 0 IN PTR e.example.',
+b'52 0 IN PTR e.example.',
+b'52 0 IN PTR f.example.'),
                  '0.0.0.in-addr.arpa.' :
-b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
-\n0 0 IN PTR a01.example.\n',
+(b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5',
+b'0 0 IN PTR a01.example.'),
                  '0.53.10.in-addr.arpa.' :
-b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
-\n1 0 IN PTR ns1.example.\
-\n2 0 IN PTR ns2.example.\n',
+(b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5',
+b'1 0 IN PTR ns1.example.',
+b'2 0 IN PTR ns2.example.'),
                  '255.255.255.in-addr.arpa.' :
-b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
-\n255 0 IN PTR a02.example.\n',
+(b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5',
+b'255 0 IN PTR a02.example.'),
                  'f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.ip6.arpa.' : \
-b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
-\nf 0 IN PTR aaaa01.example.\n',
+(b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5',
+b'f 0 IN PTR aaaa01.example.'),
                  '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.' : \
-b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
-\n1 0 IN PTR aaaa02.example.\n',
+(b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5',
+b'1 0 IN PTR aaaa02.example.'),
                  '0.0.127.in-addr.arpa.' :
-b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5\
-\n2 0 IN PTR unknown3.example.\n'}
+(b'@ 300 IN SOA ns1.example. hostmaster.example. 1 2 3 4 5',
+b'2 0 IN PTR unknown3.example.')}
 
 
 _keep_output = True
@@ -529,7 +529,9 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_file('example1.good', 'example.')
         ptrs = dns.zone.generate_ptr(z)
         for ptr_z in good_ptr_dict:
-            self.assertEqual(ptrs[dns.name.from_text(ptr_z)].to_text(), good_ptr_dict[ptr_z])
+            ptr_text = ptrs[dns.name.from_text(ptr_z)].to_text()
+            for gp in good_ptr_dict[ptr_z]:
+                self.assertIn(gp, ptr_text)
 
 if __name__ == '__main__':
     unittest.main()
