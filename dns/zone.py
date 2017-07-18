@@ -32,6 +32,9 @@ import dns.rrset
 import dns.tokenizer
 import dns.ttl
 import dns.grange
+import dns.reversename
+import dns.rdtypes.ANY.PTR
+import copy
 from ._compat import string_types, text_type
 
 
@@ -1097,17 +1100,14 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
     @raises KeyError: if zone parameter is not a Zone object.
     @rtype: dict
     """
-    import dns.reversename
-    import dns.rdtypes.ANY.PTR
-    import copy
     if not isinstance(zone, Zone):
             raise KeyError("zone parameter must be a Zone object")
     # Deep copy to be able to change the encaplusated rdata object without
     # modifying the original Zone.
-    SOA = copy.deepcopy(zone.find_rdataset(zone.origin,dns.rdatatype.SOA))
+    soa = copy.deepcopy(zone.find_rdataset(zone.origin,dns.rdatatype.SOA))
     # As SOA is a singleton type we can simply choose relativity
     # for the encapsulated rdata object for the first object in the set.
-    SOA.items[0].choose_relativity(origin=zone.origin,relativize=False)
+    soa.items[0].choose_relativity(origin=zone.origin,relativize=False)
     ptr_zones = {}
     for rdt in [dns.rdatatype.A, dns.rdatatype.AAAA]:
         for name, rdataset in zone.iterate_rdatasets(rdtype=rdt):
@@ -1118,12 +1118,12 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
                 ptr_origin = ptr_addr.parent()
                 if ptr_origin not in ptr_zones:
                     ptr_zones[ptr_origin] = zone_factory(ptr_origin,
-                                                         SOA.rdclass,
+                                                         soa.rdclass,
                                                          relativize=relativize)
                 n = ptr_zones[ptr_origin].get_node(ptr_addr, create=True)
-                rd = dns.rdtypes.ANY.PTR.PTR(SOA.rdclass, dns.rdatatype.PTR, c_name)
+                rd = dns.rdtypes.ANY.PTR.PTR(soa.rdclass, dns.rdatatype.PTR, c_name)
                 rd.choose_relativity(ptr_origin, relativize)
-                rds = n.get_rdataset(SOA.rdclass, dns.rdatatype.PTR,
+                rds = n.get_rdataset(soa.rdclass, dns.rdatatype.PTR,
                                       rd.covers(), True)
                 rds.add(rd)
     return ptr_zones
