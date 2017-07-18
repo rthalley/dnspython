@@ -1116,11 +1116,11 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
             for rdata in c_rdataset:
                 ptr_addr = dns.reversename.from_address(rdata.to_text())
                 ptr_origin = ptr_addr.parent()
-                if ptr_origin not in ptr_zones:
-                    ptr_zones[ptr_origin] = zone_factory(ptr_origin,
-                                                         soa.rdclass,
-                                                         relativize=relativize)
-                n = ptr_zones[ptr_origin].get_node(ptr_addr, create=True)
+                z = ptr_zones.setdefault(ptr_origin,
+                                         zone_factory(ptr_origin,
+                                                      soa.rdclass,
+                                                      relativize=relativize))
+                n = z.get_node(ptr_addr, create=True)
                 rd = dns.rdtypes.ANY.PTR.PTR(soa.rdclass, dns.rdatatype.PTR, c_name)
                 rd.choose_relativity(ptr_origin, relativize)
                 rds = n.get_rdataset(soa.rdclass, dns.rdatatype.PTR,
