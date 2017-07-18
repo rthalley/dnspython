@@ -101,6 +101,28 @@ ns1 1d1s a 10.0.0.1
 ns2 1w1D1h1m1S a 10.0.0.2
 """
 
+good_ptr_dict = {'65.80.73.in-addr.arpa.' : b'49 0 IN PTR a.u.example.\
+\n49 0 IN PTR ns.s.example.\
+\n49 0 IN PTR c.example.\
+\n49 0 IN PTR d.example.\
+\n49 0 IN PTR e.example.\
+\n49 0 IN PTR t.example.\
+\n49 0 IN PTR b.u.example.\
+\n50 0 IN PTR e.example.\
+\n51 0 IN PTR e.example.\
+\n52 0 IN PTR e.example.\
+\n52 0 IN PTR f.example.\n',
+                 '0.0.0.in-addr.arpa.' : b'0 0 IN PTR a01.example.\n',
+                 '0.53.10.in-addr.arpa.' : b'1 0 IN PTR ns1.example.\
+\n2 0 IN PTR ns2.example.\n',
+                 '255.255.255.in-addr.arpa.' : b'255 0 IN PTR a02.example.\n',
+                 'f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.ip6.arpa.' : \
+b'f 0 IN PTR aaaa01.example.\n',
+                 '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.' : \
+b'1 0 IN PTR aaaa02.example.\n',
+                 '0.0.127.in-addr.arpa.' : b'2 0 IN PTR unknown3.example.\n'}
+
+
 _keep_output = True
 
 def _rdata_sort(a):
@@ -485,6 +507,17 @@ class ZoneTestCase(unittest.TestCase):
 
     def testZoneOriginNone(self):
         dns.zone.Zone(None)
+
+    def testZonePtrGenKeyError(self):
+        def bad():
+            dns.zone.generate_ptr(None)
+        self.failUnlessRaises(KeyError, bad)
+
+    def testZonePtrGenOutput(self):
+        z = dns.zone.from_file('example1.good', 'example.')
+        ptrs = dns.zone.generate_ptr(z)
+        for ptr_z in good_ptr_dict:
+            self.assertEqual(ptrs[dns.name.from_text(ptr_z)].to_text(), good_ptr_dict[ptr_z])
 
 if __name__ == '__main__':
     unittest.main()
