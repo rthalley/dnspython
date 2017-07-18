@@ -35,7 +35,7 @@ class RdataTestCase(unittest.TestCase):
     def testComment(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4;lorem ipsum")
         self.assertEqual(rdata.comment, 'lorem ipsum')
-        self.assertEqual(rdata.to_text(want_comment=True),"1.2.3.4 ;lorem ipsum")
+        self.assertEqual(rdata.to_text(want_comment=True), "1.2.3.4 ;lorem ipsum")
         self.assertEqual(rdata.to_text(), "1.2.3.4")
 
 if __name__ == '__main__':
