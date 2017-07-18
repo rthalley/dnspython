@@ -1109,7 +1109,7 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
     # for the encapsulated rdata object for the first object in the set.
     soa.items[0].choose_relativity(origin=zone.origin,relativize=False)
     ptr_zones = {}
-    for rdt in [dns.rdatatype.A, dns.rdatatype.AAAA]:
+    for rdt in (dns.rdatatype.A, dns.rdatatype.AAAA):
         for name, rdataset in zone.iterate_rdatasets(rdtype=rdt):
             c_name = copy.copy(name).derelativize(zone.origin)
             c_rdataset = copy.deepcopy(rdataset)
