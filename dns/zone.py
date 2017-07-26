@@ -1105,9 +1105,12 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
     # Deep copy to be able to change the encaplusated rdata object without
     # modifying the original Zone.
     soa = copy.deepcopy(zone.find_rdataset(zone.origin, dns.rdatatype.SOA))
+    ns = copy.deepcopy(zone.find_rdataset(zone.origin, dns.rdatatype.NS))
     # As SOA is a singleton type we can simply choose relativity
     # for the encapsulated rdata object for the first object in the set.
     soa.items[0].choose_relativity(origin=zone.origin, relativize=False)
+    for nameserv in ns.items:
+        nameserv.choose_relativity(origin=zone.origin, relativize=False)
     ptr_zones = {}
     for rdt in (dns.rdatatype.A, dns.rdatatype.AAAA):
         for name, rdataset in zone.iterate_rdatasets(rdtype=rdt):
@@ -1121,6 +1124,7 @@ def generate_ptr(zone, relativize=False, zone_factory=Zone):
                                                       soa.rdclass,
                                                       relativize=relativize))
                 z.replace_rdataset(ptr_origin, soa)
+                z.replace_rdataset(ptr_origin, ns)
                 n = z.get_node(ptr_addr, create=True)
                 rd = dns.rdtypes.ANY.PTR.PTR(soa.rdclass, dns.rdatatype.PTR, c_name)
                 rd.choose_relativity(ptr_origin, relativize)
