@@ -1,4 +1,6 @@
-dnspython [![Build Status](https://travis-ci.org/rthalley/dnspython.svg?branch=master)](https://travis-ci.org/rthalley/dnspython)
+# dnspython
+
+[![Build Status](https://travis-ci.org/rthalley/dnspython.svg?branch=master)](https://travis-ci.org/rthalley/dnspython)
 
 ## INTRODUCTION
 
@@ -11,21 +13,22 @@ perform queries for data of a given name, type, and class, and return an answer
 set. The low level classes allow direct manipulation of DNS zones, messages,
 names, and records.
 
-To see a few of the ways dnspython can be used, look in the examples/ directory.
+To see a few of the ways dnspython can be used, look in the `examples/` directory.
 
 dnspython is a utility to work with DNS, `/etc/hosts` is thus not used. For
-simple forward DNS lookups, better use `socket.gethostbyname()`.
+simple forward DNS lookups, it's better to use `socket.gethostbyname()`.
 
-dnspython originated at Nominum where it was developed to facilitate the testing
-of DNS software. Nominum has generously allowed it to be open sourced under a
-BSD-style license, and helps support its future development by continuing to
-employ the author :).
+dnspython originated at [Nominum](https://www.nominum.com/) where it was developed
+to facilitate the testing of DNS software. Nominum has generously allowed it to be
+open sourced under a BSD-style license, and helps support its future development by
+continuing to employ the author :).
 
 ## INSTALLATION
-- Many distributions have dnspython packaged for you, so you should
+
+* Many distributions have dnspython packaged for you, so you should
   check there first.
-- If you have pip installed, you can do `pip install dnspython`
-- If not just download the source file and unzip it, then run
+* If you have pip installed, you can do `pip install dnspython`
+* If not just download the source file and unzip it, then run
   `sudo python setup.py install`
 
 ## ABOUT THIS RELEASE
