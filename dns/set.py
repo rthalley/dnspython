@@ -23,15 +23,15 @@ class Set(object):
     ability is widely used in dnspython applications.
     """
 
-    __slots__ = ['items']
+    __slots__ = ['items', 'map']
 
     def __init__(self, items=None):
         """Initialize the set.
 
         *items*, an iterable or ``None``, the initial set of items.
         """
-
         self.items = []
+        self.map = {}
         if items is not None:
             for item in items:
                 self.add(item)
@@ -42,24 +42,28 @@ class Set(object):
     def add(self, item):
         """Add an item to the set.
         """
-
-        if item not in self.items:
+        if item not in self.map:
+            self.map[item] = len(self.items)
             self.items.append(item)
+
+    def __contains__(self, item):
+        return item in self.map
 
     def remove(self, item):
         """Remove an item from the set.
         """
-
-        self.items.remove(item)
+        if item in self.map:
+            i = self.map[item]
+            del self.items[i]
+            del self.map[item]
+            for k, v in self.map.items():
+                if v >= i:
+                    self.map[k] = v - 1
 
     def discard(self, item):
         """Remove an item from the set if present.
         """
-
-        try:
-            self.items.remove(item)
-        except ValueError:
-            pass
+        self.remove(item)
 
     def _clone(self):
         """Make a (shallow) copy of the set.
@@ -73,10 +77,10 @@ class Set(object):
         return new instances (e.g. union) once, and keep using them in
         subclasses.
         """
-
         cls = self.__class__
         obj = cls.__new__(cls)
         obj.items = list(self.items)
+        obj.map = dict(self.map)
         return obj
 
     def __copy__(self):
@@ -100,7 +104,7 @@ class Set(object):
             raise ValueError('other must be a Set instance')
         if self is other:
             return
-        for item in other.items:
+        for item in other:
             self.add(item)
 
     def intersection_update(self, other):
@@ -115,8 +119,8 @@ class Set(object):
         # we make a copy of the list so that we can remove items from
         # the list without breaking the iterator.
         for item in list(self.items):
-            if item not in other.items:
-                self.items.remove(item)
+            if item not in other:
+                self.remove(item)
 
     def difference_update(self, other):
         """Update the set, removing any elements from other which are in
@@ -126,9 +130,9 @@ class Set(object):
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
         if self is other:
-            self.items = []
+            self.clear()
         else:
-            for item in other.items:
+            for item in other:
                 self.discard(item)
 
     def union(self, other):
@@ -205,15 +209,16 @@ class Set(object):
     def clear(self):
         """Make the set empty."""
         self.items = []
+        self.map = {}
 
     def __eq__(self, other):
-        # Yes, this is inefficient but the sets we're dealing with are
-        # usually quite small, so it shouldn't hurt too much.
-        for item in self.items:
-            if item not in other.items:
+        if len(self) != len(other):
+            return False
+        for item in self:
+            if item not in other:
                 return False
-        for item in other.items:
-            if item not in self.items:
+        for item in other:
+            if item not in self:
                 return False
         return True
 
@@ -230,7 +235,12 @@ class Set(object):
         return self.items[i]
 
     def __delitem__(self, i):
-        del self.items[i]
+        if isinstance(i, int):
+            items = [self[i]]
+        else:
+            items = self[i]
+        for item in items:
+            self.remove(item)
 
     def issubset(self, other):
         """Is this set a subset of *other*?
@@ -240,8 +250,8 @@ class Set(object):
 
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
-        for item in self.items:
-            if item not in other.items:
+        for item in self:
+            if item not in other:
                 return False
         return True
 
@@ -253,7 +263,7 @@ class Set(object):
 
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
-        for item in other.items:
-            if item not in self.items:
+        for item in other:
+            if item not in self:
                 return False
         return True
