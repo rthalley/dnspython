@@ -13,8 +13,9 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import struct
 import binascii
+import codecs
+import struct
 
 import dns.exception
 import dns.inet
@@ -122,9 +123,6 @@ class APL(dns.rdata.Rdata):
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
 
-        # pylint complains about this on Python 2.7, not sure why...
-        # pylint: disable=invalid-str-codec
-
         items = []
         while 1:
             if rdlen == 0:
@@ -157,7 +155,7 @@ class APL(dns.rdata.Rdata):
                 # This isn't really right according to the RFC, but it
                 # seems better than throwing an exception
                 #
-                address = address.encode('hex_codec')
+                address = codecs.encode(address, 'hex_codec')
             current += afdlen
             rdlen -= afdlen
             item = APLItem(header[0], negation, address, header[1])

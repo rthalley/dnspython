@@ -32,10 +32,7 @@ import dns.rrset
 import dns.tokenizer
 import dns.ttl
 import dns.grange
-from ._compat import string_types, text_type
-
-
-_py3 = sys.version_info > (3,)
+from ._compat import string_types, text_type, PY3
 
 
 class BadZone(dns.exception.DNSException):
@@ -157,7 +154,7 @@ class Zone(object):
         return self.nodes.__iter__()
 
     def iterkeys(self):
-        if _py3:
+        if PY3:
             return self.nodes.keys()
         else:
             return self.nodes.iterkeys()  # pylint: disable=dict-iter-method
@@ -166,7 +163,7 @@ class Zone(object):
         return self.nodes.keys()
 
     def itervalues(self):
-        if _py3:
+        if PY3:
             return self.nodes.values()
         else:
             return self.nodes.itervalues()  # pylint: disable=dict-iter-method

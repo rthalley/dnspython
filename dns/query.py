@@ -31,9 +31,9 @@ import dns.message
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
-from ._compat import long, string_types
+from ._compat import long, string_types, PY3
 
-if sys.version_info > (3,):
+if PY3:
     select_error = OSError
 else:
     select_error = select.error

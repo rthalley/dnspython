@@ -2,7 +2,11 @@ import sys
 import decimal
 from decimal import Context
 
-if sys.version_info > (3,):
+PY3 = sys.version_info[0] == 3
+PY2 = sys.version_info[0] == 2
+
+
+if PY3:
     long = int
     xrange = range
 else:
@@ -10,7 +14,7 @@ else:
     xrange = xrange  # pylint: disable=xrange-builtin
 
 # unicode / binary types
-if sys.version_info > (3,):
+if PY3:
     text_type = str
     binary_type = bytes
     string_types = (str,)
