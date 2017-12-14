@@ -76,6 +76,8 @@ class TXTBase(dns.rdata.Rdata):
         for s in self.strings:
             l = len(s)
             assert l < 256
+            if not isinstance(s, bytes):
+                s = bytes(s, 'utf-8')
             file.write(struct.pack('!B', l))
             file.write(s)
 
