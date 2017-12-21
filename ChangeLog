@@ -1,3 +1,8 @@
+2017-12-21  Daniel Robbins  <drobbins@funtoo.org>
+
+	* dns/dnssec.py: migrated code from pycrypto (apparently no
+	  longer maintained) to pycryptodome. All tests passing.
+
 2017-01-02  Bob Halley  <halley@dnspython.org>
 
 	* dns/e164.py: to_e164() was returning binary instead of text,

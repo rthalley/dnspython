@@ -19,9 +19,9 @@ import hmac
 import struct
 
 import dns.exception
-import dns.hash
 import dns.rdataclass
 import dns.name
+import dns.dnssec
 from ._compat import long, string_types, text_type
 
 class BadTime(dns.exception.DNSException):
@@ -211,7 +211,7 @@ def get_algorithm(algorithm):
         algorithm = dns.name.from_text(algorithm)
 
     try:
-        return (algorithm.to_digestable(), dns.hash.hashes[_hashes[algorithm]])
+        return (algorithm.to_digestable(), dns.dnssec._make_hash(algorithm))
     except KeyError:
         raise NotImplementedError("TSIG algorithm " + str(algorithm) +
                                   " is not supported")

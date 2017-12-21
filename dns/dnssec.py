@@ -20,7 +20,6 @@ import struct
 import time
 
 import dns.exception
-import dns.hash
 import dns.name
 import dns.node
 import dns.rdataset
@@ -28,7 +27,8 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
 from ._compat import string_types
-
+from Crypto.Hash import MD5, SHA1, SHA256, SHA384, SHA512
+from Crypto.Signature import pkcs1_15, DSS
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
     """The DNSSEC algorithm is not supported."""
@@ -39,27 +39,27 @@ class ValidationFailure(dns.exception.DNSException):
 
 
 #: RSAMD5
-RSAMD5 = 1
+ALGO_RSAMD5 = 1
 #: DH
-DH = 2
+ALGO_DH = 2
 #: DSA
-DSA = 3
+ALGO_DSA = 3
 #: ECC
-ECC = 4
+ALGO_ECC = 4
 #: RSASHA1
-RSASHA1 = 5
+ALGO_RSASHA1 = 5
 #: DSANSEC3SHA1
-DSANSEC3SHA1 = 6
+ALGO_DSANSEC3SHA1 = 6
 #: RSASHA1NSEC3SHA1
-RSASHA1NSEC3SHA1 = 7
+ALGO_RSASHA1NSEC3SHA1 = 7
 #: RSASHA256
-RSASHA256 = 8
+ALGO_RSASHA256 = 8
 #: RSASHA512
-RSASHA512 = 10
+ALGO_RSASHA512 = 10
 #: ECDSAP256SHA256
-ECDSAP256SHA256 = 13
+ALGO_ECDSAP256SHA256 = 13
 #: ECDSAP384SHA384
-ECDSAP384SHA384 = 14
+ALGO_ECDSAP384SHA384 = 14
 #: INDIRECT
 INDIRECT = 252
 #: PRIVATEDNS
@@ -68,18 +68,18 @@ PRIVATEDNS = 253
 PRIVATEOID = 254
 
 _algorithm_by_text = {
-    'RSAMD5': RSAMD5,
-    'DH': DH,
-    'DSA': DSA,
-    'ECC': ECC,
-    'RSASHA1': RSASHA1,
-    'DSANSEC3SHA1': DSANSEC3SHA1,
-    'RSASHA1NSEC3SHA1': RSASHA1NSEC3SHA1,
-    'RSASHA256': RSASHA256,
-    'RSASHA512': RSASHA512,
+    'RSAMD5': ALGO_RSAMD5,
+    'DH': ALGO_DH,
+    'DSA': ALGO_DSA,
+    'ECC': ALGO_ECC,
+    'RSASHA1': ALGO_RSASHA1,
+    'DSANSEC3SHA1': ALGO_DSANSEC3SHA1,
+    'RSASHA1NSEC3SHA1': ALGO_RSASHA1NSEC3SHA1,
+    'RSASHA256': ALGO_RSASHA256,
+    'RSASHA512': ALGO_RSASHA512,
     'INDIRECT': INDIRECT,
-    'ECDSAP256SHA256': ECDSAP256SHA256,
-    'ECDSAP384SHA384': ECDSAP384SHA384,
+    'ECDSAP256SHA256': ALGO_ECDSAP256SHA256,
+    'ECDSAP384SHA384': ALGO_ECDSAP384SHA384,
     'PRIVATEDNS': PRIVATEDNS,
     'PRIVATEOID': PRIVATEOID,
 }
@@ -132,7 +132,7 @@ def key_id(key, origin=None):
 
     rdata = _to_rdata(key, origin)
     rdata = bytearray(rdata)
-    if key.algorithm == RSAMD5:
+    if key.algorithm == ALGO_RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:
         total = 0
@@ -164,10 +164,10 @@ def make_ds(name, key, algorithm, origin=None):
 
     if algorithm.upper() == 'SHA1':
         dsalg = 1
-        hash = dns.hash.hashes['SHA1']()
+        hash = SHA1.new()
     elif algorithm.upper() == 'SHA256':
         dsalg = 2
-        hash = dns.hash.hashes['SHA256']()
+        hash = SHA256.new()
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
@@ -203,51 +203,51 @@ def _find_candidate_keys(keys, rrsig):
 
 
 def _is_rsa(algorithm):
-    return algorithm in (RSAMD5, RSASHA1,
-                         RSASHA1NSEC3SHA1, RSASHA256,
-                         RSASHA512)
+    return algorithm in (ALGO_RSAMD5, ALGO_RSASHA1,
+                         ALGO_RSASHA1NSEC3SHA1, ALGO_RSASHA256,
+                         ALGO_RSASHA512)
 
 
 def _is_dsa(algorithm):
-    return algorithm in (DSA, DSANSEC3SHA1)
+    return algorithm in (ALGO_DSA, ALGO_DSANSEC3SHA1)
 
 
 def _is_ecdsa(algorithm):
-    return _have_ecdsa and (algorithm in (ECDSAP256SHA256, ECDSAP384SHA384))
+    return _have_ecdsa and (algorithm in (ALGO_ECDSAP256SHA256, ALGO_ECDSAP384SHA384))
 
 
 def _is_md5(algorithm):
-    return algorithm == RSAMD5
+    return algorithm == ALGO_RSAMD5
 
 
 def _is_sha1(algorithm):
-    return algorithm in (DSA, RSASHA1,
-                         DSANSEC3SHA1, RSASHA1NSEC3SHA1)
+    return algorithm in (ALGO_DSA, ALGO_RSASHA1,
+                         ALGO_DSANSEC3SHA1, ALGO_RSASHA1NSEC3SHA1)
 
 
 def _is_sha256(algorithm):
-    return algorithm in (RSASHA256, ECDSAP256SHA256)
+    return algorithm in (ALGO_RSASHA256, ALGO_ECDSAP256SHA256)
 
 
 def _is_sha384(algorithm):
-    return algorithm == ECDSAP384SHA384
+    return algorithm == ALGO_ECDSAP384SHA384
 
 
 def _is_sha512(algorithm):
-    return algorithm == RSASHA512
+    return algorithm == ALGO_RSASHA512
 
 
 def _make_hash(algorithm):
     if _is_md5(algorithm):
-        return dns.hash.hashes['MD5']()
+        return MD5.new()
     if _is_sha1(algorithm):
-        return dns.hash.hashes['SHA1']()
+        return SHA1.new()
     if _is_sha256(algorithm):
-        return dns.hash.hashes['SHA256']()
+        return SHA256.new()
     if _is_sha384(algorithm):
-        return dns.hash.hashes['SHA384']()
+        return SHA384.new()
     if _is_sha512(algorithm):
-        return dns.hash.hashes['SHA512']()
+        return SHA512.new()
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
 
 
@@ -326,11 +326,13 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 keyptr = keyptr[2:]
             rsa_e = keyptr[0:bytes_]
             rsa_n = keyptr[bytes_:]
-            keylen = len(rsa_n) * 8
-            pubkey = Crypto.PublicKey.RSA.construct(
-                (Crypto.Util.number.bytes_to_long(rsa_n),
-                 Crypto.Util.number.bytes_to_long(rsa_e)))
-            sig = (Crypto.Util.number.bytes_to_long(rrsig.signature),)
+            try:
+                pubkey = Crypto.PublicKey.RSA.construct(
+                    (Crypto.Util.number.bytes_to_long(rsa_n),
+                     Crypto.Util.number.bytes_to_long(rsa_e)))
+            except ValueError:
+                raise ValidationFailure('invalid public key')
+            sig = rrsig.signature
         elif _is_dsa(rrsig.algorithm):
             keyptr = candidate_key.key
             (t,) = struct.unpack('!B', keyptr[0:1])
@@ -348,20 +350,19 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                  Crypto.Util.number.bytes_to_long(dsa_g),
                  Crypto.Util.number.bytes_to_long(dsa_p),
                  Crypto.Util.number.bytes_to_long(dsa_q)))
-            (dsa_r, dsa_s) = struct.unpack('!20s20s', rrsig.signature[1:])
-            sig = (Crypto.Util.number.bytes_to_long(dsa_r),
-                   Crypto.Util.number.bytes_to_long(dsa_s))
+            sig = rrsig.signature[1:]
         elif _is_ecdsa(rrsig.algorithm):
-            if rrsig.algorithm == ECDSAP256SHA256:
+            # use ecdsa for NIST-384p -- not currently supported by pycryptodome
+
+            keyptr = candidate_key.key
+
+            if rrsig.algorithm == ALGO_ECDSAP256SHA256:
                 curve = ecdsa.curves.NIST256p
                 key_len = 32
-            elif rrsig.algorithm == ECDSAP384SHA384:
+            elif rrsig.algorithm == ALGO_ECDSAP384SHA384:
                 curve = ecdsa.curves.NIST384p
                 key_len = 48
-            else:
-                # shouldn't happen
-                raise ValidationFailure('unknown ECDSA curve')
-            keyptr = candidate_key.key
+
             x = Crypto.Util.number.bytes_to_long(keyptr[0:key_len])
             y = Crypto.Util.number.bytes_to_long(keyptr[key_len:key_len * 2])
             if not ecdsa.ecdsa.point_is_valid(curve.generator, x, y):
@@ -374,6 +375,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             s = rrsig.signature[key_len:]
             sig = ecdsa.ecdsa.Signature(Crypto.Util.number.bytes_to_long(r),
                                         Crypto.Util.number.bytes_to_long(s))
+
         else:
             raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
 
@@ -395,24 +397,31 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             hash.update(rrlen)
             hash.update(rrdata)
 
-        digest = hash.digest()
-
-        if _is_rsa(rrsig.algorithm):
-            # PKCS1 algorithm identifier goop
-            digest = _make_algorithm_id(rrsig.algorithm) + digest
-            padlen = keylen // 8 - len(digest) - 3
-            digest = struct.pack('!%dB' % (2 + padlen + 1),
-                                 *([0, 1] + [0xFF] * padlen + [0])) + digest
-        elif _is_dsa(rrsig.algorithm) or _is_ecdsa(rrsig.algorithm):
-            pass
-        else:
-            # Raise here for code clarity; this won't actually ever happen
-            # since if the algorithm is really unknown we'd already have
-            # raised an exception above
-            raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
-
-        if pubkey.verify(digest, sig):
+        try:
+            if _is_rsa(rrsig.algorithm):
+                verifier = pkcs1_15.new(pubkey)
+                # will raise ValueError if verify fails:
+                verifier.verify(hash, sig)
+            elif _is_dsa(rrsig.algorithm):
+                verifier = DSS.new(pubkey, 'fips-186-3')
+                verifier.verify(hash, sig)
+            elif _is_ecdsa(rrsig.algorithm):
+                digest = hash.digest()
+                if pubkey.verify(digest, sig):
+                    return
+                else:
+                    raise ValueError
+            else:
+                # Raise here for code clarity; this won't actually ever happen
+                # since if the algorithm is really unknown we'd already have
+                # raised an exception above
+                raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
+            # If we got here, we successfully verified so we can return without error
             return
+        except ValueError:
+            # this happens on an individual validation failure
+            continue
+    # nothing verified -- raise failure:
     raise ValidationFailure('verify failure')
 
 
@@ -444,10 +453,8 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         rrname = rrset.name
 
     if isinstance(rrsigset, tuple):
-        rrsigname = rrsigset[0]
         rrsigrdataset = rrsigset[1]
     else:
-        rrsigname = rrsigset.name
         rrsigrdataset = rrsigset
 
     rrname = rrname.choose_relativity(origin)
@@ -465,7 +472,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
 
 
 def _need_pycrypto(*args, **kwargs):
-    raise NotImplementedError("DNSSEC validation requires pycrypto")
+    raise NotImplementedError("DNSSEC validation requires pycryptodome")
 
 try:
     import Crypto.PublicKey.RSA
