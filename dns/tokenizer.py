@@ -414,7 +414,7 @@ class Tokenizer(object):
             raise UngetBufferFull
         self.ungotten_token = token
 
-    def next(self):
+    def next(self):  # pylint: disable=next-method-defined
         """Return the next item in an iteration.
 
         Returns a Token.
