@@ -155,12 +155,12 @@ class Zone(object):
 
     def iterkeys(self):
         if PY3:
-            return self.nodes.keys()
+            return self.nodes.keys()  # pylint: disable=dict-keys-not-iterating
         else:
             return self.nodes.iterkeys()  # pylint: disable=dict-iter-method
 
     def keys(self):
-        return self.nodes.keys()
+        return list(self.nodes.keys())  # py2/3
 
     def itervalues(self):
         if PY3:
