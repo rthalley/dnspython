@@ -171,10 +171,14 @@ class Zone(object):
     def values(self):
         return list(self.nodes.values())  # py2/3
 
-    def items(self):
-        return self.nodes.items()
+    def iteritems(self):
+        if PY3:
+            return self.nodes.items()  # pylint: disable=dict-items-not-iterating
+        else:
+            return self.nodes.iteritems()  # pylint: disable=dict-iter-method
 
-    iteritems = items
+    def items(self):
+        return list(self.nodes.items())  # py2/3
 
     def get(self, key):
         key = self._validate_name(key)
