@@ -164,12 +164,12 @@ class Zone(object):
 
     def itervalues(self):
         if PY3:
-            return self.nodes.values()
+            return self.nodes.values()  # pylint: disable=dict-values-not-iterating
         else:
             return self.nodes.itervalues()  # pylint: disable=dict-iter-method
 
     def values(self):
-        return self.nodes.values()
+        return list(self.nodes.values())  # py2/3
 
     def items(self):
         return self.nodes.items()
