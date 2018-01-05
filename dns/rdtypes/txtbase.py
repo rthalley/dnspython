@@ -55,19 +55,27 @@ class TXTBase(dns.rdata.Rdata):
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         strings = []
+        max_str_len = 255
         while 1:
             token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break
             if not (token.is_quoted_string() or token.is_identifier()):
                 raise dns.exception.SyntaxError("expected a string")
-            if len(token.value) > 255:
-                raise dns.exception.SyntaxError("string too long")
-            value = token.value
-            if isinstance(value, binary_type):
-                strings.append(value)
+            if len(token.value) > max_str_len:
+                if isinstance(token.value, binary_type):
+                    value = token.value
+                else:
+                    value = token.value.encode()
+                # Cut into smaller strings:
+                strings += [value[i:i+max_str_len] for i in range(
+                            0, len(value), max_str_len)]
             else:
-                strings.append(value.encode())
+                value = token.value
+                if isinstance(value, binary_type):
+                    strings.append(value)
+                else:
+                    strings.append(value.encode())
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
