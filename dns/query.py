@@ -25,6 +25,7 @@ import sys
 import time
 
 import dns.exception
+import dns.flags
 import dns.inet
 import dns.name
 import dns.message
@@ -48,6 +49,10 @@ class UnexpectedSource(dns.exception.DNSException):
 
 class BadResponse(dns.exception.FormError):
     """A DNS query response does not respond to the question asked."""
+
+
+class Truncated(dns.exception.DNSException):
+    """The response had the TC bit set, indicating the client should retry over TCP."""
 
 
 class TransferError(dns.exception.DNSException):
@@ -266,7 +271,7 @@ def receive_udp(sock, destination, expiration=None,
     return (r, received_time)
 
 def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
-        ignore_unexpected=False, one_rr_per_rrset=False):
+        ignore_unexpected=False, one_rr_per_rrset=False, raise_on_tc=True):
     """Return the response obtained after sending a query via UDP.
 
     *q*, a ``dns.message.message``, the query to send
@@ -296,6 +301,9 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
     RRset.
 
+    *raise_on_tc*, a ``bool``.  If ``False``, a message with the TC bit set
+    will not raise the Truncated exception and will be processed normally.
+
     Returns a ``dns.message.Message``.
     """
 
@@ -321,6 +329,8 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
             response_time = received_time - sent_time
         s.close()
     r.time = response_time
+    if raise_on_tc and (r.flags & dns.flags.TC):
+        raise Truncated
     if not q.is_response(r):
         raise BadResponse
     return r
