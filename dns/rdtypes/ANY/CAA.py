@@ -48,12 +48,12 @@ class CAA(dns.rdata.Rdata):
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         flags = tok.get_uint8()
-        tag = tok.get_string().encode()
+        tag = tok.get_string()
         if len(tag) > 255:
             raise dns.exception.SyntaxError("tag too long")
         if not tag.isalnum():
             raise dns.exception.SyntaxError("tag is not alphanumeric")
-        value = tok.get_string().encode()
+        value = tok.get_string()
         return cls(rdclass, rdtype, flags, tag, value)
 
     def to_wire(self, file, compress=None, origin=None):
@@ -61,8 +61,8 @@ class CAA(dns.rdata.Rdata):
         l = len(self.tag)
         assert l < 256
         file.write(struct.pack('!B', l))
-        file.write(self.tag)
-        file.write(self.value)
+        file.write(self.tag.encode())
+        file.write(self.value.encode())
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
