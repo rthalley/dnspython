@@ -33,7 +33,7 @@ import dns.resolver
 
 resolver = dns.resolver.Resolver(configure=False)
 resolver.nameservers = ['8.8.8.8']
-answer = dns.resolver.query('amazon.com', 'NS')
+answer = resolver.query('amazon.com', 'NS')
 print('The nameservers are:')
 for rr in answer:
     print(rr.target)
