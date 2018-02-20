@@ -1021,7 +1021,10 @@ def from_file(f, origin=None, rdclass=dns.rdataclass.IN,
     """
 
     str_type = string_types
-    opts = 'rU'
+    if PY3:
+        opts = 'rU'
+    else:
+        opts = 'r'
 
     if isinstance(f, str_type):
         if filename is None:
