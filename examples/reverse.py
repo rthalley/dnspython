@@ -34,9 +34,7 @@ for filename in sys.argv[1:]:
         except KeyError:
             reverse_map[rdata.address] = [name.to_text()]
 
-keys = reverse_map.keys()
-keys.sort(key=dns.ipv4.inet_aton)
-for k in keys:
+for k in sorted(reverse_map.keys(), key=dns.ipv4.inet_aton):
     v = reverse_map[k]
     v.sort()
     print(k, v)
