@@ -451,7 +451,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         rrsigrdataset = rrsigset
 
     rrname = rrname.choose_relativity(origin)
-    rrsigname = rrname.choose_relativity(origin)
+    rrsigname = rrsigname.choose_relativity(origin)
     if rrname != rrsigname:
         raise ValidationFailure("owner names do not match")
 

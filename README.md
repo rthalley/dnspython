@@ -51,6 +51,10 @@ This is dnspython 1.15.0
 
 * The AVC RR is now supported.
 
+### Bugs fixed since 1.15.0:
+
+* DNSSEC signature validation didn't check names correctly.  [Issue #295]
+
 ### Bugs fixed since 1.14.0:
 
 * Some problems with newlines in various output modes have been
