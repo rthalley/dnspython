@@ -69,7 +69,7 @@ class NXDOMAIN(dns.exception.DNSException):
         if len(qnames) > 1:
             msg = 'None of DNS query names exist'
         else:
-            msg = self.__doc__[:-1]
+            msg = 'The DNS query name does not exist'
         qnames = ', '.join(map(str, qnames))
         return "%s: %s" % (msg, qnames)
 

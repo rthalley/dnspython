@@ -33,7 +33,17 @@ continuing to employ the author :).
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 1.15.0
+This is dnspython 1.16.0
+
+### New since 1.15.0:
+
+XXXTBSXXX
+
+### Bugs fixed since 1.15.0:
+
+* DNSSEC signature validation didn't check names correctly.  [Issue #295]
+
+* The NXDOMAIN exception should not use its docstring.  [Issue #253]
 
 ### New since 1.14.0:
 
@@ -50,10 +60,6 @@ This is dnspython 1.15.0
   requested by using one of the strict IDNA codecs.
 
 * The AVC RR is now supported.
-
-### Bugs fixed since 1.15.0:
-
-* DNSSEC signature validation didn't check names correctly.  [Issue #295]
 
 ### Bugs fixed since 1.14.0:
 
