@@ -22,7 +22,7 @@ import dns.exception
 import dns.ipv4
 from ._compat import xrange, binary_type, maybe_decode
 
-_leading_zero = re.compile('0+([0-9a-f]+)')
+_leading_zero = re.compile(r'0+([0-9a-f]+)')
 
 def inet_ntoa(address):
     """Convert an IPv6 address in binary form to text form.
@@ -91,9 +91,9 @@ def inet_ntoa(address):
         hex = ':'.join(chunks)
     return hex
 
-_v4_ending = re.compile(b'(.*):(\d+\.\d+\.\d+\.\d+)$')
-_colon_colon_start = re.compile(b'::.*')
-_colon_colon_end = re.compile(b'.*::$')
+_v4_ending = re.compile(br'(.*):(\d+\.\d+\.\d+\.\d+)$')
+_colon_colon_start = re.compile(br'::.*')
+_colon_colon_end = re.compile(br'.*::$')
 
 def inet_aton(text):
     """Convert an IPv6 address in text form to binary form.
