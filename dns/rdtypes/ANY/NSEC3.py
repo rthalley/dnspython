@@ -133,7 +133,7 @@ class NSEC3(dns.rdata.Rdata):
             new_window = nrdtype // 256
             if new_window != window:
                 if octets != 0:
-                    windows.append((window, ''.join(bitmap[0:octets])))
+                    windows.append((window, bitmap[0:octets]))
                 bitmap = bytearray(b'\0' * 32)
                 window = new_window
             offset = nrdtype % 256
