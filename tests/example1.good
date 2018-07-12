@@ -132,3 +132,8 @@ wks01 3600 IN WKS 10.0.0.1 6 0 1 2 21 23
 wks02 3600 IN WKS 10.0.0.1 17 0 1 2 53
 wks03 3600 IN WKS 10.0.0.2 6 65535
 x2501 3600 IN X25 "123456789"
+proxy 120  DYNA multifo!test-proxy
+pool 120 DYNA geoip!pool-geo
+pool-eu DYNA weighted!traffic-pool-weighted
+pool-com 120 DYNC geoip!a-pool
+pool-va 120 DYNC weighted!va-pool-balancers

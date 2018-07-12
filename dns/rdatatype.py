@@ -163,6 +163,8 @@ _by_text = {
     'AVC': AVC,
     'TA': TA,
     'DLV': DLV,
+    'DYNA' : DYNA,
+    'DYNC' : DYNC,
 }
 
 # We construct the inverse mapping programmatically to ensure that we

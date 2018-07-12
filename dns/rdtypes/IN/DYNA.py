@@ -28,7 +28,7 @@ class DYNA(dns.rdata.Rdata):
 
     __slots__ = ['pool']
 
-    def __init__(self, rdclass, rdtype, address):
+    def __init__(self, rdclass, rdtype, pool):
         super(DYNA, self).__init__(rdclass, rdtype)
         self.pool = pool
 
