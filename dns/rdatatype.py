@@ -89,6 +89,8 @@ CAA = 257
 AVC = 258
 TA = 32768
 DLV = 32769
+DYNA = 32777
+DYNC = 32778
 
 _by_text = {
     'NONE': NONE,
