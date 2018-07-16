@@ -18,7 +18,6 @@ import dns.ipv4
 import dns.rdata
 import dns.tokenizer
 
-from ._compat import binary_type
 
 class DYNC(dns.rdata.Rdata):
 
@@ -43,7 +42,11 @@ class DYNC(dns.rdata.Rdata):
         return cls(rdclass, rdtype, pool)
 
     def to_wire(self, file, compress=None, origin=None):
-        file.write(dns.inet.inet_pton(dns.inet.AF_INET6, self.pool))
+        if isinstance(self.pool, str):
+            pool = self.pool.encode()
+        else:
+            pool = self.pool
+        file.write(pool)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

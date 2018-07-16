@@ -42,7 +42,11 @@ class DYNA(dns.rdata.Rdata):
         return cls(rdclass, rdtype, pool)
 
     def to_wire(self, file, compress=None, origin=None):
-        file.write(self.pool)
+        if isinstance(self.pool, str):
+            pool = self.pool.encode()
+        else:
+            pool = self.pool
+        file.write(pool)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
