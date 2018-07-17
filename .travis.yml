@@ -20,7 +20,7 @@ branches:
   except:
     - python3
 install:
- - pip install unittest2 pylint pycrypto ecdsa idna
+ - pip install unittest2 pylint pycryptodome ecdsa idna
 script:
  - if [[ ($TRAVIS_PYTHON_VERSION != '2.6') ]]; then make lint; fi
  - make test
