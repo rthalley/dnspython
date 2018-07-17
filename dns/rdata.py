@@ -417,3 +417,35 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
     wire = dns.wiredata.maybe_wrap(wire)
     cls = get_rdata_class(rdclass, rdtype)
     return cls.from_wire(rdclass, rdtype, wire, current, rdlen, origin)
+
+
+class RdatatypeExists(dns.exception.DNSException):
+    """DNS rdatatype already exists."""
+    supp_kwargs = set(['rdclass', 'rdtype'])
+    fmt = "The rdata type with class {rdclass} and rdtype {rdtype} " + \
+        "already exists."
+
+
+def register_type(implementation, rdtype, rdtype_text, is_singleton=False,
+                  rdclass=dns.rdataclass.IN):
+    """Dynamically register a module to handle an rdatatype.
+
+    *implementation*, a module implementing the type in the usual dnspython
+    way.
+
+    *rdtype*, an ``int``, the rdatatype to register.
+
+    *rdtype_text*, a ``text``, the textual form of the rdatatype.
+
+    *is_singleton*, a ``bool``, indicating if the type is a singleton (i.e.
+    RRsets of the type can have only one member.)
+
+    *rdclass*, the rdataclass of the type, or ``dns.rdataclass.ANY`` if
+    it applies to all classes.
+    """
+
+    existing_cls = get_rdata_class(rdclass, rdtype)
+    if existing_cls != GenericRdata:
+        raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
+    _rdata_modules[(rdclass, rdtype)] = implementation
+    dns.rdatatype.register_type(rdtype, rdtype_text, is_singleton)
