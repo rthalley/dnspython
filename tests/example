@@ -224,3 +224,8 @@ yO732NmCUcq3bmvqcOWy4Cc1NkEwU0Vg0qzwVBNGb84v/ex2MouwtAYScwc=
 )
 csync0			CSYNC 12345 0 A MX RRSIG NSEC TYPE1234
 avc01			AVC "app-name:WOLFGANG|app-class:OAM|business=yes"
+proxy	120		DYNA multifo!test-proxy
+pool	120		DYNA geoip!pool-geo
+pool-eu		DYNA weighted!traffic-pool-weighted
+pool-com	120 DYNC geoip!a-pool
+pool-va	120		DYNC weighted!va-pool-balancers

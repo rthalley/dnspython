@@ -89,6 +89,8 @@ CAA = 257
 AVC = 258
 TA = 32768
 DLV = 32769
+DYNA = 32777
+DYNC = 32778
 
 _by_text = {
     'NONE': NONE,
@@ -161,6 +163,8 @@ _by_text = {
     'AVC': AVC,
     'TA': TA,
     'DLV': DLV,
+    'DYNA' : DYNA,
+    'DYNC' : DYNC,
 }
 
 # We construct the inverse mapping programmatically to ensure that we
