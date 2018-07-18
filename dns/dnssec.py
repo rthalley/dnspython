@@ -453,8 +453,10 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         rrname = rrset.name
 
     if isinstance(rrsigset, tuple):
+        rrsigname = rrsigset[0]
         rrsigrdataset = rrsigset[1]
     else:
+        rrsigname = rrsigset.name
         rrsigrdataset = rrsigset
 
     rrname = rrname.choose_relativity(origin)
