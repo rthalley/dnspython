@@ -40,7 +40,8 @@ class TXTBase(dns.rdata.Rdata):
             strings = [strings]
         self.strings = []
         for string in strings:
-            if isinstance(string, string_types):
+            if isinstance(string, string_types) \
+                    and not isinstance(string, binary_type):
                 string = string.encode()
             self.strings.append(string)
 

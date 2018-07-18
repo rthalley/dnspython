@@ -366,10 +366,24 @@ class Tokenizer(object):
                 break
             elif self.quoting:
                 if c == '\\':
-                    c = self._get_char()
-                    if c == '':
-                        raise dns.exception.UnexpectedEnd
-                    if c.isdigit():
+                    # start of binary data
+                    # Actual binary data isn't supported ATM, we only support
+                    # valid UTF-8 representation of binary data
+                    # Trying to parse each byte (3 decimals: \001\002\003)
+                    # Then try to interpret the sequence of bytes as UTF-8
+                    utfcheck = b''
+                    while True:
+                        c = self._get_char()
+                        if c == '':
+                            raise dns.exception.UnexpectedEnd
+
+                        if not c.isdigit() and utfcheck == b'':
+                            break
+                        elif not c.isdigit():
+                            # should not happen (c)
+                            # (should be consumed by the following while)
+                            raise dns.exception.SyntaxError
+
                         c2 = self._get_char()
                         if c2 == '':
                             raise dns.exception.UnexpectedEnd
@@ -378,7 +392,30 @@ class Tokenizer(object):
                             raise dns.exception.UnexpectedEnd
                         if not (c2.isdigit() and c3.isdigit()):
                             raise dns.exception.SyntaxError
-                        c = chr(int(c) * 100 + int(c2) * 10 + int(c3))
+
+                        decimal = int(c) * 100 + int(c2) * 10 + int(c3)
+                        b = bytes((decimal,))
+                        if len(b) > 1:  # horrible hack (is python2)
+                            b = chr(decimal)
+
+                        utfcheck += b
+
+                        try:
+                            c = utfcheck.decode('utf-8')
+                            break
+                        except UnicodeDecodeError as exc:
+                            # Incomplete data
+                            c = self._get_char()
+                            if c == '':
+                                raise dns.exception.UnexpectedEnd
+
+                            if c == '\\':
+                                # Next byte in UTF-8 sequence
+                                continue
+                            else:
+                                # Incomplete UTF-8 sequence
+                                # don't raise with original .decode()
+                                raise exc
                 elif c == '\n':
                     raise dns.exception.SyntaxError('newline in quoted string')
             elif c == '\\':

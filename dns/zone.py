@@ -20,7 +20,7 @@ from __future__ import generators
 import sys
 import re
 import os
-from io import BytesIO
+import io
 
 import dns.exception
 import dns.name
@@ -558,7 +558,7 @@ class Zone(object):
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
         """
-        temp_buffer = BytesIO()
+        temp_buffer = io.BytesIO()
         self.to_file(temp_buffer, sorted, relativize, nl)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
@@ -1059,15 +1059,11 @@ def from_file(f, origin=None, rdclass=dns.rdataclass.IN,
     """
 
     str_type = string_types
-    if PY3:
-        opts = 'r'
-    else:
-        opts = 'rU'
 
     if isinstance(f, str_type):
         if filename is None:
             filename = f
-        f = open(f, opts)
+        f = io.open(f, 'rU')
         want_close = True
     else:
         if filename is None:

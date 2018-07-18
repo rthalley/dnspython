@@ -151,6 +151,9 @@ txt10			TXT	"foo bar"
 txt11			TXT	"\"foo\""
 txt12			TXT	"\"foo\""
 txt13			TXT	foo
+txt14			TXT	"unicode 🍣"
+txt15			TXT	"unicode \240\159\141\163"
+
 $TTL 300	; 5 minutes
 u			TXT	"txt-not-in-nxt"
 $ORIGIN u.example.

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -69,6 +70,23 @@ class TokenizerTestCase(unittest.TestCase):
             tok = dns.tokenizer.Tokenizer('"foo\nbar"')
             tok.get()
         self.failUnlessRaises(dns.exception.SyntaxError, bad)
+
+    def testQuotedString8(self):
+        tok = dns.tokenizer.Tokenizer(u'"sushis 🍣"')
+        token = tok.get()
+        self.failUnless(token == Token(dns.tokenizer.QUOTED_STRING, u'sushis 🍣'))
+
+    def testQuotedString9(self):
+        tok = dns.tokenizer.Tokenizer(r'"sushis \240\159\141\163"')
+        token = tok.get()
+        self.failUnless(token == Token(dns.tokenizer.QUOTED_STRING, u'sushis 🍣'))
+
+    def testQuotedString10(self):
+        # This is actually a bug: only handle unicode data is handled
+        def bad():
+            tok = dns.tokenizer.Tokenizer(r'"invalid \000\255\000 utf-8"')
+            t = tok.get()
+        self.failUnlessRaises(UnicodeDecodeError, bad)
 
     def testEmpty1(self):
         tok = dns.tokenizer.Tokenizer('')
