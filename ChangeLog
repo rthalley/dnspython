@@ -1,3 +1,7 @@
+2018-07-18  Tomas Krizek  <tomas.krizek@nic.cz>
+
+	* Support for obsolete Python 2.6 and 3.3 (both EOL) dropped.
+
 2017-01-02  Bob Halley  <halley@dnspython.org>
 
 	* dns/e164.py: to_e164() was returning binary instead of text,
