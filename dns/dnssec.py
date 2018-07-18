@@ -406,9 +406,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 verifier.verify(hash, sig)
             elif _is_ecdsa(rrsig.algorithm):
                 digest = hash.digest()
-                if pubkey.verify(digest, sig):
-                    return
-                else:
+                if not pubkey.verify(digest, sig):
                     raise ValueError
             else:
                 # Raise here for code clarity; this won't actually ever happen
