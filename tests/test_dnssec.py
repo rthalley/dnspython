@@ -20,12 +20,6 @@ try:
 except ImportError:
     import unittest
 
-try:
-    import Crypto.Util.number  # pylint: disable=unused-import
-    import_ok = True
-except ImportError:
-    import_ok = False
-
 import dns.dnssec
 import dns.name
 import dns.rdata
@@ -156,36 +150,28 @@ abs_other_ecdsa384_soa = dns.rrset.from_text('example.', 86400, 'IN', 'SOA',
 abs_ecdsa384_soa_rrsig = dns.rrset.from_text('example.', 86400, 'IN', 'RRSIG',
                                              "SOA 14 1 86400 20130929021229 20130921230729 63571 example. CrnCu34EeeRz0fEhL9PLlwjpBKGYW8QjBjFQTwd+ViVLRAS8tNkcDwQE NhSV89NEjj7ze1a/JcCfcJ+/mZgnvH4NHLNg3Tf6KuLZsgs2I4kKQXEk 37oIHravPEOlGYNI")
 
-@unittest.skipUnless(import_ok, "skipping DNSSEC tests because pycryptodome is not"
-                                " installed")
+
+
+@unittest.skipUnless(dns.dnssec._have_pycrypto,
+                     "Pycryptodome cannot be imported")
 class DNSSECValidatorTestCase(unittest.TestCase):
 
-    @unittest.skipUnless(dns.dnssec._have_pycrypto,
-                         "Pycryptodome cannot be imported")
     def testAbsoluteRSAGood(self):
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, abs_keys, None, when)
 
-    @unittest.skipUnless(dns.dnssec._have_pycrypto,
-                         "Pycryptodome cannot be imported")
     def testDuplicateKeytag(self):
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, abs_keys_duplicate_keytag, None, when)
 
-    @unittest.skipUnless(dns.dnssec._have_pycrypto,
-                         "Pycryptodome cannot be imported")
     def testAbsoluteRSABad(self):
         def bad():
             dns.dnssec.validate(abs_other_soa, abs_soa_rrsig, abs_keys, None,
                                 when)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
-    @unittest.skipUnless(dns.dnssec._have_pycrypto,
-                         "Pycryptodome cannot be imported")
     def testRelativeRSAGood(self):
         dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
                             abs_dnspython_org, when)
 
-    @unittest.skipUnless(dns.dnssec._have_pycrypto,
-                         "Pycryptodome cannot be imported")
     def testRelativeRSABad(self):
         def bad():
             dns.dnssec.validate(rel_other_soa, rel_soa_rrsig, rel_keys,
@@ -196,14 +182,10 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
         self.failUnless(ds == good_ds)
 
-    @unittest.skipUnless(dns.dnssec._have_pycrypto,
-                         "Pycryptodome cannot be imported")
     def testAbsoluteDSAGood(self):
         dns.dnssec.validate(abs_dsa_soa, abs_dsa_soa_rrsig, abs_dsa_keys, None,
                             when2)
 
-    @unittest.skipUnless(dns.dnssec._have_pycrypto,
-                         "Pycryptodome cannot be imported")
     def testAbsoluteDSABad(self):
         def bad():
             dns.dnssec.validate(abs_other_dsa_soa, abs_dsa_soa_rrsig,

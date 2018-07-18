@@ -27,8 +27,7 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
 from ._compat import string_types
-from Crypto.Hash import MD5, SHA1, SHA256, SHA384, SHA512
-from Crypto.Signature import pkcs1_15, DSS
+
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
     """The DNSSEC algorithm is not supported."""
@@ -327,9 +326,9 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             rsa_e = keyptr[0:bytes_]
             rsa_n = keyptr[bytes_:]
             try:
-                pubkey = Crypto.PublicKey.RSA.construct(
-                    (Crypto.Util.number.bytes_to_long(rsa_n),
-                     Crypto.Util.number.bytes_to_long(rsa_e)))
+                pubkey = CryptoRSA.construct(
+                    (number.bytes_to_long(rsa_n),
+                     number.bytes_to_long(rsa_e)))
             except ValueError:
                 raise ValidationFailure('invalid public key')
             sig = rrsig.signature
@@ -345,11 +344,11 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             dsa_g = keyptr[0:octets]
             keyptr = keyptr[octets:]
             dsa_y = keyptr[0:octets]
-            pubkey = Crypto.PublicKey.DSA.construct(
-                (Crypto.Util.number.bytes_to_long(dsa_y),
-                 Crypto.Util.number.bytes_to_long(dsa_g),
-                 Crypto.Util.number.bytes_to_long(dsa_p),
-                 Crypto.Util.number.bytes_to_long(dsa_q)))
+            pubkey = CryptoDSA.construct(
+                (number.bytes_to_long(dsa_y),
+                 number.bytes_to_long(dsa_g),
+                 number.bytes_to_long(dsa_p),
+                 number.bytes_to_long(dsa_q)))
             sig = rrsig.signature[1:]
         elif _is_ecdsa(rrsig.algorithm):
             # use ecdsa for NIST-384p -- not currently supported by pycryptodome
@@ -363,8 +362,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 curve = ecdsa.curves.NIST384p
                 key_len = 48
 
-            x = Crypto.Util.number.bytes_to_long(keyptr[0:key_len])
-            y = Crypto.Util.number.bytes_to_long(keyptr[key_len:key_len * 2])
+            x = number.bytes_to_long(keyptr[0:key_len])
+            y = number.bytes_to_long(keyptr[key_len:key_len * 2])
             if not ecdsa.ecdsa.point_is_valid(curve.generator, x, y):
                 raise ValidationFailure('invalid ECDSA key')
             point = ecdsa.ellipticcurve.Point(curve.curve, x, y, curve.order)
@@ -373,8 +372,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             pubkey = ECKeyWrapper(verifying_key, key_len)
             r = rrsig.signature[:key_len]
             s = rrsig.signature[key_len:]
-            sig = ecdsa.ecdsa.Signature(Crypto.Util.number.bytes_to_long(r),
-                                        Crypto.Util.number.bytes_to_long(s))
+            sig = ecdsa.ecdsa.Signature(number.bytes_to_long(r),
+                                        number.bytes_to_long(s))
 
         else:
             raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
@@ -474,36 +473,47 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
 
 
 def _need_pycrypto(*args, **kwargs):
-    raise NotImplementedError("DNSSEC validation requires pycryptodome")
+    raise NotImplementedError("DNSSEC validation requires pycryptodome/pycryptodomex")
+
 
 try:
-    import Crypto.PublicKey.RSA
-    import Crypto.PublicKey.DSA
-    import Crypto.Util.number
-    validate = _validate
-    validate_rrsig = _validate_rrsig
-    _have_pycrypto = True
+    try:
+        # test we're using pycryptodome, not pycrypto (which misses SHA1 for example)
+        from Crypto.Hash import MD5, SHA1, SHA256, SHA384, SHA512
+        from Crypto.PublicKey import RSA as CryptoRSA, DSA as CryptoDSA
+        from Crypto.Signature import pkcs1_15, DSS
+        from Crypto.Util import number
+    except ImportError:
+        from Cryptodome.Hash import MD5, SHA1, SHA256, SHA384, SHA512
+        from Cryptodome.PublicKey import RSA as CryptoRSA, DSA as CryptoDSA
+        from Cryptodome.Signature import pkcs1_15, DSS
+        from Cryptodome.Util import number
 except ImportError:
     validate = _need_pycrypto
     validate_rrsig = _need_pycrypto
     _have_pycrypto = False
-
-try:
-    import ecdsa
-    import ecdsa.ecdsa
-    import ecdsa.ellipticcurve
-    import ecdsa.keys
-    _have_ecdsa = True
-
-    class ECKeyWrapper(object):
-
-        def __init__(self, key, key_len):
-            self.key = key
-            self.key_len = key_len
-
-        def verify(self, digest, sig):
-            diglong = Crypto.Util.number.bytes_to_long(digest)
-            return self.key.pubkey.verifies(diglong, sig)
-
-except ImportError:
     _have_ecdsa = False
+else:
+    validate = _validate
+    validate_rrsig = _validate_rrsig
+    _have_pycrypto = True
+
+    try:
+        import ecdsa
+        import ecdsa.ecdsa
+        import ecdsa.ellipticcurve
+        import ecdsa.keys
+    except ImportError:
+        _have_ecdsa = False
+    else:
+        _have_ecdsa = True
+
+        class ECKeyWrapper(object):
+
+            def __init__(self, key, key_len):
+                self.key = key
+                self.key_len = key_len
+
+            def verify(self, digest, sig):
+                diglong = number.bytes_to_long(digest)
+                return self.key.pubkey.verifies(diglong, sig)
