@@ -22,7 +22,7 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 
-import ttxt_module
+import tests.ttxt_module
 
 class RdataTestCase(unittest.TestCase):
 
@@ -36,7 +36,7 @@ class RdataTestCase(unittest.TestCase):
 
     def test_module_registration(self):
         TTXT = 64001
-        dns.rdata.register_type(ttxt_module, TTXT, 'TTXT')
+        dns.rdata.register_type(tests.ttxt_module, TTXT, 'TTXT')
         rdata = dns.rdata.from_text(dns.rdataclass.IN, TTXT, 'hello world')
         self.failUnless(rdata.strings == [b'hello', b'world'])
         self.failUnless(dns.rdatatype.to_text(TTXT) == 'TTXT')
@@ -45,7 +45,7 @@ class RdataTestCase(unittest.TestCase):
     def test_module_reregistration(self):
         def bad():
             TTXTTWO = dns.rdatatype.TXT
-            dns.rdata.register_type(ttxt_module, TTXTTWO, 'TTXTTWO')
+            dns.rdata.register_type(tests.ttxt_module, TTXTTWO, 'TTXTTWO')
         self.failUnlessRaises(dns.rdata.RdatatypeExists, bad)
 
 if __name__ == '__main__':
