@@ -1,3 +1,8 @@
+2018-07-18  Tomas Krizek  <tomas.krizek@nic.cz>
+
+	* dns/hash.py: added deprecation warning. Module is no longer
+	  necessary and will be removed in future versions.
+
 2017-12-21  Daniel Robbins  <drobbins@funtoo.org>
 
 	* dns/dnssec.py: migrated code from pycrypto (apparently no
