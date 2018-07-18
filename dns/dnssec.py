@@ -39,27 +39,27 @@ class ValidationFailure(dns.exception.DNSException):
 
 
 #: RSAMD5
-ALGO_RSAMD5 = 1
+RSAMD5 = 1
 #: DH
-ALGO_DH = 2
+DH = 2
 #: DSA
-ALGO_DSA = 3
+DSA = 3
 #: ECC
-ALGO_ECC = 4
+ECC = 4
 #: RSASHA1
-ALGO_RSASHA1 = 5
+RSASHA1 = 5
 #: DSANSEC3SHA1
-ALGO_DSANSEC3SHA1 = 6
+DSANSEC3SHA1 = 6
 #: RSASHA1NSEC3SHA1
-ALGO_RSASHA1NSEC3SHA1 = 7
+RSASHA1NSEC3SHA1 = 7
 #: RSASHA256
-ALGO_RSASHA256 = 8
+RSASHA256 = 8
 #: RSASHA512
-ALGO_RSASHA512 = 10
+RSASHA512 = 10
 #: ECDSAP256SHA256
-ALGO_ECDSAP256SHA256 = 13
+ECDSAP256SHA256 = 13
 #: ECDSAP384SHA384
-ALGO_ECDSAP384SHA384 = 14
+ECDSAP384SHA384 = 14
 #: INDIRECT
 INDIRECT = 252
 #: PRIVATEDNS
@@ -68,18 +68,18 @@ PRIVATEDNS = 253
 PRIVATEOID = 254
 
 _algorithm_by_text = {
-    'RSAMD5': ALGO_RSAMD5,
-    'DH': ALGO_DH,
-    'DSA': ALGO_DSA,
-    'ECC': ALGO_ECC,
-    'RSASHA1': ALGO_RSASHA1,
-    'DSANSEC3SHA1': ALGO_DSANSEC3SHA1,
-    'RSASHA1NSEC3SHA1': ALGO_RSASHA1NSEC3SHA1,
-    'RSASHA256': ALGO_RSASHA256,
-    'RSASHA512': ALGO_RSASHA512,
+    'RSAMD5': RSAMD5,
+    'DH': DH,
+    'DSA': DSA,
+    'ECC': ECC,
+    'RSASHA1': RSASHA1,
+    'DSANSEC3SHA1': DSANSEC3SHA1,
+    'RSASHA1NSEC3SHA1': RSASHA1NSEC3SHA1,
+    'RSASHA256': RSASHA256,
+    'RSASHA512': RSASHA512,
     'INDIRECT': INDIRECT,
-    'ECDSAP256SHA256': ALGO_ECDSAP256SHA256,
-    'ECDSAP384SHA384': ALGO_ECDSAP384SHA384,
+    'ECDSAP256SHA256': ECDSAP256SHA256,
+    'ECDSAP384SHA384': ECDSAP384SHA384,
     'PRIVATEDNS': PRIVATEDNS,
     'PRIVATEOID': PRIVATEOID,
 }
@@ -132,7 +132,7 @@ def key_id(key, origin=None):
 
     rdata = _to_rdata(key, origin)
     rdata = bytearray(rdata)
-    if key.algorithm == ALGO_RSAMD5:
+    if key.algorithm == RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:
         total = 0
@@ -203,38 +203,38 @@ def _find_candidate_keys(keys, rrsig):
 
 
 def _is_rsa(algorithm):
-    return algorithm in (ALGO_RSAMD5, ALGO_RSASHA1,
-                         ALGO_RSASHA1NSEC3SHA1, ALGO_RSASHA256,
-                         ALGO_RSASHA512)
+    return algorithm in (RSAMD5, RSASHA1,
+                         RSASHA1NSEC3SHA1, RSASHA256,
+                         RSASHA512)
 
 
 def _is_dsa(algorithm):
-    return algorithm in (ALGO_DSA, ALGO_DSANSEC3SHA1)
+    return algorithm in (DSA, DSANSEC3SHA1)
 
 
 def _is_ecdsa(algorithm):
-    return _have_ecdsa and (algorithm in (ALGO_ECDSAP256SHA256, ALGO_ECDSAP384SHA384))
+    return _have_ecdsa and (algorithm in (ECDSAP256SHA256, ECDSAP384SHA384))
 
 
 def _is_md5(algorithm):
-    return algorithm == ALGO_RSAMD5
+    return algorithm == RSAMD5
 
 
 def _is_sha1(algorithm):
-    return algorithm in (ALGO_DSA, ALGO_RSASHA1,
-                         ALGO_DSANSEC3SHA1, ALGO_RSASHA1NSEC3SHA1)
+    return algorithm in (DSA, RSASHA1,
+                         DSANSEC3SHA1, RSASHA1NSEC3SHA1)
 
 
 def _is_sha256(algorithm):
-    return algorithm in (ALGO_RSASHA256, ALGO_ECDSAP256SHA256)
+    return algorithm in (RSASHA256, ECDSAP256SHA256)
 
 
 def _is_sha384(algorithm):
-    return algorithm == ALGO_ECDSAP384SHA384
+    return algorithm == ECDSAP384SHA384
 
 
 def _is_sha512(algorithm):
-    return algorithm == ALGO_RSASHA512
+    return algorithm == RSASHA512
 
 
 def _make_hash(algorithm):
@@ -356,10 +356,10 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
             keyptr = candidate_key.key
 
-            if rrsig.algorithm == ALGO_ECDSAP256SHA256:
+            if rrsig.algorithm == ECDSAP256SHA256:
                 curve = ecdsa.curves.NIST256p
                 key_len = 32
-            elif rrsig.algorithm == ALGO_ECDSAP384SHA384:
+            elif rrsig.algorithm == ECDSAP384SHA384:
                 curve = ecdsa.curves.NIST384p
                 key_len = 48
 
