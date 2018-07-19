@@ -42,7 +42,7 @@ class TXTBase(dns.rdata.Rdata):
         for string in strings:
             if isinstance(string, string_types) \
                     and not isinstance(string, binary_type):
-                string = string.encode()
+                string = string.encode('utf-8')
             self.strings.append(string)
 
     def to_text(self, origin=None, relativize=True, **kw):
@@ -68,7 +68,8 @@ class TXTBase(dns.rdata.Rdata):
             if isinstance(value, binary_type):
                 strings.append(value)
             else:
-                strings.append(value.encode())
+                strings.append(value.encode('utf-8'))
+
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
