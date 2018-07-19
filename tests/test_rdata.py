@@ -21,6 +21,7 @@ import dns.rdatatype
 
 import tests.ttxt_module
 
+
 class RdataTestCase(unittest.TestCase):
 
     def test_str(self):
