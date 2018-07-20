@@ -6,6 +6,10 @@ python:
   - "3.6"
   #- "nightly"
 matrix:
+  include:
+    - python: 3.7  # https://github.com/travis-ci/travis-ci/issues/9815
+      dist: xenial
+      sudo: true
   allow_failures:
     - python: nightly
 branches:
