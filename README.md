@@ -77,7 +77,7 @@ XXXTBSXXX
 
 ## REQUIREMENTS
 
-Python 2.6 or later.
+Python 2.7 or 3.4+.
 
 
 ## HOME PAGE

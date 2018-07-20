@@ -1,19 +1,15 @@
 language: python
 python:
-  #- "2.6"
   - "2.7"
-  # 3.2 make unicode literal handling difficult. 
-  # we dropped that, see https://github.com/rthalley/dnspython/pull/148
-  # for comments
-  #- "3.2"
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
-  #- "3.5-dev" # 3.5 development branch
-  #- "3.6-dev" # 3.6 development branch
-  #- "nightly" # currently points to 3.6-dev
+  #- "nightly"
 matrix:
+  include:
+    - python: 3.7  # https://github.com/travis-ci/travis-ci/issues/9815
+      dist: xenial
+      sudo: true
   allow_failures:
     - python: nightly
 branches:
@@ -22,5 +18,5 @@ branches:
 install:
  - pip install unittest2 pylint pycrypto ecdsa idna
 script:
- - if [[ ($TRAVIS_PYTHON_VERSION != '2.6') ]]; then make lint; fi
+ - make lint
  - make test

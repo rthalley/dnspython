@@ -268,7 +268,7 @@ def is_singleton(rdtype):
     return False
 
 
-def register_type(rdtype, rdtype_text, is_singleton=False):
+def register_type(rdtype, rdtype_text, is_singleton=False):  # pylint: disable=redefined-outer-name
     """Dynamically register an rdatatype.
 
     *rdtype*, an ``int``, the rdatatype to register.

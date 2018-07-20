@@ -238,19 +238,19 @@ The differences shown will be logical differences, not textual differences.
     if opts.use_bzr:
         old = _open(["bzr", "cat", "-r" + oldr, filename],
                     "Unable to retrieve revision %s of %s" % (oldr, filename))
-        if newr != None:
+        if newr is not None:
             new = _open(["bzr", "cat", "-r" + newr, filename],
                         "Unable to retrieve revision %s of %s" % (newr, filename))
     elif opts.use_git:
         old = _open(["git", "show", oldn],
                     "Unable to retrieve revision %s of %s" % (oldr, filename))
-        if newr != None:
+        if newr is not None:
             new = _open(["git", "show", newn],
                         "Unable to retrieve revision %s of %s" % (newr, filename))
     elif opts.use_rcs:
         old = _open(["co", "-q", "-p", "-r" + oldr, filename],
                     "Unable to retrieve revision %s of %s" % (oldr, filename))
-        if newr != None:
+        if newr is not None:
             new = _open(["co", "-q", "-p", "-r" + newr, filename],
                         "Unable to retrieve revision %s of %s" % (newr, filename))
     if not opts.use_vc:
