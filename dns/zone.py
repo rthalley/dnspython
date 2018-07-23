@@ -259,7 +259,7 @@ class Zone(object):
         exist?
         @type create: bool
         @raises KeyError: the node or rdata could not be found
-        @rtype: dns.rrset.RRset object
+        @rtype: dns.rdataset.Rdataset object
         """
 
         name = self._validate_name(name)
@@ -294,7 +294,7 @@ class Zone(object):
         @param create: should the node and rdataset be created if they do not
         exist?
         @type create: bool
-        @rtype: dns.rrset.RRset object
+        @rtype: dns.rdataset.Rdataset object or None
         """
 
         try:

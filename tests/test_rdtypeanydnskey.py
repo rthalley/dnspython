@@ -14,20 +14,18 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 import dns.rrset
 import dns.rdtypes.ANY.DNSKEY
 
+from typing import Set # pylint: disable=unused-import
 
 class RdtypeAnyDnskeyTestCase(unittest.TestCase):
 
-    def testFlagsEmpty(self):
+    def testFlagsEmpty(self): # type: () -> None
         '''Test DNSKEY flag to/from text conversion for zero flag/empty set.'''
-        good_s = set()
+        good_s = set() #type: Set[str]
         good_f = 0
         from_flags = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(good_f)
         self.failUnless(from_flags == good_s,
@@ -36,7 +34,7 @@ class RdtypeAnyDnskeyTestCase(unittest.TestCase):
         self.failUnless(from_set == good_f,
                         '"0x%x" != "0x%x"' % (from_set, good_f))
 
-    def testFlagsAll(self):
+    def testFlagsAll(self): # type: () -> None
         '''Test that all defined flags are recognized.'''
         good_s = set(['SEP', 'REVOKE', 'ZONE'])
         good_f = 0x181
@@ -47,19 +45,19 @@ class RdtypeAnyDnskeyTestCase(unittest.TestCase):
         self.failUnless(from_text == good_f,
                         '"0x%x" != "0x%x"' % (from_text, good_f))
 
-    def testFlagsUnknownToText(self):
+    def testFlagsUnknownToText(self): # type: () -> None
         '''Test that undefined flags are returned in hexadecimal notation.'''
         unk_s = set(['0x8000'])
         flags_s = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(0x8000)
         self.failUnless(flags_s == unk_s, '"%s" != "%s"' % (flags_s, unk_s))
 
-    def testFlagsUnknownToFlags(self):
+    def testFlagsUnknownToFlags(self): # type: () -> None
         '''Test that conversion from undefined mnemonic raises error.'''
         self.failUnlessRaises(NotImplementedError,
                               dns.rdtypes.ANY.DNSKEY.flags_from_text_set,
                               (['0x8000']))
 
-    def testFlagsRRToText(self):
+    def testFlagsRRToText(self): # type: () -> None
         '''Test that RR method returns correct flags.'''
         rr = dns.rrset.from_text('foo', 300, 'IN', 'DNSKEY', '257 3 8 KEY=')[0]
         rr_s = set(['ZONE', 'SEP'])

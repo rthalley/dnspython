@@ -16,10 +16,8 @@
 
 from __future__ import print_function
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+from typing import Dict # pylint: disable=unused-import
+import unittest
 
 from io import BytesIO
 
@@ -380,14 +378,14 @@ class NameTestCase(unittest.TestCase):
     def testToWire1(self):
         n = dns.name.from_text('FOO.bar')
         f = BytesIO()
-        compress = {}
+        compress = {} # type: Dict[dns.name.Name,int]
         n.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b'\x03FOO\x03bar\x00')
 
     def testToWire2(self):
         n = dns.name.from_text('FOO.bar')
         f = BytesIO()
-        compress = {}
+        compress = {} # type: Dict[dns.name.Name,int]
         n.to_wire(f, compress)
         n.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b'\x03FOO\x03bar\x00\xc0\x00')
@@ -396,7 +394,7 @@ class NameTestCase(unittest.TestCase):
         n1 = dns.name.from_text('FOO.bar')
         n2 = dns.name.from_text('foo.bar')
         f = BytesIO()
-        compress = {}
+        compress = {} # type: Dict[dns.name.Name,int]
         n1.to_wire(f, compress)
         n2.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b'\x03FOO\x03bar\x00\xc0\x00')
@@ -405,7 +403,7 @@ class NameTestCase(unittest.TestCase):
         n1 = dns.name.from_text('FOO.bar')
         n2 = dns.name.from_text('a.foo.bar')
         f = BytesIO()
-        compress = {}
+        compress = {} # type: Dict[dns.name.Name,int]
         n1.to_wire(f, compress)
         n2.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b'\x03FOO\x03bar\x00\x01\x61\xc0\x00')
@@ -414,7 +412,7 @@ class NameTestCase(unittest.TestCase):
         n1 = dns.name.from_text('FOO.bar')
         n2 = dns.name.from_text('a.foo.bar')
         f = BytesIO()
-        compress = {}
+        compress = {} # type: Dict[dns.name.Name,int]
         n1.to_wire(f, compress)
         n2.to_wire(f, None)
         self.assertEqual(f.getvalue(),
@@ -429,7 +427,7 @@ class NameTestCase(unittest.TestCase):
         def bad():
             n = dns.name.from_text('FOO.bar', None)
             f = BytesIO()
-            compress = {}
+            compress = {} # type: Dict[dns.name.Name,int]
             n.to_wire(f, compress)
         self.failUnlessRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
 
