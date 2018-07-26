@@ -168,6 +168,7 @@ _by_text = {
 # would cause the mapping not to be true inverse.
 
 _by_value = dict((y, x) for x, y in _by_text.items())
+_by_value[0] = "TYPE0"
 
 _metatypes = {
     OPT: True
