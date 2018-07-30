@@ -20,6 +20,15 @@ from setuptools import setup
 
 version = '1.16.0'
 
+try:
+    sys.argv.remove("--cython-compile")
+except ValueError:
+    compile_cython = False
+else:
+    compile_cython = True
+    from Cython.Build import cythonize
+    ext_modules = cythonize(['dns/*.py', 'dns/rdtypes/*.py', 'dns/rdtypes/*/*.py'])
+
 kwargs = {
     'name' : 'dnspython',
     'version' : version,
@@ -64,6 +73,8 @@ direct manipulation of DNS zones, messages, names, and records.""",
         'IDNA': ['idna>=2.1'],
         'DNSSEC': ['pycrypto>=2.6.1', 'ecdsa>=0.13'],
         },
+    'ext_modules': ext_modules if compile_cython else None,
+    'zip_safe': False if compile_cython else None,
     }
 
 setup(**kwargs)
