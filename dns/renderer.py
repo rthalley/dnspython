@@ -205,8 +205,6 @@ class Renderer(object):
                  request_mac, algorithm=dns.tsig.default_algorithm):
         """Add a TSIG signature to the message."""
 
-        self._set_section(ADDITIONAL)
-        before = self.output.tell()
         s = self.output.getvalue()
         (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
                                                     keyname,
@@ -218,16 +216,52 @@ class Renderer(object):
                                                     other_data,
                                                     request_mac,
                                                     algorithm=algorithm)
+        self._write_tsig(tsig_rdata, keyname)
+
+    def add_multi_tsig(self, ctx, keyname, secret, fudge, id, tsig_error,
+                       other_data, request_mac,
+                       algorithm=dns.tsig.default_algorithm):
+        """Add a TSIG signature to the message. Unlike add_tsig(), this can be
+        used for a series of consecutive DNS envelopes, e.g. for a zone
+        transfer over TCP [RFC2845, 4.4].
+
+        For the first message in the sequence, give ctx=None. For each
+        subsequent message, give the ctx that was returned from the
+        add_multi_tsig() call for the previous message."""
+
+        s = self.output.getvalue()
+        (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
+                                                    keyname,
+                                                    secret,
+                                                    int(time.time()),
+                                                    fudge,
+                                                    id,
+                                                    tsig_error,
+                                                    other_data,
+                                                    request_mac,
+                                                    ctx=ctx,
+                                                    first=ctx is None,
+                                                    multi=True,
+                                                    algorithm=algorithm)
+        self._write_tsig(tsig_rdata, keyname)
+        return ctx
+
+    def _write_tsig(self, tsig_rdata, keyname):
+        self._set_section(ADDITIONAL)
+        before = self.output.tell()
+
         keyname.to_wire(self.output, self.compress, self.origin)
         self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
                                       dns.rdataclass.ANY, 0, 0))
         rdata_start = self.output.tell()
         self.output.write(tsig_rdata)
+
         after = self.output.tell()
         assert after - rdata_start < 65536
         if after >= self.max_size:
             self._rollback(before)
             raise dns.exception.TooBig
+
         self.output.seek(rdata_start - 2)
         self.output.write(struct.pack('!H', after - rdata_start))
         self.counts[ADDITIONAL] += 1
