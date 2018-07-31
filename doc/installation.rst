@@ -45,8 +45,8 @@ Optional Modules
 
 The following modules are optional, but recommended for full functionality.
 
-If ``pycrypto`` is installed, then dnspython will be able to do
-low-level DNSSEC RSA and DSA signature validation.
+If ``pycryptodome`` / ``pycryptodomex`` is installed, then dnspython will be
+able to do low-level DNSSEC RSA and DSA signature validation.
 
 If ``ecdsa`` is installed, then Elliptic Curve signature algorithms will
 be available for low-level DNSSEC signature validation.
