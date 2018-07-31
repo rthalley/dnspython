@@ -220,7 +220,7 @@ def send_udp(sock, what, destination, expiration=None):
 
 def receive_udp(sock, destination, expiration=None,
                 ignore_unexpected=False, one_rr_per_rrset=False,
-                keyring=None, request_mac=b''):
+                keyring=None, request_mac=b'', ignore_trailing=False):
     """Read a DNS message from a UDP socket.
 
     *sock*, a ``socket``.
@@ -242,6 +242,9 @@ def receive_udp(sock, destination, expiration=None,
 
     *request_mac*, a ``binary``, the MAC of the request (for TSIG).
 
+    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
+    junk at end of the received message.
+
     Raises if the message is malformed, if network errors occur, of if
     there is a timeout.
 
@@ -262,11 +265,12 @@ def receive_udp(sock, destination, expiration=None,
                                                          destination))
     received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset)
+                              one_rr_per_rrset=one_rr_per_rrset,
+                              ignore_trailing=ignore_trailing)
     return (r, received_time)
 
 def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
-        ignore_unexpected=False, one_rr_per_rrset=False):
+        ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via UDP.
 
     *q*, a ``dns.message.message``, the query to send
@@ -296,6 +300,9 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
     RRset.
 
+    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
+    junk at end of the received message.
+
     Returns a ``dns.message.Message``.
     """
 
@@ -313,7 +320,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         (_, sent_time) = send_udp(s, wire, destination, expiration)
         (r, received_time) = receive_udp(s, destination, expiration,
                                          ignore_unexpected, one_rr_per_rrset,
-                                         q.keyring, q.mac)
+                                         q.keyring, q.mac, ignore_trailing)
     finally:
         if sent_time is None or received_time is None:
             response_time = 0
@@ -382,7 +389,7 @@ def send_tcp(sock, what, expiration=None):
     return (len(tcpmsg), sent_time)
 
 def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
-                keyring=None, request_mac=b''):
+                keyring=None, request_mac=b'', ignore_trailing=False):
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``socket``.
@@ -398,6 +405,9 @@ def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
 
     *request_mac*, a ``binary``, the MAC of the request (for TSIG).
 
+    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
+    junk at end of the received message.
+
     Raises if the message is malformed, if network errors occur, of if
     there is a timeout.
 
@@ -409,7 +419,8 @@ def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
     wire = _net_read(sock, l, expiration)
     received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset)
+                              one_rr_per_rrset=one_rr_per_rrset,
+                              ignore_trailing=ignore_trailing)
     return (r, received_time)
 
 def _connect(s, address):
@@ -427,7 +438,7 @@ def _connect(s, address):
 
 
 def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
-        one_rr_per_rrset=False):
+        one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via TCP.
 
     *q*, a ``dns.message.message``, the query to send
@@ -454,6 +465,9 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
     RRset.
 
+    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
+    junk at end of the received message.
+
     Returns a ``dns.message.Message``.
     """
 
@@ -472,7 +486,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         _connect(s, destination)
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(s, expiration, one_rr_per_rrset,
-                                         q.keyring, q.mac)
+                                         q.keyring, q.mac, ignore_trailing)
     finally:
         if begin_time is None or received_time is None:
             response_time = 0
