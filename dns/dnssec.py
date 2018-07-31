@@ -278,7 +278,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     *rrset* is the RRset to validate.  It can be a ``dns.rrset.RRset`` or
     a ``(dns.name.Name, dns.rdataset.Rdataset)`` tuple.
 
-    *rrsig* is a ``dns.rrset.Rdata``, the signature to validate.
+    *rrsig* is a ``dns.rdata.Rdata``, the signature to validate.
 
     *keys* is the key dictionary, used to find the DNSKEY associated with
     a given name.  The dictionary is keyed by a ``dns.name.Name``, and has

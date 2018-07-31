@@ -16,10 +16,7 @@
 import sys
 sys.path.insert(0, '../')
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 import dns
 import dns.exception

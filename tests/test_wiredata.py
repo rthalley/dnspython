@@ -6,10 +6,7 @@
 # provided that the above copyright notice and this permission notice
 # appear in all copies.
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 from dns.exception import FormError
 from dns.wiredata import WireData

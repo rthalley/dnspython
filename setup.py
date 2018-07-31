@@ -47,6 +47,7 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'license' : 'BSD-like',
     'url' : 'http://www.dnspython.org',
     'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY'],
+    'package_data' : {'dns': ['py.typed']},
     'download_url' : \
     'http://www.dnspython.org/kits/%s/dnspython-%s.tar.gz' % (version, version),
     'classifiers' : [

@@ -13,10 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 import binascii
 
 import dns.update
@@ -63,7 +60,7 @@ blaz2 ANY ANY
 
 class UpdateTestCase(unittest.TestCase):
 
-    def test_to_wire1(self):
+    def test_to_wire1(self): # type: () -> None
         update = dns.update.Update('example')
         update.id = 1
         update.present('foo')
@@ -78,7 +75,7 @@ class UpdateTestCase(unittest.TestCase):
         update.delete('blaz2')
         self.failUnless(update.to_wire() == goodwire)
 
-    def test_to_wire2(self):
+    def test_to_wire2(self): # type: () -> None
         update = dns.update.Update('example')
         update.id = 1
         update.present('foo')
@@ -93,7 +90,7 @@ class UpdateTestCase(unittest.TestCase):
         update.delete('blaz2')
         self.failUnless(update.to_wire() == goodwire)
 
-    def test_to_wire3(self):
+    def test_to_wire3(self): # type: () -> None
         update = dns.update.Update('example')
         update.id = 1
         update.present('foo')
@@ -108,7 +105,7 @@ class UpdateTestCase(unittest.TestCase):
         update.delete('blaz2')
         self.failUnless(update.to_wire() == goodwire)
 
-    def test_from_text1(self):
+    def test_from_text1(self): # type: () -> None
         update = dns.message.from_text(update_text)
         w = update.to_wire(origin=dns.name.from_text('example'),
                            want_shuffle=False)

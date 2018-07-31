@@ -18,10 +18,7 @@ import select
 import sys
 import socket
 import time
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 import dns.message
 import dns.name
@@ -349,7 +346,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
 
         try:
             raise dns.resolver.NXDOMAIN(qnames=[n2, n1])
-        except Exception as e:
+        except dns.resolver.NXDOMAIN as e:
             e0 = dns.resolver.NXDOMAIN("errmsg")
             e = e0 + e
             MSG = "None of DNS query names exist: a.b.s., a.b."
@@ -371,7 +368,7 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
 
         try:
             raise dns.resolver.NXDOMAIN(qnames=[n1], responses={n1: 'r1.1'})
-        except Exception as e:
+        except dns.resolver.NXDOMAIN as e:
             MSG = "The DNS query name does not exist: a.b."
             if not PY3:
                 # pylint: disable=exception-message-attribute

@@ -22,13 +22,15 @@ import dns.zone
 import dns.ipv4
 import os.path
 import sys
+from typing import Dict, List # pylint: disable=unused-import
 
-reverse_map = {}
+reverse_map = {} # type: Dict[str, List[str]]
 
 for filename in sys.argv[1:]:
     zone = dns.zone.from_file(filename, os.path.basename(filename),
                               relativize=False)
     for (name, ttl, rdata) in zone.iterate_rdatas('A'):
+        print(type(rdata))
         try:
             reverse_map[rdata.address].append(name.to_text())
         except KeyError:

@@ -273,7 +273,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via UDP.
 
-    *q*, a ``dns.message.message``, the query to send
+    *q*, a ``dns.message.Message``, the query to send
 
     *where*, a ``text`` containing an IPv4 or IPv6 address,  where
     to send the message.
@@ -441,7 +441,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via TCP.
 
-    *q*, a ``dns.message.message``, the query to send
+    *q*, a ``dns.message.Message``, the query to send
 
     *where*, a ``text`` containing an IPv4 or IPv6 address,  where
     to send the message.

@@ -11,6 +11,9 @@ import dns.flags
 import dns.message
 import dns.rdataclass
 import dns.rdatatype
+import dns.name
+
+from typing import cast
 
 address = '127.0.0.1'
 port = 53535
@@ -26,7 +29,7 @@ while True:
     # Do something with the SOA RR here
     print('The serial number for', soa.name, 'is', soa[0].serial)
 
-    response = dns.message.make_response(notify)
+    response = dns.message.make_response(notify) # type: dns.message.Message
     response.flags |= dns.flags.AA
-    wire = response.to_wire(response)
+    wire = response.to_wire(cast(dns.name.Name, response))
     s.sendto(wire, address)

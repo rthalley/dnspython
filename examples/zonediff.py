@@ -22,16 +22,22 @@
 """See diff_zones.__doc__ for more information"""
 
 from __future__ import print_function
+from typing import cast, Union, Any # pylint: disable=unused-import
 
 __all__ = ['diff_zones', 'format_changes_plain', 'format_changes_html']
 
 try:
     import dns.zone
+    import dns.node
 except ImportError:
     raise SystemExit("Please install dnspython")
 
 
-def diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False):
+def diff_zones(zone1, # type: dns.zone.Zone
+        zone2, # type: dns.zone.Zone
+        ignore_ttl=False,
+        ignore_soa=False
+        ): # type: (...) -> list
     """diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False) -> changes
     Compares two dns.zone.Zone objects and returns a list of all changes
     in the format (name, oldnode, newnode).
@@ -47,22 +53,26 @@ def diff_zones(zone1, zone2, ignore_ttl=False, ignore_soa=False):
 
     changes = []
     for name in zone1:
-        name = str(name)
-        n1 = zone1.get_node(name)
-        n2 = zone2.get_node(name)
+        namestr = str(name)
+        n1 = cast(dns.node.Node, zone1.get_node(namestr))
+        n2 = cast(dns.node.Node, zone2.get_node(namestr))
         if not n2:
             changes.append((str(name), n1, n2))
         elif _nodes_differ(n1, n2, ignore_ttl, ignore_soa):
             changes.append((str(name), n1, n2))
 
     for name in zone2:
-        n1 = zone1.get_node(name)
-        if not n1:
-            n2 = zone2.get_node(name)
-            changes.append((str(name), n1, n2))
+        n3 = cast(dns.node.Node, zone1.get_node(name))
+        if not n3:
+            n4 = cast(dns.node.Node, zone2.get_node(name))
+            changes.append((str(name), n3, n4))
     return changes
 
-def _nodes_differ(n1, n2, ignore_ttl, ignore_soa):
+def _nodes_differ(n1, # type: dns.node.Node
+        n2, # type: dns.node.Node
+        ignore_ttl, # type: bool
+        ignore_soa # type: bool
+        ): # type: (...) -> bool
     if ignore_soa or not ignore_ttl:
         # Compare datasets directly
         for r in n1.rdatasets:
@@ -78,10 +88,15 @@ def _nodes_differ(n1, n2, ignore_ttl, ignore_soa):
                 continue
             if r not in n1.rdatasets:
                 return True
+        assert False
     else:
         return n1 != n2
 
-def format_changes_plain(oldf, newf, changes, ignore_ttl=False):
+def format_changes_plain(oldf, # type: str
+        newf, # type: str
+        changes, # type: list
+        ignore_ttl=False
+        ): # type: (...) -> str
     """format_changes(oldfile, newfile, changes, ignore_ttl=False) -> str
     Given 2 filenames and a list of changes from diff_zones, produce diff-like
     output. If ignore_ttl is True, TTL-only changes are not displayed"""
@@ -110,7 +125,11 @@ def format_changes_plain(oldf, newf, changes, ignore_ttl=False):
                     ret += "+ %s\n" % str(r).replace('\n', '\n+ ')
     return ret
 
-def format_changes_html(oldf, newf, changes, ignore_ttl=False):
+def format_changes_html(oldf, # type: str
+        newf, # type: str
+        changes, # type: list
+        ignore_ttl=False
+        ): # type: (...) -> str
     """format_changes(oldfile, newfile, changes, ignore_ttl=False) -> str
     Given 2 filenames and a list of changes from diff_zones, produce nice html
     output. If ignore_ttl is True, TTL-only changes are not displayed"""
@@ -161,7 +180,7 @@ def format_changes_html(oldf, newf, changes, ignore_ttl=False):
 
 
 # Make this module usable as a script too.
-def main():
+def main(): # type: () -> None
     import argparse
     import subprocess
     import sys
@@ -190,7 +209,7 @@ The differences shown will be logical differences, not textual differences.
     opts, args = p.parse_args()
     opts.use_vc = opts.use_git or opts.use_bzr or opts.use_rcs
 
-    def _open(what, err):
+    def _open(what, err): # type: (Union[list,str], str) -> Any
         if isinstance(what, list):
             # Must be a list, open subprocess
             try:
@@ -265,7 +284,7 @@ The differences shown will be logical differences, not textual differences.
     try:
         oldz = dns.zone.from_file(old, origin='.', check_origin=False)
     except dns.exception.DNSException:
-        sys.stderr.write("Incorrect zonefile: %s\n", old)
+        sys.stderr.write("Incorrect zonefile: %s\n" % old)
         if opts.tracebacks:
             traceback.print_exc()
     try:
