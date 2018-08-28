@@ -27,6 +27,11 @@ import dns.tokenizer
 import dns.wiredata
 from ._compat import xrange, string_types, text_type
 
+try:
+    import threading as _threading
+except ImportError:
+    import dummy_threading as _threading
+
 _hex_chunksize = 32
 
 
@@ -300,16 +305,17 @@ class GenericRdata(Rdata):
 
 _rdata_modules = {}
 _module_prefix = 'dns.rdtypes'
-
+_import_lock = _threading.Lock()
 
 def get_rdata_class(rdclass, rdtype):
 
     def import_module(name):
-        mod = __import__(name)
-        components = name.split('.')
-        for comp in components[1:]:
-            mod = getattr(mod, comp)
-        return mod
+        with _import_lock:
+            mod = __import__(name)
+            components = name.split('.')
+            for comp in components[1:]:
+                mod = getattr(mod, comp)
+            return mod
 
     mod = _rdata_modules.get((rdclass, rdtype))
     rdclass_text = dns.rdataclass.to_text(rdclass)
