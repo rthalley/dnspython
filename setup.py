@@ -49,7 +49,7 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY'],
     'package_data' : {'dns': ['py.typed']},
     'download_url' : \
-    'http://www.dnspython.org/kits/%s/dnspython-%s.tar.gz' % (version, version),
+    'http://www.dnspython.org/kits/{}/dnspython-{}.tar.gz'.format(version, version),
     'classifiers' : [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

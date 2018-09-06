@@ -197,8 +197,8 @@ class ECSOption(Option):
             self.addrdata = self.addrdata[:-1] + last
 
     def to_text(self):
-        return "ECS %s/%s scope/%s" % (self.address, self.srclen,
-                                       self.scopelen)
+        return "ECS {}/{} scope/{}".format(self.address, self.srclen,
+                                           self.scopelen)
 
     def to_wire(self, file):
         file.write(struct.pack('!H', self.family))

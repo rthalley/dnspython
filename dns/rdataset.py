@@ -204,9 +204,9 @@ class Rdataset(dns.set.Set):
             # some dynamic updates, so we don't need to print out the TTL
             # (which is meaningless anyway).
             #
-            s.write(u'%s%s%s %s\n' % (ntext, pad,
-                                      dns.rdataclass.to_text(rdclass),
-                                      dns.rdatatype.to_text(self.rdtype)))
+            s.write(u'{}{}{} {}\n'.format(ntext, pad,
+                                          dns.rdataclass.to_text(rdclass),
+                                          dns.rdatatype.to_text(self.rdtype)))
         else:
             for rd in self:
                 s.write(u'%s%s%d %s %s %s\n' %

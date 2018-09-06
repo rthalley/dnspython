@@ -117,8 +117,9 @@ def inet_aton(text):
     m = _v4_ending.match(text)
     if not m is None:
         b = bytearray(dns.ipv4.inet_aton(m.group(2)))
-        text = (u"%s:%02x%02x:%02x%02x" % (m.group(1).decode(), b[0], b[1],
-                                           b[2], b[3])).encode()
+        text = (u"{}:{:02x}{:02x}:{:02x}{:02x}".format(m.group(1).decode(),
+                                                       b[0], b[1], b[2],
+                                                       b[3])).encode()
     #
     # Try to turn '::<whatever>' into ':<whatever>'; if no match try to
     # turn '<whatever>::' into '<whatever>:'

@@ -20,7 +20,7 @@ from dns.exception import DNSException
 
 class FormatedError(DNSException):
     fmt = "Custom format: {parameter}"
-    supp_kwargs = set(['parameter'])
+    supp_kwargs = {'parameter'}
 
 
 class ExceptionTestCase(unittest.TestCase):

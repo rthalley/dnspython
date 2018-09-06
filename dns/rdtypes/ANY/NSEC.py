@@ -50,7 +50,7 @@ class NSEC(dns.rdata.Rdata):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
-        return '%s%s' % (next, text)
+        return '{}{}'.format(next, text)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
