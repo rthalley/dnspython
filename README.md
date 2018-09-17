@@ -1,6 +1,8 @@
 # dnspython
 
 [![Build Status](https://travis-ci.org/rthalley/dnspython.svg?branch=master)](https://travis-ci.org/rthalley/dnspython)
+[![Code Quality: Python](https://img.shields.io/lgtm/grade/python/g/rthalley/dnspython.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rthalley/dnspython/context:python)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/rthalley/dnspython.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/rthalley/dnspython/alerts)
 
 ## INTRODUCTION
 
