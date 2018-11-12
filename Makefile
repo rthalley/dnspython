@@ -37,6 +37,7 @@ distclean: clean docclean
 doc:
 	epydoc -v -n dnspython -u http://www.dnspython.org \
 		dns/*.py dns/rdtypes/*.py dns/rdtypes/ANY/*.py \
+		dns/rdtypes/CH/*.py \
 		dns/rdtypes/IN/*.py
 
 dockits: doc
