@@ -432,7 +432,7 @@ class Tokenizer(object):
 
     # Helpers
 
-    def get_int(self,base=10):
+    def get_int(self, base=10):
         """Read the next token and interpret it as an integer.
 
         Raises dns.exception.SyntaxError if not an integer.
@@ -445,7 +445,7 @@ class Tokenizer(object):
             raise dns.exception.SyntaxError('expecting an identifier')
         if not token.value.isdigit():
             raise dns.exception.SyntaxError('expecting an integer')
-        return int(token.value,base)
+        return int(token.value, base)
 
     def get_uint8(self):
         """Read the next token and interpret it as an 8-bit unsigned
@@ -462,7 +462,7 @@ class Tokenizer(object):
                 '%d is not an unsigned 8-bit integer' % value)
         return value
 
-    def get_uint16(self,base=10):
+    def get_uint16(self, base=10):
         """Read the next token and interpret it as a 16-bit unsigned
         integer.
 
@@ -473,7 +473,7 @@ class Tokenizer(object):
 
         value = self.get_int(base=base)
         if value < 0 or value > 65535:
-            if base==8:
+            if base == 8:
                 raise dns.exception.SyntaxError(
                     '%o is not an octal unsigned 16-bit integer' % value)
             else:
