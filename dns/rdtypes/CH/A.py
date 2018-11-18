@@ -13,7 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.mxbase.MXBase
+import dns.rdtypes.mxbase
 import struct
 
 class A(dns.rdtypes.mxbase.MXBase):
@@ -27,7 +27,7 @@ class A(dns.rdtypes.mxbase.MXBase):
     __slots__ = ['domain', 'address']
 
     def __init__(self, rdclass, rdtype, address, domain):
-        super(MXBase, self).__init__(rdclass, rdtype)
+        super(A, self).__init__(rdclass, rdtype, address, domain)
         self.domain = domain
         self.address = address
 
