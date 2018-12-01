@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2017 Nominum, Inc.
 # Copyright (C) 2016 Coresec Systems AB
 #
