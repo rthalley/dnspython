@@ -258,9 +258,6 @@ class Rdata(object):
         relativization.
         """
 
-        pass
-
-
 class GenericRdata(Rdata):
 
     """Generic Rdata Class

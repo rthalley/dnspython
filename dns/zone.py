@@ -451,7 +451,7 @@ class Zone(object):
             rdtype = dns.rdatatype.from_text(rdtype)
         if isinstance(covers, string_types):
             covers = dns.rdatatype.from_text(covers)
-        for (name, node) in self.iteritems():
+        for (name, node) in self.iteritems(): # pylint: disable=dict-iter-method
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
                    (rds.rdtype == rdtype and rds.covers == covers):
@@ -474,7 +474,7 @@ class Zone(object):
             rdtype = dns.rdatatype.from_text(rdtype)
         if isinstance(covers, string_types):
             covers = dns.rdatatype.from_text(covers)
-        for (name, node) in self.iteritems():
+        for (name, node) in self.iteritems(): # pylint: disable=dict-iter-method
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
                    (rds.rdtype == rdtype and rds.covers == covers):
@@ -525,7 +525,7 @@ class Zone(object):
                 names = list(self.keys())
                 names.sort()
             else:
-                names = self.iterkeys()
+                names = self.iterkeys() # pylint: disable=dict-iter-method
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize)
