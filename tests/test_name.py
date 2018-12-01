@@ -1,6 +1,6 @@
+# -*- coding: utf-8
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-# -*- coding: utf-8
 # Copyright (C) 2003-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -27,7 +27,7 @@ import dns.name
 import dns.reversename
 import dns.e164
 
-# pylint: disable=line-too-long,unsupported-assignment-operation,invalid-encoded-data
+# pylint: disable=line-too-long,unsupported-assignment-operation
 
 
 class NameTestCase(unittest.TestCase):
