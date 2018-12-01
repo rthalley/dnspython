@@ -56,9 +56,9 @@ _edns_by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mappings not to be true inverses.
 
-_by_value = dict((y, x) for x, y in _by_text.items())
+_by_value = {y: x for x, y in _by_text.items()}
 
-_edns_by_value = dict((y, x) for x, y in _edns_by_text.items())
+_edns_by_value = {y: x for x, y in _edns_by_text.items()}
 
 
 def _order_flags(table):

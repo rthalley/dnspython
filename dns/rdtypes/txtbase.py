@@ -48,7 +48,7 @@ class TXTBase(dns.rdata.Rdata):
         txt = ''
         prefix = ''
         for s in self.strings:
-            txt += '%s"%s"' % (prefix, dns.rdata._escapify(s))
+            txt += '{}"{}"'.format(prefix, dns.rdata._escapify(s))
             prefix = ' '
         return txt
 

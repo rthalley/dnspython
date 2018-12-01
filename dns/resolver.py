@@ -47,7 +47,7 @@ if sys.platform == 'win32':
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
-    supp_kwargs = set(['qnames', 'responses'])
+    supp_kwargs = {'qnames', 'responses'}
     fmt = None  # we have our own __str__ implementation
 
     def _check_kwargs(self, qnames, responses=None):
@@ -71,7 +71,7 @@ class NXDOMAIN(dns.exception.DNSException):
         else:
             msg = 'The DNS query name does not exist'
         qnames = ', '.join(map(str, qnames))
-        return "%s: %s" % (msg, qnames)
+        return "{}: {}".format(msg, qnames)
 
     def canonical_name(self):
         if not 'qnames' in self.kwargs:
@@ -140,7 +140,7 @@ class NoAnswer(dns.exception.DNSException):
     """The DNS response does not contain an answer to the question."""
     fmt = 'The DNS response does not contain an answer ' + \
           'to the question: {query}'
-    supp_kwargs = set(['response'])
+    supp_kwargs = {'response'}
 
     def _fmt_kwargs(self, **kwargs):
         return super(NoAnswer, self)._fmt_kwargs(
@@ -158,12 +158,12 @@ class NoNameservers(dns.exception.DNSException):
 
     msg = "All nameservers failed to answer the query."
     fmt = "%s {query}: {errors}" % msg[:-1]
-    supp_kwargs = set(['request', 'errors'])
+    supp_kwargs = {'request', 'errors'}
 
     def _fmt_kwargs(self, **kwargs):
         srv_msgs = []
         for err in kwargs['errors']:
-            srv_msgs.append('Server %s %s port %s answered %s' % (err[0],
+            srv_msgs.append('Server {} {} port {} answered {}'.format(err[0],
                             'TCP' if err[1] else 'UDP', err[2], err[3]))
         return super(NoNameservers, self)._fmt_kwargs(
             query=kwargs['request'].question, errors='; '.join(srv_msgs))

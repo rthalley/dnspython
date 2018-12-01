@@ -98,7 +98,7 @@ class NoIDNA2008(dns.exception.DNSException):
 class IDNAException(dns.exception.DNSException):
     """IDNA processing raised an exception."""
 
-    supp_kwargs = set(['idna_exception'])
+    supp_kwargs = {'idna_exception'}
     fmt = "IDNA processing exception: {idna_exception}"
 
 
