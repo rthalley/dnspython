@@ -27,7 +27,7 @@ import dns.name
 import dns.reversename
 import dns.e164
 
-# pylint: disable=line-too-long,unsupported-assignment-operation
+# pylint: disable=line-too-long,unsupported-assignment-operation,invalid-encoded-data
 
 
 class NameTestCase(unittest.TestCase):
