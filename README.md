@@ -18,10 +18,8 @@ To see a few of the ways dnspython can be used, look in the `examples/` director
 dnspython is a utility to work with DNS, `/etc/hosts` is thus not used. For
 simple forward DNS lookups, it's better to use `socket.gethostbyname()`.
 
-dnspython originated at [Nominum](https://www.nominum.com/) where it was developed
-to facilitate the testing of DNS software. Nominum has generously allowed it to be
-open sourced under a BSD-style license, and helps support its future development by
-continuing to employ the author :).
+dnspython originated at Nominum where it was developed
+to facilitate the testing of DNS software.
 
 ## INSTALLATION
 
