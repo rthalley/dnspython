@@ -33,15 +33,57 @@ to facilitate the testing of DNS software.
 
 This is dnspython 1.16.0
 
+### Notices
+
+Python 2.x support ends with the release of 1.16.0, unless there are
+critical bugs in 1.16.0.  Future versions of dnspython will only
+support Python 3.
+
+Version numbering of future dnspython releases will also start at 2.0, as
+incompatible changes will be permitted.  We're not planning huge changes at
+this time, but we'd like to do a better job at IDNA, and there are other
+API improvements to be made.
+
+The ChangeLog has been discontinued.  Please see the git history for detailed
+change information.
+
 ### New since 1.15.0:
 
-XXXTBSXXX
+* Much of the internals of dns.query.udp() and dns.query.tcp() have
+  been factored out into dns.query.send_udp(),
+  dns.query.receive_udp(), dns.query.send_tcp(), and
+  dns.query.receive_tcp().  Applications which want more control over
+  the socket may find the new routines helpful; for example it would
+  be easy to send multiple queries over a single TCP connection.
+  
+* The OPENPGPKEY RR, and the CHAOS class A RR are now supported.
+
+* EDNS0 client-subnet is supported.
+
+* dns.resover.query() now has a lifetime timeout optional parameter.
+
+* pycryptodome and pycryptodomex are now supported and recommended for use
+  instead of pycrypto.
+  
+* dns.message.from_wire() now has an ignore_trailing option.
+
+* type signatures have been provided
 
 ### Bugs fixed since 1.15.0:
 
 * DNSSEC signature validation didn't check names correctly.  [Issue #295]
 
 * The NXDOMAIN exception should not use its docstring.  [Issue #253]
+
+* Fixed regression where trailing zeros in APL RRs were not
+  suppressed, and then fixed the problem where trailing zeros
+  were not added back properly on python 3 when needed.
+  
+* Masterfile TTL defaulting is now harmonized with BIND practice.
+
+* dns.query.xfr() now raises on a non-zero rcode.
+
+* Rdata module importing is now locked to avoid races.
 
 ### New since 1.14.0:
 
