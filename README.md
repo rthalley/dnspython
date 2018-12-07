@@ -35,6 +35,41 @@ This is dnspython 1.16.0
 
 ### New since 1.15.0:
 
+* Minimal Python 2 version is 2.7.
+
+* This is last release with support for Python 2.
+  Next release (2.0) will support Python 3 only and breaking API cleanup!
+  See https://pythonclock.org/ for more information.
+  [Issue #318]
+
+* Bunch of Python 3 incompatibilities is now fixed.
+
+* CHAOS class A record is now supported.
+
+* Importing from multiple threads is now safe.
+
+* setup.py supports Cythonization to improve performance.
+
+* Crypto now uses pycryptodome(x) library instead of unmaintained pycrypto
+
+* module dns.hash is deprecated, use standard Python libraries instead
+
+* message.from_wire now has ability to ignore trailing junk
+
+* NSEC3 bitmap parsing now works with multiple NSEC3 windows
+
+* TTL detection when reading master zone files is improved
+
+* dns.resolver.query now supports timeout (lifetime)
+
+* dns.renderer.Renderer supports TSIG on DNS envelope sequences
+
+* DNSSEC validation now checks names properly [Issue #295]
+
+* EDNS Client Subnet option is now supported.
+
+* OPENPGPKEY RR is now supported.
+
 XXXTBSXXX
 
 ### Bugs fixed since 1.15.0:
