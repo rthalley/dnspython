@@ -67,7 +67,11 @@ change information.
   
 * dns.message.from_wire() now has an ignore_trailing option.
 
-* type signatures have been provided
+* type signatures have been provided.
+
+* module dns.hash is now deprecated, use standard Python libraries instead.
+
+* setup.py supports Cythonization to improve performance.
 
 ### Bugs fixed since 1.15.0:
 
@@ -84,6 +88,14 @@ change information.
 * dns.query.xfr() now raises on a non-zero rcode.
 
 * Rdata module importing is now locked to avoid races.
+
+* Several Python 3 incompatibilities have been fixed.
+
+* NSEC3 bitmap parsing now works with mulitple NSEC3 windows.
+
+* dns.renderer.Render supports TSIG on DNS envelope sequences.
+
+* DNSSEC validation now checks names properly [Issue #295]
 
 ### New since 1.14.0:
 
