@@ -36,13 +36,13 @@ distclean: clean docclean
 	rm -rf build dist
 	rm -f MANIFEST
 
-doc:
+doco:
 	epydoc -v -n dnspython -u http://www.dnspython.org \
 		dns/*.py dns/rdtypes/*.py dns/rdtypes/ANY/*.py \
 		dns/rdtypes/CH/*.py \
 		dns/rdtypes/IN/*.py
 
-dockits: doc
+dockits: doco
 	mv html dnspython-html
 	tar czf html.tar.gz dnspython-html
 	zip -r html.zip dnspython-html
