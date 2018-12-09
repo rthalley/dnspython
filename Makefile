@@ -18,7 +18,9 @@
 # $Id: Makefile,v 1.16 2004/03/19 00:17:27 halley Exp $
 
 PYTHON=python
-PYTHON3=python3
+PIP=pip
+# set this to "--user" if you prefer
+PIPMODE=
 
 all:
 	${PYTHON} ./setup.py build
@@ -52,7 +54,7 @@ docclean:
 	rm -rf html.tar.gz html.zip html
 
 kits:
-	${PYTHON3} ./setup.py sdist --formats=gztar,zip bdist_wheel
+	${PYTHON} ./setup.py sdist --formats=gztar,zip bdist_wheel
 
 tags:
 	find . -name '*.py' -print | etags -
@@ -60,7 +62,7 @@ tags:
 check: test
 
 test:
-	cd tests; make PYTHON=${PYTHON3} test
+	cd tests; make test
 
 test3: test
 
@@ -70,4 +72,5 @@ lint:
 lint3: lint
 
 typecheck:
-	if [ $(shell python -c "import sys; print(sys.version_info[0])") -ne 2 ]; then pip install mypy; mypy examples tests; else echo Skipping typecheck on Python 2; fi
+	${PIP} show mypy >/dev/null 2>&1 || ${PIP} install ${PIPMODE} mypy
+	mypy examples tests
