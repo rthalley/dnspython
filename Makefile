@@ -65,7 +65,7 @@ test:
 test3: test
 
 lint:
-	pylint3 dns tests examples/*.py
+	pylint dns tests examples/*.py
 
 lint3: lint
 
