@@ -23,7 +23,6 @@ import sys
 import dns.exception
 import dns.name
 import dns.ttl
-from ._compat import long, text_type, binary_type
 
 _DELIMITERS = {
     ' ': True,
@@ -189,11 +188,11 @@ class Tokenizer(object):
         will return.
         """
 
-        if isinstance(f, text_type):
+        if isinstance(f, str):
             f = StringIO(f)
             if filename is None:
                 filename = '<string>'
-        elif isinstance(f, binary_type):
+        elif isinstance(f, bytes):
             f = StringIO(f.decode())
             if filename is None:
                 filename = '<string>'
@@ -497,8 +496,8 @@ class Tokenizer(object):
             raise dns.exception.SyntaxError('expecting an identifier')
         if not token.value.isdigit():
             raise dns.exception.SyntaxError('expecting an integer')
-        value = long(token.value)
-        if value < 0 or value > long(4294967296):
+        value = int(token.value)
+        if value < 0 or value > 4294967296:
             raise dns.exception.SyntaxError(
                 '%d is not an unsigned 32-bit integer' % value)
         return value

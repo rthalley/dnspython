@@ -20,7 +20,6 @@ import struct
 import dns.exception
 import dns.name
 import dns.rdata
-from dns._compat import xrange, text_type
 
 
 def _write_string(file, s):
@@ -31,7 +30,7 @@ def _write_string(file, s):
 
 
 def _sanitize(value):
-    if isinstance(value, text_type):
+    if isinstance(value, str):
         return value.encode()
     return value
 
@@ -103,7 +102,7 @@ class NAPTR(dns.rdata.Rdata):
         current += 4
         rdlen -= 4
         strings = []
-        for i in xrange(3):
+        for i in range(3):
             l = wire[current]
             current += 1
             rdlen -= 1

@@ -33,12 +33,6 @@ import dns.message
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
-from ._compat import long, string_types, PY3
-
-if PY3:
-    select_error = OSError
-else:
-    select_error = select.error
 
 # Function used to create a socket.  Can be overridden if needed in special
 # situations.
@@ -87,7 +81,7 @@ def _poll_for(fd, readable, writable, error, timeout):
     pollable.register(fd, event_mask)
 
     if timeout:
-        event_list = pollable.poll(long(timeout * 1000))
+        event_list = pollable.poll(timeout * 1000)
     else:
         event_list = pollable.poll()
 
@@ -130,7 +124,7 @@ def _wait_for(fd, readable, writable, error, expiration):
         try:
             if not _polling_backend(fd, readable, writable, error, timeout):
                 raise dns.exception.Timeout
-        except select_error as e:
+        except OSError as e:
             if e.args[0] != errno.EINTR:
                 raise e
         done = True
@@ -562,9 +556,9 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     Returns a generator of ``dns.message.Message`` objects.
     """
 
-    if isinstance(zone, string_types):
+    if isinstance(zone, str):
         zone = dns.name.from_text(zone)
-    if isinstance(rdtype, string_types):
+    if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)
     q = dns.message.make_query(zone, rdtype, rdclass)
     if rdtype == dns.rdatatype.IXFR:

@@ -17,27 +17,17 @@
 
 import base64
 import binascii
-import string
 import struct
 
 import dns.exception
 import dns.rdata
 import dns.rdatatype
-from dns._compat import xrange, text_type, PY3
 
-# pylint: disable=deprecated-string-function
-if PY3:
-    b32_hex_to_normal = bytes.maketrans(b'0123456789ABCDEFGHIJKLMNOPQRSTUV',
-                                        b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
-    b32_normal_to_hex = bytes.maketrans(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
-                                        b'0123456789ABCDEFGHIJKLMNOPQRSTUV')
-else:
-    b32_hex_to_normal = string.maketrans('0123456789ABCDEFGHIJKLMNOPQRSTUV',
-                                         'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
-    b32_normal_to_hex = string.maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
-                                         '0123456789ABCDEFGHIJKLMNOPQRSTUV')
-# pylint: enable=deprecated-string-function
 
+b32_hex_to_normal = bytes.maketrans(b'0123456789ABCDEFGHIJKLMNOPQRSTUV',
+                                    b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
+b32_normal_to_hex = bytes.maketrans(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
+                                    b'0123456789ABCDEFGHIJKLMNOPQRSTUV')
 
 # hash algorithm constants
 SHA1 = 1
@@ -71,7 +61,7 @@ class NSEC3(dns.rdata.Rdata):
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations
-        if isinstance(salt, text_type):
+        if isinstance(salt, str):
             self.salt = salt.encode()
         else:
             self.salt = salt
@@ -88,9 +78,8 @@ class NSEC3(dns.rdata.Rdata):
         text = u''
         for (window, bitmap) in self.windows:
             bits = []
-            for i in xrange(0, len(bitmap)):
-                byte = bitmap[i]
-                for j in xrange(0, 8):
+            for (i, byte) in enumerate(bitmap):
+                for j in range(0, 8):
                     if byte & (0x80 >> j):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))

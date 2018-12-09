@@ -20,7 +20,6 @@
 import dns.exception
 import dns.name
 import dns.resolver
-from ._compat import string_types, maybe_decode
 
 #: The public E.164 domain.
 public_enum_domain = dns.name.from_text('e164.arpa.')
@@ -75,7 +74,7 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     text = b''.join(dlabels)
     if want_plus_prefix:
         text = b'+' + text
-    return maybe_decode(text)
+    return text.decode()
 
 
 def query(number, domains, resolver=None):
@@ -95,7 +94,7 @@ def query(number, domains, resolver=None):
         resolver = dns.resolver.get_default_resolver()
     e_nx = dns.resolver.NXDOMAIN()
     for domain in domains:
-        if isinstance(domain, string_types):
+        if isinstance(domain, str):
             domain = dns.name.from_text(domain)
         qname = dns.e164.from_e164(number, domain)
         try:

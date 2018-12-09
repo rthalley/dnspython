@@ -18,7 +18,6 @@
 """DNS Result Codes."""
 
 import dns.exception
-from ._compat import long
 
 #: No error
 NOERROR = 0
@@ -122,7 +121,7 @@ def to_flags(value):
     if value < 0 or value > 4095:
         raise ValueError('rcode must be >= 0 and <= 4095')
     v = value & 0xf
-    ev = long(value & 0xff0) << 20
+    ev = (value & 0xff0) << 20
     return (v, ev)
 
 

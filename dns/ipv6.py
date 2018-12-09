@@ -22,17 +22,16 @@ import binascii
 
 import dns.exception
 import dns.ipv4
-from ._compat import xrange, binary_type, maybe_decode
 
 _leading_zero = re.compile(r'0+([0-9a-f]+)')
 
 def inet_ntoa(address):
     """Convert an IPv6 address in binary form to text form.
 
-    *address*, a ``binary``, the IPv6 address in binary form.
+    *address*, a ``bytes``, the IPv6 address in binary form.
 
     Raises ``ValueError`` if the address isn't 16 bytes long.
-    Returns a ``text``.
+    Returns a ``str``.
     """
 
     if len(address) != 16:
@@ -42,7 +41,7 @@ def inet_ntoa(address):
     i = 0
     l = len(hex)
     while i < l:
-        chunk = maybe_decode(hex[i : i + 4])
+        chunk = hex[i : i + 4].decode()
         # strip leading zeros.  we do this with an re instead of
         # with lstrip() because lstrip() didn't support chars until
         # python 2.2.2
@@ -58,7 +57,7 @@ def inet_ntoa(address):
     best_len = 0
     start = -1
     last_was_zero = False
-    for i in xrange(8):
+    for i in range(8):
         if chunks[i] != '0':
             if last_was_zero:
                 end = i
@@ -102,13 +101,13 @@ def inet_aton(text):
 
     *text*, a ``text``, the IPv6 address in textual form.
 
-    Returns a ``binary``.
+    Returns a ``bytes``.
     """
 
     #
     # Our aim here is not something fast; we just want something that works.
     #
-    if not isinstance(text, binary_type):
+    if not isinstance(text, bytes):
         text = text.encode()
 
     if text == b'::':
@@ -147,7 +146,7 @@ def inet_aton(text):
             if seen_empty:
                 raise dns.exception.SyntaxError
             seen_empty = True
-            for i in xrange(0, 8 - l + 1):
+            for i in range(0, 8 - l + 1):
                 canonical.append(b'0000')
         else:
             lc = len(c)
@@ -173,7 +172,7 @@ _mapped_prefix = b'\x00' * 10 + b'\xff\xff'
 def is_mapped(address):
     """Is the specified address a mapped IPv4 address?
 
-    *address*, a ``binary`` is an IPv6 address in binary form.
+    *address*, a ``bytes`` is an IPv6 address in binary form.
 
     Returns a ``bool``.
     """

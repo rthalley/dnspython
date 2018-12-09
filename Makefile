@@ -60,19 +60,14 @@ tags:
 check: test
 
 test:
-	cd tests; make PYTHON=${PYTHON} test
-
-test2:
-	cd tests; make PYTHON=python test
-
-test3:
 	cd tests; make PYTHON=${PYTHON3} test
 
-lint:
-	pylint dns tests examples/*.py
+test3: test
 
-lint3:
+lint:
 	pylint3 dns tests examples/*.py
+
+lint3: lint
 
 typecheck:
 	if [ $(shell python -c "import sys; print(sys.version_info[0])") -ne 2 ]; then pip install mypy; mypy examples tests; else echo Skipping typecheck on Python 2; fi

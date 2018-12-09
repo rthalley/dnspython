@@ -29,7 +29,6 @@
 
 import collections
 import dns.name
-from ._compat import xrange
 
 
 class NameDict(collections.MutableMapping):
@@ -100,7 +99,7 @@ class NameDict(collections.MutableMapping):
         depth = len(name)
         if depth > self.max_depth:
             depth = self.max_depth
-        for i in xrange(-depth, 0):
+        for i in range(-depth, 0):
             n = dns.name.Name(name[i:])
             if n in self:
                 return (n, self[n])

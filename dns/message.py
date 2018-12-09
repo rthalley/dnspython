@@ -38,8 +38,6 @@ import dns.renderer
 import dns.tsig
 import dns.wiredata
 
-from ._compat import long, xrange, string_types
-
 
 class ShortHeader(dns.exception.FormError):
     """The DNS packet passed to from_wire() is too short."""
@@ -472,7 +470,7 @@ class Message(object):
         if keyname is None:
             self.keyname = list(self.keyring.keys())[0]
         else:
-            if isinstance(keyname, string_types):
+            if isinstance(keyname, str):
                 keyname = dns.name.from_text(keyname)
             self.keyname = keyname
         self.keyalgorithm = algorithm
@@ -520,7 +518,7 @@ class Message(object):
             options = []
         else:
             # make sure the EDNS version in ednsflags agrees with edns
-            ednsflags &= long(0xFF00FFFF)
+            ednsflags &= 0xFF00FFFF
             ednsflags |= (edns << 16)
             if options is None:
                 options = []
@@ -561,7 +559,7 @@ class Message(object):
         (value, evalue) = dns.rcode.to_flags(rcode)
         self.flags &= 0xFFF0
         self.flags |= value
-        self.ednsflags &= long(0x00FFFFFF)
+        self.ednsflags &= 0x00FFFFFF
         self.ednsflags |= evalue
         if self.ednsflags != 0 and self.edns < 0:
             self.edns = 0
@@ -617,7 +615,7 @@ class _WireReader(object):
         if self.updating and qcount > 1:
             raise dns.exception.FormError
 
-        for i in xrange(0, qcount):
+        for i in range(0, qcount):
             (qname, used) = dns.name.from_wire(self.wire, self.current)
             if self.message.origin is not None:
                 qname = qname.relativize(self.message.origin)
@@ -645,7 +643,7 @@ class _WireReader(object):
         else:
             force_unique = False
         seen_opt = False
-        for i in xrange(0, count):
+        for i in range(0, count):
             rr_start = self.current
             (name, used) = dns.name.from_wire(self.wire, self.current)
             absolute_name = name
@@ -1041,7 +1039,7 @@ def from_file(f):
     Returns a ``dns.message.Message object``
     """
 
-    str_type = string_types
+    str_type = str
     opts = 'rU'
 
     if isinstance(f, str_type):
@@ -1099,11 +1097,11 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     Returns a ``dns.message.Message``
     """
 
-    if isinstance(qname, string_types):
+    if isinstance(qname, str):
         qname = dns.name.from_text(qname)
-    if isinstance(rdtype, string_types):
+    if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)
-    if isinstance(rdclass, string_types):
+    if isinstance(rdclass, str):
         rdclass = dns.rdataclass.from_text(rdclass)
     m = Message()
     m.flags |= dns.flags.RD

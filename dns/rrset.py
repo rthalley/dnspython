@@ -22,7 +22,6 @@ import dns.name
 import dns.rdataset
 import dns.rdataclass
 import dns.renderer
-from ._compat import string_types
 
 
 class RRset(dns.rdataset.Rdataset):
@@ -134,11 +133,11 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
     Returns a ``dns.rrset.RRset`` object.
     """
 
-    if isinstance(name, string_types):
+    if isinstance(name, str):
         name = dns.name.from_text(name, None, idna_codec=idna_codec)
-    if isinstance(rdclass, string_types):
+    if isinstance(rdclass, str):
         rdclass = dns.rdataclass.from_text(rdclass)
-    if isinstance(rdtype, string_types):
+    if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)
     r = RRset(name, rdclass, rdtype)
     r.update_ttl(ttl)
@@ -165,7 +164,7 @@ def from_rdata_list(name, ttl, rdatas, idna_codec=None):
     Returns a ``dns.rrset.RRset`` object.
     """
 
-    if isinstance(name, string_types):
+    if isinstance(name, str):
         name = dns.name.from_text(name, None, idna_codec=idna_codec)
 
     if len(rdatas) == 0:

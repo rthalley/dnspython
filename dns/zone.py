@@ -35,7 +35,6 @@ import dns.rrset
 import dns.tokenizer
 import dns.ttl
 import dns.grange
-from ._compat import string_types, text_type, PY3
 
 
 class BadZone(dns.exception.DNSException):
@@ -95,7 +94,7 @@ class Zone(object):
         @type rdclass: int"""
 
         if origin is not None:
-            if isinstance(origin, string_types):
+            if isinstance(origin, str):
                 origin = dns.name.from_text(origin)
             elif not isinstance(origin, dns.name.Name):
                 raise ValueError("origin parameter must be convertible to a "
@@ -129,7 +128,7 @@ class Zone(object):
         return not self.__eq__(other)
 
     def _validate_name(self, name):
-        if isinstance(name, string_types):
+        if isinstance(name, str):
             name = dns.name.from_text(name, None)
         elif not isinstance(name, dns.name.Name):
             raise KeyError("name parameter must be convertible to a DNS name")
@@ -157,19 +156,13 @@ class Zone(object):
         return self.nodes.__iter__()
 
     def iterkeys(self):
-        if PY3:
-            return self.nodes.keys() # pylint: disable=dict-keys-not-iterating
-        else:
-            return self.nodes.iterkeys()  # pylint: disable=dict-iter-method
+        return self.nodes.keys() # pylint: disable=dict-keys-not-iterating
 
     def keys(self):
         return self.nodes.keys() # pylint: disable=dict-keys-not-iterating
 
     def itervalues(self):
-        if PY3:
-            return self.nodes.values() # pylint: disable=dict-values-not-iterating
-        else:
-            return self.nodes.itervalues()  # pylint: disable=dict-iter-method
+        return self.nodes.values() # pylint: disable=dict-values-not-iterating
 
     def values(self):
         return self.nodes.values() # pylint: disable=dict-values-not-iterating
@@ -265,9 +258,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, string_types):
+        if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, string_types):
+        if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
         node = self.find_node(name, create)
         return node.find_rdataset(self.rdclass, rdtype, covers, create)
@@ -328,9 +321,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, string_types):
+        if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, string_types):
+        if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
         node = self.get_node(name)
         if node is not None:
@@ -391,9 +384,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, string_types):
+        if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, string_types):
+        if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
         rdataset = self.nodes[name].find_rdataset(self.rdclass, rdtype, covers)
         rrset = dns.rrset.RRset(name, self.rdclass, rdtype, covers)
@@ -447,9 +440,9 @@ class Zone(object):
         @type covers: int or string
         """
 
-        if isinstance(rdtype, string_types):
+        if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, string_types):
+        if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
         for (name, node) in self.iteritems(): # pylint: disable=dict-iter-method
             for rds in node:
@@ -470,9 +463,9 @@ class Zone(object):
         @type covers: int or string
         """
 
-        if isinstance(rdtype, string_types):
+        if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, string_types):
+        if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
         for (name, node) in self.iteritems(): # pylint: disable=dict-iter-method
             for rds in node:
@@ -499,7 +492,7 @@ class Zone(object):
         @type nl: string or None
         """
 
-        if isinstance(f, string_types):
+        if isinstance(f, str):
             f = open(f, 'wb')
             want_close = True
         else:
@@ -514,7 +507,7 @@ class Zone(object):
         if nl is None:
             nl_b = os.linesep.encode(file_enc)  # binary mode, '\n' is not enough
             nl = u'\n'
-        elif isinstance(nl, string_types):
+        elif isinstance(nl, str):
             nl_b = nl.encode(file_enc)
         else:
             nl_b = nl
@@ -529,7 +522,7 @@ class Zone(object):
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize)
-                if isinstance(l, text_type):
+                if isinstance(l, str):
                     l_b = l.encode(file_enc)
                 else:
                     l_b = l
@@ -619,7 +612,7 @@ class _MasterReader(object):
 
     def __init__(self, tok, origin, rdclass, relativize, zone_factory=Zone,
                  allow_include=False, check_origin=True):
-        if isinstance(origin, string_types):
+        if isinstance(origin, str):
             origin = dns.name.from_text(origin)
         self.tok = tok
         self.current_origin = origin
@@ -1060,16 +1053,10 @@ def from_file(f, origin=None, rdclass=dns.rdataclass.IN,
     @rtype: dns.zone.Zone object
     """
 
-    str_type = string_types
-    if PY3:
-        opts = 'r'
-    else:
-        opts = 'rU'
-
-    if isinstance(f, str_type):
+    if isinstance(f, str):
         if filename is None:
             filename = f
-        f = open(f, opts)
+        f = open(f, 'r')
         want_close = True
     else:
         if filename is None:

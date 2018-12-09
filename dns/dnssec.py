@@ -28,8 +28,6 @@ import dns.rdataset
 import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
-from ._compat import string_types
-
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
     """The DNSSEC algorithm is not supported."""
@@ -172,7 +170,7 @@ def make_ds(name, key, algorithm, origin=None):
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
-    if isinstance(name, string_types):
+    if isinstance(name, str):
         name = dns.name.from_text(name, origin)
     hash.update(name.canonicalize().to_wire())
     hash.update(_to_rdata(key, origin))
@@ -292,7 +290,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     in seconds since the UNIX epoch.  The default is the current time.
     """
 
-    if isinstance(origin, string_types):
+    if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root)
 
     candidate_keys = _find_candidate_keys(keys, rrsig)
@@ -443,7 +441,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     in seconds since the UNIX epoch.  The default is the current time.
     """
 
-    if isinstance(origin, string_types):
+    if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root)
 
     if isinstance(rrset, tuple):

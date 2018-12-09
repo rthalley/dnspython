@@ -20,7 +20,6 @@ import binascii
 
 import dns.exception
 import dns.rdata
-from dns._compat import text_type
 
 
 class NSEC3PARAM(dns.rdata.Rdata):
@@ -43,7 +42,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
         self.algorithm = algorithm
         self.flags = flags
         self.iterations = iterations
-        if isinstance(salt, text_type):
+        if isinstance(salt, str):
             self.salt = salt.encode()
         else:
             self.salt = salt

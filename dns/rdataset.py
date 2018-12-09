@@ -26,7 +26,6 @@ import dns.rdatatype
 import dns.rdataclass
 import dns.rdata
 import dns.set
-from ._compat import string_types
 
 # define SimpleSet here for backwards compatibility
 SimpleSet = dns.set.Set
@@ -297,9 +296,9 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas):
     Returns a ``dns.rdataset.Rdataset`` object.
     """
 
-    if isinstance(rdclass, string_types):
+    if isinstance(rdclass, str):
         rdclass = dns.rdataclass.from_text(rdclass)
-    if isinstance(rdtype, string_types):
+    if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)
     r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)

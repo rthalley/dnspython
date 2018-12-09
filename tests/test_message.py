@@ -24,7 +24,6 @@ import dns.message
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
-from dns._compat import xrange
 
 query_text = """id 1234
 opcode QUERY
@@ -136,7 +135,7 @@ class MessageTestCase(unittest.TestCase):
     def test_TooBig(self):
         def bad():
             q = dns.message.from_text(query_text)
-            for i in xrange(0, 25):
+            for i in range(0, 25):
                 rrset = dns.rrset.from_text('foo%d.' % i, 3600,
                                             dns.rdataclass.IN,
                                             dns.rdatatype.A,

@@ -18,7 +18,6 @@
 import os
 import random
 import time
-from ._compat import long, binary_type
 try:
     import threading as _threading
 except ImportError:
@@ -97,7 +96,7 @@ class EntropyPool(object):
         try:
             self._maybe_seed()
             if self.digest is None or self.next_byte == self.hash_len:
-                self.hash.update(binary_type(self.pool))
+                self.hash.update(bytes(self.pool))
                 self.digest = bytearray(self.hash.digest())
                 self.stir(self.digest, True)
                 self.next_byte = 0
@@ -115,11 +114,11 @@ class EntropyPool(object):
 
     def random_between(self, first, last):
         size = last - first + 1
-        if size > long(4294967296):
+        if size > 4294967296:
             raise ValueError('too big')
         if size > 65536:
             rand = self.random_32
-            max = long(4294967295)
+            max = 4294967295
         elif size > 256:
             rand = self.random_16
             max = 65535

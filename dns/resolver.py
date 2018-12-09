@@ -21,7 +21,6 @@ import socket
 import sys
 import time
 import random
-
 try:
     import threading as _threading
 except ImportError:
@@ -39,7 +38,6 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.reversename
 import dns.tsig
-from ._compat import xrange, string_types
 
 if sys.platform == 'win32':
     try:
@@ -207,7 +205,7 @@ class Answer(object):
         self.response = response
         min_ttl = -1
         rrset = None
-        for count in xrange(0, 15):
+        for count in range(0, 15):
             try:
                 rrset = response.find_rrset(response.answer, qname,
                                             rdclass, rdtype)
@@ -573,7 +571,7 @@ class Resolver(object):
         a ``text``, it is used as the name of the file to open; otherwise it
         is treated as the file itself."""
 
-        if isinstance(f, string_types):
+        if isinstance(f, str):
             try:
                 f = open(f, 'r')
             except IOError:
@@ -844,13 +842,13 @@ class Resolver(object):
         Returns a ``dns.resolver.Answer`` instance.
         """
 
-        if isinstance(qname, string_types):
+        if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
-        if isinstance(rdtype, string_types):
+        if isinstance(rdtype, str):
             rdtype = dns.rdatatype.from_text(rdtype)
         if dns.rdatatype.is_metatype(rdtype):
             raise NoMetaqueries
-        if isinstance(rdclass, string_types):
+        if isinstance(rdclass, str):
             rdclass = dns.rdataclass.from_text(rdclass)
         if dns.rdataclass.is_metaclass(rdclass):
             raise NoMetaqueries
@@ -1121,7 +1119,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     Returns a ``dns.name.Name``.
     """
 
-    if isinstance(name, string_types):
+    if isinstance(name, str):
         name = dns.name.from_text(name, dns.name.root)
     if resolver is None:
         resolver = get_default_resolver()

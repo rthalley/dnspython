@@ -24,7 +24,6 @@ import time
 
 import dns.exception
 import dns.tsig
-from ._compat import long
 
 
 QUESTION = 0
@@ -172,7 +171,7 @@ class Renderer(object):
         """Add an EDNS OPT record to the message."""
 
         # make sure the EDNS version in ednsflags agrees with edns
-        ednsflags &= long(0xFF00FFFF)
+        ednsflags &= 0xFF00FFFF
         ednsflags |= (edns << 16)
         self._set_section(ADDITIONAL)
         before = self.output.tell()

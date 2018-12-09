@@ -32,8 +32,6 @@ except ImportError:
 import dns.exception
 import dns.wiredata
 
-from ._compat import long, binary_type, text_type, unichr, maybe_decode
-
 try:
     maxint = sys.maxint  # pylint: disable=sys-max-int
 except AttributeError:
@@ -122,7 +120,7 @@ class IDNACodec(object):
             except Exception as e:
                 raise IDNAException(idna_exception=e)
         else:
-            label = maybe_decode(label)
+            label = label.decode()
         return _escapify(label, True)
 
 
@@ -248,7 +246,7 @@ def _escapify(label, unicode_mode=False):
     @rtype: string"""
     if not unicode_mode:
         text = ''
-        if isinstance(label, text_type):
+        if isinstance(label, str):
             label = label.encode()
         for c in bytearray(label):
             if c in _escaped:
@@ -260,7 +258,7 @@ def _escapify(label, unicode_mode=False):
         return text.encode()
 
     text = u''
-    if isinstance(label, binary_type):
+    if isinstance(label, bytes):
         label = label.decode()
     for c in label:
         if c > u'\x20' and c < u'\x7f':
@@ -308,9 +306,9 @@ def _maybe_convert_to_binary(label):
 
     """
 
-    if isinstance(label, binary_type):
+    if isinstance(label, bytes):
         return label
-    if isinstance(label, text_type):
+    if isinstance(label, str):
         return label.encode()
     raise ValueError
 
@@ -374,11 +372,11 @@ class Name(object):
         Returns an ``int``.
         """
 
-        h = long(0)
+        h = 0
         for label in self.labels:
             for c in bytearray(label.lower()):
                 h += (h << 3) + c
-        return int(h % maxint)
+        return h % maxint
 
     def fullcompare(self, other):
         """Compare two names, returning a 3-tuple
@@ -544,15 +542,15 @@ class Name(object):
         """
 
         if len(self.labels) == 0:
-            return maybe_decode(b'@')
+            return '@'
         if len(self.labels) == 1 and self.labels[0] == b'':
-            return maybe_decode(b'.')
+            return '.'
         if omit_final_dot and self.is_absolute():
             l = self.labels[:-1]
         else:
             l = self.labels
         s = b'.'.join(map(_escapify, l))
-        return maybe_decode(s)
+        return s.decode()
 
     def to_unicode(self, omit_final_dot=False, idna_codec=None):
         """Convert name to Unicode text format.
@@ -813,7 +811,7 @@ def from_unicode(text, origin=root, idna_codec=None):
     Returns a ``dns.name.Name``.
     """
 
-    if not isinstance(text, text_type):
+    if not isinstance(text, str):
         raise ValueError("input to from_unicode() must be a unicode string")
     if not (origin is None or isinstance(origin, Name)):
         raise ValueError("origin must be a Name or None")
@@ -846,7 +844,7 @@ def from_unicode(text, origin=root, idna_codec=None):
                     edigits += 1
                     if edigits == 3:
                         escaping = False
-                        label += unichr(total)
+                        label += chr(total)
             elif c in [u'.', u'\u3002', u'\uff0e', u'\uff61']:
                 if len(label) == 0:
                     raise EmptyLabel
@@ -885,9 +883,9 @@ def from_text(text, origin=root, idna_codec=None):
     Returns a ``dns.name.Name``.
     """
 
-    if isinstance(text, text_type):
+    if isinstance(text, str):
         return from_unicode(text, origin, idna_codec)
-    if not isinstance(text, binary_type):
+    if not isinstance(text, bytes):
         raise ValueError("input to from_text() must be a string")
     if not (origin is None or isinstance(origin, Name)):
         raise ValueError("origin must be a Name or None")
@@ -961,7 +959,7 @@ def from_wire(message, current):
     which were consumed reading it.
     """
 
-    if not isinstance(message, binary_type):
+    if not isinstance(message, bytes):
         raise ValueError("input to from_wire() must be a byte string")
     message = dns.wiredata.maybe_wrap(message)
     labels = []

@@ -21,7 +21,6 @@ import dns.exception
 import dns.rdata
 import dns.rdatatype
 import dns.name
-from dns._compat import xrange
 
 class CSYNC(dns.rdata.Rdata):
 
@@ -46,9 +45,8 @@ class CSYNC(dns.rdata.Rdata):
         text = ''
         for (window, bitmap) in self.windows:
             bits = []
-            for i in xrange(0, len(bitmap)):
-                byte = bitmap[i]
-                for j in xrange(0, 8):
+            for (i, byte) in enumerate(bitmap):
+                for j in range(0, 8):
                     if byte & (0x80 >> j):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))

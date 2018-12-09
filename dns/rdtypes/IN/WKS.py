@@ -20,7 +20,6 @@ import struct
 
 import dns.ipv4
 import dns.rdata
-from dns._compat import xrange
 
 _proto_tcp = socket.getprotobyname('tcp')
 _proto_udp = socket.getprotobyname('udp')
@@ -51,9 +50,9 @@ class WKS(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
-        for i in xrange(0, len(self.bitmap)):
+        for i in range(0, len(self.bitmap)):
             byte = self.bitmap[i]
-            for j in xrange(0, 8):
+            for j in range(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
         text = ' '.join(bits)
@@ -85,7 +84,7 @@ class WKS(dns.rdata.Rdata):
             i = serv // 8
             l = len(bitmap)
             if l < i + 1:
-                for j in xrange(l, i + 1):
+                for j in range(l, i + 1):
                     bitmap.append(0)
             bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)

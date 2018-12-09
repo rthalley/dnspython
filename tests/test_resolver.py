@@ -27,7 +27,6 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
-from dns._compat import xrange, PY3
 
 # Some tests require the internet to be available to run, so let's
 # skip those if it's not there.
@@ -182,11 +181,11 @@ class BaseResolverTests(unittest.TestCase):
 
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
-        for i in xrange(0, 5):
+        for i in range(0, 5):
             name = dns.name.from_text('example%d.' % i)
             answer = FakeAnswer(time.time() + 1)
             cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
-        for i in xrange(0, 5):
+        for i in range(0, 5):
             name = dns.name.from_text('example%d.' % i)
             if i == 0:
                 self.failUnless(cache.get((name, dns.rdatatype.A,
@@ -199,7 +198,7 @@ class BaseResolverTests(unittest.TestCase):
 
     def testLRUDoesLRU(self):
         cache = dns.resolver.LRUCache(4)
-        for i in xrange(0, 4):
+        for i in range(0, 4):
             name = dns.name.from_text('example%d.' % i)
             answer = FakeAnswer(time.time() + 1)
             cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
@@ -209,7 +208,7 @@ class BaseResolverTests(unittest.TestCase):
         name = dns.name.from_text('example4.')
         answer = FakeAnswer(time.time() + 1)
         cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
-        for i in xrange(0, 5):
+        for i in range(0, 5):
             name = dns.name.from_text('example%d.' % i)
             if i == 1:
                 self.failUnless(cache.get((name, dns.rdatatype.A,
@@ -222,12 +221,12 @@ class BaseResolverTests(unittest.TestCase):
 
     def testLRUExpiration(self):
         cache = dns.resolver.LRUCache(4)
-        for i in xrange(0, 4):
+        for i in range(0, 4):
             name = dns.name.from_text('example%d.' % i)
             answer = FakeAnswer(time.time() + 1)
             cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
         time.sleep(2)
-        for i in xrange(0, 4):
+        for i in range(0, 4):
             name = dns.name.from_text('example%d.' % i)
             self.failUnless(cache.get((name, dns.rdatatype.A,
                                        dns.rdataclass.IN))
@@ -283,9 +282,6 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         try:
             raise dns.resolver.NXDOMAIN
         except dns.exception.DNSException as e:
-            if not PY3:
-                # pylint: disable=exception-message-attribute
-                self.assertTrue((e.message == e.__doc__))
             self.assertTrue((e.args == (e.__doc__,)))
             self.assertTrue(('kwargs' in dir(e)))
             self.assertTrue((str(e) == e.__doc__), str(e))
@@ -295,9 +291,6 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         try:
             raise dns.resolver.NXDOMAIN("errmsg")
         except dns.exception.DNSException as e:
-            if not PY3:
-                # pylint: disable=exception-message-attribute
-                self.assertTrue((e.message == "errmsg"))
             self.assertTrue((e.args == ("errmsg",)))
             self.assertTrue(('kwargs' in dir(e)))
             self.assertTrue((str(e) == "errmsg"), str(e))
@@ -307,9 +300,6 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         try:
             raise dns.resolver.NXDOMAIN("errmsg", -1)
         except dns.exception.DNSException as e:
-            if not PY3:
-                # pylint: disable=exception-message-attribute
-                self.assertTrue((e.message == ""))
             self.assertTrue((e.args == ("errmsg", -1)))
             self.assertTrue(('kwargs' in dir(e)))
             self.assertTrue((str(e) == "('errmsg', -1)"), str(e))
@@ -335,9 +325,6 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
             raise dns.resolver.NXDOMAIN(qnames=[n1])
         except dns.exception.DNSException as e:
             MSG = "The DNS query name does not exist: a.b."
-            if not PY3:
-                # pylint: disable=exception-message-attribute
-                self.assertTrue((e.message == MSG), e.message)
             self.assertTrue((e.args == (MSG,)), repr(e.args))
             self.assertTrue(('kwargs' in dir(e)))
             self.assertTrue((str(e) == MSG), str(e))
@@ -352,9 +339,6 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
             e0 = dns.resolver.NXDOMAIN("errmsg")
             e = e0 + e
             MSG = "None of DNS query names exist: a.b.s., a.b."
-            if not PY3:
-                # pylint: disable=exception-message-attribute
-                self.assertTrue((e.message == MSG), e.message)
             self.assertTrue((e.args == (MSG,)), repr(e.args))
             self.assertTrue(('kwargs' in dir(e)))
             self.assertTrue((str(e) == MSG), str(e))
@@ -372,9 +356,6 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
             raise dns.resolver.NXDOMAIN(qnames=[n1], responses={n1: 'r1.1'})
         except dns.resolver.NXDOMAIN as e:
             MSG = "The DNS query name does not exist: a.b."
-            if not PY3:
-                # pylint: disable=exception-message-attribute
-                self.assertTrue((e.message == MSG), e.message)
             self.assertTrue((e.args == (MSG,)), repr(e.args))
             self.assertTrue(('kwargs' in dir(e)))
             self.assertTrue((str(e) == MSG), str(e))

@@ -23,8 +23,6 @@ import dns.name
 import dns.ipv6
 import dns.ipv4
 
-from dns._compat import PY3
-
 ipv4_reverse_domain = dns.name.from_text('in-addr.arpa.')
 ipv6_reverse_domain = dns.name.from_text('ip6.arpa.')
 
@@ -44,10 +42,7 @@ def from_address(text):
     try:
         v6 = dns.ipv6.inet_aton(text)
         if dns.ipv6.is_mapped(v6):
-            if PY3:
-                parts = ['%d' % byte for byte in v6[12:]]
-            else:
-                parts = ['%d' % ord(byte) for byte in v6[12:]]
+            parts = ['%d' % byte for byte in v6[12:]]
             origin = ipv4_reverse_domain
         else:
             parts = [x for x in str(binascii.hexlify(v6).decode())]

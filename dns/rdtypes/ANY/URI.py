@@ -21,7 +21,6 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.name
-from dns._compat import text_type
 
 
 class URI(dns.rdata.Rdata):
@@ -44,7 +43,7 @@ class URI(dns.rdata.Rdata):
         self.weight = weight
         if len(target) < 1:
             raise dns.exception.SyntaxError("URI target cannot be empty")
-        if isinstance(target, text_type):
+        if isinstance(target, str):
             self.target = target.encode()
         else:
             self.target = target

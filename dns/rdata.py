@@ -27,7 +27,6 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
 import dns.wiredata
-from ._compat import xrange, string_types, text_type
 
 try:
     import threading as _threading
@@ -65,7 +64,7 @@ __escaped = bytearray(b'"\\')
 def _escapify(qstring):
     """Escape the characters in a quoted string which need it."""
 
-    if isinstance(qstring, text_type):
+    if isinstance(qstring, str):
         qstring = qstring.encode()
     if not isinstance(qstring, bytearray):
         qstring = bytearray(qstring)
@@ -86,7 +85,7 @@ def _truncate_bitmap(what):
     return the bitmap that contains all the bytes less than that index.
     """
 
-    for i in xrange(len(what) - 1, -1, -1):
+    for i in range(len(what) - 1, -1, -1):
         if what[i] != 0:
             return what[0: i + 1]
     return what[0:1]
@@ -370,7 +369,7 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True):
     Returns an instance of the chosen Rdata subclass.
     """
 
-    if isinstance(tok, string_types):
+    if isinstance(tok, str):
         tok = dns.tokenizer.Tokenizer(tok)
     cls = get_rdata_class(rdclass, rdtype)
     if cls != GenericRdata:

@@ -20,7 +20,6 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-from dns._compat import long, text_type
 
 
 def _validate_float_string(what):
@@ -38,7 +37,7 @@ def _validate_float_string(what):
 
 
 def _sanitize(value):
-    if isinstance(value, text_type):
+    if isinstance(value, str):
         return value.encode()
     return value
 
@@ -60,16 +59,13 @@ class GPOS(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, latitude, longitude, altitude):
         super(GPOS, self).__init__(rdclass, rdtype)
         if isinstance(latitude, float) or \
-           isinstance(latitude, int) or \
-           isinstance(latitude, long):
+           isinstance(latitude, int):
             latitude = str(latitude)
         if isinstance(longitude, float) or \
-           isinstance(longitude, int) or \
-           isinstance(longitude, long):
+           isinstance(longitude, int):
             longitude = str(longitude)
         if isinstance(altitude, float) or \
-           isinstance(altitude, int) or \
-           isinstance(altitude, long):
+           isinstance(altitude, int):
             altitude = str(altitude)
         latitude = _sanitize(latitude)
         longitude = _sanitize(longitude)

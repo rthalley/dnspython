@@ -20,7 +20,6 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-from dns._compat import text_type
 
 
 class X25(dns.rdata.Rdata):
@@ -35,7 +34,7 @@ class X25(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address):
         super(X25, self).__init__(rdclass, rdtype)
-        if isinstance(address, text_type):
+        if isinstance(address, str):
             self.address = address.encode()
         else:
             self.address = address

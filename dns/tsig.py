@@ -24,7 +24,6 @@ import struct
 import dns.exception
 import dns.rdataclass
 import dns.name
-from ._compat import long, string_types, text_type
 
 class BadTime(dns.exception.DNSException):
 
@@ -97,7 +96,7 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    if isinstance(other_data, text_type):
+    if isinstance(other_data, str):
         other_data = other_data.encode()
     (algorithm_name, digestmod) = get_algorithm(algorithm)
     if first:
@@ -113,9 +112,8 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
         ctx.update(keyname.to_digestable())
         ctx.update(struct.pack('!H', dns.rdataclass.ANY))
         ctx.update(struct.pack('!I', 0))
-    long_time = time + long(0)
-    upper_time = (long_time >> 32) & long(0xffff)
-    lower_time = long_time & long(0xffffffff)
+    upper_time = (time >> 32) & 0xffff
+    lower_time = time & 0xffffffff
     time_mac = struct.pack('!HIH', upper_time, lower_time, fudge)
     pre_mac = algorithm_name + time_mac
     ol = len(other_data)
@@ -167,7 +165,7 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
     current = current + used
     (upper_time, lower_time, fudge, mac_size) = \
         struct.unpack("!HIHH", wire[current:current + 10])
-    time = ((upper_time + long(0)) << 32) + (lower_time + long(0))
+    time = (upper_time << 32) + lower_time
     current += 10
     mac = wire[current:current + mac_size]
     current += mac_size
@@ -209,7 +207,7 @@ def get_algorithm(algorithm):
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    if isinstance(algorithm, string_types):
+    if isinstance(algorithm, str):
         algorithm = dns.name.from_text(algorithm)
 
     try:

@@ -20,7 +20,6 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-from dns._compat import text_type
 
 
 class ISDN(dns.rdata.Rdata):
@@ -37,11 +36,11 @@ class ISDN(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address, subaddress):
         super(ISDN, self).__init__(rdclass, rdtype)
-        if isinstance(address, text_type):
+        if isinstance(address, str):
             self.address = address.encode()
         else:
             self.address = address
-        if isinstance(address, text_type):
+        if isinstance(address, str):
             self.subaddress = subaddress.encode()
         else:
             self.subaddress = subaddress

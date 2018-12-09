@@ -20,7 +20,6 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-from dns._compat import text_type
 
 
 class HINFO(dns.rdata.Rdata):
@@ -37,11 +36,11 @@ class HINFO(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, cpu, os):
         super(HINFO, self).__init__(rdclass, rdtype)
-        if isinstance(cpu, text_type):
+        if isinstance(cpu, str):
             self.cpu = cpu.encode()
         else:
             self.cpu = cpu
-        if isinstance(os, text_type):
+        if isinstance(os, str):
             self.os = os.encode()
         else:
             self.os = os

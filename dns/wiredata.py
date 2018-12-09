@@ -18,7 +18,6 @@
 """DNS Wire Data Helper"""
 
 import dns.exception
-from ._compat import binary_type, string_types, PY2
 
 # Figure out what constant python passes for an unspecified slice bound.
 # It's supposed to be sys.maxint, yet on 64-bit windows sys.maxint is 2^31 - 1
@@ -27,19 +26,15 @@ from ._compat import binary_type, string_types, PY2
 # out what constant Python will use.
 
 
-class _SliceUnspecifiedBound(binary_type):
+class _SliceUnspecifiedBound(bytes):
 
     def __getitem__(self, key):
         return key.stop
 
-    if PY2:
-        def __getslice__(self, i, j):  # pylint: disable=getslice-method
-            return self.__getitem__(slice(i, j))
-
 _unspecified_bound = _SliceUnspecifiedBound()[1:]
 
 
-class WireData(binary_type):
+class WireData(bytes):
     # WireData is a binary type with stricter slicing
 
     def __getitem__(self, key):
@@ -51,34 +46,17 @@ class WireData(binary_type):
                 start = key.start
                 stop = key.stop
 
-                if PY2:
-                    if stop == _unspecified_bound:
-                        # handle the case where the right bound is unspecified
-                        stop = len(self)
-
-                    if start < 0 or stop < 0:
+                for index in (start, stop):
+                    if index is None:
+                        continue
+                    elif abs(index) > len(self):
                         raise dns.exception.FormError
-                    # If it's not an empty slice, access left and right bounds
-                    # to make sure they're valid
-                    if start != stop:
-                        super(WireData, self).__getitem__(start)
-                        super(WireData, self).__getitem__(stop - 1)
-                else:
-                    for index in (start, stop):
-                        if index is None:
-                            continue
-                        elif abs(index) > len(self):
-                            raise dns.exception.FormError
 
                 return WireData(super(WireData, self).__getitem__(
                     slice(start, stop)))
             return bytearray(self.unwrap())[key]
         except IndexError:
             raise dns.exception.FormError
-
-    if PY2:
-        def __getslice__(self, i, j):  # pylint: disable=getslice-method
-            return self.__getitem__(slice(i, j))
 
     def __iter__(self):
         i = 0
@@ -90,14 +68,14 @@ class WireData(binary_type):
                 raise StopIteration
 
     def unwrap(self):
-        return binary_type(self)
+        return bytes(self)
 
 
 def maybe_wrap(wire):
     if isinstance(wire, WireData):
         return wire
-    elif isinstance(wire, binary_type):
+    elif isinstance(wire, bytes):
         return WireData(wire)
-    elif isinstance(wire, string_types):
+    elif isinstance(wire, str):
         return WireData(wire.encode())
     raise ValueError("unhandled type %s" % type(wire))

@@ -22,7 +22,6 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-from dns._compat import binary_type, string_types
 
 
 class TXTBase(dns.rdata.Rdata):
@@ -37,12 +36,12 @@ class TXTBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, strings):
         super(TXTBase, self).__init__(rdclass, rdtype)
-        if isinstance(strings, binary_type) or \
-           isinstance(strings, string_types):
+        if isinstance(strings, bytes) or \
+           isinstance(strings, str):
             strings = [strings]
         self.strings = []
         for string in strings:
-            if isinstance(string, string_types):
+            if isinstance(string, str):
                 string = string.encode()
             self.strings.append(string)
 
@@ -66,7 +65,7 @@ class TXTBase(dns.rdata.Rdata):
             if len(token.value) > 255:
                 raise dns.exception.SyntaxError("string too long")
             value = token.value
-            if isinstance(value, binary_type):
+            if isinstance(value, bytes):
                 strings.append(value)
             else:
                 strings.append(value.encode())
