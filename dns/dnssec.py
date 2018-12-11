@@ -496,9 +496,7 @@ except ImportError:
 
     def _fake_hash(alias):
         class FakeHash:
-            @staticmethod
-            def new():
-                return alias()
+            new = alias
 
         return FakeHash
 
