@@ -491,6 +491,25 @@ except ImportError:
     validate_rrsig = _need_pycrypto
     _have_pycrypto = False
     _have_ecdsa = False
+
+    import hashlib
+
+    def _fake_hash(alias):
+        class FakeHash:
+            @staticmethod
+            def new():
+                return alias()
+
+        return FakeHash
+
+    MD5 = _fake_hash(hashlib.md5)
+    SHA1 = _fake_hash(hashlib.sha1)
+    SHA256 = _fake_hash(hashlib.sha256)
+    SHA384 = _fake_hash(hashlib.sha384)
+    SHA512 = _fake_hash(hashlib.sha512)
+
+    del _fake_hash, hashlib
+
 else:
     validate = _validate
     validate_rrsig = _validate_rrsig
