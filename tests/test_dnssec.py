@@ -188,9 +188,7 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
 
-    def testMakeExampleSHA256DS(self): # type: () -> None
-        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
-        self.failUnless(ds == example_ds_sha256)
+
 
     @unittest.skipUnless(dns.dnssec._have_ecdsa,
                          "python ECDSA cannot be imported")
@@ -230,5 +228,11 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
     def testMakeExampleSHA1DS(self): # type: () -> None
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA1')
         self.failUnless(ds == example_ds_sha1)
+
+    def testMakeExampleSHA256DS(self): # type: () -> None
+        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
+        self.failUnless(ds == example_ds_sha256)
+
+
 if __name__ == '__main__':
     unittest.main()

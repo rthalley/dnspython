@@ -18,6 +18,7 @@
 """Common DNSSEC-related functions and constants."""
 
 from io import BytesIO
+import hashlib
 import struct
 import time
 
@@ -163,10 +164,10 @@ def make_ds(name, key, algorithm, origin=None):
 
     if algorithm.upper() == 'SHA1':
         dsalg = 1
-        hash = SHA1.new()
+        hash = hashlib.sha1()
     elif algorithm.upper() == 'SHA256':
         dsalg = 2
-        hash = SHA256.new()
+        hash = hashlib.sha256()
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
@@ -238,15 +239,15 @@ def _is_sha512(algorithm):
 
 def _make_hash(algorithm):
     if _is_md5(algorithm):
-        return MD5.new()
+        return hashlib.md5()
     if _is_sha1(algorithm):
-        return SHA1.new()
+        return hashlib.sha1()
     if _is_sha256(algorithm):
-        return SHA256.new()
+        return hashlib.sha256()
     if _is_sha384(algorithm):
-        return SHA384.new()
+        return hashlib.sha384()
     if _is_sha512(algorithm):
-        return SHA512.new()
+        return hashlib.sha512()
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
 
 
@@ -477,12 +478,10 @@ def _need_pycrypto(*args, **kwargs):
 try:
     try:
         # test we're using pycryptodome, not pycrypto (which misses SHA1 for example)
-        from Crypto.Hash import MD5, SHA1, SHA256, SHA384, SHA512
         from Crypto.PublicKey import RSA as CryptoRSA, DSA as CryptoDSA
         from Crypto.Signature import pkcs1_15, DSS
         from Crypto.Util import number
     except ImportError:
-        from Cryptodome.Hash import MD5, SHA1, SHA256, SHA384, SHA512
         from Cryptodome.PublicKey import RSA as CryptoRSA, DSA as CryptoDSA
         from Cryptodome.Signature import pkcs1_15, DSS
         from Cryptodome.Util import number
@@ -491,23 +490,6 @@ except ImportError:
     validate_rrsig = _need_pycrypto
     _have_pycrypto = False
     _have_ecdsa = False
-
-    import hashlib
-
-    def _fake_hash(alias):
-        class FakeHash:
-            new = alias
-
-        return FakeHash
-
-    MD5 = _fake_hash(hashlib.md5)
-    SHA1 = _fake_hash(hashlib.sha1)
-    SHA256 = _fake_hash(hashlib.sha256)
-    SHA384 = _fake_hash(hashlib.sha384)
-    SHA512 = _fake_hash(hashlib.sha512)
-
-    del _fake_hash, hashlib
-
 else:
     validate = _validate
     validate_rrsig = _validate_rrsig
