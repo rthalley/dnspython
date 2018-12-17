@@ -30,12 +30,63 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
 
+
 class UnsupportedAlgorithm(dns.exception.DNSException):
     """The DNSSEC algorithm is not supported."""
 
 
 class ValidationFailure(dns.exception.DNSException):
     """The DNSSEC signature is invalid."""
+
+
+class Hash:
+    """
+    Compatibilty Hash method
+
+    Has the same inteface as the stdlib hashlib.hash, with the added `oid`
+    attribute used by the crypto module
+
+    """
+    _oid_map = {
+        'MD5': '1.2.840.113549.2.5',
+        'SHA1': '1.3.14.3.2.26',
+        'SHA256': '2.16.840.1.101.3.4.2.1',
+        'SHA384': '2.16.840.1.101.3.4.2.2',
+        'SHA512': '2.16.840.1.101.3.4.2.3',
+    }
+
+    @classmethod
+    def new(cls, name, data=b''):
+        self = cls()
+        self._hash = hashlib.new(name, data)
+
+        return self
+
+    def update(self, data):
+        self._hash.update(data)
+
+    def digest(self):
+        return self._hash.digest()
+
+    def hexdigest(self):
+        return self._hash.hexdigest()
+
+    def copy(self):
+        copy = cls()
+        copy._hash = self._hash.copy()
+
+        return copy
+
+    @property
+    def name(self):
+        return self._hash.name
+
+    @property
+    def oid(self):
+        try:
+            return self._oid_map[self.name]
+        except KeyError:
+            raise RuntimeError('OID for algorithm %s is unknown' % self.name)
 
 
 #: RSAMD5
@@ -164,10 +215,10 @@ def make_ds(name, key, algorithm, origin=None):
 
     if algorithm.upper() == 'SHA1':
         dsalg = 1
-        hash = hashlib.sha1()
+        hash = Hash.new('SHA1')
     elif algorithm.upper() == 'SHA256':
         dsalg = 2
-        hash = hashlib.sha256()
+        hash = Hash.new('SHA256')
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
@@ -239,15 +290,15 @@ def _is_sha512(algorithm):
 
 def _make_hash(algorithm):
     if _is_md5(algorithm):
-        return hashlib.md5()
+        return Hash.new('MD5')
     if _is_sha1(algorithm):
-        return hashlib.sha1()
+        return Hash.new('SHA1')
     if _is_sha256(algorithm):
-        return hashlib.sha256()
+        return Hash.new('sha256')
     if _is_sha384(algorithm):
-        return hashlib.sha384()
+        return Hash.new('sha384')
     if _is_sha512(algorithm):
-        return hashlib.sha512()
+        return Hash.new('sha512')
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
 
 
