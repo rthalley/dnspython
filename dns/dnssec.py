@@ -55,6 +55,9 @@ class Hash:
         'SHA512': '2.16.840.1.101.3.4.2.3',
     }
 
+    def __init__(self):
+        self._hash = None
+
     @classmethod
     def new(cls, name, data=b''):
         self = cls()
@@ -72,7 +75,7 @@ class Hash:
         return self._hash.hexdigest()
 
     def copy(self):
-        copy = cls()
+        copy = Hash()
         copy._hash = self._hash.copy()
 
         return copy
