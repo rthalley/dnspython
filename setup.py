@@ -73,6 +73,7 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'python_requires': '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     'test_suite': 'tests',
     'provides': ['dns'],
+    'tests_require': ['typing ; python_version<"3.5"'],
     'extras_require': {
         'IDNA': ['idna>=2.1'],
         'DNSSEC': ['pycryptodome', 'ecdsa>=0.13'],
