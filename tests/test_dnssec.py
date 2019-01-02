@@ -177,10 +177,6 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                                 abs_dnspython_org, when)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
-    def testMakeSHA256DS(self): # type: () -> None
-        ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
-        self.failUnless(ds == good_ds)
-
     def testAbsoluteDSAGood(self): # type: () -> None
         dns.dnssec.validate(abs_dsa_soa, abs_dsa_soa_rrsig, abs_dsa_keys, None,
                             when2)
@@ -190,14 +186,6 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             dns.dnssec.validate(abs_other_dsa_soa, abs_dsa_soa_rrsig,
                                 abs_dsa_keys, None, when2)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
-
-    def testMakeExampleSHA1DS(self): # type: () -> None
-        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA1')
-        self.failUnless(ds == example_ds_sha1)
-
-    def testMakeExampleSHA256DS(self): # type: () -> None
-        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
-        self.failUnless(ds == example_ds_sha256)
 
     @unittest.skipUnless(dns.dnssec._have_ecdsa,
                          "python ECDSA cannot be imported")
@@ -226,6 +214,21 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             dns.dnssec.validate(abs_other_ecdsa384_soa, abs_ecdsa384_soa_rrsig,
                                 abs_ecdsa384_keys, None, when4)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
+
+
+class DNSSECMakeDSTestCase(unittest.TestCase):
+
+    def testMakeExampleSHA1DS(self): # type: () -> None
+        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA1')
+        self.failUnless(ds == example_ds_sha1)
+
+    def testMakeExampleSHA256DS(self): # type: () -> None
+        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
+        self.failUnless(ds == example_ds_sha256)
+
+    def testMakeSHA256DS(self): # type: () -> None
+        ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
+        self.failUnless(ds == good_ds)
 
 
 if __name__ == '__main__':
