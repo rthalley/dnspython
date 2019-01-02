@@ -150,67 +150,66 @@ abs_ecdsa384_soa_rrsig = dns.rrset.from_text('example.', 86400, 'IN', 'RRSIG',
                                              "SOA 14 1 86400 20130929021229 20130921230729 63571 example. CrnCu34EeeRz0fEhL9PLlwjpBKGYW8QjBjFQTwd+ViVLRAS8tNkcDwQE NhSV89NEjj7ze1a/JcCfcJ+/mZgnvH4NHLNg3Tf6KuLZsgs2I4kKQXEk 37oIHravPEOlGYNI")
 
 
-
 @unittest.skipUnless(dns.dnssec._have_pycrypto,
                      "Pycryptodome cannot be imported")
 class DNSSECValidatorTestCase(unittest.TestCase):
 
-    def testAbsoluteRSAGood(self): # type: () -> None
+    def testAbsoluteRSAGood(self):  # type: () -> None
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, abs_keys, None, when)
 
-    def testDuplicateKeytag(self): # type: () -> None
+    def testDuplicateKeytag(self):  # type: () -> None
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, abs_keys_duplicate_keytag, None, when)
 
-    def testAbsoluteRSABad(self): # type: () -> None
-        def bad(): # type: () -> None
+    def testAbsoluteRSABad(self):  # type: () -> None
+        def bad():  # type: () -> None
             dns.dnssec.validate(abs_other_soa, abs_soa_rrsig, abs_keys, None,
                                 when)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
-    def testRelativeRSAGood(self): # type: () -> None
+    def testRelativeRSAGood(self):  # type: () -> None
         dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
                             abs_dnspython_org, when)
 
-    def testRelativeRSABad(self): # type: () -> None
-        def bad(): # type: () -> None
+    def testRelativeRSABad(self):  # type: () -> None
+        def bad():  # type: () -> None
             dns.dnssec.validate(rel_other_soa, rel_soa_rrsig, rel_keys,
                                 abs_dnspython_org, when)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
-    def testAbsoluteDSAGood(self): # type: () -> None
+    def testAbsoluteDSAGood(self):  # type: () -> None
         dns.dnssec.validate(abs_dsa_soa, abs_dsa_soa_rrsig, abs_dsa_keys, None,
                             when2)
 
-    def testAbsoluteDSABad(self): # type: () -> None
-        def bad(): # type: () -> None
+    def testAbsoluteDSABad(self):  # type: () -> None
+        def bad():  # type: () -> None
             dns.dnssec.validate(abs_other_dsa_soa, abs_dsa_soa_rrsig,
                                 abs_dsa_keys, None, when2)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
     @unittest.skipUnless(dns.dnssec._have_ecdsa,
                          "python ECDSA cannot be imported")
-    def testAbsoluteECDSA256Good(self): # type: () -> None
+    def testAbsoluteECDSA256Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ecdsa256_soa, abs_ecdsa256_soa_rrsig,
                             abs_ecdsa256_keys, None, when3)
 
     @unittest.skipUnless(dns.dnssec._have_ecdsa,
                          "python ECDSA cannot be imported")
-    def testAbsoluteECDSA256Bad(self): # type: () -> None
-        def bad(): # type: () -> None
+    def testAbsoluteECDSA256Bad(self):  # type: () -> None
+        def bad():  # type: () -> None
             dns.dnssec.validate(abs_other_ecdsa256_soa, abs_ecdsa256_soa_rrsig,
                                 abs_ecdsa256_keys, None, when3)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
 
     @unittest.skipUnless(dns.dnssec._have_ecdsa,
                          "python ECDSA cannot be imported")
-    def testAbsoluteECDSA384Good(self): # type: () -> None
+    def testAbsoluteECDSA384Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ecdsa384_soa, abs_ecdsa384_soa_rrsig,
                             abs_ecdsa384_keys, None, when4)
 
     @unittest.skipUnless(dns.dnssec._have_ecdsa,
                          "python ECDSA cannot be imported")
-    def testAbsoluteECDSA384Bad(self): # type: () -> None
-        def bad(): # type: () -> None
+    def testAbsoluteECDSA384Bad(self):  # type: () -> None
+        def bad():  # type: () -> None
             dns.dnssec.validate(abs_other_ecdsa384_soa, abs_ecdsa384_soa_rrsig,
                                 abs_ecdsa384_keys, None, when4)
         self.failUnlessRaises(dns.dnssec.ValidationFailure, bad)
@@ -218,15 +217,15 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
 
-    def testMakeExampleSHA1DS(self): # type: () -> None
+    def testMakeExampleSHA1DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA1')
         self.failUnless(ds == example_ds_sha1)
 
-    def testMakeExampleSHA256DS(self): # type: () -> None
+    def testMakeExampleSHA256DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
         self.failUnless(ds == example_ds_sha256)
 
-    def testMakeSHA256DS(self): # type: () -> None
+    def testMakeSHA256DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
         self.failUnless(ds == good_ds)
 
