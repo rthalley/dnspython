@@ -24,7 +24,6 @@ __all__ = [
     'entropy',
     'exception',
     'flags',
-    'hash',
     'inet',
     'ipv4',
     'ipv6',
