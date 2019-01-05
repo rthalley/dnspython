@@ -743,6 +743,7 @@ class _WireReader(object):
         (self.message.id, self.message.flags, qcount, ancount,
          aucount, adcount) = struct.unpack('!HHHHHH', self.wire[:12])
         self.current = 12
+        self.message.original_id = self.message.id
         if dns.opcode.is_update(self.message.flags):
             self.updating = True
         if self.message.flags & dns.flags.TC:
