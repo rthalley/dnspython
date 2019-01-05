@@ -1162,7 +1162,10 @@ _original_gethostbyaddr = socket.gethostbyaddr
 def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
                  proto=0, flags=0):
     if flags & (socket.AI_ADDRCONFIG | socket.AI_V4MAPPED) != 0:
-        raise NotImplementedError
+        # Not implemented.  We raise a gaierror as opposed to a
+        # NotImplementedError as it helps callers handle errors more
+        # appropriately.  [Issue #316]
+        raise socket.gaierror(socket.EAI_SYSTEM)
     if host is None and service is None:
         raise socket.gaierror(socket.EAI_NONAME)
     v6addrs = []
