@@ -180,6 +180,8 @@ class NoRootSOA(dns.exception.DNSException):
 class NoMetaqueries(dns.exception.DNSException):
     """DNS metaqueries are not allowed."""
 
+class NoResolverConfiguration(dns.exception.DNSException):
+    """Resolver configuration could not be read or specified no nameservers."""
 
 class Answer(object):
     """DNS stub resolver answer.
@@ -576,9 +578,7 @@ class Resolver(object):
                 f = open(f, 'r')
             except IOError:
                 # /etc/resolv.conf doesn't exist, can't be read, etc.
-                # We'll just use the default resolver configuration.
-                self.nameservers = ['127.0.0.1']
-                return
+                raise NoResolverConfiguration
             want_close = True
         else:
             want_close = False
@@ -606,7 +606,7 @@ class Resolver(object):
             if want_close:
                 f.close()
         if len(self.nameservers) == 0:
-            self.nameservers.append('127.0.0.1')
+            raise NoResolverConfiguration
 
     def _determine_split_char(self, entry):
         #
