@@ -29,8 +29,8 @@ class NSEC3TestCase(unittest.TestCase):
                 u"1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715 A CAA TYPE65534")
         bitmap = bytearray(b'\0' * 32)
         bitmap[31] = bitmap[31] | 2
-        self.assertEqual(rdata.windows, [(0, bytearray(b'@')),
-                                         (1, bytearray(b'@')), # CAA = 257
+        self.assertEqual(rdata.windows, [(0, b'@'),
+                                         (1, b'@'), # CAA = 257
                                          (255, bitmap)
                                         ])
 

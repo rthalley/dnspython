@@ -54,7 +54,7 @@ class WireData(bytes):
 
                 return WireData(super(WireData, self).__getitem__(
                     slice(start, stop)))
-            return bytearray(self.unwrap())[key]
+            return self.unwrap()[key]
         except IndexError:
             raise dns.exception.FormError
 

@@ -130,7 +130,6 @@ def key_id(key, origin=None):
     """
 
     rdata = _to_rdata(key, origin)
-    rdata = bytearray(rdata)
     if key.algorithm == RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:

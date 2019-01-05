@@ -31,8 +31,6 @@ def inet_ntoa(address):
 
     if len(address) != 4:
         raise dns.exception.SyntaxError
-    if not isinstance(address, bytearray):
-        address = bytearray(address)
     return ('%u.%u.%u.%u' % (address[0], address[1],
                              address[2], address[3]))
 

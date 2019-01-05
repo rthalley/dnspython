@@ -49,7 +49,7 @@ def from_address(text):
             origin = ipv6_reverse_domain
     except Exception:
         parts = ['%d' %
-                 byte for byte in bytearray(dns.ipv4.inet_aton(text))]
+                 byte for byte in dns.ipv4.inet_aton(text)]
         origin = ipv4_reverse_domain
     parts.reverse()
     return dns.name.from_text('.'.join(parts), origin=origin)

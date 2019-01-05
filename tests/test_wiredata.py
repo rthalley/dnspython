@@ -59,10 +59,10 @@ class WireDataSlicingTestCase(unittest.TestCase):
         """Get data one by one item"""
         data = b'0123456789'
         inst = WireData(data)
-        for i, byte in enumerate(bytearray(data)):
+        for i, byte in enumerate(data):
             self.assertEqual(inst[i], byte)
         for i in range(-1, len(data) * -1, -1):
-            self.assertEqual(inst[i], bytearray(data)[i])
+            self.assertEqual(inst[i], data[i])
 
     def testEmptySlice(self):
         """Test empty slice"""

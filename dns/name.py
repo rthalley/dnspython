@@ -227,7 +227,7 @@ class IDNA2008Codec(IDNACodec):
         except idna.IDNAError as e:
             raise IDNAException(idna_exception=e)
 
-_escaped = bytearray(b'"().;\\@$')
+_escaped = b'"().;\\@$'
 
 IDNA_2003_Practical = IDNA2003Codec(False)
 IDNA_2003_Strict = IDNA2003Codec(True)
@@ -248,7 +248,7 @@ def _escapify(label, unicode_mode=False):
         text = ''
         if isinstance(label, str):
             label = label.encode()
-        for c in bytearray(label):
+        for c in label:
             if c in _escaped:
                 text += '\\' + chr(c)
             elif c > 0x20 and c < 0x7F:
@@ -374,7 +374,7 @@ class Name(object):
 
         h = 0
         for label in self.labels:
-            for c in bytearray(label.lower()):
+            for c in label.lower():
                 h += (h << 3) + c
         return h % maxint
 
@@ -899,7 +899,7 @@ def from_text(text, origin=root, idna_codec=None):
     if text:
         if text == b'.':
             return Name([b''])
-        for c in bytearray(text):
+        for c in text:
             byte_ = struct.pack('!B', c)
             if escaping:
                 if edigits == 0:

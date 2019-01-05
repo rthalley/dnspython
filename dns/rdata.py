@@ -59,7 +59,7 @@ def _base64ify(data, chunksize=_base64_chunksize):
                       for i
                       in range(0, len(line), chunksize)]).decode()
 
-__escaped = bytearray(b'"\\')
+__escaped = b'"\\'
 
 def _escapify(qstring):
     """Escape the characters in a quoted string which need it."""
