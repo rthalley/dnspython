@@ -208,5 +208,21 @@ class MessageTestCase(unittest.TestCase):
                             dns.rdatatype.SOA)
         self.failUnless(rrs1 == rrs2)
 
+    def test_CleanTruncated(self):
+        def bad():
+            a = dns.message.from_text(answer_text)
+            a.flags |= dns.flags.TC
+            wire = a.to_wire(want_shuffle=False)
+            dns.message.from_wire(wire)
+        self.failUnlessRaises(dns.message.Truncated, bad)
+
+    def test_MessyTruncated(self):
+        def bad():
+            a = dns.message.from_text(answer_text)
+            a.flags |= dns.flags.TC
+            wire = a.to_wire(want_shuffle=False)
+            dns.message.from_wire(wire[:-3])
+        self.failUnlessRaises(dns.message.Truncated, bad)
+
 if __name__ == '__main__':
     unittest.main()

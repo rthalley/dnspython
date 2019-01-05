@@ -905,11 +905,13 @@ class Resolver(object):
                                                      source=source,
                                                      source_port=source_port)
                         else:
-                            response = dns.query.udp(request, nameserver,
-                                                     timeout, port,
-                                                     source=source,
-                                                     source_port=source_port)
-                            if response.flags & dns.flags.TC:
+                            try:
+                                response = dns.query.udp(request, nameserver,
+                                                         timeout, port,
+                                                         source=source,
+                                                         source_port=\
+                                                         source_port)
+                            except dns.message.Truncated:
                                 # Response truncated; retry with TCP.
                                 tcp_attempt = True
                                 timeout = self._compute_timeout(start, lifetime)

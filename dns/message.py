@@ -66,6 +66,10 @@ class UnknownTSIGKey(dns.exception.DNSException):
     """A TSIG with an unknown key was received."""
 
 
+class Truncated(dns.exception.DNSException):
+    """The truncated flag is set."""
+
+
 #: The question section number
 QUESTION = 0
 
@@ -741,6 +745,8 @@ class _WireReader(object):
         self.current = 12
         if dns.opcode.is_update(self.message.flags):
             self.updating = True
+        if self.message.flags & dns.flags.TC:
+            raise Truncated
         self._get_question(qcount)
         if self.question_only:
             return
@@ -803,6 +809,8 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
 
     Raises ``dns.message.BadTSIG`` if a TSIG record was not the last
     record of the additional data section.
+
+    Raises ``dns.message.Truncated`` if the TC flag is set.
 
     Returns a ``dns.message.Message``.
     """
