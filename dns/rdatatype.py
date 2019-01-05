@@ -170,6 +170,9 @@ _by_text = {
 # would cause the mapping not to be true inverse.
 
 _by_value = {y: x for x, y in _by_text.items()}
+# Render type 0 as "TYPE0" not "NONE", as NONE is a dnspython-ism and not
+# an official mnemonic.
+_by_value[0] = 'TYPE0'
 
 _metatypes = {
     OPT: True

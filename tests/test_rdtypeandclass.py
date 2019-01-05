@@ -121,5 +121,8 @@ class RdTypeAndClassTestCase(unittest.TestCase):
             dns.rdatatype.to_text(65536)
         self.failUnlessRaises(ValueError, bad)
 
+    def test_type0_totext(self):
+        self.failUnless(dns.rdatatype.to_text(0) == 'TYPE0')
+
 if __name__ == '__main__':
     unittest.main()
