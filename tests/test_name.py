@@ -260,6 +260,18 @@ class NameTestCase(unittest.TestCase):
         t = n.to_unicode()
         self.assertEqual(t, r'a\.b.c.')
 
+    def testToText13(self):
+        n = dns.name.from_text(r'\150\151\152\153\154\155\156\157\158\159.')
+        t = n.to_text()
+        self.assertEqual(t, r'\150\151\152\153\154\155\156\157\158\159.')
+
+    def testToText14(self):
+        # You can't send this to_unicode() as it wasn't unicode to begin with.
+        def bad():
+            n = dns.name.from_text(r'\150\151\152\153\154\155\156\157\158\159.')
+            t = n.to_unicode()
+        self.failUnlessRaises(UnicodeDecodeError, bad)
+
     def testSlice1(self):
         n = dns.name.from_text(r'a.b.c.', origin=None)
         s = n[:]

@@ -111,12 +111,6 @@ class IDNACodec(object):
     def is_idna(self, label):
         return label.lower().startswith(b'xn--')
 
-    def is_all_ascii(self, label):
-        for c in label:
-            if ord(c) > 0x7f:
-                return False
-        return True
-
     def encode(self, label):
         raise NotImplementedError
 
@@ -204,7 +198,7 @@ class IDNA2008Codec(IDNACodec):
     def encode(self, label):
         if label == '':
             return b''
-        if self.allow_pure_ascii and self.is_all_ascii(label):
+        if self.allow_pure_ascii and is_all_ascii(label):
             return label.encode('ascii')
         if not have_idna_2008:
             raise NoIDNA2008
@@ -868,6 +862,11 @@ def from_unicode(text, origin=root, idna_codec=None):
         labels.extend(list(origin.labels))
     return Name(labels)
 
+def is_all_ascii(text):
+    for c in text:
+        if ord(c) > 0x7f:
+            return False
+    return True
 
 def from_text(text, origin=root, idna_codec=None):
     """Convert text into a Name object.
@@ -885,7 +884,18 @@ def from_text(text, origin=root, idna_codec=None):
     """
 
     if isinstance(text, str):
-        return from_unicode(text, origin, idna_codec)
+        if not is_all_ascii(text):
+            # Some codepoint in the input text is > 127, so IDNA applies.
+            return from_unicode(text, origin, idna_codec)
+        # The input is all ASCII, so treat this like an ordinary non-IDNA
+        # domain name.  Note that "all ASCII" is about the input text,
+        # not the codepoints in the domain name.  E.g. if text has value
+        #
+        # r'\150\151\152\153\154\155\156\157\158\159'
+        #
+        # then it's still "all ASCII" even though the domain name has
+        # codepoints > 127.
+        text = text.encode('ascii')
     if not isinstance(text, bytes):
         raise ValueError("input to from_text() must be a string")
     if not (origin is None or isinstance(origin, Name)):
