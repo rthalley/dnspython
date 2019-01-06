@@ -255,6 +255,11 @@ class NameTestCase(unittest.TestCase):
         t = dns.name.root.to_unicode()
         self.assertEqual(t, '.')
 
+    def testToText12(self):
+        n = dns.name.from_text(r'a\.b.c')
+        t = n.to_unicode()
+        self.assertEqual(t, r'a\.b.c.')
+
     def testSlice1(self):
         n = dns.name.from_text(r'a.b.c.', origin=None)
         s = n[:]
