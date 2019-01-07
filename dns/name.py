@@ -121,8 +121,6 @@ class IDNACodec(object):
                 label = label[4:].decode('punycode')
             except Exception as e:
                 raise IDNAException(idna_exception=e)
-        else:
-            label = label.decode()
         return _escapify(label)
 
 
