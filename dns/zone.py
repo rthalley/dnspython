@@ -506,7 +506,7 @@ class Zone(object):
 
         if nl is None:
             nl_b = os.linesep.encode(file_enc)  # binary mode, '\n' is not enough
-            nl = u'\n'
+            nl = '\n'
         elif isinstance(nl, str):
             nl_b = nl.encode(file_enc)
         else:
@@ -839,21 +839,21 @@ class _MasterReader(object):
         for i in range(start, stop + 1, step):
             # +1 because bind is inclusive and python is exclusive
 
-            if lsign == u'+':
+            if lsign == '+':
                 lindex = i + int(loffset)
-            elif lsign == u'-':
+            elif lsign == '-':
                 lindex = i - int(loffset)
 
-            if rsign == u'-':
+            if rsign == '-':
                 rindex = i - int(roffset)
-            elif rsign == u'+':
+            elif rsign == '+':
                 rindex = i + int(roffset)
 
             lzfindex = str(lindex).zfill(int(lwidth))
             rzfindex = str(rindex).zfill(int(rwidth))
 
-            name = lhs.replace(u'$%s' % (lmod), lzfindex)
-            rdata = rhs.replace(u'$%s' % (rmod), rzfindex)
+            name = lhs.replace('$%s' % (lmod), lzfindex)
+            rdata = rhs.replace('$%s' % (rmod), rzfindex)
 
             self.last_name = dns.name.from_text(name, self.current_origin)
             name = self.last_name
@@ -918,21 +918,21 @@ class _MasterReader(object):
                 elif token.is_comment():
                     self.tok.get_eol()
                     continue
-                elif token.value[0] == u'$':
+                elif token.value[0] == '$':
                     c = token.value.upper()
-                    if c == u'$TTL':
+                    if c == '$TTL':
                         token = self.tok.get()
                         if not token.is_identifier():
                             raise dns.exception.SyntaxError("bad $TTL")
                         self.default_ttl = dns.ttl.from_text(token.value)
                         self.default_ttl_known = True
                         self.tok.get_eol()
-                    elif c == u'$ORIGIN':
+                    elif c == '$ORIGIN':
                         self.current_origin = self.tok.get_name()
                         self.tok.get_eol()
                         if self.zone.origin is None:
                             self.zone.origin = self.current_origin
-                    elif c == u'$INCLUDE' and self.allow_include:
+                    elif c == '$INCLUDE' and self.allow_include:
                         token = self.tok.get()
                         filename = token.value
                         token = self.tok.get()
@@ -958,7 +958,7 @@ class _MasterReader(object):
                         self.tok = dns.tokenizer.Tokenizer(self.current_file,
                                                            filename)
                         self.current_origin = new_origin
-                    elif c == u'$GENERATE':
+                    elif c == '$GENERATE':
                         self._generate_line()
                     else:
                         raise dns.exception.SyntaxError(

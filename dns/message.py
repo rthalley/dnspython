@@ -133,46 +133,46 @@ class Message(object):
         """
 
         s = StringIO()
-        s.write(u'id %d\n' % self.id)
-        s.write(u'opcode %s\n' %
+        s.write('id %d\n' % self.id)
+        s.write('opcode %s\n' %
                 dns.opcode.to_text(dns.opcode.from_flags(self.flags)))
         rc = dns.rcode.from_flags(self.flags, self.ednsflags)
-        s.write(u'rcode %s\n' % dns.rcode.to_text(rc))
-        s.write(u'flags %s\n' % dns.flags.to_text(self.flags))
+        s.write('rcode %s\n' % dns.rcode.to_text(rc))
+        s.write('flags %s\n' % dns.flags.to_text(self.flags))
         if self.edns >= 0:
-            s.write(u'edns %s\n' % self.edns)
+            s.write('edns %s\n' % self.edns)
             if self.ednsflags != 0:
-                s.write(u'eflags %s\n' %
+                s.write('eflags %s\n' %
                         dns.flags.edns_to_text(self.ednsflags))
-            s.write(u'payload %d\n' % self.payload)
+            s.write('payload %d\n' % self.payload)
         for opt in self.options:
-            s.write(u'option %s\n' % opt.to_text())
+            s.write('option %s\n' % opt.to_text())
         is_update = dns.opcode.is_update(self.flags)
         if is_update:
-            s.write(u';ZONE\n')
+            s.write(';ZONE\n')
         else:
-            s.write(u';QUESTION\n')
+            s.write(';QUESTION\n')
         for rrset in self.question:
             s.write(rrset.to_text(origin, relativize, **kw))
-            s.write(u'\n')
+            s.write('\n')
         if is_update:
-            s.write(u';PREREQ\n')
+            s.write(';PREREQ\n')
         else:
-            s.write(u';ANSWER\n')
+            s.write(';ANSWER\n')
         for rrset in self.answer:
             s.write(rrset.to_text(origin, relativize, **kw))
-            s.write(u'\n')
+            s.write('\n')
         if is_update:
-            s.write(u';UPDATE\n')
+            s.write(';UPDATE\n')
         else:
-            s.write(u';AUTHORITY\n')
+            s.write(';AUTHORITY\n')
         for rrset in self.authority:
             s.write(rrset.to_text(origin, relativize, **kw))
-            s.write(u'\n')
-        s.write(u';ADDITIONAL\n')
+            s.write('\n')
+        s.write(';ADDITIONAL\n')
         for rrset in self.additional:
             s.write(rrset.to_text(origin, relativize, **kw))
-            s.write(u'\n')
+            s.write('\n')
         #
         # We strip off the final \n so the caller can print the result without
         # doing weird things to get around eccentricities in Python print

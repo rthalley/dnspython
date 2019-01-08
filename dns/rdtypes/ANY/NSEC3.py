@@ -75,7 +75,7 @@ class NSEC3(dns.rdata.Rdata):
             salt = '-'
         else:
             salt = binascii.hexlify(self.salt).decode()
-        text = u''
+        text = ''
         for (window, bitmap) in self.windows:
             bits = []
             for (i, byte) in enumerate(bitmap):
@@ -83,9 +83,9 @@ class NSEC3(dns.rdata.Rdata):
                     if byte & (0x80 >> j):
                         bits.append(dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
-            text += (u' ' + u' '.join(bits))
-        return u'%u %u %u %s %s%s' % (self.algorithm, self.flags,
-                                      self.iterations, salt, next, text)
+            text += (' ' + ' '.join(bits))
+        return '%u %u %u %s %s%s' % (self.algorithm, self.flags,
+                                     self.iterations, salt, next, text)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
@@ -93,7 +93,7 @@ class NSEC3(dns.rdata.Rdata):
         flags = tok.get_uint8()
         iterations = tok.get_uint16()
         salt = tok.get_string()
-        if salt == u'-':
+        if salt == '-':
             salt = b''
         else:
             salt = binascii.unhexlify(salt.encode('ascii'))

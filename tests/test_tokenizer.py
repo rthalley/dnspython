@@ -29,11 +29,6 @@ class TokenizerTestCase(unittest.TestCase):
         token = tok.get()
         self.failUnless(token == Token(dns.tokenizer.IDENTIFIER, 'foo'))
 
-    def testUnicode(self):
-        tok = dns.tokenizer.Tokenizer(u'foo')
-        token = tok.get()
-        self.failUnless(token == Token(dns.tokenizer.IDENTIFIER, 'foo'))
-
     def testQuotedString1(self):
         tok = dns.tokenizer.Tokenizer(r'"foo"')
         token = tok.get()

@@ -236,7 +236,7 @@ class ZoneTestCase(unittest.TestCase):
         names.sort()
         for n in names:
             f.write(z[n].to_text(n))
-            f.write(u'\n')
+            f.write('\n')
         self.assertEqual(f.getvalue(), example_text_output)
 
     def testTorture1(self): # type: () -> None

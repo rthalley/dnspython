@@ -650,38 +650,38 @@ class NameTestCase(unittest.TestCase):
         self.failUnlessRaises(dns.name.NoParent, bad)
 
     def testFromUnicode1(self):
-        n = dns.name.from_text(u'foo.bar')
+        n = dns.name.from_text('foo.bar')
         self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
     def testFromUnicode2(self):
-        n = dns.name.from_text(u'foo\u1234bar.bar')
+        n = dns.name.from_text('foo\u1234bar.bar')
         self.assertEqual(n.labels, (b'xn--foobar-r5z', b'bar', b''))
 
     def testFromUnicodeAlternateDot1(self):
-        n = dns.name.from_text(u'foo\u3002bar')
+        n = dns.name.from_text('foo\u3002bar')
         self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
     def testFromUnicodeAlternateDot2(self):
-        n = dns.name.from_text(u'foo\uff0ebar')
+        n = dns.name.from_text('foo\uff0ebar')
         self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
     def testFromUnicodeAlternateDot3(self):
-        n = dns.name.from_text(u'foo\uff61bar')
+        n = dns.name.from_text('foo\uff61bar')
         self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
     def testFromUnicodeIDNA2003Explicit(self):
-        t = u'Königsgäßchen'
+        t = 'Königsgäßchen'
         e = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2003)
         self.assertEqual(str(e), 'xn--knigsgsschen-lcb0w.')
 
     def testFromUnicodeIDNA2003Default(self):
-        t = u'Königsgäßchen'
+        t = 'Königsgäßchen'
         e = dns.name.from_unicode(t)
         self.assertEqual(str(e), 'xn--knigsgsschen-lcb0w.')
 
     def testFromUnicodeIDNA2008(self):
         if dns.name.have_idna_2008:
-            t = u'Königsgäßchen'
+            t = 'Königsgäßchen'
             def bad():
                 codec = dns.name.IDNA_2008_Strict
                 return dns.name.from_unicode(t, idna_codec=codec)
@@ -694,12 +694,12 @@ class NameTestCase(unittest.TestCase):
 
     def testFromUnicodeIDNA2008Mixed(self):
         # the IDN rules for names are very restrictive, disallowing
-        # practical names like u'_sip._tcp.Königsgäßchen'.  Dnspython
+        # practical names like '_sip._tcp.Königsgäßchen'.  Dnspython
         # has a "practical" mode which permits labels which are purely
         # ASCII to go straight through, and thus not invalid useful
         # things in the real world.
         if dns.name.have_idna_2008:
-            t = u'_sip._tcp.Königsgäßchen'
+            t = '_sip._tcp.Königsgäßchen'
             def bad1():
                 codec = dns.name.IDNA_2008_Strict
                 return dns.name.from_unicode(t, idna_codec=codec)
@@ -717,34 +717,34 @@ class NameTestCase(unittest.TestCase):
             self.assertEqual(str(e), '_sip._tcp.xn--knigsgchen-b4a3dun.')
 
     def testToUnicode1(self):
-        n = dns.name.from_text(u'foo.bar')
+        n = dns.name.from_text('foo.bar')
         s = n.to_unicode()
-        self.assertEqual(s, u'foo.bar.')
+        self.assertEqual(s, 'foo.bar.')
 
     def testToUnicode2(self):
-        n = dns.name.from_text(u'foo\u1234bar.bar')
+        n = dns.name.from_text('foo\u1234bar.bar')
         s = n.to_unicode()
-        self.assertEqual(s, u'foo\u1234bar.bar.')
+        self.assertEqual(s, 'foo\u1234bar.bar.')
 
     def testToUnicode3(self):
         n = dns.name.from_text('foo.bar')
         s = n.to_unicode()
-        self.assertEqual(s, u'foo.bar.')
+        self.assertEqual(s, 'foo.bar.')
 
     def testToUnicode4(self):
         if dns.name.have_idna_2008:
-            n = dns.name.from_text(u'ドメイン.テスト',
+            n = dns.name.from_text('ドメイン.テスト',
                                    idna_codec=dns.name.IDNA_2008)
             s = n.to_unicode()
             self.assertEqual(str(n), 'xn--eckwd4c7c.xn--zckzah.')
-            self.assertEqual(s, u'ドメイン.テスト.')
+            self.assertEqual(s, 'ドメイン.テスト.')
 
     def testDefaultDecodeIsJustPunycode(self):
         # groß.com. in IDNA2008 form, pre-encoded.
         n = dns.name.from_text('xn--gro-7ka.com')
         # output using default codec which just decodes the punycode and
         # doesn't test for IDNA2003 or IDNA2008.
-        self.assertEqual(n.to_unicode(), u'groß.com.')
+        self.assertEqual(n.to_unicode(), 'groß.com.')
 
     def testStrictINDA2003Decode(self):
         # groß.com. in IDNA2008 form, pre-encoded.

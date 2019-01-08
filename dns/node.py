@@ -49,7 +49,7 @@ class Node(object):
         for rds in self.rdatasets:
             if len(rds) > 0:
                 s.write(rds.to_text(name, **kw))
-                s.write(u'\n')
+                s.write('\n')
         return s.getvalue()[:-1]
 
     def __repr__(self):
