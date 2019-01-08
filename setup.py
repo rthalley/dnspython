@@ -1,6 +1,6 @@
-# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 #!/usr/bin/env python
+#
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 #
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
