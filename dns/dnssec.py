@@ -17,6 +17,7 @@
 
 """Common DNSSEC-related functions and constants."""
 
+import hashlib  # used in make_ds() to avoid pycrypto dependency
 from io import BytesIO
 import struct
 import time
@@ -28,6 +29,7 @@ import dns.rdataset
 import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
+
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
     """The DNSSEC algorithm is not supported."""
@@ -159,21 +161,20 @@ def make_ds(name, key, algorithm, origin=None):
 
     Returns a ``dns.rdtypes.ANY.DS``.
     """
-
     if algorithm.upper() == 'SHA1':
         dsalg = 1
-        hash = SHA1.new()
+        dshash = hashlib.sha1()
     elif algorithm.upper() == 'SHA256':
         dsalg = 2
-        hash = SHA256.new()
+        dshash = hashlib.sha256()
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
     if isinstance(name, str):
         name = dns.name.from_text(name, origin)
-    hash.update(name.canonicalize().to_wire())
-    hash.update(_to_rdata(key, origin))
-    digest = hash.digest()
+    dshash.update(name.canonicalize().to_wire())
+    dshash.update(_to_rdata(key, origin))
+    digest = dshash.digest()
 
     dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, dsalg) + digest
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.DS, dsrdata, 0,
