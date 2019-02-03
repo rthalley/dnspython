@@ -126,3 +126,11 @@ class Timeout(DNSException):
     """The DNS operation timed out."""
     supp_kwargs = {'timeout'}
     fmt = "The DNS operation timed out after {timeout} seconds"
+
+
+class BadTime(DNSException):
+    """The current time is not within the TSIG's validity time."""
+
+
+class BadSignature(DNSException):
+    """The TSIG signature fails to verify."""

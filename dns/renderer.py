@@ -255,7 +255,6 @@ class Renderer:
         have been rendered, but before the optional TSIG signature
         is added.
         """
-
         self.output.seek(0)
         self.output.write(struct.pack('!HHHHHH', self.id, self.flags,
                                       self.counts[0], self.counts[1],
