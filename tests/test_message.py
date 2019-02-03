@@ -22,6 +22,7 @@ import binascii
 import dns.exception
 import dns.flags
 import dns.message
+import dns.messagebase
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -174,13 +175,13 @@ class MessageTestCase(unittest.TestCase):
         def bad():
             badwire = goodwire + b'\x00'
             dns.message.from_wire(badwire)
-        self.assertRaises(dns.message.TrailingJunk, bad)
+        self.assertRaises(dns.messagebase.TrailingJunk, bad)
 
     def test_ShortHeader(self):
         def bad():
             badwire = b'\x00' * 11
             dns.message.from_wire(badwire)
-        self.assertRaises(dns.message.ShortHeader, bad)
+        self.assertRaises(dns.messagebase.ShortHeader, bad)
 
     def test_RespondingToResponse(self):
         def bad():
@@ -241,7 +242,7 @@ class MessageTestCase(unittest.TestCase):
             a.flags |= dns.flags.TC
             wire = a.to_wire(want_shuffle=False)
             dns.message.from_wire(wire, raise_on_truncation=True)
-        self.assertRaises(dns.message.Truncated, bad)
+        self.assertRaises(dns.messagebase.Truncated, bad)
 
     def test_MessyTruncated(self):
         def bad():
@@ -249,7 +250,7 @@ class MessageTestCase(unittest.TestCase):
             a.flags |= dns.flags.TC
             wire = a.to_wire(want_shuffle=False)
             dns.message.from_wire(wire[:-3], raise_on_truncation=True)
-        self.assertRaises(dns.message.Truncated, bad)
+        self.assertRaises(dns.messagebase.Truncated, bad)
 
     def test_IDNA_2003(self):
         a = dns.message.from_text(idna_text, idna_codec=dns.name.IDNA_2003)
