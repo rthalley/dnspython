@@ -529,7 +529,27 @@ class Tokenizer:
                 '%d is not an unsigned 32-bit integer' % value)
         return value
 
-    def get_string(self, max_length=None):
+    def get_uint48(self):
+        """Read the next token and interpret it as a 32-bit unsigned
+        integer.
+
+        Raises dns.exception.SyntaxError if not a 32-bit unsigned integer.
+
+        Returns an int.
+        """
+
+        token = self.get().unescape()
+        if not token.is_identifier():
+            raise dns.exception.SyntaxError('expecting an identifier')
+        if not token.value.isdigit():
+            raise dns.exception.SyntaxError('expecting an integer')
+        value = long(token.value)
+        if value < 0 or value > long(2^48 - 1):
+            raise dns.exception.SyntaxError(
+                '%d is not an unsigned 48-bit integer' % value)
+        return value
+
+    def get_string(self, max_length=None, origin=None):
         """Read the next token and interpret it as a string.
 
         Raises dns.exception.SyntaxError if not a string.

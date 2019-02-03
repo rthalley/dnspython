@@ -758,21 +758,25 @@ class _WireReader:
                 if secret is None:
                     raise UnknownTSIGKey("key '%s' unknown" % name)
                 self.message.keyname = absolute_name
-                (self.message.keyalgorithm, self.message.mac) = \
-                    dns.tsig.get_algorithm_and_mac(self.wire, self.current,
-                                                   rdlen)
-                self.message.tsig_ctx = \
+
+                # create and validate the TSIG
+                (tsig_rdata, self.message.tsig_ctx) = \
                     dns.tsig.validate(self.wire,
-                                      absolute_name,
-                                      secret,
-                                      int(time.time()),
-                                      self.message.request_mac,
-                                      rr_start,
                                       self.current,
                                       rdlen,
+                                      dns.tsig.build_tsig_message_wire(
+                                          self.wire, count - 1, rr_start),
+                                      absolute_name,
+                                      secret,
+                                      self.message.request_mac,
+                                      self.message.tsig_error,
+                                      int(time.time()),
                                       self.message.tsig_ctx,
-                                      self.message.multi,
-                                      self.message.first)
+                                      self.message.first,
+                                      self.message.multi)
+                self.message.keyalgorithm = tsig_rdata.algorithm
+                self.message.mac = tsig_rdata.mac
+                self.message.other_data = tsig_rdata.other_data
                 self.message.had_tsig = True
             else:
                 if rdtype == dns.rdatatype.OPT:

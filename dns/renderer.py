@@ -174,25 +174,25 @@ class Renderer:
         self.add_rdataset(ADDITIONAL, dns.name.root, opt)
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
-                 request_mac, algorithm=dns.tsig.default_algorithm):
+                 request_mac, algorithm):
         """Add a TSIG signature to the message."""
 
         s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
-                                                    keyname,
-                                                    secret,
-                                                    int(time.time()),
-                                                    fudge,
-                                                    id,
-                                                    tsig_error,
-                                                    other_data,
-                                                    request_mac,
-                                                    algorithm=algorithm)
+        (tsig_rdata, _) = dns.tsig.sign(s,
+                                        keyname,
+                                        secret,
+                                        int(time.time()),
+                                        fudge,
+                                        id,
+                                        tsig_error,
+                                        other_data,
+                                        request_mac,
+                                        algorithm)
         self._write_tsig(tsig_rdata, keyname)
 
     def add_multi_tsig(self, ctx, keyname, secret, fudge, id, tsig_error,
                        other_data, request_mac,
-                       algorithm=dns.tsig.default_algorithm):
+                       algorithm):
         """Add a TSIG signature to the message. Unlike add_tsig(), this can be
         used for a series of consecutive DNS envelopes, e.g. for a zone
         transfer over TCP [RFC2845, 4.4].
@@ -202,19 +202,19 @@ class Renderer:
         add_multi_tsig() call for the previous message."""
 
         s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
-                                                    keyname,
-                                                    secret,
-                                                    int(time.time()),
-                                                    fudge,
-                                                    id,
-                                                    tsig_error,
-                                                    other_data,
-                                                    request_mac,
-                                                    ctx=ctx,
-                                                    first=ctx is None,
-                                                    multi=True,
-                                                    algorithm=algorithm)
+        (tsig_rdata, ctx) = dns.tsig.sign(s,
+                                          keyname,
+                                          secret,
+                                          int(time.time()),
+                                          fudge,
+                                          id,
+                                          tsig_error,
+                                          other_data,
+                                          request_mac,
+                                          algorithm,
+                                          ctx=ctx,
+                                          first=ctx is None,
+                                          multi=True)
         self._write_tsig(tsig_rdata, keyname)
         return ctx
 
@@ -225,7 +225,7 @@ class Renderer:
             self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
                                           dns.rdataclass.ANY, 0, 0))
             rdata_start = self.output.tell()
-            self.output.write(tsig_rdata)
+            self.output.write(tsig_rdata.to_wire())
 
         after = self.output.tell()
         self.output.seek(rdata_start - 2)

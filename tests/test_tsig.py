@@ -2,7 +2,7 @@
 
 import hashlib
 import unittest
-import time
+from unittest.mock import Mock
 
 import dns.tsig
 import dns.tsigkeyring
@@ -26,6 +26,51 @@ class TSIGTestCase(unittest.TestCase):
         self.assertEqual(alg, hashlib.sha256)
         self.assertRaises(NotImplementedError,
                           lambda: dns.tsig.get_algorithm('bogus'))
+
+    def test_hmac_context(self):
+        tsig_type = dns.tsig.get_tsig_class('hmac-sha512')
+        self.assertEqual(
+            tsig_type.algorithm_name(), dns.name.from_text('hmac-sha512')
+        )
+
+        hmac = tsig_type(b'12345')
+        hmac.update(b'abcdef')
+        ctx = hmac.ctx
+        self.assertEqual(ctx.impl, hashlib.sha512)
+        self.assertEqual(type(ctx.data).__name__, 'HMAC')
+        signature = hmac.sign()
+        expected = \
+            (
+                b'\xd3\xc0\x7f/zx\x88\xb5p\x16\xbb\x9a7['
+                b'ZbWY\x06l\x03z\xf8\t\xb1\xf06X;\x8aFi'
+                b'y\x06\x84"\xa1\xe6R\xf9\x14:\n\x7f`\xcc9\xbf\xe5L\x9b\xbe['
+                b'4\xbc\xe7'
+                b'\x1f\x17\x05\x84u\x94\t\xcb'
+            )
+        self.assertEqual(signature, expected)
+        self.assertEqual(hmac.verify(expected), None)
+
+    def test_gssapi_context(self):
+        tsig_type = dns.tsig.get_tsig_class('gss-tsig')
+        self.assertEqual(
+            tsig_type.algorithm_name(), dns.name.from_text('gss-tsig')
+        )
+
+        gssapi = Mock()
+        gssapi.get_signature.return_value = 'abcdef'
+        gssapi.verify_signature.return_value = None
+
+        # create the tsig
+        gssapi_tsig = tsig_type(gssapi)
+        # update it
+        gssapi_tsig.update(b'12345')
+        # sign/verify
+        sig = gssapi_tsig.sign()
+        gssapi_tsig.verify(sig)
+
+        # assertions
+        gssapi.get_signature.assert_called_once_with(b'12345')
+        gssapi.verify_signature.assert_called_once_with(b'12345', sig)
 
     def test_sign_and_validate(self):
         m = dns.message.make_query('example', 'a')
