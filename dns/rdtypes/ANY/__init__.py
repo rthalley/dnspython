@@ -50,6 +50,7 @@ __all__ = [
     'SOA',
     'SPF',
     'SSHFP',
+    'TKEY',
     'TLSA',
     'TXT',
     'URI',
