@@ -747,10 +747,10 @@ class _MasterReader(object):
             base = 'd'
         g3 = is_generate3.match(side)
         if g3:
-            mod, sign, offset, width = g1.groups()
+            mod, sign, offset, width = g3.groups()
             if sign == '':
                 sign = '+'
-            width = g1.groups()[2]
+            width = g3.groups()[2]
             base = 'd'
 
         if not (g1 or g2 or g3):
