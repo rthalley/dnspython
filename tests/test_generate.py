@@ -527,11 +527,11 @@ class GenerateTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                     '0 blaz.foo')),
 
-               (dns.name.from_text('prefix-27', None), 3600,
+               (dns.name.from_text('prefix-027', None), 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.27')),
 
-               (dns.name.from_text('prefix-28', None), 3600,
+               (dns.name.from_text('prefix-028', None), 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.28')),
 

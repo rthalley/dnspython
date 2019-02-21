@@ -750,7 +750,6 @@ class _MasterReader(object):
             mod, sign, offset, width = g3.groups()
             if sign == '':
                 sign = '+'
-            width = g3.groups()[2]
             base = 'd'
 
         if not (g1 or g2 or g3):
