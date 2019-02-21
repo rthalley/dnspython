@@ -131,6 +131,17 @@ ns2 3600 IN A 10.0.0.2
 $GENERATE 27-28 $.2 PTR zlb${-26}.oob
 """
 
+example_text11 = """$TTL 1h
+@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns1
+@ 3600 IN NS ns2
+bar.foo 300 IN MX 0 blaz.foo
+ns1 3600 IN A 10.0.0.1
+ns2 3600 IN A 10.0.0.2
+$GENERATE 27-28 prefix-${0,3}  A 10.0.0.$
+"""
+
+
 def _rdata_sort(a):
     return (a[0], a[2].rdclass, a[2].to_text())
 
@@ -491,6 +502,47 @@ class GenerateTestCase(unittest.TestCase):
                 (dns.name.from_text('28.2', None), 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.PTR,
                                     'zlb2.oob'))]
+
+        exl.sort(key=_rdata_sort)
+        self.failUnless(l == exl)
+
+    def testGenerate8(self): # type: () -> None
+        z = dns.zone.from_text(example_text11, 'example.', relativize=True)
+        l = list(z.iterate_rdatas())
+        l.sort(key=_rdata_sort)
+        exl = [(dns.name.from_text('@', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
+                                    'ns1')),
+               (dns.name.from_text('@', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
+                                    'ns2')),
+               (dns.name.from_text('@', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
+                                    'foo bar 1 2 3 4 5')),
+               (dns.name.from_text('bar.foo', None),
+                300,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
+                                    '0 blaz.foo')),
+
+               (dns.name.from_text('prefix-27', None), 3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.27')),
+
+               (dns.name.from_text('prefix-28', None), 3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.28')),
+
+               (dns.name.from_text('ns1', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.1')),
+               (dns.name.from_text('ns2', None),
+                3600,
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.2'))]
 
         exl.sort(key=_rdata_sort)
         self.failUnless(l == exl)
