@@ -52,4 +52,5 @@ __all__ = [
     'version',
     'wiredata',
     'zone',
+    'https',
 ]

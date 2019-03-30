@@ -75,9 +75,9 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'extras_require': {
         'IDNA': ['idna>=2.1'],
         'DNSSEC': ['pycryptodome', 'ecdsa>=0.13'],
+        'REQUESTS': ['requests==2.21.0']
         },
     'ext_modules': ext_modules if compile_cython else None,
     'zip_safe': False if compile_cython else None,
     }
-
 setup(**kwargs)

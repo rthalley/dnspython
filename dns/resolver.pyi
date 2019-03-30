@@ -2,6 +2,7 @@ from typing import Union, Optional, List
 from . import exception, rdataclass, name, rdatatype
 
 import socket
+import ssl
 _gethostbyname = socket.gethostbyname
 class NXDOMAIN(exception.DNSException):
     ...
@@ -27,5 +28,6 @@ class Resolver:
     def __init__(self, configure):
         self.nameservers : List[str]
     def query(self, qname : str, rdtype : Union[int,str] = rdatatype.A, rdclass : Union[int,str] = rdataclass.IN,
-              tcp : bool = False, source : Optional[str] = None, raise_on_no_answer=True, source_port : int = 0):
+              tcp : bool = False, source : Optional[str] = None, raise_on_no_answer=True,
+              source_port : int = 0, ssl_context: ssl.SSLContext = None):
         ...
