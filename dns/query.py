@@ -25,6 +25,7 @@ import socket
 import struct
 import sys
 import time
+import ssl
 
 import dns.exception
 import dns.inet
@@ -432,6 +433,54 @@ def _connect(s, address):
         if v_err not in [errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY]:
             raise v
 
+def tcp_ssl(q, where, ssl_context: ssl.SSLContext, port=53, af=None, source=None, source_port=0):
+    """Return the response obtained after sending a query via TCP wrapped in SSL.
+
+        *q*, a ``dns.message.Message``, the query to send
+
+        *where*, a ``text`` containing an IPv4 or IPv6 address,  where
+        to send the message.
+
+        *ssl_context*, an instance of ``ssl.SSLContext`` used to wrap the socket in ssl
+
+        *port*, an ``int``, the port send the message to.  The default is 53.
+
+        *af*, an ``int``, the address family to use.  The default is ``None``,
+        which causes the address family to use to be inferred from the form of
+        *where*.  If the inference attempt fails, AF_INET is used.  This
+        parameter is historical; you need never set it.
+
+        *source*, a ``text`` containing an IPv4 or IPv6 address, specifying
+        the source address.  The default is the wildcard address.
+
+        *source_port*, an ``int``, the port from which to send the message.
+        The default is 0.
+
+        Returns a ``dns.message.Message``.
+        """
+    ##################################
+    #                                #
+    #  NOTE: Uses blocking sockets   #
+    #                                #
+    ##################################
+
+    wire = q.to_wire()
+    qry_wire = struct.pack("!H", len(wire)) + wire
+    (af, destination, source) = _destination_and_source(af, where, port,
+                                                        source, source_port)
+    s = socket_factory(af, socket.SOCK_STREAM, 0)
+    s = ssl_context.wrap_socket(s)
+    s.connect(destination)
+    s.send(qry_wire)
+    short = s.recv(2)
+    (l,) = struct.unpack("!H", short)
+    ans_wire = s.recv(l)
+    received_time = time.time()
+    r = dns.message.from_wire(ans_wire)
+    if not q.is_response(r):
+        raise BadResponse
+    r.time = received_time
+    return r
 
 def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         one_rr_per_rrset=False, ignore_trailing=False):

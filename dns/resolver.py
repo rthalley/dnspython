@@ -21,6 +21,7 @@ import socket
 import sys
 import time
 import random
+import ssl
 try:
     import threading as _threading
 except ImportError:
@@ -799,7 +800,7 @@ class Resolver(object):
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
               tcp=False, source=None, raise_on_no_answer=True, source_port=0,
-              lifetime=None):
+              lifetime=None, ssl_context: ssl.SSLContext = None):
         """Query nameservers to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
@@ -900,10 +901,12 @@ class Resolver(object):
                     try:
                         tcp_attempt = tcp
                         if tcp:
-                            response = dns.query.tcp(request, nameserver,
-                                                     timeout, port,
-                                                     source=source,
-                                                     source_port=source_port)
+                            if isinstance(ssl_context, ssl.SSLContext):
+                                response = dns.query.tcp_ssl(request, nameserver, ssl_context, port, source=source,
+                                                             source_port=source_port)
+                            else:
+                                response = dns.query.tcp(request, nameserver, timeout, port, source=source,
+                                                         source_port=source_port)
                         else:
                             try:
                                 response = dns.query.udp(request, nameserver,
@@ -1087,7 +1090,7 @@ def reset_default_resolver():
 
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
           tcp=False, source=None, raise_on_no_answer=True,
-          source_port=0, lifetime=None):
+          source_port=0, lifetime=None, ssl_context: ssl.SSLContext = None):
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -1099,7 +1102,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
 
     return get_default_resolver().query(qname, rdtype, rdclass, tcp, source,
                                         raise_on_no_answer, source_port,
-                                        lifetime)
+                                        lifetime, ssl_context=ssl_context)
 
 
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
