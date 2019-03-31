@@ -33,14 +33,16 @@ def _decode_b64_answer(data):
 
 def _get_wire(resolver_url, query_name):
     """
-    Official RFC method. Send a get request to resolver/dns-query with param dns={base64 encoded dns wire query}
+    Official RFC method. Send a get request to resolver/dns-query with param
+        dns={base64 encoded dns wire query}
+
     :param resolver_url: The resolver to query e.g. 1.1.1.1
     :param query_name: The query url e.g. example.com
     :return: a dns.message object received from the resolver
     """
     headers = {"accept": "application/dns-message"}
     payload = {"dns": _create_query(query_name, b64=True)}
-    url = "https://{}/dns-query".format( resolver_url)
+    url = "https://{}/dns-query".format(resolver_url)
     try:
         res = requests.get(url, params=payload, headers=headers, stream=True, timeout=10)
         return _decode_b64_answer(res.content)
@@ -65,14 +67,16 @@ def _post_wire(resolver_url, query_name):
 
 def _get_json(resolver_url, query_name):
     """
-    Not in RFC, but appears to be a common method. Send get with a param name={url}. Response in json
+    Not in RFC, but appears to be a common method. Send get with a param name={url}.
+        Response in json
+
     :param resolver_url: The resolver to query e.g. 1.1.1.1
     :param query_name: The query url e.g. example.com
     :return: a json response from the resolver
     """
     headers = {"accept": "application/dns-json"}
     payload = {"name": query_name}
-    if resolver_url in ["8.8.8.8", "8.8.4.4", "dns.google.com"]:  # Google requires dns.google.com and /resolve
+    if resolver_url in ["8.8.8.8", "8.8.4.4", "dns.google.com"]:  # dns.google.com/resolve 4 google
         url = "https://dns.google.com/resolve"
     else:
         url = "https://{}/dns-query".format(resolver_url)

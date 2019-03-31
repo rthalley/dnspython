@@ -902,10 +902,12 @@ class Resolver(object):
                         tcp_attempt = tcp
                         if tcp:
                             if isinstance(ssl_context, ssl.SSLContext):
-                                response = dns.query.tcp_ssl(request, nameserver, ssl_context, port, source=source,
+                                response = dns.query.tcp_ssl(request, nameserver, ssl_context,
+                                                             port, source=source,
                                                              source_port=source_port)
                             else:
-                                response = dns.query.tcp(request, nameserver, timeout, port, source=source,
+                                response = dns.query.tcp(request, nameserver, timeout,
+                                                         port, source=source,
                                                          source_port=source_port)
                         else:
                             try:
