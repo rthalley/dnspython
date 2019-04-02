@@ -53,3 +53,5 @@ __all__ = [
     'wiredata',
     'zone',
 ]
+
+from dns.version import version as __version__
