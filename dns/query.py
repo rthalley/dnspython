@@ -440,7 +440,8 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
     wire = q.to_wire()
     try:
         if method == 'POST':
-            headers = {"accept": "application/dns-message", "content-type": "application/dns-message",
+            headers = {"accept": "application/dns-message",
+                       "content-type": "application/dns-message",
                        "content-length": str(len(wire))}
             url = "https://{}/dns-query".format(where)
             res = requests.post(url, data=wire, headers=headers, stream=True, timeout=timeout)
@@ -480,7 +481,9 @@ def _tls(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     (l,) = struct.unpack("!H", short)
     wire = s.recv(l)
     s.close()
-    r = dns.message.from_wire(wire, one_rr_per_rrset=one_rr_per_rrset, ignore_trailing=ignore_trailing)
+    r = dns.message.from_wire(wire,
+                              one_rr_per_rrset=one_rr_per_rrset,
+                              ignore_trailing=ignore_trailing)
     if not q.is_response(r):
         raise BadResponse
     return r
@@ -520,7 +523,8 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     """
 
     if tls:
-        return _tls(q, where, timeout, port, af, source, source_port, one_rr_per_rrset, ignore_trailing)
+        return _tls(q, where, timeout, port, af,
+                    source, source_port, one_rr_per_rrset, ignore_trailing)
 
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,

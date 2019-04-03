@@ -21,7 +21,6 @@ import socket
 import sys
 import time
 import random
-import ssl
 try:
     import threading as _threading
 except ImportError:
@@ -928,9 +927,9 @@ class Resolver(object):
                                              " Must be tls, tcp, udp, or https")
                         else:
                             if tcp:
-                                    response = dns.query.tcp(request, nameserver, timeout,
-                                                             port, source=source,
-                                                             source_port=source_port)
+                                response = dns.query.tcp(request, nameserver, timeout,
+                                                         port, source=source,
+                                                         source_port=source_port)
                             else:
                                 try:
                                     response = dns.query.udp(request, nameserver,
@@ -1114,7 +1113,7 @@ def reset_default_resolver():
 
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
           tcp=False, source=None, raise_on_no_answer=True,
-          source_port=0, lifetime=None, ssl_context: ssl.SSLContext = None):
+          source_port=0, lifetime=None, transport=None):
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -1126,7 +1125,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
 
     return get_default_resolver().query(qname, rdtype, rdclass, tcp, source,
                                         raise_on_no_answer, source_port,
-                                        lifetime, ssl_context=ssl_context)
+                                        lifetime, transport)
 
 
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
