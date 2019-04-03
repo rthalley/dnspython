@@ -658,21 +658,7 @@ class _MasterReader(object):
         token = self.tok.get()
         if not token.is_identifier():
             raise dns.exception.SyntaxError
-        # TTL
-        try:
-            ttl = dns.ttl.from_text(token.value)
-            self.last_ttl = ttl
-            self.last_ttl_known = True
-            token = self.tok.get()
-            if not token.is_identifier():
-                raise dns.exception.SyntaxError
-        except dns.ttl.BadTTL:
-            if not (self.last_ttl_known or self.default_ttl_known):
-                raise dns.exception.SyntaxError("Missing default TTL value")
-            if self.default_ttl_known:
-                ttl = self.default_ttl
-            else:
-                ttl = self.last_ttl
+
         # Class
         try:
             rdclass = dns.rdataclass.from_text(token.value)
@@ -719,6 +705,22 @@ class _MasterReader(object):
             self.default_ttl = rd.minimum
             self.default_ttl_known = True
 
+        # TTL
+        try:
+            ttl = dns.ttl.from_text(token.value)
+            self.last_ttl = ttl
+            self.last_ttl_known = True
+            token = self.tok.get()
+            if not token.is_identifier():
+                raise dns.exception.SyntaxError
+        except dns.ttl.BadTTL:
+            if not (self.last_ttl_known or self.default_ttl_known):
+                raise dns.exception.SyntaxError("Missing default TTL value")
+            if self.default_ttl_known:
+                ttl = self.default_ttl
+            else:
+                ttl = self.last_ttl
+            
         rd.choose_relativity(self.zone.origin, self.relativize)
         covers = rd.covers()
         rds = n.find_rdataset(rdclass, rdtype, covers, True)
