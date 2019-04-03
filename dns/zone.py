@@ -671,9 +671,9 @@ class _MasterReader(object):
         except dns.ttl.BadTTL:
             if self.default_ttl_known:
                 ttl = self.default_ttl
-            else:
+            elif self.last_ttl_known:
                 ttl = self.last_ttl
-                
+
         # Class
         try:
             rdclass = dns.rdataclass.from_text(token.value)
@@ -729,7 +729,7 @@ class _MasterReader(object):
                     ttl = self.default_ttl
                 else:
                     ttl = self.last_ttl
-            
+
         rd.choose_relativity(self.zone.origin, self.relativize)
         covers = rd.covers()
         rds = n.find_rdataset(rdclass, rdtype, covers, True)
