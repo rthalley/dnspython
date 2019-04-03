@@ -814,7 +814,7 @@ class _MasterReader(object):
                 raise dns.exception.SyntaxError("Missing default TTL value")
             if self.default_ttl_known:
                 ttl = self.default_ttl
-            else:
+            elif self.last_ttl_known:
                 ttl = self.last_ttl
         # Class
         try:
