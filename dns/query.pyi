@@ -13,3 +13,6 @@ def xfr(where : None, zone : Union[name.Name,str], rdtype=rdatatype.AXFR, rdclas
 def udp(q : message.Message, where : str, timeout : Optional[float] = None, port=53, af : Optional[int] = None, source : Optional[str] = None, source_port=0,
         ignore_unexpected=False, one_rr_per_rrset=False) -> message.Message:
     ...
+def https(q : message.Message, where : str, timeout : Optional[float] = None, port=443, af : Optional[int] = None, source : Optional[str] = None, source_port=0,
+        ignore_unexpected=False, one_rr_per_rrset=False, method : str = None):
+    ...

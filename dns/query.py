@@ -26,6 +26,7 @@ import struct
 import sys
 import time
 import ssl
+import base64
 
 import dns.exception
 import dns.inet
@@ -34,6 +35,7 @@ import dns.message
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
+import requests
 
 # Function used to create a socket.  Can be overridden if needed in special
 # situations.
@@ -433,57 +435,58 @@ def _connect(s, address):
         if v_err not in [errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY]:
             raise v
 
-def tcp_ssl(q, where, ssl_context: ssl.SSLContext, port=53, af=None, source=None, source_port=0):
-    """Return the response obtained after sending a query via TCP wrapped in SSL.
-
-        *q*, a ``dns.message.Message``, the query to send
-
-        *where*, a ``text`` containing an IPv4 or IPv6 address,  where
-        to send the message.
-
-        *ssl_context*, an instance of ``ssl.SSLContext`` used to wrap the socket in ssl
-
-        *port*, an ``int``, the port send the message to.  The default is 53.
-
-        *af*, an ``int``, the address family to use.  The default is ``None``,
-        which causes the address family to use to be inferred from the form of
-        *where*.  If the inference attempt fails, AF_INET is used.  This
-        parameter is historical; you need never set it.
-
-        *source*, a ``text`` containing an IPv4 or IPv6 address, specifying
-        the source address.  The default is the wildcard address.
-
-        *source_port*, an ``int``, the port from which to send the message.
-        The default is 0.
-
-        Returns a ``dns.message.Message``.
-        """
-    ##################################
-    #                                #
-    #  NOTE: Uses blocking sockets   #
-    #                                #
-    ##################################
-
+def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
+        one_rr_per_rrset=False, ignore_trailing=False, method=None):
     wire = q.to_wire()
-    qry_wire = struct.pack("!H", len(wire)) + wire
+    try:
+        if method == 'POST':
+            headers = {"accept": "application/dns-message", "content-type": "application/dns-message",
+                       "content-length": str(len(wire))}
+            url = "https://{}/dns-query".format(where)
+            res = requests.post(url, data=wire, headers=headers, stream=True, timeout=timeout)
+        else:
+            wire = base64.urlsafe_b64encode(wire).decode('utf-8').strip("=")
+            headers = {"accept": "application/dns-message"}
+            payload = {"dns": wire}
+            url = "https://{}/dns-query".format(where)
+            res = requests.get(url, params=payload, headers=headers, stream=True, timeout=timeout)
+    except requests.ReadTimeout:
+        raise dns.exception.Timeout
+    r = dns.message.from_wire(res.content,
+                              one_rr_per_rrset=one_rr_per_rrset, ignore_trailing=ignore_trailing,
+                              )
+    if not q.is_response(r):
+        raise BadResponse
+    return r
+
+def _tls(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
+        one_rr_per_rrset=False, ignore_trailing=False):
+    wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,
                                                         source, source_port)
     s = socket_factory(af, socket.SOCK_STREAM, 0)
-    s = ssl_context.wrap_socket(s)
+    context = ssl.SSLContext(protocol=ssl.PROTOCOL_SSLv23)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    s = context.wrap_socket(s)
+    if source is not None:
+        s.bind(source)
     s.connect(destination)
-    s.send(qry_wire)
+    l = len(wire)
+
+    tcpmsg = struct.pack("!H", l) + wire
+    s.send(tcpmsg)
     short = s.recv(2)
     (l,) = struct.unpack("!H", short)
-    ans_wire = s.recv(l)
-    received_time = time.time()
-    r = dns.message.from_wire(ans_wire)
+    wire = s.recv(l)
+    s.close()
+    r = dns.message.from_wire(wire, one_rr_per_rrset=one_rr_per_rrset, ignore_trailing=ignore_trailing)
     if not q.is_response(r):
         raise BadResponse
-    r.time = received_time
     return r
 
 def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
-        one_rr_per_rrset=False, ignore_trailing=False):
+        one_rr_per_rrset=False, ignore_trailing=False, tls=False):
     """Return the response obtained after sending a query via TCP.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -515,6 +518,9 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
 
     Returns a ``dns.message.Message``.
     """
+
+    if tls:
+        return _tls(q, where, timeout, port, af, source, source_port, one_rr_per_rrset, ignore_trailing)
 
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,

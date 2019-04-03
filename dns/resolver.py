@@ -800,7 +800,7 @@ class Resolver(object):
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
               tcp=False, source=None, raise_on_no_answer=True, source_port=0,
-              lifetime=None, ssl_context: ssl.SSLContext = None):
+              lifetime=None, transport=None, https_method=None):
         """Query nameservers to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
@@ -843,6 +843,10 @@ class Resolver(object):
         Returns a ``dns.resolver.Answer`` instance.
         """
 
+        if transport == 'https':
+            if https_method is not None and https_method not in ['GET', 'POST']:
+                raise ValueError("{} is not a valid request method for DNS over HTTPS. "
+                                 "Must be either GET or POST".format(https_method))
         if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
         if isinstance(rdtype, str):
@@ -900,31 +904,49 @@ class Resolver(object):
                     port = self.nameserver_ports.get(nameserver, self.port)
                     try:
                         tcp_attempt = tcp
-                        if tcp:
-                            if isinstance(ssl_context, ssl.SSLContext):
-                                response = dns.query.tcp_ssl(request, nameserver, ssl_context,
+                        if transport == 'tls':
+                            response = dns.query.tcp(request, nameserver, timeout,
+                                                     port, source=source,
+                                                     source_port=source_port, tls=True)
+                        elif transport == 'https':
+                            response = dns.query.https(request, nameserver, timeout,
+                                                       port, source=source,
+                                                       source_port=source_port,
+                                                       method=https_method)
+                        elif transport == 'tcp':
+                            response = dns.query.tcp(request, nameserver, timeout,
+                                                     port, source=source,
+                                                     source_port=source_port)
+                        elif transport == 'udp':
+                            response = dns.query.udp(request, nameserver,
+                                                     timeout, port,
+                                                     source=source,
+                                                     source_port=\
+                                                         source_port)
+                        elif transport is not None:
+                            raise ValueError("'{}' is not a valid value for transport."
+                                             " Must be tls, tcp, udp, or https")
+                        else:
+                            if tcp:
+                                    response = dns.query.tcp(request, nameserver, timeout,
                                                              port, source=source,
                                                              source_port=source_port)
                             else:
-                                response = dns.query.tcp(request, nameserver, timeout,
-                                                         port, source=source,
-                                                         source_port=source_port)
-                        else:
-                            try:
-                                response = dns.query.udp(request, nameserver,
-                                                         timeout, port,
-                                                         source=source,
-                                                         source_port=\
-                                                         source_port)
-                            except dns.message.Truncated:
-                                # Response truncated; retry with TCP.
-                                tcp_attempt = True
-                                timeout = self._compute_timeout(start, lifetime)
-                                response = \
-                                    dns.query.tcp(request, nameserver,
-                                                  timeout, port,
-                                                  source=source,
-                                                  source_port=source_port)
+                                try:
+                                    response = dns.query.udp(request, nameserver,
+                                                             timeout, port,
+                                                             source=source,
+                                                             source_port=\
+                                                             source_port)
+                                except dns.message.Truncated:
+                                    # Response truncated; retry with TCP.
+                                    tcp_attempt = True
+                                    timeout = self._compute_timeout(start, lifetime)
+                                    response = \
+                                        dns.query.tcp(request, nameserver,
+                                                      timeout, port,
+                                                      source=source,
+                                                      source_port=source_port)
                     except (socket.error, dns.exception.Timeout) as ex:
                         #
                         # Communication failure or timeout.  Go to the
