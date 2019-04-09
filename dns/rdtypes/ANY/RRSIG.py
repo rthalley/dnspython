@@ -32,6 +32,8 @@ class BadSigTime(dns.exception.DNSException):
 
 
 def sigtime_to_posixtime(what):
+    if len(what) <= 10 and what.isdigit():
+        return int(what)
     if len(what) != 14:
         raise BadSigTime
     year = int(what[0:4])
