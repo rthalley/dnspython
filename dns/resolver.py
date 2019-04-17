@@ -967,7 +967,8 @@ class Resolver(object):
                                        response))
                         raise ex
                     if rcode == dns.rcode.NOERROR or \
-                            rcode == dns.rcode.NXDOMAIN:
+                            (rcode == dns.rcode.NXDOMAIN and
+                             len(nameservers) <= 1):
                         break
                     #
                     # We got a response, but we're not happy with the
