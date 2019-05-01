@@ -19,14 +19,14 @@ address = '127.0.0.1'
 port = 53535
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#
 s.bind((address, port))
 while True:
     (wire, address) = s.recvfrom(512)
     notify = dns.message.from_wire(wire)
 
     try:
-        soa = notify.find_rrset(notify.answer, notify.question[0].name,
-                                dns.rdataclass.IN, dns.rdatatype.SOA)
+        soa = notify.find_rrset(notify.answer, notify.question[0].name,dns.rdataclass.IN, dns.rdatatype.SOA)
 
         # Do something with the SOA RR here
         print('The serial number for', soa.name, 'is', soa[0].serial)
