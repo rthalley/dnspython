@@ -54,6 +54,13 @@ class OptionTestCase(unittest.TestCase):
         data = io.getvalue()
         self.assertEqual(data, b'\x00\x01\x18\x00\x01\x02\x03')
 
+    def testECSOption25(self):
+        opt = dns.edns.ECSOption('1.2.3.255', 25)
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b'\x00\x01\x19\x00\x01\x02\x03\x80')
+
     def testECSOption_v6(self):
         opt = dns.edns.ECSOption('2001:4b98::1')
         io = BytesIO()

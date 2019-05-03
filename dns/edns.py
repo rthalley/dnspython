@@ -195,7 +195,8 @@ class ECSOption(Option):
         self.addrdata = addrdata[:nbytes]
         nbits = srclen % 8
         if nbits != 0:
-            last = struct.pack('B', ord(self.addrdata[-1:]) & (0xff << nbits))
+            last = struct.pack('B',
+                               ord(self.addrdata[-1:]) & (0xff << (8 - nbits)))
             self.addrdata = self.addrdata[:-1] + last
 
     def to_text(self):
