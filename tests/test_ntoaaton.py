@@ -58,6 +58,11 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.assertEqual(a,
                         binascii.unhexlify(b'00010002000300040005000600070008'))
 
+    def test_aton6(self):
+        a = aton6('fe80::5c:8b50:302b:86e%bnep0')
+        self.assertEquals(a, binascii.unhexlify(b'fe80000000000000005c8b50302b086e'))
+
+
     def test_bad_aton1(self):
         def bad():
             aton6('abcd:dcba')
