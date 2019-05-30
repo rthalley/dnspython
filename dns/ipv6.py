@@ -112,6 +112,13 @@ def inet_aton(text):
 
     if text == b'::':
         text = b'0::'
+
+    #
+    # Strip away the scope ID if it's detected.
+    #
+    text_scope_id = text.split(b'%')
+    if len(text_scope_id) > 1:
+        text = text_scope_id[0]
     #
     # Get rid of the icky dot-quad syntax if we have it.
     #
@@ -149,9 +156,6 @@ def inet_aton(text):
             for i in range(0, 8 - l + 1):
                 canonical.append(b'0000')
         else:
-            c_scope_id = c.split(b'%')
-            if len(c_scope_id) > 1:
-                c = c_scope_id[0]
             lc = len(c)
             if lc > 4:
                 raise dns.exception.SyntaxError
