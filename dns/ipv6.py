@@ -149,6 +149,9 @@ def inet_aton(text):
             for i in range(0, 8 - l + 1):
                 canonical.append(b'0000')
         else:
+            c_scope_id = c.split(b'%')
+            if len(c_scope_id) > 1:
+                c = c_scope_id[0]
             lc = len(c)
             if lc > 4:
                 raise dns.exception.SyntaxError
