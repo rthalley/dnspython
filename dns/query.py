@@ -181,12 +181,13 @@ def _destination_and_source(af, where, port, source, source_port):
                 source = '0.0.0.0'
             source = (source, source_port)
     elif af == dns.inet.AF_INET6:
-        ((*_, socketaddr), *_) = socket.getaddrinfo(where, port)
-        destination = socketaddr
+        ((*_, dest_socketaddr), *_) = socket.getaddrinfo(where, port)
+        destination = dest_socketaddr
         if source is not None or source_port != 0:
             if source is None:
                 source = '::'
-            source = (source, source_port, 0, 0)
+            ((*_, source_socketaddr), *_) = socket.getaddrinfo(source, source_port)
+            source = source_socketaddr
     return (af, destination, source)
 
 
