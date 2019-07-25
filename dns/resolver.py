@@ -822,7 +822,7 @@ class Resolver(object):
 
         *source_port*, an ``int``, the port from which to send the message.
 
-        *lifetime*, a ``float``, how long query should run before timing out.
+        *lifetime*, a ``float``, how many seconds a query should run before timing out.
 
         Raises ``dns.exception.Timeout`` if no answers could be found
         in the specified lifetime.
