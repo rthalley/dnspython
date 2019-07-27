@@ -669,6 +669,22 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('foo\uff61bar')
         self.assertEqual(n.labels, (b'foo', b'bar', b''))
 
+    def testFromUnicodeRoot(self):
+        n = dns.name.from_text('.')
+        self.assertEqual(n.labels, (b'',))
+
+    def testFromUnicodeAlternateRoot1(self):
+        n = dns.name.from_text('\u3002')
+        self.assertEqual(n.labels, (b'',))
+
+    def testFromUnicodeAlternateRoot2(self):
+        n = dns.name.from_text('\uff0e')
+        self.assertEqual(n.labels, (b'',))
+
+    def testFromUnicodeAlternateRoot3(self):
+        n = dns.name.from_text('\uff61')
+        self.assertEqual(n.labels, (b'', ))
+
     def testFromUnicodeIDNA2003Explicit(self):
         t = 'Königsgäßchen'
         e = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2003)
