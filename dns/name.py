@@ -818,7 +818,7 @@ def from_unicode(text, origin=root, idna_codec=None):
     if text == '@':
         text = ''
     if text:
-        if text == '.':
+        if text in ['.', '\u3002', '\uff0e', '\uff61']:
             return Name([b''])        # no Unicode "u" on this constant!
         for c in text:
             if escaping:
