@@ -200,11 +200,14 @@ class Answer(object):
     """
 
     def __init__(self, qname, rdtype, rdclass, response,
-                 raise_on_no_answer=True):
+                 raise_on_no_answer=True, nameserver=None,
+                 port=None):
         self.qname = qname
         self.rdtype = rdtype
         self.rdclass = rdclass
         self.response = response
+        self.nameserver = nameserver
+        self.port = port
         min_ttl = -1
         rrset = None
         for count in range(0, 15):
@@ -891,6 +894,10 @@ class Resolver(object):
             if self.rotate:
                 random.shuffle(nameservers)
             backoff = 0.10
+            # keep track of nameserver and port
+            # to include them in Answer
+            nameserver_answered = None
+            port_answered = None
             while response is None:
                 if len(nameservers) == 0:
                     raise NoNameservers(request=request, errors=errors)
@@ -960,6 +967,8 @@ class Resolver(object):
                                        response))
                         response = None
                         continue
+                    nameserver_answered = nameserver
+                    port_answered = port
                     rcode = response.rcode()
                     if rcode == dns.rcode.YXDOMAIN:
                         ex = YXDOMAIN()
@@ -1001,7 +1010,7 @@ class Resolver(object):
         if all_nxdomain:
             raise NXDOMAIN(qnames=qnames_to_try, responses=nxdomain_responses)
         answer = Answer(_qname, rdtype, rdclass, response,
-                        raise_on_no_answer)
+                        raise_on_no_answer, nameserver_answered, port_answered)
         if self.cache:
             self.cache.put((_qname, rdtype, rdclass), answer)
         return answer
