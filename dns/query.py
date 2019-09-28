@@ -19,6 +19,7 @@
 
 from __future__ import generators
 
+import urllib.request
 import errno
 import select
 import socket
@@ -188,6 +189,27 @@ def _destination_and_source(af, where, port, source, source_port):
             source = (source, source_port, 0, 0)
     return (af, destination, source)
 
+
+def doh(query, nameserver):
+    """Return the response obtained after sending a query via DoH.
+
+    *query*, a ``dns.message.Message`` containing the query to send
+
+    *nameserver*, a ``str`` containing the nameserver URL.
+
+    Returns a ``dns.message.Message``.
+    """
+
+    wirequery = query.to_wire()
+    headers = {
+        'Accept': 'application/dns-message',
+        'Content-Type': 'application/dns-message',
+    }
+
+    request = urllib.request.Request(nameserver, data=wirequery, headers=headers)
+    response = urllib.request.urlopen(request).read()
+
+    return dns.message.from_wire(response)
 
 def send_udp(sock, what, destination, expiration=None):
     """Send a DNS message to the specified UDP socket.

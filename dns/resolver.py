@@ -17,6 +17,7 @@
 
 """DNS stub resolver."""
 
+from urllib.parse import urlparse
 import socket
 import sys
 import time
@@ -897,29 +898,34 @@ class Resolver(object):
                 for nameserver in nameservers[:]:
                     timeout = self._compute_timeout(start, lifetime)
                     port = self.nameserver_ports.get(nameserver, self.port)
+                    protocol = urlparse(nameserver).scheme
                     try:
-                        tcp_attempt = tcp
-                        if tcp:
-                            response = dns.query.tcp(request, nameserver,
-                                                     timeout, port,
-                                                     source=source,
-                                                     source_port=source_port)
+                        if protocol == 'https':
+                            tcp_attempt = True
+                            response = dns.query.doh(request, nameserver)
                         else:
-                            try:
-                                response = dns.query.udp(request, nameserver,
+                            tcp_attempt = tcp
+                            if tcp:
+                                response = dns.query.tcp(request, nameserver,
                                                          timeout, port,
                                                          source=source,
-                                                         source_port=\
-                                                         source_port)
-                            except dns.message.Truncated:
-                                # Response truncated; retry with TCP.
-                                tcp_attempt = True
-                                timeout = self._compute_timeout(start, lifetime)
-                                response = \
-                                    dns.query.tcp(request, nameserver,
-                                                  timeout, port,
-                                                  source=source,
-                                                  source_port=source_port)
+                                                         source_port=source_port)
+                            else:
+                                try:
+                                    response = dns.query.udp(request, nameserver,
+                                                             timeout, port,
+                                                             source=source,
+                                                             source_port=\
+                                                             source_port)
+                                except dns.message.Truncated:
+                                    # Response truncated; retry with TCP.
+                                    tcp_attempt = True
+                                    timeout = self._compute_timeout(start, lifetime)
+                                    response = \
+                                        dns.query.tcp(request, nameserver,
+                                                      timeout, port,
+                                                      source=source,
+                                                      source_port=source_port)
                     except (socket.error, dns.exception.Timeout) as ex:
                         #
                         # Communication failure or timeout.  Go to the
