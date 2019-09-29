@@ -607,7 +607,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     first = True
     while not done:
         mexpiration = _compute_expiration(timeout)
-        if mexpiration is None or mexpiration > expiration:
+        if mexpiration is None or \
+           (expiration is not None and mexpiration > expiration):
             mexpiration = expiration
         if use_udp:
             _wait_for_readable(s, expiration)
