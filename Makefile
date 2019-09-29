@@ -67,7 +67,6 @@ test:
 test3: test
 
 lint:
-	${PIP} show astroid >/dev/null 2>&1 || ${PIP} install ${PIPMODE} astroid
 	pylint dns tests examples/*.py
 
 lint3: lint
