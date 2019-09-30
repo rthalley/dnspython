@@ -21,6 +21,7 @@ from __future__ import generators
 
 import urllib.request
 import errno
+import os
 import select
 import socket
 import struct
@@ -441,7 +442,7 @@ def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
                               ignore_trailing=ignore_trailing)
     return (r, received_time)
 
-def _connect(s, address):
+def _connect(s, address, expiration):
     try:
         s.connect(address)
     except socket.error:
@@ -453,6 +454,10 @@ def _connect(s, address):
             v_err = v[0]
         if v_err not in [errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY]:
             raise v
+        _wait_for_writable(s, expiration)
+        err = s.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+        if err != 0:
+            raise OSError(err, os.strerror(err)) from None
 
 
 def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
@@ -501,7 +506,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
         begin_time = time.time()
         if source is not None:
             s.bind(source)
-        _connect(s, destination)
+        _connect(s, destination, expiration)
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(s, expiration, one_rr_per_rrset,
                                          q.keyring, q.mac, ignore_trailing)
@@ -602,7 +607,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     if source is not None:
         s.bind(source)
     expiration = _compute_expiration(lifetime)
-    _connect(s, destination)
+    _connect(s, destination, expiration)
     l = len(wire)
     if use_udp:
         _wait_for_writable(s, expiration)
@@ -624,7 +629,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     first = True
     while not done:
         mexpiration = _compute_expiration(timeout)
-        if mexpiration is None or mexpiration > expiration:
+        if mexpiration is None or \
+           (expiration is not None and mexpiration > expiration):
             mexpiration = expiration
         if use_udp:
             _wait_for_readable(s, expiration)

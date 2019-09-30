@@ -16,6 +16,4 @@ branches:
 install:
  - pip install typing pylint pycryptodome ecdsa idna
 script:
- - make typecheck
- - make lint
  - make test
