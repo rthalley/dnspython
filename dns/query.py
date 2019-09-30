@@ -568,7 +568,7 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
             s.bind(source)
         _connect(s, destination, expiration)
         if ssl_context is None:
-            ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_context = ssl.create_default_context()
         s = ssl_context.wrap_socket(s, do_handshake_on_connect=False)
         while True:
             try:
