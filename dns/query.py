@@ -517,7 +517,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
 
 def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
         one_rr_per_rrset=False, ignore_trailing=False,
-        ssl_context=None):
+        ssl_context=None, server_hostname=None):
     """Return the response obtained after sending a query via TLS.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -551,6 +551,10 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
     a TLS connection. If ``None``, the default, creates one with the default
     configuration.
 
+    *server_hostname*, a ``text`` containing the server's hostname.  The
+    default is ``None``, which means that no hostname is known, and if an
+    SSL context is created, hostname checking will be disabled.
+
     Returns a ``dns.message.Message``.
     """
 
@@ -569,7 +573,10 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
         _connect(s, destination, expiration)
         if ssl_context is None:
             ssl_context = ssl.create_default_context()
-        s = ssl_context.wrap_socket(s, do_handshake_on_connect=False)
+            if server_hostname is None:
+                ssl_context.check_hostname = False
+        s = ssl_context.wrap_socket(s, do_handshake_on_connect=False,
+                                    server_hostname=server_hostname)
         while True:
             try:
                 s.do_handshake()
