@@ -202,6 +202,57 @@ class ECSOption(Option):
     def to_text(self):
         return "ECS {}/{} scope/{}".format(self.address, self.srclen,
                                            self.scopelen)
+    @staticmethod
+    def from_text(text):
+        """Convert a string into a `dns.edns.ECSOption`
+
+        :param text: string
+        :return: `dns.edns.ECSOption`
+
+        Examples:
+
+        >>> import dns.edns
+        >>>
+        >>> # basic example
+        >>> dns.edns.ECSOption.from_text('1.2.3.4/24')
+        >>>
+        >>> # also understands scope
+        >>> dns.edns.ECSOption.from_text('1.2.3.4/24/32')
+        >>>
+        >>> # IPv6
+        >>> dns.edns.ECSOption.from_text('2001:4b98::1/64/64')
+        >>>
+        >>> # it understands results from `dns.edns.ECSOption.to_text()`
+        >>> dns.edns.ECSOption.from_text('ECS 1.2.3.4/24/32')
+        """
+        optional_prefix = 'ECS'
+        tokens = text.split()
+        ecs_text = None
+        if len(tokens) == 1:
+            ecs_text = tokens[0]
+        elif len(tokens) == 2:
+            if tokens[0] != optional_prefix:
+                raise ValueError(f'could not parse ECS from "{text}"')
+            ecs_text = tokens[1]
+        else:
+            raise ValueError(f'could not parse ECS from "{text}"')
+        n_slashes = ecs_text.count('/')
+        if n_slashes == 1:
+            address, srclen = ecs_text.split('/')
+            scope = 0
+        elif n_slashes == 2:
+            address, srclen, scope = ecs_text.split('/')
+        else:
+            raise ValueError(f'could not parse ECS from "{text}"')
+        try:
+            scope = int(scope)
+        except ValueError:
+            raise ValueError(f'invalid scope "{scope}": scope must be an integer')
+        try:
+            srclen = int(srclen)
+        except ValueError:
+            raise ValueError(f'invalid srclen "{srclen}": srclen must be an integer')
+        return ECSOption(address, srclen, scope)
 
     def to_wire(self, file):
         file.write(struct.pack('!H', self.family))
