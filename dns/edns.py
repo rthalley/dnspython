@@ -234,6 +234,9 @@ class ECSOption(Option):
             return 1
         return -1
 
+    def __str__(self):
+        return self.to_text()
+
 _type_to_class = {
         ECS: ECSOption
 }
