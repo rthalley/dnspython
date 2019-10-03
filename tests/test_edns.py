@@ -67,3 +67,44 @@ class OptionTestCase(unittest.TestCase):
         opt.to_wire(io)
         data = io.getvalue()
         self.assertEqual(data, b'\x00\x02\x38\x00\x20\x01\x4b\x98\x00\x00\x00')
+
+    def testECSOption_from_text_valid(self):
+        ecs1 = dns.edns.ECSOption.from_text('1.2.3.4/24/0')
+        self.assertEqual(ecs1, dns.edns.ECSOption('1.2.3.4', 24, 0))
+
+        ecs2 = dns.edns.ECSOption.from_text('1.2.3.4/24')
+        self.assertEqual(ecs2, dns.edns.ECSOption('1.2.3.4', 24, 0))
+
+        ecs3 = dns.edns.ECSOption.from_text('ECS 1.2.3.4/24')
+        self.assertEqual(ecs3, dns.edns.ECSOption('1.2.3.4', 24, 0))
+
+        ecs4 = dns.edns.ECSOption.from_text('ECS 1.2.3.4/24/32')
+        self.assertEqual(ecs4, dns.edns.ECSOption('1.2.3.4', 24, 32))
+
+        ecs5 = dns.edns.ECSOption.from_text('2001:4b98::1/64/56')
+        self.assertEqual(ecs5, dns.edns.ECSOption('2001:4b98::1', 64, 56))
+
+        ecs6 = dns.edns.ECSOption.from_text('2001:4b98::1/64')
+        self.assertEqual(ecs6, dns.edns.ECSOption('2001:4b98::1', 64, 0))
+
+        ecs7 = dns.edns.ECSOption.from_text('ECS 2001:4b98::1/0')
+        self.assertEqual(ecs7, dns.edns.ECSOption('2001:4b98::1', 0, 0))
+
+        ecs8 = dns.edns.ECSOption.from_text('ECS 2001:4b98::1/64/128')
+        self.assertEqual(ecs8, dns.edns.ECSOption('2001:4b98::1', 64, 128))
+
+    def testECSOption_from_text_invalid(self):
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text('some random text 1.2.3.4/24/0 24')
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text('1.2.3.4/twentyfour')
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text('1.2.3.4/24/O') # <-- that's not a zero
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text('')
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text('1.2.3.4/2001:4b98::1/24')
