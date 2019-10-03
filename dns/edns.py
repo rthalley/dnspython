@@ -232,10 +232,10 @@ class ECSOption(Option):
             ecs_text = tokens[0]
         elif len(tokens) == 2:
             if tokens[0] != optional_prefix:
-                raise ValueError(f'could not parse ECS from "{text}"')
+                raise ValueError('could not parse ECS from "{}"'.format(text))
             ecs_text = tokens[1]
         else:
-            raise ValueError(f'could not parse ECS from "{text}"')
+            raise ValueError('could not parse ECS from "{}"'.format(text))
         n_slashes = ecs_text.count('/')
         if n_slashes == 1:
             address, srclen = ecs_text.split('/')
@@ -243,15 +243,15 @@ class ECSOption(Option):
         elif n_slashes == 2:
             address, srclen, scope = ecs_text.split('/')
         else:
-            raise ValueError(f'could not parse ECS from "{text}"')
+            raise ValueError('could not parse ECS from "{}"'.format(text))
         try:
             scope = int(scope)
         except ValueError:
-            raise ValueError(f'invalid scope "{scope}": scope must be an integer')
+            raise ValueError('invalid scope "{}": scope must be an integer'.format(scope))
         try:
             srclen = int(srclen)
         except ValueError:
-            raise ValueError(f'invalid srclen "{srclen}": srclen must be an integer')
+            raise ValueError('invalid srclen "{}": srclen must be an integer'.format(srclen))
         return ECSOption(address, srclen, scope)
 
     def to_wire(self, file):
