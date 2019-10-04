@@ -27,6 +27,7 @@ import socket
 import struct
 import sys
 import time
+import base64
 
 import dns.exception
 import dns.inet
@@ -191,12 +192,14 @@ def _destination_and_source(af, where, port, source, source_port):
     return (af, destination, source)
 
 
-def doh(query, nameserver):
+def doh(query, nameserver, post=True):
     """Return the response obtained after sending a query via DoH.
 
     *query*, a ``dns.message.Message`` containing the query to send
 
     *nameserver*, a ``str`` containing the nameserver URL.
+
+    *post*, a ``bool`` indicating whether POST method should be used.
 
     Returns a ``dns.message.Message``.
     """
@@ -207,9 +210,13 @@ def doh(query, nameserver):
         'Content-Type': 'application/dns-message',
     }
 
-    request = urllib.request.Request(nameserver, data=wirequery, headers=headers)
-    response = urllib.request.urlopen(request).read()
+    if post:
+        request = urllib.request.Request(nameserver, data=wirequery, headers=headers)
+    else:
+        wirequery = base64.urlsafe_b64encode(wirequery).decode('utf-8').strip('=')
+        request = urllib.request.Request(nameserver + '?dns=' + wirequery, headers=headers)
 
+    response = urllib.request.urlopen(request).read()
     return dns.message.from_wire(response)
 
 def send_udp(sock, what, destination, expiration=None):

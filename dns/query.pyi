@@ -1,6 +1,6 @@
 from typing import Optional, Union, Dict, Generator, Any
 from . import message, tsig, rdatatype, rdataclass, name, message
-def doh(query : message.Message, nameserver : str) -> message.Message:
+def doh(query : message.Message, nameserver : str, post=True) -> message.Message:
     pass
 
 def tcp(q : message.Message, where : str, timeout : float = None, port=53, af : Optional[int] = None, source : Optional[str] = None, source_port : int = 0,
