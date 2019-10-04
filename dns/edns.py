@@ -154,6 +154,8 @@ class GenericOption(Option):
             return 1
         return -1
 
+    def __str__(self):
+        return self.to_text()
 
 class ECSOption(Option):
     """EDNS Client Subnet (ECS, RFC7871)"""
