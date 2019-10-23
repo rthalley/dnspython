@@ -23,7 +23,6 @@ import errno
 import os
 import select
 import socket
-import ssl
 import struct
 import sys
 import time
@@ -35,6 +34,19 @@ import dns.message
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
+
+try:
+    import ssl
+except ImportError:
+    class ssl(object):
+        class WantReadException(Exception):
+            pass
+        class WantWriteException(Exception):
+            pass
+        class SSLSocket(object):
+            pass
+        def create_default_context(self, *args, **kwargs):
+            raise Exception('no ssl support')
 
 # Function used to create a socket.  Can be overridden if needed in special
 # situations.
