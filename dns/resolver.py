@@ -910,6 +910,8 @@ class Resolver(object):
                         if protocol == 'https':
                             tcp_attempt = True
                             response = dns.query.https(request, nameserver)
+                        elif protocol:
+                            continue
                         else:
                             tcp_attempt = tcp
                             if tcp:
