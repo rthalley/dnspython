@@ -207,8 +207,8 @@ def _destination_and_source(af, where, port, source, source_port):
     return (af, destination, source)
 
 
-def doh(query, nameserver, post=True):
-    """Return the response obtained after sending a query via DoH.
+def https(query, nameserver, post=True):
+    """Return the response obtained after sending a query via DNS-over-HTTPS.
 
     *query*, a ``dns.message.Message`` containing the query to send
 

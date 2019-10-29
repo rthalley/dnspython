@@ -7,7 +7,7 @@ except ImportError:
     class ssl(object):
         SSLContext = {}
 
-def doh(query : message.Message, nameserver : str, post=True) -> message.Message:
+def https(query : message.Message, nameserver : str, post=True) -> message.Message:
     pass
 
 def tcp(q : message.Message, where : str, timeout : float = None, port=53, af : Optional[int] = None, source : Optional[str] = None, source_port : Optional[int] = 0,
