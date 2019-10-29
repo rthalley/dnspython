@@ -1,5 +1,5 @@
 from typing import Optional, Union, Dict, Generator, Any
-from . import message, tsig, rdatatype, rdataclass, name, message
+from . import tsig, rdatatype, rdataclass, name, message
 
 try:
     import ssl
