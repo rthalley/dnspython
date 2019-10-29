@@ -207,14 +207,23 @@ def _destination_and_source(af, where, port, source, source_port):
     return (af, destination, source)
 
 
-def https(query, nameserver, post=True):
+def https(query, url, timeout=None, post=True, one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
-    *query*, a ``dns.message.Message`` containing the query to send
+    *query*, a ``dns.message.Message``, the query to send.
 
-    *nameserver*, a ``str`` containing the nameserver URL.
+    *url*, a ``str``, the nameserver URL.
 
-    *post*, a ``bool`` indicating whether POST method should be used.
+    *timeout*, a ``float`` or ``None``, the number of seconds to
+    wait before the query times out. If ``None``, the default, wait forever.
+
+    *post*, a ``bool``. If ``True``, the default, POST method should be used.
+
+    *one_rr_per_rrset*, a ``bool``. If ``True``, put each RR into its own
+    RRset.
+
+    *ignore_trailing*, a ``bool``. If ``True``, ignore trailing
+    junk at end of the received message.
 
     Returns a ``dns.message.Message``.
     """
@@ -226,13 +235,17 @@ def https(query, nameserver, post=True):
     }
 
     if post:
-        request = urllib.request.Request(nameserver, data=wirequery, headers=headers)
+        request = urllib.request.Request(url, data=wirequery, headers=headers)
     else:
         wirequery = base64.urlsafe_b64encode(wirequery).decode('utf-8').strip('=')
-        request = urllib.request.Request(nameserver + '?dns=' + wirequery, headers=headers)
+        request = urllib.request.Request(url + '?dns=' + wirequery, headers=headers)
 
-    response = urllib.request.urlopen(request).read()
-    return dns.message.from_wire(response)
+    response = urllib.request.urlopen(request, timeout=timeout).read()
+    return dns.message.from_wire(response,
+                                 keyring=query.keyring,
+                                 request_mac=query.request_mac
+                                 one_rr_per_rrset=one_rr_per_rrset,
+                                 ignore_trailing=ignore_trailing)
 
 def send_udp(sock, what, destination, expiration=None):
     """Send a DNS message to the specified UDP socket.
