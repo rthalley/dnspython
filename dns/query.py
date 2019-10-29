@@ -243,7 +243,7 @@ def https(query, url, timeout=None, post=True, one_rr_per_rrset=False, ignore_tr
     response = urllib.request.urlopen(request, timeout=timeout).read()
     return dns.message.from_wire(response,
                                  keyring=query.keyring,
-                                 request_mac=query.request_mac
+                                 request_mac=query.request_mac,
                                  one_rr_per_rrset=one_rr_per_rrset,
                                  ignore_trailing=ignore_trailing)
 
