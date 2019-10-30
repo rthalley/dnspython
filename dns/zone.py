@@ -738,9 +738,9 @@ class _MasterReader(object):
     def _parse_modify(self, side):
         # Here we catch everything in '{' '}' in a group so we can replace it
         # with ''.
-        is_generate1 = re.compile("^.*\$({(\+|-?)(\d+),(\d+),(.)}).*$")
-        is_generate2 = re.compile("^.*\$({(\+|-?)(\d+)}).*$")
-        is_generate3 = re.compile("^.*\$({(\+|-?)(\d+),(\d+)}).*$")
+        is_generate1 = re.compile(r"^.*\$({(\+|-?)(\d+),(\d+),(.)}).*$")
+        is_generate2 = re.compile(r"^.*\$({(\+|-?)(\d+)}).*$")
+        is_generate3 = re.compile(r"^.*\$({(\+|-?)(\d+),(\d+)}).*$")
         # Sometimes there are modifiers in the hostname. These come after
         # the dollar sign. They are in the form: ${offset[,width[,base]]}.
         # Make names
