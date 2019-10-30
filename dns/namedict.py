@@ -27,11 +27,14 @@
 
 """DNS name dictionary"""
 
-import collections
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 import dns.name
 
 
-class NameDict(collections.MutableMapping):
+class NameDict(MutableMapping):
     """A dictionary whose keys are dns.name.Name objects.
 
     In addition to being like a regular Python dictionary, this
