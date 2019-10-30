@@ -25,21 +25,21 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     # Classes
 
     def test_class_meta1(self):
-        self.failUnless(dns.rdataclass.is_metaclass(dns.rdataclass.ANY))
+        self.assertTrue(dns.rdataclass.is_metaclass(dns.rdataclass.ANY))
 
     def test_class_meta2(self):
-        self.failUnless(not dns.rdataclass.is_metaclass(dns.rdataclass.IN))
+        self.assertTrue(not dns.rdataclass.is_metaclass(dns.rdataclass.IN))
 
     def test_class_bytext1(self):
-        self.failUnless(dns.rdataclass.from_text('IN') == dns.rdataclass.IN)
+        self.assertTrue(dns.rdataclass.from_text('IN') == dns.rdataclass.IN)
 
     def test_class_bytext2(self):
-        self.failUnless(dns.rdataclass.from_text('CLASS1') ==
+        self.assertTrue(dns.rdataclass.from_text('CLASS1') ==
                         dns.rdataclass.IN)
 
     def test_class_bytext_bounds1(self):
-        self.failUnless(dns.rdataclass.from_text('CLASS0') == 0)
-        self.failUnless(dns.rdataclass.from_text('CLASS65535') == 65535)
+        self.assertTrue(dns.rdataclass.from_text('CLASS0') == 0)
+        self.assertTrue(dns.rdataclass.from_text('CLASS65535') == 65535)
 
     def test_class_bytext_bounds2(self):
         def bad():
@@ -52,10 +52,10 @@ class RdTypeAndClassTestCase(unittest.TestCase):
         self.failUnlessRaises(dns.rdataclass.UnknownRdataclass, bad)
 
     def test_class_totext1(self):
-        self.failUnless(dns.rdataclass.to_text(dns.rdataclass.IN) == 'IN')
+        self.assertTrue(dns.rdataclass.to_text(dns.rdataclass.IN) == 'IN')
 
     def test_class_totext2(self):
-        self.failUnless(dns.rdataclass.to_text(999) == 'CLASS999')
+        self.assertTrue(dns.rdataclass.to_text(999) == 'CLASS999')
 
     def test_class_totext_bounds1(self):
         def bad():
@@ -70,30 +70,30 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     # Types
 
     def test_type_meta1(self):
-        self.failUnless(dns.rdatatype.is_metatype(dns.rdatatype.ANY))
+        self.assertTrue(dns.rdatatype.is_metatype(dns.rdatatype.ANY))
 
     def test_type_meta2(self):
-        self.failUnless(dns.rdatatype.is_metatype(dns.rdatatype.OPT))
+        self.assertTrue(dns.rdatatype.is_metatype(dns.rdatatype.OPT))
 
     def test_type_meta3(self):
-        self.failUnless(not dns.rdatatype.is_metatype(dns.rdatatype.A))
+        self.assertTrue(not dns.rdatatype.is_metatype(dns.rdatatype.A))
 
     def test_type_singleton1(self):
-        self.failUnless(dns.rdatatype.is_singleton(dns.rdatatype.SOA))
+        self.assertTrue(dns.rdatatype.is_singleton(dns.rdatatype.SOA))
 
     def test_type_singleton2(self):
-        self.failUnless(not dns.rdatatype.is_singleton(dns.rdatatype.A))
+        self.assertTrue(not dns.rdatatype.is_singleton(dns.rdatatype.A))
 
     def test_type_bytext1(self):
-        self.failUnless(dns.rdatatype.from_text('A') == dns.rdatatype.A)
+        self.assertTrue(dns.rdatatype.from_text('A') == dns.rdatatype.A)
 
     def test_type_bytext2(self):
-        self.failUnless(dns.rdatatype.from_text('TYPE1') ==
+        self.assertTrue(dns.rdatatype.from_text('TYPE1') ==
                         dns.rdatatype.A)
 
     def test_type_bytext_bounds1(self):
-        self.failUnless(dns.rdatatype.from_text('TYPE0') == 0)
-        self.failUnless(dns.rdatatype.from_text('TYPE65535') == 65535)
+        self.assertTrue(dns.rdatatype.from_text('TYPE0') == 0)
+        self.assertTrue(dns.rdatatype.from_text('TYPE65535') == 65535)
 
     def test_type_bytext_bounds2(self):
         def bad():
@@ -106,10 +106,10 @@ class RdTypeAndClassTestCase(unittest.TestCase):
         self.failUnlessRaises(dns.rdatatype.UnknownRdatatype, bad)
 
     def test_type_totext1(self):
-        self.failUnless(dns.rdatatype.to_text(dns.rdatatype.A) == 'A')
+        self.assertTrue(dns.rdatatype.to_text(dns.rdatatype.A) == 'A')
 
     def test_type_totext2(self):
-        self.failUnless(dns.rdatatype.to_text(999) == 'TYPE999')
+        self.assertTrue(dns.rdatatype.to_text(999) == 'TYPE999')
 
     def test_type_totext_bounds1(self):
         def bad():
@@ -122,7 +122,7 @@ class RdTypeAndClassTestCase(unittest.TestCase):
         self.failUnlessRaises(ValueError, bad)
 
     def test_type0_totext(self):
-        self.failUnless(dns.rdatatype.to_text(0) == 'TYPE0')
+        self.assertTrue(dns.rdatatype.to_text(0) == 'TYPE0')
 
 if __name__ == '__main__':
     unittest.main()

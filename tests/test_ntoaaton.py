@@ -39,19 +39,19 @@ class NtoAAtoNTestCase(unittest.TestCase):
 
     def test_aton1(self):
         a = aton6('::')
-        self.failUnless(a == b'\x00' * 16)
+        self.assertTrue(a == b'\x00' * 16)
 
     def test_aton2(self):
         a = aton6('::1')
-        self.failUnless(a == b'\x00' * 15 + b'\x01')
+        self.assertTrue(a == b'\x00' * 15 + b'\x01')
 
     def test_aton3(self):
         a = aton6('::10.0.0.1')
-        self.failUnless(a == b'\x00' * 12 + b'\x0a\x00\x00\x01')
+        self.assertTrue(a == b'\x00' * 12 + b'\x0a\x00\x00\x01')
 
     def test_aton4(self):
         a = aton6('abcd::dcba')
-        self.failUnless(a == b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
+        self.assertTrue(a == b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
 
     def test_aton5(self):
         a = aton6('1:2:3:4:5:6:7:8')
@@ -211,7 +211,7 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t2 = '::ffff:127.0.0.1'
         t3 = '1::ffff:127.0.0.1'
         self.failIf(dns.ipv6.is_mapped(aton6(t1)))
-        self.failUnless(dns.ipv6.is_mapped(aton6(t2)))
+        self.assertTrue(dns.ipv6.is_mapped(aton6(t2)))
         self.failIf(dns.ipv6.is_mapped(aton6(t3)))
 
     def test_is_multicast(self):
@@ -223,10 +223,10 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t6 = 'ff00::1'
         self.failIf(dns.inet.is_multicast(t1))
         self.failIf(dns.inet.is_multicast(t2))
-        self.failUnless(dns.inet.is_multicast(t3))
-        self.failUnless(dns.inet.is_multicast(t4))
+        self.assertTrue(dns.inet.is_multicast(t3))
+        self.assertTrue(dns.inet.is_multicast(t4))
         self.failIf(dns.inet.is_multicast(t5))
-        self.failUnless(dns.inet.is_multicast(t6))
+        self.assertTrue(dns.inet.is_multicast(t6))
 
 if __name__ == '__main__':
     unittest.main()

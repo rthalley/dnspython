@@ -96,28 +96,28 @@ class MessageTestCase(unittest.TestCase):
     def test_comparison_eq1(self):
         q1 = dns.message.from_text(query_text)
         q2 = dns.message.from_text(query_text)
-        self.failUnless(q1 == q2)
+        self.assertTrue(q1 == q2)
 
     def test_comparison_ne1(self):
         q1 = dns.message.from_text(query_text)
         q2 = dns.message.from_text(query_text)
         q2.id = 10
-        self.failUnless(q1 != q2)
+        self.assertTrue(q1 != q2)
 
     def test_comparison_ne2(self):
         q1 = dns.message.from_text(query_text)
         q2 = dns.message.from_text(query_text)
         q2.question = []
-        self.failUnless(q1 != q2)
+        self.assertTrue(q1 != q2)
 
     def test_comparison_ne3(self):
         q1 = dns.message.from_text(query_text)
-        self.failUnless(q1 != 1)
+        self.assertTrue(q1 != 1)
 
     def test_EDNS_to_wire1(self):
         q = dns.message.from_text(query_text)
         w = q.to_wire()
-        self.failUnless(w == goodwire)
+        self.assertTrue(w == goodwire)
 
     def test_EDNS_from_wire1(self):
         m = dns.message.from_wire(goodwire)
@@ -126,11 +126,11 @@ class MessageTestCase(unittest.TestCase):
     def test_EDNS_to_wire2(self):
         q = dns.message.from_text(query_text_2)
         w = q.to_wire()
-        self.failUnless(w == goodwire3)
+        self.assertTrue(w == goodwire3)
 
     def test_EDNS_from_wire2(self):
         m = dns.message.from_wire(goodwire3)
-        self.failUnless(str(m) == query_text_2)
+        self.assertTrue(str(m) == query_text_2)
 
     def test_TooBig(self):
         def bad():
@@ -147,7 +147,7 @@ class MessageTestCase(unittest.TestCase):
     def test_answer1(self):
         a = dns.message.from_text(answer_text)
         wire = a.to_wire(want_shuffle=False)
-        self.failUnless(wire == goodwire2)
+        self.assertTrue(wire == goodwire2)
 
     def test_TrailingJunk(self):
         def bad():
@@ -171,34 +171,34 @@ class MessageTestCase(unittest.TestCase):
     def test_ExtendedRcodeSetting(self):
         m = dns.message.make_query('foo', 'A')
         m.set_rcode(4095)
-        self.failUnless(m.rcode() == 4095)
+        self.assertTrue(m.rcode() == 4095)
         m.set_rcode(2)
-        self.failUnless(m.rcode() == 2)
+        self.assertTrue(m.rcode() == 2)
 
     def test_EDNSVersionCoherence(self):
         m = dns.message.make_query('foo', 'A')
         m.use_edns(1)
-        self.failUnless((m.ednsflags >> 16) & 0xFF == 1)
+        self.assertTrue((m.ednsflags >> 16) & 0xFF == 1)
 
     def test_SettingNoEDNSOptionsImpliesNoEDNS(self):
         m = dns.message.make_query('foo', 'A')
-        self.failUnless(m.edns == -1)
+        self.assertTrue(m.edns == -1)
 
     def test_SettingEDNSFlagsImpliesEDNS(self):
         m = dns.message.make_query('foo', 'A', ednsflags=dns.flags.DO)
-        self.failUnless(m.edns == 0)
+        self.assertTrue(m.edns == 0)
 
     def test_SettingEDNSPayloadImpliesEDNS(self):
         m = dns.message.make_query('foo', 'A', payload=4096)
-        self.failUnless(m.edns == 0)
+        self.assertTrue(m.edns == 0)
 
     def test_SettingEDNSRequestPayloadImpliesEDNS(self):
         m = dns.message.make_query('foo', 'A', request_payload=4096)
-        self.failUnless(m.edns == 0)
+        self.assertTrue(m.edns == 0)
 
     def test_SettingOptionsImpliesEDNS(self):
         m = dns.message.make_query('foo', 'A', options=[])
-        self.failUnless(m.edns == 0)
+        self.assertTrue(m.edns == 0)
 
     def test_FindRRset(self):
         a = dns.message.from_text(answer_text)
@@ -206,7 +206,7 @@ class MessageTestCase(unittest.TestCase):
         rrs1 = a.find_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
         rrs2 = a.find_rrset(dns.message.ANSWER, n, dns.rdataclass.IN,
                             dns.rdatatype.SOA)
-        self.failUnless(rrs1 == rrs2)
+        self.assertTrue(rrs1 == rrs2)
 
     def test_CleanTruncated(self):
         def bad():

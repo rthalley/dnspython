@@ -147,7 +147,7 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink(here('example1.out'))
-        self.failUnless(ok)
+        self.assertTrue(ok)
 
     def testFromFile2(self): # type: () -> None
         z = dns.zone.from_file(here('example'), 'example', relativize=False)
@@ -159,7 +159,7 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink(here('example2.out'))
-        self.failUnless(ok)
+        self.assertTrue(ok)
 
     def testToFileTextualStream(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -188,7 +188,7 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink(here('example3-textual.out'))
-        self.failUnless(ok)
+        self.assertTrue(ok)
 
     def testToFileBinary(self): # type: () -> None
         z = dns.zone.from_file(here('example'), 'example')
@@ -201,7 +201,7 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink(here('example3-binary.out'))
-        self.failUnless(ok)
+        self.assertTrue(ok)
 
     def testToFileFilename(self): # type: () -> None
         z = dns.zone.from_file(here('example'), 'example')
@@ -212,7 +212,7 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink(here('example3-filename.out'))
-        self.failUnless(ok)
+        self.assertTrue(ok)
 
     def testToText(self): # type: () -> None
         z = dns.zone.from_file(here('example'), 'example')
@@ -227,7 +227,7 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink(here('example3.out'))
-        self.failUnless(ok)
+        self.assertTrue(ok)
 
     def testFromText(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -258,37 +258,37 @@ class ZoneTestCase(unittest.TestCase):
                     rd2 = dns.rdata.from_wire(rds.rdclass, rds.rdtype,
                                               wire, 0, len(wire),
                                               origin=o)
-                    self.failUnless(rd == rd2)
+                    self.assertTrue(rd == rd2)
 
     def testEqual(self): # type: () -> None
         z1 = dns.zone.from_text(example_text, 'example.', relativize=True)
         z2 = dns.zone.from_text(example_text_output, 'example.',
                                 relativize=True)
-        self.failUnless(z1 == z2)
+        self.assertTrue(z1 == z2)
 
     def testNotEqual1(self): # type: () -> None
         z1 = dns.zone.from_text(example_text, 'example.', relativize=True)
         z2 = dns.zone.from_text(something_quite_similar, 'example.',
                                 relativize=True)
-        self.failUnless(z1 != z2)
+        self.assertTrue(z1 != z2)
 
     def testNotEqual2(self): # type: () -> None
         z1 = dns.zone.from_text(example_text, 'example.', relativize=True)
         z2 = dns.zone.from_text(something_different, 'example.',
                                 relativize=True)
-        self.failUnless(z1 != z2)
+        self.assertTrue(z1 != z2)
 
     def testNotEqual3(self): # type: () -> None
         z1 = dns.zone.from_text(example_text, 'example.', relativize=True)
         z2 = dns.zone.from_text(something_different, 'example2.',
                                 relativize=True)
-        self.failUnless(z1 != z2)
+        self.assertTrue(z1 != z2)
 
     def testFindRdataset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rds = z.find_rdataset('@', 'soa')
         exrds = dns.rdataset.from_text('IN', 'SOA', 300, 'foo bar 1 2 3 4 5')
-        self.failUnless(rds == exrds)
+        self.assertTrue(rds == exrds)
 
     def testFindRdataset2(self): # type: () -> None
         def bad(): # type: () -> None
@@ -300,7 +300,7 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rrs = z.find_rrset('@', 'soa')
         exrrs = dns.rrset.from_text('@', 300, 'IN', 'SOA', 'foo bar 1 2 3 4 5')
-        self.failUnless(rrs == exrrs)
+        self.assertTrue(rrs == exrrs)
 
     def testFindRRset2(self): # type: () -> None
         def bad(): # type: () -> None
@@ -312,56 +312,56 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rds = z.get_rdataset('@', 'soa')
         exrds = dns.rdataset.from_text('IN', 'SOA', 300, 'foo bar 1 2 3 4 5')
-        self.failUnless(rds == exrds)
+        self.assertTrue(rds == exrds)
 
     def testGetRdataset2(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rds = z.get_rdataset('@', 'loc')
-        self.failUnless(rds is None)
+        self.assertTrue(rds is None)
 
     def testGetRRset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rrs = z.get_rrset('@', 'soa')
         exrrs = dns.rrset.from_text('@', 300, 'IN', 'SOA', 'foo bar 1 2 3 4 5')
-        self.failUnless(rrs == exrrs)
+        self.assertTrue(rrs == exrrs)
 
     def testGetRRset2(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rrs = z.get_rrset('@', 'loc')
-        self.failUnless(rrs is None)
+        self.assertTrue(rrs is None)
 
     def testReplaceRdataset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rdataset = dns.rdataset.from_text('in', 'ns', 300, 'ns3', 'ns4')
         z.replace_rdataset('@', rdataset)
         rds = z.get_rdataset('@', 'ns')
-        self.failUnless(rds is rdataset)
+        self.assertTrue(rds is rdataset)
 
     def testReplaceRdataset2(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rdataset = dns.rdataset.from_text('in', 'txt', 300, '"foo"')
         z.replace_rdataset('@', rdataset)
         rds = z.get_rdataset('@', 'txt')
-        self.failUnless(rds is rdataset)
+        self.assertTrue(rds is rdataset)
 
     def testDeleteRdataset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         z.delete_rdataset('@', 'ns')
         rds = z.get_rdataset('@', 'ns')
-        self.failUnless(rds is None)
+        self.assertTrue(rds is None)
 
     def testDeleteRdataset2(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         z.delete_rdataset('ns1', 'a')
         node = z.get_node('ns1')
-        self.failUnless(node is None)
+        self.assertTrue(node is None)
 
     def testNodeFindRdataset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
         rds = node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
         exrds = dns.rdataset.from_text('IN', 'SOA', 300, 'foo bar 1 2 3 4 5')
-        self.failUnless(rds == exrds)
+        self.assertTrue(rds == exrds)
 
     def testNodeFindRdataset2(self): # type: () -> None
         def bad(): # type: () -> None
@@ -375,40 +375,40 @@ class ZoneTestCase(unittest.TestCase):
         node = z['@']
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
         exrds = dns.rdataset.from_text('IN', 'SOA', 300, 'foo bar 1 2 3 4 5')
-        self.failUnless(rds == exrds)
+        self.assertTrue(rds == exrds)
 
     def testNodeGetRdataset2(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
-        self.failUnless(rds is None)
+        self.assertTrue(rds is None)
 
     def testNodeDeleteRdataset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
         node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
-        self.failUnless(rds is None)
+        self.assertTrue(rds is None)
 
     def testNodeDeleteRdataset2(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         node = z['@']
         node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
         rds = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
-        self.failUnless(rds is None)
+        self.assertTrue(rds is None)
 
     def testIterateRdatasets(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         ns = [n for n, r in z.iterate_rdatasets('A')]
         ns.sort()
-        self.failUnless(ns == [dns.name.from_text('ns1', None),
+        self.assertTrue(ns == [dns.name.from_text('ns1', None),
                                dns.name.from_text('ns2', None)])
 
     def testIterateAllRdatasets(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         ns = [n for n, r in z.iterate_rdatasets()]
         ns.sort()
-        self.failUnless(ns == [dns.name.from_text('@', None),
+        self.assertTrue(ns == [dns.name.from_text('@', None),
                                dns.name.from_text('@', None),
                                dns.name.from_text('bar.foo', None),
                                dns.name.from_text('ns1', None),
@@ -426,7 +426,7 @@ class ZoneTestCase(unittest.TestCase):
                 3600,
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2'))]
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testIterateAllRdatas(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -457,44 +457,44 @@ class ZoneTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.2'))]
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testTTLs(self): # type: () -> None
         z = dns.zone.from_text(ttl_example_text, 'example.', relativize=True)
         n = z['@'] # type: dns.node.Node
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA))
-        self.failUnless(rds.ttl == 3600)
+        self.assertTrue(rds.ttl == 3600)
         n = z['ns1']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A))
-        self.failUnless(rds.ttl == 86401)
+        self.assertTrue(rds.ttl == 86401)
         n = z['ns2']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A))
-        self.failUnless(rds.ttl == 694861)
+        self.assertTrue(rds.ttl == 694861)
 
     def testTTLFromSOA(self): # type: () -> None
         z = dns.zone.from_text(ttl_from_soa_text, 'example.', relativize=True)
         n = z['@']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA))
-        self.failUnless(rds.ttl == 3600)
+        self.assertTrue(rds.ttl == 3600)
         soa_rd = rds[0]
         n = z['ns1']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A))
-        self.failUnless(rds.ttl == 694861)
+        self.assertTrue(rds.ttl == 694861)
         n = z['ns2']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A))
-        self.failUnless(rds.ttl == soa_rd.minimum)
+        self.assertTrue(rds.ttl == soa_rd.minimum)
 
     def testTTLFromLast(self): # type: () -> None
         z = dns.zone.from_text(ttl_from_last_text, 'example.', check_origin=False)
         n = z['@']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.NS))
-        self.failUnless(rds.ttl == 3600)
+        self.assertTrue(rds.ttl == 3600)
         n = z['ns1']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A))
-        self.failUnless(rds.ttl == 3600)
+        self.assertTrue(rds.ttl == 3600)
         n = z['ns2']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A))
-        self.failUnless(rds.ttl == 694861)
+        self.assertTrue(rds.ttl == 694861)
 
     def testNoTTL(self): # type: () -> None
         def bad(): # type: () -> None
@@ -515,7 +515,7 @@ class ZoneTestCase(unittest.TestCase):
         z1 = dns.zone.from_text(include_text, 'example.', relativize=True,
                                 allow_include=True)
         z2 = dns.zone.from_file(here('example'), 'example.', relativize=True)
-        self.failUnless(z1 == z2)
+        self.assertTrue(z1 == z2)
 
     def testBadDirective(self): # type: () -> None
         def bad(): # type: () -> None
@@ -528,11 +528,11 @@ class ZoneTestCase(unittest.TestCase):
                                check_origin=False)
         n = z['@']
         rds = cast(dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.A))
-        self.failUnless(rds.ttl == 300)
+        self.assertTrue(rds.ttl == 300)
 
     def testZoneOrigin(self): # type: () -> None
         z = dns.zone.Zone('example.')
-        self.failUnless(z.origin == dns.name.from_text('example.'))
+        self.assertTrue(z.origin == dns.name.from_text('example.'))
         def bad1(): # type: () -> None
             o = dns.name.from_text('example', None)
             dns.zone.Zone(o)
