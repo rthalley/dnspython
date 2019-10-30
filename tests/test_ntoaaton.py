@@ -210,9 +210,9 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t1 = '2001:db8:0:1:1:1:1:1'
         t2 = '::ffff:127.0.0.1'
         t3 = '1::ffff:127.0.0.1'
-        self.failIf(dns.ipv6.is_mapped(aton6(t1)))
+        self.assertFalse(dns.ipv6.is_mapped(aton6(t1)))
         self.assertTrue(dns.ipv6.is_mapped(aton6(t2)))
-        self.failIf(dns.ipv6.is_mapped(aton6(t3)))
+        self.assertFalse(dns.ipv6.is_mapped(aton6(t3)))
 
     def test_is_multicast(self):
         t1 = '223.0.0.1'
@@ -221,11 +221,11 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t4 = '239.0.0.1'
         t5 = 'fe00::1'
         t6 = 'ff00::1'
-        self.failIf(dns.inet.is_multicast(t1))
-        self.failIf(dns.inet.is_multicast(t2))
+        self.assertFalse(dns.inet.is_multicast(t1))
+        self.assertFalse(dns.inet.is_multicast(t2))
         self.assertTrue(dns.inet.is_multicast(t3))
         self.assertTrue(dns.inet.is_multicast(t4))
-        self.failIf(dns.inet.is_multicast(t5))
+        self.assertFalse(dns.inet.is_multicast(t5))
         self.assertTrue(dns.inet.is_multicast(t6))
 
 if __name__ == '__main__':
