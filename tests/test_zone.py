@@ -294,7 +294,7 @@ class ZoneTestCase(unittest.TestCase):
         def bad(): # type: () -> None
             z = dns.zone.from_text(example_text, 'example.', relativize=True)
             z.find_rdataset('@', 'loc')
-        self.failUnlessRaises(KeyError, bad)
+        self.assertRaises(KeyError, bad)
 
     def testFindRRset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -306,7 +306,7 @@ class ZoneTestCase(unittest.TestCase):
         def bad(): # type: () -> None
             z = dns.zone.from_text(example_text, 'example.', relativize=True)
             z.find_rrset('@', 'loc')
-        self.failUnlessRaises(KeyError, bad)
+        self.assertRaises(KeyError, bad)
 
     def testGetRdataset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -368,7 +368,7 @@ class ZoneTestCase(unittest.TestCase):
             z = dns.zone.from_text(example_text, 'example.', relativize=True)
             node = z['@']
             node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
-        self.failUnlessRaises(KeyError, bad)
+        self.assertRaises(KeyError, bad)
 
     def testNodeGetRdataset1(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
@@ -499,17 +499,17 @@ class ZoneTestCase(unittest.TestCase):
     def testNoTTL(self): # type: () -> None
         def bad(): # type: () -> None
             dns.zone.from_text(no_ttl_text, 'example.', check_origin=False)
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testNoSOA(self): # type: () -> None
         def bad(): # type: () -> None
             dns.zone.from_text(no_soa_text, 'example.', relativize=True)
-        self.failUnlessRaises(dns.zone.NoSOA, bad)
+        self.assertRaises(dns.zone.NoSOA, bad)
 
     def testNoNS(self): # type: () -> None
         def bad(): # type: () -> None
             dns.zone.from_text(no_ns_text, 'example.', relativize=True)
-        self.failUnlessRaises(dns.zone.NoNS, bad)
+        self.assertRaises(dns.zone.NoNS, bad)
 
     def testInclude(self): # type: () -> None
         z1 = dns.zone.from_text(include_text, 'example.', relativize=True,
@@ -520,7 +520,7 @@ class ZoneTestCase(unittest.TestCase):
     def testBadDirective(self): # type: () -> None
         def bad(): # type: () -> None
             dns.zone.from_text(bad_directive_text, 'example.', relativize=True)
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testFirstRRStartsWithWhitespace(self): # type: () -> None
         # no name is specified, so default to the initial origin
@@ -536,10 +536,10 @@ class ZoneTestCase(unittest.TestCase):
         def bad1(): # type: () -> None
             o = dns.name.from_text('example', None)
             dns.zone.Zone(o)
-        self.failUnlessRaises(ValueError, bad1)
+        self.assertRaises(ValueError, bad1)
         def bad2(): # type: () -> None
             dns.zone.Zone(cast(str, 1.0))
-        self.failUnlessRaises(ValueError, bad2)
+        self.assertRaises(ValueError, bad2)
 
     def testZoneOriginNone(self): # type: () -> None
         dns.zone.Zone(cast(str, None))

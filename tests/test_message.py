@@ -142,7 +142,7 @@ class MessageTestCase(unittest.TestCase):
                                             '10.0.0.%d' % i)
                 q.additional.append(rrset)
             q.to_wire(max_size=512)
-        self.failUnlessRaises(dns.exception.TooBig, bad)
+        self.assertRaises(dns.exception.TooBig, bad)
 
     def test_answer1(self):
         a = dns.message.from_text(answer_text)
@@ -153,20 +153,20 @@ class MessageTestCase(unittest.TestCase):
         def bad():
             badwire = goodwire + b'\x00'
             dns.message.from_wire(badwire)
-        self.failUnlessRaises(dns.message.TrailingJunk, bad)
+        self.assertRaises(dns.message.TrailingJunk, bad)
 
     def test_ShortHeader(self):
         def bad():
             badwire = b'\x00' * 11
             dns.message.from_wire(badwire)
-        self.failUnlessRaises(dns.message.ShortHeader, bad)
+        self.assertRaises(dns.message.ShortHeader, bad)
 
     def test_RespondingToResponse(self):
         def bad():
             q = dns.message.make_query('foo', 'A')
             r1 = dns.message.make_response(q)
             dns.message.make_response(r1)
-        self.failUnlessRaises(dns.exception.FormError, bad)
+        self.assertRaises(dns.exception.FormError, bad)
 
     def test_ExtendedRcodeSetting(self):
         m = dns.message.make_query('foo', 'A')
@@ -214,7 +214,7 @@ class MessageTestCase(unittest.TestCase):
             a.flags |= dns.flags.TC
             wire = a.to_wire(want_shuffle=False)
             dns.message.from_wire(wire)
-        self.failUnlessRaises(dns.message.Truncated, bad)
+        self.assertRaises(dns.message.Truncated, bad)
 
     def test_MessyTruncated(self):
         def bad():
@@ -222,7 +222,7 @@ class MessageTestCase(unittest.TestCase):
             a.flags |= dns.flags.TC
             wire = a.to_wire(want_shuffle=False)
             dns.message.from_wire(wire[:-3])
-        self.failUnlessRaises(dns.message.Truncated, bad)
+        self.assertRaises(dns.message.Truncated, bad)
 
 if __name__ == '__main__':
     unittest.main()

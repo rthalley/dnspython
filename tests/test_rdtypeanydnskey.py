@@ -53,7 +53,7 @@ class RdtypeAnyDnskeyTestCase(unittest.TestCase):
 
     def testFlagsUnknownToFlags(self): # type: () -> None
         '''Test that conversion from undefined mnemonic raises error.'''
-        self.failUnlessRaises(NotImplementedError,
+        self.assertRaises(NotImplementedError,
                               dns.rdtypes.ANY.DNSKEY.flags_from_text_set,
                               (['0x8000']))
 

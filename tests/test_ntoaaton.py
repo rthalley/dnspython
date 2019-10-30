@@ -61,17 +61,17 @@ class NtoAAtoNTestCase(unittest.TestCase):
     def test_bad_aton1(self):
         def bad():
             aton6('abcd:dcba')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_bad_aton2(self):
         def bad():
             aton6('abcd::dcba::1')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_bad_aton3(self):
         def bad():
             aton6('1:2:3:4:5:6:7:8:9')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_aton6(self):
         a = aton6('::')
@@ -162,12 +162,12 @@ class NtoAAtoNTestCase(unittest.TestCase):
     def test_bad_ntoa1(self):
         def bad():
             ntoa6('')
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_bad_ntoa2(self):
         def bad():
             ntoa6('\x00' * 17)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_good_v4_aton(self):
         pairs = [('1.2.3.4', b'\x01\x02\x03\x04'),
@@ -186,7 +186,7 @@ class NtoAAtoNTestCase(unittest.TestCase):
             return bad
         for addr in v4_bad_addrs:
             print(addr)
-            self.failUnlessRaises(dns.exception.SyntaxError, make_bad(addr))
+            self.assertRaises(dns.exception.SyntaxError, make_bad(addr))
 
     def test_bad_v6_aton(self):
         addrs = ['+::0', '0::0::', '::0::', '1:2:3:4:5:6:7:8:9',
@@ -198,7 +198,7 @@ class NtoAAtoNTestCase(unittest.TestCase):
                 x = aton6(a)
             return bad
         for addr in addrs:
-            self.failUnlessRaises(dns.exception.SyntaxError, make_bad(addr))
+            self.assertRaises(dns.exception.SyntaxError, make_bad(addr))
 
     def test_rfc5952_section_4_2_2(self):
         addr = '2001:db8:0:1:1:1:1:1'

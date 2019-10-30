@@ -44,12 +44,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_class_bytext_bounds2(self):
         def bad():
             dns.rdataclass.from_text('CLASS65536')
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_class_bytext_unknown(self):
         def bad():
             dns.rdataclass.from_text('XXX')
-        self.failUnlessRaises(dns.rdataclass.UnknownRdataclass, bad)
+        self.assertRaises(dns.rdataclass.UnknownRdataclass, bad)
 
     def test_class_totext1(self):
         self.assertTrue(dns.rdataclass.to_text(dns.rdataclass.IN) == 'IN')
@@ -60,12 +60,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_class_totext_bounds1(self):
         def bad():
             dns.rdataclass.to_text(-1)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_class_totext_bounds2(self):
         def bad():
             dns.rdataclass.to_text(65536)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     # Types
 
@@ -98,12 +98,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_type_bytext_bounds2(self):
         def bad():
             dns.rdatatype.from_text('TYPE65536')
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_type_bytext_unknown(self):
         def bad():
             dns.rdatatype.from_text('XXX')
-        self.failUnlessRaises(dns.rdatatype.UnknownRdatatype, bad)
+        self.assertRaises(dns.rdatatype.UnknownRdatatype, bad)
 
     def test_type_totext1(self):
         self.assertTrue(dns.rdatatype.to_text(dns.rdatatype.A) == 'A')
@@ -114,12 +114,12 @@ class RdTypeAndClassTestCase(unittest.TestCase):
     def test_type_totext_bounds1(self):
         def bad():
             dns.rdatatype.to_text(-1)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_type_totext_bounds2(self):
         def bad():
             dns.rdatatype.to_text(65536)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_type0_totext(self):
         self.assertTrue(dns.rdatatype.to_text(0) == 'TYPE0')

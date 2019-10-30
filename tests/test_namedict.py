@@ -57,12 +57,12 @@ class NameTestCase(unittest.TestCase):
         def bad():
             n = dns.name.from_text('a.b.c.')
             self.ndict.get_deepest_match(n)
-        self.failUnlessRaises(KeyError, bad)
+        self.assertRaises(KeyError, bad)
 
     def testLookup6(self):
         def bad():
             self.ndict.get_deepest_match(dns.name.empty)
-        self.failUnlessRaises(KeyError, bad)
+        self.assertRaises(KeyError, bad)
 
     def testLookup7(self):
         self.ndict[dns.name.empty] = 100
@@ -73,7 +73,7 @@ class NameTestCase(unittest.TestCase):
     def testLookup8(self):
         def bad():
             self.ndict['foo'] = 100
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def testRelDepth(self):
         self.assertTrue(self.rndict.max_depth == 2)

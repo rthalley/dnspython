@@ -101,12 +101,12 @@ class NameTestCase(unittest.TestCase):
     def testImmutable1(self):
         def bad():
             self.origin.labels = ()
-        self.failUnlessRaises(TypeError, bad)
+        self.assertRaises(TypeError, bad)
 
     def testImmutable2(self):
         def bad():
             self.origin.labels[0] = 'foo'
-        self.failUnlessRaises(TypeError, bad)
+        self.assertRaises(TypeError, bad)
 
     def testAbs1(self):
         self.assertTrue(dns.name.root.is_absolute())
@@ -290,12 +290,12 @@ class NameTestCase(unittest.TestCase):
     def testEmptyLabel1(self):
         def bad():
             dns.name.Name(['a', '', 'b'])
-        self.failUnlessRaises(dns.name.EmptyLabel, bad)
+        self.assertRaises(dns.name.EmptyLabel, bad)
 
     def testEmptyLabel2(self):
         def bad():
             dns.name.Name(['', 'b'])
-        self.failUnlessRaises(dns.name.EmptyLabel, bad)
+        self.assertRaises(dns.name.EmptyLabel, bad)
 
     def testEmptyLabel3(self):
         n = dns.name.Name(['b', ''])
@@ -308,7 +308,7 @@ class NameTestCase(unittest.TestCase):
     def testLabelTooLong(self):
         def bad():
             dns.name.Name(['a' * 64, 'b'])
-        self.failUnlessRaises(dns.name.LabelTooLong, bad)
+        self.assertRaises(dns.name.LabelTooLong, bad)
 
     def testLongName(self):
         n = dns.name.Name(['a' * 63, 'a' * 63, 'a' * 63, 'a' * 62])
@@ -317,7 +317,7 @@ class NameTestCase(unittest.TestCase):
     def testNameTooLong(self):
         def bad():
             dns.name.Name(['a' * 63, 'a' * 63, 'a' * 63, 'a' * 63])
-        self.failUnlessRaises(dns.name.NameTooLong, bad)
+        self.assertRaises(dns.name.NameTooLong, bad)
 
     def testConcat1(self):
         n1 = dns.name.Name(['a', 'b'])
@@ -359,13 +359,13 @@ class NameTestCase(unittest.TestCase):
             n1 = dns.name.Name(['a', 'b', ''])
             n2 = dns.name.Name(['c'])
             return n1 + n2
-        self.failUnlessRaises(dns.name.AbsoluteConcatenation, bad)
+        self.assertRaises(dns.name.AbsoluteConcatenation, bad)
 
     def testBadEscape(self):
         def bad():
             n = dns.name.from_text(r'a.b\0q1.c.')
             print(n)
-        self.failUnlessRaises(dns.name.BadEscape, bad)
+        self.assertRaises(dns.name.BadEscape, bad)
 
     def testDigestable1(self):
         n = dns.name.from_text('FOO.bar')
@@ -392,7 +392,7 @@ class NameTestCase(unittest.TestCase):
         def bad():
             n = dns.name.from_text('FOO.bar', None)
             n.to_digestable()
-        self.failUnlessRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
+        self.assertRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
 
     def testToWire1(self):
         n = dns.name.from_text('FOO.bar')
@@ -448,7 +448,7 @@ class NameTestCase(unittest.TestCase):
             f = BytesIO()
             compress = {} # type: Dict[dns.name.Name,int]
             n.to_wire(f, compress)
-        self.failUnlessRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
+        self.assertRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
 
     def testSplit1(self):
         n = dns.name.from_text('foo.bar.')
@@ -482,13 +482,13 @@ class NameTestCase(unittest.TestCase):
         def bad():
             n = dns.name.from_text('foo.bar.')
             n.split(-1)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def testBadSplit2(self):
         def bad():
             n = dns.name.from_text('foo.bar.')
             n.split(4)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def testRelativize1(self):
         n = dns.name.from_text('a.foo.bar.', None)
@@ -607,25 +607,25 @@ class NameTestCase(unittest.TestCase):
         def bad():
             w = b'\x03foo\xc0\x04'
             dns.name.from_wire(w, 0)
-        self.failUnlessRaises(dns.name.BadPointer, bad)
+        self.assertRaises(dns.name.BadPointer, bad)
 
     def testBadFromWire2(self):
         def bad():
             w = b'\x03foo\xc0\x05'
             dns.name.from_wire(w, 0)
-        self.failUnlessRaises(dns.name.BadPointer, bad)
+        self.assertRaises(dns.name.BadPointer, bad)
 
     def testBadFromWire3(self):
         def bad():
             w = b'\xbffoo'
             dns.name.from_wire(w, 0)
-        self.failUnlessRaises(dns.name.BadLabelType, bad)
+        self.assertRaises(dns.name.BadLabelType, bad)
 
     def testBadFromWire4(self):
         def bad():
             w = b'\x41foo'
             dns.name.from_wire(w, 0)
-        self.failUnlessRaises(dns.name.BadLabelType, bad)
+        self.assertRaises(dns.name.BadLabelType, bad)
 
     def testParent1(self):
         n = dns.name.from_text('foo.bar.')
@@ -641,13 +641,13 @@ class NameTestCase(unittest.TestCase):
         def bad():
             n = dns.name.root
             n.parent()
-        self.failUnlessRaises(dns.name.NoParent, bad)
+        self.assertRaises(dns.name.NoParent, bad)
 
     def testParent4(self):
         def bad():
             n = dns.name.empty
             n.parent()
-        self.failUnlessRaises(dns.name.NoParent, bad)
+        self.assertRaises(dns.name.NoParent, bad)
 
     def testFromUnicode1(self):
         n = dns.name.from_text('foo.bar')
@@ -701,7 +701,7 @@ class NameTestCase(unittest.TestCase):
             def bad():
                 codec = dns.name.IDNA_2008_Strict
                 return dns.name.from_unicode(t, idna_codec=codec)
-            self.failUnlessRaises(dns.name.IDNAException, bad)
+            self.assertRaises(dns.name.IDNAException, bad)
             e1 = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2008)
             self.assertEqual(str(e1), 'xn--knigsgchen-b4a3dun.')
             c2 = dns.name.IDNA_2008_Transitional
@@ -725,9 +725,9 @@ class NameTestCase(unittest.TestCase):
             def bad3():
                 codec = dns.name.IDNA_2008_Transitional
                 return dns.name.from_unicode(t, idna_codec=codec)
-            self.failUnlessRaises(dns.name.IDNAException, bad1)
-            self.failUnlessRaises(dns.name.IDNAException, bad2)
-            self.failUnlessRaises(dns.name.IDNAException, bad3)
+            self.assertRaises(dns.name.IDNAException, bad1)
+            self.assertRaises(dns.name.IDNAException, bad2)
+            self.assertRaises(dns.name.IDNAException, bad3)
             e = dns.name.from_unicode(t,
                                       idna_codec=dns.name.IDNA_2008_Practical)
             self.assertEqual(str(e), '_sip._tcp.xn--knigsgchen-b4a3dun.')
@@ -768,7 +768,7 @@ class NameTestCase(unittest.TestCase):
         def bad():
             # This throws in IDNA2003 because it doesn't "round trip".
             n.to_unicode(idna_codec=dns.name.IDNA_2003_Strict)
-        self.failUnlessRaises(dns.name.IDNAException, bad)
+        self.assertRaises(dns.name.IDNAException, bad)
 
     def testReverseIPv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
@@ -788,12 +788,12 @@ class NameTestCase(unittest.TestCase):
     def testBadReverseIPv4(self):
         def bad():
             dns.reversename.from_address('127.0.foo.1')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testBadReverseIPv6(self):
         def bad():
             dns.reversename.from_address('::1::1')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testForwardIPv4(self):
         n = dns.name.from_text('1.0.0.127.in-addr.arpa.')

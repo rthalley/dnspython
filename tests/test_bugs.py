@@ -44,7 +44,7 @@ class BugsTestCase(unittest.TestCase):
     def test_TTL_bounds_check(self):
         def bad():
             dns.ttl.from_text("2147483648")
-        self.failUnlessRaises(dns.ttl.BadTTL, bad)
+        self.assertRaises(dns.ttl.BadTTL, bad)
 
     def test_empty_NSEC3_window(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NSEC3,

@@ -46,7 +46,7 @@ class FlagsTestCase(unittest.TestCase):
     def test_rcode8(self):
         def bad():
             dns.rcode.to_flags(4096)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_flags1(self):
         self.assertTrue(dns.flags.from_text("RA RD AA QR") == \

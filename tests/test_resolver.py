@@ -140,7 +140,7 @@ class BaseResolverTests(unittest.TestCase):
                                          dns.rdataclass.IN, message,
                                          False)
             return answer[0]
-        self.failUnlessRaises(IndexError, bad)
+        self.assertRaises(IndexError, bad)
 
     def testIndexErrorOnEmptyRRsetDelete(self):
         def bad():
@@ -150,7 +150,7 @@ class BaseResolverTests(unittest.TestCase):
                                          dns.rdataclass.IN, message,
                                          False)
             del answer[0]
-        self.failUnlessRaises(IndexError, bad)
+        self.assertRaises(IndexError, bad)
 
     @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName1(self):
@@ -177,7 +177,7 @@ class BaseResolverTests(unittest.TestCase):
         def bad():
             name = dns.name.from_text('dnspython.org', None)
             dns.resolver.zone_for_name(name)
-        self.failUnlessRaises(dns.resolver.NotAbsolute, bad)
+        self.assertRaises(dns.resolver.NotAbsolute, bad)
 
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)

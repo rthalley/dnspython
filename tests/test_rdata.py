@@ -45,7 +45,7 @@ class RdataTestCase(unittest.TestCase):
         def bad():
             TTXTTWO = dns.rdatatype.TXT
             dns.rdata.register_type(tests.ttxt_module, TTXTTWO, 'TTXTTWO')
-        self.failUnlessRaises(dns.rdata.RdatatypeExists, bad)
+        self.assertRaises(dns.rdata.RdatatypeExists, bad)
 
 if __name__ == '__main__':
     unittest.main()
