@@ -235,12 +235,12 @@ class NameTestCase(unittest.TestCase):
     def testToText7(self):
         n = dns.name.from_text(r'FOO\.bar', origin=None)
         t = n.to_text()
-        self.assertEqual(t, 'FOO\.bar')
+        self.assertEqual(t, r'FOO\.bar')
 
     def testToText8(self):
         n = dns.name.from_text(r'\070OO\.bar', origin=None)
         t = n.to_text()
-        self.assertEqual(t, 'FOO\.bar')
+        self.assertEqual(t, r'FOO\.bar')
 
     def testToText9(self):
         n = dns.name.from_text('FOO bar', origin=None)
