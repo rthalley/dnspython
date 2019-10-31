@@ -39,19 +39,19 @@ class NtoAAtoNTestCase(unittest.TestCase):
 
     def test_aton1(self):
         a = aton6('::')
-        self.failUnless(a == b'\x00' * 16)
+        self.assertTrue(a == b'\x00' * 16)
 
     def test_aton2(self):
         a = aton6('::1')
-        self.failUnless(a == b'\x00' * 15 + b'\x01')
+        self.assertTrue(a == b'\x00' * 15 + b'\x01')
 
     def test_aton3(self):
         a = aton6('::10.0.0.1')
-        self.failUnless(a == b'\x00' * 12 + b'\x0a\x00\x00\x01')
+        self.assertTrue(a == b'\x00' * 12 + b'\x0a\x00\x00\x01')
 
     def test_aton4(self):
         a = aton6('abcd::dcba')
-        self.failUnless(a == b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
+        self.assertTrue(a == b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
 
     def test_aton5(self):
         a = aton6('1:2:3:4:5:6:7:8')
@@ -61,17 +61,17 @@ class NtoAAtoNTestCase(unittest.TestCase):
     def test_bad_aton1(self):
         def bad():
             aton6('abcd:dcba')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_bad_aton2(self):
         def bad():
             aton6('abcd::dcba::1')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_bad_aton3(self):
         def bad():
             aton6('1:2:3:4:5:6:7:8:9')
-        self.failUnlessRaises(dns.exception.SyntaxError, bad)
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_aton6(self):
         a = aton6('::')
@@ -162,12 +162,12 @@ class NtoAAtoNTestCase(unittest.TestCase):
     def test_bad_ntoa1(self):
         def bad():
             ntoa6('')
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_bad_ntoa2(self):
         def bad():
             ntoa6('\x00' * 17)
-        self.failUnlessRaises(ValueError, bad)
+        self.assertRaises(ValueError, bad)
 
     def test_good_v4_aton(self):
         pairs = [('1.2.3.4', b'\x01\x02\x03\x04'),
@@ -186,7 +186,7 @@ class NtoAAtoNTestCase(unittest.TestCase):
             return bad
         for addr in v4_bad_addrs:
             print(addr)
-            self.failUnlessRaises(dns.exception.SyntaxError, make_bad(addr))
+            self.assertRaises(dns.exception.SyntaxError, make_bad(addr))
 
     def test_bad_v6_aton(self):
         addrs = ['+::0', '0::0::', '::0::', '1:2:3:4:5:6:7:8:9',
@@ -198,7 +198,7 @@ class NtoAAtoNTestCase(unittest.TestCase):
                 x = aton6(a)
             return bad
         for addr in addrs:
-            self.failUnlessRaises(dns.exception.SyntaxError, make_bad(addr))
+            self.assertRaises(dns.exception.SyntaxError, make_bad(addr))
 
     def test_rfc5952_section_4_2_2(self):
         addr = '2001:db8:0:1:1:1:1:1'
@@ -210,9 +210,9 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t1 = '2001:db8:0:1:1:1:1:1'
         t2 = '::ffff:127.0.0.1'
         t3 = '1::ffff:127.0.0.1'
-        self.failIf(dns.ipv6.is_mapped(aton6(t1)))
-        self.failUnless(dns.ipv6.is_mapped(aton6(t2)))
-        self.failIf(dns.ipv6.is_mapped(aton6(t3)))
+        self.assertFalse(dns.ipv6.is_mapped(aton6(t1)))
+        self.assertTrue(dns.ipv6.is_mapped(aton6(t2)))
+        self.assertFalse(dns.ipv6.is_mapped(aton6(t3)))
 
     def test_is_multicast(self):
         t1 = '223.0.0.1'
@@ -221,12 +221,12 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t4 = '239.0.0.1'
         t5 = 'fe00::1'
         t6 = 'ff00::1'
-        self.failIf(dns.inet.is_multicast(t1))
-        self.failIf(dns.inet.is_multicast(t2))
-        self.failUnless(dns.inet.is_multicast(t3))
-        self.failUnless(dns.inet.is_multicast(t4))
-        self.failIf(dns.inet.is_multicast(t5))
-        self.failUnless(dns.inet.is_multicast(t6))
+        self.assertFalse(dns.inet.is_multicast(t1))
+        self.assertFalse(dns.inet.is_multicast(t2))
+        self.assertTrue(dns.inet.is_multicast(t3))
+        self.assertTrue(dns.inet.is_multicast(t4))
+        self.assertFalse(dns.inet.is_multicast(t5))
+        self.assertTrue(dns.inet.is_multicast(t6))
 
 if __name__ == '__main__':
     unittest.main()

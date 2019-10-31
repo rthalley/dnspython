@@ -75,7 +75,7 @@ class UpdateTestCase(unittest.TestCase):
         update.delete('bar', 'a', '10.0.0.4')
         update.delete('blaz', 'a')
         update.delete('blaz2')
-        self.failUnless(update.to_wire() == goodwire)
+        self.assertTrue(update.to_wire() == goodwire)
 
     def test_to_wire2(self): # type: () -> None
         update = dns.update.Update('example')
@@ -90,7 +90,7 @@ class UpdateTestCase(unittest.TestCase):
         update.delete('bar', 'a', '10.0.0.4')
         update.delete('blaz', 'a')
         update.delete('blaz2')
-        self.failUnless(update.to_wire() == goodwire)
+        self.assertTrue(update.to_wire() == goodwire)
 
     def test_to_wire3(self): # type: () -> None
         update = dns.update.Update('example')
@@ -105,13 +105,13 @@ class UpdateTestCase(unittest.TestCase):
         update.delete('bar', 'a', '10.0.0.4')
         update.delete('blaz', 'a')
         update.delete('blaz2')
-        self.failUnless(update.to_wire() == goodwire)
+        self.assertTrue(update.to_wire() == goodwire)
 
     def test_from_text1(self): # type: () -> None
         update = dns.message.from_text(update_text)
         w = update.to_wire(origin=dns.name.from_text('example'),
                            want_shuffle=False)
-        self.failUnless(w == goodwire)
+        self.assertTrue(w == goodwire)
 
 if __name__ == '__main__':
     unittest.main()

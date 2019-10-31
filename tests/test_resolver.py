@@ -107,7 +107,7 @@ class BaseResolverTests(unittest.TestCase):
         def testRead(self):
             f = StringIO(resolv_conf)
             r = dns.resolver.Resolver(f)
-            self.failUnless(r.nameservers == ['10.0.0.1', '10.0.0.2'] and
+            self.assertTrue(r.nameservers == ['10.0.0.1', '10.0.0.2'] and
                             r.domain == dns.name.from_text('foo'))
 
     def testCacheExpiration(self):
@@ -118,7 +118,7 @@ class BaseResolverTests(unittest.TestCase):
         cache = dns.resolver.Cache()
         cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
         time.sleep(2)
-        self.failUnless(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
+        self.assertTrue(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
                         is None)
 
     def testCacheCleaning(self):
@@ -129,7 +129,7 @@ class BaseResolverTests(unittest.TestCase):
         cache = dns.resolver.Cache(cleaning_interval=1.0)
         cache.put((name, dns.rdatatype.A, dns.rdataclass.IN), answer)
         time.sleep(2)
-        self.failUnless(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
+        self.assertTrue(cache.get((name, dns.rdatatype.A, dns.rdataclass.IN))
                         is None)
 
     def testIndexErrorOnEmptyRRsetAccess(self):
@@ -140,7 +140,7 @@ class BaseResolverTests(unittest.TestCase):
                                          dns.rdataclass.IN, message,
                                          False)
             return answer[0]
-        self.failUnlessRaises(IndexError, bad)
+        self.assertRaises(IndexError, bad)
 
     def testIndexErrorOnEmptyRRsetDelete(self):
         def bad():
@@ -150,34 +150,34 @@ class BaseResolverTests(unittest.TestCase):
                                          dns.rdataclass.IN, message,
                                          False)
             del answer[0]
-        self.failUnlessRaises(IndexError, bad)
+        self.assertRaises(IndexError, bad)
 
     @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName1(self):
         name = dns.name.from_text('www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
-        self.failUnless(zname == ezname)
+        self.assertTrue(zname == ezname)
 
     @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName2(self):
         name = dns.name.from_text('a.b.www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
-        self.failUnless(zname == ezname)
+        self.assertTrue(zname == ezname)
 
     @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName3(self):
         name = dns.name.from_text('dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
-        self.failUnless(zname == ezname)
+        self.assertTrue(zname == ezname)
 
     def testZoneForName4(self):
         def bad():
             name = dns.name.from_text('dnspython.org', None)
             dns.resolver.zone_for_name(name)
-        self.failUnlessRaises(dns.resolver.NotAbsolute, bad)
+        self.assertRaises(dns.resolver.NotAbsolute, bad)
 
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
@@ -188,11 +188,11 @@ class BaseResolverTests(unittest.TestCase):
         for i in range(0, 5):
             name = dns.name.from_text('example%d.' % i)
             if i == 0:
-                self.failUnless(cache.get((name, dns.rdatatype.A,
+                self.assertTrue(cache.get((name, dns.rdatatype.A,
                                            dns.rdataclass.IN))
                                 is None)
             else:
-                self.failUnless(not cache.get((name, dns.rdatatype.A,
+                self.assertTrue(not cache.get((name, dns.rdatatype.A,
                                                dns.rdataclass.IN))
                                 is None)
 
@@ -211,11 +211,11 @@ class BaseResolverTests(unittest.TestCase):
         for i in range(0, 5):
             name = dns.name.from_text('example%d.' % i)
             if i == 1:
-                self.failUnless(cache.get((name, dns.rdatatype.A,
+                self.assertTrue(cache.get((name, dns.rdatatype.A,
                                            dns.rdataclass.IN))
                                 is None)
             else:
-                self.failUnless(not cache.get((name, dns.rdatatype.A,
+                self.assertTrue(not cache.get((name, dns.rdatatype.A,
                                                dns.rdataclass.IN))
                                 is None)
 
@@ -228,7 +228,7 @@ class BaseResolverTests(unittest.TestCase):
         time.sleep(2)
         for i in range(0, 4):
             name = dns.name.from_text('example%d.' % i)
-            self.failUnless(cache.get((name, dns.rdatatype.A,
+            self.assertTrue(cache.get((name, dns.rdatatype.A,
                                        dns.rdataclass.IN))
                             is None)
 

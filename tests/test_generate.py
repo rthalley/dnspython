@@ -151,12 +151,12 @@ class GenerateTestCase(unittest.TestCase):
     def testFromText(self): # type: () -> None
         def bad(): # type: () -> None
             dns.zone.from_text(example_text, 'example.', relativize=True)
-        self.failUnlessRaises(dns.zone.NoSOA, bad)
+        self.assertRaises(dns.zone.NoSOA, bad)
 
     def testFromText1(self): # type: () -> None
         def bad(): # type: () -> None
             dns.zone.from_text(example_text1, 'example.', relativize=True)
-        self.failUnlessRaises(dns.zone.NoSOA, bad)
+        self.assertRaises(dns.zone.NoSOA, bad)
 
     def testIterateAllRdatas2(self): # type: () -> None
         z = dns.zone.from_text(example_text2, 'example.', relativize=True)
@@ -200,7 +200,7 @@ class GenerateTestCase(unittest.TestCase):
                                     '10.0.0.5'))]
 
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testIterateAllRdatas3(self): # type: () -> None
         z = dns.zone.from_text(example_text3, 'example.', relativize=True)
@@ -240,7 +240,7 @@ class GenerateTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.0.0.8'))]
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
     def testGenerate1(self): # type: () -> None
         z = dns.zone.from_text(example_text4, 'example.', relativize=True)
         l = list(z.iterate_rdatas())
@@ -328,7 +328,7 @@ class GenerateTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.'))]
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testGenerate3(self): # type: () -> None
         z = dns.zone.from_text(example_text6, 'example.', relativize=True)
@@ -371,7 +371,7 @@ class GenerateTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CNAME,
                                     'SERVER.FOOBAR.'))]
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testGenerate4(self): # type: () -> None
         z = dns.zone.from_text(example_text7, 'example.', relativize=True)
@@ -414,7 +414,7 @@ class GenerateTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0'))]
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testGenerate6(self): # type: () -> None
         z = dns.zone.from_text(example_text9, 'example.', relativize=True)
@@ -464,7 +464,7 @@ class GenerateTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
                                     '10.10.16.0'))]
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testGenerate7(self): # type: () -> None
         z = dns.zone.from_text(example_text10, 'example.', relativize=True)
@@ -504,7 +504,7 @@ class GenerateTestCase(unittest.TestCase):
                                     'zlb2.oob'))]
 
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
     def testGenerate8(self): # type: () -> None
         z = dns.zone.from_text(example_text11, 'example.', relativize=True)
@@ -545,7 +545,7 @@ class GenerateTestCase(unittest.TestCase):
                                     '10.0.0.2'))]
 
         exl.sort(key=_rdata_sort)
-        self.failUnless(l == exl)
+        self.assertTrue(l == exl)
 
 
 if __name__ == '__main__':
