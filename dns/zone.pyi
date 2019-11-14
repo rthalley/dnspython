@@ -7,11 +7,12 @@ class NoNS(BadZone): ...
 class UnknownOrigin(BadZone): ...
 
 class Zone:
+    origin: name.Name
+
     def __getitem__(self, key : str) -> node.Node:
         ...
     def __init__(self, origin : Union[str,name.Name], rdclass : int = rdataclass.IN, relativize : bool = True) -> None:
         self.nodes : Dict[str,node.Node]
-        self.origin = origin
     def values(self):
         return self.nodes.values()
     def iterate_rdatas(self, rdtype : Union[int,str] = rdatatype.ANY, covers : Union[int,str] = None) -> Iterable[Tuple[name.Name, int, rdata.Rdata]]:
