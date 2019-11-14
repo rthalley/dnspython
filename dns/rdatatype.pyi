@@ -1,3 +1,5 @@
+from typing import Optional
+
 NONE = 0
 A = 1
 NS = 2
@@ -78,9 +80,9 @@ def to_text(value: int) -> str:
 
 def is_metatype(rdtype: int) -> bool:
     pass
-    
+
 def is_singleton(rdtype: int) -> bool:
     pass
 
-def register_type(rdtype: int, rdtype_text: bool, is_singleton: bool=False) -> None:
+def register_type(rdtype: int, rdtype_text: bool, is_singleton: Optional[bool]=False) -> None:
     pass
