@@ -33,7 +33,7 @@ def zone_for_name(name, rdclass : int = rdataclass.IN, tcp=False, resolver : Opt
     ...
 
 class Resolver:
-    def __init__(self, configure):
+    def __init__(self, filename: Optional[str]=None, configure: bool=False):
         self.nameservers : List[str]
     def query(self, qname : str, rdtype : Union[int,str] = rdatatype.A, rdclass : Union[int,str] = rdataclass.IN,
               tcp : bool = False, source : Optional[str] = None, raise_on_no_answer=True, source_port : int = 0):
