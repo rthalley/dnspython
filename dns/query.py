@@ -19,6 +19,7 @@
 
 from __future__ import generators
 
+import urllib.request
 import errno
 import os
 import select
@@ -26,6 +27,7 @@ import socket
 import struct
 import sys
 import time
+import base64
 
 import dns.exception
 import dns.inet
@@ -204,6 +206,46 @@ def _destination_and_source(af, where, port, source, source_port):
             source = (source, source_port, 0, 0)
     return (af, destination, source)
 
+
+def https(query, url, timeout=None, post=True, one_rr_per_rrset=False, ignore_trailing=False):
+    """Return the response obtained after sending a query via DNS-over-HTTPS.
+
+    *query*, a ``dns.message.Message``, the query to send.
+
+    *url*, a ``str``, the nameserver URL.
+
+    *timeout*, a ``float`` or ``None``, the number of seconds to
+    wait before the query times out. If ``None``, the default, wait forever.
+
+    *post*, a ``bool``. If ``True``, the default, POST method should be used.
+
+    *one_rr_per_rrset*, a ``bool``. If ``True``, put each RR into its own
+    RRset.
+
+    *ignore_trailing*, a ``bool``. If ``True``, ignore trailing
+    junk at end of the received message.
+
+    Returns a ``dns.message.Message``.
+    """
+
+    wirequery = query.to_wire()
+    headers = {
+        'Accept': 'application/dns-message',
+        'Content-Type': 'application/dns-message',
+    }
+
+    if post:
+        request = urllib.request.Request(url, data=wirequery, headers=headers)
+    else:
+        wirequery = base64.urlsafe_b64encode(wirequery).decode('utf-8').strip('=')
+        request = urllib.request.Request(url + '?dns=' + wirequery, headers=headers)
+
+    response = urllib.request.urlopen(request, timeout=timeout).read()
+    return dns.message.from_wire(response,
+                                 keyring=query.keyring,
+                                 request_mac=query.request_mac,
+                                 one_rr_per_rrset=one_rr_per_rrset,
+                                 ignore_trailing=ignore_trailing)
 
 def send_udp(sock, what, destination, expiration=None):
     """Send a DNS message to the specified UDP socket.
