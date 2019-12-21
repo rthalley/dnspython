@@ -37,6 +37,10 @@ class Message:
         self.multi = False
         self.first = True
         self.index : Dict[Tuple[rrset.RRset, name.Name, int, int, Union[int,str], int], rrset.RRset] = {}
+
+    def is_response(self, other : Message) -> bool:
+        ...
+
 def from_text(a : str) -> Message:
     ...
 
