@@ -14,7 +14,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import unittest
 import random
 
@@ -43,22 +42,12 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         self.assertTrue(q.is_response(r))
 
     def test_build_url_from_ip(self):
-        nameserver_ip = '8.8.8.8' #random.choice(KNOWN_ANYCAST_DOH_RESOLVER_IPS)
+        nameserver_ip = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_IPS)
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
         # For some reason Google's DNS over HTTPS fails when you POST to https://8.8.8.8/dns-query
-        # So we're just going to do the GET request
+        # So we're just going to do GET requests here
         r = dns.query.https(q, nameserver_ip, post=False)
         self.assertTrue(q.is_response(r))
-
-    def test_custom_path(self):
-        cleanbrowsing_ip = '185.228.168.168'
-        cleanbrowsing_path = '/doh/security-filter/'
-        q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        r = dns.query.https(q, cleanbrowsing_ip, path=cleanbrowsing_path, verify=False)
-        self.assertTrue(q.is_response(r))
-
-    def test_use_full_url(self):
-        pass
 
 if __name__ == '__main__':
     unittest.main()
