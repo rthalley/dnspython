@@ -257,8 +257,6 @@ def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
                                                         source, source_port)
     if source is None:
         source = ('', 0)
-    if headers is None:
-        headers = {}
     with requests.Session() as session:
         # set source port and source address
         # see https://github.com/requests/toolbelt/blob/master/requests_toolbelt/adapters/source.py
