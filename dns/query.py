@@ -38,7 +38,7 @@ import dns.rdataclass
 import dns.rdatatype
 
 import requests
-import requests.packages.urllib3.util.connection as urllib3_cn
+import urllib3.util.connection
 from requests_toolbelt.adapters.source import SourceAddressAdapter
 
 try:
@@ -263,9 +263,10 @@ def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
         session.mount('http://', SourceAddressAdapter(source))
         session.mount('https://', SourceAddressAdapter(source))
 
-        # effectively set address family
-        # see https://stackoverflow.com/a/46972341/9638991
-        urllib3_cn.allowed_gai_family = lambda: af
+        # This will effectively set the address family passed to getaddrinfo()
+        # in urllib3.util.connection.create_connection(), which is used by requests
+        if af is not None:
+            urllib3.util.connection.allowed_gai_family = lambda: af
 
         try:
             _ = ipaddress.ip_address(where)
