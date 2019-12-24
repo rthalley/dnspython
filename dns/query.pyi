@@ -8,7 +8,7 @@ except ImportError:
         SSLContext = {}
 
 def https(q : message.Message, where: str, timeout : Optional[float] = None, port : Optional[int] = 443, path : Optional[str] = '/dns-query', post : Optional[bool] = True,
-          verify : Optional[bool] = True, af : Optional[int] = None, source : Optional[str] = None, source_port : Optional[int] = 0,
+          verify : Optional[bool] = True, source : Optional[str] = None, source_port : Optional[int] = 0,
           one_rr_per_rrset : Optional[bool] = False, ignore_trailing : Optional[bool] = False) -> message.Message:
     pass
 

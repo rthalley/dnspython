@@ -38,7 +38,6 @@ import dns.rdataclass
 import dns.rdatatype
 
 import requests
-import urllib3.util.connection
 from requests_toolbelt.adapters.source import SourceAddressAdapter
 
 try:
@@ -210,12 +209,9 @@ def _destination_and_source(af, where, port, source, source_port):
             source = (source, source_port, 0, 0)
     return (af, destination, source)
 
-# keep the original function so we can reset it to avoid
-# unintentional breakages
-_allowed_gai_family = urllib3.util.connection.allowed_gai_family
 
 def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
-          verify=True, af=None, source=None, source_port=0,
+          verify=True, source=None, source_port=0,
           one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -235,11 +231,6 @@ def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
 
     *post*, a ``bool``. If ``True``, the default, POST method will be used.
 
-    *af*, an ``int``, the address family to use.  The default is ``None``,
-    which causes the address family to use to be inferred from the form of
-    *where*.  If the inference attempt fails, AF_INET is used.  This
-    parameter is historical; you need never set it.
-
     *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
 
@@ -256,12 +247,7 @@ def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
     """
 
     wire = q.to_wire()
-
-    # This will effectively set the address family passed to getaddrinfo()
-    # in urllib3.util.connection.create_connection(), which is used by requests
-    if af is not None:
-        urllib3.util.connection.allowed_gai_family = lambda: af
-
+    af = None
     (af, destination, source) = _destination_and_source(af, where, port,
                                                         source, source_port)
     if source is None:
@@ -307,7 +293,6 @@ def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
                                   ignore_trailing=ignore_trailing)
     finally:
         session.close()
-        urllib3.util.connection.allowed_gai_family = _allowed_gai_family
     r.time = response.elapsed
     if not q.is_response(r):
         raise BadResponse
