@@ -404,5 +404,28 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         self.assertTrue(e2.canonical_name == dns.name.from_text(cname2))
 
 
+class ResolverNameserverValidTypeTestCase(unittest.TestCase):
+    def test_set_nameserver_to_string(self):
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = '1.2.3.4'
+        self.assertEqual(resolver.nameservers, ['1.2.3.4'])
+
+    def test_set_nameserver_to_list(self):
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ['1.2.3.4']
+        self.assertEqual(resolver.nameservers, ['1.2.3.4'])
+
+    def test_set_nameserver_to_None(self):
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = None
+        self.assertEqual(resolver.nameservers, None)
+
+    def test_set_nameserver_invalid_type(self):
+        resolver = dns.resolver.Resolver()
+        invalid_nameservers = [1234, (1, 2, 3, 4), {'invalid': 'nameserver'}]
+        for invalid_nameserver in invalid_nameservers:
+            with self.assertRaises(ValueError):
+                resolver.nameservers = invalid_nameserver
+
 if __name__ == '__main__':
     unittest.main()

@@ -1079,6 +1079,27 @@ class Resolver(object):
 
         self.flags = flags
 
+    @property
+    def nameservers(self):
+        return self._nameservers
+
+    @nameservers.setter
+    def nameservers(self, nameservers):
+        """
+        :param nameservers: can be a ``str``, ``list``, or None.
+        If it's a ``str``, it will converted to a list.
+        :raise ValueError: if `nameservers` is anything other than \
+        ``str``, ``list``, or None.
+        """
+        if isinstance(nameservers, str):
+            self._nameservers = [nameservers]
+        elif isinstance(nameservers, list):
+            self._nameservers = nameservers
+        elif nameservers is None:
+            self._nameservers = None
+        else:
+            raise ValueError('nameservers must be either a str, a list, or None'
+                             ' (not a {})'.format(type(nameservers)))
 
 #: The default resolver.
 default_resolver = None
