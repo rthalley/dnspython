@@ -18,6 +18,7 @@ import unittest
 import random
 
 import requests
+from requests.exceptions import SSLError
 
 import dns.query
 import dns.rdatatype
@@ -53,6 +54,18 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         # For some reason Google's DNS over HTTPS fails when you POST to https://8.8.8.8/dns-query
         # So we're just going to do GET requests here
         r = dns.query.https(q, nameserver_ip, self.session, post=False)
+        self.assertTrue(q.is_response(r))
+
+    def test_bootstrap_address(self):
+        ip = '185.228.168.168'
+        invalid_tls_url = 'https://{}/doh/family-filter/'.format(ip)
+        valid_tls_url = 'https://doh.cleanbrowsing.org/doh/family-filter/'
+        q = dns.message.make_query('example.com.', dns.rdatatype.A)
+        # make sure CleanBrowsing's IP address will fail TLS certificate check
+        with self.assertRaises(SSLError):
+            dns.query.https(q, invalid_tls_url, self.session)
+        # use host header
+        r = dns.query.https(q, valid_tls_url, self.session, bootstrap_address=ip)
         self.assertTrue(q.is_response(r))
 
 if __name__ == '__main__':
