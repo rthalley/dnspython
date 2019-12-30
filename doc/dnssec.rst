@@ -9,6 +9,14 @@ facilities for signing.  In order to use DNSSEC functions, you must have
 ``pycryptodome`` or ``pycryptodomex`` installed.  If you want to do elliptic
 curves, you must also have ``ecdsa`` installed.
 
+DNSSEC Functions
+----------------
+
+.. autofunction:: dns.dnssec.algorithm_from_text
+.. autofunction:: dns.dnssec.algorithm_to_text
+.. autofunction:: dns.dnssec.key_id
+.. autofunction:: dns.dnssec.make_ds
+
 DNSSEC Algorithms
 -----------------
 
@@ -26,13 +34,3 @@ DNSSEC Algorithms
 .. autodata:: dns.dnssec.INDIRECT
 .. autodata:: dns.dnssec.PRIVATEDNS
 .. autodata:: dns.dnssec.PRIVATEOID
-
-DNSSEC Functions
-----------------
-
-.. autofunction:: dns.dnssec.algorithm_from_text
-.. autofunction:: dns.dnssec.algorithm_to_text
-.. autofunction:: dns.dnssec.key_id
-.. autofunction:: dns.dnssec.make_ds
-.. autofunction:: dns.dnssec.validate
-.. autofunction:: dns.dnssec.validate_rrsig
