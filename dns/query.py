@@ -260,41 +260,37 @@ def https(q, where, session, timeout=None, port=443, path='/dns-query', post=Tru
         url = 'https://{}:{}{}'.format(where, port, path)
     except ValueError:
         url = where
-    # session = requests.sessions.Session()
-    try:
-        # set source port and source address
-        # see https://github.com/requests/toolbelt/blob/master/requests_toolbelt/adapters/source.py
-        session.mount(url, SourceAddressAdapter(source))
+    # set source port and source address
+    # see https://github.com/requests/toolbelt/blob/master/requests_toolbelt/adapters/source.py
+    session.mount(url, SourceAddressAdapter(source))
 
-        # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH GET and POST examples
-        if post:
-            headers = {
-                "accept": "application/dns-message",
-                "content-type": "application/dns-message",
-                "content-length": str(len(wire))
-            }
-            response = session.post(url, headers=headers, data=wire, stream=True,
-                                    timeout=timeout, verify=verify)
-        else:
-            wire = base64.urlsafe_b64encode(wire).decode('utf-8').strip("=")
-            headers = {
-                "accept": "application/dns-message"
-            }
-            url += "?dns={}".format(wire)
-            response = session.get(url, headers=headers, stream=True,
-                                   timeout=timeout, verify=verify)
+    # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH GET and POST examples
+    if post:
+        headers = {
+            "accept": "application/dns-message",
+            "content-type": "application/dns-message",
+            "content-length": str(len(wire))
+        }
+        response = session.post(url, headers=headers, data=wire, stream=True,
+                                timeout=timeout, verify=verify)
+    else:
+        wire = base64.urlsafe_b64encode(wire).decode('utf-8').strip("=")
+        headers = {
+            "accept": "application/dns-message"
+        }
+        url += "?dns={}".format(wire)
+        response = session.get(url, headers=headers, stream=True,
+                               timeout=timeout, verify=verify)
 
-        # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH status codes
-        if response.status_code < 200 or response.status_code > 299:
-            raise ValueError('{} responded with status code {}\nResponse body: {}'.format(
-                where, response.status_code, response.content))
-        r = dns.message.from_wire(response.content,
-                                  keyring=q.keyring,
-                                  request_mac=q.request_mac,
-                                  one_rr_per_rrset=one_rr_per_rrset,
-                                  ignore_trailing=ignore_trailing)
-    finally:
-        session.close()
+    # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH status codes
+    if response.status_code < 200 or response.status_code > 299:
+        raise ValueError('{} responded with status code {}\nResponse body: {}'.format(
+            where, response.status_code, response.content))
+    r = dns.message.from_wire(response.content,
+                              keyring=q.keyring,
+                              request_mac=q.request_mac,
+                              one_rr_per_rrset=one_rr_per_rrset,
+                              ignore_trailing=ignore_trailing)
     r.time = response.elapsed
     if not q.is_response(r):
         raise BadResponse
