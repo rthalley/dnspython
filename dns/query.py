@@ -210,7 +210,7 @@ def _destination_and_source(af, where, port, source, source_port):
     return (af, destination, source)
 
 
-def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
+def https(q, where, session, timeout=None, port=443, path='/dns-query', post=True,
           verify=True, source=None, source_port=0,
           one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via DNS-over-HTTPS.
@@ -220,6 +220,9 @@ def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
     *where*, a ``str``, the nameserver IP address or the full URL. If an IP
     address is given, the URL will be constructed using the following schema:
     https:<IP-address>:<port>/<path>.
+
+    *session*, a ``requests.session.Session``, the session to use to send the
+    queries. This argument is required to allow for connection reuse.
 
     *timeout*, a ``float`` or ``None``, the number of seconds to
     wait before the query times out. If ``None``, the default, wait forever.
@@ -257,12 +260,11 @@ def https(q, where, timeout=None, port=443, path='/dns-query', post=True,
         url = 'https://{}:{}{}'.format(where, port, path)
     except ValueError:
         url = where
-    session = requests.sessions.Session()
+    # session = requests.sessions.Session()
     try:
         # set source port and source address
         # see https://github.com/requests/toolbelt/blob/master/requests_toolbelt/adapters/source.py
-        session.mount('http://', SourceAddressAdapter(source))
-        session.mount('https://', SourceAddressAdapter(source))
+        session.mount(url, SourceAddressAdapter(source))
 
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH GET and POST examples
         if post:

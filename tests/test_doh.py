@@ -17,6 +17,8 @@
 import unittest
 import random
 
+import requests
+
 import dns.query
 import dns.rdatatype
 import dns.message
@@ -27,18 +29,22 @@ KNOWN_ANYCAST_DOH_RESOLVER_URLS = ['https://cloudflare-dns.com/dns-query',
                                    'https://dns11.quad9.net/dns-query']
 
 class DNSOverHTTPSTestCase(unittest.TestCase):
-    nameserver_ip = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_IPS)
+    def setUp(self):
+        self.session = requests.sessions.Session()
+
+    def tearDown(self):
+        self.session.close()
 
     def test_get_request(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        r = dns.query.https(q, nameserver_url, post=False)
+        r = dns.query.https(q, nameserver_url, self.session, post=False)
         self.assertTrue(q.is_response(r))
 
     def test_post_request(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        r = dns.query.https(q, nameserver_url, post=True)
+        r = dns.query.https(q, nameserver_url, self.session, post=True)
         self.assertTrue(q.is_response(r))
 
     def test_build_url_from_ip(self):
@@ -46,7 +52,7 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
         # For some reason Google's DNS over HTTPS fails when you POST to https://8.8.8.8/dns-query
         # So we're just going to do GET requests here
-        r = dns.query.https(q, nameserver_ip, post=False)
+        r = dns.query.https(q, nameserver_ip, self.session, post=False)
         self.assertTrue(q.is_response(r))
 
 if __name__ == '__main__':
