@@ -220,7 +220,7 @@ def https(q, where, session, timeout=None, port=443, path='/dns-query', post=Tru
 
     *where*, a ``str``, the nameserver IP address or the full URL. If an IP
     address is given, the URL will be constructed using the following schema:
-    https:<IP-address>:<port>/<path>.
+    https://<IP-address>:<port>/<path>.
 
     *session*, a ``requests.session.Session``, the session to use to send the
     queries. This argument is required to allow for connection reuse.
