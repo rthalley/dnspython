@@ -38,6 +38,7 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 
+import requests
 from requests_toolbelt.adapters.source import SourceAddressAdapter
 from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
 
@@ -210,6 +211,19 @@ def _destination_and_source(af, where, port, source, source_port):
             source = (source, source_port, 0, 0)
     return (af, destination, source)
 
+def send_https(session, what, lifetime=None):
+    """
+    :param session: a :class:`requests.sessions.Session`
+    :param what: a :class:`requests.models.Request` or
+    :class:`requests.models.PreparedRequest`.
+    If it's a :class:`requests.models.Request`, it will be converted
+     into a :class:`requests.models.PreparedRequest`.
+    :param lifetime: timeout (in seconds)
+    :return: a :class:`requests.models.Response` object.
+    """
+    if isinstance(what, requests.models.Request):
+        what = what.prepare()
+    return session.send(what, timeout=lifetime)
 
 def https(q, where, session, timeout=None, port=443, path='/dns-query', post=True,
           bootstrap_address=None, verify=True, source=None, source_port=0,

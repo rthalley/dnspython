@@ -14,6 +14,7 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+import base64
 import unittest
 import random
 
@@ -67,6 +68,16 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         # use host header
         r = dns.query.https(q, valid_tls_url, self.session, bootstrap_address=ip)
         self.assertTrue(q.is_response(r))
+
+    def test_send_https(self):
+        q = dns.message.make_query('example.com.', dns.rdatatype.A)
+        wire = q.to_wire()
+        query_string = '?dns={}'.format(base64.urlsafe_b64encode(wire).decode('utf-8').strip("="))
+        request = requests.models.Request('GET', 'https://cloudflare-dns.com/dns-query{}'.format(query_string))
+        r = request.prepare()
+        response = dns.query.send_https(self.session, r)
+        dns_resp = dns.message.from_wire(response.content)
+        self.assertTrue(q.is_response(dns_resp))
 
 if __name__ == '__main__':
     unittest.main()
