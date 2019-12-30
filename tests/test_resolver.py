@@ -405,12 +405,12 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
 
 
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
-    def test_set_nameserver_to_string(self):
+    def test_set_nameservers_to_string(self):
         resolver = dns.resolver.Resolver()
         resolver.nameservers = '1.2.3.4'
         self.assertEqual(resolver.nameservers, ['1.2.3.4'])
 
-    def test_set_nameserver_to_list(self):
+    def test_set_nameservers_to_list(self):
         resolver = dns.resolver.Resolver()
         resolver.nameservers = ['1.2.3.4']
         self.assertEqual(resolver.nameservers, ['1.2.3.4'])
@@ -420,12 +420,12 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
         resolver.nameservers = []
         self.assertEqual(resolver.nameservers, [])
 
-    def test_set_nameserver_to_None(self):
+    def test_set_nameservers_to_None(self):
         resolver = dns.resolver.Resolver()
         resolver.nameservers = None
         self.assertEqual(resolver.nameservers, None)
 
-    def test_set_nameserver_invalid_type(self):
+    def test_set_nameservers_invalid_type(self):
         resolver = dns.resolver.Resolver()
         invalid_nameservers = [1234, (1, 2, 3, 4), {'invalid': 'nameserver'}]
         for invalid_nameserver in invalid_nameservers:
