@@ -524,7 +524,7 @@ class Resolver(object):
         """
 
         self.domain = None
-        self.nameservers = None
+        self.nameservers = []
         self.nameserver_ports = None
         self.port = None
         self.search = None
@@ -1079,6 +1079,21 @@ class Resolver(object):
 
         self.flags = flags
 
+    @property
+    def nameservers(self):
+        return self._nameservers
+
+    @nameservers.setter
+    def nameservers(self, nameservers):
+        """
+        :param nameservers: must be a ``list``.
+        :raise ValueError: if `nameservers` is anything other than a ``list``.
+        """
+        if isinstance(nameservers, list):
+            self._nameservers = nameservers
+        else:
+            raise ValueError('nameservers must be a list'
+                             ' (not a {})'.format(type(nameservers)))
 
 #: The default resolver.
 default_resolver = None
