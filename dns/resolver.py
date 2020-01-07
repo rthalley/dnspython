@@ -909,30 +909,37 @@ class Resolver(object):
                     try:
                         if protocol == 'https':
                             tcp_attempt = True
-                            response = dns.query.https(request, nameserver, timeout)
+                            response = dns.query.https(request, nameserver,
+                                                       timeout=timeout)
                         elif protocol:
                             continue
                         else:
                             tcp_attempt = tcp
                             if tcp:
                                 response = dns.query.tcp(request, nameserver,
-                                                         timeout, port,
+                                                         timeout=timeout,
+                                                         port=port,
                                                          source=source,
-                                                         source_port=source_port)
+                                                         source_port=\
+                                                         source_port)
                             else:
                                 try:
-                                    response = dns.query.udp(request, nameserver,
-                                                             timeout, port,
+                                    response = dns.query.udp(request,
+                                                             nameserver,
+                                                             timeout=timeout,
+                                                             port=port,
                                                              source=source,
                                                              source_port=\
                                                              source_port)
                                 except dns.message.Truncated:
                                     # Response truncated; retry with TCP.
                                     tcp_attempt = True
-                                    timeout = self._compute_timeout(start, lifetime)
+                                    timeout = self._compute_timeout(start,
+                                                                    lifetime)
                                     response = \
                                         dns.query.tcp(request, nameserver,
-                                                      timeout, port,
+                                                      timeout=timeout,
+                                                      port=port,
                                                       source=source,
                                                       source_port=source_port)
                     except (socket.error, dns.exception.Timeout) as ex:

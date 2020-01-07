@@ -18,7 +18,7 @@ def main():
     # one method is to use context manager, session will automatically close
     with requests.sessions.Session() as session:
         q = dns.message.make_query(qname, dns.rdatatype.A)
-        r = dns.query.https(q, where, session)
+        r = dns.query.https(q, where, session=session)
         for answer in r.answer:
             print(answer)
 
@@ -29,7 +29,7 @@ def main():
     # second method, close session manually
     session = requests.sessions.Session()
     q = dns.message.make_query(qname, dns.rdatatype.A)
-    r = dns.query.https(q, where, session)
+    r = dns.query.https(q, where, session=session)
     for answer in r.answer:
         print(answer)
 
