@@ -8,9 +8,8 @@ except ImportError:
     class ssl(object):
         SSLContext = {}
 
-def https(q : message.Message, where: str, session: Session, timeout : Optional[float] = None, port : Optional[int] = 443, path : Optional[str] = '/dns-query', post : Optional[bool] = True,
-          bootstrap_address : Optional[str] = None, verify : Optional[bool] = True, source : Optional[str] = None, source_port : Optional[int] = 0,
-          one_rr_per_rrset : Optional[bool] = False, ignore_trailing : Optional[bool] = False) -> message.Message:
+def https(q : message.Message, where: str, timeout : Optional[float] = None, port : Optional[int] = 443, af : Optional[int] = None, source : Optional[str] = None, source_port : Optional[int] = 0,
+          session: Optional[Session], path : Optional[str] = '/dns-query', post : Optional[bool] = True, bootstrap_address : Optional[str] = None, verify : Optional[bool] = True) -> message.Message:
     pass
 
 def tcp(q : message.Message, where : str, timeout : float = None, port=53, af : Optional[int] = None, source : Optional[str] = None, source_port : Optional[int] = 0,

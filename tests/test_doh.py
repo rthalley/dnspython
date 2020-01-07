@@ -40,13 +40,13 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
     def test_get_request(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        r = dns.query.https(q, nameserver_url, self.session, post=False)
+        r = dns.query.https(q, nameserver_url, session=self.session, post=False)
         self.assertTrue(q.is_response(r))
 
     def test_post_request(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        r = dns.query.https(q, nameserver_url, self.session, post=True)
+        r = dns.query.https(q, nameserver_url, session=self.session, post=True)
         self.assertTrue(q.is_response(r))
 
     def test_build_url_from_ip(self):
@@ -54,7 +54,7 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
         # For some reason Google's DNS over HTTPS fails when you POST to https://8.8.8.8/dns-query
         # So we're just going to do GET requests here
-        r = dns.query.https(q, nameserver_ip, self.session, post=False)
+        r = dns.query.https(q, nameserver_ip, session=self.session, post=False)
         self.assertTrue(q.is_response(r))
 
     def test_bootstrap_address(self):
@@ -64,9 +64,9 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
         # make sure CleanBrowsing's IP address will fail TLS certificate check
         with self.assertRaises(SSLError):
-            dns.query.https(q, invalid_tls_url, self.session)
+            dns.query.https(q, invalid_tls_url, session=self.session)
         # use host header
-        r = dns.query.https(q, valid_tls_url, self.session, bootstrap_address=ip)
+        r = dns.query.https(q, valid_tls_url, session=self.session, bootstrap_address=ip)
         self.assertTrue(q.is_response(r))
 
     def test_send_https(self):
@@ -78,6 +78,12 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         response = dns.query.send_https(self.session, r)
         dns_resp = dns.message.from_wire(response.content)
         self.assertTrue(q.is_response(dns_resp))
+
+    def test_new_session(self):
+        nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
+        q = dns.message.make_query('example.com.', dns.rdatatype.A)
+        r = dns.query.https(q, nameserver_url)
+        self.assertTrue(q.is_response(r))
 
 if __name__ == '__main__':
     unittest.main()
