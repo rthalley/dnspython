@@ -19,7 +19,6 @@
 
 from __future__ import generators
 
-import urllib.request
 import errno
 import os
 import select
@@ -28,6 +27,8 @@ import struct
 import sys
 import time
 import base64
+import ipaddress
+import urllib.parse
 
 import dns.exception
 import dns.inet
@@ -36,6 +37,10 @@ import dns.message
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
+
+import requests
+from requests_toolbelt.adapters.source import SourceAddressAdapter
+from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
 
 try:
     import ssl
@@ -206,18 +211,52 @@ def _destination_and_source(af, where, port, source, source_port):
             source = (source, source_port, 0, 0)
     return (af, destination, source)
 
+def send_https(session, what, lifetime=None):
+    """
+    :param session: a :class:`requests.sessions.Session`
+    :param what: a :class:`requests.models.Request` or
+    :class:`requests.models.PreparedRequest`.
+    If it's a :class:`requests.models.Request`, it will be converted
+     into a :class:`requests.models.PreparedRequest`.
+    :param lifetime: timeout (in seconds)
+    :return: a :class:`requests.models.Response` object.
+    """
+    if isinstance(what, requests.models.Request):
+        what = what.prepare()
+    return session.send(what, timeout=lifetime)
 
-def https(query, url, timeout=None, post=True, one_rr_per_rrset=False, ignore_trailing=False):
+def https(q, where, session, timeout=None, port=443, path='/dns-query', post=True,
+          bootstrap_address=None, verify=True, source=None, source_port=0,
+          one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
-    *query*, a ``dns.message.Message``, the query to send.
+    *q*, a ``dns.message.Message``, the query to send.
 
-    *url*, a ``str``, the nameserver URL.
+    *where*, a ``str``, the nameserver IP address or the full URL. If an IP
+    address is given, the URL will be constructed using the following schema:
+    https://<IP-address>:<port>/<path>.
+
+    *session*, a ``requests.session.Session``, the session to use to send the
+    queries. This argument is required to allow for connection reuse.
 
     *timeout*, a ``float`` or ``None``, the number of seconds to
     wait before the query times out. If ``None``, the default, wait forever.
 
-    *post*, a ``bool``. If ``True``, the default, POST method should be used.
+    *port*, a ``int``, the port to send the query to. Default is 443.
+
+    *path*, a ``str``. If *where* is an IP address, then *path* will be used to
+    construct the URL to send the DNS query to.
+
+    *post*, a ``bool``. If ``True``, the default, POST method will be used.
+
+    *bootstrap_address*, a ``str``, the IP address to use to bypass the system's
+    DNS resolver.
+
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
+    the source address.  The default is the wildcard address.
+
+    *source_port*, an ``int``, the port from which to send the message.
+    The default is 0.
 
     *one_rr_per_rrset*, a ``bool``. If ``True``, put each RR into its own
     RRset.
@@ -228,24 +267,55 @@ def https(query, url, timeout=None, post=True, one_rr_per_rrset=False, ignore_tr
     Returns a ``dns.message.Message``.
     """
 
-    wirequery = query.to_wire()
+    wire = q.to_wire()
+    af = None
+    (af, destination, source) = _destination_and_source(af, where, port,
+                                                        source, source_port)
     headers = {
-        'Accept': 'application/dns-message',
-        'Content-Type': 'application/dns-message',
+        "accept": "application/dns-message"
     }
+    try:
+        _ = ipaddress.ip_address(where)
+        url = 'https://{}:{}{}'.format(where, port, path)
+    except ValueError:
+        if bootstrap_address is not None:
+            split_url = urllib.parse.urlsplit(where)
+            headers['Host'] = split_url.hostname
+            url = where.replace(split_url.hostname, bootstrap_address)
+            session.mount(url, HostHeaderSSLAdapter())
+        else:
+            url = where
+    if source is not None:
+        # set source port and source address
+        session.mount(url, SourceAddressAdapter(source))
 
+    # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH GET and POST examples
     if post:
-        request = urllib.request.Request(url, data=wirequery, headers=headers)
+        headers.update({
+            "content-type": "application/dns-message",
+            "content-length": str(len(wire))
+        })
+        response = session.post(url, headers=headers, data=wire, stream=True,
+                                timeout=timeout, verify=verify)
     else:
-        wirequery = base64.urlsafe_b64encode(wirequery).decode('utf-8').strip('=')
-        request = urllib.request.Request(url + '?dns=' + wirequery, headers=headers)
+        wire = base64.urlsafe_b64encode(wire).decode('utf-8').strip("=")
+        url += "?dns={}".format(wire)
+        response = session.get(url, headers=headers, stream=True,
+                               timeout=timeout, verify=verify)
 
-    response = urllib.request.urlopen(request, timeout=timeout).read()
-    return dns.message.from_wire(response,
-                                 keyring=query.keyring,
-                                 request_mac=query.request_mac,
-                                 one_rr_per_rrset=one_rr_per_rrset,
-                                 ignore_trailing=ignore_trailing)
+    # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH status codes
+    if response.status_code < 200 or response.status_code > 299:
+        raise ValueError('{} responded with status code {}\nResponse body: {}'.format(
+            where, response.status_code, response.content))
+    r = dns.message.from_wire(response.content,
+                              keyring=q.keyring,
+                              request_mac=q.request_mac,
+                              one_rr_per_rrset=one_rr_per_rrset,
+                              ignore_trailing=ignore_trailing)
+    r.time = response.elapsed
+    if not q.is_response(r):
+        raise BadResponse
+    return r
 
 def send_udp(sock, what, destination, expiration=None):
     """Send a DNS message to the specified UDP socket.

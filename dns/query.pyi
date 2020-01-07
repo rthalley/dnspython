@@ -1,5 +1,6 @@
 from typing import Optional, Union, Dict, Generator, Any
 from . import tsig, rdatatype, rdataclass, name, message
+from requests.sessions import Session
 
 try:
     import ssl
@@ -7,7 +8,9 @@ except ImportError:
     class ssl(object):
         SSLContext = {}
 
-def https(query : message.Message, url : str, timeout : float = None, post : Optional[bool] = True, one_rr_per_rrset : Optional[bool] = False, ignore_trailing : Optional[bool] = False) -> message.Message:
+def https(q : message.Message, where: str, session: Session, timeout : Optional[float] = None, port : Optional[int] = 443, path : Optional[str] = '/dns-query', post : Optional[bool] = True,
+          bootstrap_address : Optional[str] = None, verify : Optional[bool] = True, source : Optional[str] = None, source_port : Optional[int] = 0,
+          one_rr_per_rrset : Optional[bool] = False, ignore_trailing : Optional[bool] = False) -> message.Message:
     pass
 
 def tcp(q : message.Message, where : str, timeout : float = None, port=53, af : Optional[int] = None, source : Optional[str] = None, source_port : Optional[int] = 0,

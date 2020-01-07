@@ -71,6 +71,7 @@ direct manipulation of DNS zones, messages, names, and records.""",
     'python_requires': '>=3.4',
     'test_suite': 'tests',
     'provides': ['dns'],
+    'install_requires': ['requests', 'requests-toolbelt'],
     'tests_require': ['typing ; python_version<"3.5"'],
     'extras_require': {
         'IDNA': ['idna>=2.1'],
