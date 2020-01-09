@@ -95,7 +95,10 @@ _algorithm_by_value = {y: x for x, y in _algorithm_by_text.items()}
 def algorithm_from_text(text):
     """Convert text into a DNSSEC algorithm value.
 
-    Returns an ``int``.
+    :param text: text to convert to value
+    :type text: string
+    :return: a DNSSEC algorithm value
+    :rtype: integer
     """
 
     value = _algorithm_by_text.get(text.upper())
@@ -107,7 +110,10 @@ def algorithm_from_text(text):
 def algorithm_to_text(value):
     """Convert a DNSSEC algorithm value to text
 
-    Returns a ``str``.
+    :param value: Value of a DNSSEC algorithm
+    :type value: integer
+    :return: the name of a DNSSEC algorithm
+    :rtype: string
     """
 
     text = _algorithm_by_value.get(value)
@@ -125,10 +131,13 @@ def _to_rdata(record, origin):
 def key_id(key, origin=None):
     """Return the key id (a 16-bit number) for the specified key.
 
-    Note the *origin* parameter of this function is historical and
-    is not needed.
+    :param key: a DNSKEY
+    :type key: :py:data:`dns.rdtypes.ANY.DNSKEY`
+    :param origin: Parameter is historical and **NOT** needed, defaults to None
+    :type origin: [type], optional
+    :return: an integer between 0 and 65535
+    :rtype: integer
 
-    Returns an ``int`` between 0 and 65535.
     """
 
     rdata = _to_rdata(key, origin)
@@ -148,19 +157,19 @@ def key_id(key, origin=None):
 def make_ds(name, key, algorithm, origin=None):
     """Create a DS record for a DNSSEC key.
 
-    *name* is the owner name of the DS record.
-
-    *key* is a ``dns.rdtypes.ANY.DNSKEY``.
-
-    *algorithm* is a string describing which hash algorithm to use.  The
-    currently supported hashes are "SHA1" and "SHA256".  Case does not
-    matter for these strings.
-
-    *origin* is a ``dns.name.Name`` and will be used as the origin
-    if *key* is a relative name.
-
-    Returns a ``dns.rdtypes.ANY.DS``.
+    :param name: Owner name of the DS record
+    :type name: string
+    :param key: a DNSKEY
+    :type key: :py:data:`dns.rdtypes.ANY.DNSKEY`
+    :param algorithm: a string describing which hash algorithm to use.The currently supported hashes are "SHA1" and "SHA256". Case does not matter for these strings.
+    :type algorithm: string
+    :param origin: Will be used as origin if `key` is a relative name, defaults to None
+    :type origin: :py:data:`dns.name.Name`, optional
+    :raises UnsupportedAlgorithm: If the algorithm is not either "SHA1" or "SHA256" exception will be thrown
+    :return: a DS record
+    :rtype: :py:data:`dns.rdtypes.ANY.DS`
     """
+
     if algorithm.upper() == 'SHA1':
         dsalg = 1
         dshash = hashlib.sha1()
@@ -272,22 +281,27 @@ def _make_algorithm_id(algorithm):
 def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     """Validate an RRset against a single signature rdata
 
-    The owner name of *rrsig* is assumed to be the same as the owner name
-    of *rrset*.
+    :param rrset: The RRset to validate
+    :type rrset: :py:data:`dns.rrset.RRset` or (:py:data:`dns.name.Name`, :py:data:`dns.rdataset.Rdataset`)
+    :param rrsig: Signature to validate
+    :type rrsig: :py:data:`dns.rdata.Rdata`
+    :param keys: Key dictionary, used to find the DNSKEY associated with a given name.  The dictionary is keyed by a :py:data:`dns.name.Name`, and has :py:data:`dns.node.Node` or :py:data:`dns.rdataset.Rdataset` values.
+    :type keys: dictionary
+    :param origin: Origin to use for relative name, defaults to None
+    :type origin: :py:data:`dns.name.Name`, optional
+    :param now: time to use when validating the signatures, in seconds since the UNIX epoch, defaults to current time
+    :type now: integer, optional
+    :raises ValidationFailure: RRSig expired
+    :raises ValidationFailure: RRSig not yet valid
+    :raises ValidationFailure: Invalid public key
+    :raises ValidationFailure: Invalid ECDSA key
+    :raises ValidationFailure: Unknown algorithm
+    :raises ValueError: Generic Value Error
+    :raises ValidationFailure: Verify failure
+    :return: none
+    :rtype: none
 
-    *rrset* is the RRset to validate.  It can be a ``dns.rrset.RRset`` or
-    a ``(dns.name.Name, dns.rdataset.Rdataset)`` tuple.
-
-    *rrsig* is a ``dns.rdata.Rdata``, the signature to validate.
-
-    *keys* is the key dictionary, used to find the DNSKEY associated with
-    a given name.  The dictionary is keyed by a ``dns.name.Name``, and has
-    ``dns.node.Node`` or ``dns.rdataset.Rdataset`` values.
-
-    *origin* is a ``dns.name.Name``, the origin to use for relative names.
-
-    *now* is an ``int``, the time to use when validating the signatures,
-    in seconds since the UNIX epoch.  The default is the current time.
+    .. todo:: Fill in missing infos
     """
 
     if isinstance(origin, str):
@@ -425,20 +439,18 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 def _validate(rrset, rrsigset, keys, origin=None, now=None):
     """Validate an RRset.
 
-    *rrset* is the RRset to validate.  It can be a ``dns.rrset.RRset`` or
-    a ``(dns.name.Name, dns.rdataset.Rdataset)`` tuple.
-
-    *rrsigset* is the signature RRset to be validated.  It can be a
-    ``dns.rrset.RRset`` or a ``(dns.name.Name, dns.rdataset.Rdataset)`` tuple.
-
-    *keys* is the key dictionary, used to find the DNSKEY associated with
-    a given name.  The dictionary is keyed by a ``dns.name.Name``, and has
-    ``dns.node.Node`` or ``dns.rdataset.Rdataset`` values.
-
-    *origin* is a ``dns.name.Name``, the origin to use for relative names.
-
-    *now* is an ``int``, the time to use when validating the signatures,
-    in seconds since the UNIX epoch.  The default is the current time.
+    :param rrset: RRset to validate
+    :type rrset: :py:data:`dns.rrset.RRset` or (:py:data:`dns.name.Name`, :py:data:`dns.rdataset.Rdataset`) tuple
+    :param rrsigset: Signature RRset to be validated
+    :type rrsigset: :py:data`dns.rrset.RRset` or (:py:data:`dns.name.Name`, :py:data:`dns.rdataset.Rdataset`) tuple
+    :param keys: Key dictionary, used to find the DNSKEY associated with a given name.  The dictionary is keyed by a :py:data:`dns.name.Name`, and has :py:data:`dns.node.Node` or :py:data:`dns.rdataset.Rdataset` values.
+    :type keys: dictionary
+    :param origin: Origin to use for relative name, defaults to None
+    :type origin: :py:data:`dns.name.Name`, optional
+    :param now: time to use when validating the signatures, in seconds since the UNIX epoch, defaults to current time
+    :type now: integer, optional
+    :raises ValidationFailure: Owner names do not match
+    :raises ValidationFailure: No RRSIGs validated
     """
 
     if isinstance(origin, str):
