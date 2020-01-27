@@ -54,7 +54,7 @@ class NXDOMAIN(dns.exception.DNSException):
     def _check_kwargs(self, qnames, responses=None):
         if not isinstance(qnames, (list, tuple, set)):
             raise AttributeError("qnames must be a list, tuple or set")
-        if len(qnames) == 0:
+        if not qnames:
             raise AttributeError("qnames must contain at least one element")
         if responses is None:
             responses = {}
@@ -553,7 +553,7 @@ class Resolver(object):
 
         self.domain = \
             dns.name.Name(dns.name.from_text(socket.gethostname())[1:])
-        if len(self.domain) == 0:
+        if not self.domain:
             self.domain = dns.name.root
         self.nameservers = []
         self.nameserver_ports = {}
@@ -588,7 +588,7 @@ class Resolver(object):
             want_close = False
         try:
             for l in f:
-                if len(l) == 0 or l[0] == '#' or l[0] == ';':
+                if not l or l[0] == '#' or l[0] == ';':
                     continue
                 tokens = l.split()
 
@@ -609,7 +609,7 @@ class Resolver(object):
         finally:
             if want_close:
                 f.close()
-        if len(self.nameservers) == 0:
+        if not self.nameservers:
             raise NoResolverConfiguration
 
     def _determine_split_char(self, entry):
@@ -900,7 +900,7 @@ class Resolver(object):
             nameserver_answered = None
             port_answered = None
             while response is None:
-                if len(nameservers) == 0:
+                if not nameservers:
                     raise NoNameservers(request=request, errors=errors)
                 for nameserver in nameservers[:]:
                     timeout = self._compute_timeout(start, lifetime)
@@ -1008,7 +1008,7 @@ class Resolver(object):
                 #
                 # All nameservers failed!
                 #
-                if len(nameservers) > 0:
+                if nameservers:
                     #
                     # But we still have servers to try.  Sleep a bit
                     # so we don't pound them!
@@ -1296,7 +1296,7 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
                 for proto in _protocols_for_socktype[socktype]:
                     tuples.append((socket.AF_INET, socktype, proto,
                                    cname, (addr, port)))
-    if len(tuples) == 0:
+    if not tuples:
         raise socket.gaierror(socket.EAI_NONAME)
     return tuples
 
