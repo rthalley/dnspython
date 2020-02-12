@@ -34,7 +34,7 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is the development verison of dnspython 2.0.0
+This is the development version of dnspython 2.0.0
 
 ### Notices
 
