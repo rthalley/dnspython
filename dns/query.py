@@ -831,109 +831,106 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,
                                                         source, source_port)
-    if use_udp:
-        if rdtype != dns.rdatatype.IXFR:
-            raise ValueError('cannot do a UDP AXFR')
-        s = socket_factory(af, socket.SOCK_DGRAM, 0)
-    else:
-        s = socket_factory(af, socket.SOCK_STREAM, 0)
-    s.setblocking(0)
-    if source is not None:
-        s.bind(source)
-    expiration = _compute_expiration(lifetime)
-    _connect(s, destination, expiration)
-    l = len(wire)
-    if use_udp:
-        _wait_for_writable(s, expiration)
-        s.send(wire)
-    else:
-        tcpmsg = struct.pack("!H", l) + wire
-        _net_write(s, tcpmsg, expiration)
-    done = False
-    delete_mode = True
-    expecting_SOA = False
-    soa_rrset = None
-    if relativize:
-        origin = zone
-        oname = dns.name.empty
-    else:
-        origin = None
-        oname = zone
-    tsig_ctx = None
-    first = True
-    while not done:
-        mexpiration = _compute_expiration(timeout)
-        if mexpiration is None or \
-           (expiration is not None and mexpiration > expiration):
-            mexpiration = expiration
+    if use_udp and rdtype != dns.rdatatype.IXFR:
+        raise ValueError('cannot do a UDP AXFR')
+    sock_type = socket.SOCK_DGRAM if use_udp else socket.SOCK_STREAM
+    with socket_factory(af, sock_type, 0) as s:
+        s.setblocking(0)
+        if source is not None:
+            s.bind(source)
+        expiration = _compute_expiration(lifetime)
+        _connect(s, destination, expiration)
+        l = len(wire)
         if use_udp:
-            _wait_for_readable(s, expiration)
-            (wire, from_address) = s.recvfrom(65535)
+            _wait_for_writable(s, expiration)
+            s.send(wire)
         else:
-            ldata = _net_read(s, 2, mexpiration)
-            (l,) = struct.unpack("!H", ldata)
-            wire = _net_read(s, l, mexpiration)
-        is_ixfr = (rdtype == dns.rdatatype.IXFR)
-        r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
-                                  xfr=True, origin=origin, tsig_ctx=tsig_ctx,
-                                  multi=True, first=first,
-                                  one_rr_per_rrset=is_ixfr)
-        rcode = r.rcode()
-        if rcode != dns.rcode.NOERROR:
-            raise TransferError(rcode)
-        tsig_ctx = r.tsig_ctx
-        first = False
-        answer_index = 0
-        if soa_rrset is None:
-            if not r.answer or r.answer[0].name != oname:
-                raise dns.exception.FormError(
-                    "No answer or RRset not for qname")
-            rrset = r.answer[0]
-            if rrset.rdtype != dns.rdatatype.SOA:
-                raise dns.exception.FormError("first RRset is not an SOA")
-            answer_index = 1
-            soa_rrset = rrset.copy()
-            if rdtype == dns.rdatatype.IXFR:
-                if soa_rrset[0].serial <= serial:
+            tcpmsg = struct.pack("!H", l) + wire
+            _net_write(s, tcpmsg, expiration)
+        done = False
+        delete_mode = True
+        expecting_SOA = False
+        soa_rrset = None
+        if relativize:
+            origin = zone
+            oname = dns.name.empty
+        else:
+            origin = None
+            oname = zone
+        tsig_ctx = None
+        first = True
+        while not done:
+            mexpiration = _compute_expiration(timeout)
+            if mexpiration is None or \
+               (expiration is not None and mexpiration > expiration):
+                mexpiration = expiration
+            if use_udp:
+                _wait_for_readable(s, expiration)
+                (wire, from_address) = s.recvfrom(65535)
+            else:
+                ldata = _net_read(s, 2, mexpiration)
+                (l,) = struct.unpack("!H", ldata)
+                wire = _net_read(s, l, mexpiration)
+            is_ixfr = (rdtype == dns.rdatatype.IXFR)
+            r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
+                                      xfr=True, origin=origin, tsig_ctx=tsig_ctx,
+                                      multi=True, first=first,
+                                      one_rr_per_rrset=is_ixfr)
+            rcode = r.rcode()
+            if rcode != dns.rcode.NOERROR:
+                raise TransferError(rcode)
+            tsig_ctx = r.tsig_ctx
+            first = False
+            answer_index = 0
+            if soa_rrset is None:
+                if not r.answer or r.answer[0].name != oname:
+                    raise dns.exception.FormError(
+                        "No answer or RRset not for qname")
+                rrset = r.answer[0]
+                if rrset.rdtype != dns.rdatatype.SOA:
+                    raise dns.exception.FormError("first RRset is not an SOA")
+                answer_index = 1
+                soa_rrset = rrset.copy()
+                if rdtype == dns.rdatatype.IXFR:
+                    if soa_rrset[0].serial <= serial:
+                        #
+                        # We're already up-to-date.
+                        #
+                        done = True
+                    else:
+                        expecting_SOA = True
+            #
+            # Process SOAs in the answer section (other than the initial
+            # SOA in the first message).
+            #
+            for rrset in r.answer[answer_index:]:
+                if done:
+                    raise dns.exception.FormError("answers after final SOA")
+                if rrset.rdtype == dns.rdatatype.SOA and rrset.name == oname:
+                    if expecting_SOA:
+                        if rrset[0].serial != serial:
+                            raise dns.exception.FormError(
+                                "IXFR base serial mismatch")
+                        expecting_SOA = False
+                    elif rdtype == dns.rdatatype.IXFR:
+                        delete_mode = not delete_mode
                     #
-                    # We're already up-to-date.
+                    # If this SOA RRset is equal to the first we saw then we're
+                    # finished. If this is an IXFR we also check that we're seeing
+                    # the record in the expected part of the response.
                     #
-                    done = True
-                else:
-                    expecting_SOA = True
-        #
-        # Process SOAs in the answer section (other than the initial
-        # SOA in the first message).
-        #
-        for rrset in r.answer[answer_index:]:
-            if done:
-                raise dns.exception.FormError("answers after final SOA")
-            if rrset.rdtype == dns.rdatatype.SOA and rrset.name == oname:
-                if expecting_SOA:
-                    if rrset[0].serial != serial:
-                        raise dns.exception.FormError(
-                            "IXFR base serial mismatch")
+                    if rrset == soa_rrset and \
+                            (rdtype == dns.rdatatype.AXFR or
+                             (rdtype == dns.rdatatype.IXFR and delete_mode)):
+                        done = True
+                elif expecting_SOA:
+                    #
+                    # We made an IXFR request and are expecting another
+                    # SOA RR, but saw something else, so this must be an
+                    # AXFR response.
+                    #
+                    rdtype = dns.rdatatype.AXFR
                     expecting_SOA = False
-                elif rdtype == dns.rdatatype.IXFR:
-                    delete_mode = not delete_mode
-                #
-                # If this SOA RRset is equal to the first we saw then we're
-                # finished. If this is an IXFR we also check that we're seeing
-                # the record in the expected part of the response.
-                #
-                if rrset == soa_rrset and \
-                        (rdtype == dns.rdatatype.AXFR or
-                         (rdtype == dns.rdatatype.IXFR and delete_mode)):
-                    done = True
-            elif expecting_SOA:
-                #
-                # We made an IXFR request and are expecting another
-                # SOA RR, but saw something else, so this must be an
-                # AXFR response.
-                #
-                rdtype = dns.rdatatype.AXFR
-                expecting_SOA = False
-        if done and q.keyring and not r.had_tsig:
-            raise dns.exception.FormError("missing TSIG")
-        yield r
-    s.close()
+            if done and q.keyring and not r.had_tsig:
+                raise dns.exception.FormError("missing TSIG")
+            yield r
