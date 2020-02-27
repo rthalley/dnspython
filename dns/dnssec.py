@@ -221,7 +221,7 @@ def _is_dsa(algorithm):
 
 
 def _is_ecdsa(algorithm):
-    return _have_ecdsa and (algorithm in (ECDSAP256SHA256, ECDSAP384SHA384))
+    return algorithm in (ECDSAP256SHA256, ECDSAP384SHA384)
 
 
 def _is_md5(algorithm):
@@ -366,6 +366,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             sig = rrsig.signature[1:]
         elif _is_ecdsa(rrsig.algorithm):
             # use ecdsa for NIST-384p -- not currently supported by pycryptodome
+            if not _have_ecdsa:
+                raise ImportError('DNSSEC validation for algorithm %u requires edcsa library' % rrsig.algorithm)
 
             keyptr = candidate_key.key
 
@@ -483,7 +485,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
 
 
 def _need_pycrypto(*args, **kwargs):
-    raise NotImplementedError("DNSSEC validation requires pycryptodome/pycryptodomex")
+    raise ImportError("DNSSEC validation requires pycryptodome/pycryptodomex")
 
 
 try:
