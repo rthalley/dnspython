@@ -217,7 +217,7 @@ class Message(object):
         return not self.__eq__(other)
 
     def is_response(self, other):
-        """Is this message a response to *other*?
+        """Is *other* a response this message?
 
         Returns a ``bool``.
         """
