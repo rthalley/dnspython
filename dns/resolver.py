@@ -18,6 +18,7 @@
 """DNS stub resolver."""
 
 from urllib.parse import urlparse
+import ipaddress
 import socket
 import sys
 import time
@@ -1029,6 +1030,31 @@ class Resolver(object):
         if self.cache:
             self.cache.put((_qname, rdtype, rdclass), answer)
         return answer
+
+    def reverse_lookup(self, ipaddr):
+        """Use a resolver to run a Reverse IP Lookup for PTR records.
+        
+        This utilizes the in-built query function to perform a PTR lookup and 
+        tests to make sure that the entered string is in fact an IP address.
+        
+        This utilizes the in-built ipaddress library for Python to validate that
+        the address is an IPv4 or IPv6 address, and errors if the specified 
+        value is not a valid IPv4 or IPv6 address. It also uses the same library
+        to get the in-addr.arpa string to query to get the PTR record.
+        
+        *ipaddr*, a ``str``, the IP address you want to get the PTR record for.
+        """
+        try:
+            ip = ipaddress.IPv4Address(ipaddr)
+        except ipaddress.AddressValueError:
+            try:
+                ip = ipaddress.IPv6Address(ipaddr)
+            except ipaddress.AddressValueError:
+                raise ipaddress.AddressValueError("The specified string does not "
+                                                  "appear to be any known type of"
+                                                  "IP Address.")
+                
+        return self.query(ip.reverse_pointer, dns.rdatatype.PTR)
 
     def use_tsig(self, keyring, keyname=None,
                  algorithm=dns.tsig.default_algorithm):
