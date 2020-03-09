@@ -1030,37 +1030,22 @@ class Resolver(object):
             self.cache.put((_qname, rdtype, rdclass), answer)
         return answer
 
-    def reverse_lookup(self, ipaddr, tcp=False, source=None, 
-                       raise_on_no_answer=True, source_port=0,
-                       lifetime=None):
-        """Use a resolver to run a Reverse IP Lookup for PTR records.
+    def reverse_query(self, ipaddr, *args, **kwargs):
+        """Use a resolver to run a Reverse IP Query for PTR records.
         
-        This utilizes the in-built query function to perform a PTR lookup and 
-        tests to make sure that the entered string is in fact an IP address.
+        This utilizes the in-built query function to perform a PTR lookup on the 
+        specified IP address.
         
         *ipaddr*, a ``str``, the IP address you want to get the PTR record for.
         
-        *tcp*, a ``bool``.  If ``True``, use TCP to make the query.
-        
-        *source*, a ``text`` or ``None``.  If not ``None``, bind to this IP
-        address when making queries.
-        
-        *raise_on_no_answer*, a ``bool``.  If ``True``, raise
-        ``dns.resolver.NoAnswer`` if there's no answer to the question.
-        
-        *source_port*, an ``int``, the port from which to send the message.
-        
-        *lifetime*, a ``float``, how many seconds a query should run before timing out.
+        All other arguments that can be passed to the query function except for
+        rdtype and rdclass are also supported by this function.
         """
                 
         return self.query(dns.reversename.from_address(address), 
                           rdtype=dns.rdatatype.PTR,
                           rdclass=dns.rdataclass.IN,
-                          tcp=tcp,
-                          source=source,
-                          raise_on_no_answer=raise_on_no_answer,
-                          source_port=source_port,
-                          lifetime=lifetime)
+                          *args, **kwargs)
 
     def use_tsig(self, keyring, keyname=None,
                  algorithm=dns.tsig.default_algorithm):
