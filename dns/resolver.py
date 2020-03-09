@@ -1030,6 +1030,23 @@ class Resolver(object):
             self.cache.put((_qname, rdtype, rdclass), answer)
         return answer
 
+    def reverse_query(self, ipaddr, *args, **kwargs):
+        """Use a resolver to run a Reverse IP Query for PTR records.
+        
+        This utilizes the in-built query function to perform a PTR lookup on the 
+        specified IP address.
+        
+        *ipaddr*, a ``str``, the IP address you want to get the PTR record for.
+        
+        All other arguments that can be passed to the query function except for
+        rdtype and rdclass are also supported by this function.
+        """
+                
+        return self.query(dns.reversename.from_address(address), 
+                          rdtype=dns.rdatatype.PTR,
+                          rdclass=dns.rdataclass.IN,
+                          *args, **kwargs)
+
     def use_tsig(self, keyring, keyname=None,
                  algorithm=dns.tsig.default_algorithm):
         """Add a TSIG signature to the query.
