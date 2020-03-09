@@ -1039,6 +1039,18 @@ class Resolver(object):
         tests to make sure that the entered string is in fact an IP address.
         
         *ipaddr*, a ``str``, the IP address you want to get the PTR record for.
+        
+        *tcp*, a ``bool``.  If ``True``, use TCP to make the query.
+        
+        *source*, a ``text`` or ``None``.  If not ``None``, bind to this IP
+        address when making queries.
+        
+        *raise_on_no_answer*, a ``bool``.  If ``True``, raise
+        ``dns.resolver.NoAnswer`` if there's no answer to the question.
+        
+        *source_port*, an ``int``, the port from which to send the message.
+        
+        *lifetime*, a ``float``, how many seconds a query should run before timing out.
         """
                 
         return self.query(dns.reversename.from_address(address), 
