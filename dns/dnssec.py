@@ -259,25 +259,6 @@ def _make_hash(algorithm):
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
 
 
-def _make_algorithm_id(algorithm):
-    if _is_md5(algorithm):
-        oid = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x05]
-    elif _is_sha1(algorithm):
-        oid = [0x2b, 0x0e, 0x03, 0x02, 0x1a]
-    elif _is_sha256(algorithm):
-        oid = [0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01]
-    elif _is_sha512(algorithm):
-        oid = [0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03]
-    else:
-        raise ValidationFailure('unknown algorithm %u' % algorithm)
-    olen = len(oid)
-    dlen = _make_hash(algorithm).digest_size
-    idbytes = [0x30] + [8 + olen + dlen] + \
-              [0x30, olen + 4] + [0x06, olen] + oid + \
-              [0x05, 0x00] + [0x04, dlen]
-    return struct.pack('!%dB' % len(idbytes), *idbytes)
-
-
 def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     """Validate an RRset against a single signature rdata
 
