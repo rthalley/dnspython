@@ -6,8 +6,7 @@ DNSSEC
 
 Dnspython can do simple DNSSEC signature validation, but currently has no
 facilities for signing.  In order to use DNSSEC functions, you must have
-``pycryptodome`` or ``pycryptodomex`` installed.  If you want to do elliptic
-curves, you must also have ``ecdsa`` installed.
+``pycryptodome`` or ``pycryptodomex`` installed.
 
 DNSSEC Functions
 ----------------

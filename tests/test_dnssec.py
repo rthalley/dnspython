@@ -186,28 +186,20 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                                 abs_dsa_keys, None, when2)
         self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
-    @unittest.skipUnless(dns.dnssec._have_ecdsa,
-                         "python ECDSA cannot be imported")
     def testAbsoluteECDSA256Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ecdsa256_soa, abs_ecdsa256_soa_rrsig,
                             abs_ecdsa256_keys, None, when3)
 
-    @unittest.skipUnless(dns.dnssec._have_ecdsa,
-                         "python ECDSA cannot be imported")
     def testAbsoluteECDSA256Bad(self):  # type: () -> None
         def bad():  # type: () -> None
             dns.dnssec.validate(abs_other_ecdsa256_soa, abs_ecdsa256_soa_rrsig,
                                 abs_ecdsa256_keys, None, when3)
         self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
-    @unittest.skipUnless(dns.dnssec._have_ecdsa,
-                         "python ECDSA cannot be imported")
     def testAbsoluteECDSA384Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ecdsa384_soa, abs_ecdsa384_soa_rrsig,
                             abs_ecdsa384_keys, None, when4)
 
-    @unittest.skipUnless(dns.dnssec._have_ecdsa,
-                         "python ECDSA cannot be imported")
     def testAbsoluteECDSA384Bad(self):  # type: () -> None
         def bad():  # type: () -> None
             dns.dnssec.validate(abs_other_ecdsa384_soa, abs_ecdsa384_soa_rrsig,

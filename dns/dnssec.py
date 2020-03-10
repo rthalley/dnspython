@@ -362,31 +362,20 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                  number.bytes_to_long(dsa_q)))
             sig = rrsig.signature[1:]
         elif _is_ecdsa(rrsig.algorithm):
-            # use ecdsa for NIST-384p -- not currently supported by pycryptodome
-            if not _have_ecdsa:
-                raise ImportError('DNSSEC validation for algorithm %u requires edcsa library' % rrsig.algorithm)
-
             keyptr = candidate_key.key
-
             if rrsig.algorithm == ECDSAP256SHA256:
-                curve = ecdsa.curves.NIST256p
-                key_len = 32
-            elif rrsig.algorithm == ECDSAP384SHA384:
-                curve = ecdsa.curves.NIST384p
-                key_len = 48
-
-            x = number.bytes_to_long(keyptr[0:key_len])
-            y = number.bytes_to_long(keyptr[key_len:key_len * 2])
-            if not ecdsa.ecdsa.point_is_valid(curve.generator, x, y):
-                raise ValidationFailure('invalid ECDSA key')
-            point = ecdsa.ellipticcurve.Point(curve.curve, x, y, curve.order)
-            verifying_key = ecdsa.keys.VerifyingKey.from_public_point(point,
-                                                                      curve)
-            pubkey = ECKeyWrapper(verifying_key, key_len)
-            r = rrsig.signature[:key_len]
-            s = rrsig.signature[key_len:]
-            sig = ecdsa.ecdsa.Signature(number.bytes_to_long(r),
-                                        number.bytes_to_long(s))
+                curve = 'secp256r1'
+                octets = 32
+            else:
+                curve = 'secp384r1'
+                octets = 48
+            ecdsa_x = keyptr[0:octets]
+            ecdsa_y = keyptr[octets:octets * 2]
+            pubkey = CryptoECC.construct(
+                curve = curve,
+                point_x = number.bytes_to_long(ecdsa_x),
+                point_y = number.bytes_to_long(ecdsa_y))
+            sig = rrsig.signature
 
         elif _is_eddsa(rrsig.algorithm) or _is_gost(rrsig.algorithm):
             raise UnsupportedAlgorithm(
@@ -418,13 +407,9 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 verifier = pkcs1_15.new(pubkey)
                 # will raise ValueError if verify fails:
                 verifier.verify(hash, sig)
-            elif _is_dsa(rrsig.algorithm):
+            elif _is_dsa(rrsig.algorithm) or _is_ecdsa(rrsig.algorithm):
                 verifier = DSS.new(pubkey, 'fips-186-3')
                 verifier.verify(hash, sig)
-            elif _is_ecdsa(rrsig.algorithm):
-                digest = hash.digest()
-                if not pubkey.verify(digest, sig):
-                    raise ValueError
             else:
                 # Raise here for code clarity; this won't actually ever happen
                 # since if the algorithm is really unknown we'd already have
@@ -495,39 +480,20 @@ try:
         # test we're using pycryptodome, not pycrypto (which misses SHA1 for example)
         from Crypto.Hash import MD5, SHA1, SHA256, SHA384, SHA512
         from Crypto.PublicKey import RSA as CryptoRSA, DSA as CryptoDSA
+        from Crypto.PublicKey import ECC as CryptoECC
         from Crypto.Signature import pkcs1_15, DSS
         from Crypto.Util import number
     except ImportError:
         from Cryptodome.Hash import MD5, SHA1, SHA256, SHA384, SHA512
         from Cryptodome.PublicKey import RSA as CryptoRSA, DSA as CryptoDSA
+        from Cryptodome.PublicKey import ECC as CryptoECC
         from Cryptodome.Signature import pkcs1_15, DSS
         from Cryptodome.Util import number
 except ImportError:
     validate = _need_pycrypto
     validate_rrsig = _need_pycrypto
     _have_pycrypto = False
-    _have_ecdsa = False
 else:
     validate = _validate
     validate_rrsig = _validate_rrsig
     _have_pycrypto = True
-
-    try:
-        import ecdsa
-        import ecdsa.ecdsa
-        import ecdsa.ellipticcurve
-        import ecdsa.keys
-    except ImportError:
-        _have_ecdsa = False
-    else:
-        _have_ecdsa = True
-
-        class ECKeyWrapper(object):
-
-            def __init__(self, key, key_len):
-                self.key = key
-                self.key_len = key_len
-
-            def verify(self, digest, sig):
-                diglong = number.bytes_to_long(digest)
-                return self.key.pubkey.verifies(diglong, sig)
