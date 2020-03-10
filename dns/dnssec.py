@@ -57,10 +57,16 @@ RSASHA1NSEC3SHA1 = 7
 RSASHA256 = 8
 #: RSASHA512
 RSASHA512 = 10
+#: ECC-GOST
+ECCGOST = 12
 #: ECDSAP256SHA256
 ECDSAP256SHA256 = 13
 #: ECDSAP384SHA384
 ECDSAP384SHA384 = 14
+#: ED25519
+ED25519 = 15
+#: ED448
+ED448 = 16
 #: INDIRECT
 INDIRECT = 252
 #: PRIVATEDNS
@@ -78,9 +84,12 @@ _algorithm_by_text = {
     'RSASHA1NSEC3SHA1': RSASHA1NSEC3SHA1,
     'RSASHA256': RSASHA256,
     'RSASHA512': RSASHA512,
-    'INDIRECT': INDIRECT,
+    'ECCGOST': ECCGOST,
     'ECDSAP256SHA256': ECDSAP256SHA256,
     'ECDSAP384SHA384': ECDSAP384SHA384,
+    'ED25519': ED25519,
+    'ED448': ED448,
+    'INDIRECT': INDIRECT,
     'PRIVATEDNS': PRIVATEDNS,
     'PRIVATEOID': PRIVATEOID,
 }
@@ -224,6 +233,14 @@ def _is_ecdsa(algorithm):
     return algorithm in (ECDSAP256SHA256, ECDSAP384SHA384)
 
 
+def _is_eddsa(algorithm):
+    return algorithm in (ED25519, ED448)
+
+
+def _is_gost(algorithm):
+    return algorithm == ECCGOST
+
+
 def _is_md5(algorithm):
     return algorithm == RSAMD5
 
@@ -279,6 +296,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     :raises ValidationFailure: Unknown algorithm
     :raises ValueError: Generic Value Error
     :raises ValidationFailure: Verify failure
+    :raises UnsupportedAlgorithm: Algorithm isn't supported by dnspython
     :return: none
     :rtype: none
 
@@ -308,8 +326,6 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             raise ValidationFailure('expired')
         if rrsig.inception > now:
             raise ValidationFailure('not yet valid')
-
-        hash = _make_hash(rrsig.algorithm)
 
         if _is_rsa(rrsig.algorithm):
             keyptr = candidate_key.key
@@ -372,9 +388,13 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             sig = ecdsa.ecdsa.Signature(number.bytes_to_long(r),
                                         number.bytes_to_long(s))
 
+        elif _is_eddsa(rrsig.algorithm) or _is_gost(rrsig.algorithm):
+            raise UnsupportedAlgorithm(
+                'algorithm "%s" not supported by dnspython' % algorithm_to_text(rrsig.algorithm))
         else:
             raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
 
+        hash = _make_hash(rrsig.algorithm)
         hash.update(_to_rdata(rrsig, origin)[:18])
         hash.update(rrsig.signer.to_digestable(origin))
 
@@ -434,6 +454,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     :type now: integer, optional
     :raises ValidationFailure: Owner names do not match
     :raises ValidationFailure: No RRSIGs validated
+    :raises UnsupportedAlgorithm: Algorithm isn't supported by dnspython
     """
 
     if isinstance(origin, str):
