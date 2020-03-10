@@ -1042,7 +1042,7 @@ class Resolver(object):
         rdtype and rdclass are also supported by this function.
         """
                 
-        return self.query(dns.reversename.from_address(address), 
+        return self.query(dns.reversename.from_address(ipaddr), 
                           rdtype=dns.rdatatype.PTR,
                           rdclass=dns.rdataclass.IN,
                           *args, **kwargs)
