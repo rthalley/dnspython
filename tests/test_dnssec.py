@@ -17,6 +17,7 @@
 
 from __future__ import print_function
 
+import sys
 import unittest
 
 import dns.dnssec
@@ -251,6 +252,8 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
     @unittest.skipUnless(dns.dnssec._have_ecpy,
                          "python EDDSA cannot be imported")
+    @unittest.skipUnless(sys.version_info >= (3, 6),
+                         "Python 3.6 or later is needed")
     def testAbsoluteED25519Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ed25519_mx, abs_ed25519_mx_rrsig_1,
                             abs_ed25519_keys_1, None, when5)
@@ -259,6 +262,8 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
     @unittest.skipUnless(dns.dnssec._have_ecpy,
                          "python EDDSA cannot be imported")
+    @unittest.skipUnless(sys.version_info >= (3, 6),
+                         "Python 3.6 or later is needed")
     def testAbsoluteED25519Bad(self):  # type: () -> None
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(abs_other_ed25519_mx, abs_ed25519_mx_rrsig_1,
@@ -269,6 +274,8 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
     @unittest.skipUnless(dns.dnssec._have_ecpy,
                          "python EDDSA cannot be imported")
+    @unittest.skipUnless(sys.version_info >= (3, 6),
+                         "Python 3.6 or later is needed")
     def testAbsoluteED448Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1,
                             abs_ed448_keys_1, None, when5)
@@ -277,6 +284,8 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
     @unittest.skipUnless(dns.dnssec._have_ecpy,
                          "python EDDSA cannot be imported")
+    @unittest.skipUnless(sys.version_info >= (3, 6),
+                         "Python 3.6 or later is needed")
     def testAbsoluteED448Bad(self):  # type: () -> None
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(abs_other_ed448_mx, abs_ed448_mx_rrsig_1,
