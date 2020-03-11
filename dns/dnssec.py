@@ -261,6 +261,11 @@ def _is_sha384(algorithm):
 def _is_sha512(algorithm):
     return algorithm == RSASHA512
 
+class _IdentityHasher:
+    def __init__(self):
+        self.value = b''
+    def update(self, s):
+        self.value += s
 
 def _make_hash(algorithm):
     if _is_md5(algorithm):
@@ -273,6 +278,9 @@ def _make_hash(algorithm):
         return SHA384.new()
     if _is_sha512(algorithm):
         return SHA512.new()
+    if _is_eddsa(algorithm):
+        return _IdentityHasher()
+
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
 
 
@@ -377,7 +385,18 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 point_y = number.bytes_to_long(ecdsa_y))
             sig = rrsig.signature
 
-        elif _is_eddsa(rrsig.algorithm) or _is_gost(rrsig.algorithm):
+        elif _is_eddsa(rrsig.algorithm):
+            keyptr = candidate_key.key
+            if not _have_ecpy:
+                raise ImportError('DNSSEC validation for algorithm %u requires ecpy library' % rrsig.algorithm)
+            if rrsig.algorithm == ED25519:
+                curve = 'Ed25519'
+            else:
+                curve = 'Ed448'
+            point = Curve.get_curve(curve).decode_point(keyptr)
+            pubkey = ECPublicKey(point)
+            sig = rrsig.signature
+        elif _is_gost(rrsig.algorithm):
             raise UnsupportedAlgorithm(
                 'algorithm "%s" not supported by dnspython' % algorithm_to_text(rrsig.algorithm))
         else:
@@ -410,6 +429,13 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             elif _is_dsa(rrsig.algorithm) or _is_ecdsa(rrsig.algorithm):
                 verifier = DSS.new(pubkey, 'fips-186-3')
                 verifier.verify(hash, sig)
+            elif _is_eddsa(rrsig.algorithm):
+                if rrsig.algorithm == ED25519:
+                    verifier = EDDSA(hashlib.sha512)
+                else:
+                    verifier = EDDSA(hashlib.shake_256, 114)
+                if not verifier.verify(hash.value, sig, pubkey):
+                    raise ValueError
             else:
                 # Raise here for code clarity; this won't actually ever happen
                 # since if the algorithm is really unknown we'd already have
@@ -497,3 +523,12 @@ else:
     validate = _validate
     validate_rrsig = _validate_rrsig
     _have_pycrypto = True
+
+    try:
+        from ecpy.curves import Curve, Point
+        from ecpy.keys import ECPublicKey
+        from ecpy.eddsa import EDDSA
+    except ImportError:
+        _have_ecpy = False
+    else:
+        _have_ecpy = True

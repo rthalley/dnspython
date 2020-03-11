@@ -149,6 +149,49 @@ abs_other_ecdsa384_soa = dns.rrset.from_text('example.', 86400, 'IN', 'SOA',
 abs_ecdsa384_soa_rrsig = dns.rrset.from_text('example.', 86400, 'IN', 'RRSIG',
                                              "SOA 14 1 86400 20130929021229 20130921230729 63571 example. CrnCu34EeeRz0fEhL9PLlwjpBKGYW8QjBjFQTwd+ViVLRAS8tNkcDwQE NhSV89NEjj7ze1a/JcCfcJ+/mZgnvH4NHLNg3Tf6KuLZsgs2I4kKQXEk 37oIHravPEOlGYNI")
 
+abs_example_com = dns.name.from_text('example.com')
+
+abs_ed25519_mx = dns.rrset.from_text('example.com.', 3600, 'IN', 'MX',
+                                     '10 mail.example.com.')
+abs_other_ed25519_mx = dns.rrset.from_text('example.com.', 3600, 'IN', 'MX',
+                                           '11 mail.example.com.')
+abs_ed25519_keys_1 = {
+    abs_example_com: dns.rrset.from_text(
+        'example.com', 3600, 'IN', 'DNSKEY',
+        '257 3 15 l02Woi0iS8Aa25FQkUd9RMzZHJpBoRQwAQEX1SxZJA4=')
+}
+abs_ed25519_mx_rrsig_1 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
+                                             'MX 15 2 3600 1440021600 1438207200 3613 example.com. oL9krJun7xfBOIWcGHi7mag5/hdZrKWw15jPGrHpjQeRAvTdszaPD+QLs3fx8A4M3e23mRZ9VrbpMngwcrqNAg==')
+
+abs_ed25519_keys_2 = {
+    abs_example_com: dns.rrset.from_text(
+        'example.com', 3600, 'IN', 'DNSKEY',
+        '257 3 15 zPnZ/QwEe7S8C5SPz2OfS5RR40ATk2/rYnE9xHIEijs=')
+}
+abs_ed25519_mx_rrsig_2 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
+                                             'MX 15 2 3600 1440021600 1438207200 35217 example.com. zXQ0bkYgQTEFyfLyi9QoiY6D8ZdYo4wyUhVioYZXFdT410QPRITQSqJSnzQoSm5poJ7gD7AQR0O7KuI5k2pcBg==')
+
+abs_ed448_mx = abs_ed25519_mx
+abs_other_ed448_mx = abs_other_ed25519_mx
+
+abs_ed448_keys_1 = {
+    abs_example_com: dns.rrset.from_text(
+        'example.com', 3600, 'IN', 'DNSKEY',
+        '257 3 16 3kgROaDjrh0H2iuixWBrc8g2EpBBLCdGzHmn+G2MpTPhpj/OiBVHHSfPodx1FYYUcJKm1MDpJtIA')
+}
+abs_ed448_mx_rrsig_1 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
+                                           'MX 16 2 3600 1440021600 1438207200 9713 example.com. 3cPAHkmlnxcDHMyg7vFC34l0blBhuG1qpwLmjInI8w1CMB29FkEAIJUA0amxWndkmnBZ6SKiwZSAxGILn/NBtOXft0+Gj7FSvOKxE/07+4RQvE581N3Aj/JtIyaiYVdnYtyMWbSNyGEY2213WKsJlwEA')
+
+abs_ed448_keys_2 = {
+    abs_example_com: dns.rrset.from_text(
+        'example.com', 3600, 'IN', 'DNSKEY',
+        '257 3 16 kkreGWoccSDmUBGAe7+zsbG6ZAFQp+syPmYUurBRQc3tDjeMCJcVMRDmgcNLp5HlHAMy12VoISsA')
+}
+abs_ed448_mx_rrsig_2 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
+                                           'MX 16 2 3600 1440021600 1438207200 38353 example.com. E1/oLjSGIbmLny/4fcgM1z4oL6aqo+izT3urCyHyvEp4Sp8Syg1eI+lJ57CSnZqjJP41O/9l4m0AsQ4f7qI1gVnML8vWWiyW2KXhT9kuAICUSxv5OWbf81Rq7Yu60npabODB0QFPb/rkW3kUZmQ0YQUA')
+
+when5 = 1440021600
+
 
 @unittest.skipUnless(dns.dnssec._have_pycrypto,
                      "Pycryptodome cannot be imported")
@@ -206,6 +249,41 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                                 abs_ecdsa384_keys, None, when4)
         self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
+    @unittest.skipUnless(dns.dnssec._have_ecpy,
+                         "python EDDSA cannot be imported")
+    def testAbsoluteED25519Good(self):  # type: () -> None
+        dns.dnssec.validate(abs_ed25519_mx, abs_ed25519_mx_rrsig_1,
+                            abs_ed25519_keys_1, None, when5)
+        dns.dnssec.validate(abs_ed25519_mx, abs_ed25519_mx_rrsig_2,
+                            abs_ed25519_keys_2, None, when5)
+
+    @unittest.skipUnless(dns.dnssec._have_ecpy,
+                         "python EDDSA cannot be imported")
+    def testAbsoluteED25519Bad(self):  # type: () -> None
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_other_ed25519_mx, abs_ed25519_mx_rrsig_1,
+                                abs_ed25519_keys_1, None, when5)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_other_ed25519_mx, abs_ed25519_mx_rrsig_2,
+                                abs_ed25519_keys_2, None, when5)
+
+    @unittest.skipUnless(dns.dnssec._have_ecpy,
+                         "python EDDSA cannot be imported")
+    def testAbsoluteED448Good(self):  # type: () -> None
+        dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1,
+                            abs_ed448_keys_1, None, when5)
+        dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_2,
+                            abs_ed448_keys_2, None, when5)
+
+    @unittest.skipUnless(dns.dnssec._have_ecpy,
+                         "python EDDSA cannot be imported")
+    def testAbsoluteED448Bad(self):  # type: () -> None
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_other_ed448_mx, abs_ed448_mx_rrsig_1,
+                                abs_ed448_keys_1, None, when5)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_other_ed448_mx, abs_ed448_mx_rrsig_2,
+                                abs_ed448_keys_2, None, when5)
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
 

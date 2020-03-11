@@ -48,4 +48,7 @@ The following modules are optional, but recommended for full functionality.
 If ``pycryptodome`` / ``pycryptodomex`` is installed, then dnspython will be
 able to do low-level DNSSEC RSA, DSA, and ECDSA signature validation.
 
+If ``ecpy`` is installed as well, then dnspython will be able to do low-level
+EdDSA signature verification.
+
 If ``idna`` is installed, then IDNA 2008 will be available.
