@@ -3,7 +3,6 @@ from . import rdataset, rrset, exception, name, rdtypes, rdata, node
 import dns.rdtypes.ANY.DS as DS
 import dns.rdtypes.ANY.DNSKEY as DNSKEY
 
-_have_ecdsa : bool
 _have_pycrypto : bool
 
 def validate_rrsig(rrset : Union[Tuple[name.Name, rdataset.Rdataset], rrset.RRset], rrsig : rdata.Rdata, keys : Dict[name.Name, Union[node.Node, rdataset.Rdataset]], origin : Optional[name.Name] = None, now : Optional[int] = None) -> None:
