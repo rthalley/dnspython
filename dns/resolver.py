@@ -1032,17 +1032,17 @@ class Resolver(object):
 
     def reverse_query(self, ipaddr, *args, **kwargs):
         """Use a resolver to run a Reverse IP Query for PTR records.
-        
-        This utilizes the in-built query function to perform a PTR lookup on the 
+
+        This utilizes the in-built query function to perform a PTR lookup on the
         specified IP address.
-        
+
         *ipaddr*, a ``str``, the IP address you want to get the PTR record for.
-        
+
         All other arguments that can be passed to the query function except for
         rdtype and rdclass are also supported by this function.
         """
-                
-        return self.query(dns.reversename.from_address(ipaddr), 
+
+        return self.query(dns.reversename.from_address(ipaddr),
                           rdtype=dns.rdatatype.PTR,
                           rdclass=dns.rdataclass.IN,
                           *args, **kwargs)
@@ -1114,7 +1114,7 @@ class Resolver(object):
         :raise ValueError: if `nameservers` is anything other than a ``list``.
         """
         if isinstance(nameservers, list):
-            self._nameservers = nameservers
+            self._nameservers = nameservers # pylint: disable=attribute-defined-outside-init
         else:
             raise ValueError('nameservers must be a list'
                              ' (not a {})'.format(type(nameservers)))
