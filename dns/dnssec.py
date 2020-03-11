@@ -20,6 +20,7 @@
 import hashlib  # used in make_ds() to avoid pycrypto dependency
 from io import BytesIO
 import struct
+import sys
 import time
 
 import dns.exception
@@ -387,8 +388,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
         elif _is_eddsa(rrsig.algorithm):
             keyptr = candidate_key.key
-            if not _have_ecpy:
-                raise ImportError('DNSSEC validation for algorithm %u requires ecpy library' % rrsig.algorithm)
+            if not (_have_ecpy and sys.version_info >= (3, 6)):
+                raise ImportError('DNSSEC validation for algorithm %u requires ecpy library and Python 3.6 or newer' % rrsig.algorithm)
             if rrsig.algorithm == ED25519:
                 curve = 'Ed25519'
             else:

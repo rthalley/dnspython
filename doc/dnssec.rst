@@ -7,7 +7,8 @@ DNSSEC
 Dnspython can do simple DNSSEC signature validation, but currently has no
 facilities for signing.  In order to use DNSSEC functions, you must have
 ``pycryptodome`` or ``pycryptodomex`` installed.  In order to use the EdDSA
-algorithms, you must also have ``ecpy`` installed.
+algorithms, you must also be running Python 3.6 or later and have
+``ecpy`` installed.
 
 DNSSEC Functions
 ----------------
