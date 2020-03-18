@@ -298,15 +298,15 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
 
     def testMakeExampleSHA1DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA1')
-        self.assertTrue(ds == example_ds_sha1)
+        self.assertEqual(ds, example_ds_sha1)
 
     def testMakeExampleSHA256DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
-        self.assertTrue(ds == example_ds_sha256)
+        self.assertEqual(ds, example_ds_sha256)
 
     def testMakeSHA256DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
-        self.assertTrue(ds == good_ds)
+        self.assertEqual(ds, good_ds)
 
 
 if __name__ == '__main__':

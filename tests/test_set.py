@@ -26,81 +26,81 @@ class SimpleSetTestCase(unittest.TestCase):
 
     def testLen1(self):
         s1 = S()
-        self.assertTrue(len(s1) == 0)
+        self.assertEqual(len(s1), 0)
 
     def testLen2(self):
         s1 = S([1, 2, 3])
-        self.assertTrue(len(s1) == 3)
+        self.assertEqual(len(s1), 3)
 
     def testLen3(self):
         s1 = S([1, 2, 3, 3, 3])
-        self.assertTrue(len(s1) == 3)
+        self.assertEqual(len(s1), 3)
 
     def testUnion1(self):
         s1 = S([1, 2, 3])
         s2 = S([1, 2, 3])
         e = S([1, 2, 3])
-        self.assertTrue(s1 | s2 == e)
+        self.assertEqual(s1 | s2, e)
 
     def testUnion2(self):
         s1 = S([1, 2, 3])
         s2 = S([])
         e = S([1, 2, 3])
-        self.assertTrue(s1 | s2 == e)
+        self.assertEqual(s1 | s2, e)
 
     def testUnion3(self):
         s1 = S([1, 2, 3])
         s2 = S([3, 4])
         e = S([1, 2, 3, 4])
-        self.assertTrue(s1 | s2 == e)
+        self.assertEqual(s1 | s2, e)
 
     def testIntersection1(self):
         s1 = S([1, 2, 3])
         s2 = S([1, 2, 3])
         e = S([1, 2, 3])
-        self.assertTrue(s1 & s2 == e)
+        self.assertEqual(s1 & s2, e)
 
     def testIntersection2(self):
         s1 = S([0, 1, 2, 3])
         s2 = S([1, 2, 3, 4])
         e = S([1, 2, 3])
-        self.assertTrue(s1 & s2 == e)
+        self.assertEqual(s1 & s2, e)
 
     def testIntersection3(self):
         s1 = S([1, 2, 3])
         s2 = S([])
         e = S([])
-        self.assertTrue(s1 & s2 == e)
+        self.assertEqual(s1 & s2, e)
 
     def testIntersection4(self):
         s1 = S([1, 2, 3])
         s2 = S([5, 4])
         e = S([])
-        self.assertTrue(s1 & s2 == e)
+        self.assertEqual(s1 & s2, e)
 
     def testDifference1(self):
         s1 = S([1, 2, 3])
         s2 = S([5, 4])
         e = S([1, 2, 3])
-        self.assertTrue(s1 - s2 == e)
+        self.assertEqual(s1 - s2, e)
 
     def testDifference2(self):
         s1 = S([1, 2, 3])
         s2 = S([])
         e = S([1, 2, 3])
-        self.assertTrue(s1 - s2 == e)
+        self.assertEqual(s1 - s2, e)
 
     def testDifference3(self):
         s1 = S([1, 2, 3])
         s2 = S([3, 2])
         e = S([1])
-        self.assertTrue(s1 - s2 == e)
+        self.assertEqual(s1 - s2, e)
 
     def testDifference4(self):
         s1 = S([1, 2, 3])
         s2 = S([3, 2, 1])
         e = S([])
-        self.assertTrue(s1 - s2 == e)
+        self.assertEqual(s1 - s2, e)
 
     def testSubset1(self):
         s1 = S([1, 2, 3])
@@ -165,14 +165,14 @@ class SimpleSetTestCase(unittest.TestCase):
         u = (4, 5, 6)
         e = S([1, 2, 3, 4, 5, 6])
         s1.update(u)
-        self.assertTrue(s1 == e)
+        self.assertEqual(s1, e)
 
     def testUpdate2(self):
         s1 = S([1, 2, 3])
         u = []
         e = S([1, 2, 3])
         s1.update(u)
-        self.assertTrue(s1 == e)
+        self.assertEqual(s1, e)
 
     def testGetitem(self):
         s1 = S([1, 2, 3])
@@ -180,16 +180,16 @@ class SimpleSetTestCase(unittest.TestCase):
         i1 = s1[1]
         i2 = s1[2]
         s2 = S([i0, i1, i2])
-        self.assertTrue(s1 == s2)
+        self.assertEqual(s1, s2)
 
     def testGetslice(self):
         s1 = S([1, 2, 3])
         slice = s1[0:2]
-        self.assertTrue(len(slice) == 2)
+        self.assertEqual(len(slice), 2)
         item = s1[2]
         slice.append(item)
         s2 = S(slice)
-        self.assertTrue(s1 == s2)
+        self.assertEqual(s1, s2)
 
     def testDelitem(self):
         s1 = S([1, 2, 3])

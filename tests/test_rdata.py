@@ -27,19 +27,19 @@ class RdataTestCase(unittest.TestCase):
 
     def test_str(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
-        self.assertTrue(rdata.address == "1.2.3.4")
+        self.assertEqual(rdata.address, "1.2.3.4")
 
     def test_unicode(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, u"1.2.3.4")
-        self.assertTrue(rdata.address == "1.2.3.4")
+        self.assertEqual(rdata.address, "1.2.3.4")
 
     def test_module_registration(self):
         TTXT = 64001
         dns.rdata.register_type(tests.ttxt_module, TTXT, 'TTXT')
         rdata = dns.rdata.from_text(dns.rdataclass.IN, TTXT, 'hello world')
-        self.assertTrue(rdata.strings == [b'hello', b'world'])
-        self.assertTrue(dns.rdatatype.to_text(TTXT) == 'TTXT')
-        self.assertTrue(dns.rdatatype.from_text('TTXT') == TTXT)
+        self.assertEqual(rdata.strings, [b'hello', b'world'])
+        self.assertEqual(dns.rdatatype.to_text(TTXT), 'TTXT')
+        self.assertEqual(dns.rdatatype.from_text('TTXT'), TTXT)
 
     def test_module_reregistration(self):
         def bad():

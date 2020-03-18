@@ -48,11 +48,11 @@ class NameTestCase(unittest.TestCase):
 
     def testFromTextRel4(self):
         n = dns.name.from_text('@', origin=None)
-        self.assertTrue(n == dns.name.empty)
+        self.assertEqual(n, dns.name.empty)
 
     def testFromTextRel5(self):
         n = dns.name.from_text('@', origin=self.origin)
-        self.assertTrue(n == self.origin)
+        self.assertEqual(n, self.origin)
 
     def testFromTextAbs1(self):
         n = dns.name.from_text('foo.bar.')
@@ -112,14 +112,14 @@ class NameTestCase(unittest.TestCase):
         self.assertTrue(dns.name.root.is_absolute())
 
     def testAbs2(self):
-        self.assertTrue(not dns.name.empty.is_absolute())
+        self.assertFalse(dns.name.empty.is_absolute())
 
     def testAbs3(self):
         self.assertTrue(self.origin.is_absolute())
 
     def testAbs4(self):
         n = dns.name.from_text('foo', origin=None)
-        self.assertTrue(not n.is_absolute())
+        self.assertFalse(n.is_absolute())
 
     def testWild1(self):
         n = dns.name.from_text('*.foo', origin=None)
@@ -127,17 +127,17 @@ class NameTestCase(unittest.TestCase):
 
     def testWild2(self):
         n = dns.name.from_text('*a.foo', origin=None)
-        self.assertTrue(not n.is_wild())
+        self.assertFalse(n.is_wild())
 
     def testWild3(self):
         n = dns.name.from_text('a.*.foo', origin=None)
-        self.assertTrue(not n.is_wild())
+        self.assertFalse(n.is_wild())
 
     def testWild4(self):
-        self.assertTrue(not dns.name.root.is_wild())
+        self.assertFalse(dns.name.root.is_wild())
 
     def testWild5(self):
-        self.assertTrue(not dns.name.empty.is_wild())
+        self.assertFalse(dns.name.empty.is_wild())
 
     def testHash1(self):
         n1 = dns.name.from_text('fOo.COM')
@@ -147,27 +147,27 @@ class NameTestCase(unittest.TestCase):
     def testCompare1(self):
         n1 = dns.name.from_text('a')
         n2 = dns.name.from_text('b')
-        self.assertTrue(n1 < n2)
-        self.assertTrue(n2 > n1)
+        self.assertLess(n1, n2)
+        self.assertGreater(n2, n1)
 
     def testCompare2(self):
         n1 = dns.name.from_text('')
         n2 = dns.name.from_text('b')
-        self.assertTrue(n1 < n2)
-        self.assertTrue(n2 > n1)
+        self.assertLess(n1, n2)
+        self.assertGreater(n2, n1)
 
     def testCompare3(self):
-        self.assertTrue(dns.name.empty < dns.name.root)
-        self.assertTrue(dns.name.root > dns.name.empty)
+        self.assertLess(dns.name.empty, dns.name.root)
+        self.assertGreater(dns.name.root, dns.name.empty)
 
     def testCompare4(self):
-        self.assertTrue(dns.name.root != 1)
+        self.assertNotEqual(dns.name.root, 1)
 
     def testSubdomain1(self):
-        self.assertTrue(not dns.name.empty.is_subdomain(dns.name.root))
+        self.assertFalse(dns.name.empty.is_subdomain(dns.name.root))
 
     def testSubdomain2(self):
-        self.assertTrue(not dns.name.root.is_subdomain(dns.name.empty))
+        self.assertFalse(dns.name.root.is_subdomain(dns.name.empty))
 
     def testSubdomain3(self):
         n = dns.name.from_text('foo', origin=self.origin)
@@ -182,10 +182,10 @@ class NameTestCase(unittest.TestCase):
         self.assertTrue(n.is_subdomain(n))
 
     def testSuperdomain1(self):
-        self.assertTrue(not dns.name.empty.is_superdomain(dns.name.root))
+        self.assertFalse(dns.name.empty.is_superdomain(dns.name.root))
 
     def testSuperdomain2(self):
-        self.assertTrue(not dns.name.root.is_superdomain(dns.name.empty))
+        self.assertFalse(dns.name.root.is_superdomain(dns.name.empty))
 
     def testSuperdomain3(self):
         n = dns.name.from_text('foo', origin=self.origin)
@@ -324,35 +324,35 @@ class NameTestCase(unittest.TestCase):
         n2 = dns.name.Name(['c', 'd'])
         e = dns.name.Name(['a', 'b', 'c', 'd'])
         r = n1 + n2
-        self.assertTrue(r == e)
+        self.assertEqual(r, e)
 
     def testConcat2(self):
         n1 = dns.name.Name(['a', 'b'])
         n2 = dns.name.Name([])
         e = dns.name.Name(['a', 'b'])
         r = n1 + n2
-        self.assertTrue(r == e)
+        self.assertEqual(r, e)
 
     def testConcat3(self):
         n1 = dns.name.Name([])
         n2 = dns.name.Name(['a', 'b'])
         e = dns.name.Name(['a', 'b'])
         r = n1 + n2
-        self.assertTrue(r == e)
+        self.assertEqual(r, e)
 
     def testConcat4(self):
         n1 = dns.name.Name(['a', 'b', ''])
         n2 = dns.name.Name([])
         e = dns.name.Name(['a', 'b', ''])
         r = n1 + n2
-        self.assertTrue(r == e)
+        self.assertEqual(r, e)
 
     def testConcat5(self):
         n1 = dns.name.Name(['a', 'b'])
         n2 = dns.name.Name(['c', ''])
         e = dns.name.Name(['a', 'b', 'c', ''])
         r = n1 + n2
-        self.assertTrue(r == e)
+        self.assertEqual(r, e)
 
     def testConcat6(self):
         def bad():
@@ -377,7 +377,7 @@ class NameTestCase(unittest.TestCase):
         n2 = dns.name.from_text('foo.BAR.')
         d1 = n1.to_digestable()
         d2 = n2.to_digestable()
-        self.assertTrue(d1 == d2)
+        self.assertEqual(d1, d2)
 
     def testDigestable3(self):
         d = dns.name.root.to_digestable()
@@ -455,28 +455,32 @@ class NameTestCase(unittest.TestCase):
         (prefix, suffix) = n.split(2)
         ep = dns.name.from_text('foo', None)
         es = dns.name.from_text('bar.', None)
-        self.assertTrue(prefix == ep and suffix == es)
+        self.assertEqual(prefix, ep)
+        self.assertEqual(suffix, es)
 
     def testSplit2(self):
         n = dns.name.from_text('foo.bar.')
         (prefix, suffix) = n.split(1)
         ep = dns.name.from_text('foo.bar', None)
         es = dns.name.from_text('.', None)
-        self.assertTrue(prefix == ep and suffix == es)
+        self.assertEqual(prefix, ep)
+        self.assertEqual(suffix, es)
 
     def testSplit3(self):
         n = dns.name.from_text('foo.bar.')
         (prefix, suffix) = n.split(0)
         ep = dns.name.from_text('foo.bar.', None)
         es = dns.name.from_text('', None)
-        self.assertTrue(prefix == ep and suffix == es)
+        self.assertEqual(prefix, ep)
+        self.assertEqual(suffix, es)
 
     def testSplit4(self):
         n = dns.name.from_text('foo.bar.')
         (prefix, suffix) = n.split(3)
         ep = dns.name.from_text('', None)
         es = dns.name.from_text('foo.bar.', None)
-        self.assertTrue(prefix == ep and suffix == es)
+        self.assertEqual(prefix, ep)
+        self.assertEqual(suffix, es)
 
     def testBadSplit1(self):
         def bad():
@@ -494,85 +498,85 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('a.foo.bar.', None)
         o = dns.name.from_text('bar.', None)
         e = dns.name.from_text('a.foo', None)
-        self.assertTrue(n.relativize(o) == e)
+        self.assertEqual(n.relativize(o), e)
 
     def testRelativize2(self):
         n = dns.name.from_text('a.foo.bar.', None)
         o = n
         e = dns.name.empty
-        self.assertTrue(n.relativize(o) == e)
+        self.assertEqual(n.relativize(o), e)
 
     def testRelativize3(self):
         n = dns.name.from_text('a.foo.bar.', None)
         o = dns.name.from_text('blaz.', None)
         e = n
-        self.assertTrue(n.relativize(o) == e)
+        self.assertEqual(n.relativize(o), e)
 
     def testRelativize4(self):
         n = dns.name.from_text('a.foo', None)
         o = dns.name.root
         e = n
-        self.assertTrue(n.relativize(o) == e)
+        self.assertEqual(n.relativize(o), e)
 
     def testDerelativize1(self):
         n = dns.name.from_text('a.foo', None)
         o = dns.name.from_text('bar.', None)
         e = dns.name.from_text('a.foo.bar.', None)
-        self.assertTrue(n.derelativize(o) == e)
+        self.assertEqual(n.derelativize(o), e)
 
     def testDerelativize2(self):
         n = dns.name.empty
         o = dns.name.from_text('a.foo.bar.', None)
         e = o
-        self.assertTrue(n.derelativize(o) == e)
+        self.assertEqual(n.derelativize(o), e)
 
     def testDerelativize3(self):
         n = dns.name.from_text('a.foo.bar.', None)
         o = dns.name.from_text('blaz.', None)
         e = n
-        self.assertTrue(n.derelativize(o) == e)
+        self.assertEqual(n.derelativize(o), e)
 
     def testChooseRelativity1(self):
         n = dns.name.from_text('a.foo.bar.', None)
         o = dns.name.from_text('bar.', None)
         e = dns.name.from_text('a.foo', None)
-        self.assertTrue(n.choose_relativity(o, True) == e)
+        self.assertEqual(n.choose_relativity(o, True), e)
 
     def testChooseRelativity2(self):
         n = dns.name.from_text('a.foo.bar.', None)
         o = dns.name.from_text('bar.', None)
         e = n
-        self.assertTrue(n.choose_relativity(o, False) == e)
+        self.assertEqual(n.choose_relativity(o, False), e)
 
     def testChooseRelativity3(self):
         n = dns.name.from_text('a.foo', None)
         o = dns.name.from_text('bar.', None)
         e = dns.name.from_text('a.foo.bar.', None)
-        self.assertTrue(n.choose_relativity(o, False) == e)
+        self.assertEqual(n.choose_relativity(o, False), e)
 
     def testChooseRelativity4(self):
         n = dns.name.from_text('a.foo', None)
         o = None
         e = n
-        self.assertTrue(n.choose_relativity(o, True) == e)
+        self.assertEqual(n.choose_relativity(o, True), e)
 
     def testChooseRelativity5(self):
         n = dns.name.from_text('a.foo', None)
         o = None
         e = n
-        self.assertTrue(n.choose_relativity(o, False) == e)
+        self.assertEqual(n.choose_relativity(o, False), e)
 
     def testChooseRelativity6(self):
         n = dns.name.from_text('a.foo.', None)
         o = None
         e = n
-        self.assertTrue(n.choose_relativity(o, True) == e)
+        self.assertEqual(n.choose_relativity(o, True), e)
 
     def testChooseRelativity7(self):
         n = dns.name.from_text('a.foo.', None)
         o = None
         e = n
-        self.assertTrue(n.choose_relativity(o, False) == e)
+        self.assertEqual(n.choose_relativity(o, False), e)
 
     def testFromWire1(self):
         w = b'\x03foo\x00\xc0\x00'
@@ -582,8 +586,10 @@ class NameTestCase(unittest.TestCase):
         en2 = en1
         ecused1 = 5
         ecused2 = 2
-        self.assertTrue(n1 == en1 and cused1 == ecused1 and \
-                        n2 == en2 and cused2 == ecused2)
+        self.assertEqual(n1, en1)
+        self.assertEqual(cused1, ecused1)
+        self.assertEqual(n2, en2)
+        self.assertEqual(cused2, ecused2)
 
     def testFromWire2(self):
         w = b'\x03foo\x00\x01a\xc0\x00\x01b\xc0\x05'
@@ -599,9 +605,12 @@ class NameTestCase(unittest.TestCase):
         ecused1 = 5
         ecused2 = 4
         ecused3 = 4
-        self.assertTrue(n1 == en1 and cused1 == ecused1 and \
-                        n2 == en2 and cused2 == ecused2 and \
-                        n3 == en3 and cused3 == ecused3)
+        self.assertEqual(n1, en1)
+        self.assertEqual(cused1, ecused1)
+        self.assertEqual(n2, en2)
+        self.assertEqual(cused2, ecused2)
+        self.assertEqual(n3, en3)
+        self.assertEqual(cused3, ecused3)
 
     def testBadFromWire1(self):
         def bad():
@@ -629,13 +638,13 @@ class NameTestCase(unittest.TestCase):
 
     def testParent1(self):
         n = dns.name.from_text('foo.bar.')
-        self.assertTrue(n.parent() == dns.name.from_text('bar.'))
-        self.assertTrue(n.parent().parent() == dns.name.root)
+        self.assertEqual(n.parent(), dns.name.from_text('bar.'))
+        self.assertEqual(n.parent().parent(), dns.name.root)
 
     def testParent2(self):
         n = dns.name.from_text('foo.bar', None)
-        self.assertTrue(n.parent() == dns.name.from_text('bar', None))
-        self.assertTrue(n.parent().parent() == dns.name.empty)
+        self.assertEqual(n.parent(), dns.name.from_text('bar', None))
+        self.assertEqual(n.parent().parent(), dns.name.empty)
 
     def testParent3(self):
         def bad():
@@ -783,7 +792,7 @@ class NameTestCase(unittest.TestCase):
     def testReverseIPv6MappedIpv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
         n = dns.reversename.from_address('::ffff:127.0.0.1')
-        self.assertTrue(e == n)
+        self.assertEqual(e, n)
 
     def testBadReverseIPv4(self):
         def bad():
@@ -811,7 +820,7 @@ class NameTestCase(unittest.TestCase):
         text = '+1 650 555 1212'
         e = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')
         n = dns.e164.from_e164(text)
-        self.assertTrue(n == e)
+        self.assertEqual(n, e)
 
     def testEnumToE164(self):
         n = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')

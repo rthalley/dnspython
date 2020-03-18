@@ -39,19 +39,19 @@ class NtoAAtoNTestCase(unittest.TestCase):
 
     def test_aton1(self):
         a = aton6('::')
-        self.assertTrue(a == b'\x00' * 16)
+        self.assertEqual(a, b'\x00' * 16)
 
     def test_aton2(self):
         a = aton6('::1')
-        self.assertTrue(a == b'\x00' * 15 + b'\x01')
+        self.assertEqual(a, b'\x00' * 15 + b'\x01')
 
     def test_aton3(self):
         a = aton6('::10.0.0.1')
-        self.assertTrue(a == b'\x00' * 12 + b'\x0a\x00\x00\x01')
+        self.assertEqual(a, b'\x00' * 12 + b'\x0a\x00\x00\x01')
 
     def test_aton4(self):
         a = aton6('abcd::dcba')
-        self.assertTrue(a == b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
+        self.assertEqual(a, b'\xab\xcd' + b'\x00' * 12 + b'\xdc\xba')
 
     def test_aton5(self):
         a = aton6('1:2:3:4:5:6:7:8')
