@@ -43,7 +43,8 @@ class EUIBase(dns.rdata.Rdata):
         return dns.rdata._hexify(self.eui, chunksize=2).replace(' ', '-')
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         text = tok.get_string()
         tok.get_eol()
         if len(text) != cls.text_len:

@@ -54,7 +54,8 @@ class TXTBase(dns.rdata.Rdata):
         return txt
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         strings = []
         while 1:
             token = tok.get().unescape()

@@ -40,7 +40,8 @@ class NSAP(dns.rdata.Rdata):
         return "0x%s" % binascii.hexlify(self.address).decode()
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         address = tok.get_string()
         tok.get_eol()
         if address[0:2] != '0x':

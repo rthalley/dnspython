@@ -54,7 +54,8 @@ class CSYNC(dns.rdata.Rdata):
         return '%d %d%s' % (self.serial, self.flags, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         serial = tok.get_uint32()
         flags = tok.get_uint16()
         rdtypes = []

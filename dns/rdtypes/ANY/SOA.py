@@ -65,11 +65,10 @@ class SOA(dns.rdata.Rdata):
             self.expire, self.minimum)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        mname = tok.get_name()
-        rname = tok.get_name()
-        mname = mname.choose_relativity(origin, relativize)
-        rname = rname.choose_relativity(origin, relativize)
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        mname = tok.get_name(origin, relativize, relativize_to)
+        rname = tok.get_name(origin, relativize, relativize_to)
         serial = tok.get_uint32()
         refresh = tok.get_ttl()
         retry = tok.get_ttl()

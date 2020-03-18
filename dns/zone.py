@@ -698,7 +698,8 @@ class _MasterReader(object):
             self.zone.nodes[name] = n
         try:
             rd = dns.rdata.from_text(rdclass, rdtype, self.tok,
-                                     self.current_origin, False)
+                                     self.current_origin, self.relativize,
+                                     self.zone.origin)
         except dns.exception.SyntaxError:
             # Catch and reraise.
             (ty, va) = sys.exc_info()[:2]
@@ -730,7 +731,6 @@ class _MasterReader(object):
                 else:
                     ttl = self.last_ttl
 
-        rd.choose_relativity(self.zone.origin, self.relativize)
         covers = rd.covers()
         rds = n.find_rdataset(rdclass, rdtype, covers, True)
         rds.add(rd, ttl)
@@ -879,7 +879,8 @@ class _MasterReader(object):
                 self.zone.nodes[name] = n
             try:
                 rd = dns.rdata.from_text(rdclass, rdtype, rdata,
-                                         self.current_origin, False)
+                                         self.current_origin, self.relativize,
+                                         self.zone.origin)
             except dns.exception.SyntaxError:
                 # Catch and reraise.
                 (ty, va) = sys.exc_info()[:2]
@@ -894,7 +895,6 @@ class _MasterReader(object):
                 raise dns.exception.SyntaxError("caught exception %s: %s" %
                                                 (str(ty), str(va)))
 
-            rd.choose_relativity(self.zone.origin, self.relativize)
             covers = rd.covers()
             rds = n.find_rdataset(rdclass, rdtype, covers, True)
             rds.add(rd, ttl)

@@ -38,10 +38,10 @@ class A(dns.rdtypes.mxbase.MXBase):
         return '%s %o' % (domain, self.address)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        domain = tok.get_name()
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        domain = tok.get_name(origin, relativize, relativize_to)
         address = tok.get_uint16(base=8)
-        domain = domain.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, address, domain)
 

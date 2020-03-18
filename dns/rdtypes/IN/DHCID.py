@@ -39,7 +39,8 @@ class DHCID(dns.rdata.Rdata):
         return dns.rdata._base64ify(self.data)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         chunks = []
         while 1:
             t = tok.get().unescape()

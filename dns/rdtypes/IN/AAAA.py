@@ -40,7 +40,8 @@ class AAAA(dns.rdata.Rdata):
         return self.address
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         address = tok.get_identifier()
         tok.get_eol()
         return cls(rdclass, rdtype, address)

@@ -48,7 +48,8 @@ class CAA(dns.rdata.Rdata):
                                dns.rdata._escapify(self.value))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         flags = tok.get_uint8()
         tag = tok.get_string().encode()
         if len(tag) > 255:

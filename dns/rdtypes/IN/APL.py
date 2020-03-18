@@ -95,7 +95,8 @@ class APL(dns.rdata.Rdata):
         return ' '.join(map(str, self.items))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         items = []
         while 1:
             token = tok.get().unescape()

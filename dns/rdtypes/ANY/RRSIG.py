@@ -108,7 +108,8 @@ class RRSIG(dns.rdata.Rdata):
         )
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         type_covered = dns.rdatatype.from_text(tok.get_string())
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         labels = tok.get_int()
@@ -116,8 +117,7 @@ class RRSIG(dns.rdata.Rdata):
         expiration = sigtime_to_posixtime(tok.get_string())
         inception = sigtime_to_posixtime(tok.get_string())
         key_tag = tok.get_int()
-        signer = tok.get_name()
-        signer = signer.choose_relativity(origin, relativize)
+        signer = tok.get_name(origin, relativize, relativize_to)
         chunks = []
         while 1:
             t = tok.get().unescape()

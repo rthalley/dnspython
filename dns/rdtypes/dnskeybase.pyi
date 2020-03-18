@@ -23,7 +23,8 @@ class DNSKEYBase(rdata.Rdata):
         ...
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         ...
 
     def to_wire(self, file, compress=None, origin=None):

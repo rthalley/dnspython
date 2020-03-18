@@ -53,9 +53,9 @@ class NSEC(dns.rdata.Rdata):
         return '{}{}'.format(next, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        next = tok.get_name()
-        next = next.choose_relativity(origin, relativize)
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        next = tok.get_name(origin, relativize, relativize_to)
         rdtypes = []
         while 1:
             token = tok.get().unescape()

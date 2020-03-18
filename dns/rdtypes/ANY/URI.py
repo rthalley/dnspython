@@ -53,7 +53,8 @@ class URI(dns.rdata.Rdata):
                                self.target.decode())
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         priority = tok.get_uint16()
         weight = tok.get_uint16()
         target = tok.get().unescape()

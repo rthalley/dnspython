@@ -83,7 +83,8 @@ class GPOS(dns.rdata.Rdata):
                              self.altitude.decode())
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         latitude = tok.get_string()
         longitude = tok.get_string()
         altitude = tok.get_string()

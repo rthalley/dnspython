@@ -85,7 +85,8 @@ class CERT(dns.rdata.Rdata):
                                 dns.rdata._base64ify(self.certificate))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         certificate_type = _ctype_from_text(tok.get_string())
         key_tag = tok.get_uint16()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())

@@ -48,12 +48,11 @@ class PX(dns.rdata.Rdata):
         return '%d %s %s' % (self.preference, map822, mapx400)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         preference = tok.get_uint16()
-        map822 = tok.get_name()
-        map822 = map822.choose_relativity(origin, relativize)
-        mapx400 = tok.get_name(None)
-        mapx400 = mapx400.choose_relativity(origin, relativize)
+        map822 = tok.get_name(origin, relativize, relativize_to)
+        mapx400 = tok.get_name(origin, relativize, relativize_to)
         tok.get_eol()
         return cls(rdclass, rdtype, preference, map822, mapx400)
 

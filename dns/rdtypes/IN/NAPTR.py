@@ -76,14 +76,14 @@ class NAPTR(dns.rdata.Rdata):
                 replacement)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         order = tok.get_uint16()
         preference = tok.get_uint16()
         flags = tok.get_string()
         service = tok.get_string()
         regexp = tok.get_string()
-        replacement = tok.get_name()
-        replacement = replacement.choose_relativity(origin, relativize)
+        replacement = tok.get_name(origin, relativize, relativize_to)
         tok.get_eol()
         return cls(rdclass, rdtype, order, preference, flags, service,
                    regexp, replacement)
