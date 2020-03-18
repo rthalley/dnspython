@@ -28,28 +28,28 @@ class RdtypeAnyDnskeyTestCase(unittest.TestCase):
         good_s = set() #type: Set[str]
         good_f = 0
         from_flags = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(good_f)
-        self.assertTrue(from_flags == good_s,
-                        '"{}" != "{}"'.format(from_flags, good_s))
+        self.assertEqual(from_flags, good_s,
+                         '"{}" != "{}"'.format(from_flags, good_s))
         from_set = dns.rdtypes.ANY.DNSKEY.flags_from_text_set(good_s)
-        self.assertTrue(from_set == good_f,
-                        '"0x{:x}" != "0x{:x}"'.format(from_set, good_f))
+        self.assertEqual(from_set, good_f,
+                         '"0x{:x}" != "0x{:x}"'.format(from_set, good_f))
 
     def testFlagsAll(self): # type: () -> None
         '''Test that all defined flags are recognized.'''
         good_s = {'SEP', 'REVOKE', 'ZONE'}
         good_f = 0x181
         from_flags = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(good_f)
-        self.assertTrue(from_flags == good_s,
-                        '"{}" != "{}"'.format(from_flags, good_s))
+        self.assertEqual(from_flags, good_s,
+                         '"{}" != "{}"'.format(from_flags, good_s))
         from_text = dns.rdtypes.ANY.DNSKEY.flags_from_text_set(good_s)
-        self.assertTrue(from_text == good_f,
-                        '"0x{:x}" != "0x{:x}"'.format(from_text, good_f))
+        self.assertEqual(from_text, good_f,
+                         '"0x{:x}" != "0x{:x}"'.format(from_text, good_f))
 
     def testFlagsUnknownToText(self): # type: () -> None
         '''Test that undefined flags are returned in hexadecimal notation.'''
         unk_s = {'0x8000'}
         flags_s = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(0x8000)
-        self.assertTrue(flags_s == unk_s, '"{}" != "{}"'.format(flags_s, unk_s))
+        self.assertEqual(flags_s, unk_s, '"{}" != "{}"'.format(flags_s, unk_s))
 
     def testFlagsUnknownToFlags(self): # type: () -> None
         '''Test that conversion from undefined mnemonic raises error.'''
@@ -62,7 +62,7 @@ class RdtypeAnyDnskeyTestCase(unittest.TestCase):
         rr = dns.rrset.from_text('foo', 300, 'IN', 'DNSKEY', '257 3 8 KEY=')[0]
         rr_s = {'ZONE', 'SEP'}
         flags_s = rr.flags_to_text_set()
-        self.assertTrue(flags_s == rr_s, '"{}" != "{}"'.format(flags_s, rr_s))
+        self.assertEqual(flags_s, rr_s, '"{}" != "{}"'.format(flags_s, rr_s))
 
 
 if __name__ == '__main__':
