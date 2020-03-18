@@ -146,5 +146,11 @@ class IPSECKEY(dns.rdata.Rdata):
         else:
             raise dns.exception.FormError('invalid IPSECKEY gateway type')
         key = wire[current: current + rdlen].unwrap()
+        if origin is not None and gateway_type == 3:
+            gateway = gateway.relativize(origin)
         return cls(rdclass, rdtype, header[0], gateway_type, header[2],
                    gateway, key)
+
+    def choose_relativity(self, origin=None, relativize=True):
+        if self.gateway_type == 3:
+            self.gateway = self.gateway.choose_relativity(origin, relativize)
