@@ -191,6 +191,9 @@ def make_ds(name, key, algorithm, origin=None):
     elif algorithm.upper() == 'SHA256':
         dsalg = 2
         dshash = hashlib.sha256()
+    elif algorithm.upper() == 'SHA384':
+        dsalg = 4
+        dshash = hashlib.sha384()
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
