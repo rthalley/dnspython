@@ -54,7 +54,8 @@ class TLSA(dns.rdata.Rdata):
                                                   chunksize=128))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         usage = tok.get_uint8()
         selector = tok.get_uint8()
         mtype = tok.get_uint8()

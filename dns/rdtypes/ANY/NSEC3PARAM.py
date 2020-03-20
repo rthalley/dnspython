@@ -56,7 +56,8 @@ class NSEC3PARAM(dns.rdata.Rdata):
                                 salt)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         algorithm = tok.get_uint8()
         flags = tok.get_uint8()
         iterations = tok.get_uint16()

@@ -50,7 +50,8 @@ class SSHFP(dns.rdata.Rdata):
                                                chunksize=128))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         algorithm = tok.get_uint8()
         fp_type = tok.get_uint8()
         chunks = []

@@ -59,7 +59,8 @@ class HIP(dns.rdata.Rdata):
         return '%u %s %s%s' % (self.algorithm, hit, key, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         algorithm = tok.get_uint8()
         hit = binascii.unhexlify(tok.get_string().encode())
         if len(hit) > 255:

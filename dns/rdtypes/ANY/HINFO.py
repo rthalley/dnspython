@@ -50,7 +50,8 @@ class HINFO(dns.rdata.Rdata):
                                   dns.rdata._escapify(self.os))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         cpu = tok.get_string()
         os = tok.get_string()
         tok.get_eol()

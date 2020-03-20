@@ -164,7 +164,8 @@ class LOC(dns.rdata.Rdata):
         return text
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         latitude = [0, 0, 0, 0, 1]
         longitude = [0, 0, 0, 0, 1]
         size = _default_size

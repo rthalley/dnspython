@@ -46,10 +46,10 @@ class MXBase(dns.rdata.Rdata):
         return '%d %s' % (self.preference, exchange)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         preference = tok.get_uint16()
-        exchange = tok.get_name()
-        exchange = exchange.choose_relativity(origin, relativize)
+        exchange = tok.get_name(origin, relativize, relativize_to)
         tok.get_eol()
         return cls(rdclass, rdtype, preference, exchange)
 

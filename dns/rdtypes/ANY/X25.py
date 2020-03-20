@@ -43,7 +43,8 @@ class X25(dns.rdata.Rdata):
         return '"%s"' % dns.rdata._escapify(self.address)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         address = tok.get_string()
         tok.get_eol()
         return cls(rdclass, rdtype, address)

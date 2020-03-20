@@ -81,12 +81,13 @@ class IPSECKEY(dns.rdata.Rdata):
                                    dns.rdata._base64ify(self.key))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         precedence = tok.get_uint8()
         gateway_type = tok.get_uint8()
         algorithm = tok.get_uint8()
         if gateway_type == 3:
-            gateway = tok.get_name().choose_relativity(origin, relativize)
+            gateway = tok.get_name(origin, relativize, relativize_to)
         else:
             gateway = tok.get_string()
         chunks = []

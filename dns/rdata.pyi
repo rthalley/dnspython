@@ -10,7 +10,7 @@ class Rdata:
         ...
 _rdata_modules : Dict[Tuple[Any,Rdata],Any]
 
-def from_text(rdclass : int, rdtype : int, tok : Optional[str], origin : Optional[Name] = None, relativize : bool = True):
+def from_text(rdclass : int, rdtype : int, tok : Optional[str], origin : Optional[Name] = None, relativize : bool = True, relativize_to : Optional[Name] = None):
     ...
 
 def from_wire(rdclass : int, rdtype : int, wire : bytes, current : int, rdlen : int, origin : Optional[Name] = None):

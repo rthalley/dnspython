@@ -42,9 +42,9 @@ class NSBase(dns.rdata.Rdata):
         return str(target)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        target = tok.get_name()
-        target = target.choose_relativity(origin, relativize)
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        target = tok.get_name(origin, relativize, relativize_to)
         tok.get_eol()
         return cls(rdclass, rdtype, target)
 

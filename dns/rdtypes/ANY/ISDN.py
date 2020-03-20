@@ -53,7 +53,8 @@ class ISDN(dns.rdata.Rdata):
             return '"%s"' % dns.rdata._escapify(self.address)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         address = tok.get_string()
         t = tok.get()
         if not t.is_eol_or_eof():

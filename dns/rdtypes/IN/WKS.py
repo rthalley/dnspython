@@ -59,7 +59,8 @@ class WKS(dns.rdata.Rdata):
         return '%s %d %s' % (self.address, self.protocol, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         address = tok.get_string()
         protocol = tok.get_string()
         if protocol.isdigit():

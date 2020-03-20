@@ -245,7 +245,8 @@ class Rdata(object):
         return hash(self.to_digestable(dns.name.root))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         raise NotImplementedError
 
     @classmethod
@@ -275,7 +276,8 @@ class GenericRdata(Rdata):
         return r'\# %d ' % len(self.data) + _hexify(self.data)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         token = tok.get()
         if not token.is_identifier() or token.value != r'\#':
             raise dns.exception.SyntaxError(
@@ -340,7 +342,8 @@ def get_rdata_class(rdclass, rdtype):
     return cls
 
 
-def from_text(rdclass, rdtype, tok, origin=None, relativize=True):
+def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
+              relativize_to=None):
     """Build an rdata object from text format.
 
     This function attempts to dynamically load a class which
@@ -363,8 +366,10 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True):
     *origin*, a ``dns.name.Name`` (or ``None``), the
     origin to use for relative names.
 
-    *relativize*, a ``bool``.  If true, name will be relativized to
-    the specified origin.
+    *relativize*, a ``bool``.  If true, name will be relativized.
+
+    *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
+    when relativizing names.  If not set, the *origin* value will be used.
 
     Returns an instance of the chosen Rdata subclass.
     """
@@ -384,10 +389,11 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True):
             # from_wire on it.
             #
             rdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
-                                           relativize)
+                                           relativize, relativize_to)
             return from_wire(rdclass, rdtype, rdata.data, 0, len(rdata.data),
                              origin)
-    return cls.from_text(rdclass, rdtype, tok, origin, relativize)
+    return cls.from_text(rdclass, rdtype, tok, origin, relativize,
+                         relativize_to)
 
 
 def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
