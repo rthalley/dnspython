@@ -112,6 +112,9 @@ example_ds_sha1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
 example_ds_sha256 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
                                         '18673 3 2 eb8344cbbf07c9d3d3d6c81d10c76653e28d8611a65e639ef8f716e4e4e5d913')
 
+example_ds_sha384 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
+                                        '18673 3 4 61ab241025c5f88d2537be04dcfba96f952adaefe0b382ecbc4108c97b75768c9e99fd16caed2a09634c51e8089fb84f')
+
 when3 = 1379801800
 
 abs_ecdsa256_keys = {
@@ -303,6 +306,10 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
     def testMakeExampleSHA256DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
         self.assertEqual(ds, example_ds_sha256)
+
+    def testMakeExampleSHA384DS(self):  # type: () -> None
+        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA384')
+        self.assertEqual(ds, example_ds_sha384)
 
     def testMakeSHA256DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
