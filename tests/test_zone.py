@@ -242,8 +242,8 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_file(here('example'), 'example')
         ok = False
         try:
-            text_zone = z.to_text(nl=b'\x0a')
-            f = open(here('example3.out'), 'wb')
+            text_zone = z.to_text(nl='\x0a')
+            f = open(here('example3.out'), 'w')
             f.write(text_zone)
             f.close()
             ok = filecmp.cmp(here('example3.out'),

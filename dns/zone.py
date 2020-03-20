@@ -22,7 +22,7 @@ from __future__ import generators
 import sys
 import re
 import os
-from io import BytesIO
+from io import StringIO
 
 import dns.exception
 import dns.name
@@ -553,7 +553,7 @@ class Zone(object):
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
         """
-        temp_buffer = BytesIO()
+        temp_buffer = StringIO()
         self.to_file(temp_buffer, sorted, relativize, nl)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
