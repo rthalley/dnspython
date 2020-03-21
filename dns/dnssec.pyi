@@ -16,3 +16,6 @@ class ValidationFailure(exception.DNSException):
 
 def make_ds(name : name.Name, key : DNSKEY.DNSKEY, algorithm : str, origin : Optional[name.Name] = None) -> DS.DS:
     ...
+
+def nsec3_hash(domain: str, salt: Optional[str, bytes], iterations: int, algo: int) -> str:
+    ...
