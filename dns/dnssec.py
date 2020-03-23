@@ -22,6 +22,7 @@ from io import BytesIO
 import struct
 import sys
 import time
+import base64
 
 import dns.exception
 import dns.name
@@ -517,6 +518,47 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         except ValidationFailure:
             pass
     raise ValidationFailure("no RRSIGs validated")
+
+
+def nsec3_hash(domain, salt, iterations, algo):
+    """
+    This method calculates the NSEC3 hash after: https://tools.ietf.org/html/rfc5155#section-5
+
+    :param domain:
+    :type domain: str
+    :param salt:
+    :type salt: Optional[str, bytes]
+    :param iterations:
+    :type iterations: int
+    :param algo:
+    :type algo: int
+    :return: NSEC3 hash
+    :rtype: str
+    """
+    b32_conversion = str.maketrans(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", "0123456789ABCDEFGHIJKLMNOPQRSTUV"
+    )
+
+    if algo != 1:
+        raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
+
+    salt_encoded = salt
+    if isinstance(salt, str):
+        if len(salt) % 2 == 0:
+            salt_encoded = bytes.fromhex(salt)
+        else:
+            raise ValueError("Invalid salt length")
+
+    domain_encoded = dns.name.from_text(domain).canonicalize().to_wire()
+
+    digest = hashlib.sha1(domain_encoded + salt_encoded).digest()
+    for i in range(iterations):
+        digest = hashlib.sha1(digest + salt_encoded).digest()
+
+    output = base64.b32encode(digest).decode("utf-8")
+    output = output.translate(b32_conversion)
+
+    return output
 
 
 def _need_pycrypto(*args, **kwargs):
