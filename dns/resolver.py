@@ -1189,13 +1189,17 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher
-        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        except dns.resolver.NXDOMAIN as e:
+            if 'responses' in e.kwargs and name in e.kwargs['responses'] and len(e.kwargs['responses'][name].authority):
+                return e.kwargs['responses'][name].authority[0].name
+
+            #otherwise look above level, higher
+        except dns.resolver.NoAnswer as e0:
             pass
         try:
             name = name.parent()
         except dns.name.NoParent:
-            raise NoRootSOA
-
+            raise dns.name.NoRootSOA
 #
 # Support for overriding the system resolver for all python code in the
 # running process.
