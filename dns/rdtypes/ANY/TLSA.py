@@ -40,11 +40,11 @@ class TLSA(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, usage, selector,
                  mtype, cert):
-        super(TLSA, self).__init__(rdclass, rdtype)
-        self.usage = usage
-        self.selector = selector
-        self.mtype = mtype
-        self.cert = cert
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'usage', usage)
+        object.__setattr__(self, 'selector', selector)
+        object.__setattr__(self, 'mtype', mtype)
+        object.__setattr__(self, 'cert', cert)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.usage,

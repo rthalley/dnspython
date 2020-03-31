@@ -35,15 +35,15 @@ class HINFO(dns.rdata.Rdata):
     __slots__ = ['cpu', 'os']
 
     def __init__(self, rdclass, rdtype, cpu, os):
-        super(HINFO, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if isinstance(cpu, str):
-            self.cpu = cpu.encode()
+            object.__setattr__(self, 'cpu', cpu.encode())
         else:
-            self.cpu = cpu
+            object.__setattr__(self, 'cpu', cpu)
         if isinstance(os, str):
-            self.os = os.encode()
+            object.__setattr__(self, 'os', os.encode())
         else:
-            self.os = os
+            object.__setattr__(self, 'os', os)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '"{}" "{}"'.format(dns.rdata._escapify(self.cpu),

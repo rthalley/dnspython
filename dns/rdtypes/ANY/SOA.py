@@ -48,14 +48,14 @@ class SOA(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, mname, rname, serial, refresh, retry,
                  expire, minimum):
-        super(SOA, self).__init__(rdclass, rdtype)
-        self.mname = mname
-        self.rname = rname
-        self.serial = serial
-        self.refresh = refresh
-        self.retry = retry
-        self.expire = expire
-        self.minimum = minimum
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'mname', mname)
+        object.__setattr__(self, 'rname', rname)
+        object.__setattr__(self, 'serial', serial)
+        object.__setattr__(self, 'refresh', refresh)
+        object.__setattr__(self, 'retry', retry)
+        object.__setattr__(self, 'expire', expire)
+        object.__setattr__(self, 'minimum', minimum)
 
     def to_text(self, origin=None, relativize=True, **kw):
         mname = self.mname.choose_relativity(origin, relativize)

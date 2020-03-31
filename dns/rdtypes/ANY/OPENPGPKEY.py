@@ -31,8 +31,8 @@ class OPENPGPKEY(dns.rdata.Rdata):
     """
 
     def __init__(self, rdclass, rdtype, key):
-        super(OPENPGPKEY, self).__init__(rdclass, rdtype)
-        self.key = key
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'key', key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return dns.rdata._base64ify(self.key)

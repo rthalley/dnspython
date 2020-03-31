@@ -37,9 +37,9 @@ class MXBase(dns.rdata.Rdata):
     __slots__ = ['preference', 'exchange']
 
     def __init__(self, rdclass, rdtype, preference, exchange):
-        super(MXBase, self).__init__(rdclass, rdtype)
-        self.preference = preference
-        self.exchange = exchange
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'preference', preference)
+        object.__setattr__(self, 'exchange', exchange)
 
     def to_text(self, origin=None, relativize=True, **kw):
         exchange = self.exchange.choose_relativity(origin, relativize)

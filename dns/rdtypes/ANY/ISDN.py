@@ -35,15 +35,15 @@ class ISDN(dns.rdata.Rdata):
     __slots__ = ['address', 'subaddress']
 
     def __init__(self, rdclass, rdtype, address, subaddress):
-        super(ISDN, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if isinstance(address, str):
-            self.address = address.encode()
+            object.__setattr__(self, 'address', address.encode())
         else:
-            self.address = address
+            object.__setattr__(self, 'address', address)
         if isinstance(address, str):
-            self.subaddress = subaddress.encode()
+            object.__setattr__(self, 'subaddress', subaddress.encode())
         else:
-            self.subaddress = subaddress
+            object.__setattr__(self, 'subaddress', subaddress)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.subaddress:

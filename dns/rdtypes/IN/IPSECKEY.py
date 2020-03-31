@@ -43,7 +43,7 @@ class IPSECKEY(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, precedence, gateway_type, algorithm,
                  gateway, key):
-        super(IPSECKEY, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if gateway_type == 0:
             if gateway != '.' and gateway is not None:
                 raise SyntaxError('invalid gateway for gateway type 0')
@@ -59,11 +59,11 @@ class IPSECKEY(dns.rdata.Rdata):
         else:
             raise SyntaxError(
                 'invalid IPSECKEY gateway type: %d' % gateway_type)
-        self.precedence = precedence
-        self.gateway_type = gateway_type
-        self.algorithm = algorithm
-        self.gateway = gateway
-        self.key = key
+        object.__setattr__(self, 'precedence', precedence)
+        object.__setattr__(self, 'gateway_type', gateway_type)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'gateway', gateway)
+        object.__setattr__(self, 'key', key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.gateway_type == 0:

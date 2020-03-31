@@ -40,11 +40,11 @@ class DSBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, key_tag, algorithm, digest_type,
                  digest):
-        super(DSBase, self).__init__(rdclass, rdtype)
-        self.key_tag = key_tag
-        self.algorithm = algorithm
-        self.digest_type = digest_type
-        self.digest = digest
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'key_tag', key_tag)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'digest_type', digest_type)
+        object.__setattr__(self, 'digest', digest)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.key_tag, self.algorithm,
