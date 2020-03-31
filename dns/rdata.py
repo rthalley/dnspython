@@ -253,11 +253,6 @@ class Rdata(object):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         raise NotImplementedError
 
-    def choose_relativity(self, origin=None, relativize=True):
-        """Convert any domain names in the rdata to the specified
-        relativization.
-        """
-
 class GenericRdata(Rdata):
 
     """Generic Rdata Class

@@ -75,7 +75,3 @@ class RP(dns.rdata.Rdata):
             mbox = mbox.relativize(origin)
             txt = txt.relativize(origin)
         return cls(rdclass, rdtype, mbox, txt)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.mbox = self.mbox.choose_relativity(origin, relativize)
-        self.txt = self.txt.choose_relativity(origin, relativize)

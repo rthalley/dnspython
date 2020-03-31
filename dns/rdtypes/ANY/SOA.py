@@ -109,7 +109,3 @@ class SOA(dns.rdata.Rdata):
         return cls(rdclass, rdtype, mname, rname,
                    five_ints[0], five_ints[1], five_ints[2], five_ints[3],
                    five_ints[4])
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.mname = self.mname.choose_relativity(origin, relativize)
-        self.rname = self.rname.choose_relativity(origin, relativize)

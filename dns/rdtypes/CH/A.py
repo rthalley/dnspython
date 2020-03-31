@@ -65,6 +65,3 @@ class A(dns.rdtypes.mxbase.MXBase):
         if origin is not None:
             domain = domain.relativize(origin)
         return cls(rdclass, rdtype, address, domain)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.domain = self.domain.choose_relativity(origin, relativize)

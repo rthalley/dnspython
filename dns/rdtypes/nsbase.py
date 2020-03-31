@@ -64,9 +64,6 @@ class NSBase(dns.rdata.Rdata):
             target = target.relativize(origin)
         return cls(rdclass, rdtype, target)
 
-    def choose_relativity(self, origin=None, relativize=True):
-        self.target = self.target.choose_relativity(origin, relativize)
-
 
 class UncompressedNS(NSBase):
 

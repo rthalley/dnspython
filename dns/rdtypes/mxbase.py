@@ -75,9 +75,6 @@ class MXBase(dns.rdata.Rdata):
             exchange = exchange.relativize(origin)
         return cls(rdclass, rdtype, preference, exchange)
 
-    def choose_relativity(self, origin=None, relativize=True):
-        self.exchange = self.exchange.choose_relativity(origin, relativize)
-
 
 class UncompressedMX(MXBase):
 

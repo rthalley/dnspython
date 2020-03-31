@@ -121,6 +121,3 @@ class NSEC(dns.rdata.Rdata):
         if origin is not None:
             next = next.relativize(origin)
         return cls(rdclass, rdtype, next, windows)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.next = self.next.choose_relativity(origin, relativize)
