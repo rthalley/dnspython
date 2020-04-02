@@ -94,15 +94,15 @@ def _constify(o):
     """
     Convert mutable types to immutable types.
     """
-    if type(o) == bytearray:
+    if isinstance(o, bytearray):
         return bytes(o)
-    if type(o) == tuple:
+    if isinstance(o, tuple):
         try:
             hash(o)
             return o
         except Exception:
             return tuple(_constify(elt) for elt in o)
-    if type(o) == list:
+    if isinstance(o, list):
         return tuple(_constify(elt) for elt in o)
     return o
 
