@@ -62,7 +62,8 @@ class RRset(dns.rdataset.Rdataset):
             dtext = ''
         return '<DNS ' + str(self.name) + ' ' + \
                dns.rdataclass.to_text(self.rdclass) + ' ' + \
-               dns.rdatatype.to_text(self.rdtype) + ctext + dtext + ' RRset>'
+               dns.rdatatype.to_text(self.rdtype) + ctext + dtext + \
+               ' RRset: ' + self._rdata_repr() + '>'
 
     def __str__(self):
         return self.to_text()
