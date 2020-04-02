@@ -151,7 +151,3 @@ class IPSECKEY(dns.rdata.Rdata):
             gateway = gateway.relativize(origin)
         return cls(rdclass, rdtype, header[0], gateway_type, header[2],
                    gateway, key)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        if self.gateway_type == 3:
-            self.gateway = self.gateway.choose_relativity(origin, relativize)

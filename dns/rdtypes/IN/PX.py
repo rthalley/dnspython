@@ -82,7 +82,3 @@ class PX(dns.rdata.Rdata):
         if origin is not None:
             mapx400 = mapx400.relativize(origin)
         return cls(rdclass, rdtype, preference, map822, mapx400)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.map822 = self.map822.choose_relativity(origin, relativize)
-        self.mapx400 = self.mapx400.choose_relativity(origin, relativize)

@@ -120,7 +120,3 @@ class NAPTR(dns.rdata.Rdata):
             replacement = replacement.relativize(origin)
         return cls(rdclass, rdtype, order, preference, strings[0], strings[1],
                    strings[2], replacement)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.replacement = self.replacement.choose_relativity(origin,
-                                                              relativize)

@@ -78,6 +78,3 @@ class SRV(dns.rdata.Rdata):
         if origin is not None:
             target = target.relativize(origin)
         return cls(rdclass, rdtype, priority, weight, port, target)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.target = self.target.choose_relativity(origin, relativize)

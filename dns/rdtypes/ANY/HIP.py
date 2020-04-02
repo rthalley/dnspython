@@ -107,10 +107,3 @@ class HIP(dns.rdata.Rdata):
                 server = server.relativize(origin)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        servers = []
-        for server in self.servers:
-            server = server.choose_relativity(origin, relativize)
-            servers.append(server)
-        self.servers = servers

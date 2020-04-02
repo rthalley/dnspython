@@ -155,6 +155,3 @@ class RRSIG(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    header[3], header[4], header[5], header[6], signer,
                    signature)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.signer = self.signer.choose_relativity(origin, relativize)
