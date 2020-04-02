@@ -1,4 +1,4 @@
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Any, Dict
 from . import exception, rdataclass, name, rdatatype
 
 import socket

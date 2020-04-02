@@ -80,7 +80,7 @@ class NameTestCase(unittest.TestCase):
 
     def testRelLookup1(self):
         k = dns.name.from_text('foo.bar', None)
-        self.assertEqual(self.rndict[k] ,1)
+        self.assertEqual(self.rndict[k], 1)
 
     def testRelLookup2(self):
         k = dns.name.from_text('foo.bar', None)
