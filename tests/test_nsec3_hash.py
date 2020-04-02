@@ -38,7 +38,7 @@ class NSEC3Hash(unittest.TestCase):
     def test_hash_function(self):
         for d in self.DATA:
             hash = dnssec.nsec3_hash(d[0], d[1], d[2], d[4])
-            self.assertEqual(hash, d[3].upper(), f"Error {d}")
+            self.assertEqual(hash, d[3].upper(), "Error {}".format(d))
 
     def test_hash_invalid_salt_length(self):
         data = (
