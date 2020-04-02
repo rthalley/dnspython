@@ -317,32 +317,34 @@ class GenericRdata(Rdata):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         return cls(rdclass, rdtype, wire[current: current + rdlen])
 
-_rdata_modules = {}
+_rdata_classes = {}
 _module_prefix = 'dns.rdtypes'
 
 def get_rdata_class(rdclass, rdtype):
-    mod = _rdata_modules.get((rdclass, rdtype))
-    rdclass_text = dns.rdataclass.to_text(rdclass)
-    rdtype_text = dns.rdatatype.to_text(rdtype)
-    rdtype_text = rdtype_text.replace('-', '_')
-    if not mod:
-        mod = _rdata_modules.get((dns.rdatatype.ANY, rdtype))
-        if not mod:
+    cls = _rdata_classes.get((rdclass, rdtype))
+    if not cls:
+        cls = _rdata_classes.get((dns.rdatatype.ANY, rdtype))
+        if not cls:
+            rdclass_text = dns.rdataclass.to_text(rdclass)
+            rdtype_text = dns.rdatatype.to_text(rdtype)
+            rdtype_text = rdtype_text.replace('-', '_')
             try:
                 mod = import_module('.'.join([_module_prefix,
                                               rdclass_text, rdtype_text]))
-                _rdata_modules[(rdclass, rdtype)] = mod
+                cls = getattr(mod, rdtype_text)
+                _rdata_classes[(rdclass, rdtype)] = cls
             except ImportError:
                 try:
                     mod = import_module('.'.join([_module_prefix,
                                                   'ANY', rdtype_text]))
-                    _rdata_modules[(dns.rdataclass.ANY, rdtype)] = mod
+                    cls = getattr(mod, rdtype_text)
+                    _rdata_classes[(dns.rdataclass.ANY, rdtype)] = cls
+                    _rdata_classes[(rdclass, rdtype)] = cls
                 except ImportError:
-                    mod = None
-    if mod:
-        cls = getattr(mod, rdtype_text)
-    else:
+                    pass
+    if not cls:
         cls = GenericRdata
+        _rdata_classes[(rdclass, rdtype)] = cls
     return cls
 
 
@@ -461,5 +463,6 @@ def register_type(implementation, rdtype, rdtype_text, is_singleton=False,
     existing_cls = get_rdata_class(rdclass, rdtype)
     if existing_cls != GenericRdata:
         raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
-    _rdata_modules[(rdclass, rdtype)] = implementation
+    _rdata_classes[(rdclass, rdtype)] = getattr(implementation,
+                                                rdtype_text.replace('-', '_'))
     dns.rdatatype.register_type(rdtype, rdtype_text, is_singleton)
