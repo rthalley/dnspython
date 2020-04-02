@@ -131,29 +131,17 @@ class GPOS(dns.rdata.Rdata):
         altitude = wire[current: current + l].unwrap()
         return cls(rdclass, rdtype, latitude, longitude, altitude)
 
-    def _get_float_latitude(self):
+    @property
+    def float_latitude(self):
+        "latitude as a floating point value"
         return float(self.latitude)
 
-    def _set_float_latitude(self, value):
-        self.latitude = str(value)
-
-    float_latitude = property(_get_float_latitude, _set_float_latitude,
-                              doc="latitude as a floating point value")
-
-    def _get_float_longitude(self):
+    @property
+    def float_longitude(self):
+        "longitude as a floating point value"
         return float(self.longitude)
 
-    def _set_float_longitude(self, value):
-        self.longitude = str(value)
-
-    float_longitude = property(_get_float_longitude, _set_float_longitude,
-                               doc="longitude as a floating point value")
-
-    def _get_float_altitude(self):
+    @property
+    def float_altitude(self):
+        "altitude as a floating point value"
         return float(self.altitude)
-
-    def _set_float_altitude(self, value):
-        self.altitude = str(value)
-
-    float_altitude = property(_get_float_altitude, _set_float_altitude,
-                              doc="altitude as a floating point value")

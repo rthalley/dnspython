@@ -308,20 +308,12 @@ class LOC(dns.rdata.Rdata):
         return cls(rdclass, rdtype, latitude, longitude, altitude,
                    size, hprec, vprec)
 
-    def _get_float_latitude(self):
+    @property
+    def float_latitude(self):
+        "latitude as a floating point value"
         return _tuple_to_float(self.latitude)
 
-    def _set_float_latitude(self, value):
-        self.latitude = _float_to_tuple(value)
-
-    float_latitude = property(_get_float_latitude, _set_float_latitude,
-                              doc="latitude as a floating point value")
-
-    def _get_float_longitude(self):
+    @property
+    def float_longitude(self):
+        "longitude as a floating point value"
         return _tuple_to_float(self.longitude)
-
-    def _set_float_longitude(self, value):
-        self.longitude = _float_to_tuple(value)
-
-    float_longitude = property(_get_float_longitude, _set_float_longitude,
-                               doc="longitude as a floating point value")
