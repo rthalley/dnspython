@@ -100,7 +100,7 @@ def _constify(o):
         try:
             hash(o)
             return o
-        except:
+        except Exception:
             return tuple(_constify(elt) for elt in o)
     if type(o) == list:
         return tuple(_constify(elt) for elt in o)

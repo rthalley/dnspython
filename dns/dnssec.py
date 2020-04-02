@@ -404,6 +404,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         elif _is_eddsa(rrsig.algorithm):
             keyptr = candidate_key.key
             if not (_have_ecpy and sys.version_info >= (3, 6)):
+                #pylint: disable=line-too-long
                 raise ImportError('DNSSEC validation for algorithm %u requires ecpy library and Python 3.6 or newer' % rrsig.algorithm)
             if rrsig.algorithm == ED25519:
                 curve = 'Ed25519'
@@ -590,7 +591,7 @@ else:
     _have_pycrypto = True
 
     try:
-        from ecpy.curves import Curve, Point
+        from ecpy.curves import Curve
         from ecpy.keys import ECPublicKey
         from ecpy.eddsa import EDDSA
     except ImportError:
