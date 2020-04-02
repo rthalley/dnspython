@@ -38,14 +38,14 @@ class NSEC3PARAM(dns.rdata.Rdata):
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt):
-        super(NSEC3PARAM, self).__init__(rdclass, rdtype)
-        self.algorithm = algorithm
-        self.flags = flags
-        self.iterations = iterations
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'flags', flags)
+        object.__setattr__(self, 'iterations', iterations)
         if isinstance(salt, str):
-            self.salt = salt.encode()
+            object.__setattr__(self, 'salt', salt.encode())
         else:
-            self.salt = salt
+            object.__setattr__(self, 'salt', salt)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.salt == b'':

@@ -32,8 +32,8 @@ class DHCID(dns.rdata.Rdata):
     __slots__ = ['data']
 
     def __init__(self, rdclass, rdtype, data):
-        super(DHCID, self).__init__(rdclass, rdtype)
-        self.data = data
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'data', data)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return dns.rdata._base64ify(self.data)

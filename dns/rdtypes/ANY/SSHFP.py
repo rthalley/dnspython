@@ -38,10 +38,10 @@ class SSHFP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, algorithm, fp_type,
                  fingerprint):
-        super(SSHFP, self).__init__(rdclass, rdtype)
-        self.algorithm = algorithm
-        self.fp_type = fp_type
-        self.fingerprint = fingerprint
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'fp_type', fp_type)
+        object.__setattr__(self, 'fingerprint', fingerprint)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %s' % (self.algorithm,

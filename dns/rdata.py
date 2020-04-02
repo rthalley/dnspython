@@ -90,6 +90,21 @@ def _truncate_bitmap(what):
             return what[0: i + 1]
     return what[0:1]
 
+def _constify(o):
+    """
+    Convert mutable types to immutable types.
+    """
+    if type(o) == bytearray:
+        return bytes(o)
+    if type(o) == tuple:
+        try:
+            hash(o)
+            return o
+        except:
+            return tuple(_constify(elt) for elt in o)
+    if type(o) == list:
+        return tuple(_constify(elt) for elt in o)
+    return o
 
 class Rdata(object):
     """Base class for all DNS rdata types."""
@@ -103,8 +118,16 @@ class Rdata(object):
         *rdtype*, an ``int`` is the rdatatype of the Rdata.
         """
 
-        self.rdclass = rdclass
-        self.rdtype = rdtype
+        object.__setattr__(self, 'rdclass', rdclass)
+        object.__setattr__(self, 'rdtype', rdtype)
+
+    def __setattr__(self, name, value):
+        # Rdatas are immutable
+        raise TypeError("object doesn't support attribute assignment")
+
+    def __delattr__(self, name):
+        # Rdatas are immutable
+        raise TypeError("object doesn't support attribute deletion")
 
     def covers(self):
         """Return the type a Rdata covers.
@@ -265,7 +288,7 @@ class GenericRdata(Rdata):
 
     def __init__(self, rdclass, rdtype, data):
         super(GenericRdata, self).__init__(rdclass, rdtype)
-        self.data = data
+        object.__setattr__(self, 'data', data)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return r'\# %d ' % len(self.data) + _hexify(self.data)

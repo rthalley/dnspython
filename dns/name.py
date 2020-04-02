@@ -329,6 +329,10 @@ class Name(object):
         # Names are immutable
         raise TypeError("object doesn't support attribute assignment")
 
+    def __delattr__(self, name):
+        # Names are immutable
+        raise TypeError("object doesn't support attribute deletion")
+
     def __copy__(self):
         return Name(self.labels)
 

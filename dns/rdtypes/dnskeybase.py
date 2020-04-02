@@ -89,11 +89,11 @@ class DNSKEYBase(dns.rdata.Rdata):
     __slots__ = ['flags', 'protocol', 'algorithm', 'key']
 
     def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
-        super(DNSKEYBase, self).__init__(rdclass, rdtype)
-        self.flags = flags
-        self.protocol = protocol
-        self.algorithm = algorithm
-        self.key = key
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'flags', flags)
+        object.__setattr__(self, 'protocol', protocol)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'key', key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,

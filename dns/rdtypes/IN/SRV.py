@@ -39,11 +39,11 @@ class SRV(dns.rdata.Rdata):
     __slots__ = ['priority', 'weight', 'port', 'target']
 
     def __init__(self, rdclass, rdtype, priority, weight, port, target):
-        super(SRV, self).__init__(rdclass, rdtype)
-        self.priority = priority
-        self.weight = weight
-        self.port = port
-        self.target = target
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'priority', priority)
+        object.__setattr__(self, 'weight', weight)
+        object.__setattr__(self, 'port', port)
+        object.__setattr__(self, 'target', target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)

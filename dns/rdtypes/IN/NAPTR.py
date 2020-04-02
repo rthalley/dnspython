@@ -58,13 +58,13 @@ class NAPTR(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, order, preference, flags, service,
                  regexp, replacement):
-        super(NAPTR, self).__init__(rdclass, rdtype)
-        self.flags = _sanitize(flags)
-        self.service = _sanitize(service)
-        self.regexp = _sanitize(regexp)
-        self.order = order
-        self.preference = preference
-        self.replacement = replacement
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'flags', _sanitize(flags))
+        object.__setattr__(self, 'service', _sanitize(service))
+        object.__setattr__(self, 'regexp', _sanitize(regexp))
+        object.__setattr__(self, 'order', order)
+        object.__setattr__(self, 'preference', preference)
+        object.__setattr__(self, 'replacement', replacement)
 
     def to_text(self, origin=None, relativize=True, **kw):
         replacement = self.replacement.choose_relativity(origin, relativize)

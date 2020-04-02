@@ -120,21 +120,21 @@ class LOC(dns.rdata.Rdata):
         degrees. The other parameters are floats. Size, horizontal precision,
         and vertical precision are specified in centimeters."""
 
-        super(LOC, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if isinstance(latitude, int):
             latitude = float(latitude)
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
-        self.latitude = latitude
+        object.__setattr__(self, 'latitude', dns.rdata._constify(latitude))
         if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
-        self.longitude = longitude
-        self.altitude = float(altitude)
-        self.size = float(size)
-        self.horizontal_precision = float(hprec)
-        self.vertical_precision = float(vprec)
+        object.__setattr__(self, 'longitude', dns.rdata._constify(longitude))
+        object.__setattr__(self, 'altitude', float(altitude))
+        object.__setattr__(self, 'size', float(size))
+        object.__setattr__(self, 'horizontal_precision', float(hprec))
+        object.__setattr__(self, 'vertical_precision', float(vprec))
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.latitude[4] > 0:

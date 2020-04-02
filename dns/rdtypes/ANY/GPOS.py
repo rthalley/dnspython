@@ -57,7 +57,7 @@ class GPOS(dns.rdata.Rdata):
     __slots__ = ['latitude', 'longitude', 'altitude']
 
     def __init__(self, rdclass, rdtype, latitude, longitude, altitude):
-        super(GPOS, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if isinstance(latitude, float) or \
            isinstance(latitude, int):
             latitude = str(latitude)
@@ -73,9 +73,9 @@ class GPOS(dns.rdata.Rdata):
         _validate_float_string(latitude)
         _validate_float_string(longitude)
         _validate_float_string(altitude)
-        self.latitude = latitude
-        self.longitude = longitude
-        self.altitude = altitude
+        object.__setattr__(self, 'latitude', latitude)
+        object.__setattr__(self, 'longitude', longitude)
+        object.__setattr__(self, 'altitude', altitude)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '{} {} {}'.format(self.latitude.decode(),

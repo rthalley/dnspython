@@ -88,8 +88,8 @@ class APL(dns.rdata.Rdata):
     __slots__ = ['items']
 
     def __init__(self, rdclass, rdtype, items):
-        super(APL, self).__init__(rdclass, rdtype)
-        self.items = items
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'items', dns.rdata._constify(items))
 
     def to_text(self, origin=None, relativize=True, **kw):
         return ' '.join(map(str, self.items))
