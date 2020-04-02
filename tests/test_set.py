@@ -22,7 +22,7 @@ import dns.set
 # for convenience
 S = dns.set.Set
 
-class SimpleSetTestCase(unittest.TestCase):
+class SetTestCase(unittest.TestCase):
 
     def testLen1(self):
         s1 = S()
@@ -194,17 +194,33 @@ class SimpleSetTestCase(unittest.TestCase):
     def testDelitem(self):
         s1 = S([1, 2, 3])
         del s1[0]
-        i1 = s1[0]
-        i2 = s1[1]
-        self.assertTrue(i1 != i2)
-        self.assertTrue(i1 == 1 or i1 == 2 or i1 == 3)
-        self.assertTrue(i2 == 1 or i2 == 2 or i2 == 3)
+        self.assertEqual(list(s1), [2, 3])
 
     def testDelslice(self):
         s1 = S([1, 2, 3])
         del s1[0:2]
-        i1 = s1[0]
-        self.assertTrue(i1 == 1 or i1 == 2 or i1 == 3)
+        self.assertEqual(list(s1), [3])
+
+    def testRemoveNonexistent(self):
+        s1 = S([1, 2, 3])
+        s2 = S([1, 2, 3])
+        with self.assertRaises(ValueError):
+            s1.remove(4)
+        self.assertEqual(s1, s2)
+
+    def testDiscardNonexistent(self):
+        s1 = S([1, 2, 3])
+        s2 = S([1, 2, 3])
+        s1.discard(4)
+        self.assertEqual(s1, s2)
+
+    def testCopy(self):
+        s1 = S([1, 2, 3])
+        s2 = s1.copy()
+        s1.remove(1)
+        self.assertNotEqual(s1, s2)
+        s1.add(1)
+        self.assertEqual(s1, s2)
 
 if __name__ == '__main__':
     unittest.main()
