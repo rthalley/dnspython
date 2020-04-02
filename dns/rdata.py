@@ -339,10 +339,12 @@ def get_rdata_class(rdclass, rdtype):
                                                   'ANY', rdtype_text]))
                     cls = getattr(mod, rdtype_text)
                     _rdata_classes[(dns.rdataclass.ANY, rdtype)] = cls
+                    _rdata_classes[(rdclass, rdtype)] = cls
                 except ImportError:
                     pass
     if not cls:
         cls = GenericRdata
+        _rdata_classes[(rdclass, rdtype)] = cls
     return cls
 
 
