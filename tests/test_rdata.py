@@ -37,7 +37,7 @@ class RdataTestCase(unittest.TestCase):
         TTXT = 64001
         dns.rdata.register_type(tests.ttxt_module, TTXT, 'TTXT')
         rdata = dns.rdata.from_text(dns.rdataclass.IN, TTXT, 'hello world')
-        self.assertEqual(rdata.strings, [b'hello', b'world'])
+        self.assertEqual(rdata.strings, (b'hello', b'world'))
         self.assertEqual(dns.rdatatype.to_text(TTXT), 'TTXT')
         self.assertEqual(dns.rdatatype.from_text('TTXT'), TTXT)
 

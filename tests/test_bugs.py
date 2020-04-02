@@ -49,7 +49,7 @@ class BugsTestCase(unittest.TestCase):
     def test_empty_NSEC3_window(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NSEC3,
                                     u"1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715")
-        self.assertEqual(rdata.windows, [])
+        self.assertEqual(rdata.windows, ())
 
     def test_zero_size_APL(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL,
