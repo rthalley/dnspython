@@ -37,10 +37,10 @@ class CAA(dns.rdata.Rdata):
     __slots__ = ['flags', 'tag', 'value']
 
     def __init__(self, rdclass, rdtype, flags, tag, value):
-        super(CAA, self).__init__(rdclass, rdtype)
-        self.flags = flags
-        self.tag = tag
-        self.value = value
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'flags', flags)
+        object.__setattr__(self, 'tag', tag)
+        object.__setattr__(self, 'value', value)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%u %s "%s"' % (self.flags,

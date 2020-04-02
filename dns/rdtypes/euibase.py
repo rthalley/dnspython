@@ -33,11 +33,11 @@ class EUIBase(dns.rdata.Rdata):
     # text_len = byte_len * 3 - 1  # 01-23-45-67-89-ab
 
     def __init__(self, rdclass, rdtype, eui):
-        super(EUIBase, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if len(eui) != self.byte_len:
             raise dns.exception.FormError('EUI%s rdata has to have %s bytes'
                                           % (self.byte_len * 8, self.byte_len))
-        self.eui = eui
+        object.__setattr__(self, 'eui', eui)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return dns.rdata._hexify(self.eui, chunksize=2).replace(' ', '-')

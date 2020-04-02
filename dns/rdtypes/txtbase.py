@@ -35,15 +35,17 @@ class TXTBase(dns.rdata.Rdata):
     __slots__ = ['strings']
 
     def __init__(self, rdclass, rdtype, strings):
-        super(TXTBase, self).__init__(rdclass, rdtype)
-        if isinstance(strings, bytes) or \
-           isinstance(strings, str):
-            strings = [strings]
-        self.strings = []
+        super().__init__(rdclass, rdtype)
+        if isinstance(strings, (bytes, str)):
+            strings = (strings,)
+        encoded_strings = []
         for string in strings:
             if isinstance(string, str):
                 string = string.encode()
-            self.strings.append(string)
+            else:
+                string = dns.rdata._constify(string)
+            encoded_strings.append(string)
+        object.__setattr__(self, 'strings', tuple(encoded_strings))
 
     def to_text(self, origin=None, relativize=True, **kw):
         txt = ''

@@ -37,10 +37,10 @@ class PX(dns.rdata.Rdata):
     __slots__ = ['preference', 'map822', 'mapx400']
 
     def __init__(self, rdclass, rdtype, preference, map822, mapx400):
-        super(PX, self).__init__(rdclass, rdtype)
-        self.preference = preference
-        self.map822 = map822
-        self.mapx400 = mapx400
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'preference', preference)
+        object.__setattr__(self, 'map822', map822)
+        object.__setattr__(self, 'mapx400', mapx400)
 
     def to_text(self, origin=None, relativize=True, **kw):
         map822 = self.map822.choose_relativity(origin, relativize)
@@ -82,7 +82,3 @@ class PX(dns.rdata.Rdata):
         if origin is not None:
             mapx400 = mapx400.relativize(origin)
         return cls(rdclass, rdtype, preference, map822, mapx400)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.map822 = self.map822.choose_relativity(origin, relativize)
-        self.mapx400 = self.mapx400.choose_relativity(origin, relativize)

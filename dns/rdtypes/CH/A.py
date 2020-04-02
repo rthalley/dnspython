@@ -30,8 +30,8 @@ class A(dns.rdtypes.mxbase.MXBase):
 
     def __init__(self, rdclass, rdtype, address, domain):
         super(A, self).__init__(rdclass, rdtype, address, domain)
-        self.domain = domain
-        self.address = address
+        object.__setattr__(self, 'domain', domain)
+        object.__setattr__(self, 'address', address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         domain = self.domain.choose_relativity(origin, relativize)
@@ -65,6 +65,3 @@ class A(dns.rdtypes.mxbase.MXBase):
         if origin is not None:
             domain = domain.relativize(origin)
         return cls(rdclass, rdtype, address, domain)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.domain = self.domain.choose_relativity(origin, relativize)

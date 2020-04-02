@@ -72,11 +72,11 @@ class CERT(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, certificate_type, key_tag, algorithm,
                  certificate):
-        super(CERT, self).__init__(rdclass, rdtype)
-        self.certificate_type = certificate_type
-        self.key_tag = key_tag
-        self.algorithm = algorithm
-        self.certificate = certificate
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'certificate_type', certificate_type)
+        object.__setattr__(self, 'key_tag', key_tag)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'certificate', certificate)
 
     def to_text(self, origin=None, relativize=True, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)

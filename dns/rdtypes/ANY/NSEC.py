@@ -35,9 +35,9 @@ class NSEC(dns.rdata.Rdata):
     __slots__ = ['next', 'windows']
 
     def __init__(self, rdclass, rdtype, next, windows):
-        super(NSEC, self).__init__(rdclass, rdtype)
-        self.next = next
-        self.windows = windows
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'next', next)
+        object.__setattr__(self, 'windows', dns.rdata._constify(windows))
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)
@@ -121,6 +121,3 @@ class NSEC(dns.rdata.Rdata):
         if origin is not None:
             next = next.relativize(origin)
         return cls(rdclass, rdtype, next, windows)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.next = self.next.choose_relativity(origin, relativize)

@@ -143,13 +143,22 @@ class Rdataset(dns.set.Set):
         self.update_ttl(other.ttl)
         super(Rdataset, self).update(other)
 
+    def _rdata_repr(self):
+        def maybe_truncate(s):
+            if len(s) > 100:
+                return s[:100] + '...'
+            return s
+        return '[%s]' % ', '.join('<%s>' % maybe_truncate(str(rr))
+                                  for rr in self)
+
     def __repr__(self):
         if self.covers == 0:
             ctext = ''
         else:
             ctext = '(' + dns.rdatatype.to_text(self.covers) + ')'
         return '<DNS ' + dns.rdataclass.to_text(self.rdclass) + ' ' + \
-               dns.rdatatype.to_text(self.rdtype) + ctext + ' rdataset>'
+               dns.rdatatype.to_text(self.rdtype) + ctext + \
+               ' rdataset: ' + self._rdata_repr() + '>'
 
     def __str__(self):
         return self.to_text()

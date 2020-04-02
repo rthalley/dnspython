@@ -80,16 +80,16 @@ class RRSIG(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, type_covered, algorithm, labels,
                  original_ttl, expiration, inception, key_tag, signer,
                  signature):
-        super(RRSIG, self).__init__(rdclass, rdtype)
-        self.type_covered = type_covered
-        self.algorithm = algorithm
-        self.labels = labels
-        self.original_ttl = original_ttl
-        self.expiration = expiration
-        self.inception = inception
-        self.key_tag = key_tag
-        self.signer = signer
-        self.signature = signature
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'type_covered', type_covered)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'labels', labels)
+        object.__setattr__(self, 'original_ttl', original_ttl)
+        object.__setattr__(self, 'expiration', expiration)
+        object.__setattr__(self, 'inception', inception)
+        object.__setattr__(self, 'key_tag', key_tag)
+        object.__setattr__(self, 'signer', signer)
+        object.__setattr__(self, 'signature', signature)
 
     def covers(self):
         return self.type_covered
@@ -155,6 +155,3 @@ class RRSIG(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    header[3], header[4], header[5], header[6], signer,
                    signature)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.signer = self.signer.choose_relativity(origin, relativize)

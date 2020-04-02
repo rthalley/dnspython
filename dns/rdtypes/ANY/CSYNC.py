@@ -36,10 +36,10 @@ class CSYNC(dns.rdata.Rdata):
     __slots__ = ['serial', 'flags', 'windows']
 
     def __init__(self, rdclass, rdtype, serial, flags, windows):
-        super(CSYNC, self).__init__(rdclass, rdtype)
-        self.serial = serial
-        self.flags = flags
-        self.windows = windows
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'serial', serial)
+        object.__setattr__(self, 'flags', flags)
+        object.__setattr__(self, 'windows', dns.rdata._constify(windows))
 
     def to_text(self, origin=None, relativize=True, **kw):
         text = ''

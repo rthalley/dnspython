@@ -57,16 +57,16 @@ class NSEC3(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt,
                  next, windows):
-        super(NSEC3, self).__init__(rdclass, rdtype)
-        self.algorithm = algorithm
-        self.flags = flags
-        self.iterations = iterations
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'flags', flags)
+        object.__setattr__(self, 'iterations', iterations)
         if isinstance(salt, str):
-            self.salt = salt.encode()
+            object.__setattr__(self, 'salt', salt.encode())
         else:
-            self.salt = salt
-        self.next = next
-        self.windows = windows
+            object.__setattr__(self, 'salt', salt)
+        object.__setattr__(self, 'next', next)
+        object.__setattr__(self, 'windows', dns.rdata._constify(windows))
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = base64.b32encode(self.next).translate(

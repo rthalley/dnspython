@@ -34,8 +34,8 @@ class NSBase(dns.rdata.Rdata):
     __slots__ = ['target']
 
     def __init__(self, rdclass, rdtype, target):
-        super(NSBase, self).__init__(rdclass, rdtype)
-        self.target = target
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'target', target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
@@ -63,9 +63,6 @@ class NSBase(dns.rdata.Rdata):
         if origin is not None:
             target = target.relativize(origin)
         return cls(rdclass, rdtype, target)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.target = self.target.choose_relativity(origin, relativize)
 
 
 class UncompressedNS(NSBase):

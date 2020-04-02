@@ -40,13 +40,10 @@ class WKS(dns.rdata.Rdata):
     __slots__ = ['address', 'protocol', 'bitmap']
 
     def __init__(self, rdclass, rdtype, address, protocol, bitmap):
-        super(WKS, self).__init__(rdclass, rdtype)
-        self.address = address
-        self.protocol = protocol
-        if not isinstance(bitmap, bytearray):
-            self.bitmap = bytearray(bitmap)
-        else:
-            self.bitmap = bitmap
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'address', address)
+        object.__setattr__(self, 'protocol', protocol)
+        object.__setattr__(self, 'bitmap', dns.rdata._constify(bitmap))
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []

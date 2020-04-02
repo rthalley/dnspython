@@ -31,10 +31,10 @@ class AAAA(dns.rdata.Rdata):
     __slots__ = ['address']
 
     def __init__(self, rdclass, rdtype, address):
-        super(AAAA, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         # check that it's OK
         dns.inet.inet_pton(dns.inet.AF_INET6, address)
-        self.address = address
+        object.__setattr__(self, 'address', address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return self.address

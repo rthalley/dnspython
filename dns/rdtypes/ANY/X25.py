@@ -33,11 +33,11 @@ class X25(dns.rdata.Rdata):
     __slots__ = ['address']
 
     def __init__(self, rdclass, rdtype, address):
-        super(X25, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if isinstance(address, str):
-            self.address = address.encode()
+            object.__setattr__(self, 'address', address.encode())
         else:
-            self.address = address
+            object.__setattr__(self, 'address', address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '"%s"' % dns.rdata._escapify(self.address)

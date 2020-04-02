@@ -41,11 +41,11 @@ class HIP(dns.rdata.Rdata):
     __slots__ = ['hit', 'algorithm', 'key', 'servers']
 
     def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
-        super(HIP, self).__init__(rdclass, rdtype)
-        self.hit = hit
-        self.algorithm = algorithm
-        self.key = key
-        self.servers = servers
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'hit', hit)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'key', key)
+        object.__setattr__(self, 'servers', dns.rdata._constify(servers))
 
     def to_text(self, origin=None, relativize=True, **kw):
         hit = binascii.hexlify(self.hit).decode()
@@ -107,10 +107,3 @@ class HIP(dns.rdata.Rdata):
                 server = server.relativize(origin)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        servers = []
-        for server in self.servers:
-            server = server.choose_relativity(origin, relativize)
-            servers.append(server)
-        self.servers = servers
