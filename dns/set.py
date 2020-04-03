@@ -15,6 +15,14 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import itertools
+import sys
+
+if sys.version_info >= (3, 7):
+    odict = dict
+else:
+    from collections import OrderedDict as odict
+
 class Set(object):
 
     """A simple set class.
@@ -33,35 +41,35 @@ class Set(object):
         *items*, an iterable or ``None``, the initial set of items.
         """
 
-        self.items = []
+        self.items = odict()
         if items is not None:
             for item in items:
                 self.add(item)
 
     def __repr__(self):
-        return "dns.simpleset.Set(%s)" % repr(self.items)
+        return "dns.set.Set(%s)" % repr(list(self.items.keys()))
 
     def add(self, item):
         """Add an item to the set.
         """
 
         if item not in self.items:
-            self.items.append(item)
+            self.items[item] = None
 
     def remove(self, item):
         """Remove an item from the set.
         """
 
-        self.items.remove(item)
+        try:
+            del self.items[item]
+        except KeyError:
+            raise ValueError
 
     def discard(self, item):
         """Remove an item from the set if present.
         """
 
-        try:
-            self.items.remove(item)
-        except ValueError:
-            pass
+        self.items.pop(item, None)
 
     def _clone(self):
         """Make a (shallow) copy of the set.
@@ -78,7 +86,7 @@ class Set(object):
 
         cls = self.__class__
         obj = cls.__new__(cls)
-        obj.items = list(self.items)
+        obj.items = self.items.copy()
         return obj
 
     def __copy__(self):
@@ -118,7 +126,7 @@ class Set(object):
         # the list without breaking the iterator.
         for item in list(self.items):
             if item not in other.items:
-                self.items.remove(item)
+                del self.items[item]
 
     def difference_update(self, other):
         """Update the set, removing any elements from other which are in
@@ -128,7 +136,7 @@ class Set(object):
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
         if self is other:
-            self.items = []
+            self.items.clear()
         else:
             for item in other.items:
                 self.discard(item)
@@ -206,18 +214,16 @@ class Set(object):
 
     def clear(self):
         """Make the set empty."""
-        self.items = []
+        self.items.clear()
 
     def __eq__(self, other):
-        # Yes, this is inefficient but the sets we're dealing with are
-        # usually quite small, so it shouldn't hurt too much.
-        for item in self.items:
-            if item not in other.items:
+        if odict == dict:
+            return self.items == other.items
+        else:
+            # We don't want an ordered comparison.
+            if len(self.items) != len(other.items):
                 return False
-        for item in other.items:
-            if item not in self.items:
-                return False
-        return True
+            return all(elt in other.items for elt in self.items)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -229,10 +235,17 @@ class Set(object):
         return iter(self.items)
 
     def __getitem__(self, i):
-        return self.items[i]
+        if isinstance(i, slice):
+            return list(itertools.islice(self.items, i.start, i.stop, i.step))
+        else:
+            return next(itertools.islice(self.items, i, i + 1))
 
     def __delitem__(self, i):
-        del self.items[i]
+        if isinstance(i, slice):
+            for elt in list(self[i]):
+                del self.items[elt]
+        else:
+            del self.items[self[i]]
 
     def issubset(self, other):
         """Is this set a subset of *other*?
