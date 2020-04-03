@@ -2,11 +2,16 @@ from typing import Optional, Union, Dict, Generator, Any
 from . import tsig, rdatatype, rdataclass, name, message
 from requests.sessions import Session
 
+# If the ssl import works, then
+#
+#    error: Name 'ssl' already defined (by an import)
+#
+# is expected and can be ignored.
 try:
     import ssl
 except ImportError:
     class ssl(object):
-        SSLContext = {}
+        SSLContext : Dict = {}
 
 def https(q : message.Message, where: str, timeout : Optional[float] = None, port : Optional[int] = 443, af : Optional[int] = None, source : Optional[str] = None, source_port : Optional[int] = 0,
           session: Optional[Session] = None, path : Optional[str] = '/dns-query', post : Optional[bool] = True, bootstrap_address : Optional[str] = None, verify : Optional[bool] = True) -> message.Message:
