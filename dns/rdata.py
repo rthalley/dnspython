@@ -21,6 +21,7 @@ from importlib import import_module
 from io import BytesIO
 import base64
 import binascii
+import inspect
 
 import dns.exception
 import dns.name
@@ -271,6 +272,39 @@ class Rdata(object):
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         raise NotImplementedError
+
+    def replace(self, **kwargs):
+        """
+        Create a new Rdata instance based on the instance replace was
+        invoked on. It is possible to pass different parameters to
+        override the corresponding properties of the base Rdata.
+
+        Any field specific to the Rdata type can be replaced, but the
+        *rdtype* and *rdclass* fields cannot.
+
+        Returns an instance of the same Rdata subclass as *self*.
+        """
+
+        # Get the constructor parameters.
+        parameters = inspect.signature(self.__init__).parameters
+
+        # Ensure that all of the arguments correspond to valid fields.
+        # Don't allow rdclass or rdtype to be changed, though.
+        for key in kwargs:
+            if key not in parameters:
+                raise AttributeError("'{}' object has no attribute '{}'"
+                                     .format(self.__class__.__name__, key))
+            if key in ('rdclass', 'rdtype'):
+                raise AttributeError("Cannot overwrite '{}' attribute '{}'"
+                                     .format(self.__class__.__name__, key))
+
+        # Construct the parameter list.  For each field, use the value in
+        # kwargs if present, and the current value otherwise.
+        args = (kwargs.get(key, getattr(self, key)) for key in parameters)
+
+        # Create and return the new object.
+        return self.__class__(*args)
+
 
 class GenericRdata(Rdata):
 

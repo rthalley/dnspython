@@ -47,5 +47,22 @@ class RdataTestCase(unittest.TestCase):
             dns.rdata.register_type(tests.ttxt_module, TTXTTWO, 'TTXTTWO')
         self.assertRaises(dns.rdata.RdatatypeExists, bad)
 
+    def test_replace(self):
+        a1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
+        a2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "2.3.4.5")
+        self.assertEqual(a1.replace(address="2.3.4.5"), a2)
+
+        mx = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
+                                  "10 foo.example")
+        name = dns.name.from_text("bar.example")
+        self.assertEqual(mx.replace(preference=20).preference, 20)
+        self.assertEqual(mx.replace(preference=20).exchange, mx.exchange)
+        self.assertEqual(mx.replace(exchange=name).exchange, name)
+        self.assertEqual(mx.replace(exchange=name).preference, mx.preference)
+
+        for invalid_parameter in ("rdclass", "rdtype", "foo", "__class__"):
+            with self.assertRaises(AttributeError):
+                mx.replace(invalid_parameter=1)
+
 if __name__ == '__main__':
     unittest.main()
