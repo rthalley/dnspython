@@ -8,3 +8,7 @@ in the python 2 style on both python 2 and 3.
 # Removed hash module
 
 dns.hash module was removed. Use Python built in hashlib instead.
+
+# dns.rdata.Rdata instances are now immutable
+
+The replace() method can be used to create copies with changes.
