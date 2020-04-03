@@ -16,7 +16,6 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS stub resolver."""
-
 from urllib.parse import urlparse
 import socket
 import sys
@@ -540,6 +539,7 @@ class Resolver(object):
         self.flags = None
         self.retry_servfail = False
         self.rotate = False
+        self.ndots = None
 
         self.reset()
         if configure:
@@ -571,11 +571,24 @@ class Resolver(object):
         self.flags = None
         self.retry_servfail = False
         self.rotate = False
+        self.ndots = None
 
     def read_resolv_conf(self, f):
         """Process *f* as a file in the /etc/resolv.conf format.  If f is
         a ``text``, it is used as the name of the file to open; otherwise it
-        is treated as the file itself."""
+        is treated as the file itself.
+
+        Interprets the following items:
+
+        - nameserver - name server IP address
+
+        - domain - local domain name
+
+        - search - search list for host-name lookup
+
+        - options - supported options are rotate, timeout, edns0, and ndots
+
+        """
 
         if isinstance(f, str):
             try:
@@ -604,8 +617,21 @@ class Resolver(object):
                     for suffix in tokens[1:]:
                         self.search.append(dns.name.from_text(suffix))
                 elif tokens[0] == 'options':
-                    if 'rotate' in tokens[1:]:
-                        self.rotate = True
+                    for opt in tokens[1:]:
+                        if opt == 'rotate':
+                            self.rotate = True
+                        elif opt == 'edns0':
+                            self.use_edns(0, 0, 0)
+                        elif 'timeout' in opt:
+                            try:
+                                self.timeout = int(opt.split(':')[1])
+                            except (ValueError, IndexError):
+                                pass
+                        elif 'ndots' in opt:
+                            try:
+                                self.ndots = int(opt.split(':')[1])
+                            except (ValueError, IndexError):
+                                pass
         finally:
             if want_close:
                 f.close()
@@ -864,7 +890,8 @@ class Resolver(object):
                 qnames_to_try.append(qname.concatenate(dns.name.root))
             if self.search:
                 for suffix in self.search:
-                    qnames_to_try.append(qname.concatenate(suffix))
+                    if self.ndots is None or len(qname.labels) >= self.ndots:
+                        qnames_to_try.append(qname.concatenate(suffix))
             else:
                 qnames_to_try.append(qname.concatenate(self.domain))
         all_nxdomain = True
