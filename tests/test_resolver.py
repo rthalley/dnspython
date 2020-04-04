@@ -45,6 +45,12 @@ nameserver 10.0.0.1
 nameserver 10.0.0.2
 """
 
+resolv_conf_options1 = """
+nameserver 10.0.0.1
+nameserver 10.0.0.2
+options rotate timeout:1 edns0 ndots:2
+"""
+
 message_text = """id 1234
 opcode QUERY
 rcode NOERROR
@@ -109,6 +115,15 @@ class BaseResolverTests(unittest.TestCase):
             r = dns.resolver.Resolver(f)
             self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
             self.assertEqual(r.domain, dns.name.from_text('foo'))
+
+        def testReadOptions(self):
+            f = StringIO(resolv_conf_options1)
+            r = dns.resolver.Resolver(f)
+            self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
+            self.assertTrue(r.rotate)
+            self.assertEqual(r.timeout, 1)
+            self.assertEqual(r.ndots, 2)
+            self.assertEqual(r.edns, 0)
 
     def testCacheExpiration(self):
         message = dns.message.from_text(message_text)
