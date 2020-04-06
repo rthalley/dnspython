@@ -561,6 +561,45 @@ def nsec3_hash(domain, salt, iterations, algo):
     return output
 
 
+def compare_canonical_order(name1, name2):
+    """
+    This method compares two domain names for their canonical order
+    as described in: https://tools.ietf.org/html/rfc4034#section-6.1.
+    It can be used to implement NSEC validation.
+
+    returns 0 if both are equal
+    returns -1 if name1 < name2
+    returns 1 if name1 > name2
+
+    :param name1:
+    :type name1: dns.name.Name
+    :param name2:
+    :type name2: dns.name.Name
+    """
+    lower = bytes.maketrans(
+        b"ABCDEFGHIJKLMNOPQRSTUVWXYZ", b"abcdefghijklmnopqrstuvwxyz"
+    )
+
+    l = min(len(name1), len(name2))
+    d_n1 = len(name1) - l
+    d_n2 = len(name2) - l
+
+    for i in range(l - 1, -1, -1):
+        n1 = bytes(name1[i + d_n1]).translate(lower)
+        n2 = bytes(name2[i + d_n2]).translate(lower)
+        if n1 < n2:
+            return -1
+        elif n1 > n2:
+            return 1
+
+    if len(name1) > len(name2):
+        return 1
+    elif len(name1) < len(name2):
+        return -1
+
+    return 0
+
+
 def _need_pycrypto(*args, **kwargs):
     raise ImportError("DNSSEC validation requires pycryptodome/pycryptodomex")
 
