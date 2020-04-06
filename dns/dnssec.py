@@ -565,7 +565,7 @@ def compare_canonical_order(name1, name2):
     """
     This method compares two domain names for their canonical order
     as described in: https://tools.ietf.org/html/rfc4034#section-6.1.
-    It can be used to implement NSEC validation.
+    It can be used to check whether an NSEC record covers a domain name.
 
     returns 0 if both are equal
     returns -1 if name1 < name2
