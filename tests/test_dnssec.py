@@ -197,8 +197,8 @@ abs_ed448_mx_rrsig_2 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
 when5 = 1440021600
 
 
-@unittest.skipUnless(dns.dnssec._have_pycrypto,
-                     "Pycryptodome cannot be imported")
+@unittest.skipUnless(dns.dnssec._have_pyca,
+                     "Python Cryptography cannot be imported")
 class DNSSECValidatorTestCase(unittest.TestCase):
 
     def testAbsoluteRSAGood(self):  # type: () -> None
@@ -253,20 +253,12 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                                 abs_ecdsa384_keys, None, when4)
         self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
-    @unittest.skipUnless(dns.dnssec._have_ecpy,
-                         "python EDDSA cannot be imported")
-    @unittest.skipUnless(sys.version_info >= (3, 6),
-                         "Python 3.6 or later is needed")
     def testAbsoluteED25519Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ed25519_mx, abs_ed25519_mx_rrsig_1,
                             abs_ed25519_keys_1, None, when5)
         dns.dnssec.validate(abs_ed25519_mx, abs_ed25519_mx_rrsig_2,
                             abs_ed25519_keys_2, None, when5)
 
-    @unittest.skipUnless(dns.dnssec._have_ecpy,
-                         "python EDDSA cannot be imported")
-    @unittest.skipUnless(sys.version_info >= (3, 6),
-                         "Python 3.6 or later is needed")
     def testAbsoluteED25519Bad(self):  # type: () -> None
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(abs_other_ed25519_mx, abs_ed25519_mx_rrsig_1,
@@ -275,20 +267,12 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             dns.dnssec.validate(abs_other_ed25519_mx, abs_ed25519_mx_rrsig_2,
                                 abs_ed25519_keys_2, None, when5)
 
-    @unittest.skipUnless(dns.dnssec._have_ecpy,
-                         "python EDDSA cannot be imported")
-    @unittest.skipUnless(sys.version_info >= (3, 6),
-                         "Python 3.6 or later is needed")
     def testAbsoluteED448Good(self):  # type: () -> None
         dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1,
                             abs_ed448_keys_1, None, when5)
         dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_2,
                             abs_ed448_keys_2, None, when5)
 
-    @unittest.skipUnless(dns.dnssec._have_ecpy,
-                         "python EDDSA cannot be imported")
-    @unittest.skipUnless(sys.version_info >= (3, 6),
-                         "Python 3.6 or later is needed")
     def testAbsoluteED448Bad(self):  # type: () -> None
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(abs_other_ed448_mx, abs_ed448_mx_rrsig_1,
