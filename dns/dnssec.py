@@ -151,17 +151,13 @@ def key_id(key, origin=None):
     """
 
     rdata = _to_rdata(key, origin)
-    if key.algorithm == RSAMD5:
-        return (rdata[-3] << 8) + rdata[-2]
-    else:
-        total = 0
-        for i in range(len(rdata) // 2):
-            total += (rdata[2 * i] << 8) + \
-                rdata[2 * i + 1]
-        if len(rdata) % 2 != 0:
-            total += rdata[len(rdata) - 1] << 8
-        total += ((total >> 16) & 0xffff)
-        return total & 0xffff
+    total = 0
+    for i in range(len(rdata) // 2):
+        total += (rdata[2 * i] << 8) + rdata[2 * i + 1]
+    if len(rdata) % 2 != 0:
+        total += rdata[len(rdata) - 1] << 8
+    total += ((total >> 16) & 0xffff)
+    return total & 0xffff
 
 
 def make_ds(name, key, algorithm, origin=None):
@@ -229,13 +225,7 @@ def _find_candidate_keys(keys, rrsig):
 
 
 def _is_rsa(algorithm):
-    return algorithm in (RSAMD5, RSASHA1,
-                         RSASHA1NSEC3SHA1, RSASHA256,
-                         RSASHA512)
-
-
-def _is_dsa(algorithm):
-    return algorithm in (DSA, DSANSEC3SHA1)
+    return algorithm in (RSASHA1, RSASHA1NSEC3SHA1, RSASHA256, RSASHA512)
 
 
 def _is_ecdsa(algorithm):
@@ -250,13 +240,8 @@ def _is_gost(algorithm):
     return algorithm == ECCGOST
 
 
-def _is_md5(algorithm):
-    return algorithm == RSAMD5
-
-
 def _is_sha1(algorithm):
-    return algorithm in (DSA, RSASHA1,
-                         DSANSEC3SHA1, RSASHA1NSEC3SHA1)
+    return algorithm in (RSASHA1, RSASHA1NSEC3SHA1)
 
 
 def _is_sha256(algorithm):
@@ -271,9 +256,11 @@ def _is_sha512(algorithm):
     return algorithm == RSASHA512
 
 
+def _is_deprecated(algorithm):
+    return algorithm in (RSAMD5, DSA, DSANSEC3SHA1)
+
+
 def _make_hash(algorithm):
-    if _is_md5(algorithm):
-        return hashes.MD5()
     if _is_sha1(algorithm):
         return hashes.SHA1()
     if _is_sha256(algorithm):
@@ -351,7 +338,10 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         if rrsig.inception > now:
             raise ValidationFailure('not yet valid')
 
-        if _is_rsa(rrsig.algorithm):
+        if _is_deprecated(rrsig.algorithm):
+            raise UnsupportedAlgorithm(
+                'algorithm "%s" is no longer supported by dnspython' % algorithm_to_text(rrsig.algorithm))
+        elif _is_rsa(rrsig.algorithm):
             keyptr = candidate_key.key
             (bytes_,) = struct.unpack('!B', keyptr[0:1])
             keyptr = keyptr[1:]
@@ -367,31 +357,6 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             except ValueError:
                 raise ValidationFailure('invalid public key')
             sig = rrsig.signature
-        elif _is_dsa(rrsig.algorithm):
-            keyptr = candidate_key.key
-            (t,) = struct.unpack('!B', keyptr[0:1])
-            keyptr = keyptr[1:]
-            octets = 64 + t * 8
-            dsa_q = keyptr[0:20]
-            keyptr = keyptr[20:]
-            dsa_p = keyptr[0:octets]
-            keyptr = keyptr[octets:]
-            dsa_g = keyptr[0:octets]
-            keyptr = keyptr[octets:]
-            dsa_y = keyptr[0:octets]
-            try:
-                public_key = dsa.DSAPublicNumbers(
-                    _bytes_to_long(dsa_y),
-                    dsa.DSAParameterNumbers(
-                        _bytes_to_long(dsa_p),
-                        _bytes_to_long(dsa_q),
-                        _bytes_to_long(dsa_g))).public_key(default_backend())
-            except ValueError:
-                raise ValidationFailure('invalid public key')
-            sig_r = rrsig.signature[1:21]
-            sig_s = rrsig.signature[21:]
-            sig = utils.encode_dss_signature(_bytes_to_long(sig_r),
-                                             _bytes_to_long(sig_s))
         elif _is_ecdsa(rrsig.algorithm):
             keyptr = candidate_key.key
             if rrsig.algorithm == ECDSAP256SHA256:
@@ -457,8 +422,6 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         try:
             if _is_rsa(rrsig.algorithm):
                 public_key.verify(sig, data, padding.PKCS1v15(), chosen_hash)
-            elif _is_dsa(rrsig.algorithm):
-                public_key.verify(sig, data, chosen_hash)
             elif _is_ecdsa(rrsig.algorithm):
                 public_key.verify(sig, data, ec.ECDSA(chosen_hash))
             elif _is_eddsa(rrsig.algorithm):
