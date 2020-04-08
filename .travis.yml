@@ -16,6 +16,6 @@ branches:
   except:
     - python3
 install:
- - pip install typing pylint pycryptodome ecpy idna requests requests-toolbelt
+ - pip install typing pylint cryptography idna requests requests-toolbelt
 script:
  - make test
