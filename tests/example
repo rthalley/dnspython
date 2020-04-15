@@ -198,6 +198,10 @@ caa03			CAA 0 iodef "http://iodef.example.com/"
 caa04			CAA 0 issue "ca.example.net; account=230123"
 caa05			CAA 0 issue "ca.example.net; policy=ev"
 caa06			CAA 128 tbs "Unknown"
+https01			HTTPS 1 svcb2.example.net. alpn=h3,h2 port=42 no-default-alpn ipv4hint=127.0.0.42,192.0.2.1 ipv6hint=::42,ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff key1234=something
+https02			HTTPS 0 svcb2.example.net.
+svcb01			SVCB 1 svcb2.example.net. alpn=h3,h2 port=42 no-default-alpn echconfig=aGVsbG8= ipv4hint=127.0.0.42 ipv6hint=::42 key1234=something
+svcb02			SVCB 0 svcb2.example.net.
 openpgpkey              OPENPGPKEY (
 mQENBEteQDsBCADYnatn9+5t43AdJlVk9dZC2RM0idPQcmrrKcjeAWDnISqoJzkv
 Q8ifX6mefquTBsDZC279uXShyTffYzQtvP2r9ewkK7zmSv52Ar563TSULAMwiLpe
