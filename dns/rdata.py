@@ -162,7 +162,7 @@ class Rdata(object):
     def to_wire(self, file, compress=None, origin=None):
         """Convert an rdata to wire format.
 
-        Returns a ``binary``.
+        Returns ``None``.
         """
 
         raise NotImplementedError
