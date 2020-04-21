@@ -416,9 +416,6 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
         elif _is_eddsa(rrsig.algorithm):
             keyptr = candidate_key.key
-            if not _have_pyca:
-                #pylint: disable=line-too-long
-                raise ImportError('DNSSEC validation for algorithm %u requires python cryptography library' % rrsig.algorithm)
             if rrsig.algorithm == ED25519:
                 loader = ed25519.Ed25519PublicKey
             else:
