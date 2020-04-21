@@ -64,5 +64,18 @@ class RdataTestCase(unittest.TestCase):
             with self.assertRaises(AttributeError):
                 mx.replace(invalid_parameter=1)
 
+    def test_to_generic(self):
+        a = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
+        self.assertEqual(str(a.to_generic()), r'\# 4 01020304')
+
+        mx = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX, "10 foo.")
+        self.assertEqual(str(mx.to_generic()), r'\# 7 000a03666f6f00')
+
+        origin = dns.name.from_text('example')
+        ns = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
+                                 "foo.example.", relativize_to=origin)
+        self.assertEqual(str(ns.to_generic(origin=origin)),
+                         r'\# 13 03666f6f076578616d706c6500')
+
 if __name__ == '__main__':
     unittest.main()

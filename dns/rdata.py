@@ -21,6 +21,7 @@ from importlib import import_module
 from io import BytesIO
 import base64
 import binascii
+import io
 import inspect
 
 import dns.exception
@@ -165,6 +166,15 @@ class Rdata(object):
         """
 
         raise NotImplementedError
+
+    def to_generic(self, origin=None):
+        """Creates a dns.rdata.GenericRdata equivalent of this rdata.
+
+        Returns a ``dns.rdata.GenericRdata``.
+        """
+        f = io.BytesIO()
+        self.to_wire(f, origin=origin)
+        return dns.rdata.GenericRdata(self.rdclass, self.rdtype, f.getvalue())
 
     def to_digestable(self, origin=None):
         """Convert rdata to a format suitable for digesting in hashes.  This
