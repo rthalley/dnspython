@@ -804,6 +804,18 @@ class NameTestCase(unittest.TestCase):
             dns.reversename.from_address('::1::1')
         self.assertRaises(dns.exception.SyntaxError, bad)
 
+    def testReverseIPv4AlternateOrigin(self):
+        e = dns.name.from_text('1.0.0.127.foo.bar.')
+        origin = dns.name.from_text('foo.bar')
+        n = dns.reversename.from_address('127.0.0.1', v4_origin=origin)
+        self.assertEqual(e, n)
+
+    def testReverseIPv6AlternateOrigin(self):
+        e = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.foo.bar.')
+        origin = dns.name.from_text('foo.bar')
+        n = dns.reversename.from_address(b'::1', v6_origin=origin)
+        self.assertEqual(e, n)
+
     def testForwardIPv4(self):
         n = dns.name.from_text('1.0.0.127.in-addr.arpa.')
         e = '127.0.0.1'
@@ -814,6 +826,20 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.')
         e = '::1'
         text = dns.reversename.to_address(n)
+        self.assertEqual(text, e)
+
+    def testForwardIPv4AlternateOrigin(self):
+        n = dns.name.from_text('1.0.0.127.foo.bar.')
+        e = '127.0.0.1'
+        origin = dns.name.from_text('foo.bar')
+        text = dns.reversename.to_address(n, v4_origin=origin)
+        self.assertEqual(text, e)
+
+    def testForwardIPv6AlternateOrigin(self):
+        n = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.foo.bar.')
+        e = '::1'
+        origin = dns.name.from_text('foo.bar')
+        text = dns.reversename.to_address(n, v6_origin=origin)
         self.assertEqual(text, e)
 
     def testE164ToEnum(self):
