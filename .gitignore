@@ -11,3 +11,5 @@ tests/*.out
 dnspython.egg-info/
 .eggs/
 .mypy_cache/
+.python-version
+poetry.lock

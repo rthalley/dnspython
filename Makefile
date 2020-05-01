@@ -18,9 +18,6 @@
 # $Id: Makefile,v 1.16 2004/03/19 00:17:27 halley Exp $
 
 PYTHON=python
-PIP=pip
-# set this to "--user" if you prefer
-PIPMODE=
 
 all:
 	${PYTHON} ./setup.py build
@@ -72,5 +69,10 @@ lint:
 lint3: lint
 
 typecheck:
-	${PIP} show mypy >/dev/null 2>&1 || ${PIP} install ${PIPMODE} mypy
-	mypy examples tests
+	mypy examples tests dns
+
+potest:
+	poetry run python -m tests.utest
+
+potype:
+	poetry run python -m mypy examples tests dns/*.py

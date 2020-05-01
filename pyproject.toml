@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "dnspython"
+version = "2.0.0"
+description = "DNS toolkit"
+authors = ["Bob Halley <halley@dnspython.org>"]
+license = "ISC"
+
+[tool.poetry.dependencies]
+python = "^3.5"
+requests-toolbelt = "^0.9.1"
+requests = "^2.23.0"
+idna = "^2.1"
+cryptography = "^2.6"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.770"
+pylint = "^2.5.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
