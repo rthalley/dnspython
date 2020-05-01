@@ -30,6 +30,8 @@ KNOWN_ANYCAST_DOH_RESOLVER_URLS = ['https://cloudflare-dns.com/dns-query',
                                    'https://dns.google/dns-query',
                                    'https://dns11.quad9.net/dns-query']
 
+@unittest.skipUnless(dns.query.have_doh,
+                     "Python requests cannot be imported; no DNS over HTTPS (DOH)")
 class DNSOverHTTPSTestCase(unittest.TestCase):
     def setUp(self):
         self.session = requests.sessions.Session()

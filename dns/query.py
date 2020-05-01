@@ -38,9 +38,14 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 
-import requests
-from requests_toolbelt.adapters.source import SourceAddressAdapter
-from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
+try:
+    import requests
+    from requests_toolbelt.adapters.source import SourceAddressAdapter
+    from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
+    have_doh = True
+except ImportError:
+    have_doh = False
+
 
 try:
     import ssl
@@ -74,6 +79,11 @@ class TransferError(dns.exception.DNSException):
         message = 'Zone transfer error: %s' % dns.rcode.to_text(rcode)
         super(TransferError, self).__init__(message)
         self.rcode = rcode
+
+
+class NoDOH(dns.exception.DNSException):
+    """DNS over HTTPS (DOH) was requested but the requests module is not
+    available."""
 
 
 def _compute_expiration(timeout):
@@ -226,6 +236,8 @@ def send_https(session, what, lifetime=None):
     :param lifetime: timeout (in seconds)
     :return: a :class:`requests.models.Response` object.
     """
+    if not have_doh:
+        raise NoDOH
     if isinstance(what, requests.models.Request):
         what = what.prepare()
     return session.send(what, timeout=lifetime)
@@ -279,6 +291,9 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
 
     Returns a ``dns.message.Message``.
     """
+
+    if not have_doh:
+        raise NoDOH
 
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(af, where, port,
