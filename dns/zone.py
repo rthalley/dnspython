@@ -17,10 +17,10 @@
 
 """DNS Zones."""
 
-import sys
-import re
+import io
 import os
-from io import StringIO
+import re
+import sys
 
 import dns.exception
 import dns.name
@@ -551,7 +551,7 @@ class Zone(object):
         LF on POSIX, CRLF on Windows, CR on Macintosh).
         @type nl: string or None
         """
-        temp_buffer = StringIO()
+        temp_buffer = io.StringIO()
         self.to_file(temp_buffer, sorted, relativize, nl)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()

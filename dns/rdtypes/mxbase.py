@@ -17,7 +17,7 @@
 
 """MX-like base classes."""
 
-from io import BytesIO
+import io
 import struct
 
 import dns.exception
@@ -86,7 +86,7 @@ class UncompressedMX(MXBase):
         super(UncompressedMX, self).to_wire(file, None, origin)
 
     def to_digestable(self, origin=None):
-        f = BytesIO()
+        f = io.BytesIO()
         self.to_wire(f, None, origin)
         return f.getvalue()
 

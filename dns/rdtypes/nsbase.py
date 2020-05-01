@@ -17,7 +17,7 @@
 
 """NS-like base classes."""
 
-from io import BytesIO
+import io
 
 import dns.exception
 import dns.rdata
@@ -75,6 +75,6 @@ class UncompressedNS(NSBase):
         super(UncompressedNS, self).to_wire(file, None, origin)
 
     def to_digestable(self, origin=None):
-        f = BytesIO()
+        f = io.BytesIO()
         self.to_wire(f, None, origin)
         return f.getvalue()

@@ -17,7 +17,7 @@
 
 """Tokenize DNS master file format"""
 
-from io import StringIO
+import io
 import sys
 
 import dns.exception
@@ -189,11 +189,11 @@ class Tokenizer(object):
         """
 
         if isinstance(f, str):
-            f = StringIO(f)
+            f = io.StringIO(f)
             if filename is None:
                 filename = '<string>'
         elif isinstance(f, bytes):
-            f = StringIO(f.decode())
+            f = io.StringIO(f.decode())
             if filename is None:
                 filename = '<string>'
         else:

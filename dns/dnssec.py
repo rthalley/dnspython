@@ -18,7 +18,7 @@
 """Common DNSSEC-related functions and constants."""
 
 import hashlib  # used in make_ds() to avoid pycrypto dependency
-from io import BytesIO
+import io
 import struct
 import time
 import base64
@@ -133,7 +133,7 @@ def algorithm_to_text(value):
 
 
 def _to_rdata(record, origin):
-    s = BytesIO()
+    s = io.BytesIO()
     record.to_wire(s, origin=origin)
     return s.getvalue()
 

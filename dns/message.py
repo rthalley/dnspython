@@ -17,7 +17,7 @@
 
 """DNS Messages"""
 
-from io import StringIO
+import io
 import struct
 import time
 
@@ -130,7 +130,7 @@ class Message(object):
         Returns a ``text``.
         """
 
-        s = StringIO()
+        s = io.StringIO()
         s.write('id %d\n' % self.id)
         s.write('opcode %s\n' %
                 dns.opcode.to_text(dns.opcode.from_flags(self.flags)))

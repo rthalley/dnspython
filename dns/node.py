@@ -17,7 +17,7 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-from io import StringIO
+import io
 
 import dns.rdataset
 import dns.rdatatype
@@ -40,12 +40,14 @@ class Node(object):
         Each rdataset at the node is printed.  Any keyword arguments
         to this method are passed on to the rdataset's to_text() method.
 
-        *name*, a ``dns.name.Name`` or ``text``, the owner name of the rdatasets.
+        *name*, a ``dns.name.Name`` or ``text``, the owner name of the
+        rdatasets.
 
         Returns a ``text``.
+
         """
 
-        s = StringIO()
+        s = io.StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
                 s.write(rds.to_text(name, **kw))

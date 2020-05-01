@@ -17,7 +17,7 @@
 
 """Help for building DNS wire format messages"""
 
-from io import BytesIO
+import io
 import struct
 import random
 import time
@@ -54,7 +54,7 @@ class Renderer(object):
         r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
         wire = r.get_wire()
 
-    output, a BytesIO, where rendering is written
+    output, an io.BytesIO, where rendering is written
 
     id: the message id
 
@@ -76,7 +76,7 @@ class Renderer(object):
     def __init__(self, id=None, flags=0, max_size=65535, origin=None):
         """Initialize a new renderer."""
 
-        self.output = BytesIO()
+        self.output = io.BytesIO()
         if id is None:
             self.id = random.randint(0, 65535)
         else:

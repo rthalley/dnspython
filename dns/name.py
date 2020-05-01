@@ -18,10 +18,11 @@
 """DNS Names.
 """
 
-from io import BytesIO
+import copy
+import io
 import struct
 import sys
-import copy
+
 import encodings.idna
 try:
     import idna
@@ -610,8 +611,8 @@ class Name(object):
     def to_wire(self, file=None, compress=None, origin=None):
         """Convert name to wire format, possibly compressing it.
 
-        *file* is the file where the name is emitted (typically a
-        BytesIO file).  If ``None`` (the default), a ``binary``
+        *file* is the file where the name is emitted (typically an
+        io.BytesIO file).  If ``None`` (the default), a ``binary``
         containing the wire name will be returned.
 
         *compress*, a ``dict``, is the compression table to use.  If
@@ -628,7 +629,7 @@ class Name(object):
         """
 
         if file is None:
-            file = BytesIO()
+            file = io.BytesIO()
             want_return = True
         else:
             want_return = False
