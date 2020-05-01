@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 #

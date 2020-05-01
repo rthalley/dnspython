@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Small library and commandline tool to do logical diffs of zonefiles
 # ./zonediff -h gives you help output

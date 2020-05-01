@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Use a TSIG-signed DDNS update to update our hostname-to-address
