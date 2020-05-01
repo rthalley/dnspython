@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 import dns.name
 
 n = dns.name.from_text('www.dnspython.org')
