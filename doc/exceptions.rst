@@ -50,6 +50,7 @@ dns.query Exceptions
 --------------------
 
 .. autoexception:: dns.query.BadResponse
+.. autoexception:: dns.query.NoDOH
 .. autoexception:: dns.query.UnexpectedSource
 .. autoexception:: dns.query.TransferError
 
