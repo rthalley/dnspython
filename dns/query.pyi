@@ -10,7 +10,7 @@ from requests.sessions import Session
 try:
     import ssl
 except ImportError:
-    class ssl(object):
+    class ssl(object):	# type: ignore
         SSLContext : Dict = {}
 
 def https(q : message.Message, where: str, timeout : Optional[float] = None, port : Optional[int] = 443, af : Optional[int] = None, source : Optional[str] = None, source_port : Optional[int] = 0,
