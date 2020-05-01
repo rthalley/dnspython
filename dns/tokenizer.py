@@ -528,6 +528,18 @@ class Tokenizer(object):
             raise dns.exception.SyntaxError('expecting an identifier')
         return token.value
 
+    def as_name(self, token, origin=None, relativize=False, relativize_to=None):
+        """Try to interpret the token as a DNS name.
+
+        Raises dns.exception.SyntaxError if not a name.
+
+        Returns a dns.name.Name.
+        """
+        if not token.is_identifier():
+            raise dns.exception.SyntaxError('expecting an identifier')
+        name = dns.name.from_text(token.value, origin)
+        return name.choose_relativity(relativize_to or origin, relativize)
+
     def get_name(self, origin=None, relativize=False, relativize_to=None):
         """Read the next token and interpret it as a DNS name.
 
@@ -537,10 +549,7 @@ class Tokenizer(object):
         """
 
         token = self.get()
-        if not token.is_identifier():
-            raise dns.exception.SyntaxError('expecting an identifier')
-        name = dns.name.from_text(token.value, origin)
-        return name.choose_relativity(relativize_to or origin, relativize)
+        return self.as_name(token, origin, relativize, relativize_to)
 
     def get_eol(self):
         """Read the next token and raise an exception if it isn't EOL or
