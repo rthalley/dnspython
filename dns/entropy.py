@@ -16,12 +16,13 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import os
+import hashlib
 import random
 import time
 try:
     import threading as _threading
 except ImportError:
-    import dummy_threading as _threading
+    import dummy_threading as _threading    # type: ignore
 
 
 class EntropyPool(object):
@@ -36,19 +37,8 @@ class EntropyPool(object):
         self.digest = None
         self.next_byte = 0
         self.lock = _threading.Lock()
-        try:
-            import hashlib
-            self.hash = hashlib.sha1()
-            self.hash_len = 20
-        except ImportError:
-            try:
-                import sha
-                self.hash = sha.new()
-                self.hash_len = 20
-            except ImportError:
-                import md5  # pylint: disable=import-error
-                self.hash = md5.new()
-                self.hash_len = 16
+        self.hash = hashlib.sha1()
+        self.hash_len = 20
         self.pool = bytearray(b'\0' * self.hash_len)
         if seed is not None:
             self.stir(bytearray(seed))
