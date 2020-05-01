@@ -18,12 +18,13 @@ import base64
 import unittest
 import random
 
-import requests
-from requests.exceptions import SSLError
-
 import dns.query
 import dns.rdatatype
 import dns.message
+
+if dns.query.have_doh:
+    import requests
+    from requests.exceptions import SSLError
 
 KNOWN_ANYCAST_DOH_RESOLVER_IPS = ['1.1.1.1', '8.8.8.8', '9.9.9.9']
 KNOWN_ANYCAST_DOH_RESOLVER_URLS = ['https://cloudflare-dns.com/dns-query',
