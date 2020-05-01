@@ -71,8 +71,7 @@ class HIP(dns.rdata.Rdata):
             token = tok.get()
             if token.is_eol_or_eof():
                 break
-            server = dns.name.from_text(token.value, origin)
-            server.choose_relativity(origin, relativize)
+            server = tok.as_name(token, origin, relativize, relativize_to)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
 
