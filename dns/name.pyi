@@ -1,5 +1,7 @@
 from typing import Optional, Union, Tuple, Iterable, List
 
+have_idna_2008: bool
+
 class Name:
     def is_subdomain(self, o : Name) -> bool: ...
     def is_superdomain(self, o : Name) -> bool: ...
