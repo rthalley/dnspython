@@ -704,42 +704,44 @@ class NameTestCase(unittest.TestCase):
         e = dns.name.from_unicode(t)
         self.assertEqual(str(e), 'xn--knigsgsschen-lcb0w.')
 
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
     def testFromUnicodeIDNA2008(self):
-        if dns.name.have_idna_2008:
-            t = 'Königsgäßchen'
-            def bad():
-                codec = dns.name.IDNA_2008_Strict
-                return dns.name.from_unicode(t, idna_codec=codec)
-            self.assertRaises(dns.name.IDNAException, bad)
-            e1 = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2008)
-            self.assertEqual(str(e1), 'xn--knigsgchen-b4a3dun.')
-            c2 = dns.name.IDNA_2008_Transitional
-            e2 = dns.name.from_unicode(t, idna_codec=c2)
-            self.assertEqual(str(e2), 'xn--knigsgsschen-lcb0w.')
+        t = 'Königsgäßchen'
+        def bad():
+            codec = dns.name.IDNA_2008_Strict
+            return dns.name.from_unicode(t, idna_codec=codec)
+        self.assertRaises(dns.name.IDNAException, bad)
+        e1 = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2008)
+        self.assertEqual(str(e1), 'xn--knigsgchen-b4a3dun.')
+        c2 = dns.name.IDNA_2008_Transitional
+        e2 = dns.name.from_unicode(t, idna_codec=c2)
+        self.assertEqual(str(e2), 'xn--knigsgsschen-lcb0w.')
 
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
     def testFromUnicodeIDNA2008Mixed(self):
         # the IDN rules for names are very restrictive, disallowing
         # practical names like '_sip._tcp.Königsgäßchen'.  Dnspython
         # has a "practical" mode which permits labels which are purely
         # ASCII to go straight through, and thus not invalid useful
         # things in the real world.
-        if dns.name.have_idna_2008:
-            t = '_sip._tcp.Königsgäßchen'
-            def bad1():
-                codec = dns.name.IDNA_2008_Strict
-                return dns.name.from_unicode(t, idna_codec=codec)
-            def bad2():
-                codec = dns.name.IDNA_2008_UTS_46
-                return dns.name.from_unicode(t, idna_codec=codec)
-            def bad3():
-                codec = dns.name.IDNA_2008_Transitional
-                return dns.name.from_unicode(t, idna_codec=codec)
-            self.assertRaises(dns.name.IDNAException, bad1)
-            self.assertRaises(dns.name.IDNAException, bad2)
-            self.assertRaises(dns.name.IDNAException, bad3)
-            e = dns.name.from_unicode(t,
-                                      idna_codec=dns.name.IDNA_2008_Practical)
-            self.assertEqual(str(e), '_sip._tcp.xn--knigsgchen-b4a3dun.')
+        t = '_sip._tcp.Königsgäßchen'
+        def bad1():
+            codec = dns.name.IDNA_2008_Strict
+            return dns.name.from_unicode(t, idna_codec=codec)
+        def bad2():
+            codec = dns.name.IDNA_2008_UTS_46
+            return dns.name.from_unicode(t, idna_codec=codec)
+        def bad3():
+            codec = dns.name.IDNA_2008_Transitional
+            return dns.name.from_unicode(t, idna_codec=codec)
+        self.assertRaises(dns.name.IDNAException, bad1)
+        self.assertRaises(dns.name.IDNAException, bad2)
+        self.assertRaises(dns.name.IDNAException, bad3)
+        e = dns.name.from_unicode(t,
+                                  idna_codec=dns.name.IDNA_2008_Practical)
+        self.assertEqual(str(e), '_sip._tcp.xn--knigsgchen-b4a3dun.')
 
     def testToUnicode1(self):
         n = dns.name.from_text('foo.bar')
