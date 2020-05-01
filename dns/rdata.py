@@ -18,7 +18,6 @@
 """DNS rdata."""
 
 from importlib import import_module
-from io import BytesIO
 import base64
 import binascii
 import io
@@ -183,7 +182,7 @@ class Rdata(object):
         Returns a ``binary``.
         """
 
-        f = BytesIO()
+        f = io.BytesIO()
         self.to_wire(f, None, origin)
         return f.getvalue()
 
