@@ -28,6 +28,10 @@ _default_size = 100.0
 _default_hprec = 1000000.0
 _default_vprec = 1000.0
 
+# pylint complains about division since we don't have a from __future__ for
+# it, but we don't care about python 2 warnings, so turn them off.
+#
+# pylint: disable=old-division
 
 def _exponent_of(what, desc):
     if what == 0:
@@ -288,15 +292,15 @@ class LOC(dns.rdata.Rdata):
         (version, size, hprec, vprec, latitude, longitude, altitude) = \
             struct.unpack("!BBBBIII", wire[current: current + rdlen])
         if latitude > 0x80000000:
-            latitude = float(latitude - 0x80000000) / 3600000
+            latitude = (latitude - 0x80000000) / 3600000
         else:
-            latitude = -1 * float(0x80000000 - latitude) / 3600000
+            latitude = -1 * (0x80000000 - latitude) / 3600000
         if latitude < -90.0 or latitude > 90.0:
             raise dns.exception.FormError("bad latitude")
         if longitude > 0x80000000:
-            longitude = float(longitude - 0x80000000) / 3600000
+            longitude = (longitude - 0x80000000) / 3600000
         else:
-            longitude = -1 * float(0x80000000 - longitude) / 3600000
+            longitude = -1 * (0x80000000 - longitude) / 3600000
         if longitude < -180.0 or longitude > 180.0:
             raise dns.exception.FormError("bad longitude")
         altitude = float(altitude) - 10000000.0
