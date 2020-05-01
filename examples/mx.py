@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 import dns.resolver
 
 answers = dns.resolver.query('nominum.com', 'MX')

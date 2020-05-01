@@ -2,8 +2,6 @@
 
 # Two ways of querying a specific nameserver.
 
-from __future__ import print_function
-
 import dns.message
 import dns.rdataclass
 import dns.rdatatype

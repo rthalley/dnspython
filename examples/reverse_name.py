@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 import dns.reversename
 n = dns.reversename.from_address("127.0.0.1")
 print(n)

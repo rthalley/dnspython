@@ -3,8 +3,6 @@
 # This is just a toy, real code would check that the received message
 # really was a NOTIFY, and otherwise handle errors.
 
-from __future__ import print_function
-
 import socket
 
 import dns.flags
