@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import contextlib
 import os
 import hashlib
 import random
@@ -41,26 +42,24 @@ class EntropyPool(object):
         self.hash_len = 20
         self.pool = bytearray(b'\0' * self.hash_len)
         if seed is not None:
-            self.stir(bytearray(seed))
+            self._stir(bytearray(seed))
             self.seeded = True
             self.seed_pid = os.getpid()
         else:
             self.seeded = False
             self.seed_pid = 0
 
-    def stir(self, entropy, already_locked=False):
-        if not already_locked:
-            self.lock.acquire()
-        try:
-            for c in entropy:
-                if self.pool_index == self.hash_len:
-                    self.pool_index = 0
-                b = c & 0xff
-                self.pool[self.pool_index] ^= b
-                self.pool_index += 1
-        finally:
-            if not already_locked:
-                self.lock.release()
+    def _stir(self, entropy):
+        for c in entropy:
+            if self.pool_index == self.hash_len:
+                self.pool_index = 0
+            b = c & 0xff
+            self.pool[self.pool_index] ^= b
+            self.pool_index += 1
+
+    def stir(self, entropy):
+        with self.lock:
+            self._stir(entropy)
 
     def _maybe_seed(self):
         if not self.seeded or self.seed_pid != os.getpid():
@@ -68,32 +67,26 @@ class EntropyPool(object):
                 seed = os.urandom(16)
             except Exception:
                 try:
-                    r = open('/dev/urandom', 'rb', 0)
-                    try:
+                    with open('/dev/urandom', 'rb', 0) as r:
                         seed = r.read(16)
-                    finally:
-                        r.close()
                 except Exception:
                     seed = str(time.time())
             self.seeded = True
             self.seed_pid = os.getpid()
             self.digest = None
             seed = bytearray(seed)
-            self.stir(seed, True)
+            self._stir(seed)
 
     def random_8(self):
-        self.lock.acquire()
-        try:
+        with self.lock:
             self._maybe_seed()
             if self.digest is None or self.next_byte == self.hash_len:
                 self.hash.update(bytes(self.pool))
                 self.digest = bytearray(self.hash.digest())
-                self.stir(self.digest, True)
+                self._stir(self.digest)
                 self.next_byte = 0
             value = self.digest[self.next_byte]
             self.next_byte += 1
-        finally:
-            self.lock.release()
         return value
 
     def random_16(self):

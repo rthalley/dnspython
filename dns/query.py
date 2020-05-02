@@ -17,6 +17,7 @@
 
 """Talk to a DNS server."""
 
+import contextlib
 import errno
 import os
 import select
@@ -316,13 +317,10 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
         # set source port and source address
         transport_adapter = SourceAddressAdapter(source)
 
-    if session:
-        close_session = False
-    else:
-        session = requests.sessions.Session()
-        close_session = True
+    with contextlib.ExitStack() as stack:
+        if not session:
+            session = stack.enter_context(requests.sessions.Session())
 
-    try:
         if transport_adapter:
             session.mount(url, transport_adapter)
 
@@ -341,9 +339,6 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
             url += "?dns={}".format(wire)
             response = session.get(url, headers=headers, stream=True,
                                    timeout=timeout, verify=verify)
-    finally:
-        if close_session:
-            session.close()
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes

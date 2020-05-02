@@ -17,6 +17,7 @@
 
 """DNS stub resolver."""
 from urllib.parse import urlparse
+import contextlib
 import socket
 import sys
 import time
@@ -327,15 +328,12 @@ class Cache(object):
         Returns a ``dns.resolver.Answer`` or ``None``.
         """
 
-        try:
-            self.lock.acquire()
+        with self.lock:
             self._maybe_clean()
             v = self.data.get(key)
             if v is None or v.expiration <= time.time():
                 return None
             return v
-        finally:
-            self.lock.release()
 
     def put(self, key, value):
         """Associate key and value in the cache.
@@ -346,12 +344,9 @@ class Cache(object):
         *value*, a ``dns.resolver.Answer``, the answer.
         """
 
-        try:
-            self.lock.acquire()
+        with self.lock:
             self._maybe_clean()
             self.data[key] = value
-        finally:
-            self.lock.release()
 
     def flush(self, key=None):
         """Flush the cache.
@@ -363,16 +358,13 @@ class Cache(object):
         query name, rdtype, and rdclass respectively.
         """
 
-        try:
-            self.lock.acquire()
+        with self.lock:
             if key is not None:
                 if key in self.data:
                     del self.data[key]
             else:
                 self.data = {}
                 self.next_cleaning = time.time() + self.cleaning_interval
-        finally:
-            self.lock.release()
 
 
 class LRUCacheNode(object):
@@ -437,8 +429,7 @@ class LRUCache(object):
         Returns a ``dns.resolver.Answer`` or ``None``.
         """
 
-        try:
-            self.lock.acquire()
+        with self.lock:
             node = self.data.get(key)
             if node is None:
                 return None
@@ -450,8 +441,6 @@ class LRUCache(object):
                 return None
             node.link_after(self.sentinel)
             return node.value
-        finally:
-            self.lock.release()
 
     def put(self, key, value):
         """Associate key and value in the cache.
@@ -462,8 +451,7 @@ class LRUCache(object):
         *value*, a ``dns.resolver.Answer``, the answer.
         """
 
-        try:
-            self.lock.acquire()
+        with self.lock:
             node = self.data.get(key)
             if node is not None:
                 node.unlink()
@@ -475,8 +463,6 @@ class LRUCache(object):
             node = LRUCacheNode(key, value)
             node.link_after(self.sentinel)
             self.data[key] = node
-        finally:
-            self.lock.release()
 
     def flush(self, key=None):
         """Flush the cache.
@@ -488,8 +474,7 @@ class LRUCache(object):
         query name, rdtype, and rdclass respectively.
         """
 
-        try:
-            self.lock.acquire()
+        with self.lock:
             if key is not None:
                 node = self.data.get(key)
                 if node is not None:
@@ -503,8 +488,6 @@ class LRUCache(object):
                     node.next = None
                     node = next
                 self.data = {}
-        finally:
-            self.lock.release()
 
 
 class Resolver(object):
@@ -590,16 +573,14 @@ class Resolver(object):
 
         """
 
-        if isinstance(f, str):
-            try:
-                f = open(f, 'r')
-            except IOError:
-                # /etc/resolv.conf doesn't exist, can't be read, etc.
-                raise NoResolverConfiguration
-            want_close = True
-        else:
-            want_close = False
-        try:
+        with contextlib.ExitStack() as stack:
+            if isinstance(f, str):
+                try:
+                    f = stack.enter_context(open(f))
+                except IOError:
+                    # /etc/resolv.conf doesn't exist, can't be read, etc.
+                    raise NoResolverConfiguration
+
             for l in f:
                 if len(l) == 0 or l[0] == '#' or l[0] == ';':
                     continue
@@ -632,9 +613,6 @@ class Resolver(object):
                                 self.ndots = int(opt.split(':')[1])
                             except (ValueError, IndexError):
                                 pass
-        finally:
-            if want_close:
-                f.close()
         if len(self.nameservers) == 0:
             raise NoResolverConfiguration
 
