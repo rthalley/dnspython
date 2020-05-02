@@ -72,7 +72,7 @@ typecheck:
 	mypy examples tests dns
 
 potest:
-	poetry run python -m tests.utest
+	poetry run pytest
 
 potype:
 	poetry run python -m mypy examples tests dns/*.py
