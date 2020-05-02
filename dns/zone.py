@@ -17,6 +17,7 @@
 
 """DNS Zones."""
 
+import contextlib
 import io
 import os
 import re
@@ -490,28 +491,26 @@ class Zone(object):
         @type nl: string or None
         """
 
-        if isinstance(f, str):
-            f = open(f, 'wb')
-            want_close = True
-        else:
-            want_close = False
+        with contextlib.ExitStack() as stack:
+            if isinstance(f, str):
+                f = stack.enter_context(open(f, 'wb'))
 
-        # must be in this way, f.encoding may contain None, or even attribute
-        # may not be there
-        file_enc = getattr(f, 'encoding', None)
-        if file_enc is None:
-            file_enc = 'utf-8'
+            # must be in this way, f.encoding may contain None, or even attribute
+            # may not be there
+            file_enc = getattr(f, 'encoding', None)
+            if file_enc is None:
+                file_enc = 'utf-8'
 
-        if nl is None:
-            nl_b = os.linesep.encode(file_enc)  # binary mode, '\n' is not enough
-            nl = '\n'
-        elif isinstance(nl, str):
-            nl_b = nl.encode(file_enc)
-        else:
-            nl_b = nl
-            nl = nl.decode()
+            if nl is None:
+                # binary mode, '\n' is not enough
+                nl_b = os.linesep.encode(file_enc)
+                nl = '\n'
+            elif isinstance(nl, str):
+                nl_b = nl.encode(file_enc)
+            else:
+                nl_b = nl
+                nl = nl.decode()
 
-        try:
             if sorted:
                 names = list(self.keys())
                 names.sort()
@@ -532,9 +531,6 @@ class Zone(object):
                 except TypeError:  # textual mode
                     f.write(l)
                     f.write(nl)
-        finally:
-            if want_close:
-                f.close()
 
     def to_text(self, sorted=True, relativize=True, nl=None):
         """Return a zone's text as though it were written to a file.
@@ -1061,23 +1057,13 @@ def from_file(f, origin=None, rdclass=dns.rdataclass.IN,
     @rtype: dns.zone.Zone object
     """
 
-    if isinstance(f, str):
-        if filename is None:
-            filename = f
-        f = open(f, 'r')
-        want_close = True
-    else:
-        if filename is None:
-            filename = '<file>'
-        want_close = False
-
-    try:
-        z = from_text(f, origin, rdclass, relativize, zone_factory,
-                      filename, allow_include, check_origin)
-    finally:
-        if want_close:
-            f.close()
-    return z
+    with contextlib.ExitStack() as stack:
+        if isinstance(f, str):
+            if filename is None:
+                filename = f
+            f = stack.enter_context(open(f))
+        return from_text(f, origin, rdclass, relativize, zone_factory,
+                         filename, allow_include, check_origin)
 
 
 def from_xfr(xfr, zone_factory=Zone, relativize=True, check_origin=True):

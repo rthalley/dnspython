@@ -17,6 +17,7 @@
 
 """DNS Messages"""
 
+import contextlib
 import io
 import struct
 import time
@@ -1046,21 +1047,10 @@ def from_file(f):
     Returns a ``dns.message.Message object``
     """
 
-    str_type = str
-    opts = 'rU'
-
-    if isinstance(f, str_type):
-        f = open(f, opts)
-        want_close = True
-    else:
-        want_close = False
-
-    try:
-        m = from_text(f)
-    finally:
-        if want_close:
-            f.close()
-    return m
+    with contextlib.ExitStack() as stack:
+        if isinstance(f, str):
+            f = stack.enter_context(open(f))
+        return from_text(f)
 
 
 def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
