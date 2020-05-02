@@ -46,7 +46,7 @@ class, and return an answer set.  The low level classes allow
 direct manipulation of DNS zones, messages, names, and records.""",
     'author' : 'Bob Halley',
     'author_email' : 'halley@dnspython.org',
-    'license' : 'BSD-like',
+    'license' : 'ISC',
     'url' : 'http://www.dnspython.org',
     'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY', 'dns.rdtypes.CH'],
     'package_data' : {'dns': ['py.typed']},
