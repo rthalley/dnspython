@@ -25,7 +25,7 @@ import random
 try:
     import threading as _threading
 except ImportError:
-    import dummy_threading as _threading
+    import dummy_threading as _threading    # type: ignore
 
 import dns.exception
 import dns.flags
@@ -991,10 +991,10 @@ class Resolver(object):
                     port_answered = port
                     rcode = response.rcode()
                     if rcode == dns.rcode.YXDOMAIN:
-                        ex = YXDOMAIN()
-                        errors.append((nameserver, tcp_attempt, port, ex,
+                        yex = YXDOMAIN()
+                        errors.append((nameserver, tcp_attempt, port, yex,
                                        response))
-                        raise ex
+                        raise yex
                     if rcode == dns.rcode.NOERROR or \
                             rcode == dns.rcode.NXDOMAIN:
                         break

@@ -49,7 +49,7 @@ except ImportError:
 try:
     import ssl
 except ImportError:
-    class ssl(object):
+    class ssl(object):    # type: ignore
         class WantReadException(Exception):
             pass
         class WantWriteException(Exception):

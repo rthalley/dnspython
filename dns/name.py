@@ -23,9 +23,9 @@ import io
 import struct
 import sys
 
-import encodings.idna
+import encodings.idna    # type: ignore
 try:
-    import idna
+    import idna          # type: ignore
     have_idna_2008 = True
 except ImportError:
     have_idna_2008 = False
@@ -33,11 +33,7 @@ except ImportError:
 import dns.exception
 import dns.wiredata
 
-try:
-    maxint = sys.maxint  # pylint: disable=sys-max-int
-except AttributeError:
-    maxint = (1 << (8 * struct.calcsize("P"))) // 2 - 1
-
+maxint = sys.maxsize
 
 # fullcompare() result values
 

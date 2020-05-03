@@ -589,6 +589,6 @@ except ImportError:
     validate_rrsig = _need_pyca
     _have_pyca = False
 else:
-    validate = _validate
-    validate_rrsig = _validate_rrsig
+    validate = _validate                # type: ignore
+    validate_rrsig = _validate_rrsig    # type: ignore
     _have_pyca = True

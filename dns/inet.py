@@ -33,7 +33,7 @@ AF_INET = socket.AF_INET
 try:
     AF_INET6 = socket.AF_INET6
 except AttributeError:
-    AF_INET6 = 9999
+    AF_INET6 = 9999	# type: ignore
 
 
 def inet_pton(family, text):
