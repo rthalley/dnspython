@@ -1,5 +1,5 @@
 from typing import Dict, Tuple, Any, Optional
-from .name import Name
+from .name import Name, IDNACodec
 class Rdata:
     def __init__(self):
         self.address : str
@@ -10,7 +10,9 @@ class Rdata:
         ...
 _rdata_modules : Dict[Tuple[Any,Rdata],Any]
 
-def from_text(rdclass : int, rdtype : int, tok : Optional[str], origin : Optional[Name] = None, relativize : bool = True, relativize_to : Optional[Name] = None):
+def from_text(rdclass : int, rdtype : int, tok : Optional[str], origin : Optional[Name] = None,
+              relativize : bool = True, relativize_to : Optional[Name] = None,
+              idna_codec : Optional[IDNACodec]):
     ...
 
 def from_wire(rdclass : int, rdtype : int, wire : bytes, current : int, rdlen : int, origin : Optional[Name] = None):
