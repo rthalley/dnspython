@@ -425,7 +425,7 @@ class Tokenizer(object):
                     self._unget_char(c)
                 break
             elif self.quoting and c == '\n':
-                    raise dns.exception.SyntaxError('newline in quoted string')
+                raise dns.exception.SyntaxError('newline in quoted string')
             elif c == '\\':
                 #
                 # It's an escape.  Put it and the next character into
