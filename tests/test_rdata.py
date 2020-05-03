@@ -98,7 +98,8 @@ class RdataTestCase(unittest.TestCase):
                                     '"foo\\226\\128\\139bar"')
         self.assertEqual(str(rdata), '"foo\\226\\128\\139bar"')
         # Our fix for TXT-like records uses a new tokenizer method,
-        # unescape_to_bytes(), which both interprets 
+        # unescape_to_bytes(), which converts Unicode to UTF-8 only
+        # once.
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT,
                                     '"foo\u200b\\123bar"')
         self.assertEqual(str(rdata), '"foo\\226\\128\\139{bar"')
