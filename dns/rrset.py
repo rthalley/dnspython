@@ -143,7 +143,7 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
     r = RRset(name, rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:
-        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t)
+        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t, idna_codec=idna_codec)
         r.add(rd)
     return r
 
@@ -162,7 +162,12 @@ def from_rdata_list(name, ttl, rdatas, idna_codec=None):
     """Create an RRset with the specified name and TTL, and with
     the specified list of rdata objects.
 
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder to use; if ``None``, the default IDNA 2003
+    encoder/decoder is used.
+
     Returns a ``dns.rrset.RRset`` object.
+
     """
 
     if isinstance(name, str):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
@@ -129,6 +130,13 @@ $ORIGIN example.
 @ ns ns2
 ns1 1d1s a 10.0.0.1
 ns2 1w1D1h1m1S a 10.0.0.2
+"""
+
+codec_text = """
+@ soa foo bar 1 2 3 4 5
+@ ns ns1
+@ ns ns2
+Königsgäßchen 300 NS Königsgäßchen
 """
 
 _keep_output = True
@@ -576,6 +584,25 @@ class ZoneTestCase(unittest.TestCase):
         z1_rel = dns.zone.from_text(example_text, 'example.', relativize=True)
         z2_rel = dns.zone.from_xfr(make_xfr(z1_rel), relativize=True)
         self.assertEqual(z1_rel, z2_rel)
+
+    def testCodec2003(self):
+        z = dns.zone.from_text(codec_text, 'example.', relativize=True)
+        n2003 = dns.name.from_text('xn--knigsgsschen-lcb0w', None)
+        n2008 = dns.name.from_text('xn--knigsgchen-b4a3dun', None)
+        self.assertTrue(n2003 in z)
+        self.assertFalse(n2008 in z)
+        rrs = z.find_rrset(n2003, 'NS')
+        self.assertEqual(rrs[0].target, n2003)
+
+    def testCodec2008(self):
+        z = dns.zone.from_text(codec_text, 'example.', relativize=True,
+                               idna_codec=dns.name.IDNA_2008)
+        n2003 = dns.name.from_text('xn--knigsgsschen-lcb0w', None)
+        n2008 = dns.name.from_text('xn--knigsgchen-b4a3dun', None)
+        self.assertFalse(n2003 in z)
+        self.assertTrue(n2008 in z)
+        rrs = z.find_rrset(n2008, 'NS')
+        self.assertEqual(rrs[0].target, n2008)
 
 if __name__ == '__main__':
     unittest.main()

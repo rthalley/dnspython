@@ -298,9 +298,13 @@ class Rdataset(dns.set.Set):
         return False
 
 
-def from_text_list(rdclass, rdtype, ttl, text_rdatas):
+def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None):
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified list of rdatas in text format.
+
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder to use; if ``None``, the default IDNA 2003
+    encoder/decoder is used.
 
     Returns a ``dns.rdataset.Rdataset`` object.
     """
@@ -312,7 +316,7 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas):
     r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:
-        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t)
+        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t, idna_codec=idna_codec)
         r.add(rd)
     return r
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
@@ -17,6 +18,7 @@
 
 import unittest
 
+import dns.name
 import dns.rrset
 
 class RRsetTestCase(unittest.TestCase):
@@ -51,6 +53,22 @@ class RRsetTestCase(unittest.TestCase):
         r1 = dns.rrset.from_text('foo', 30, 'in', 'a', '10.0.0.1')
         r2 = dns.rrset.from_text('FOO', 30, 'in', 'a', '10.0.0.2', '10.0.0.1')
         self.assertNotEqual(r1, r2)
+
+    def testCodec2003(self):
+        r1 = dns.rrset.from_text_list('Königsgäßchen', 30, 'in', 'ns',
+                                      ['Königsgäßchen'])
+        r2 = dns.rrset.from_text_list('xn--knigsgsschen-lcb0w', 30, 'in', 'ns',
+                                      ['xn--knigsgsschen-lcb0w'])
+        self.assertEqual(r1, r2)
+
+    def testCodec2008(self):
+        r1 = dns.rrset.from_text_list('Königsgäßchen', 30, 'in', 'ns',
+                                      ['Königsgäßchen'],
+                                      idna_codec=dns.name.IDNA_2008)
+        r2 = dns.rrset.from_text_list('xn--knigsgchen-b4a3dun', 30, 'in', 'ns',
+                                      ['xn--knigsgchen-b4a3dun'],
+                                      idna_codec=dns.name.IDNA_2008)
+        self.assertEqual(r1, r2)
 
 if __name__ == '__main__':
     unittest.main()

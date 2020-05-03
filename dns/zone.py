@@ -635,8 +635,7 @@ class _MasterReader(object):
             raise UnknownOrigin
         token = self.tok.get(want_leading=True)
         if not token.is_whitespace():
-            self.last_name = dns.name.from_text(
-                token.value, self.current_origin)
+            self.last_name = self.tok.as_name(token, self.current_origin)
         else:
             token = self.tok.get()
             if token.is_eol_or_eof():
@@ -859,7 +858,8 @@ class _MasterReader(object):
             name = lhs.replace('$%s' % (lmod), lzfindex)
             rdata = rhs.replace('$%s' % (rmod), rzfindex)
 
-            self.last_name = dns.name.from_text(name, self.current_origin)
+            self.last_name = dns.name.from_text(name, self.current_origin,
+                                                self.tok.idna_codec)
             name = self.last_name
             if not name.is_subdomain(self.zone.origin):
                 self._eat_line()
@@ -943,7 +943,8 @@ class _MasterReader(object):
                         if token.is_identifier():
                             new_origin =\
                                 dns.name.from_text(token.value,
-                                                   self.current_origin)
+                                                   self.current_origin,
+                                                   self.tok.idna_codec)
                             self.tok.get_eol()
                         elif not token.is_eol_or_eof():
                             raise dns.exception.SyntaxError(
@@ -984,7 +985,7 @@ class _MasterReader(object):
 
 def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
               relativize=True, zone_factory=Zone, filename=None,
-              allow_include=False, check_origin=True):
+              allow_include=False, check_origin=True, idna_codec=None):
     """Build a zone object from a master file format string.
 
     @param text: the master file format input
@@ -1007,6 +1008,9 @@ def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
     @param check_origin: should sanity checks of the origin node be done?
     The default is True.
     @type check_origin: bool
+    @param idna_codec: specifies the IDNA encoder/decoder.  If ``None``, the
+    default IDNA 2003 encoder/decoder is used.
+    @type idna_codec: dns.name.IDNACodec or None
     @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
     @raises dns.zone.NoNS: No NS RRset was found at the zone origin
     @rtype: dns.zone.Zone object
@@ -1018,7 +1022,7 @@ def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
 
     if filename is None:
         filename = '<string>'
-    tok = dns.tokenizer.Tokenizer(text, filename)
+    tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
     reader = _MasterReader(tok, origin, rdclass, relativize, zone_factory,
                            allow_include=allow_include,
                            check_origin=check_origin)

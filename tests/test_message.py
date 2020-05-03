@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
@@ -24,6 +25,7 @@ import dns.message
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
+import dns.rrset
 
 query_text = """id 1234
 opcode QUERY
@@ -90,6 +92,16 @@ goodhex3 = b'04d2010f0001000000000001047777777709646e73707974686f6e' \
            b'036f726700000100010000291000ff0080000000'
 
 goodwire3 = binascii.unhexlify(goodhex3)
+
+idna_text = """id 1234
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+Königsgäßchen. IN NS
+;ANSWER
+Königsgäßchen. 3600 IN NS Königsgäßchen.
+"""
 
 class MessageTestCase(unittest.TestCase):
 
@@ -223,6 +235,22 @@ class MessageTestCase(unittest.TestCase):
             wire = a.to_wire(want_shuffle=False)
             dns.message.from_wire(wire[:-3])
         self.assertRaises(dns.message.Truncated, bad)
+
+    def test_IDNA_2003(self):
+        a = dns.message.from_text(idna_text, idna_codec=dns.name.IDNA_2003)
+        rrs = dns.rrset.from_text_list('xn--knigsgsschen-lcb0w.', 30,
+                                       'in', 'ns',
+                                       ['xn--knigsgsschen-lcb0w.'],
+                                       idna_codec=dns.name.IDNA_2003)
+        self.assertEqual(a.answer[0], rrs)
+
+    def test_IDNA_2008(self):
+        a = dns.message.from_text(idna_text, idna_codec=dns.name.IDNA_2008)
+        rrs = dns.rrset.from_text_list('xn--knigsgchen-b4a3dun.', 30,
+                                       'in', 'ns',
+                                       ['xn--knigsgchen-b4a3dun.'],
+                                       idna_codec=dns.name.IDNA_2008)
+        self.assertEqual(a.answer[0], rrs)
 
 if __name__ == '__main__':
     unittest.main()

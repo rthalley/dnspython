@@ -41,7 +41,7 @@ class Message:
     def is_response(self, other : Message) -> bool:
         ...
 
-def from_text(a : str) -> Message:
+def from_text(a : str, idna_codec : Optional[name.IDNACodec] = None) -> Message:
     ...
 
 def from_wire(wire, keyring : Optional[Dict[name.Name,bytes]] = None, request_mac = b'', xfr=False, origin=None,

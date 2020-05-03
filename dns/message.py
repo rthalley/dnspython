@@ -843,9 +843,9 @@ class _TextReader(object):
     last_name: The most recently read name when building a message object.
     """
 
-    def __init__(self, text, message):
+    def __init__(self, text, message, idna_codec):
         self.message = message
-        self.tok = dns.tokenizer.Tokenizer(text)
+        self.tok = dns.tokenizer.Tokenizer(text, idna_codec=idna_codec)
         self.last_name = None
         self.zone_rdclass = dns.rdataclass.IN
         self.updating = False
@@ -901,7 +901,7 @@ class _TextReader(object):
 
         token = self.tok.get(want_leading=True)
         if not token.is_whitespace():
-            self.last_name = dns.name.from_text(token.value, None)
+            self.last_name = self.tok.as_name(token, None)
         name = self.last_name
         token = self.tok.get()
         if not token.is_identifier():
@@ -934,7 +934,7 @@ class _TextReader(object):
         # Name
         token = self.tok.get(want_leading=True)
         if not token.is_whitespace():
-            self.last_name = dns.name.from_text(token.value, None)
+            self.last_name = self.tok.as_name(token, None)
         name = self.last_name
         token = self.tok.get()
         if not token.is_identifier():
@@ -1010,10 +1010,14 @@ class _TextReader(object):
             line_method(section)
 
 
-def from_text(text):
+def from_text(text, idna_codec=None):
     """Convert the text format message into a message object.
 
     *text*, a ``text``, the text format message.
+
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    is used.
 
     Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
 
@@ -1028,7 +1032,7 @@ def from_text(text):
 
     m = Message()
 
-    reader = _TextReader(text, m)
+    reader = _TextReader(text, m, idna_codec)
     reader.read()
 
     return m
@@ -1055,7 +1059,7 @@ def from_file(f):
 
 def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
                want_dnssec=False, ednsflags=None, payload=None,
-               request_payload=None, options=None):
+               request_payload=None, options=None, idna_codec=None):
     """Make a query message.
 
     The query name, type, and class may all be specified either
@@ -1091,11 +1095,15 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS
     options.
 
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    is used.
+
     Returns a ``dns.message.Message``
     """
 
     if isinstance(qname, str):
-        qname = dns.name.from_text(qname)
+        qname = dns.name.from_text(qname, idna_codec=idna_codec)
     if isinstance(rdtype, str):
         rdtype = dns.rdatatype.from_text(rdtype)
     if isinstance(rdclass, str):
