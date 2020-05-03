@@ -131,6 +131,65 @@ class Token(object):
             unescaped += c
         return Token(self.ttype, unescaped)
 
+    def unescape_to_bytes(self):
+        # We used to use unescape() for TXT-like records, but this
+        # caused problems as we'd process DNS escapes into Unicode code
+        # points instead of byte values, and then a to_text() of the
+        # processed data would not equal the original input.  For
+        # example, \226 in the TXT record would have a to_text() of
+        # \195\162 because we applied UTF-8 encoding to Unicode code
+        # point 226.
+        #
+        # We now apply escapes while converting directly to bytes,
+        # avoiding this double encoding.
+        #
+        # This code also handles cases where the unicode input has
+        # non-ASCII code-points in it by converting it to UTF-8.  TXT
+        # records aren't defined for Unicode, but this is the best we
+        # can do to preserve meaning.  For example,
+        #
+        #     foo\u200bbar
+        #
+        # (where \u200b is Unicode code point 0x200b) will be treated
+        # as if the input had been the UTF-8 encoding of that string,
+        # namely:
+        #
+        #     foo\226\128\139bar
+        #
+        unescaped = b''
+        l = len(self.value)
+        i = 0
+        while i < l:
+            c = self.value[i]
+            i += 1
+            if c == '\\':
+                if i >= l:
+                    raise dns.exception.UnexpectedEnd
+                c = self.value[i]
+                i += 1
+                if c.isdigit():
+                    if i >= l:
+                        raise dns.exception.UnexpectedEnd
+                    c2 = self.value[i]
+                    i += 1
+                    if i >= l:
+                        raise dns.exception.UnexpectedEnd
+                    c3 = self.value[i]
+                    i += 1
+                    if not (c2.isdigit() and c3.isdigit()):
+                        raise dns.exception.SyntaxError
+                    unescaped += b'%c' % (int(c) * 100 + int(c2) * 10 + int(c3))
+                else:
+                    # Note that as mentioned above, if c is a Unicode
+                    # code point outside of the ASCII range, then this
+                    # += is converting that code point to its UTF-8
+                    # encoding and appending multiple bytes to
+                    # unescaped.
+                    unescaped += c.encode()
+            else:
+                unescaped += c.encode()
+        return Token(self.ttype, bytes(unescaped))
+
     # compatibility for old-style tuple tokens
 
     def __len__(self):
@@ -365,22 +424,7 @@ class Tokenizer(object):
                 else:
                     self._unget_char(c)
                 break
-            elif self.quoting:
-                if c == '\\':
-                    c = self._get_char()
-                    if c == '':
-                        raise dns.exception.UnexpectedEnd
-                    if c.isdigit():
-                        c2 = self._get_char()
-                        if c2 == '':
-                            raise dns.exception.UnexpectedEnd
-                        c3 = self._get_char()
-                        if c == '':
-                            raise dns.exception.UnexpectedEnd
-                        if not (c2.isdigit() and c3.isdigit()):
-                            raise dns.exception.SyntaxError
-                        c = chr(int(c) * 100 + int(c2) * 10 + int(c3))
-                elif c == '\n':
+            elif self.quoting and c == '\n':
                     raise dns.exception.SyntaxError('newline in quoted string')
             elif c == '\\':
                 #

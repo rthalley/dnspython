@@ -42,12 +42,13 @@ class TokenizerTestCase(unittest.TestCase):
     def testQuotedString3(self):
         tok = dns.tokenizer.Tokenizer(r'"\"foo\""')
         token = tok.get()
-        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, '"foo"'))
+        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, '\\"foo\\"'))
 
     def testQuotedString4(self):
         tok = dns.tokenizer.Tokenizer(r'"foo\010bar"')
         token = tok.get()
-        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, 'foo\x0abar'))
+        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING,
+                                      'foo\\010bar'))
 
     def testQuotedString5(self):
         def bad():

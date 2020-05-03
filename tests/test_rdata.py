@@ -77,5 +77,31 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(str(ns.to_generic(origin=origin)),
                          r'\# 13 03666f6f076578616d706c6500')
 
+    def test_txt_unicode(self):
+        # TXT records are not defined for Unicode, but if we get
+        # Unicode we should convert it to UTF-8 to preserve meaning as
+        # best we can.  Note that it when the TXT record is sent
+        # to_text(), it does NOT convert embedded UTF-8 back to
+        # Unicode; it's just treated as binary TXT data.  Probably
+        # there should be a TXT-like record with an encoding field.
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT,
+                                    '"foo\u200bbar"')
+        self.assertEqual(str(rdata), '"foo\\226\\128\\139bar"')
+        # We used to encode UTF-8 in UTF-8 because we processed
+        # escapes in quoted strings immediately.  This meant that the
+        # \\226 below would be inserted as Unicode code point 226, and
+        # then when we did to_text, we would UTF-8 encode that code
+        # point, emitting \\195\\162 instead of \\226, and thus
+        # from_text followed by to_text was not the equal to the
+        # original input like it ought to be.
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT,
+                                    '"foo\\226\\128\\139bar"')
+        self.assertEqual(str(rdata), '"foo\\226\\128\\139bar"')
+        # Our fix for TXT-like records uses a new tokenizer method,
+        # unescape_to_bytes(), which both interprets 
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT,
+                                    '"foo\u200b\\123bar"')
+        self.assertEqual(str(rdata), '"foo\\226\\128\\139{bar"')
+
 if __name__ == '__main__':
     unittest.main()

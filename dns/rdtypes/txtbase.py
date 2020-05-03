@@ -60,18 +60,14 @@ class TXTBase(dns.rdata.Rdata):
                   relativize_to=None):
         strings = []
         while 1:
-            token = tok.get().unescape()
+            token = tok.get().unescape_to_bytes()
             if token.is_eol_or_eof():
                 break
             if not (token.is_quoted_string() or token.is_identifier()):
                 raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
                 raise dns.exception.SyntaxError("string too long")
-            value = token.value
-            if isinstance(value, bytes):
-                strings.append(value)
-            else:
-                strings.append(value.encode())
+            strings.append(token.value)
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
