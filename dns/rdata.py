@@ -392,7 +392,7 @@ def get_rdata_class(rdclass, rdtype):
 
 
 def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
-              relativize_to=None):
+              relativize_to=None, idna_codec=None):
     """Build an rdata object from text format.
 
     This function attempts to dynamically load a class which
@@ -420,11 +420,18 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
     *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
     when relativizing names.  If not set, the *origin* value will be used.
 
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder to use if a tokenizer needs to be created.  If
+    ``None``, the default IDNA 2003 encoder/decoder is used.  If a
+    tokenizer is not created, then the codec associated with the tokenizer
+    is the one that is used.
+
     Returns an instance of the chosen Rdata subclass.
+
     """
 
     if isinstance(tok, str):
-        tok = dns.tokenizer.Tokenizer(tok)
+        tok = dns.tokenizer.Tokenizer(tok, idna_codec=idna_codec)
     cls = get_rdata_class(rdclass, rdtype)
     if cls != GenericRdata:
         # peek at first token

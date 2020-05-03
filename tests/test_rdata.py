@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 # Copyright (C) 2006, 2007, 2009-2011 Nominum, Inc.
@@ -17,6 +18,7 @@
 
 import unittest
 
+import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
@@ -103,6 +105,17 @@ class RdataTestCase(unittest.TestCase):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT,
                                     '"foo\u200b\\123bar"')
         self.assertEqual(str(rdata), '"foo\\226\\128\\139{bar"')
+
+    def test_unicode_idna2003_in_rdata(self):
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
+                                    "Königsgäßchen")
+        self.assertEqual(str(rdata.target), 'xn--knigsgsschen-lcb0w')
+
+    def test_unicode_idna2008_in_rdata(self):
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
+                                    "Königsgäßchen",
+                                    idna_codec=dns.name.IDNA_2008)
+        self.assertEqual(str(rdata.target), 'xn--knigsgchen-b4a3dun')
 
 if __name__ == '__main__':
     unittest.main()

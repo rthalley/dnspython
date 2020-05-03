@@ -218,9 +218,13 @@ class Tokenizer(object):
     line_number: The current line number
 
     filename: A filename that will be returned by the where() method.
+
+    idna_codec: A dns.name.IDNACodec, specifies the IDNA
+    encoder/decoder.  If None, the default IDNA 2003
+    encoder/decoder is used.
     """
 
-    def __init__(self, f=sys.stdin, filename=None):
+    def __init__(self, f=sys.stdin, filename=None, idna_codec=None):
         """Initialize a tokenizer instance.
 
         f: The file to tokenize.  The default is sys.stdin.
@@ -229,6 +233,10 @@ class Tokenizer(object):
 
         filename: the name of the filename that the where() method
         will return.
+
+        idna_codec: A dns.name.IDNACodec, specifies the IDNA
+        encoder/decoder.  If None, the default IDNA 2003
+        encoder/decoder is used.
         """
 
         if isinstance(f, str):
@@ -254,6 +262,9 @@ class Tokenizer(object):
         self.delimiters = _DELIMITERS
         self.line_number = 1
         self.filename = filename
+        if idna_codec is None:
+            idna_codec = dns.name.IDNA_2003
+        self.idna_codec = idna_codec
 
     def _get_char(self):
         """Read a character from input.
@@ -565,7 +576,7 @@ class Tokenizer(object):
         """
         if not token.is_identifier():
             raise dns.exception.SyntaxError('expecting an identifier')
-        name = dns.name.from_text(token.value, origin)
+        name = dns.name.from_text(token.value, origin, self.idna_codec)
         return name.choose_relativity(relativize_to or origin, relativize)
 
     def get_name(self, origin=None, relativize=False, relativize_to=None):
