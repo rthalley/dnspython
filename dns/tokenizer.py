@@ -190,22 +190,6 @@ class Token(object):
                 unescaped += c.encode()
         return Token(self.ttype, bytes(unescaped))
 
-    # compatibility for old-style tuple tokens
-
-    def __len__(self):
-        return 2
-
-    def __iter__(self):
-        return iter((self.ttype, self.value))
-
-    def __getitem__(self, i):
-        if i == 0:
-            return self.ttype
-        elif i == 1:
-            return self.value
-        else:
-            raise IndexError
-
 
 class Tokenizer(object):
     """A DNS master file format tokenizer.
