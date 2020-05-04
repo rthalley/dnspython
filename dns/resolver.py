@@ -1234,7 +1234,12 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
         # Not implemented.  We raise a gaierror as opposed to a
         # NotImplementedError as it helps callers handle errors more
         # appropriately.  [Issue #316]
-        raise socket.gaierror(socket.EAI_SYSTEM)
+        #
+        # We raise EAI_FAIL as opposed to EAI_SYSTEM because there is
+        # no EAI_SYSTEM on Windows [Issue #416].  We didn't go for
+        # EAI_BADFLAGS as the flags aren't bad, we just don't
+        # implement them.
+        raise socket.gaierror(socket.EAI_FAIL)
     if host is None and service is None:
         raise socket.gaierror(socket.EAI_NONAME)
     v6addrs = []
@@ -1274,7 +1279,10 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
     except dns.resolver.NXDOMAIN:
         raise socket.gaierror(socket.EAI_NONAME)
     except Exception:
-        raise socket.gaierror(socket.EAI_SYSTEM)
+        # We raise EAI_AGAIN here as the failure may be temporary
+        # (e.g. a timeout) and EAI_SYSTEM isn't defined on Windows.
+        # [Issue #416]
+        raise socket.gaierror(socket.EAI_AGAIN)
     port = None
     try:
         # Is it a port literal?
