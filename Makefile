@@ -76,3 +76,6 @@ potest:
 
 potype:
 	poetry run python -m mypy examples tests dns/*.py
+
+poflake:
+	poetry run flake8 dns
