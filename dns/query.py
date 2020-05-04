@@ -215,11 +215,14 @@ def _destination_and_source(af, where, port, source, source_port,
                 source = '0.0.0.0'
             source = (source, source_port)
     elif af == dns.inet.AF_INET6:
-        destination = (where, port, 0, 0)
+        ai_flags = socket.AI_NUMERICHOST
+        ((*_, destination), *_) = socket.getaddrinfo(where, port,
+                                                     flags=ai_flags)
         if source is not None or source_port != 0:
             if source is None:
                 source = '::'
-            source = (source, source_port, 0, 0)
+            ((*_, source), *_) = socket.getaddrinfo(source, source_port,
+                                                    flags=ai_flags)
     else:
         source = None
         destination = None
