@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.exception
-import dns.inet
+import dns.ipv6
 import dns.rdata
 import dns.tokenizer
 
@@ -33,7 +33,7 @@ class AAAA(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, address):
         super().__init__(rdclass, rdtype)
         # check that it's OK
-        dns.inet.inet_pton(dns.inet.AF_INET6, address)
+        dns.ipv6.inet_aton(address)
         object.__setattr__(self, 'address', address)
 
     def to_text(self, origin=None, relativize=True, **kw):
@@ -47,10 +47,9 @@ class AAAA(dns.rdata.Rdata):
         return cls(rdclass, rdtype, address)
 
     def to_wire(self, file, compress=None, origin=None):
-        file.write(dns.inet.inet_pton(dns.inet.AF_INET6, self.address))
+        file.write(dns.ipv6.inet_aton(self.address))
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = dns.inet.inet_ntop(dns.inet.AF_INET6,
-                                     wire[current: current + rdlen])
+        address = dns.ipv6.inet_ntoa(wire[current: current + rdlen])
         return cls(rdclass, rdtype, address)

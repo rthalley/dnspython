@@ -19,7 +19,8 @@ import struct
 import base64
 
 import dns.exception
-import dns.inet
+import dns.ipv4
+import dns.ipv6
 import dns.name
 
 
@@ -50,10 +51,10 @@ class IPSECKEY(dns.rdata.Rdata):
             gateway = None
         elif gateway_type == 1:
             # check that it's OK
-            dns.inet.inet_pton(dns.inet.AF_INET, gateway)
+            dns.ipv4.inet_aton(gateway)
         elif gateway_type == 2:
             # check that it's OK
-            dns.inet.inet_pton(dns.inet.AF_INET6, gateway)
+            dns.ipv6.inet_aton(gateway)
         elif gateway_type == 3:
             pass
         else:
@@ -110,9 +111,9 @@ class IPSECKEY(dns.rdata.Rdata):
         if self.gateway_type == 0:
             pass
         elif self.gateway_type == 1:
-            file.write(dns.inet.inet_pton(dns.inet.AF_INET, self.gateway))
+            file.write(dns.ipv4.inet_aton(self.gateway))
         elif self.gateway_type == 2:
-            file.write(dns.inet.inet_pton(dns.inet.AF_INET6, self.gateway))
+            file.write(dns.ipv6.inet_aton(self.gateway))
         elif self.gateway_type == 3:
             self.gateway.to_wire(file, None, origin)
         else:
@@ -130,13 +131,11 @@ class IPSECKEY(dns.rdata.Rdata):
         if gateway_type == 0:
             gateway = None
         elif gateway_type == 1:
-            gateway = dns.inet.inet_ntop(dns.inet.AF_INET,
-                                         wire[current: current + 4])
+            gateway = dns.ipv4.inet_ntoa(wire[current: current + 4])
             current += 4
             rdlen -= 4
         elif gateway_type == 2:
-            gateway = dns.inet.inet_ntop(dns.inet.AF_INET6,
-                                         wire[current: current + 16])
+            gateway = dns.ipv6.inet_ntoa(wire[current: current + 16])
             current += 16
             rdlen -= 16
         elif gateway_type == 3:

@@ -20,7 +20,8 @@ import codecs
 import struct
 
 import dns.exception
-import dns.inet
+import dns.ipv4
+import dns.ipv6
 import dns.rdata
 import dns.tokenizer
 
@@ -54,9 +55,9 @@ class APLItem(object):
 
     def to_wire(self, file):
         if self.family == 1:
-            address = dns.inet.inet_pton(dns.inet.AF_INET, self.address)
+            address = dns.ipv4.inet_aton(self.address)
         elif self.family == 2:
-            address = dns.inet.inet_pton(dns.inet.AF_INET6, self.address)
+            address = dns.ipv6.inet_aton(self.address)
         else:
             address = binascii.unhexlify(self.address)
         #
@@ -146,11 +147,11 @@ class APL(dns.rdata.Rdata):
             if header[0] == 1:
                 if l < 4:
                     address += b'\x00' * (4 - l)
-                address = dns.inet.inet_ntop(dns.inet.AF_INET, address)
+                address = dns.ipv4.inet_ntoa(address)
             elif header[0] == 2:
                 if l < 16:
                     address += b'\x00' * (16 - l)
-                address = dns.inet.inet_ntop(dns.inet.AF_INET6, address)
+                address = dns.ipv6.inet_ntoa(address)
             else:
                 #
                 # This isn't really right according to the RFC, but it

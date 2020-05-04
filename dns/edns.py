@@ -267,15 +267,14 @@ class ECSOption(Option):
         addrlen = int(math.ceil(src/8.0))
 
         if family == 1:
-            af = dns.inet.AF_INET
             pad = 4 - addrlen
+            addr = dns.ipv4.inet_ntoa(wire[cur:cur+addrlen] + b'\x00' * pad)
         elif family == 2:
-            af = dns.inet.AF_INET6
             pad = 16 - addrlen
+            addr = dns.ipv6.inet_ntoa(wire[cur:cur+addrlen] + b'\x00' * pad)
         else:
             raise ValueError('unsupported family')
 
-        addr = dns.inet.inet_ntop(af, wire[cur:cur+addrlen] + b'\x00' * pad)
         return cls(addr, src, scope)
 
     def _cmp(self, other):
