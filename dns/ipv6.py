@@ -96,10 +96,13 @@ _v4_ending = re.compile(br'(.*):(\d+\.\d+\.\d+\.\d+)$')
 _colon_colon_start = re.compile(br'::.*')
 _colon_colon_end = re.compile(br'.*::$')
 
-def inet_aton(text):
+def inet_aton(text, ignore_scope=False):
     """Convert an IPv6 address in text form to binary form.
 
     *text*, a ``text``, the IPv6 address in textual form.
+
+    *ignore_scope*, a ``bool``.  If ``True``, a scope will be ignored.
+    If ``False``, the default, it is an error for a scope to be present.
 
     Returns a ``bytes``.
     """
@@ -109,6 +112,14 @@ def inet_aton(text):
     #
     if not isinstance(text, bytes):
         text = text.encode()
+
+    if ignore_scope:
+        parts = text.split(b'%')
+        l = len(parts)
+        if l == 2:
+            text = parts[0]
+        elif l > 2:
+            raise dns.exception.SyntaxError
 
     if text == b'::':
         text = b'0::'

@@ -226,5 +226,22 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.assertFalse(dns.inet.is_multicast(t5))
         self.assertTrue(dns.inet.is_multicast(t6))
 
+    def test_ignore_scope(self):
+        t1 = 'fe80::1%lo0'
+        t2 = 'fe80::1'
+        self.assertEqual(aton6(t1, True), aton6(t2))
+
+    def test_do_not_ignore_scope(self):
+        def bad():
+            t1 = 'fe80::1%lo0'
+            aton6(t1)
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def test_multiple_scopes_bad(self):
+        def bad():
+            t1 = 'fe80::1%lo0%lo1'
+            aton6(t1, True)
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
 if __name__ == '__main__':
     unittest.main()
