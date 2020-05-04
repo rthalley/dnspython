@@ -121,7 +121,9 @@ txt09.example. 3600 IN TXT "foo\010bar"
 txt10.example. 3600 IN TXT "foo bar"
 txt11.example. 3600 IN TXT "\"foo\""
 txt12.example. 3600 IN TXT "\"foo\""
-txt13.example. 3600 IN TXT "foo"
+txt13.example. 3600 IN TXT "foo;"
+txt14.example. 3600 IN TXT "foo;"
+txt15.example. 3600 IN TXT "bar\\;"
 u.example. 300 IN TXT "txt-not-in-nxt"
 a.u.example. 300 IN A 73.80.65.49
 b.u.example. 300 IN A 73.80.65.49

@@ -140,17 +140,19 @@ tlsa2			TLSA    1 0 1 efddf0d915c7bdc5782c0881e1b2a95ad099fbdd06d7b1f77982d93643
 tlsa3			TLSA    1 0 2 81ee7f6c0ecc6b09b7785a9418f54432de630dd54dc6ee9e3c49de547708d236d4c413c3e97e44f969e635958aa410495844127c04883503e5b024cf7a8f6a94
 txt01			TXT	"foo"
 txt02			TXT	"foo" "bar"
-txt03			TXT	"foo"
-txt04			TXT	"foo" "bar"
+txt03			TXT	foo
+txt04			TXT	foo bar
 txt05			TXT	"foo bar"
-txt06			TXT	"foo bar"
-txt07			TXT	"foo bar"
+txt06			TXT	"foo\032bar"
+txt07			TXT	foo\032bar
 txt08			TXT	"foo\010bar"
-txt09			TXT	"foo\010bar"
-txt10			TXT	"foo bar"
+txt09			TXT	foo\010bar
+txt10			TXT	foo\ bar
 txt11			TXT	"\"foo\""
-txt12			TXT	"\"foo\""
-txt13			TXT	foo
+txt12			TXT	\"foo\"
+txt13			TXT	"foo;"
+txt14			TXT	"foo\;"
+txt15			TXT	"bar\\;"
 $TTL 300	; 5 minutes
 u			TXT	"txt-not-in-nxt"
 $ORIGIN u.example.
