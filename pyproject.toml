@@ -19,6 +19,7 @@ cryptography = {version="^2.6", optional=true}
 mypy = "^0.770"
 pytest = "^5.4.1"
 flake8 = "^3.7.9"
+sphinx = "^3.0.0"
 
 [tool.poetry.extras]
 doh = ['requests', 'requests-toolbelt']
