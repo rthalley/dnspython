@@ -4,6 +4,9 @@ version = "2.0.0"
 description = "DNS toolkit"
 authors = ["Bob Halley <halley@dnspython.org>"]
 license = "ISC"
+packages = [
+    {include = "dns"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.5"
