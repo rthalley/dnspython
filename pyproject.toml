@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.5"
+python = "^3.6"
 requests-toolbelt = "^0.9.1"
 requests = "^2.23.0"
 idna = "^2.1"
