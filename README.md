@@ -32,6 +32,16 @@ to facilitate the testing of DNS software.
 * If not just download the source file and unzip it, then run
   `sudo python setup.py install`
 
+If you want to use DNS-over-HTTPS, you must run
+`pip install requests requests-toolbelt`
+
+If you want to use DNSSEC functionality, you must run
+`pip install cryptography`
+
+If you want to use internationalized domain names (IDNA)
+functionality, you must run
+`pip install idna`
+
 ## ABOUT THIS RELEASE
 
 This is the development version of dnspython 2.0.0
