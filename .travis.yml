@@ -1,16 +1,8 @@
 language: python
 python:
-  - "3.5"
   - "3.6"
   - "3.7"
   - "3.8"
-matrix:
-  include:
-    - python: 3.7  # https://github.com/travis-ci/travis-ci/issues/9815
-      dist: xenial
-      sudo: true
-  allow_failures:
-    - python: nightly
 branches:
   except:
     - python3

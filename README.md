@@ -39,7 +39,7 @@ This is the development version of dnspython 2.0.0
 ### Notices
 
 Python 2.x support ended with the release of 1.16.0.  dnspython 2.0.0 and
-later only support Python 3.4 and later.
+later only support Python 3.6 and later.
 
 The ChangeLog has been discontinued.  Please see the git history for detailed
 change information.
