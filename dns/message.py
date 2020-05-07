@@ -1013,6 +1013,10 @@ class _TextReader(object):
 def from_text(text, idna_codec=None):
     """Convert the text format message into a message object.
 
+    The reader stops after reading the first blank line in the input to
+    facilitate reading multiple messages from a single file with
+    ``dns.message.from_file()``.
+
     *text*, a ``text``, the text format message.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
@@ -1040,6 +1044,8 @@ def from_text(text, idna_codec=None):
 
 def from_file(f):
     """Read the next text format message from the specified file.
+
+    Message blocks are separated by a single blank line.
 
     *f*, a ``file`` or ``text``.  If *f* is text, it is treated as the
     pathname of a file to open.
