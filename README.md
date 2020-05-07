@@ -31,16 +31,20 @@ to facilitate the testing of DNS software.
 * If you have pip installed, you can do `pip install dnspython`
 * If not just download the source file and unzip it, then run
   `sudo python setup.py install`
+* To install the latest from the master branch, run `pip install git+https://github.com/rthalley/dnspython.git`
 
 If you want to use DNS-over-HTTPS, you must run
-`pip install requests requests-toolbelt`
+`pip install dnspython[doh]`.
 
 If you want to use DNSSEC functionality, you must run
-`pip install cryptography`
+`pip install dnspython[dnssec]`.
 
 If you want to use internationalized domain names (IDNA)
 functionality, you must run
-`pip install idna`
+`pip install dnspython[idna]`
+
+Note that you can install any combination of the above, e.g.:
+`pip install dnspython[doh,dnssec,idna]`
 
 ## ABOUT THIS RELEASE
 
