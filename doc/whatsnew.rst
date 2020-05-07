@@ -1,7 +1,7 @@
 .. _whatsnew:
 
-What's New in dnspython 1.16.0
-==============================
+What's New in dnspython 2.0.0
+=============================
 
 New Features
 ------------
