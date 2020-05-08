@@ -52,8 +52,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'dnspython'
-copyright = '2016, Nominum, Inc.'
-author = 'Nominum, Inc.'
+copyright = '2020, Dnspython Contributors.'
+author = 'Dnspython Contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
