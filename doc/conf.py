@@ -52,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'dnspython'
-copyright = '2020, Dnspython Contributors.'
+copyright = 'Dnspython Contributors'
 author = 'Dnspython Contributors'
 
 # The version info for the project you're documenting, acts as replacement for
