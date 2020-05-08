@@ -72,18 +72,6 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         r = dns.query.https(q, valid_tls_url, session=self.session, bootstrap_address=ip)
         self.assertTrue(q.is_response(r))
 
-    def test_send_https(self):
-        q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        wire = q.to_wire()
-        query_string = '?dns={}'.format(base64.urlsafe_b64encode(wire).decode('utf-8').strip("="))
-        request = requests.models.Request(
-            'GET',
-            'https://cloudflare-dns.com/dns-query{}'.format(query_string))
-        r = request.prepare()
-        response = dns.query.send_https(self.session, r)
-        dns_resp = dns.message.from_wire(response.content)
-        self.assertTrue(q.is_response(dns_resp))
-
     def test_new_session(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query('example.com.', dns.rdatatype.A)

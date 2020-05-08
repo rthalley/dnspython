@@ -228,22 +228,6 @@ def _destination_and_source(af, where, port, source, source_port,
         destination = None
     return (af, destination, source)
 
-def send_https(session, what, lifetime=None):
-    """
-    :param session: a :class:`requests.sessions.Session`
-    :param what: a :class:`requests.models.Request` or
-    :class:`requests.models.PreparedRequest`.
-    If it's a :class:`requests.models.Request`, it will be converted
-     into a :class:`requests.models.PreparedRequest`.
-    :param lifetime: timeout (in seconds)
-    :return: a :class:`requests.models.Response` object.
-    """
-    if not have_doh:
-        raise NoDOH
-    if isinstance(what, requests.models.Request):
-        what = what.prepare()
-    return session.send(what, timeout=lifetime)
-
 def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
           one_rr_per_rrset=False, ignore_trailing=False,
           session=None, path='/dns-query', post=True,
@@ -336,7 +320,7 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
             })
             response = session.post(url, headers=headers, data=wire,
                                     stream=True, timeout=timeout,
-                                    verify=verify)
+                                      verify=verify)
         else:
             wire = base64.urlsafe_b64encode(wire).decode('utf-8').strip("=")
             url += "?dns={}".format(wire)
