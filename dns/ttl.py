@@ -29,7 +29,7 @@ def from_text(text):
 
     The BIND 8 units syntax for TTLs (e.g. '1w6d4h3m10s') is supported.
 
-    *text*, a ``text``, the textual TTL.
+    *text*, a ``str``, the textual TTL.
 
     Raises ``dns.ttl.BadTTL`` if the TTL is not well-formed.
 

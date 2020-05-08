@@ -128,7 +128,7 @@ class Message(object):
         The *origin*, *relativize*, and any other keyword
         arguments are passed to the RRset ``to_wire()`` method.
 
-        Returns a ``text``.
+        Returns a ``str``.
         """
 
         s = io.StringIO()
@@ -406,7 +406,7 @@ class Message(object):
 
         Raises ``dns.exception.TooBig`` if *max_size* was exceeded.
 
-        Returns a ``binary``.
+        Returns a ``bytes``.
         """
 
         if max_size == 0:
@@ -464,7 +464,7 @@ class Message(object):
 
         *tsig_error*, an ``int``, the TSIG error code.
 
-        *other_data*, a ``binary``, the TSIG other data.
+        *other_data*, a ``bytes``, the TSIG other data.
 
         *algorithm*, a ``dns.name.Name``, the TSIG algorithm to use.
         """
@@ -769,7 +769,7 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
 
     *keyring*, a ``dict``, the keyring to use if the message is signed.
 
-    *request_mac*, a ``binary``.  If the message is a response to a
+    *request_mac*, a ``bytes``.  If the message is a response to a
     TSIG-signed request, *request_mac* should be set to the MAC of
     that request.
 
@@ -1017,7 +1017,7 @@ def from_text(text, idna_codec=None):
     facilitate reading multiple messages from a single file with
     ``dns.message.from_file()``.
 
-    *text*, a ``text``, the text format message.
+    *text*, a ``str``, the text format message.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
     encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
@@ -1047,7 +1047,7 @@ def from_file(f):
 
     Message blocks are separated by a single blank line.
 
-    *f*, a ``file`` or ``text``.  If *f* is text, it is treated as the
+    *f*, a ``file`` or ``str``.  If *f* is text, it is treated as the
     pathname of a file to open.
 
     Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
@@ -1074,11 +1074,11 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     The query will have a randomly chosen query id, and its DNS flags
     will be set to dns.flags.RD.
 
-    qname, a ``dns.name.Name`` or ``text``, the query name.
+    qname, a ``dns.name.Name`` or ``str``, the query name.
 
-    *rdtype*, an ``int`` or ``text``, the desired rdata type.
+    *rdtype*, an ``int`` or ``str``, the desired rdata type.
 
-    *rdclass*, an ``int`` or ``text``,  the desired rdata class; the default
+    *rdclass*, an ``int`` or ``str``,  the desired rdata class; the default
     is class IN.
 
     *use_edns*, an ``int``, ``bool`` or ``None``.  The EDNS level to use; the

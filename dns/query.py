@@ -273,7 +273,7 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
     *bootstrap_address*, a ``str``, the IP address to use to bypass the
     system's DNS resolver.
 
-    *verify*, a ``str`, containing a path to a certificate file or directory.
+    *verify*, a ``str``, containing a path to a certificate file or directory.
 
     Returns a ``dns.message.Message``.
     """
@@ -349,7 +349,7 @@ def send_udp(sock, what, destination, expiration=None):
 
     *sock*, a ``socket``.
 
-    *what*, a ``binary`` or ``dns.message.Message``, the message to send.
+    *what*, a ``bytes`` or ``dns.message.Message``, the message to send.
 
     *destination*, a destination tuple appropriate for the address family
     of the socket, specifying where to send the query.
@@ -391,7 +391,7 @@ def receive_udp(sock, destination, expiration=None,
 
     *keyring*, a ``dict``, the keyring to use for TSIG.
 
-    *request_mac*, a ``binary``, the MAC of the request (for TSIG).
+    *request_mac*, a ``bytes``, the MAC of the request (for TSIG).
 
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
@@ -426,7 +426,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
 
     *q*, a ``dns.message.Message``, the query to send
 
-    *where*, a ``text`` containing an IPv4 or IPv6 address,  where
+    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
     to send the message.
 
     *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
@@ -439,7 +439,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     *where*.  If the inference attempt fails, AF_INET is used.  This
     parameter is historical; you need never set it.
 
-    *source*, a ``text`` containing an IPv4 or IPv6 address, specifying
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
 
     *source_port*, an ``int``, the port from which to send the message.
@@ -530,7 +530,7 @@ def send_tcp(sock, what, expiration=None):
 
     *sock*, a ``socket``.
 
-    *what*, a ``binary`` or ``dns.message.Message``, the message to send.
+    *what*, a ``bytes`` or ``dns.message.Message``, the message to send.
 
     *expiration*, a ``float`` or ``None``, the absolute time at which
     a timeout exception should be raised.  If ``None``, no timeout will
@@ -566,7 +566,7 @@ def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
 
     *keyring*, a ``dict``, the keyring to use for TSIG.
 
-    *request_mac*, a ``binary``, the MAC of the request (for TSIG).
+    *request_mac*, a ``bytes``, the MAC of the request (for TSIG).
 
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
@@ -610,7 +610,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
 
     *q*, a ``dns.message.Message``, the query to send
 
-    *where*, a ``text`` containing an IPv4 or IPv6 address,  where
+    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
     to send the message.
 
     *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
@@ -623,7 +623,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     *where*.  If the inference attempt fails, AF_INET is used.  This
     parameter is historical; you need never set it.
 
-    *source*, a ``text`` containing an IPv4 or IPv6 address, specifying
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
 
     *source_port*, an ``int``, the port from which to send the message.
@@ -673,7 +673,7 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
 
     *q*, a ``dns.message.Message``, the query to send
 
-    *where*, a ``text`` containing an IPv4 or IPv6 address,  where
+    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
     to send the message.
 
     *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
@@ -686,7 +686,7 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
     *where*.  If the inference attempt fails, AF_INET is used.  This
     parameter is historical; you need never set it.
 
-    *source*, a ``text`` containing an IPv4 or IPv6 address, specifying
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
 
     *source_port*, an ``int``, the port from which to send the message.
@@ -702,7 +702,7 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
     a TLS connection. If ``None``, the default, creates one with the default
     configuration.
 
-    *server_hostname*, a ``text`` containing the server's hostname.  The
+    *server_hostname*, a ``str`` containing the server's hostname.  The
     default is ``None``, which means that no hostname is known, and if an
     SSL context is created, hostname checking will be disabled.
 
@@ -760,13 +760,13 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     *where*.  If the inference attempt fails, AF_INET is used.  This
     parameter is historical; you need never set it.
 
-    *zone*, a ``dns.name.Name`` or ``text``, the name of the zone to transfer.
+    *zone*, a ``dns.name.Name`` or ``str``, the name of the zone to transfer.
 
-    *rdtype*, an ``int`` or ``text``, the type of zone transfer.  The
+    *rdtype*, an ``int`` or ``str``, the type of zone transfer.  The
     default is ``dns.rdatatype.AXFR``.  ``dns.rdatatype.IXFR`` can be
     used to do an incremental transfer instead.
 
-    *rdclass*, an ``int`` or ``text``, the class of the zone transfer.
+    *rdclass*, an ``int`` or ``str``, the class of the zone transfer.
     The default is ``dns.rdataclass.IN``.
 
     *timeout*, a ``float``, the number of seconds to wait for each
@@ -776,7 +776,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
 
     *keyring*, a ``dict``, the keyring to use for TSIG.
 
-    *keyname*, a ``dns.name.Name`` or ``text``, the name of the TSIG
+    *keyname*, a ``dns.name.Name`` or ``str``, the name of the TSIG
     key to use.
 
     *relativize*, a ``bool``.  If ``True``, all names in the zone will be
@@ -793,7 +793,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     doing the transfer.  If ``None``, the default, then there is no
     limit on the time the transfer may take.
 
-    *source*, a ``text`` containing an IPv4 or IPv6 address, specifying
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
 
     *source_port*, an ``int``, the port from which to send the message.
@@ -805,7 +805,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
 
     *use_udp*, a ``bool``.  If ``True``, use UDP (only meaningful for IXFR).
 
-    *keyalgorithm*, a ``dns.name.Name`` or ``text``, the TSIG algorithm to use.
+    *keyalgorithm*, a ``dns.name.Name`` or ``str``, the TSIG algorithm to use.
 
     Raises on errors, and so does the generator.
 

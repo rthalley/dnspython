@@ -99,7 +99,7 @@ _colon_colon_end = re.compile(br'.*::$')
 def inet_aton(text, ignore_scope=False):
     """Convert an IPv6 address in text form to binary form.
 
-    *text*, a ``text``, the IPv6 address in textual form.
+    *text*, a ``str``, the IPv6 address in textual form.
 
     *ignore_scope*, a ``bool``.  If ``True``, a scope will be ignored.
     If ``False``, the default, it is an error for a scope to be present.

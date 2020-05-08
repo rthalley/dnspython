@@ -280,7 +280,7 @@ def register_type(rdtype, rdtype_text, is_singleton=False):  # pylint: disable=r
 
     *rdtype*, an ``int``, the rdatatype to register.
 
-    *rdtype_text*, a ``text``, the textual form of the rdatatype.
+    *rdtype_text*, a ``str``, the textual form of the rdatatype.
 
     *is_singleton*, a ``bool``, indicating if the type is a singleton (i.e.
     RRsets of the type can have only one member.)

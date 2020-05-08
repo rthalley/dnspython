@@ -41,12 +41,12 @@ def inet_pton(family, text):
 
     *family* is an ``int``, the address family.
 
-    *text* is a ``text``, the textual address.
+    *text* is a ``str``, the textual address.
 
     Raises ``NotImplementedError`` if the address family specified is not
     implemented.
 
-    Returns a ``binary``.
+    Returns a ``bytes``.
     """
 
     if family == AF_INET:
@@ -62,12 +62,12 @@ def inet_ntop(family, address):
 
     *family* is an ``int``, the address family.
 
-    *address* is a ``binary``, the network address in binary form.
+    *address* is a ``bytes``, the network address in binary form.
 
     Raises ``NotImplementedError`` if the address family specified is not
     implemented.
 
-    Returns a ``text``.
+    Returns a ``str``.
     """
 
     if family == AF_INET:
@@ -81,7 +81,7 @@ def inet_ntop(family, address):
 def af_for_address(text):
     """Determine the address family of a textual-form network address.
 
-    *text*, a ``text``, the textual address.
+    *text*, a ``str``, the textual address.
 
     Raises ``ValueError`` if the address family cannot be determined
     from the input.
@@ -103,7 +103,7 @@ def af_for_address(text):
 def is_multicast(text):
     """Is the textual-form network address a multicast address?
 
-    *text*, a ``text``, the textual address.
+    *text*, a ``str``, the textual address.
 
     Raises ``ValueError`` if the address family cannot be determined
     from the input.

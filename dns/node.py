@@ -40,10 +40,10 @@ class Node(object):
         Each rdataset at the node is printed.  Any keyword arguments
         to this method are passed on to the rdataset's to_text() method.
 
-        *name*, a ``dns.name.Name`` or ``text``, the owner name of the
+        *name*, a ``dns.name.Name`` or ``str``, the owner name of the
         rdatasets.
 
-        Returns a ``text``.
+        Returns a ``str``.
 
         """
 

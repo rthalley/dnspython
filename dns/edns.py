@@ -65,7 +65,7 @@ class Option(object):
 
         *otype*, an ``int``, is the option type.
 
-        *wire*, a ``binary``, is the wire-format message.
+        *wire*, a ``bytes``, is the wire-format message.
 
         *current*, an ``int``, is the offset in *wire* of the beginning
         of the rdata.
@@ -159,7 +159,7 @@ class ECSOption(Option):
     """EDNS Client Subnet (ECS, RFC7871)"""
 
     def __init__(self, address, srclen=None, scopelen=0):
-        """*address*, a ``text``, is the client address information.
+        """*address*, a ``str``, is the client address information.
 
         *srclen*, an ``int``, the source prefix length, which is the
         leftmost number of bits of the address to be used for the
@@ -309,7 +309,7 @@ def option_from_wire(otype, wire, current, olen):
 
     *otype*, an ``int``, is the option type.
 
-    *wire*, a ``binary``, is the wire-format message.
+    *wire*, a ``bytes``, is the wire-format message.
 
     *current*, an ``int``, is the offset in *wire* of the beginning
     of the rdata.

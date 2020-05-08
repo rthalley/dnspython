@@ -153,7 +153,7 @@ class Rdata(object):
     def to_text(self, origin=None, relativize=True, **kw):
         """Convert an rdata to text format.
 
-        Returns a ``text``.
+        Returns a ``str``.
         """
 
         raise NotImplementedError
@@ -179,7 +179,7 @@ class Rdata(object):
         """Convert rdata to a format suitable for digesting in hashes.  This
         is also the DNSSEC canonical form.
 
-        Returns a ``binary``.
+        Returns a ``bytes``.
         """
 
         f = io.BytesIO()
@@ -403,14 +403,14 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
     Once a class is chosen, its from_text() class method is called
     with the parameters to this function.
 
-    If *tok* is a ``text``, then a tokenizer is created and the string
+    If *tok* is a ``str``, then a tokenizer is created and the string
     is used as its input.
 
     *rdclass*, an ``int``, the rdataclass.
 
     *rdtype*, an ``int``, the rdatatype.
 
-    *tok*, a ``dns.tokenizer.Tokenizer`` or a ``text``.
+    *tok*, a ``dns.tokenizer.Tokenizer`` or a ``str``.
 
     *origin*, a ``dns.name.Name`` (or ``None``), the
     origin to use for relative names.
@@ -467,7 +467,7 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
 
     *rdtype*, an ``int``, the rdatatype.
 
-    *wire*, a ``binary``, the wire-format message.
+    *wire*, a ``bytes``, the wire-format message.
 
     *current*, an ``int``, the offset in wire of the beginning of
     the rdata.
@@ -501,7 +501,7 @@ def register_type(implementation, rdtype, rdtype_text, is_singleton=False,
 
     *rdtype*, an ``int``, the rdatatype to register.
 
-    *rdtype_text*, a ``text``, the textual form of the rdatatype.
+    *rdtype_text*, a ``str``, the textual form of the rdatatype.
 
     *is_singleton*, a ``bool``, indicating if the type is a singleton (i.e.
     RRsets of the type can have only one member.)

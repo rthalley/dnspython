@@ -32,7 +32,7 @@ def from_address(text, v4_origin=ipv4_reverse_domain,
     """Convert an IPv4 or IPv6 address in textual form into a Name object whose
     value is the reverse-map domain name of the address.
 
-    *text*, a ``text``, is an IPv4 or IPv6 address in textual form
+    *text*, a ``str``, is an IPv4 or IPv6 address in textual form
     (e.g. '127.0.0.1', '::1')
 
     *v4_origin*, a ``dns.name.Name`` to append to the labels corresponding to
@@ -79,7 +79,7 @@ def to_address(name, v4_origin=ipv4_reverse_domain,
     Raises ``dns.exception.SyntaxError`` if the name does not have a
     reverse-map form.
 
-    Returns a ``text``.
+    Returns a ``str``.
     """
 
     if name.is_subdomain(v4_origin):

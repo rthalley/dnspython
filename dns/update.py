@@ -36,10 +36,10 @@ class Update(dns.message.Message):
         See the documentation of the Message class for a complete
         description of the keyring dictionary.
 
-        *zone*, a ``dns.name.Name`` or ``text``, the zone which is being
+        *zone*, a ``dns.name.Name`` or ``str``, the zone which is being
         updated.
 
-        *rdclass*, an ``int`` or ``text``, the class of the zone.
+        *rdclass*, an ``int`` or ``str``, the class of the zone.
 
         *keyring*, a ``dict``, the TSIG keyring to use.  If a
         *keyring* is specified but a *keyname* is not, then the key
@@ -270,7 +270,7 @@ class Update(dns.message.Message):
         output; default is 0, which means "the message's request
         payload, if nonzero, or 65535".
 
-        Returns a ``binary``.
+        Returns a ``bytes``.
         """
 
         if origin is None:

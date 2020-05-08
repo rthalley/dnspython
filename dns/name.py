@@ -291,8 +291,8 @@ def _validate_labels(labels):
 
 
 def _maybe_convert_to_binary(label):
-    """If label is ``text``, convert it to ``binary``.  If it is already
-    ``binary`` just return it.
+    """If label is ``str``, convert it to ``bytes``.  If it is already
+    ``bytes`` just return it.
 
     """
 
@@ -308,14 +308,14 @@ class Name(object):
     """A DNS name.
 
     The dns.name.Name class represents a DNS name as a tuple of
-    labels.  Each label is a `binary` in DNS wire format.  Instances
+    labels.  Each label is a ``bytes`` in DNS wire format.  Instances
     of the class are immutable.
     """
 
     __slots__ = ['labels']
 
     def __init__(self, labels):
-        """*labels* is any iterable whose values are ``text`` or ``binary``.
+        """*labels* is any iterable whose values are ``str`` or ``bytes``.
         """
 
         labels = [_maybe_convert_to_binary(x) for x in labels]
@@ -532,7 +532,7 @@ class Name(object):
         dot (denoting the root label) for absolute names.  The default
         is False.
 
-        Returns a ``text``.
+        Returns a ``str``.
         """
 
         if len(self.labels) == 0:
@@ -561,7 +561,7 @@ class Name(object):
         don't want checking for compliance, you can use this decoder
         for IDNA2008 as well.
 
-        Returns a ``text``.
+        Returns a ``str``.
         """
 
         if len(self.labels) == 0:
@@ -590,7 +590,7 @@ class Name(object):
         Raises ``dns.name.NeedAbsoluteNameOrOrigin`` if the name is
         relative and no origin was provided.
 
-        Returns a ``binary``.
+        Returns a ``bytes``.
         """
 
         if not self.is_absolute():
@@ -608,7 +608,7 @@ class Name(object):
         """Convert name to wire format, possibly compressing it.
 
         *file* is the file where the name is emitted (typically an
-        io.BytesIO file).  If ``None`` (the default), a ``binary``
+        io.BytesIO file).  If ``None`` (the default), a ``bytes``
         containing the wire name will be returned.
 
         *compress*, a ``dict``, is the compression table to use.  If
@@ -621,7 +621,7 @@ class Name(object):
         Raises ``dns.name.NeedAbsoluteNameOrOrigin`` if the name is
         relative and no origin was provided.
 
-        Returns a ``binary`` or ``None``.
+        Returns a ``bytes`` or ``None``.
         """
 
         if file is None:
@@ -793,7 +793,7 @@ def from_unicode(text, origin=root, idna_codec=None):
     Labels are encoded in IDN ACE form according to rules specified by
     the IDNA codec.
 
-    *text*, a ``text``, is the text to convert into a name.
+    *text*, a ``str``, is the text to convert into a name.
 
     *origin*, a ``dns.name.Name``, specifies the origin to
     append to non-absolute names.  The default is the root name.
@@ -870,7 +870,7 @@ def is_all_ascii(text):
 def from_text(text, origin=root, idna_codec=None):
     """Convert text into a Name object.
 
-    *text*, a ``text``, is the text to convert into a name.
+    *text*, a ``str``, is the text to convert into a name.
 
     *origin*, a ``dns.name.Name``, specifies the origin to
     append to non-absolute names.  The default is the root name.
@@ -953,7 +953,7 @@ def from_text(text, origin=root, idna_codec=None):
 def from_wire(message, current):
     """Convert possibly compressed wire format into a Name.
 
-    *message* is a ``binary`` containing an entire DNS message in DNS
+    *message* is a ``bytes`` containing an entire DNS message in DNS
     wire form.
 
     *current*, an ``int``, is the offset of the beginning of the name

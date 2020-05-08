@@ -104,7 +104,7 @@ def to_text(flags):
     """Convert a flags value into a space-separated list of flag text
     values.
 
-    Returns a ``text``.
+    Returns a ``str``.
     """
 
     return _to_text(flags, _by_value, _flags_order)
@@ -124,7 +124,7 @@ def edns_to_text(flags):
     """Convert an EDNS flags value into a space-separated list of EDNS flag
     text values.
 
-    Returns a ``text``.
+    Returns a ``str``.
     """
 
     return _to_text(flags, _edns_by_value, _edns_flags_order)

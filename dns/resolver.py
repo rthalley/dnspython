@@ -494,7 +494,7 @@ class Resolver(object):
     """DNS stub resolver."""
 
     def __init__(self, filename='/etc/resolv.conf', configure=True):
-        """*filename*, a ``text`` or file object, specifying a file
+        """*filename*, a ``str`` or file object, specifying a file
         in standard /etc/resolv.conf format.  This parameter is meaningful
         only when *configure* is true and the platform is POSIX.
 
@@ -558,7 +558,7 @@ class Resolver(object):
 
     def read_resolv_conf(self, f):
         """Process *f* as a file in the /etc/resolv.conf format.  If f is
-        a ``text``, it is used as the name of the file to open; otherwise it
+        a ``str``, it is used as the name of the file to open; otherwise it
         is treated as the file itself.
 
         Interprets the following items:
@@ -814,15 +814,15 @@ class Resolver(object):
         of the appropriate type, or strings that can be converted into objects
         of the appropriate type.
 
-        *qname*, a ``dns.name.Name`` or ``text``, the query name.
+        *qname*, a ``dns.name.Name`` or ``str``, the query name.
 
-        *rdtype*, an ``int`` or ``text``,  the query type.
+        *rdtype*, an ``int`` or ``str``,  the query type.
 
-        *rdclass*, an ``int`` or ``text``,  the query class.
+        *rdclass*, an ``int`` or ``str``,  the query class.
 
         *tcp*, a ``bool``.  If ``True``, use TCP to make the query.
 
-        *source*, a ``text`` or ``None``.  If not ``None``, bind to this IP
+        *source*, a ``str`` or ``None``.  If not ``None``, bind to this IP
         address when making queries.
 
         *raise_on_no_answer*, a ``bool``.  If ``True``, raise
@@ -1166,7 +1166,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     """Find the name of the zone which contains the specified name.
 
-    *name*, an absolute ``dns.name.Name`` or ``text``, the query name.
+    *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
 
     *rdclass*, an ``int``, the query class.
 

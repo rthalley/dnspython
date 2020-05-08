@@ -73,7 +73,7 @@ class UnknownRcode(dns.exception.DNSException):
 def from_text(text):
     """Convert text into an rcode.
 
-    *text*, a ``text``, the textual rcode or an integer in textual form.
+    *text*, a ``str``, the textual rcode or an integer in textual form.
 
     Raises ``dns.rcode.UnknownRcode`` if the rcode mnemonic is unknown.
 
@@ -132,7 +132,7 @@ def to_text(value):
 
     Raises ``ValueError`` if rcode is < 0 or > 4095.
 
-    Returns a ``text``.
+    Returns a ``str``.
     """
 
     if value < 0 or value > 4095:

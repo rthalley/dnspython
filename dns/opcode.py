@@ -52,7 +52,7 @@ class UnknownOpcode(dns.exception.DNSException):
 def from_text(text):
     """Convert text into an opcode.
 
-    *text*, a ``text``, the textual opcode
+    *text*, a ``str``, the textual opcode
 
     Raises ``dns.opcode.UnknownOpcode`` if the opcode is unknown.
 
@@ -99,7 +99,7 @@ def to_text(value):
 
     Raises ``dns.opcode.UnknownOpcode`` if the opcode is unknown.
 
-    Returns a ``text``.
+    Returns a ``str``.
     """
 
     text = _by_value.get(value)
