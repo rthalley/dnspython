@@ -131,6 +131,10 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
     """Create an RRset with the specified name, TTL, class, and type, and with
     the specified list of rdatas in text format.
 
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder to use; if ``None``, the default IDNA 2003
+    encoder/decoder is used.
+
     Returns a ``dns.rrset.RRset`` object.
     """
 
