@@ -27,6 +27,7 @@ continuing to employ the author.
    installation
    manual
    rfc
+   license
 
 Indices and tables
 ==================
