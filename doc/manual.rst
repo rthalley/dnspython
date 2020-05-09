@@ -8,8 +8,9 @@ Dnspython Manual
    name
    rdata
    message
-   dnssec
    query
    resolver
+   zone
+   dnssec
    exceptions
    utilities

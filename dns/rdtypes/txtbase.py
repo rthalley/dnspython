@@ -26,15 +26,19 @@ import dns.tokenizer
 
 class TXTBase(dns.rdata.Rdata):
 
-    """Base class for rdata that is like a TXT record
-
-    @ivar strings: the strings
-    @type strings: list of binary
-    @see: RFC 1035"""
+    """Base class for rdata that is like a TXT record (see RFC 1035)."""
 
     __slots__ = ['strings']
 
     def __init__(self, rdclass, rdtype, strings):
+        """Initialize a TXT-like rdata.
+
+        *rdclass*, an ``int`` is the rdataclass of the Rdata.
+
+        *rdtype*, an ``int`` is the rdatatype of the Rdata.
+
+        *strings*, a tuple of ``bytes``
+        """
         super().__init__(rdclass, rdtype)
         if isinstance(strings, (bytes, str)):
             strings = (strings,)

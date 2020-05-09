@@ -86,3 +86,11 @@ dns.ttl Exceptions
 ------------------
 
 .. autoexception:: dns.ttl.BadTTL
+
+dns.zone Exceptions
+-------------------
+
+.. autoexception:: dns.zone.BadZone
+.. autoexception:: dns.zone.NoSOA
+.. autoexception:: dns.zone.NoNS
+.. autoexception:: dns.zone.UnknownOrigin

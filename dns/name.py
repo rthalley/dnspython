@@ -159,6 +159,11 @@ class IDNA2003Codec(IDNACodec):
 
 class IDNA2008Codec(IDNACodec):
     """IDNA 2008 encoder/decoder.
+    """
+
+    def __init__(self, uts_46=False, transitional=False,
+                 allow_pure_ascii=False, strict_decode=False):
+        """Initialize the IDNA 2008 encoder/decoder.
 
         *uts_46* is a ``bool``.  If True, apply Unicode IDNA
         compatibility processing as described in Unicode Technical
@@ -180,10 +185,6 @@ class IDNA2008Codec(IDNACodec):
         is done when decoding.  This can cause failures if the name
         was encoded with IDNA2003.  The default is False.
         """
-
-    def __init__(self, uts_46=False, transitional=False,
-                 allow_pure_ascii=False, strict_decode=False):
-        """Initialize the IDNA 2008 encoder/decoder."""
         super(IDNA2008Codec, self).__init__()
         self.uts_46 = uts_46
         self.transitional = transitional

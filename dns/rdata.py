@@ -112,6 +112,7 @@ class Rdata(object):
         """Initialize an rdata.
 
         *rdclass*, an ``int`` is the rdataclass of the Rdata.
+
         *rdtype*, an ``int`` is the rdatatype of the Rdata.
         """
 

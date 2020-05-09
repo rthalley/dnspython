@@ -60,24 +60,12 @@ class Zone(object):
 
     """A DNS zone.
 
-    A Zone is a mapping from names to nodes.  The zone object may be
-    treated like a Python dictionary, e.g. zone[name] will retrieve
-    the node associated with that name.  The I{name} may be a
-    dns.name.Name object, or it may be a string.  In the either case,
+    A ``Zone`` is a mapping from names to nodes.  The zone object may be
+    treated like a Python dictionary, e.g. ``zone[name]`` will retrieve
+    the node associated with that name.  The *name* may be a
+    ``dns.name.Name object``, or it may be a string.  In the either case,
     if the name is relative it is treated as relative to the origin of
     the zone.
-
-    @ivar rdclass: The zone's rdata class; the default is class IN.
-    @type rdclass: int
-    @ivar origin: The origin of the zone.
-    @type origin: dns.name.Name object
-    @ivar nodes: A dictionary mapping the names of nodes in the zone to the
-    nodes themselves.
-    @type nodes: dict
-    @ivar relativize: should names in the zone be relativized?
-    @type relativize: bool
-    @cvar node_factory: the factory used to create a new node
-    @type node_factory: class or callable
     """
 
     node_factory = dns.node.Node
@@ -87,10 +75,15 @@ class Zone(object):
     def __init__(self, origin, rdclass=dns.rdataclass.IN, relativize=True):
         """Initialize a zone object.
 
-        @param origin: The origin of the zone.
-        @type origin: dns.name.Name object
-        @param rdclass: The zone's rdata class; the default is class IN.
-        @type rdclass: int"""
+        *origin* is the origin of the zone.  It may be a ``dns.name.Name``,
+        a ``str``, or ``None``.  If ``None``, then the zone's origin will
+        be set by the first ``$ORIGIN`` line in a masterfile.
+
+        *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
+
+        *relativize*, a ``bool``, determine's whether domain names are
+        relativized to the zone's origin.  The default is ``True``.
+        """
 
         if origin is not None:
             if isinstance(origin, str):
@@ -108,7 +101,8 @@ class Zone(object):
     def __eq__(self, other):
         """Two zones are equal if they have the same origin, class, and
         nodes.
-        @rtype: bool
+
+        Returns a ``bool``.
         """
 
         if not isinstance(other, Zone):
@@ -121,7 +115,8 @@ class Zone(object):
 
     def __ne__(self, other):
         """Are two zones not equal?
-        @rtype: bool
+
+        Returns a ``bool``.
         """
 
         return not self.__eq__(other)
@@ -181,12 +176,18 @@ class Zone(object):
     def find_node(self, name, create=False):
         """Find a node in the zone, possibly creating it.
 
-        @param name: the name of the node to find
-        @type name: dns.name.Name object or string
-        @param create: should the node be created if it doesn't exist?
-        @type create: bool
-        @raises KeyError: the name is not known and create was not specified.
-        @rtype: dns.node.Node object
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
+
+        *create*, a ``bool``.  If true, the node will be created if it does
+        not exist.
+
+        Raises ``KeyError`` if the name is not known and create was
+        not specified, or if the name was not a subdomain of the origin.
+
+        Returns a ``dns.node.Node``.
         """
 
         name = self._validate_name(name)
@@ -201,15 +202,22 @@ class Zone(object):
     def get_node(self, name, create=False):
         """Get a node in the zone, possibly creating it.
 
-        This method is like L{find_node}, except it returns None instead
+        This method is like ``find_node()``, except it returns None instead
         of raising an exception if the node does not exist and creation
         has not been requested.
 
-        @param name: the name of the node to find
-        @type name: dns.name.Name object or string
-        @param create: should the node be created if it doesn't exist?
-        @type create: bool
-        @rtype: dns.node.Node object or None
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
+
+        *create*, a ``bool``.  If true, the node will be created if it does
+        not exist.
+
+        Raises ``KeyError`` if the name is not known and create was
+        not specified, or if the name was not a subdomain of the origin.
+
+        Returns a ``dns.node.Node`` or ``None``.
         """
 
         try:
@@ -221,6 +229,11 @@ class Zone(object):
     def delete_node(self, name):
         """Delete the specified node if it exists.
 
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
+
         It is not an error if the node does not exist.
         """
 
@@ -230,30 +243,38 @@ class Zone(object):
 
     def find_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
                       create=False):
-        """Look for rdata with the specified name and type in the zone,
+        """Look for an rdataset with the specified name and type in the zone,
         and return an rdataset encapsulating it.
-
-        The I{name}, I{rdtype}, and I{covers} parameters may be
-        strings, in which case they will be converted to their proper
-        type.
 
         The rdataset returned is not a copy; changes to it will change
         the zone.
 
         KeyError is raised if the name or type are not found.
-        Use L{get_rdataset} if you want to have None returned instead.
 
-        @param name: the owner name to look for
-        @type name: DNS.name.Name object or string
-        @param rdtype: the rdata type desired
-        @type rdtype: int or string
-        @param covers: the covered type (defaults to None)
-        @type covers: int or string
-        @param create: should the node and rdataset be created if they do not
-        exist?
-        @type create: bool
-        @raises KeyError: the node or rdata could not be found
-        @rtype: dns.rdataset.Rdataset object
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
+
+        *rdtype*, an ``int`` or ``str``, the rdata type desired.
+
+        *covers*, an ``int`` or ``str`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
+
+        *create*, a ``bool``.  If true, the node will be created if it does
+        not exist.
+
+        Raises ``KeyError`` if the name is not known and create was
+        not specified, or if the name was not a subdomain of the origin.
+
+        Returns a ``dns.rdataset.Rdataset``.
         """
 
         name = self._validate_name(name)
@@ -266,29 +287,39 @@ class Zone(object):
 
     def get_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
                      create=False):
-        """Look for rdata with the specified name and type in the zone,
-        and return an rdataset encapsulating it.
+        """Look for an rdataset with the specified name and type in the zone.
 
-        The I{name}, I{rdtype}, and I{covers} parameters may be
-        strings, in which case they will be converted to their proper
-        type.
+        This method is like ``find_rdataset()``, except it returns None instead
+        of raising an exception if the rdataset does not exist and creation
+        has not been requested.
 
         The rdataset returned is not a copy; changes to it will change
         the zone.
 
-        None is returned if the name or type are not found.
-        Use L{find_rdataset} if you want to have KeyError raised instead.
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
 
-        @param name: the owner name to look for
-        @type name: DNS.name.Name object or string
-        @param rdtype: the rdata type desired
-        @type rdtype: int or string
-        @param covers: the covered type (defaults to None)
-        @type covers: int or string
-        @param create: should the node and rdataset be created if they do not
-        exist?
-        @type create: bool
-        @rtype: dns.rdataset.Rdataset object or None
+        *rdtype*, an ``int`` or ``str``, the rdata type desired.
+
+        *covers*, an ``int`` or ``str`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
+
+        *create*, a ``bool``.  If true, the node will be created if it does
+        not exist.
+
+        Raises ``KeyError`` if the name is not known and create was
+        not specified, or if the name was not a subdomain of the origin.
+
+        Returns a ``dns.rdataset.Rdataset`` or ``None``.
         """
 
         try:
@@ -298,12 +329,8 @@ class Zone(object):
         return rdataset
 
     def delete_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE):
-        """Delete the rdataset matching I{rdtype} and I{covers}, if it
-        exists at the node specified by I{name}.
-
-        The I{name}, I{rdtype}, and I{covers} parameters may be
-        strings, in which case they will be converted to their proper
-        type.
+        """Delete the rdataset matching *rdtype* and *covers*, if it
+        exists at the node specified by *name*.
 
         It is not an error if the node does not exist, or if there is no
         matching rdataset at the node.
@@ -311,12 +338,22 @@ class Zone(object):
         If the node has no rdatasets after the deletion, it will itself
         be deleted.
 
-        @param name: the owner name to look for
-        @type name: DNS.name.Name object or string
-        @param rdtype: the rdata type desired
-        @type rdtype: int or string
-        @param covers: the covered type (defaults to None)
-        @type covers: int or string
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
+
+        *rdtype*, an ``int`` or ``str``, the rdata type desired.
+
+        *covers*, an ``int`` or ``str`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
         """
 
         name = self._validate_name(name)
@@ -335,16 +372,18 @@ class Zone(object):
 
         It is not an error if there is no rdataset matching I{replacement}.
 
-        Ownership of the I{replacement} object is transferred to the zone;
-        in other words, this method does not store a copy of I{replacement}
-        at the node, it stores I{replacement} itself.
+        Ownership of the *replacement* object is transferred to the zone;
+        in other words, this method does not store a copy of *replacement*
+        at the node, it stores *replacement* itself.
 
-        If the I{name} node does not exist, it is created.
+        If the node does not exist, it is created.
 
-        @param name: the owner name
-        @type name: DNS.name.Name object or string
-        @param replacement: the replacement rdataset
-        @type replacement: dns.rdataset.Rdataset
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
+
+        *replacement*, a ``dns.rdataset.Rdataset``, the replacement rdataset.
         """
 
         if replacement.rdclass != self.rdclass:
@@ -353,33 +392,42 @@ class Zone(object):
         node.replace_rdataset(replacement)
 
     def find_rrset(self, name, rdtype, covers=dns.rdatatype.NONE):
-        """Look for rdata with the specified name and type in the zone,
+        """Look for an rdataset with the specified name and type in the zone,
         and return an RRset encapsulating it.
 
-        The I{name}, I{rdtype}, and I{covers} parameters may be
-        strings, in which case they will be converted to their proper
-        type.
-
         This method is less efficient than the similar
-        L{find_rdataset} because it creates an RRset instead of
+        ``find_rdataset()`` because it creates an RRset instead of
         returning the matching rdataset.  It may be more convenient
         for some uses since it returns an object which binds the owner
-        name to the rdata.
+        name to the rdataset.
 
         This method may not be used to create new nodes or rdatasets;
-        use L{find_rdataset} instead.
+        use ``find_rdataset`` instead.
 
-        KeyError is raised if the name or type are not found.
-        Use L{get_rrset} if you want to have None returned instead.
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
 
-        @param name: the owner name to look for
-        @type name: DNS.name.Name object or string
-        @param rdtype: the rdata type desired
-        @type rdtype: int or string
-        @param covers: the covered type (defaults to None)
-        @type covers: int or string
-        @raises KeyError: the node or rdata could not be found
-        @rtype: dns.rrset.RRset object
+        *rdtype*, an ``int`` or ``str``, the rdata type desired.
+
+        *covers*, an ``int`` or ``str`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
+
+        *create*, a ``bool``.  If true, the node will be created if it does
+        not exist.
+
+        Raises ``KeyError`` if the name is not known and create was
+        not specified, or if the name was not a subdomain of the origin.
+
+        Returns a ``dns.rrset.RRset`` or ``None``.
         """
 
         name = self._validate_name(name)
@@ -393,31 +441,41 @@ class Zone(object):
         return rrset
 
     def get_rrset(self, name, rdtype, covers=dns.rdatatype.NONE):
-        """Look for rdata with the specified name and type in the zone,
+        """Look for an rdataset with the specified name and type in the zone,
         and return an RRset encapsulating it.
 
-        The I{name}, I{rdtype}, and I{covers} parameters may be
-        strings, in which case they will be converted to their proper
-        type.
-
-        This method is less efficient than the similar L{get_rdataset}
+        This method is less efficient than the similar ``get_rdataset()``
         because it creates an RRset instead of returning the matching
         rdataset.  It may be more convenient for some uses since it
-        returns an object which binds the owner name to the rdata.
+        returns an object which binds the owner name to the rdataset.
 
         This method may not be used to create new nodes or rdatasets;
-        use L{find_rdataset} instead.
+        use ``get_rdataset()`` instead.
 
-        None is returned if the name or type are not found.
-        Use L{find_rrset} if you want to have KeyError raised instead.
+        *name*: the name of the node to find.
+        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
+        name must be a subdomain of the zone's origin.  If ``zone.relativize``
+        is ``True``, then the name will be relativized.
 
-        @param name: the owner name to look for
-        @type name: DNS.name.Name object or string
-        @param rdtype: the rdata type desired
-        @type rdtype: int or string
-        @param covers: the covered type (defaults to None)
-        @type covers: int or string
-        @rtype: dns.rrset.RRset object
+        *rdtype*, an ``int`` or ``str``, the rdata type desired.
+
+        *covers*, an ``int`` or ``str`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
+
+        *create*, a ``bool``.  If true, the node will be created if it does
+        not exist.
+
+        Raises ``KeyError`` if the name is not known and create was
+        not specified, or if the name was not a subdomain of the origin.
+
+        Returns a ``dns.rrset.RRset`` or ``None``.
         """
 
         try:
@@ -429,14 +487,21 @@ class Zone(object):
     def iterate_rdatasets(self, rdtype=dns.rdatatype.ANY,
                           covers=dns.rdatatype.NONE):
         """Return a generator which yields (name, rdataset) tuples for
-        all rdatasets in the zone which have the specified I{rdtype}
-        and I{covers}.  If I{rdtype} is dns.rdatatype.ANY, the default,
+        all rdatasets in the zone which have the specified *rdtype*
+        and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
         then all rdatasets will be matched.
 
-        @param rdtype: int or string
-        @type rdtype: int or string
-        @param covers: the covered type (defaults to None)
-        @type covers: int or string
+        *rdtype*, an ``int`` or ``str``, the rdata type desired.
+
+        *covers*, an ``int`` or ``str`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
         """
 
         if isinstance(rdtype, str):
@@ -452,14 +517,21 @@ class Zone(object):
     def iterate_rdatas(self, rdtype=dns.rdatatype.ANY,
                        covers=dns.rdatatype.NONE):
         """Return a generator which yields (name, ttl, rdata) tuples for
-        all rdatas in the zone which have the specified I{rdtype}
-        and I{covers}.  If I{rdtype} is dns.rdatatype.ANY, the default,
+        all rdatas in the zone which have the specified *rdtype*
+        and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
         then all rdatas will be matched.
 
-        @param rdtype: int or string
-        @type rdtype: int or string
-        @param covers: the covered type (defaults to None)
-        @type covers: int or string
+        *rdtype*, an ``int`` or ``str``, the rdata type desired.
+
+        *covers*, an ``int`` or ``str`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
         """
 
         if isinstance(rdtype, str):
@@ -476,27 +548,29 @@ class Zone(object):
     def to_file(self, f, sorted=True, relativize=True, nl=None):
         """Write a zone to a file.
 
-        @param f: file or string.  If I{f} is a string, it is treated
+        *f*, a file or `str`.  If *f* is a string, it is treated
         as the name of a file to open.
-        @param sorted: if True, the file will be written with the
-        names sorted in DNSSEC order from least to greatest.  Otherwise
-        the names will be written in whatever order they happen to have
-        in the zone's dictionary.
-        @param relativize: if True, domain names in the output will be
-        relativized to the zone's origin (if possible).
-        @type relativize: bool
-        @param nl: The end of line string.  If not specified, the
-        output will use the platform's native end-of-line marker (i.e.
-        LF on POSIX, CRLF on Windows, CR on Macintosh).
-        @type nl: string or None
+
+        *sorted*, a ``bool``.  If True, the default, then the file
+        will be written with the names sorted in DNSSEC order from
+        least to greatest.  Otherwise the names will be written in
+        whatever order they happen to have in the zone's dictionary.
+
+        *relativize*, a ``bool``.  If True, the default, then domain
+        names in the output will be relativized to the zone's origin
+        if possible.
+
+        *nl*, a ``str`` or None.  The end of line string.  If not
+        ``None``, the output will use the platform's native
+        end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
         """
 
         with contextlib.ExitStack() as stack:
             if isinstance(f, str):
                 f = stack.enter_context(open(f, 'wb'))
 
-            # must be in this way, f.encoding may contain None, or even attribute
-            # may not be there
+            # must be in this way, f.encoding may contain None, or even
+            # attribute may not be there
             file_enc = getattr(f, 'encoding', None)
             if file_enc is None:
                 file_enc = 'utf-8'
@@ -535,17 +609,20 @@ class Zone(object):
     def to_text(self, sorted=True, relativize=True, nl=None):
         """Return a zone's text as though it were written to a file.
 
-        @param sorted: if True, the file will be written with the
-        names sorted in DNSSEC order from least to greatest.  Otherwise
-        the names will be written in whatever order they happen to have
-        in the zone's dictionary.
-        @param relativize: if True, domain names in the output will be
-        relativized to the zone's origin (if possible).
-        @type relativize: bool
-        @param nl: The end of line string.  If not specified, the
-        output will use the platform's native end-of-line marker (i.e.
-        LF on POSIX, CRLF on Windows, CR on Macintosh).
-        @type nl: string or None
+        *sorted*, a ``bool``.  If True, the default, then the file
+        will be written with the names sorted in DNSSEC order from
+        least to greatest.  Otherwise the names will be written in
+        whatever order they happen to have in the zone's dictionary.
+
+        *relativize*, a ``bool``.  If True, the default, then domain
+        names in the output will be relativized to the zone's origin
+        if possible.
+
+        *nl*, a ``str`` or None.  The end of line string.  If not
+        ``None``, the output will use the platform's native
+        end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
+
+        Returns a ``str``.
         """
         temp_buffer = io.StringIO()
         self.to_file(temp_buffer, sorted, relativize, nl)
@@ -556,9 +633,11 @@ class Zone(object):
     def check_origin(self):
         """Do some simple checking of the zone's origin.
 
-        @raises dns.zone.NoSOA: there is no SOA RR
-        @raises dns.zone.NoNS: there is no NS RRset
-        @raises KeyError: there is no origin node
+        Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
+
+        Raises ``dns.zone.NoNS`` if there is no NS RRset.
+
+        Raises ``KeyError`` if there is no origin node.
         """
         if self.relativize:
             name = dns.name.empty
@@ -707,7 +786,8 @@ class _MasterReader(object):
             raise dns.exception.SyntaxError(
                 "caught exception {}: {}".format(str(ty), str(va)))
 
-        if not self.default_ttl_known and isinstance(rd, dns.rdtypes.ANY.SOA.SOA):
+        if not self.default_ttl_known and \
+           isinstance(rd, dns.rdtypes.ANY.SOA.SOA):
             # The pre-RFC2308 and pre-BIND9 behavior inherits the zone default
             # TTL from the SOA minttl if no $TTL statement is present before the
             # SOA is parsed.
@@ -988,32 +1068,43 @@ def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
               allow_include=False, check_origin=True, idna_codec=None):
     """Build a zone object from a master file format string.
 
-    @param text: the master file format input
-    @type text: string.
-    @param origin: The origin of the zone; if not specified, the first
-    $ORIGIN statement in the master file will determine the origin of the
-    zone.
-    @type origin: dns.name.Name object or string
-    @param rdclass: The zone's rdata class; the default is class IN.
-    @type rdclass: int
-    @param relativize: should names be relativized?  The default is True
-    @type relativize: bool
-    @param zone_factory: The zone factory to use
-    @type zone_factory: function returning a Zone
-    @param filename: The filename to emit when describing where an error
-    occurred; the default is '<string>'.
-    @type filename: string
-    @param allow_include: is $INCLUDE allowed?
-    @type allow_include: bool
-    @param check_origin: should sanity checks of the origin node be done?
-    The default is True.
-    @type check_origin: bool
-    @param idna_codec: specifies the IDNA encoder/decoder.  If ``None``, the
-    default IDNA 2003 encoder/decoder is used.
-    @type idna_codec: dns.name.IDNACodec or None
-    @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
-    @raises dns.zone.NoNS: No NS RRset was found at the zone origin
-    @rtype: dns.zone.Zone object
+    *text*, a ``str``, the master file format input.
+
+    *origin*, a ``dns.name.Name``, a ``str``, or ``None``.  The origin
+    of the zone; if not specified, the first ``$ORIGIN`` statement in the
+    masterfile will determine the origin of the zone.
+
+    *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
+
+    *relativize*, a ``bool``, determine's whether domain names are
+    relativized to the zone's origin.  The default is ``True``.
+
+    *zone_factory*, the zone factory to use or ``None``.  If ``None``, then
+    ``dns.zone.Zone`` will be used.  The value may be any class or callable
+    that returns a subclass of ``dns.zone.Zone``.
+
+    *filename*, a ``str`` or ``None``, the filename to emit when
+    describing where an error occurred; the default is ``'<string>'``.
+
+    *allow_include*, a ``bool``.  If ``True``, the default, then ``$INCLUDE``
+    directives are permitted.  If ``False``, then encoutering a ``$INCLUDE``
+    will raise a ``SyntaxError`` exception.
+
+    *check_origin*, a ``bool``.  If ``True``, the default, then sanity
+    checks of the origin node will be made by calling the zone's
+    ``check_origin()`` method.
+
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    is used.
+
+    Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
+
+    Raises ``dns.zone.NoNS`` if there is no NS RRset.
+
+    Raises ``KeyError`` if there is no origin node.
+
+    Returns a subclass of ``dns.zone.Zone``.
     """
 
     # 'text' can also be a file, but we don't publish that fact
@@ -1035,30 +1126,44 @@ def from_file(f, origin=None, rdclass=dns.rdataclass.IN,
               allow_include=True, check_origin=True):
     """Read a master file and build a zone object.
 
-    @param f: file or string.  If I{f} is a string, it is treated
+    *f*, a file or ``str``.  If *f* is a string, it is treated
     as the name of a file to open.
-    @param origin: The origin of the zone; if not specified, the first
-    $ORIGIN statement in the master file will determine the origin of the
-    zone.
-    @type origin: dns.name.Name object or string
-    @param rdclass: The zone's rdata class; the default is class IN.
-    @type rdclass: int
-    @param relativize: should names be relativized?  The default is True
-    @type relativize: bool
-    @param zone_factory: The zone factory to use
-    @type zone_factory: function returning a Zone
-    @param filename: The filename to emit when describing where an error
-    occurred; the default is '<file>', or the value of I{f} if I{f} is a
-    string.
-    @type filename: string
-    @param allow_include: is $INCLUDE allowed?
-    @type allow_include: bool
-    @param check_origin: should sanity checks of the origin node be done?
-    The default is True.
-    @type check_origin: bool
-    @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
-    @raises dns.zone.NoNS: No NS RRset was found at the zone origin
-    @rtype: dns.zone.Zone object
+
+    *origin*, a ``dns.name.Name``, a ``str``, or ``None``.  The origin
+    of the zone; if not specified, the first ``$ORIGIN`` statement in the
+    masterfile will determine the origin of the zone.
+
+    *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
+
+    *relativize*, a ``bool``, determine's whether domain names are
+    relativized to the zone's origin.  The default is ``True``.
+
+    *zone_factory*, the zone factory to use or ``None``.  If ``None``, then
+    ``dns.zone.Zone`` will be used.  The value may be any class or callable
+    that returns a subclass of ``dns.zone.Zone``.
+
+    *filename*, a ``str`` or ``None``, the filename to emit when
+    describing where an error occurred; the default is ``'<string>'``.
+
+    *allow_include*, a ``bool``.  If ``True``, the default, then ``$INCLUDE``
+    directives are permitted.  If ``False``, then encoutering a ``$INCLUDE``
+    will raise a ``SyntaxError`` exception.
+
+    *check_origin*, a ``bool``.  If ``True``, the default, then sanity
+    checks of the origin node will be made by calling the zone's
+    ``check_origin()`` method.
+
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    is used.
+
+    Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
+
+    Raises ``dns.zone.NoNS`` if there is no NS RRset.
+
+    Raises ``KeyError`` if there is no origin node.
+
+    Returns a subclass of ``dns.zone.Zone``.
     """
 
     with contextlib.ExitStack() as stack:
@@ -1073,18 +1178,25 @@ def from_file(f, origin=None, rdclass=dns.rdataclass.IN,
 def from_xfr(xfr, zone_factory=Zone, relativize=True, check_origin=True):
     """Convert the output of a zone transfer generator into a zone object.
 
-    @param xfr: The xfr generator
-    @type xfr: generator of dns.message.Message objects
-    @param relativize: should names be relativized?  The default is True.
+    *xfr*, a generator of ``dns.message.Message`` objects, typically
+    ``dns.query.xfr()``.
+
+    *relativize*, a ``bool``, determine's whether domain names are
+    relativized to the zone's origin.  The default is ``True``.
     It is essential that the relativize setting matches the one specified
-    to dns.query.xfr().
-    @type relativize: bool
-    @param check_origin: should sanity checks of the origin node be done?
-    The default is True.
-    @type check_origin: bool
-    @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
-    @raises dns.zone.NoNS: No NS RRset was found at the zone origin
-    @rtype: dns.zone.Zone object
+    to the generator.
+
+    *check_origin*, a ``bool``.  If ``True``, the default, then sanity
+    checks of the origin node will be made by calling the zone's
+    ``check_origin()`` method.
+
+    Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
+
+    Raises ``dns.zone.NoNS`` if there is no NS RRset.
+
+    Raises ``KeyError`` if there is no origin node.
+
+    Returns a subclass of ``dns.zone.Zone``.
     """
 
     z = None

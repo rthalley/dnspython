@@ -87,14 +87,15 @@ class Node(object):
 
         *rdtype*, an ``int``, the type of the rdataset.
 
-        *covers*, an ``int``, the covered type.  Usually this value is
-        dns.rdatatype.NONE, but if the rdtype is dns.rdatatype.SIG or
-        dns.rdatatype.RRSIG, then the covers value will be the rdata
-        type the SIG/RRSIG covers.  The library treats the SIG and RRSIG
-        types as if they were a family of
-        types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).  This makes RRSIGs much
-        easier to work with than if RRSIGs covering different rdata
-        types were aggregated into a single RRSIG rdataset.
+        *covers*, an ``int`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
 
         *create*, a ``bool``.  If True, create the rdataset if it is not found.
 
