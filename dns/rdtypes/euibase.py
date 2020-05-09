@@ -21,11 +21,9 @@ import dns.rdata
 
 class EUIBase(dns.rdata.Rdata):
 
-    """EUIxx record
+    """EUIxx record"""
 
-    @ivar fingerprint: xx-bit Extended Unique Identifier (EUI-xx)
-    @type fingerprint: string
-    @see: rfc7043.txt"""
+    # see: rfc7043.txt
 
     __slots__ = ['eui']
     # define these in subclasses

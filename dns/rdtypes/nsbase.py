@@ -26,10 +26,7 @@ import dns.name
 
 class NSBase(dns.rdata.Rdata):
 
-    """Base class for rdata that is like an NS record.
-
-    @ivar target: the target name of the rdata
-    @type target: dns.name.Name object"""
+    """Base class for rdata that is like an NS record."""
 
     __slots__ = ['target']
 

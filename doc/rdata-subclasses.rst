@@ -3,172 +3,343 @@
 Rdata Subclass Reference
 ========================
 
-XXXRTH  This is just a placeholder for proper documentation of all
-the subclasses, which will basically just be documenting the attributes
-of the subclass, as well as any method specific to the subclass.
-
 .. autoclass:: dns.rdata.GenericRdata
+
+   .. attribute:: data
+
+      A ``bytes`` containing the rdata's value.
+
+.. autoclass:: dns.rdtypes.ANY.AFSDB.AFSDB
    :members:
 
-.. automodule:: dns.rdtypes.dnskeybase
+   .. attribute:: subtype
+
+   An ``int``, the AFSDB subtype
+
+   .. attribute:: hostname
+
+   A ``dns.name.Name``, the AFSDB hostname.
+
+.. autoclass:: dns.rdtypes.ANY.AVC.AVC
    :members:
 
-.. automodule:: dns.rdtypes.dsbase
+   .. attribute:: strings
+
+   A tuple of ``bytes``, the list of strings.
+
+.. autoclass:: dns.rdtypes.ANY.CAA.CAA
    :members:
 
-.. automodule:: dns.rdtypes.euibase
+   .. attribute:: flags
+
+   An ``int``, the flags
+
+   .. attribute:: tag
+                  
+   A ``bytes``, the tag
+
+   .. attribute:: value
+                  
+   A ``bytes``, the value
+
+.. autoclass:: dns.rdtypes.ANY.CDNSKEY.CDNSKEY
    :members:
 
-.. automodule:: dns.rdtypes.mxbase
+   .. attribute:: flags
+
+       An ``int``, the key's flags.
+
+   .. attribute:: protocol
+
+      An ``int``, the protocol for which this key may be used.
+
+   .. attribute:: algorithm:
+
+      An ``int``, the algorithm used for the key.
+
+   .. attribute:: key
+
+      A ``bytes``, the public key.
+
+.. autoclass:: dns.rdtypes.ANY.CDS.CDS
    :members:
 
-.. automodule:: dns.rdtypes.nsbase
+   .. attribute::  key_tag
+
+      An ``int``, the key tag.
+
+   .. attribute:: algorithm
+      
+      An ``int``, the algorithm used for the key.
+
+   .. attribute:: digest_type
+
+      An ``int``, the digest type.
+
+   .. attribute:: digest
+
+      A ``bytes``, the digest of the key.
+
+.. autoclass:: dns.rdtypes.ANY.CERT.CERT
    :members:
 
-.. automodule:: dns.rdtypes.txtbase
+   .. attribute:: certificate_type
+
+   An ``int``, the certificate type.
+
+   .. attribute:: key_tag
+
+   An ``int``, the key tag.
+
+   .. attribute:: algorithm
+
+   An ``int``, the algorithm.                  
+
+   .. attribute:: certificate
+
+   A ``bytes``, the certificate or CRL.
+
+.. autoclass:: dns.rdtypes.ANY.CNAME.CNAME
    :members:
 
-.. automodule:: dns.rdtypes.ANY.AFSDB
+   .. attribute:: target
+
+   A ``dns.name.Name``, the target name.
+
+.. autoclass:: dns.rdtypes.ANY.CSYNC.CSYNC
    :members:
 
-.. automodule:: dns.rdtypes.ANY.AVC
+    .. attribute:: serial
+
+    An ``int``, the SOA serial number.
+
+    .. attribute:: flags
+
+    An ``int``, the CSYNC flags.
+
+    .. attribute:: windows
+
+    A tuple of ``(int, bytes)`` tuples.
+
+.. autoclass:: dns.rdtypes.ANY.DLV.DLV
    :members:
 
-.. automodule:: dns.rdtypes.ANY.CAA
+   .. attribute::  key_tag
+
+      An ``int``, the key tag.
+
+   .. attribute:: algorithm
+      
+      An ``int``, the algorithm used for the key.
+
+   .. attribute:: digest_type
+
+      An ``int``, the digest type.
+
+   .. attribute:: digest
+
+      A ``bytes``, the digest of the key.
+
+.. autoclass:: dns.rdtypes.ANY.DNAME.DNAME
    :members:
 
-.. automodule:: dns.rdtypes.ANY.CDNSKEY
+   .. attribute:: target
+
+   A ``dns.name.Name``, the target name.
+
+.. autoclass:: dns.rdtypes.ANY.DNSKEY.DNSKEY
    :members:
 
-.. automodule:: dns.rdtypes.ANY.CDS
+   .. attribute:: flags
+
+       An ``int``, the key's flags.
+
+   .. attribute:: protocol
+
+      An ``int``, the protocol for which this key may be used.
+
+   .. attribute:: algorithm:
+
+      An ``int``, the algorithm used for the key.
+
+   .. attribute:: key
+
+      A ``bytes``, the public key.
+
+.. autoclass:: dns.rdtypes.ANY.DS.DS
    :members:
 
-.. automodule:: dns.rdtypes.ANY.CERT
+   .. attribute::  key_tag
+
+      An ``int``, the key tag.
+
+   .. attribute:: algorithm
+      
+      An ``int``, the algorithm used for the key.
+
+   .. attribute:: digest_type
+
+      An ``int``, the digest type.
+
+   .. attribute:: digest
+
+      A ``bytes``, the digest of the key.
+
+.. autoclass:: dns.rdtypes.ANY.EUI48.EUI48
    :members:
 
-.. automodule:: dns.rdtypes.ANY.CNAME
+   .. attribute:: eui
+
+      A ``bytes``, 48-bit Extended Unique Identifier (EUI-48).
+
+.. autoclass:: dns.rdtypes.ANY.EUI64.EUI64
    :members:
 
-.. automodule:: dns.rdtypes.ANY.CSYNC
+   .. attribute:: eui
+
+      A ``bytes``, 64-bit Extended Unique Identifier (EUI-64).
+
+.. autoclass:: dns.rdtypes.ANY.GPOS
    :members:
 
-.. automodule:: dns.rdtypes.ANY.DLV
+.. autoclass:: dns.rdtypes.ANY.HINFO
    :members:
 
-.. automodule:: dns.rdtypes.ANY.DNAME
+.. autoclass:: dns.rdtypes.ANY.HIP
    :members:
 
-.. automodule:: dns.rdtypes.ANY.DNSKEY
+.. autoclass:: dns.rdtypes.ANY.ISDN
    :members:
 
-.. automodule:: dns.rdtypes.ANY.DS
+.. autoclass:: dns.rdtypes.ANY.LOC
    :members:
 
-.. automodule:: dns.rdtypes.ANY.EUI48
+.. autoclass:: dns.rdtypes.ANY.MX.MX
    :members:
 
-.. automodule:: dns.rdtypes.ANY.EUI64
+   .. attribute:: preference
+
+   An ``int``, the preference value
+
+   .. attribute:: exchange
+
+   A ``dns.name.Name``, the exchange name.
+
+.. autoclass:: dns.rdtypes.ANY.NINFO.NINFO
+
+   .. attribute:: strings
+
+   A tuple of ``bytes``, the list of strings.
+
+.. autoclass:: dns.rdtypes.ANY.NS.NS
    :members:
 
-.. automodule:: dns.rdtypes.ANY.GPOS
+   .. attribute:: target
+
+   A ``dns.name.Name``, the target name.
+
+.. autoclass:: dns.rdtypes.ANY.NSEC
    :members:
 
-.. automodule:: dns.rdtypes.ANY.HINFO
+.. autoclass:: dns.rdtypes.ANY.NSEC3
    :members:
 
-.. automodule:: dns.rdtypes.ANY.HIP
+.. autoclass:: dns.rdtypes.ANY.NSEC3PARAM
    :members:
 
-.. automodule:: dns.rdtypes.ANY.ISDN
+.. autoclass:: dns.rdtypes.ANY.OPENPGPKEY
    :members:
 
-.. automodule:: dns.rdtypes.ANY.LOC
+.. autoclass:: dns.rdtypes.ANY.PTR.PTR
    :members:
 
-.. automodule:: dns.rdtypes.ANY.MX
+   .. attribute:: target
+
+   A ``dns.name.Name``, the target name.
+
+.. autoclass:: dns.rdtypes.ANY.RP
    :members:
 
-.. automodule:: dns.rdtypes.ANY.NS
+.. autoclass:: dns.rdtypes.ANY.RRSIG
    :members:
 
-.. automodule:: dns.rdtypes.ANY.NSEC
+.. autoclass:: dns.rdtypes.ANY.RT.RT
    :members:
 
-.. automodule:: dns.rdtypes.ANY.NSEC3
+   .. attribute:: preference
+
+   An ``int``, the preference value
+
+   .. attribute:: exchange
+
+   A ``dns.name.Name``, the exchange name.
+      
+.. autoclass:: dns.rdtypes.ANY.SOA
    :members:
 
-.. automodule:: dns.rdtypes.ANY.NSEC3PARAM
+.. autoclass:: dns.rdtypes.ANY.SPF.SPF
    :members:
 
-.. automodule:: dns.rdtypes.ANY.OPENPGPKEY
+   .. attribute:: strings
+
+   A tuple of ``bytes``, the list of strings.
+
+.. autoclass:: dns.rdtypes.ANY.SSHFP
    :members:
 
-.. automodule:: dns.rdtypes.ANY.PTR
+.. autoclass:: dns.rdtypes.ANY.TLSA
    :members:
 
-.. automodule:: dns.rdtypes.ANY.RP
+.. autoclass:: dns.rdtypes.ANY.TXT.TXT
    :members:
 
-.. automodule:: dns.rdtypes.ANY.RRSIG
+   .. attribute:: strings
+
+   A tuple of ``bytes``, the list of strings.
+
+.. autoclass:: dns.rdtypes.ANY.URI
    :members:
 
-.. automodule:: dns.rdtypes.ANY.RT
+.. autoclass:: dns.rdtypes.ANY.X25
    :members:
 
-.. automodule:: dns.rdtypes.ANY.SOA
+.. autoclass:: dns.rdtypes.IN.A
    :members:
 
-.. automodule:: dns.rdtypes.ANY.SPF
+.. autoclass:: dns.rdtypes.IN.AAAA
    :members:
 
-.. automodule:: dns.rdtypes.ANY.SSHFP
+.. autoclass:: dns.rdtypes.IN.APL
    :members:
 
-.. automodule:: dns.rdtypes.ANY.TLSA
+.. autoclass:: dns.rdtypes.IN.DHCID
    :members:
 
-.. automodule:: dns.rdtypes.ANY.TXT
+.. autoclass:: dns.rdtypes.IN.IPSECKEY
    :members:
 
-.. automodule:: dns.rdtypes.ANY.URI
+.. autoclass:: dns.rdtypes.IN.KX
    :members:
 
-.. automodule:: dns.rdtypes.ANY.X25
+.. autoclass:: dns.rdtypes.IN.NAPTR
    :members:
 
-.. automodule:: dns.rdtypes.IN.A
+.. autoclass:: dns.rdtypes.IN.NSAP
    :members:
 
-.. automodule:: dns.rdtypes.IN.AAAA
+.. autoclass:: dns.rdtypes.IN.NSAP_PTR.NSAP_PTR
    :members:
 
-.. automodule:: dns.rdtypes.IN.APL
+   .. attribute:: target
+
+   A ``dns.name.Name``, the target name.
+
+.. autoclass:: dns.rdtypes.IN.PX
    :members:
 
-.. automodule:: dns.rdtypes.IN.DHCID
+.. autoclass:: dns.rdtypes.IN.SRV
    :members:
 
-.. automodule:: dns.rdtypes.IN.IPSECKEY
-   :members:
-
-.. automodule:: dns.rdtypes.IN.KX
-   :members:
-
-.. automodule:: dns.rdtypes.IN.NAPTR
-   :members:
-
-.. automodule:: dns.rdtypes.IN.NSAP
-   :members:
-
-.. automodule:: dns.rdtypes.IN.NSAP_PTR
-   :members:
-
-.. automodule:: dns.rdtypes.IN.PX
-   :members:
-
-.. automodule:: dns.rdtypes.IN.SRV
-   :members:
-
-.. automodule:: dns.rdtypes.IN.WKS
+.. autoclass:: dns.rdtypes.IN.WKS
    :members:
 

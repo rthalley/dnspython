@@ -24,15 +24,9 @@ import dns.tokenizer
 
 class CAA(dns.rdata.Rdata):
 
-    """CAA (Certification Authority Authorization) record
+    """CAA (Certification Authority Authorization) record"""
 
-    @ivar flags: the flags
-    @type flags: int
-    @ivar tag: the tag
-    @type tag: string
-    @ivar value: the value
-    @type value: string
-    @see: RFC 6844"""
+    # see: RFC 6844
 
     __slots__ = ['flags', 'tag', 'value']
 

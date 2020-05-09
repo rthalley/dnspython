@@ -24,14 +24,7 @@ import dns.name
 
 class CSYNC(dns.rdata.Rdata):
 
-    """CSYNC record
-
-    @ivar serial: the SOA serial number
-    @type serial: int
-    @ivar flags: the CSYNC flags
-    @type flags: int
-    @ivar windows: the windowed bitmap list
-    @type windows: list of (window number, string) tuples"""
+    """CSYNC record"""
 
     __slots__ = ['serial', 'flags', 'windows']
 

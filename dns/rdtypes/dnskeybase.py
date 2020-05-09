@@ -75,16 +75,7 @@ def flags_from_text_set(texts_set):
 
 class DNSKEYBase(dns.rdata.Rdata):
 
-    """Base class for rdata that is like a DNSKEY record
-
-    @ivar flags: the key flags
-    @type flags: int
-    @ivar protocol: the protocol for which this key may be used
-    @type protocol: int
-    @ivar algorithm: the algorithm used for the key
-    @type algorithm: int
-    @ivar key: the public key
-    @type key: string"""
+    """Base class for rdata that is like a DNSKEY record"""
 
     __slots__ = ['flags', 'protocol', 'algorithm', 'key']
 

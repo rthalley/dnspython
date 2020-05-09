@@ -27,12 +27,7 @@ import dns.name
 
 class MXBase(dns.rdata.Rdata):
 
-    """Base class for rdata that is like an MX record.
-
-    @ivar preference: the preference value
-    @type preference: int
-    @ivar exchange: the exchange name
-    @type exchange: dns.name.Name object"""
+    """Base class for rdata that is like an MX record."""
 
     __slots__ = ['preference', 'exchange']
 
