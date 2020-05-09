@@ -12,7 +12,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: nameservers
 
-      A ``list`` of ``text``, each item containing an IPv4 or IPv6 address.
+      A ``list`` of ``str``, each item containing an IPv4 or IPv6 address.
 
    .. attribute:: search
 
@@ -27,7 +27,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: nameserver_ports
 
-      A ``dict`` mapping an IPv4 or IPv6 address ``text`` to an ``int``.
+      A ``dict`` mapping an IPv4 or IPv6 address ``str`` to an ``int``.
       This specifies the port to use when sending to a nameserver.  If
       a port is not defined for an address, the value of the *port*
       attribute will be used.
@@ -71,7 +71,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
         
    .. attribute:: keyalgorithm
 
-      A ``dns.name.Name`` or ``text``, the TSIG algorithm to use.
+      A ``dns.name.Name`` or ``str``, the TSIG algorithm to use.
       *edns*, an ``int``, is the EDNS level to use.  Specifying
       ``None``, ``False``, or ``-1`` means "do not use EDNS", and in
       this case the other parameters are ignored.  Specifying

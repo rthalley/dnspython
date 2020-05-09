@@ -58,7 +58,7 @@ The dns.message.Message Class
 
       The TSIG keyring to use.  The default is `None`.  A TSIG keyring
       is a dictionary mapping from TSIG key name, a ``dns.name.Name``, to
-      a TSIG secret, a ``binary``.
+      a TSIG secret, a ``bytes``.
 
    .. attribute:: keyname
 
@@ -72,7 +72,7 @@ The dns.message.Message Class
 
    .. attribute:: request_mac
 
-      A ``binary``, the TSIG MAC of the request message associated with
+      A ``bytes``, the TSIG MAC of the request message associated with
       this message; used when validating TSIG signatures.
 
    .. attribute:: fudge
@@ -89,12 +89,12 @@ The dns.message.Message Class
 
    .. attribute:: other_data
 
-      A ``binary``, the TSIG "other data".  The default is the empty
-      ``binary``.
+      A ``bytes``, the TSIG "other data".  The default is the empty
+      ``bytes``.
 
    .. attribute:: mac
 
-      A ``binary``, the TSIG MAC for this message.
+      A ``bytes``, the TSIG MAC for this message.
 
    .. attribute:: xfr
 

@@ -8,7 +8,7 @@ The dns.name.Name Class and Predefined Names
 
    .. attribute:: labels
 
-      A tuple of ``binary`` in DNS wire format specifying the DNS
+      A tuple of ``bytes`` in DNS wire format specifying the DNS
       labels in the name, in order from least-signficiant label
       (i.e. farthest from the origin) to most-significant label.
 

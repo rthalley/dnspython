@@ -5,7 +5,7 @@ DNS Names
 =========
 
 Objects of the dns.name.Name class represent an immutable domain name.
-The representation is a tuple of labels, with each lable being a ``binary``
+The representation is a tuple of labels, with each lable being a ``bytes``
 object in the DNS wire format.  Typically names are not created by
 supplying the labels tuple directly, but rather by converting from DNS
 text format or the DNS wire format.
@@ -15,7 +15,7 @@ value for ``www.dnspython.org.`` is ``(b'www', b'dnspython', b'org', b'')`` on
 Python 3, and ``('www', 'dnspython', 'org', '')`` on Python 2.
 
 Names may be *absolute* or *relative*.  Absolute names end in the root label,
-which is an empty ``binary``.  Relative names do not end in the root label.  To
+which is an empty ``bytes``.  Relative names do not end in the root label.  To
 convert a relative name to an absolute name requires specifying an *origin*.
 Typically the origin is known by context.  Dnspython provides tools to
 relativize and derelativize names.  It's a good idea not to mix relative
