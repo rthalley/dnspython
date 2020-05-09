@@ -26,17 +26,9 @@ import dns.rdatatype
 
 class HIP(dns.rdata.Rdata):
 
-    """HIP record
+    """HIP record"""
 
-    @ivar hit: the host identity tag
-    @type hit: string
-    @ivar algorithm: the public key cryptographic algorithm
-    @type algorithm: int
-    @ivar key: the public key
-    @type key: string
-    @ivar servers: the rendezvous servers
-    @type servers: list of dns.name.Name objects
-    @see: RFC 5205"""
+    # see: RFC 5205
 
     __slots__ = ['hit', 'algorithm', 'key', 'servers']
 

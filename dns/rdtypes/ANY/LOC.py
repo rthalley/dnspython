@@ -90,23 +90,9 @@ def _decode_size(what, desc):
 
 class LOC(dns.rdata.Rdata):
 
-    """LOC record
+    """LOC record"""
 
-    @ivar latitude: latitude
-    @type latitude: (int, int, int, int, sign) tuple specifying the degrees, minutes,
-    seconds, milliseconds, and sign of the coordinate.
-    @ivar longitude: longitude
-    @type longitude: (int, int, int, int, sign) tuple specifying the degrees,
-    minutes, seconds, milliseconds, and sign of the coordinate.
-    @ivar altitude: altitude
-    @type altitude: float
-    @ivar size: size of the sphere
-    @type size: float
-    @ivar horizontal_precision: horizontal precision
-    @type horizontal_precision: float
-    @ivar vertical_precision: vertical precision
-    @type vertical_precision: float
-    @see: RFC 1876"""
+    # see: RFC 1876
 
     __slots__ = ['latitude', 'longitude', 'altitude', 'size',
                  'horizontal_precision', 'vertical_precision']

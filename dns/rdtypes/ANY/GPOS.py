@@ -44,15 +44,9 @@ def _sanitize(value):
 
 class GPOS(dns.rdata.Rdata):
 
-    """GPOS record
+    """GPOS record"""
 
-    @ivar latitude: latitude
-    @type latitude: string
-    @ivar longitude: longitude
-    @type longitude: string
-    @ivar altitude: altitude
-    @type altitude: string
-    @see: RFC 1712"""
+    # see: RFC 1712
 
     __slots__ = ['latitude', 'longitude', 'altitude']
 

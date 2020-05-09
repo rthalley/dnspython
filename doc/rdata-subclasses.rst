@@ -199,20 +199,90 @@ Rdata Subclass Reference
 
       A ``bytes``, 64-bit Extended Unique Identifier (EUI-64).
 
-.. autoclass:: dns.rdtypes.ANY.GPOS
+.. autoclass:: dns.rdtypes.ANY.GPOS.GPOS
    :members:
 
-.. autoclass:: dns.rdtypes.ANY.HINFO
+   .. attribute:: latitude
+
+   A ``bytes``, the latitude
+
+   .. attribute:: longitude
+
+   A ``bytes``, the longitude
+
+   .. attribute:: altitude
+
+   A ``bytes``, the altitude
+
+.. autoclass:: dns.rdtypes.ANY.HINFO.HINFO
    :members:
 
-.. autoclass:: dns.rdtypes.ANY.HIP
+   .. attribute:: cpu
+
+   A ``bytes``, the CPU type.
+
+   .. attribute:: os
+
+   A ``bytes``, the OS type.
+
+.. autoclass:: dns.rdtypes.ANY.HIP.HIP
    :members:
 
-.. autoclass:: dns.rdtypes.ANY.ISDN
+   .. attribute:: hit
+
+   A ``bytes``, the host identity tag.
+
+   .. attribute:: algorithm
+
+   An ``int``, the public key cryptographic algorithm.
+
+   .. attribute:: key
+
+   A ``bytes``, the public key.
+
+   .. attribute:: servers
+
+   A tuple of ``dns.name.Name`` objects, the rendezvous servers.
+
+.. autoclass:: dns.rdtypes.ANY.ISDN.ISDN
+   :members:
+      
+   .. attribute:: address
+
+   A ``bytes``, the ISDN address.
+
+   .. attribute:: subaddress
+
+   A ``bytes`` the ISDN subaddress (or ``b''`` if not present).
+
+.. autoclass:: dns.rdtypes.ANY.LOC.LOC
    :members:
 
-.. autoclass:: dns.rdtypes.ANY.LOC
-   :members:
+   .. attribute:: latitude
+
+   An ``(int, int, int, int, int)`` tuple specifying the degrees, minutes,
+   seconds, milliseconds, and sign of the latitude.
+
+   .. attribute:: longitude
+
+   An ``(int, int, int, int, int)`` tuple specifying the degrees, minutes,
+   seconds, milliseconds, and sign of the longitude.
+
+   .. attribute:: altitude
+
+   A ``float``, the altitude, in centimeters.
+
+   .. attribute:: size
+
+   A ``float``, the size of the sphere, in centimeters.
+
+   .. attribute:: horizontal_precision
+
+   A ``float``, the horizontal precision, in centimeters.
+
+   .. attribute:: vertical_precision
+
+   A ``float``, the vertical precision, in centimeters.
 
 .. autoclass:: dns.rdtypes.ANY.MX.MX
    :members:
