@@ -22,14 +22,9 @@ import dns.name
 
 class RP(dns.rdata.Rdata):
 
-    """RP record
+    """RP record"""
 
-    @ivar mbox: The responsible person's mailbox
-    @type mbox: dns.name.Name object
-    @ivar txt: The owner name of a node with TXT records, or the root name
-    if no TXT records are associated with this RP.
-    @type txt: dns.name.Name object
-    @see: RFC 1183"""
+    # see: RFC 1183
 
     __slots__ = ['mbox', 'txt']
 

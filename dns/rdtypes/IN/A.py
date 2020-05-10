@@ -23,10 +23,7 @@ import dns.tokenizer
 
 class A(dns.rdata.Rdata):
 
-    """A record.
-
-    @ivar address: an IPv4 address
-    @type address: string (in the standard "dotted quad" format)"""
+    """A record."""
 
     __slots__ = ['address']
 

@@ -24,17 +24,9 @@ import dns.name
 
 class SRV(dns.rdata.Rdata):
 
-    """SRV record
+    """SRV record"""
 
-    @ivar priority: the priority
-    @type priority: int
-    @ivar weight: the weight
-    @type weight: int
-    @ivar port: the port of the service
-    @type port: int
-    @ivar target: the target host
-    @type target: dns.name.Name object
-    @see: RFC 2782"""
+    # see: RFC 2782
 
     __slots__ = ['priority', 'weight', 'port', 'target']
 

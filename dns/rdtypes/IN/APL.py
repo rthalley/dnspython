@@ -27,17 +27,7 @@ import dns.tokenizer
 
 class APLItem(object):
 
-    """An APL list item.
-
-    @ivar family: the address family (IANA address family registry)
-    @type family: int
-    @ivar negation: is this item negated?
-    @type negation: bool
-    @ivar address: the address
-    @type address: string
-    @ivar prefix: the prefix length
-    @type prefix: int
-    """
+    """An APL list item."""
 
     __slots__ = ['family', 'negation', 'address', 'prefix']
 
@@ -80,11 +70,9 @@ class APLItem(object):
 
 class APL(dns.rdata.Rdata):
 
-    """APL record.
+    """APL record."""
 
-    @ivar items: a list of APL items
-    @type items: list of APL_Item
-    @see: RFC 3123"""
+    # see: RFC 3123
 
     __slots__ = ['items']
 
@@ -99,7 +87,7 @@ class APL(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         items = []
-        while 1:
+        while True:
             token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break

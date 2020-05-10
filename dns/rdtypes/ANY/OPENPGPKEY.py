@@ -23,12 +23,9 @@ import dns.tokenizer
 
 class OPENPGPKEY(dns.rdata.Rdata):
 
-    """OPENPGPKEY record
+    """OPENPGPKEY record"""
 
-    @ivar key: the key
-    @type key: bytes
-    @see: RFC 7929
-    """
+    # see: RFC 7929
 
     def __init__(self, rdclass, rdtype, key):
         super().__init__(rdclass, rdtype)

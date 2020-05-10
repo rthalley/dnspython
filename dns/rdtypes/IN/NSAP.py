@@ -24,11 +24,9 @@ import dns.tokenizer
 
 class NSAP(dns.rdata.Rdata):
 
-    """NSAP record.
+    """NSAP record."""
 
-    @ivar address: a NASP
-    @type address: string
-    @see: RFC 1706"""
+    # see: RFC 1706
 
     __slots__ = ['address']
 

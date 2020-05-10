@@ -25,15 +25,9 @@ import dns.name
 
 class URI(dns.rdata.Rdata):
 
-    """URI record
+    """URI record"""
 
-    @ivar priority: the priority
-    @type priority: int
-    @ivar weight: the weight
-    @type weight: int
-    @ivar target: the target host
-    @type target: dns.name.Name object
-    @see: draft-faltstrom-uri-13"""
+    # see RFC 7553
 
     __slots__ = ['priority', 'weight', 'target']
 

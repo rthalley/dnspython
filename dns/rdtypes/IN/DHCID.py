@@ -22,12 +22,9 @@ import dns.exception
 
 class DHCID(dns.rdata.Rdata):
 
-    """DHCID record
+    """DHCID record"""
 
-    @ivar data: the data (the content of the RR is opaque as far as the
-    DNS is concerned)
-    @type data: string
-    @see: RFC 4701"""
+    # see: RFC 4701
 
     __slots__ = ['data']
 

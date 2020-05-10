@@ -24,11 +24,9 @@ import dns.tokenizer
 
 class X25(dns.rdata.Rdata):
 
-    """X25 record
+    """X25 record"""
 
-    @ivar address: the PSDN address
-    @type address: string
-    @see: RFC 1183"""
+    # see RFC 1183
 
     __slots__ = ['address']
 

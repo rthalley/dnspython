@@ -24,16 +24,7 @@ import dns.rdata
 
 class NSEC3PARAM(dns.rdata.Rdata):
 
-    """NSEC3PARAM record
-
-    @ivar algorithm: the hash algorithm number
-    @type algorithm: int
-    @ivar flags: the flags
-    @type flags: int
-    @ivar iterations: the number of iterations
-    @type iterations: int
-    @ivar salt: the salt
-    @type salt: string"""
+    """NSEC3PARAM record"""
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
 
