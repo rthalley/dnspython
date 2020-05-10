@@ -1,4 +1,4 @@
-.. _rdata-make:
+.. _rdata-set-make:
 
 Making DNS Rdatasets and RRsets
 ===============================

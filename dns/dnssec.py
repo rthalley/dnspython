@@ -170,18 +170,18 @@ def make_ds(name, key, algorithm, origin=None):
     :param name: Owner name of the DS record
     :type name: string
     :param key: a DNSKEY
-    :type key: :py:data:`dns.rdtypes.ANY.DNSKEY`
+    :type key: :py:data:`dns.rdtypes.ANY.DNSKEY.DNSKEY`
     :param algorithm: a string describing which hash algorithm to
-    use.  The currently supported hashes are "SHA1" and "SHA256". Case
-    does not matter for these strings.
+      use.  The currently supported hashes are "SHA1" and "SHA256". Case
+      does not matter for these strings.
     :type algorithm: string
     :param origin: Will be used as origin if `key` is a relative name,
-    defaults to None
+      defaults to None
     :type origin: :py:data:`dns.name.Name`, optional
     :raises UnsupportedAlgorithm: If the algorithm is not either
-    "SHA1" or "SHA256" exception will be thrown
+      "SHA1" or "SHA256"
     :return: a DS record
-    :rtype: :py:data:`dns.rdtypes.ANY.DS`
+    :rtype: :py:data:`dns.rdtypes.ANY.DS.DS`
 
     """
 
