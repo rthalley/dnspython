@@ -613,7 +613,10 @@ class Name(object):
         containing the wire name will be returned.
 
         *compress*, a ``dict``, is the compression table to use.  If
-        ``None`` (the default), names will not be compressed.
+        ``None`` (the default), names will not be compressed.  Note that
+        the compression code assumes that compression offset 0 is the
+        start of *file*, and thus compression will not be correct
+        if this is not the case.
 
         *origin* is a ``dns.name.Name`` or ``None``.  If the name is
         relative and origin is not ``None``, then *origin* will be appended
