@@ -105,10 +105,9 @@ _algorithm_by_value = {y: x for x, y in _algorithm_by_text.items()}
 def algorithm_from_text(text):
     """Convert text into a DNSSEC algorithm value.
 
-    :param text: text to convert to value
-    :type text: string
-    :return: a DNSSEC algorithm value
-    :rtype: integer
+    *text*, a ``str``, the text to convert to into an algorithm value.
+
+    Returns an ``int``.
     """
 
     value = _algorithm_by_text.get(text.upper())
@@ -120,10 +119,9 @@ def algorithm_from_text(text):
 def algorithm_to_text(value):
     """Convert a DNSSEC algorithm value to text
 
-    :param value: Value of a DNSSEC algorithm
-    :type value: integer
-    :return: the name of a DNSSEC algorithm
-    :rtype: string
+    *value*, an ``int`` a DNSSEC algorithm.
+
+    Returns a ``str``, the name of a DNSSEC algorithm.
     """
 
     text = _algorithm_by_value.get(value)
@@ -141,13 +139,11 @@ def _to_rdata(record, origin):
 def key_id(key, origin=None):
     """Return the key id (a 16-bit number) for the specified key.
 
-    :param key: a DNSKEY
-    :type key: :py:data:`dns.rdtypes.ANY.DNSKEY`
-    :param origin: Parameter is historical and **NOT** needed, defaults to None
-    :type origin: [type], optional
-    :return: an integer between 0 and 65535
-    :rtype: integer
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``
 
+    *origin* this parameter is historical and is ignored.
+
+    Returns an ``int`` between 0 and 65535
     """
 
     rdata = _to_rdata(key, origin)
@@ -167,22 +163,20 @@ def key_id(key, origin=None):
 def make_ds(name, key, algorithm, origin=None):
     """Create a DS record for a DNSSEC key.
 
-    :param name: Owner name of the DS record
-    :type name: string
-    :param key: a DNSKEY
-    :type key: :py:data:`dns.rdtypes.ANY.DNSKEY.DNSKEY`
-    :param algorithm: a string describing which hash algorithm to
-      use.  The currently supported hashes are "SHA1" and "SHA256". Case
-      does not matter for these strings.
-    :type algorithm: string
-    :param origin: Will be used as origin if `key` is a relative name,
-      defaults to None
-    :type origin: :py:data:`dns.name.Name`, optional
-    :raises UnsupportedAlgorithm: If the algorithm is not either
-      "SHA1" or "SHA256"
-    :return: a DS record
-    :rtype: :py:data:`dns.rdtypes.ANY.DS.DS`
+    *name*, a ``dns.name.Name`` or ``str``, the owner name of the DS record.
 
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``, the key the DS is about.
+
+    *algorithm*, a ``str`` specifying the hash algorithm.
+      The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
+      does not matter for these strings.
+
+    *origin*, a ``dns.name.Name`` or ``None``, if `key` is a relative name,
+      then it will be made absolute using the specified origin.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
+
+    Returns a ``dns.rdtypes.ANY.DS.DS``
     """
 
     if algorithm.upper() == 'SHA1':
@@ -528,26 +522,29 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     raise ValidationFailure("no RRSIGs validated")
 
 
-def nsec3_hash(domain, salt, iterations, algo):
+def nsec3_hash(domain, salt, iterations, algorithm):
     """
-    This method calculates the NSEC3 hash after: https://tools.ietf.org/html/rfc5155#section-5
+    This method calculates the NSEC3 hash according to
+    https://tools.ietf.org/html/rfc5155#section-5
 
-    :param domain:
-    :type domain: str
-    :param salt:
-    :type salt: Optional[str, bytes]
-    :param iterations:
-    :type iterations: int
-    :param algo:
-    :type algo: int
-    :return: NSEC3 hash
-    :rtype: str
+    *domain*, a ``dns.name.Name`` or ``str``, the name to hash.
+
+    *salt*, a ``str``, ``bytes``, or ``None``, the hash salt.  If a
+    string, it is decoded as a hex string.
+
+    *iterations*, an ``int``, the number of iterations.
+
+    *algorithm*, an ``int``, the hash algorithm.  Currently only SHA1 is
+    supported.
+
+    Returns a ``str``, the encoded NSEC3 hash.
     """
+
     b32_conversion = str.maketrans(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", "0123456789ABCDEFGHIJKLMNOPQRSTUV"
     )
 
-    if algo != 1:
+    if algorithm != 1:
         raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
 
     salt_encoded = salt
@@ -557,7 +554,9 @@ def nsec3_hash(domain, salt, iterations, algo):
         else:
             raise ValueError("Invalid salt length")
 
-    domain_encoded = dns.name.from_text(domain).canonicalize().to_wire()
+    if not isinstance(domain, dns.name.Name):
+        domain_encoded = dns.name.from_text(domain)
+    domain_encoded = domain_encoded.canonicalize().to_wire()
 
     digest = hashlib.sha1(domain_encoded + salt_encoded).digest()
     for i in range(iterations):

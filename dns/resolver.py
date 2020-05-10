@@ -1115,8 +1115,10 @@ class Resolver(object):
     @nameservers.setter
     def nameservers(self, nameservers):
         """
-        :param nameservers: must be a ``list``.
-        :raise ValueError: if `nameservers` is anything other than a ``list``.
+        *nameservers*, a ``list`` of nameservers.
+
+        Raises ``ValueError`` if *nameservers* is anything other than a
+        ``list``.
         """
         if isinstance(nameservers, list):
             self._nameservers = nameservers # pylint: disable=attribute-defined-outside-init

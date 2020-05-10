@@ -206,8 +206,9 @@ class ECSOption(Option):
     def from_text(text):
         """Convert a string into a `dns.edns.ECSOption`
 
-        :param text: string
-        :return: `dns.edns.ECSOption`
+        *text*, a `str`, the text form of the option.
+
+        Returns a `dns.edns.ECSOption`.
 
         Examples:
 
