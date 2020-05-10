@@ -1,9 +1,9 @@
 # dnspython
 
 [![Build Status](https://travis-ci.org/rthalley/dnspython.svg?branch=master)](https://travis-ci.org/rthalley/dnspython)
+[![Documentation Status](https://readthedocs.org/projects/dnspython/badge/?version=latest)](https://dnspython.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/dnspython.svg)](https://badge.fury.io/py/dnspython)
 [![PyPI Statistics](https://img.shields.io/pypi/dm/dnspython.svg)](https://pypistats.org/packages/dnspython)
-
 
 ## INTRODUCTION
 
