@@ -43,7 +43,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
       answer to the question.  If the lifetime expires a
       ``dns.exception.Timeout`` exception will be raised.
 
-   .. attribute::  cache:
+   .. attribute::  cache
 
       An object implementing the caching protocol, e.g. a
       ``dns.resolver.Cache`` or a ``dns.resolver.LRUCache``.  The default
@@ -72,7 +72,10 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
    .. attribute:: keyalgorithm
 
       A ``dns.name.Name`` or ``str``, the TSIG algorithm to use.
-      *edns*, an ``int``, is the EDNS level to use.  Specifying
+
+   .. attribute:: edns
+
+      An ``int``, the EDNS level to use.  Specifying
       ``None``, ``False``, or ``-1`` means "do not use EDNS", and in
       this case the other parameters are ignored.  Specifying
       ``True`` is equivalent to specifying 0, i.e. "use EDNS0".
