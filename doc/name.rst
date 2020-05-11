@@ -5,7 +5,7 @@ DNS Names
 =========
 
 Objects of the dns.name.Name class represent an immutable domain name.
-The representation is a tuple of labels, with each lable being a ``bytes``
+The representation is a tuple of labels, with each label being a ``bytes``
 object in the DNS wire format.  Typically names are not created by
 supplying the labels tuple directly, but rather by converting from DNS
 text format or the DNS wire format.

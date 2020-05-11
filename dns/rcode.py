@@ -21,7 +21,7 @@ import dns.exception
 
 #: No error
 NOERROR = 0
-#: Form error
+#: Format error
 FORMERR = 1
 #: Server failure
 SERVFAIL = 2

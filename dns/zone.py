@@ -63,7 +63,7 @@ class Zone(object):
     A ``Zone`` is a mapping from names to nodes.  The zone object may be
     treated like a Python dictionary, e.g. ``zone[name]`` will retrieve
     the node associated with that name.  The *name* may be a
-    ``dns.name.Name object``, or it may be a string.  In the either case,
+    ``dns.name.Name object``, or it may be a string.  In either case,
     if the name is relative it is treated as relative to the origin of
     the zone.
     """
