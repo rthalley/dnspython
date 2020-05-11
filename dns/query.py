@@ -757,8 +757,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         use_udp=False, keyalgorithm=dns.tsig.default_algorithm):
     """Return a generator for the responses to a zone transfer.
 
-    *where*.  If the inference attempt fails, AF_INET is used.  This
-    parameter is historical; you need never set it.
+    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
+    to send the message.
 
     *zone*, a ``dns.name.Name`` or ``str``, the name of the zone to transfer.
 
