@@ -20,5 +20,6 @@ import dns.rdtypes.txtbase
 
 class NINFO(dns.rdtypes.txtbase.TXTBase):
 
-    """NINFO record
-    @see: draft-reid-dnsext-zs-01"""
+    """NINFO record"""
+
+    # see: draft-reid-dnsext-zs-01

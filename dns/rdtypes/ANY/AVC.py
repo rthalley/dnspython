@@ -20,6 +20,6 @@ import dns.rdtypes.txtbase
 
 class AVC(dns.rdtypes.txtbase.TXTBase):
 
-    """AVC record
+    """AVC record"""
 
-    @see: U{http://www.iana.org/assignments/dns-parameters/AVC/avc-completed-template}"""
+    # See: U{http://www.iana.org/assignments/dns-parameters/AVC/avc-completed-template}

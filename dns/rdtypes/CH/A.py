@@ -20,11 +20,10 @@ import struct
 
 class A(dns.rdtypes.mxbase.MXBase):
 
-    """A record for Chaosnet
-    @ivar domain: the domain of the address
-    @type domain: dns.name.Name object
-    @ivar address: the 16-bit address
-    @type address: int"""
+    """A record for Chaosnet"""
+
+    # domain: the domain of the address
+    # address: the 16-bit address
 
     __slots__ = ['domain', 'address']
 
