@@ -11,8 +11,7 @@ supplying the labels tuple directly, but rather by converting from DNS
 text format or the DNS wire format.
 
 Labels are in the same order as in the DNS textual form, e.g. the labels
-value for ``www.dnspython.org.`` is ``(b'www', b'dnspython', b'org', b'')`` on
-Python 3, and ``('www', 'dnspython', 'org', '')`` on Python 2.
+value for ``www.dnspython.org.`` is ``(b'www', b'dnspython', b'org', b'')``.
 
 Names may be *absolute* or *relative*.  Absolute names end in the root label,
 which is an empty ``bytes``.  Relative names do not end in the root label.  To
