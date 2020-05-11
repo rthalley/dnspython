@@ -472,7 +472,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     tuple.
 
     *rrsigset*, the signature RRset.  This can be a
-    ``dns.rrset.RRset`` or a (``dns.name.Name`, ``dns.rdataset.Rdataset``)
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
     tuple.
 
     *keys*, the key dictionary, used to find the DNSKEY associated
