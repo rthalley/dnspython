@@ -15,6 +15,8 @@ DNSSEC Functions
 .. autofunction:: dns.dnssec.algorithm_to_text
 .. autofunction:: dns.dnssec.key_id
 .. autofunction:: dns.dnssec.make_ds
+.. autofunction:: dns.dnssec.validate
+.. autofunction:: dns.dnssec.validate_rrsig
 
 DNSSEC Algorithms
 -----------------
