@@ -464,8 +464,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
 
 def _validate(rrset, rrsigset, keys, origin=None, now=None):
-    """Validate an RRset.  Returns ``None`` if at least one signature
-    validates, or throws an exception if no signature validates.
+    """Validate an RRset against a signature RRset, throwing an exception
+    if none of the signatures validate.
 
     *rrset*, the RRset to validate.  This can be a
     ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
