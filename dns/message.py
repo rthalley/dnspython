@@ -52,7 +52,7 @@ class UnknownHeaderField(dns.exception.DNSException):
 
 
 class BadEDNS(dns.exception.FormError):
-    """An OPT record occurred somewhere other than the start of
+    """An OPT record occurred somewhere other than
     the additional data section."""
 
 
