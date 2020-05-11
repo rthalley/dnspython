@@ -168,11 +168,11 @@ def make_ds(name, key, algorithm, origin=None):
     *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``, the key the DS is about.
 
     *algorithm*, a ``str`` specifying the hash algorithm.
-      The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
-      does not matter for these strings.
+    The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
+    does not matter for these strings.
 
-    *origin*, a ``dns.name.Name`` or ``None``, if `key` is a relative name,
-      then it will be made absolute using the specified origin.
+    *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
+    then it will be made absolute using the specified origin.
 
     Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
 
