@@ -1,6 +1,6 @@
 import unittest
 
-from dns import dnssec
+from dns import dnssec,name
 
 
 class NSEC3Hash(unittest.TestCase):
@@ -33,6 +33,22 @@ class NSEC3Hash(unittest.TestCase):
         ("www.test.domain.dev.", "B4", 2, "nv7ti6brgh94ke2f3pgiigjevfgpo5j0", 1),
         ("*.test-domain.dev", "", 0, "o6uadafckb6hea9qpcgir2gl71vt23gu", 1),
         ("*.test-domain.dev", "", 45, "505k9g118d9sofnjhh54rr8fadgpa0ct", 1),
+        # Alternate forms of parameters
+        (
+            name.from_text("example"),
+            "aabbccdd",
+            12,
+            "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom",
+            1,
+        ),
+        (
+            "example",
+            b"\xaa\xbb\xcc\xdd",
+            12,
+            "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom",
+            1,
+        ),
+        ("*.test-domain.dev", None, 45, "505k9g118d9sofnjhh54rr8fadgpa0ct", 1),
     ]
 
     def test_hash_function(self):
