@@ -77,7 +77,7 @@ _hashes = {
     HMAC_MD5: hashlib.md5,
 }
 
-default_algorithm = HMAC_MD5
+default_algorithm = HMAC_SHA256
 
 BADSIG = 16
 BADKEY = 17
