@@ -548,7 +548,9 @@ def nsec3_hash(domain, salt, iterations, algorithm):
         raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
 
     salt_encoded = salt
-    if isinstance(salt, str):
+    if salt is None:
+        salt_encoded = b''
+    elif isinstance(salt, str):
         if len(salt) % 2 == 0:
             salt_encoded = bytes.fromhex(salt)
         else:
