@@ -523,7 +523,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
 
 def nsec3_hash(domain, salt, iterations, algorithm):
     """
-    This method calculates the NSEC3 hash according to
+    Calculate the NSEC3 hash, according to
     https://tools.ietf.org/html/rfc5155#section-5
 
     *domain*, a ``dns.name.Name`` or ``str``, the name to hash.
@@ -533,8 +533,8 @@ def nsec3_hash(domain, salt, iterations, algorithm):
 
     *iterations*, an ``int``, the number of iterations.
 
-    *algorithm*, an ``int``, the hash algorithm.  Currently only SHA1 is
-    supported.
+    *algorithm*, an ``int``, the hash algorithm.  The only defined algorithm
+    is SHA1.
 
     Returns a ``str``, the encoded NSEC3 hash.
     """
