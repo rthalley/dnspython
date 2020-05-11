@@ -27,6 +27,11 @@ TCP
 .. autofunction:: dns.query.send_tcp
 .. autofunction:: dns.query.receive_tcp
 
+TLS
+---
+
+.. autofunction:: dns.query.tls
+
 HTTPS
 -----
 
