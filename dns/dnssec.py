@@ -17,7 +17,7 @@
 
 """Common DNSSEC-related functions and constants."""
 
-import hashlib  # used in make_ds() to avoid pycrypto dependency
+import hashlib
 import io
 import struct
 import time
@@ -136,17 +136,15 @@ def _to_rdata(record, origin):
     return s.getvalue()
 
 
-def key_id(key, origin=None):
+def key_id(key):
     """Return the key id (a 16-bit number) for the specified key.
 
     *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``
 
-    *origin* this parameter is historical and is ignored.
-
     Returns an ``int`` between 0 and 65535
     """
 
-    rdata = _to_rdata(key, origin)
+    rdata = _to_rdata(key, None)
     if key.algorithm == RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:
@@ -289,36 +287,33 @@ def _bytes_to_long(b):
 
 
 def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
-    """Validate an RRset against a single signature rdata
+    """Validate an RRset against a single signature rdata, throwing an
+    exception if validation is not successful.
 
-    :param rrset: The RRset to validate
-    :type rrset: :py:data:`dns.rrset.RRset` or
-    (:py:data:`dns.name.Name`, :py:data:`dns.rdataset.Rdataset`)
-    :param rrsig: Signature to validate
-    :type rrsig: :py:data:`dns.rdata.Rdata`
-    :param keys: Key dictionary, used to find the DNSKEY associated
+    *rrset*, the RRset to validate.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name`, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *rrsig*, a ``dns.rdata.Rdata``, the signature to validate.
+
+    *keys*, the key dictionary, used to find the DNSKEY associated
     with a given name.  The dictionary is keyed by a
-    :py:data:`dns.name.Name`, and has :py:data:`dns.node.Node` or
-    :py:data:`dns.rdataset.Rdataset` values.
-    :type keys: dictionary
-    :param origin: Origin to use for relative name, defaults to None
-    :type origin: :py:data:`dns.name.Name`, optional
-    :param now: time to use when validating the signatures, in seconds
-    since the UNIX epoch, defaults to current time
-    :type now: integer, optional
-    :raises ValidationFailure: RRSig expired
-    :raises ValidationFailure: RRSig not yet valid
-    :raises ValidationFailure: Invalid public key
-    :raises ValidationFailure: Invalid ECDSA key
-    :raises ValidationFailure: Unknown algorithm
-    :raises ValueError: Generic Value Error
-    :raises ValidationFailure: Verify failure
-    :raises UnsupportedAlgorithm: Algorithm isn't supported by dnspython
-    :return: none
-    :rtype: none
+    ``dns.name.Name``, and has ``dns.node.Node`` or
+    `dns.rdataset.Rdataset`` values.
 
-    .. todo:: Fill in missing infos
+    *origin*, a ``dns.name.Name`` or ``None``, the origin to use for relative
+    names.
 
+    *now*, an ``int`` or ``None``, the time, in seconds since the epoch, to
+    use as the current time when validating.  If ``None``, the actual current
+    time is used.
+
+    Raises ``ValidationFailure`` if the signature is expired, not yet valid,
+    the public key is invalid, the algorithm is unknown, the verification
+    fails, etc.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is recognized by
+    dnspython but not implemented.
     """
 
     if isinstance(origin, str):
@@ -469,28 +464,32 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
 
 def _validate(rrset, rrsigset, keys, origin=None, now=None):
-    """Validate an RRset.
+    """Validate an RRset.  Returns ``None`` if at least one signature
+    validates, or throws an exception if no signature validates.
 
-    :param rrset: RRset to validate
-    :type rrset: :py:data:`dns.rrset.RRset` or
-    (:py:data:`dns.name.Name`, :py:data:`dns.rdataset.Rdataset`) tuple
-    :param rrsigset: Signature RRset to be validated
-    :type rrsigset: :py:data`dns.rrset.RRset` or
-    (:py:data:`dns.name.Name`, :py:data:`dns.rdataset.Rdataset`) tuple
-    :param keys: Key dictionary, used to find the DNSKEY associated
+    *rrset*, the RRset to validate.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name`, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *rrsigset*, the signature RRset.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name`, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *keys*, the key dictionary, used to find the DNSKEY associated
     with a given name.  The dictionary is keyed by a
-    :py:data:`dns.name.Name`, and has :py:data:`dns.node.Node` or
-    :py:data:`dns.rdataset.Rdataset` values.
-    :type keys: dictionary
-    :param origin: Origin to use for relative name, defaults to None
-    :type origin: :py:data:`dns.name.Name`, optional
-    :param now: time to use when validating the signatures, in seconds
-    since the UNIX epoch, defaults to current time
-    :type now: integer, optional
-    :raises ValidationFailure: Owner names do not match
-    :raises ValidationFailure: No RRSIGs validated
-    :raises UnsupportedAlgorithm: Algorithm isn't supported by dnspython
+    ``dns.name.Name``, and has ``dns.node.Node`` or
+    `dns.rdataset.Rdataset`` values.
 
+    *origin*, a ``dns.name.Name``, the origin to use for relative names;
+    defaults to None.
+
+    *now*, an ``int`` or ``None``, the time, in seconds since the epoch, to
+    use as the current time when validating.  If ``None``, the actual current
+    time is used.
+
+    Raises ``ValidationFailure`` if the signature is expired, not yet valid,
+    the public key is invalid, the algorithm is unknown, the verification
+    fails, etc.
     """
 
     if isinstance(origin, str):
@@ -517,7 +516,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         try:
             _validate_rrsig(rrset, rrsig, keys, origin, now)
             return
-        except ValidationFailure:
+        except (ValidationFailure, UnsupportedAlgorithm):
             pass
     raise ValidationFailure("no RRSIGs validated")
 
