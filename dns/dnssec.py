@@ -291,7 +291,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     exception if validation is not successful.
 
     *rrset*, the RRset to validate.  This can be a
-    ``dns.rrset.RRset`` or a (``dns.name.Name`, ``dns.rdataset.Rdataset``)
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
     tuple.
 
     *rrsig*, a ``dns.rdata.Rdata``, the signature to validate.
@@ -299,7 +299,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     *keys*, the key dictionary, used to find the DNSKEY associated
     with a given name.  The dictionary is keyed by a
     ``dns.name.Name``, and has ``dns.node.Node`` or
-    `dns.rdataset.Rdataset`` values.
+    ``dns.rdataset.Rdataset`` values.
 
     *origin*, a ``dns.name.Name`` or ``None``, the origin to use for relative
     names.
@@ -468,7 +468,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     validates, or throws an exception if no signature validates.
 
     *rrset*, the RRset to validate.  This can be a
-    ``dns.rrset.RRset`` or a (``dns.name.Name`, ``dns.rdataset.Rdataset``)
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
     tuple.
 
     *rrsigset*, the signature RRset.  This can be a
@@ -478,7 +478,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     *keys*, the key dictionary, used to find the DNSKEY associated
     with a given name.  The dictionary is keyed by a
     ``dns.name.Name``, and has ``dns.node.Node`` or
-    `dns.rdataset.Rdataset`` values.
+    ``dns.rdataset.Rdataset`` values.
 
     *origin*, a ``dns.name.Name``, the origin to use for relative names;
     defaults to None.
