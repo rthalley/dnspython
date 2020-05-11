@@ -557,8 +557,8 @@ def nsec3_hash(domain, salt, iterations, algorithm):
             raise ValueError("Invalid salt length")
 
     if not isinstance(domain, dns.name.Name):
-        domain_encoded = dns.name.from_text(domain)
-    domain_encoded = domain_encoded.canonicalize().to_wire()
+        domain = dns.name.from_text(domain)
+    domain_encoded = domain.canonicalize().to_wire()
 
     digest = hashlib.sha1(domain_encoded + salt_encoded).digest()
     for i in range(iterations):
