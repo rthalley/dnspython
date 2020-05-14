@@ -860,179 +860,163 @@ class Resolver(object):
             rdclass = dns.rdataclass.from_text(rdclass)
         if dns.rdataclass.is_metaclass(rdclass):
             raise NoMetaqueries
-        qnames_to_try = []
-        if qname.is_absolute():
-            qnames_to_try.append(qname)
-        else:
-            if len(qname) > 1:
-                qnames_to_try.append(qname.concatenate(dns.name.root))
-            if self.search:
-                for suffix in self.search:
-                    if self.ndots is None or len(qname.labels) >= self.ndots:
-                        qnames_to_try.append(qname.concatenate(suffix))
-            else:
-                qnames_to_try.append(qname.concatenate(self.domain))
-        all_nxdomain = True
-        nxdomain_responses = {}
+        if not qname.is_absolute():
+            # a DeprecationWarning or something similar here?
+            qname = qname.concatenate(dns.name.root)
         start = time.time()
-        _qname = None # make pylint happy
-        for _qname in qnames_to_try:
-            if self.cache:
-                answer = self.cache.get((_qname, rdtype, rdclass))
-                if answer is not None:
-                    if answer.rrset is None and raise_on_no_answer:
-                        raise NoAnswer(response=answer.response)
+        if self.cache:
+            answer = self.cache.get((qname, rdtype, rdclass))
+            if answer is not None:
+                if answer.rrset is None and raise_on_no_answer:
+                    raise NoAnswer(response=answer.response)
+                else:
+                    return answer
+        request = dns.message.make_query(qname, rdtype, rdclass)
+        if self.keyname is not None:
+            request.use_tsig(self.keyring, self.keyname,
+                             algorithm=self.keyalgorithm)
+        request.use_edns(self.edns, self.ednsflags, self.payload)
+        if self.flags is not None:
+            request.flags = self.flags
+        response = None
+        #
+        # make a copy of the servers list so we can alter it later.
+        #
+        nameservers = self.nameservers[:]
+        errors = []
+        if self.rotate:
+            random.shuffle(nameservers)
+        backoff = 0.10
+        # keep track of nameserver and port
+        # to include them in Answer
+        nameserver_answered = None
+        port_answered = None
+        while response is None:
+            if len(nameservers) == 0:
+                raise NoNameservers(request=request, errors=errors)
+            for nameserver in nameservers[:]:
+                timeout = self._compute_timeout(start, lifetime)
+                port = self.nameserver_ports.get(nameserver, self.port)
+                protocol = urlparse(nameserver).scheme
+                try:
+                    if protocol == 'https':
+                        tcp_attempt = True
+                        response = dns.query.https(request, nameserver,
+                                                   timeout=timeout)
+                    elif protocol:
+                        continue
                     else:
-                        return answer
-            request = dns.message.make_query(_qname, rdtype, rdclass)
-            if self.keyname is not None:
-                request.use_tsig(self.keyring, self.keyname,
-                                 algorithm=self.keyalgorithm)
-            request.use_edns(self.edns, self.ednsflags, self.payload)
-            if self.flags is not None:
-                request.flags = self.flags
-            response = None
-            #
-            # make a copy of the servers list so we can alter it later.
-            #
-            nameservers = self.nameservers[:]
-            errors = []
-            if self.rotate:
-                random.shuffle(nameservers)
-            backoff = 0.10
-            # keep track of nameserver and port
-            # to include them in Answer
-            nameserver_answered = None
-            port_answered = None
-            while response is None:
-                if len(nameservers) == 0:
-                    raise NoNameservers(request=request, errors=errors)
-                for nameserver in nameservers[:]:
-                    timeout = self._compute_timeout(start, lifetime)
-                    port = self.nameserver_ports.get(nameserver, self.port)
-                    protocol = urlparse(nameserver).scheme
-                    try:
-                        if protocol == 'https':
-                            tcp_attempt = True
-                            response = dns.query.https(request, nameserver,
-                                                       timeout=timeout)
-                        elif protocol:
-                            continue
+                        tcp_attempt = tcp
+                        if tcp:
+                            response = dns.query.tcp(request, nameserver,
+                                                     timeout=timeout,
+                                                     port=port,
+                                                     source=source,
+                                                     source_port=\
+                                                     source_port)
                         else:
-                            tcp_attempt = tcp
-                            if tcp:
-                                response = dns.query.tcp(request, nameserver,
+                            try:
+                                response = dns.query.udp(request,
+                                                         nameserver,
                                                          timeout=timeout,
                                                          port=port,
                                                          source=source,
                                                          source_port=\
                                                          source_port)
-                            else:
-                                try:
-                                    response = dns.query.udp(request,
-                                                             nameserver,
-                                                             timeout=timeout,
-                                                             port=port,
-                                                             source=source,
-                                                             source_port=\
-                                                             source_port)
-                                except dns.message.Truncated:
-                                    # Response truncated; retry with TCP.
-                                    tcp_attempt = True
-                                    timeout = self._compute_timeout(start,
-                                                                    lifetime)
-                                    response = \
-                                        dns.query.tcp(request, nameserver,
-                                                      timeout=timeout,
-                                                      port=port,
-                                                      source=source,
-                                                      source_port=source_port)
-                    except (socket.error, dns.exception.Timeout) as ex:
-                        #
-                        # Communication failure or timeout.  Go to the
-                        # next server
-                        #
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    except dns.query.UnexpectedSource as ex:
-                        #
-                        # Who knows?  Keep going.
-                        #
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    except dns.exception.FormError as ex:
-                        #
-                        # We don't understand what this server is
-                        # saying.  Take it out of the mix and
-                        # continue.
-                        #
-                        nameservers.remove(nameserver)
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    except EOFError as ex:
-                        #
-                        # We're using TCP and they hung up on us.
-                        # Probably they don't support TCP (though
-                        # they're supposed to!).  Take it out of the
-                        # mix and continue.
-                        #
-                        nameservers.remove(nameserver)
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    nameserver_answered = nameserver
-                    port_answered = port
-                    rcode = response.rcode()
-                    if rcode == dns.rcode.YXDOMAIN:
-                        yex = YXDOMAIN()
-                        errors.append((nameserver, tcp_attempt, port, yex,
-                                       response))
-                        raise yex
-                    if rcode == dns.rcode.NOERROR or \
-                            rcode == dns.rcode.NXDOMAIN:
-                        break
+                            except dns.message.Truncated:
+                                # Response truncated; retry with TCP.
+                                tcp_attempt = True
+                                timeout = self._compute_timeout(start,
+                                                                lifetime)
+                                response = \
+                                    dns.query.tcp(request, nameserver,
+                                                  timeout=timeout,
+                                                  port=port,
+                                                  source=source,
+                                                  source_port=source_port)
+                except (socket.error, dns.exception.Timeout) as ex:
                     #
-                    # We got a response, but we're not happy with the
-                    # rcode in it.  Remove the server from the mix if
-                    # the rcode isn't SERVFAIL.
+                    # Communication failure or timeout.  Go to the
+                    # next server
                     #
-                    if rcode != dns.rcode.SERVFAIL or not self.retry_servfail:
-                        nameservers.remove(nameserver)
-                    errors.append((nameserver, tcp_attempt, port,
-                                   dns.rcode.to_text(rcode), response))
+                    errors.append((nameserver, tcp_attempt, port, ex,
+                                   response))
                     response = None
-                if response is not None:
+                    continue
+                except dns.query.UnexpectedSource as ex:
+                    #
+                    # Who knows?  Keep going.
+                    #
+                    errors.append((nameserver, tcp_attempt, port, ex,
+                                   response))
+                    response = None
+                    continue
+                except dns.exception.FormError as ex:
+                    #
+                    # We don't understand what this server is
+                    # saying.  Take it out of the mix and
+                    # continue.
+                    #
+                    nameservers.remove(nameserver)
+                    errors.append((nameserver, tcp_attempt, port, ex,
+                                   response))
+                    response = None
+                    continue
+                except EOFError as ex:
+                    #
+                    # We're using TCP and they hung up on us.
+                    # Probably they don't support TCP (though
+                    # they're supposed to!).  Take it out of the
+                    # mix and continue.
+                    #
+                    nameservers.remove(nameserver)
+                    errors.append((nameserver, tcp_attempt, port, ex,
+                                   response))
+                    response = None
+                    continue
+                nameserver_answered = nameserver
+                port_answered = port
+                rcode = response.rcode()
+                if rcode == dns.rcode.YXDOMAIN:
+                    yex = YXDOMAIN()
+                    errors.append((nameserver, tcp_attempt, port, yex,
+                                   response))
+                    raise yex
+                if rcode == dns.rcode.NOERROR or \
+                        rcode == dns.rcode.NXDOMAIN:
                     break
                 #
-                # All nameservers failed!
+                # We got a response, but we're not happy with the
+                # rcode in it.  Remove the server from the mix if
+                # the rcode isn't SERVFAIL.
                 #
-                if len(nameservers) > 0:
-                    #
-                    # But we still have servers to try.  Sleep a bit
-                    # so we don't pound them!
-                    #
-                    timeout = self._compute_timeout(start, lifetime)
-                    sleep_time = min(timeout, backoff)
-                    backoff *= 2
-                    time.sleep(sleep_time)
-            if response.rcode() == dns.rcode.NXDOMAIN:
-                nxdomain_responses[_qname] = response
-                continue
-            all_nxdomain = False
-            break
-        if all_nxdomain:
-            raise NXDOMAIN(qnames=qnames_to_try, responses=nxdomain_responses)
-        answer = Answer(_qname, rdtype, rdclass, response,
+                if rcode != dns.rcode.SERVFAIL or not self.retry_servfail:
+                    nameservers.remove(nameserver)
+                errors.append((nameserver, tcp_attempt, port,
+                               dns.rcode.to_text(rcode), response))
+                response = None
+            if response is not None:
+                break
+            #
+            # All nameservers failed!
+            #
+            if len(nameservers) > 0:
+                #
+                # But we still have servers to try.  Sleep a bit
+                # so we don't pound them!
+                #
+                timeout = self._compute_timeout(start, lifetime)
+                sleep_time = min(timeout, backoff)
+                backoff *= 2
+                time.sleep(sleep_time)
+        # got a response
+        if response.rcode() == dns.rcode.NXDOMAIN:
+            raise NXDOMAIN(qnames=[qname], responses={qname: response})
+
+        answer = Answer(qname, rdtype, rdclass, response,
                         raise_on_no_answer, nameserver_answered, port_answered)
         if self.cache:
-            self.cache.put((_qname, rdtype, rdclass), answer)
+            self.cache.put((qname, rdtype, rdclass), answer)
         return answer
 
     def reverse_query(self, ipaddr, *args, **kwargs):
@@ -1051,6 +1035,45 @@ class Resolver(object):
                           rdtype=dns.rdatatype.PTR,
                           rdclass=dns.rdataclass.IN,
                           *args, **kwargs)
+
+    def qsearch(self, qname, *args, **kwargs):
+        """Query for relative qname + search list combinations until a non-NXDOMAIN answer is found.
+
+        See ``dns.resolver.Resolver.query`` for more information on the
+        parameters.
+        """
+        if isinstance(qname, str):
+            qname = dns.name.from_text(qname, None)
+        qnames_to_try = []
+        if qname.is_absolute():
+            # maybe a warning?
+            qnames_to_try.append(qname)
+        else:
+            if len(qname) > 1:
+                qnames_to_try.append(qname.concatenate(dns.name.root))
+            if self.search:
+                for suffix in self.search:
+                    if self.ndots is None or len(qname.labels) >= self.ndots:
+                        qnames_to_try.append(qname.concatenate(suffix))
+            else:
+                qnames_to_try.append(qname.concatenate(self.domain))
+
+        all_nxdomain = True
+        nxdomain_responses = None
+        for _qname in qnames_to_try:
+            try:
+                answer = self.query(_qname, *args, **kwargs)
+                all_nxdomain = False
+                break
+            except NXDOMAIN as nx:
+                if nxdomain_responses:
+                    nxdomain_responses += nx
+                else:
+                    nxdomain_responses = nx
+                print(nxdomain_responses)
+        if all_nxdomain:
+            raise nxdomain_responses
+        return answer
 
     def use_tsig(self, keyring, keyname=None,
                  algorithm=dns.tsig.default_algorithm):
@@ -1163,6 +1186,18 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
     return get_default_resolver().query(qname, rdtype, rdclass, tcp, source,
                                         raise_on_no_answer, source_port,
                                         lifetime)
+
+def qsearch(*args, **kwargs):
+    """Query nameservers and search for the answer to the question using search list.
+
+    This is a convenience function that uses the default resolver
+    object to make the query.
+
+    See ``dns.resolver.Resolver.search`` for more information on the
+    parameters.
+    """
+
+    return get_default_resolver().qsearch(*args, **kwargs)
 
 
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
