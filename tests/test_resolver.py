@@ -168,6 +168,34 @@ class BaseResolverTests(unittest.TestCase):
         self.assertRaises(IndexError, bad)
 
     @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testSearchList1(self):
+        qname = 'www'  # relative
+        resolver = dns.resolver.get_default_resolver()
+        resolver.search = [dns.name.from_text('dnspython.org')]
+        # www.dnspython.org exists so it must not raise an exception
+        answer = resolver.query(qname)
+        self.assertEqual(dns.resolver.Answer, type(answer))
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testSearchList2(self):
+        def expect_nxdomain():
+            qname = 'certainly-does-not-exist-blah'  # relative
+            resolver = dns.resolver.get_default_resolver()
+            resolver.search = [dns.name.from_text('dnspython.org')]
+            answer = resolver.query(qname)
+        self.assertRaises(dns.resolver.NXDOMAIN, expect_nxdomain)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testSearchList3(self):
+        def expect_nxdomain():
+            qname = 'www.'  # absolute
+            resolver = dns.resolver.get_default_resolver()
+            resolver.search = [dns.name.from_text('dnspython.org')]
+            answer = resolver.query(qname)
+        # www. is absolute so search list processing should not kick in
+        self.assertRaises(dns.resolver.NXDOMAIN, expect_nxdomain)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName1(self):
         name = dns.name.from_text('www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
