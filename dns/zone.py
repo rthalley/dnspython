@@ -149,22 +149,14 @@ class Zone(object):
     def __iter__(self):
         return self.nodes.__iter__()
 
-    def iterkeys(self):
-        return self.nodes.keys() # pylint: disable=dict-keys-not-iterating
-
     def keys(self):
-        return self.nodes.keys() # pylint: disable=dict-keys-not-iterating
-
-    def itervalues(self):
-        return self.nodes.values() # pylint: disable=dict-values-not-iterating
+        return self.nodes.keys()  # pylint: disable=dict-keys-not-iterating
 
     def values(self):
-        return self.nodes.values() # pylint: disable=dict-values-not-iterating
+        return self.nodes.values()  # pylint: disable=dict-values-not-iterating
 
     def items(self):
-        return self.nodes.items() # pylint: disable=dict-items-not-iterating
-
-    iteritems = items
+        return self.nodes.items()  # pylint: disable=dict-items-not-iterating
 
     def get(self, key):
         key = self._validate_name(key)
@@ -508,7 +500,7 @@ class Zone(object):
             rdtype = dns.rdatatype.from_text(rdtype)
         if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
-        for (name, node) in self.iteritems(): # pylint: disable=dict-iter-method
+        for (name, node) in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
                    (rds.rdtype == rdtype and rds.covers == covers):
@@ -538,7 +530,7 @@ class Zone(object):
             rdtype = dns.rdatatype.from_text(rdtype)
         if isinstance(covers, str):
             covers = dns.rdatatype.from_text(covers)
-        for (name, node) in self.iteritems(): # pylint: disable=dict-iter-method
+        for (name, node) in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
                    (rds.rdtype == rdtype and rds.covers == covers):
@@ -589,7 +581,7 @@ class Zone(object):
                 names = list(self.keys())
                 names.sort()
             else:
-                names = self.iterkeys() # pylint: disable=dict-iter-method
+                names = self.keys()
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize)
@@ -761,7 +753,7 @@ class _MasterReader(object):
         # Type
         try:
             rdtype = dns.rdatatype.from_text(token.value)
-        except:
+        except Exception:
             raise dns.exception.SyntaxError(
                 "unknown rdatatype '%s'" % token.value)
         n = self.zone.nodes.get(name)
@@ -776,7 +768,7 @@ class _MasterReader(object):
             # Catch and reraise.
             (ty, va) = sys.exc_info()[:2]
             raise va
-        except:
+        except Exception:
             # All exceptions that occur in the processing of rdata
             # are treated as syntax errors.  This is not strictly
             # correct, but it is correct almost all of the time.
@@ -862,7 +854,7 @@ class _MasterReader(object):
             token = self.tok.get()
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
-        except:
+        except Exception:
             raise dns.exception.SyntaxError
 
         # lhs (required)
@@ -871,7 +863,7 @@ class _MasterReader(object):
             token = self.tok.get()
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
-        except:
+        except Exception:
             raise dns.exception.SyntaxError
 
         # TTL
@@ -914,7 +906,7 @@ class _MasterReader(object):
         # lhs (required)
         try:
             rhs = token.value
-        except:
+        except Exception:
             raise dns.exception.SyntaxError
 
         lmod, lsign, loffset, lwidth, lbase = self._parse_modify(lhs)
@@ -959,7 +951,7 @@ class _MasterReader(object):
                 # Catch and reraise.
                 (ty, va) = sys.exc_info()[:2]
                 raise va
-            except:
+            except Exception:
                 # All exceptions that occur in the processing of rdata
                 # are treated as syntax errors.  This is not strictly
                 # correct, but it is correct almost all of the time.

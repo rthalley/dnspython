@@ -22,4 +22,4 @@ class AVC(dns.rdtypes.txtbase.TXTBase):
 
     """AVC record"""
 
-    # See: U{http://www.iana.org/assignments/dns-parameters/AVC/avc-completed-template}
+    # See: IANA dns parameters for AVC

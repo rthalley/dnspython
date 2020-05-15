@@ -55,11 +55,11 @@ class A(dns.rdtypes.mxbase.MXBase):
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (domain, cused) = dns.name.from_wire(wire[: current + rdlen-2],
-                                               current)
+        (domain, cused) = dns.name.from_wire(wire[:current + rdlen - 2],
+                                             current)
         current += cused
-        (address,) = struct.unpack('!H', wire[current: current + 2])
-        if cused+2 != rdlen:
+        (address,) = struct.unpack('!H', wire[current:current + 2])
+        if cused + 2 != rdlen:
             raise dns.exception.FormError
         if origin is not None:
             domain = domain.relativize(origin)

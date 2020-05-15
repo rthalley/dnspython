@@ -73,8 +73,8 @@ class GPOS(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '{} {} {}'.format(self.latitude.decode(),
-                             self.longitude.decode(),
-                             self.altitude.decode())
+                                 self.longitude.decode(),
+                                 self.altitude.decode())
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,

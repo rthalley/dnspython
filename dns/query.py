@@ -45,17 +45,20 @@ try:
 except ImportError:
     have_doh = False
 
-
 try:
     import ssl
 except ImportError:
     class ssl(object):    # type: ignore
+
         class WantReadException(Exception):
             pass
+
         class WantWriteException(Exception):
             pass
+
         class SSLSocket(object):
             pass
+
         def create_default_context(self, *args, **kwargs):
             raise Exception('no ssl support')
 
@@ -320,7 +323,7 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
             })
             response = session.post(url, headers=headers, data=wire,
                                     stream=True, timeout=timeout,
-                                      verify=verify)
+                                    verify=verify)
         else:
             wire = base64.urlsafe_b64encode(wire).decode('utf-8').strip("=")
             url += "?dns={}".format(wire)
@@ -867,8 +870,9 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                 (l,) = struct.unpack("!H", ldata)
                 wire = _net_read(s, l, mexpiration)
             is_ixfr = (rdtype == dns.rdatatype.IXFR)
-            r = dns.message.from_wire(wire, keyring=q.keyring, request_mac=q.mac,
-                                      xfr=True, origin=origin, tsig_ctx=tsig_ctx,
+            r = dns.message.from_wire(wire, keyring=q.keyring,
+                                      request_mac=q.mac, xfr=True,
+                                      origin=origin, tsig_ctx=tsig_ctx,
                                       multi=True, first=first,
                                       one_rr_per_rrset=is_ixfr)
             rcode = r.rcode()
@@ -911,8 +915,8 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                         delete_mode = not delete_mode
                     #
                     # If this SOA RRset is equal to the first we saw then we're
-                    # finished. If this is an IXFR we also check that we're seeing
-                    # the record in the expected part of the response.
+                    # finished. If this is an IXFR we also check that we're
+                    # seeing the record in the expected part of the response.
                     #
                     if rrset == soa_rrset and \
                             (rdtype == dns.rdatatype.AXFR or

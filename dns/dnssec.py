@@ -416,7 +416,8 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             sig = rrsig.signature
         elif _is_gost(rrsig.algorithm):
             raise UnsupportedAlgorithm(
-                'algorithm "%s" not supported by dnspython' % algorithm_to_text(rrsig.algorithm))
+                'algorithm "%s" not supported by dnspython' %
+                algorithm_to_text(rrsig.algorithm))
         else:
             raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
 
@@ -453,8 +454,10 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 # Raise here for code clarity; this won't actually ever happen
                 # since if the algorithm is really unknown we'd already have
                 # raised an exception above
-                raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
-            # If we got here, we successfully verified so we can return without error
+                raise ValidationFailure('unknown algorithm %u' %
+                                        rrsig.algorithm)
+            # If we got here, we successfully verified so we can return
+            # without error
             return
         except InvalidSignature:
             # this happens on an individual validation failure

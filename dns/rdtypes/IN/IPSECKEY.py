@@ -28,7 +28,7 @@ class IPSECKEY(dns.rdata.Rdata):
 
     """IPSECKEY record"""
 
-    #see: RFC 4025
+    # see: RFC 4025
 
     __slots__ = ['precedence', 'gateway_type', 'algorithm', 'gateway', 'key']
 

@@ -54,4 +54,4 @@ __all__ = [
     'zone',
 ]
 
-from dns.version import version as __version__
+from dns.version import version as __version__  # noqa

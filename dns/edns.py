@@ -188,7 +188,7 @@ class ECSOption(Option):
         self.scopelen = scopelen
 
         addrdata = dns.inet.inet_pton(af, address)
-        nbytes = int(math.ceil(srclen/8.0))
+        nbytes = int(math.ceil(srclen / 8.0))
 
         # Truncate to srclen and pad to the end of the last octet needed
         # See RFC section 6
@@ -202,6 +202,7 @@ class ECSOption(Option):
     def to_text(self):
         return "ECS {}/{} scope/{}".format(self.address, self.srclen,
                                            self.scopelen)
+
     @staticmethod
     def from_text(text):
         """Convert a string into a `dns.edns.ECSOption`
@@ -248,11 +249,13 @@ class ECSOption(Option):
         try:
             scope = int(scope)
         except ValueError:
-            raise ValueError('invalid scope "{}": scope must be an integer'.format(scope))
+            raise ValueError('invalid scope ' +
+                             '"{}": scope must be an integer'.format(scope))
         try:
             srclen = int(srclen)
         except ValueError:
-            raise ValueError('invalid srclen "{}": srclen must be an integer'.format(srclen))
+            raise ValueError('invalid srclen ' +
+                             '"{}": srclen must be an integer'.format(srclen))
         return ECSOption(address, srclen, scope)
 
     def to_wire(self, file):
@@ -262,17 +265,17 @@ class ECSOption(Option):
 
     @classmethod
     def from_wire(cls, otype, wire, cur, olen):
-        family, src, scope = struct.unpack('!HBB', wire[cur:cur+4])
+        family, src, scope = struct.unpack('!HBB', wire[cur:cur + 4])
         cur += 4
 
-        addrlen = int(math.ceil(src/8.0))
+        addrlen = int(math.ceil(src / 8.0))
 
         if family == 1:
             pad = 4 - addrlen
-            addr = dns.ipv4.inet_ntoa(wire[cur:cur+addrlen] + b'\x00' * pad)
+            addr = dns.ipv4.inet_ntoa(wire[cur:cur + addrlen] + b'\x00' * pad)
         elif family == 2:
             pad = 16 - addrlen
-            addr = dns.ipv6.inet_ntoa(wire[cur:cur+addrlen] + b'\x00' * pad)
+            addr = dns.ipv6.inet_ntoa(wire[cur:cur + addrlen] + b'\x00' * pad)
         else:
             raise ValueError('unsupported family')
 

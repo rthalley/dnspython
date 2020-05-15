@@ -78,7 +78,7 @@ class NXDOMAIN(dns.exception.DNSException):
     @property
     def canonical_name(self):
         """Return the unresolved canonical name."""
-        if not 'qnames' in self.kwargs:
+        if 'qnames' not in self.kwargs:
             raise TypeError("parametrized exception required")
         IN = dns.rdataclass.IN
         CNAME = dns.rdatatype.CNAME
@@ -876,7 +876,7 @@ class Resolver(object):
         all_nxdomain = True
         nxdomain_responses = {}
         start = time.time()
-        _qname = None # make pylint happy
+        _qname = None  # make pylint happy
         for _qname in qnames_to_try:
             if self.cache:
                 answer = self.cache.get((_qname, rdtype, rdclass))
@@ -922,21 +922,21 @@ class Resolver(object):
                         else:
                             tcp_attempt = tcp
                             if tcp:
-                                response = dns.query.tcp(request, nameserver,
-                                                         timeout=timeout,
-                                                         port=port,
-                                                         source=source,
-                                                         source_port=\
-                                                         source_port)
+                                response = \
+                                    dns.query.tcp(request, nameserver,
+                                                  timeout=timeout,
+                                                  port=port,
+                                                  source=source,
+                                                  source_port=source_port)
                             else:
                                 try:
-                                    response = dns.query.udp(request,
-                                                             nameserver,
-                                                             timeout=timeout,
-                                                             port=port,
-                                                             source=source,
-                                                             source_port=\
-                                                             source_port)
+                                    response = \
+                                        dns.query.udp(request,
+                                                      nameserver,
+                                                      timeout=timeout,
+                                                      port=port,
+                                                      source=source,
+                                                      source_port=source_port)
                                 except dns.message.Truncated:
                                     # Response truncated; retry with TCP.
                                     tcp_attempt = True
@@ -1140,7 +1140,7 @@ class Resolver(object):
         ``list``.
         """
         if isinstance(nameservers, list):
-            self._nameservers = nameservers # pylint: disable=attribute-defined-outside-init
+            self._nameservers = nameservers
         else:
             raise ValueError('nameservers must be a list'
                              ' (not a {})'.format(type(nameservers)))
@@ -1288,7 +1288,10 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
         return _original_getaddrinfo(host, service, family, socktype,
                                      proto, flags)
     try:
-        af = dns.inet.af_for_address(host)
+        # We don't care about the result of af_for_address(), we're just
+        # calling it so it raises an exception if host is not an IPv4 or
+        # IPv6 address.
+        dns.inet.af_for_address(host)
         return _original_getaddrinfo(host, service, family, socktype,
                                      proto, flags)
     except Exception:

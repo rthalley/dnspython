@@ -41,12 +41,12 @@ def inet_ntoa(address):
     i = 0
     l = len(hex)
     while i < l:
-        chunk = hex[i : i + 4].decode()
+        chunk = hex[i:i + 4].decode()
         # strip leading zeros.  we do this with an re instead of
         # with lstrip() because lstrip() didn't support chars until
         # python 2.2.2
         m = _leading_zero.match(chunk)
-        if not m is None:
+        if m is not None:
             chunk = m.group(1)
         chunks.append(chunk)
         i += 4
@@ -127,7 +127,7 @@ def inet_aton(text, ignore_scope=False):
     # Get rid of the icky dot-quad syntax if we have it.
     #
     m = _v4_ending.match(text)
-    if not m is None:
+    if m is not None:
         b = dns.ipv4.inet_aton(m.group(2))
         text = (u"{}:{:02x}{:02x}:{:02x}{:02x}".format(m.group(1).decode(),
                                                        b[0], b[1], b[2],
@@ -137,11 +137,11 @@ def inet_aton(text, ignore_scope=False):
     # turn '<whatever>::' into '<whatever>:'
     #
     m = _colon_colon_start.match(text)
-    if not m is None:
+    if m is not None:
         text = text[1:]
     else:
         m = _colon_colon_end.match(text)
-        if not m is None:
+        if m is not None:
             text = text[:-1]
     #
     # Now canonicalize into 8 chunks of 4 hex digits each

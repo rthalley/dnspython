@@ -44,7 +44,7 @@ class ISDN(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         if self.subaddress:
             return '"{}" "{}"'.format(dns.rdata._escapify(self.address),
-                                  dns.rdata._escapify(self.subaddress))
+                                      dns.rdata._escapify(self.subaddress))
         else:
             return '"%s"' % dns.rdata._escapify(self.address)
 

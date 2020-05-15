@@ -10,7 +10,7 @@ from requests.sessions import Session
 try:
     import ssl
 except ImportError:
-    class ssl(object):	# type: ignore
+    class ssl(object):    # type: ignore
         SSLContext : Dict = {}
 
 have_doh: bool

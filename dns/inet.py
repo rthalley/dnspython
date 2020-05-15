@@ -33,7 +33,7 @@ AF_INET = socket.AF_INET
 try:
     AF_INET6 = socket.AF_INET6
 except AttributeError:
-    AF_INET6 = 9999	# type: ignore
+    AF_INET6 = 9999    # type: ignore
 
 
 def inet_pton(family, text):
@@ -96,7 +96,7 @@ def af_for_address(text):
         try:
             dns.ipv6.inet_aton(text, True)
             return AF_INET6
-        except:
+        except Exception:
             raise ValueError
 
 
