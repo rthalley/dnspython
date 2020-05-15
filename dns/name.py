@@ -594,16 +594,17 @@ class Name(object):
         Returns a ``bytes``.
         """
 
+        out = bytearray()
+        for label in self.labels:
+            out.append(len(label))
+            out += label.lower()
         if not self.is_absolute():
             if origin is None or not origin.is_absolute():
                 raise NeedAbsoluteNameOrOrigin
-            labels = list(self.labels)
-            labels.extend(list(origin.labels))
-        else:
-            labels = self.labels
-        dlabels = [struct.pack('!B%ds' % len(x), len(x), x.lower())
-                   for x in labels]
-        return b''.join(dlabels)
+            for label in origin.labels:
+                out.append(len(label))
+                out += label.lower()
+        return bytes(out)
 
     def to_wire(self, file=None, compress=None, origin=None):
         """Convert name to wire format, possibly compressing it.
@@ -629,10 +630,17 @@ class Name(object):
         """
 
         if file is None:
-            file = io.BytesIO()
-            want_return = True
-        else:
-            want_return = False
+            out = bytearray()
+            for label in self.labels:
+                out.append(len(label))
+                out += label
+            if not self.is_absolute():
+                if origin is None or not origin.is_absolute():
+                    raise NeedAbsoluteNameOrOrigin
+                for label in origin.labels:
+                    out.append(len(label))
+                    out += label
+            return bytes(out)
 
         if not self.is_absolute():
             if origin is None or not origin.is_absolute():
@@ -663,8 +671,6 @@ class Name(object):
                 file.write(struct.pack('!B', l))
                 if l > 0:
                     file.write(label)
-        if want_return:
-            return file.getvalue()
 
     def __len__(self):
         """The length of the name (in labels).
