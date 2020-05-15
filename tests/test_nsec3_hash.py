@@ -49,6 +49,15 @@ class NSEC3Hash(unittest.TestCase):
             1,
         ),
         ("*.test-domain.dev", None, 45, "505k9g118d9sofnjhh54rr8fadgpa0ct", 1),
+        (
+            "example",
+            "aabbccdd",
+            12,
+            "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom",
+            dnssec.NSEC3Hash.SHA1
+        ),
+        ("example", "aabbccdd", 12, "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom", "SHA1"),
+        ("example", "aabbccdd", 12, "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom", "sha1")
     ]
 
     def test_hash_function(self):
@@ -66,6 +75,21 @@ class NSEC3Hash(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             hash = dnssec.nsec3_hash(data[0], data[1], data[2], data[4])
+
+    def test_hash_invalid_algorithm(self):
+        data = (
+            "example.com",
+            "9F1AB450CF71D",
+            0,
+            "qfo2sv6jaej4cm11a3npoorfrckdao2c",
+            1,
+        )
+        with self.assertRaises(ValueError):
+            dnssec.nsec3_hash(data[0], data[1], data[2], 10)
+        with self.assertRaises(ValueError):
+            dnssec.nsec3_hash(data[0], data[1], data[2], "foo")
+
+
 
 
 if __name__ == "__main__":

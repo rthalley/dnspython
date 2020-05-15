@@ -281,21 +281,28 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 class DNSSECMakeDSTestCase(unittest.TestCase):
 
     def testMakeExampleSHA1DS(self):  # type: () -> None
-        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA1')
-        self.assertEqual(ds, example_ds_sha1)
+        for algorithm in ('SHA1', 'sha1', dns.dnssec.DSDigest.SHA1):
+            ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
+            self.assertEqual(ds, example_ds_sha1)
 
     def testMakeExampleSHA256DS(self):  # type: () -> None
-        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA256')
-        self.assertEqual(ds, example_ds_sha256)
+        for algorithm in ('SHA256', 'sha256', dns.dnssec.DSDigest.SHA256):
+            ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
+            self.assertEqual(ds, example_ds_sha256)
 
     def testMakeExampleSHA384DS(self):  # type: () -> None
-        ds = dns.dnssec.make_ds(abs_example, example_sep_key, 'SHA384')
-        self.assertEqual(ds, example_ds_sha384)
+        for algorithm in ('SHA384', 'sha384', dns.dnssec.DSDigest.SHA384):
+            ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
+            self.assertEqual(ds, example_ds_sha384)
 
     def testMakeSHA256DS(self):  # type: () -> None
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, 'SHA256')
         self.assertEqual(ds, good_ds)
 
+    def testInvalidAlgorithm(self):  # type: () -> None
+        for algorithm in (10, 'shax'):
+            with self.assertRaises(dns.dnssec.UnsupportedAlgorithm):
+                ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
 
 if __name__ == '__main__':
     unittest.main()
