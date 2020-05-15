@@ -264,7 +264,7 @@ class BaseResolverTests(unittest.TestCase):
         for a in answer:
             pass
 
-    def testSearchLists(self):
+    def testSearchListsRelative(self):
         res = dns.resolver.Resolver()
         res.domain = dns.name.from_text('example')
         res.search = [dns.name.from_text(x) for x in
@@ -277,10 +277,26 @@ class BaseResolverTests(unittest.TestCase):
         qnames = res._get_qnames_to_try(qname, False)
         self.assertEqual(qnames,
                          [dns.name.from_text('www.example.')])
+        qnames = res._get_qnames_to_try(qname, None)
+        self.assertEqual(qnames,
+                         [dns.name.from_text('www.example.')])
+        #
+        # Now change search default on resolver to True
+        #
+        res.use_search_by_default = True
+        qnames = res._get_qnames_to_try(qname, None)
+        self.assertEqual(qnames,
+                         [dns.name.from_text(x) for x in
+                          ['www.dnspython.org', 'www.dnspython.net']])
+
+    def testSearchListsAbsolute(self):
+        res = dns.resolver.Resolver()
         qname = dns.name.from_text('absolute')
         qnames = res._get_qnames_to_try(qname, True)
         self.assertEqual(qnames, [qname])
         qnames = res._get_qnames_to_try(qname, False)
+        self.assertEqual(qnames, [qname])
+        qnames = res._get_qnames_to_try(qname, None)
         self.assertEqual(qnames, [qname])
 
 class PollingMonkeyPatchMixin(object):

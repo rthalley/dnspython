@@ -490,9 +490,12 @@ class LRUCache(object):
                     node = next
                 self.data = {}
 
-
 class Resolver(object):
     """DNS stub resolver."""
+
+    # We initialize in reset()
+    #
+    # pylint: disable=attribute-defined-outside-init
 
     def __init__(self, filename='/etc/resolv.conf', configure=True):
         """*filename*, a ``str`` or file object, specifying a file
@@ -505,25 +508,6 @@ class Resolver(object):
         /etc/resolv.conf file on POSIX systems and from the registry
         on Windows systems.)
         """
-
-        self.domain = None
-        self.nameservers = []
-        self.nameserver_ports = None
-        self.port = None
-        self.search = None
-        self.timeout = None
-        self.lifetime = None
-        self.keyring = None
-        self.keyname = None
-        self.keyalgorithm = None
-        self.edns = None
-        self.ednsflags = None
-        self.payload = None
-        self.cache = None
-        self.flags = None
-        self.retry_servfail = False
-        self.rotate = False
-        self.ndots = None
 
         self.reset()
         if configure:
@@ -543,6 +527,7 @@ class Resolver(object):
         self.nameserver_ports = {}
         self.port = 53
         self.search = []
+        self.use_search_by_default = False
         self.timeout = 2.0
         self.lifetime = 30.0
         self.keyring = None
@@ -809,6 +794,8 @@ class Resolver(object):
     def _get_qnames_to_try(self, qname, search):
         # This is a separate method so we can unit test the search
         # rules without requiring the Internet.
+        if search is None:
+            search = self.use_search_by_default
         qnames_to_try = []
         if qname.is_absolute():
             qnames_to_try.append(qname)
@@ -825,7 +812,7 @@ class Resolver(object):
 
     def resolve(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                 tcp=False, source=None, raise_on_no_answer=True, source_port=0,
-                lifetime=None, search=False):
+                lifetime=None, search=None):
         """Query nameservers to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
@@ -851,9 +838,10 @@ class Resolver(object):
         *lifetime*, a ``float``, how many seconds a query should run
          before timing out.
 
-        *search*, a ``bool``, determines whether search lists configured
-        in the system's resolver configuration are used.  The default is
-        ``False``.
+        *search*, a ``bool`` or ``None``, determines whether the search
+        list configured in the system's resolver configuration are
+        used.  The default is ``None``, which causes the value of
+        the resolver's ``use_search_by_default`` attribute to be used.
 
         Raises ``dns.exception.Timeout`` if no answers could be found
         in the specified lifetime.
@@ -1181,7 +1169,7 @@ def reset_default_resolver():
 
 def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
             tcp=False, source=None, raise_on_no_answer=True,
-            source_port=0, lifetime=None, search=False):
+            source_port=0, lifetime=None, search=None):
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -1308,8 +1296,8 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
     # Something needs resolution!
     try:
         if family == socket.AF_INET6 or family == socket.AF_UNSPEC:
-            v6 = _resolver.query(host, dns.rdatatype.AAAA,
-                                 raise_on_no_answer=False)
+            v6 = _resolver.resolve(host, dns.rdatatype.AAAA,
+                                   raise_on_no_answer=False)
             # Note that setting host ensures we query the same name
             # for A as we did for AAAA.
             host = v6.qname
@@ -1318,8 +1306,8 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
                 for rdata in v6.rrset:
                     v6addrs.append(rdata.address)
         if family == socket.AF_INET or family == socket.AF_UNSPEC:
-            v4 = _resolver.query(host, dns.rdatatype.A,
-                                 raise_on_no_answer=False)
+            v4 = _resolver.resolve(host, dns.rdatatype.A,
+                                   raise_on_no_answer=False)
             host = v4.qname
             canonical_name = v4.canonical_name.to_text(True)
             if v4.rrset is not None:
@@ -1394,7 +1382,7 @@ def _getnameinfo(sockaddr, flags=0):
     qname = dns.reversename.from_address(addr)
     if flags & socket.NI_NUMERICHOST == 0:
         try:
-            answer = _resolver.query(qname, 'PTR')
+            answer = _resolver.resolve(qname, 'PTR')
             hostname = answer.rrset[0].target.to_text(True)
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
             if flags & socket.NI_NAMEREQD:

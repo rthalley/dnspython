@@ -20,6 +20,13 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
       relative name, the resolver will construct absolute query names
       to try by appending values from the search list.
 
+   .. attribute:: use_search_by_default
+
+      A ``bool``, specifes whether or not ``resolve()`` uses the
+      search list configured in the system's resolver configuration
+      when the ``search`` parameter to ``resolve()`` is ``None``.  The
+      default is ``False``.
+
    .. attribute:: port
 
       An ``int``, the default DNS port to send to if not overriden by
