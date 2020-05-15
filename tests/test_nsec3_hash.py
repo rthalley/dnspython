@@ -90,7 +90,5 @@ class NSEC3Hash(unittest.TestCase):
             dnssec.nsec3_hash(data[0], data[1], data[2], "foo")
 
 
-
-
 if __name__ == "__main__":
     unittest.main()
