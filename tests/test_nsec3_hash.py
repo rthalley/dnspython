@@ -1,6 +1,6 @@
 import unittest
 
-from dns import dnssec,name
+from dns import dnssec, name
 
 
 class NSEC3Hash(unittest.TestCase):

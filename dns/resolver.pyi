@@ -14,11 +14,18 @@ class NoMetaqueries(exception.DNSException): ...
 class NoResolverConfiguration(exception.DNSException): ...
 Timeout = exception.Timeout
 
-def query(qname : str, rdtype : Union[int,str] = 0, rdclass : Union[int,str] = 0,
-          tcp=False, source=None, raise_on_no_answer=True,
-          source_port=0):
+def resolve(qname : str, rdtype : Union[int,str] = 0,
+            rdclass : Union[int,str] = 0,
+            tcp=False, source=None, raise_on_no_answer=True,
+            source_port=0, lifetime : Optional[float]=None,
+            search : bool = False):
     ...
-def reverse_query(self, ipaddr: str, *args: Any, **kwargs: Optional[Dict]):
+def query(qname : str, rdtype : Union[int,str] = 0,
+          rdclass : Union[int,str] = 0,
+          tcp=False, source=None, raise_on_no_answer=True,
+          source_port=0, lifetime : Optional[float]=None):
+    ...
+def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Optional[Dict]):
     ...
 class LRUCache:
     def __init__(self, max_size=1000):
@@ -31,12 +38,23 @@ class Answer:
     def __init__(self, qname, rdtype, rdclass, response,
                  raise_on_no_answer=True):
         ...
-def zone_for_name(name, rdclass : int = rdataclass.IN, tcp=False, resolver : Optional[Resolver] = None):
+def zone_for_name(name, rdclass : int = rdataclass.IN, tcp=False,
+                  resolver : Optional[Resolver] = None):
     ...
 
 class Resolver:
-    def __init__(self, filename : Optional[str] = '/etc/resolv.conf', configure : Optional[bool] = True):
+    def __init__(self, filename : Optional[str] = '/etc/resolv.conf',
+                 configure : Optional[bool] = True):
         self.nameservers : List[str]
-    def query(self, qname : str, rdtype : Union[int,str] = rdatatype.A, rdclass : Union[int,str] = rdataclass.IN,
-              tcp : bool = False, source : Optional[str] = None, raise_on_no_answer=True, source_port : int = 0):
+    def resolve(self, qname : str, rdtype : Union[int,str] = rdatatype.A,
+                rdclass : Union[int,str] = rdataclass.IN,
+                tcp : bool = False, source : Optional[str] = None,
+                raise_on_no_answer=True, source_port : int = 0,
+                lifetime : Optional[float]=None, search : bool = False):
+        ...
+    def query(self, qname : str, rdtype : Union[int,str] = rdatatype.A,
+              rdclass : Union[int,str] = rdataclass.IN,
+              tcp : bool = False, source : Optional[str] = None,
+              raise_on_no_answer=True, source_port : int = 0,
+              lifetime : Optional[float]=None):
         ...

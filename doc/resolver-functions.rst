@@ -3,6 +3,7 @@
 Resolver Functions and The Default Resolver
 ===========================================
 
+.. autofunction:: dns.resolver.resolve
 .. autofunction:: dns.resolver.query
 .. autofunction:: dns.resolver.zone_for_name
 .. autodata:: dns.resolver.default_resolver

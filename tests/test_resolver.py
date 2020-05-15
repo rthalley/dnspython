@@ -264,6 +264,25 @@ class BaseResolverTests(unittest.TestCase):
         for a in answer:
             pass
 
+    def testSearchLists(self):
+        res = dns.resolver.Resolver()
+        res.domain = dns.name.from_text('example')
+        res.search = [dns.name.from_text(x) for x in
+                      ['dnspython.org', 'dnspython.net']]
+        qname = dns.name.from_text('www', None)
+        qnames = res._get_qnames_to_try(qname, True)
+        self.assertEqual(qnames,
+                         [dns.name.from_text(x) for x in
+                          ['www.dnspython.org', 'www.dnspython.net']])
+        qnames = res._get_qnames_to_try(qname, False)
+        self.assertEqual(qnames,
+                         [dns.name.from_text('www.example.')])
+        qname = dns.name.from_text('absolute')
+        qnames = res._get_qnames_to_try(qname, True)
+        self.assertEqual(qnames, [qname])
+        qnames = res._get_qnames_to_try(qname, False)
+        self.assertEqual(qnames, [qname])
+
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
         self.__native_polling_backend = dns.query._polling_backend

@@ -98,7 +98,7 @@ def query(number, domains, resolver=None):
             domain = dns.name.from_text(domain)
         qname = dns.e164.from_e164(number, domain)
         try:
-            return resolver.query(qname, 'NAPTR')
+            return resolver.resolve(qname, 'NAPTR')
         except dns.resolver.NXDOMAIN as e:
             e_nx += e
     raise e_nx
