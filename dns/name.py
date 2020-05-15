@@ -19,7 +19,6 @@
 """
 
 import copy
-import io
 import struct
 import sys
 
