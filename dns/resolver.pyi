@@ -18,7 +18,7 @@ def resolve(qname : str, rdtype : Union[int,str] = 0,
             rdclass : Union[int,str] = 0,
             tcp=False, source=None, raise_on_no_answer=True,
             source_port=0, lifetime : Optional[float]=None,
-            search : bool = False):
+            search : Optional[bool]=None):
     ...
 def query(qname : str, rdtype : Union[int,str] = 0,
           rdclass : Union[int,str] = 0,
@@ -50,7 +50,8 @@ class Resolver:
                 rdclass : Union[int,str] = rdataclass.IN,
                 tcp : bool = False, source : Optional[str] = None,
                 raise_on_no_answer=True, source_port : int = 0,
-                lifetime : Optional[float]=None, search : bool = False):
+                lifetime : Optional[float]=None,
+                search : Optional[bool]=None):
         ...
     def query(self, qname : str, rdtype : Union[int,str] = rdatatype.A,
               rdclass : Union[int,str] = rdataclass.IN,
