@@ -17,6 +17,7 @@
 
 """Common DNSSEC-related functions and constants."""
 
+import enum
 import hashlib
 import io
 import struct
@@ -157,6 +158,13 @@ def key_id(key):
         total += ((total >> 16) & 0xffff)
         return total & 0xffff
 
+class DSDigest(enum.IntEnum):
+    """DNSSEC Delgation Signer Digest Algorithm"""
+
+    SHA1 = 1
+    SHA256 = 2
+    SHA384 = 4
+
 
 def make_ds(name, key, algorithm, origin=None):
     """Create a DS record for a DNSSEC key.
@@ -165,7 +173,7 @@ def make_ds(name, key, algorithm, origin=None):
 
     *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``, the key the DS is about.
 
-    *algorithm*, a ``str`` specifying the hash algorithm.
+    *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
     The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
     does not matter for these strings.
 
@@ -177,14 +185,17 @@ def make_ds(name, key, algorithm, origin=None):
     Returns a ``dns.rdtypes.ANY.DS.DS``
     """
 
-    if algorithm.upper() == 'SHA1':
-        dsalg = 1
+    try:
+        if isinstance(algorithm, str):
+            algorithm = DSDigest[algorithm.upper()]
+    except Exception:
+        raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+
+    if algorithm == DSDigest.SHA1:
         dshash = hashlib.sha1()
-    elif algorithm.upper() == 'SHA256':
-        dsalg = 2
+    elif algorithm == DSDigest.SHA256:
         dshash = hashlib.sha256()
-    elif algorithm.upper() == 'SHA384':
-        dsalg = 4
+    elif algorithm == DSDigest.SHA384:
         dshash = hashlib.sha384()
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
@@ -195,7 +206,8 @@ def make_ds(name, key, algorithm, origin=None):
     dshash.update(_to_rdata(key, origin))
     digest = dshash.digest()
 
-    dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, dsalg) + digest
+    dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, algorithm) + \
+            digest
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.DS, dsrdata, 0,
                                len(dsrdata))
 
@@ -524,6 +536,12 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     raise ValidationFailure("no RRSIGs validated")
 
 
+class NSEC3Hash(enum.IntEnum):
+    """NSEC3 hash algorithm"""
+
+    SHA1 = 1
+
+
 def nsec3_hash(domain, salt, iterations, algorithm):
     """
     Calculate the NSEC3 hash, according to
@@ -536,8 +554,8 @@ def nsec3_hash(domain, salt, iterations, algorithm):
 
     *iterations*, an ``int``, the number of iterations.
 
-    *algorithm*, an ``int``, the hash algorithm.  The only defined algorithm
-    is SHA1.
+    *algorithm*, a ``str`` or ``int``, the hash algorithm.
+    The only defined algorithm is SHA1.
 
     Returns a ``str``, the encoded NSEC3 hash.
     """
@@ -546,7 +564,13 @@ def nsec3_hash(domain, salt, iterations, algorithm):
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", "0123456789ABCDEFGHIJKLMNOPQRSTUV"
     )
 
-    if algorithm != 1:
+    try:
+        if isinstance(algorithm, str):
+            algorithm = NSEC3Hash[algorithm.upper()]
+    except Exception:
+        raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
+
+    if algorithm != NSEC3Hash.SHA1:
         raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
 
     salt_encoded = salt
