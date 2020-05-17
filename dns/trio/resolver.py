@@ -35,6 +35,9 @@ from dns.resolver import NXDOMAIN, YXDOMAIN, NoAnswer, NoNameservers, \
 _udp = dns.trio.query.udp
 _stream = dns.trio.query.stream
 
+class TooManyAttempts(dns.exception.DNSException):
+    """A resolution had too many unsuccessful attempts."""
+
 class Resolver(dns.resolver.Resolver):
 
     async def resolve(self, qname, rdtype=dns.rdatatype.A,
@@ -126,6 +129,7 @@ class Resolver(dns.resolver.Resolver):
             # to include them in Answer
             nameserver_answered = None
             port_answered = None
+            loops = 0
             while response is None:
                 if len(nameservers) == 0:
                     raise NoNameservers(request=request, errors=errors)
@@ -227,6 +231,11 @@ class Resolver(dns.resolver.Resolver):
                 #
                 # All nameservers failed!
                 #
+                # Do not loop forever if caller hasn't used a timeout
+                # scope.
+                loops += 1
+                if loops >= 5:
+                    raise TooManyAttempts
                 if len(nameservers) > 0:
                     #
                     # But we still have servers to try.  Sleep a bit
