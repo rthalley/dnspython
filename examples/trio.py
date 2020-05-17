@@ -19,6 +19,10 @@ async def main():
     q = dns.message.make_query(host, 'A')
     r = await dns.trio.query.stream(q, '8.8.8.8', tls=True)
     print(r)
+    a = await dns.trio.resolver.resolve(host, 'A')
+    print(a.response)
+    zn = await dns.trio.resolver.zone_for_name(host)
+    print(zn)
 
 if __name__ == '__main__':
     trio.run(main)

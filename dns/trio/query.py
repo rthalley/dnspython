@@ -5,7 +5,7 @@
 import socket
 import struct
 import trio
-import trio.socket
+import trio.socket  # type: ignore
 
 import dns.exception
 import dns.inet
@@ -16,7 +16,8 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 
-ssl = dns.query.ssl
+# import query symbols for compatibility and brevity
+from dns.query import ssl, UnexpectedSource, BadResponse
 
 # Function used to create a socket.  Can be overridden if needed in special
 # situations.
