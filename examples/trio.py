@@ -4,6 +4,7 @@ import trio
 
 import dns.message
 import dns.trio.query
+import dns.trio.resolver
 
 async def main():
     if len(sys.argv) > 1:
