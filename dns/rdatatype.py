@@ -97,15 +97,10 @@ class RdataType(enum.IntEnum):
     TA = 32768
     DLV = 32769
 
-_by_text = {}
-_by_value = {}
+_registered_by_text = {}
+_registered_by_value = {}
 
-for (name, value) in RdataType.__members__.items():
-    globals()[name] = value
-    real_name = name.replace('_', '-')
-    _by_text[real_name] = value
-    if value not in _by_value:
-        _by_value[value] = real_name
+globals().update(RdataType.__members__.items())
 
 _metatypes = {
     OPT: True
@@ -141,7 +136,12 @@ def from_text(text):
     Returns an ``int``.
     """
 
-    value = _by_text.get(text.upper())
+    text = text.upper().replace('-', '_')
+    try:
+        return RdataType[text]
+    except KeyError:
+        pass
+    value = _registered_by_text.get(text.upper())
     if value is None:
         match = _unknown_type_pattern.match(text)
         if match is None:
@@ -165,10 +165,13 @@ def to_text(value):
 
     if value < 0 or value > 65535:
         raise ValueError("type must be between >= 0 and <= 65535")
-    text = _by_value.get(value)
-    if text is None:
-        text = 'TYPE' + repr(value)
-    return text
+    try:
+        return RdataType(value).name.replace('_', '-')
+    except ValueError:
+        text = _registered_by_value.get(value)
+        if text:
+            return text
+        return f'TYPE{value}'
 
 
 def to_enum(value):
@@ -235,7 +238,7 @@ def register_type(rdtype, rdtype_text, is_singleton=False):
     RRsets of the type can have only one member.)
     """
 
-    _by_text[rdtype_text] = rdtype
-    _by_value[rdtype] = rdtype_text
+    _registered_by_text[rdtype_text] = rdtype
+    _registered_by_value[rdtype] = rdtype_text
     if is_singleton:
         _singletons[rdtype] = True
