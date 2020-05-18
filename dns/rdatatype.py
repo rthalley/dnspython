@@ -17,164 +17,95 @@
 
 """DNS Rdata Types."""
 
+import enum
 import re
 
 import dns.exception
 
-NONE = 0
-A = 1
-NS = 2
-MD = 3
-MF = 4
-CNAME = 5
-SOA = 6
-MB = 7
-MG = 8
-MR = 9
-NULL = 10
-WKS = 11
-PTR = 12
-HINFO = 13
-MINFO = 14
-MX = 15
-TXT = 16
-RP = 17
-AFSDB = 18
-X25 = 19
-ISDN = 20
-RT = 21
-NSAP = 22
-NSAP_PTR = 23
-SIG = 24
-KEY = 25
-PX = 26
-GPOS = 27
-AAAA = 28
-LOC = 29
-NXT = 30
-SRV = 33
-NAPTR = 35
-KX = 36
-CERT = 37
-A6 = 38
-DNAME = 39
-OPT = 41
-APL = 42
-DS = 43
-SSHFP = 44
-IPSECKEY = 45
-RRSIG = 46
-NSEC = 47
-DNSKEY = 48
-DHCID = 49
-NSEC3 = 50
-NSEC3PARAM = 51
-TLSA = 52
-HIP = 55
-NINFO = 56
-CDS = 59
-CDNSKEY = 60
-OPENPGPKEY = 61
-CSYNC = 62
-SPF = 99
-UNSPEC = 103
-EUI48 = 108
-EUI64 = 109
-TKEY = 249
-TSIG = 250
-IXFR = 251
-AXFR = 252
-MAILB = 253
-MAILA = 254
-ANY = 255
-URI = 256
-CAA = 257
-AVC = 258
-TA = 32768
-DLV = 32769
+class RdataType(enum.IntEnum):
+    """DNS Rdata Type"""
+    TYPE0 = 0
+    NONE = 0
+    A = 1
+    NS = 2
+    MD = 3
+    MF = 4
+    CNAME = 5
+    SOA = 6
+    MB = 7
+    MG = 8
+    MR = 9
+    NULL = 10
+    WKS = 11
+    PTR = 12
+    HINFO = 13
+    MINFO = 14
+    MX = 15
+    TXT = 16
+    RP = 17
+    AFSDB = 18
+    X25 = 19
+    ISDN = 20
+    RT = 21
+    NSAP = 22
+    NSAP_PTR = 23
+    SIG = 24
+    KEY = 25
+    PX = 26
+    GPOS = 27
+    AAAA = 28
+    LOC = 29
+    NXT = 30
+    SRV = 33
+    NAPTR = 35
+    KX = 36
+    CERT = 37
+    A6 = 38
+    DNAME = 39
+    OPT = 41
+    APL = 42
+    DS = 43
+    SSHFP = 44
+    IPSECKEY = 45
+    RRSIG = 46
+    NSEC = 47
+    DNSKEY = 48
+    DHCID = 49
+    NSEC3 = 50
+    NSEC3PARAM = 51
+    TLSA = 52
+    HIP = 55
+    NINFO = 56
+    CDS = 59
+    CDNSKEY = 60
+    OPENPGPKEY = 61
+    CSYNC = 62
+    SPF = 99
+    UNSPEC = 103
+    EUI48 = 108
+    EUI64 = 109
+    TKEY = 249
+    TSIG = 250
+    IXFR = 251
+    AXFR = 252
+    MAILB = 253
+    MAILA = 254
+    ANY = 255
+    URI = 256
+    CAA = 257
+    AVC = 258
+    TA = 32768
+    DLV = 32769
 
-_by_text = {
-    'NONE': NONE,
-    'A': A,
-    'NS': NS,
-    'MD': MD,
-    'MF': MF,
-    'CNAME': CNAME,
-    'SOA': SOA,
-    'MB': MB,
-    'MG': MG,
-    'MR': MR,
-    'NULL': NULL,
-    'WKS': WKS,
-    'PTR': PTR,
-    'HINFO': HINFO,
-    'MINFO': MINFO,
-    'MX': MX,
-    'TXT': TXT,
-    'RP': RP,
-    'AFSDB': AFSDB,
-    'X25': X25,
-    'ISDN': ISDN,
-    'RT': RT,
-    'NSAP': NSAP,
-    'NSAP-PTR': NSAP_PTR,
-    'SIG': SIG,
-    'KEY': KEY,
-    'PX': PX,
-    'GPOS': GPOS,
-    'AAAA': AAAA,
-    'LOC': LOC,
-    'NXT': NXT,
-    'SRV': SRV,
-    'NAPTR': NAPTR,
-    'KX': KX,
-    'CERT': CERT,
-    'A6': A6,
-    'DNAME': DNAME,
-    'OPT': OPT,
-    'APL': APL,
-    'DS': DS,
-    'SSHFP': SSHFP,
-    'IPSECKEY': IPSECKEY,
-    'RRSIG': RRSIG,
-    'NSEC': NSEC,
-    'DNSKEY': DNSKEY,
-    'DHCID': DHCID,
-    'NSEC3': NSEC3,
-    'NSEC3PARAM': NSEC3PARAM,
-    'TLSA': TLSA,
-    'HIP': HIP,
-    'NINFO': NINFO,
-    'CDS': CDS,
-    'CDNSKEY': CDNSKEY,
-    'OPENPGPKEY': OPENPGPKEY,
-    'CSYNC': CSYNC,
-    'SPF': SPF,
-    'UNSPEC': UNSPEC,
-    'EUI48': EUI48,
-    'EUI64': EUI64,
-    'TKEY': TKEY,
-    'TSIG': TSIG,
-    'IXFR': IXFR,
-    'AXFR': AXFR,
-    'MAILB': MAILB,
-    'MAILA': MAILA,
-    'ANY': ANY,
-    'URI': URI,
-    'CAA': CAA,
-    'AVC': AVC,
-    'TA': TA,
-    'DLV': DLV,
-}
+_by_text = {}
+_by_value = {}
 
-# We construct the inverse mapping programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mapping not to be true inverse.
-
-_by_value = {y: x for x, y in _by_text.items()}
-# Render type 0 as "TYPE0" not "NONE", as NONE is a dnspython-ism and not
-# an official mnemonic.
-_by_value[0] = 'TYPE0'
+for (name, value) in RdataType.__members__.items():
+    globals()[name] = value
+    real_name = name.replace('_', '-')
+    _by_text[real_name] = value
+    if value not in _by_value:
+        _by_value[value] = real_name
 
 _metatypes = {
     OPT: True
@@ -238,6 +169,24 @@ def to_text(value):
     if text is None:
         text = 'TYPE' + repr(value)
     return text
+
+
+def to_enum(value):
+    """Convert a DNS rdata type value to an enumerated type, if possible.
+
+    *value*, an ``int`` or ``str``, the rdata type.
+
+    Returns an ``int``.
+    """
+
+    if isinstance(value, str):
+        return from_text(value)
+    if value < 0 or value > 65535:
+        raise ValueError("type must be between >= 0 and <= 65535")
+    try:
+        return RdataType(value)
+    except ValueError:
+        return value
 
 
 def is_metatype(rdtype):

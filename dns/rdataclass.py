@@ -17,40 +17,25 @@
 
 """DNS Rdata Classes."""
 
+import enum
 import re
 
 import dns.exception
 
-RESERVED0 = 0
-IN = 1
-CH = 3
-HS = 4
-NONE = 254
-ANY = 255
+class RdataClass(enum.IntEnum):
+    """DNS Rdata Class"""
+    RESERVED0 = 0
+    IN = 1
+    INTERNET = IN
+    CH = 3
+    CHAOS = CH
+    HS = 4
+    HESIOD = HS
+    NONE = 254
+    ANY = 255
 
-_by_text = {
-    'RESERVED0': RESERVED0,
-    'IN': IN,
-    'CH': CH,
-    'HS': HS,
-    'NONE': NONE,
-    'ANY': ANY
-}
-
-# We construct the inverse mapping programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mapping not to be true inverse.
-
-_by_value = {y: x for x, y in _by_text.items()}
-
-# Now that we've built the inverse map, we can add class aliases to
-# the _by_text mapping.
-
-_by_text.update({
-    'INTERNET': IN,
-    'CHAOS': CH,
-    'HESIOD': HS
-})
+for (name, value) in RdataClass.__members__.items():
+    globals()[name] = value
 
 _metaclasses = {
     NONE: True,
@@ -79,8 +64,9 @@ def from_text(text):
     Returns an ``int``.
     """
 
-    value = _by_text.get(text.upper())
-    if value is None:
+    try:
+        value = RdataClass[text.upper()]
+    except KeyError:
         match = _unknown_class_pattern.match(text)
         if match is None:
             raise UnknownRdataclass
@@ -91,7 +77,7 @@ def from_text(text):
 
 
 def to_text(value):
-    """Convert a DNS rdata type value to text.
+    """Convert a DNS rdata class value to text.
 
     If the value has a known mnemonic, it will be used, otherwise the
     DNS generic class syntax will be used.
@@ -103,10 +89,28 @@ def to_text(value):
 
     if value < 0 or value > 65535:
         raise ValueError("class must be between >= 0 and <= 65535")
-    text = _by_value.get(value)
-    if text is None:
-        text = 'CLASS' + repr(value)
-    return text
+    try:
+        return RdataClass(value).name
+    except ValueError:
+        return f'CLASS{value}'
+
+
+def to_enum(value):
+    """Convert a DNS rdata class value to an enumerated type, if possible.
+
+    *value*, an ``int`` or ``str``, the rdata class.
+
+    Returns an ``int``.
+    """
+
+    if isinstance(value, str):
+        return from_text(value)
+    if value < 0 or value > 65535:
+        raise ValueError("class must be between >= 0 and <= 65535")
+    try:
+        return RdataClass(value)
+    except ValueError:
+        return value
 
 
 def is_metaclass(rdclass):

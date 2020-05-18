@@ -270,10 +270,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, str):
-            rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
-            covers = dns.rdatatype.from_text(covers)
+        rdtype = dns.rdatatype.to_enum(rdtype)
+        if covers is not None:
+            covers = dns.rdatatype.to_enum(covers)
         node = self.find_node(name, create)
         return node.find_rdataset(self.rdclass, rdtype, covers, create)
 
@@ -349,10 +348,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, str):
-            rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
-            covers = dns.rdatatype.from_text(covers)
+        rdtype = dns.rdatatype.to_enum(rdtype)
+        if covers is not None:
+            covers = dns.rdatatype.to_enum(covers)
         node = self.get_node(name)
         if node is not None:
             node.delete_rdataset(self.rdclass, rdtype, covers)
@@ -423,10 +421,9 @@ class Zone(object):
         """
 
         name = self._validate_name(name)
-        if isinstance(rdtype, str):
-            rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
-            covers = dns.rdatatype.from_text(covers)
+        rdtype = dns.rdatatype.to_enum(rdtype)
+        if covers is not None:
+            covers = dns.rdatatype.to_enum(covers)
         rdataset = self.nodes[name].find_rdataset(self.rdclass, rdtype, covers)
         rrset = dns.rrset.RRset(name, self.rdclass, rdtype, covers)
         rrset.update(rdataset)
@@ -496,10 +493,9 @@ class Zone(object):
         RRSIG rdataset.
         """
 
-        if isinstance(rdtype, str):
-            rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
-            covers = dns.rdatatype.from_text(covers)
+        rdtype = dns.rdatatype.to_enum(rdtype)
+        if covers is not None:
+            covers = dns.rdatatype.to_enum(covers)
         for (name, node) in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
@@ -526,10 +522,9 @@ class Zone(object):
         RRSIG rdataset.
         """
 
-        if isinstance(rdtype, str):
-            rdtype = dns.rdatatype.from_text(rdtype)
-        if isinstance(covers, str):
-            covers = dns.rdatatype.from_text(covers)
+        rdtype = dns.rdatatype.to_enum(rdtype)
+        if covers is not None:
+            covers = dns.rdatatype.to_enum(covers)
         for (name, node) in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or \
