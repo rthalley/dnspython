@@ -34,8 +34,7 @@ class RdataClass(enum.IntEnum):
     NONE = 254
     ANY = 255
 
-for (name, value) in RdataClass.__members__.items():
-    globals()[name] = value
+globals().update(RdataClass.__members__)
 
 _metaclasses = {
     NONE: True,
