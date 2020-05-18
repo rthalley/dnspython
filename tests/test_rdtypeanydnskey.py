@@ -23,46 +23,20 @@ from typing import Set # pylint: disable=unused-import
 
 class RdtypeAnyDnskeyTestCase(unittest.TestCase):
 
-    def testFlagsEmpty(self): # type: () -> None
-        '''Test DNSKEY flag to/from text conversion for zero flag/empty set.'''
-        good_s = set() #type: Set[str]
-        good_f = 0
-        from_flags = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(good_f)
-        self.assertEqual(from_flags, good_s,
-                         '"{}" != "{}"'.format(from_flags, good_s))
-        from_set = dns.rdtypes.ANY.DNSKEY.flags_from_text_set(good_s)
-        self.assertEqual(from_set, good_f,
-                         '"0x{:x}" != "0x{:x}"'.format(from_set, good_f))
-
     def testFlagsAll(self): # type: () -> None
         '''Test that all defined flags are recognized.'''
         good_s = {'SEP', 'REVOKE', 'ZONE'}
         good_f = 0x181
-        from_flags = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(good_f)
-        self.assertEqual(from_flags, good_s,
-                         '"{}" != "{}"'.format(from_flags, good_s))
-        from_text = dns.rdtypes.ANY.DNSKEY.flags_from_text_set(good_s)
-        self.assertEqual(from_text, good_f,
-                         '"0x{:x}" != "0x{:x}"'.format(from_text, good_f))
-
-    def testFlagsUnknownToText(self): # type: () -> None
-        '''Test that undefined flags are returned in hexadecimal notation.'''
-        unk_s = {'0x8000'}
-        flags_s = dns.rdtypes.ANY.DNSKEY.flags_to_text_set(0x8000)
-        self.assertEqual(flags_s, unk_s, '"{}" != "{}"'.format(flags_s, unk_s))
-
-    def testFlagsUnknownToFlags(self): # type: () -> None
-        '''Test that conversion from undefined mnemonic raises error.'''
-        self.assertRaises(NotImplementedError,
-                              dns.rdtypes.ANY.DNSKEY.flags_from_text_set,
-                              (['0x8000']))
+        self.assertEqual(dns.rdtypes.ANY.DNSKEY.SEP |
+                         dns.rdtypes.ANY.DNSKEY.REVOKE |
+                         dns.rdtypes.ANY.DNSKEY.ZONE, good_f)
 
     def testFlagsRRToText(self): # type: () -> None
         '''Test that RR method returns correct flags.'''
         rr = dns.rrset.from_text('foo', 300, 'IN', 'DNSKEY', '257 3 8 KEY=')[0]
-        rr_s = {'ZONE', 'SEP'}
-        flags_s = rr.flags_to_text_set()
-        self.assertEqual(flags_s, rr_s, '"{}" != "{}"'.format(flags_s, rr_s))
+        self.assertEqual(dns.rdtypes.ANY.DNSKEY.ZONE |
+                         dns.rdtypes.ANY.DNSKEY.SEP,
+                         rr.flags)
 
 
 if __name__ == '__main__':
