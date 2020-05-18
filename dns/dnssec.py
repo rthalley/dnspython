@@ -41,66 +41,26 @@ class ValidationFailure(dns.exception.DNSException):
     """The DNSSEC signature is invalid."""
 
 
-#: RSAMD5
-RSAMD5 = 1
-#: DH
-DH = 2
-#: DSA
-DSA = 3
-#: ECC
-ECC = 4
-#: RSASHA1
-RSASHA1 = 5
-#: DSANSEC3SHA1
-DSANSEC3SHA1 = 6
-#: RSASHA1NSEC3SHA1
-RSASHA1NSEC3SHA1 = 7
-#: RSASHA256
-RSASHA256 = 8
-#: RSASHA512
-RSASHA512 = 10
-#: ECC-GOST
-ECCGOST = 12
-#: ECDSAP256SHA256
-ECDSAP256SHA256 = 13
-#: ECDSAP384SHA384
-ECDSAP384SHA384 = 14
-#: ED25519
-ED25519 = 15
-#: ED448
-ED448 = 16
-#: INDIRECT
-INDIRECT = 252
-#: PRIVATEDNS
-PRIVATEDNS = 253
-#: PRIVATEOID
-PRIVATEOID = 254
+class Algorithm(enum.IntEnum):
+    RSAMD5 = 1
+    DH = 2
+    DSA = 3
+    ECC = 4
+    RSASHA1 = 5
+    DSANSEC3SHA1 = 6
+    RSASHA1NSEC3SHA1 = 7
+    RSASHA256 = 8
+    RSASHA512 = 10
+    ECCGOST = 12
+    ECDSAP256SHA256 = 13
+    ECDSAP384SHA384 = 14
+    ED25519 = 15
+    ED448 = 16
+    INDIRECT = 252
+    PRIVATEDNS = 253
+    PRIVATEOID = 254
 
-_algorithm_by_text = {
-    'RSAMD5': RSAMD5,
-    'DH': DH,
-    'DSA': DSA,
-    'ECC': ECC,
-    'RSASHA1': RSASHA1,
-    'DSANSEC3SHA1': DSANSEC3SHA1,
-    'RSASHA1NSEC3SHA1': RSASHA1NSEC3SHA1,
-    'RSASHA256': RSASHA256,
-    'RSASHA512': RSASHA512,
-    'ECCGOST': ECCGOST,
-    'ECDSAP256SHA256': ECDSAP256SHA256,
-    'ECDSAP384SHA384': ECDSAP384SHA384,
-    'ED25519': ED25519,
-    'ED448': ED448,
-    'INDIRECT': INDIRECT,
-    'PRIVATEDNS': PRIVATEDNS,
-    'PRIVATEOID': PRIVATEOID,
-}
-
-# We construct the inverse mapping programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mapping not to be true inverse.
-
-_algorithm_by_value = {y: x for x, y in _algorithm_by_text.items()}
+globals().update(Algorithm.__members__)
 
 
 def algorithm_from_text(text):
@@ -111,10 +71,10 @@ def algorithm_from_text(text):
     Returns an ``int``.
     """
 
-    value = _algorithm_by_text.get(text.upper())
-    if value is None:
-        value = int(text)
-    return value
+    try:
+        return Algorithm[text.upper()]
+    except KeyError:
+        return int(text)
 
 
 def algorithm_to_text(value):
@@ -125,10 +85,10 @@ def algorithm_to_text(value):
     Returns a ``str``, the name of a DNSSEC algorithm.
     """
 
-    text = _algorithm_by_value.get(value)
-    if text is None:
-        text = str(value)
-    return text
+    try:
+        return Algorithm(value).name
+    except ValueError:
+        return str(value)
 
 
 def _to_rdata(record, origin):
