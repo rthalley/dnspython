@@ -138,4 +138,4 @@ def is_address(text):
             dns.ipv6.inet_aton(text, True)
             return True
         except Exception:
-            raise False
+            return False

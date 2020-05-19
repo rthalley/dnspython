@@ -140,6 +140,8 @@ async def udp(q, where, port=53, source=None, source_port=0,
         r.time = received_time - sent_time
         return r
 
+# pylint: disable=redefined-outer-name
+
 async def send_stream(stream, what):
     """Asynchronously send a DNS message to the specified stream.
 

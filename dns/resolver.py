@@ -522,6 +522,18 @@ class _Resolution(object):
         self.tcp = tcp
         self.raise_on_no_answer = raise_on_no_answer
         self.nxdomain_responses = {}
+        #
+        # Initialize other things to help analysis tools
+        self.qname = dns.name.empty
+        self.nameservers = []
+        self.current_nameservers = []
+        self.errors = []
+        self.nameserver = None
+        self.port = 0
+        self.tcp_attempt = False
+        self.retry_with_tcp = False
+        self.request = None
+        self.backoff = 0
 
     def next_request(self):
         """Get the next request to send, and check the cache.
