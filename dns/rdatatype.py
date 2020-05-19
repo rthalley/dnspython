@@ -102,17 +102,9 @@ _registered_by_value = {}
 
 globals().update(RdataType.__members__.items())
 
-_metatypes = {
-    OPT: True
-}
+_metatypes = {OPT}
 
-_singletons = {
-    SOA: True,
-    NXT: True,
-    DNAME: True,
-    NSEC: True,
-    CNAME: True,
-}
+_singletons = {SOA, NXT, DNAME, NSEC, CNAME}
 
 _unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I)
 
@@ -239,4 +231,4 @@ def register_type(rdtype, rdtype_text, is_singleton=False):
     _registered_by_text[rdtype_text] = rdtype
     _registered_by_value[rdtype] = rdtype_text
     if is_singleton:
-        _singletons[rdtype] = True
+        _singletons.add(rdtype)

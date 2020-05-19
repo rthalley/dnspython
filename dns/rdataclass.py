@@ -36,10 +36,7 @@ class RdataClass(enum.IntEnum):
 
 globals().update(RdataClass.__members__)
 
-_metaclasses = {
-    NONE: True,
-    ANY: True
-}
+_metaclasses = {NONE, ANY}
 
 _unknown_class_pattern = re.compile('CLASS([0-9]+)$', re.I)
 
