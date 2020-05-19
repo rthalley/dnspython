@@ -17,11 +17,10 @@
 
 """DNS Result Codes."""
 
-import enum
-
+import dns.enum
 import dns.exception
 
-class Rcode(enum.IntEnum):
+class Rcode(dns.enum.IntEnum):
     #: No error
     NOERROR = 0
     #: Format error
@@ -47,6 +46,14 @@ class Rcode(enum.IntEnum):
     #: Bad EDNS version.
     BADVERS = 16
 
+    @classmethod
+    def _maximum(cls):
+        return 4095
+
+    @classmethod
+    def _unknown_exception_class(cls):
+        return UnknownRcode
+
 globals().update(Rcode.__members__)
 
 class UnknownRcode(dns.exception.DNSException):
@@ -63,17 +70,7 @@ def from_text(text):
     Returns an ``int``.
     """
 
-    if text.isdigit():
-        v = int(text)
-        if v >= 0 and v <= 4095:
-            try:
-                return Rcode(v)
-            except ValueError:
-                return v
-    try:
-        return Rcode[text.upper()]
-    except KeyError:
-        raise UnknownRcode
+    return Rcode.from_text(text)
 
 
 def from_flags(flags, ednsflags):
@@ -121,9 +118,4 @@ def to_text(value):
     Returns a ``str``.
     """
 
-    if value < 0 or value > 4095:
-        raise ValueError('rcode must be >= 0 and <= 4095')
-    try:
-        return Rcode(value).name
-    except ValueError:
-        return str(value)
+    return Rcode.to_text(value)
