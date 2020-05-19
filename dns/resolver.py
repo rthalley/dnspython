@@ -592,7 +592,7 @@ class _Resolution(object):
             assert self.nameserver is not None
             self.tcp_attempt = True
             self.retry_with_tcp = False
-            return (self.nameserver, self.port, True)
+            return (self.nameserver, self.port, True, 0)
 
         backoff = 0
         if not self.current_nameservers:
