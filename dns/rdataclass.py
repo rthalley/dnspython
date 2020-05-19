@@ -17,12 +17,10 @@
 
 """DNS Rdata Classes."""
 
-import enum
-import re
-
+import dns.enum
 import dns.exception
 
-class RdataClass(enum.IntEnum):
+class RdataClass(dns.enum.IntEnum):
     """DNS Rdata Class"""
     RESERVED0 = 0
     IN = 1
@@ -34,11 +32,25 @@ class RdataClass(enum.IntEnum):
     NONE = 254
     ANY = 255
 
+    @classmethod
+    def _maximum(cls):
+        return 65535
+
+    @classmethod
+    def _short_name(cls):
+        return "class"
+
+    @classmethod
+    def _prefix(cls):
+        return "CLASS"
+
+    @classmethod
+    def _unknown_exception_class(cls):
+        return UnknownRdataclass
+
 globals().update(RdataClass.__members__)
 
 _metaclasses = {NONE, ANY}
-
-_unknown_class_pattern = re.compile('CLASS([0-9]+)$', re.I)
 
 
 class UnknownRdataclass(dns.exception.DNSException):
@@ -60,16 +72,7 @@ def from_text(text):
     Returns an ``int``.
     """
 
-    try:
-        value = RdataClass[text.upper()]
-    except KeyError:
-        match = _unknown_class_pattern.match(text)
-        if match is None:
-            raise UnknownRdataclass
-        value = int(match.group(1))
-        if value < 0 or value > 65535:
-            raise ValueError("class must be between >= 0 and <= 65535")
-    return value
+    return RdataClass.from_text(text)
 
 
 def to_text(value):
@@ -83,12 +86,7 @@ def to_text(value):
     Returns a ``str``.
     """
 
-    if value < 0 or value > 65535:
-        raise ValueError("class must be between >= 0 and <= 65535")
-    try:
-        return RdataClass(value).name
-    except ValueError:
-        return f'CLASS{value}'
+    return RdataClass.to_text(value)
 
 
 def to_enum(value):
@@ -99,14 +97,7 @@ def to_enum(value):
     Returns an ``int``.
     """
 
-    if isinstance(value, str):
-        return from_text(value)
-    if value < 0 or value > 65535:
-        raise ValueError("class must be between >= 0 and <= 65535")
-    try:
-        return RdataClass(value)
-    except ValueError:
-        return value
+    return RdataClass.to_enum(value)
 
 
 def is_metaclass(rdclass):

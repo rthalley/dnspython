@@ -17,13 +17,13 @@
 
 """Common DNSSEC-related functions and constants."""
 
-import enum
 import hashlib
 import io
 import struct
 import time
 import base64
 
+import dns.enum
 import dns.exception
 import dns.name
 import dns.node
@@ -41,7 +41,7 @@ class ValidationFailure(dns.exception.DNSException):
     """The DNSSEC signature is invalid."""
 
 
-class Algorithm(enum.IntEnum):
+class Algorithm(dns.enum.IntEnum):
     RSAMD5 = 1
     DH = 2
     DSA = 3
@@ -60,6 +60,11 @@ class Algorithm(enum.IntEnum):
     PRIVATEDNS = 253
     PRIVATEOID = 254
 
+    @classmethod
+    def _maximum(cls):
+        return 255
+
+
 globals().update(Algorithm.__members__)
 
 
@@ -71,10 +76,7 @@ def algorithm_from_text(text):
     Returns an ``int``.
     """
 
-    try:
-        return Algorithm[text.upper()]
-    except KeyError:
-        return int(text)
+    return Algorithm.from_text(text)
 
 
 def algorithm_to_text(value):
@@ -85,10 +87,7 @@ def algorithm_to_text(value):
     Returns a ``str``, the name of a DNSSEC algorithm.
     """
 
-    try:
-        return Algorithm(value).name
-    except ValueError:
-        return str(value)
+    return Algorithm.to_text(value)
 
 
 def _to_rdata(record, origin):
@@ -118,12 +117,16 @@ def key_id(key):
         total += ((total >> 16) & 0xffff)
         return total & 0xffff
 
-class DSDigest(enum.IntEnum):
+class DSDigest(dns.enum.IntEnum):
     """DNSSEC Delgation Signer Digest Algorithm"""
 
     SHA1 = 1
     SHA256 = 2
     SHA384 = 4
+
+    @classmethod
+    def _maximum(cls):
+        return 255
 
 
 def make_ds(name, key, algorithm, origin=None):
@@ -496,11 +499,14 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     raise ValidationFailure("no RRSIGs validated")
 
 
-class NSEC3Hash(enum.IntEnum):
+class NSEC3Hash(dns.enum.IntEnum):
     """NSEC3 hash algorithm"""
 
     SHA1 = 1
 
+    @classmethod
+    def _maximum(cls):
+        return 255
 
 def nsec3_hash(domain, salt, iterations, algorithm):
     """

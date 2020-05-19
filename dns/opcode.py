@@ -17,11 +17,10 @@
 
 """DNS Opcodes."""
 
-import enum
-
+import dns.enum
 import dns.exception
 
-class Opcode(enum.IntEnum):
+class Opcode(dns.enum.IntEnum):
     #: Query
     QUERY = 0
     #: Inverse Query (historical)
@@ -32,6 +31,14 @@ class Opcode(enum.IntEnum):
     NOTIFY = 4
     #: Dynamic Update
     UPDATE = 5
+
+    @classmethod
+    def _maximum(cls):
+        return 15
+
+    @classmethod
+    def _unknown_exception_class(cls):
+        return UnknownOpcode
 
 globals().update(Opcode.__members__)
 
@@ -50,17 +57,7 @@ def from_text(text):
     Returns an ``int``.
     """
 
-    if text.isdigit():
-        value = int(text)
-        if value >= 0 and value <= 15:
-            try:
-                return Opcode(value)
-            except ValueError:
-                return value
-    try:
-        return Opcode[text.upper()]
-    except KeyError:
-        raise UnknownOpcode
+    return Opcode.from_text(text)
 
 
 def from_flags(flags):
@@ -96,10 +93,7 @@ def to_text(value):
     Returns a ``str``.
     """
 
-    try:
-        return Opcode(value).name
-    except ValueError:
-        return str(value)
+    return Opcode.to_text(value)
 
 
 def is_update(flags):

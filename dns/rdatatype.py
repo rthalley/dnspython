@@ -17,12 +17,10 @@
 
 """DNS Rdata Types."""
 
-import enum
-import re
-
+import dns.enum
 import dns.exception
 
-class RdataType(enum.IntEnum):
+class RdataType(dns.enum.IntEnum):
     """DNS Rdata Type"""
     TYPE0 = 0
     NONE = 0
@@ -97,16 +95,30 @@ class RdataType(enum.IntEnum):
     TA = 32768
     DLV = 32769
 
+    @classmethod
+    def _maximum(cls):
+        return 65535
+
+    @classmethod
+    def _short_name(cls):
+        return "type"
+
+    @classmethod
+    def _prefix(cls):
+        return "TYPE"
+
+    @classmethod
+    def _unknown_exception_class(cls):
+        return UnknownRdatatype
+
 _registered_by_text = {}
 _registered_by_value = {}
 
-globals().update(RdataType.__members__.items())
+globals().update(RdataType.__members__)
 
 _metatypes = {OPT}
 
 _singletons = {SOA, NXT, DNAME, NSEC, CNAME}
-
-_unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I)
 
 
 class UnknownRdatatype(dns.exception.DNSException):
@@ -130,18 +142,12 @@ def from_text(text):
 
     text = text.upper().replace('-', '_')
     try:
-        return RdataType[text]
-    except KeyError:
-        pass
-    value = _registered_by_text.get(text.upper())
-    if value is None:
-        match = _unknown_type_pattern.match(text)
-        if match is None:
-            raise UnknownRdatatype
-        value = int(match.group(1))
-        if value < 0 or value > 65535:
-            raise ValueError("type must be between >= 0 and <= 65535")
-    return value
+        return RdataType.from_text(text)
+    except UnknownRdatatype:
+        registered_type = _registered_by_text.get(text)
+        if registered_type:
+            return registered_type
+        raise
 
 
 def to_text(value):
@@ -155,15 +161,12 @@ def to_text(value):
     Returns a ``str``.
     """
 
-    if value < 0 or value > 65535:
-        raise ValueError("type must be between >= 0 and <= 65535")
-    try:
-        return RdataType(value).name.replace('_', '-')
-    except ValueError:
-        text = _registered_by_value.get(value)
-        if text:
-            return text
-        return f'TYPE{value}'
+    text = RdataType.to_text(value)
+    if text.startswith("TYPE"):
+        registered_text = _registered_by_value.get(value)
+        if registered_text:
+            text = registered_text
+    return text.replace('_', '-')
 
 
 def to_enum(value):
@@ -174,14 +177,7 @@ def to_enum(value):
     Returns an ``int``.
     """
 
-    if isinstance(value, str):
-        return from_text(value)
-    if value < 0 or value > 65535:
-        raise ValueError("type must be between >= 0 and <= 65535")
-    try:
-        return RdataType(value)
-    except ValueError:
-        return value
+    return RdataType.to_enum(value)
 
 
 def is_metatype(rdtype):
