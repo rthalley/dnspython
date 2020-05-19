@@ -203,9 +203,7 @@ def is_metatype(rdtype):
     Returns a ``bool``.
     """
 
-    if rdtype >= TKEY and rdtype <= ANY or rdtype in _metatypes:
-        return True
-    return False
+    return (256 > rdtype >= 128) or rdtype in _metatypes
 
 
 def is_singleton(rdtype):
