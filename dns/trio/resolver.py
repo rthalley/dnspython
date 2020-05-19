@@ -17,19 +17,15 @@
 
 """trio async I/O library DNS stub resolver."""
 
-import random
-import socket
 import trio
-from urllib.parse import urlparse
 
 import dns.exception
 import dns.query
 import dns.resolver
 import dns.trio.query
 
-# import resolver symbols for compatibility and brevity
-from dns.resolver import NXDOMAIN, YXDOMAIN, NoAnswer, NoNameservers, \
-    NotAbsolute, NoRootSOA, NoMetaqueries, Answer
+# import some resolver symbols for brevity
+from dns.resolver import NXDOMAIN, NoAnswer, NotAbsolute, NoRootSOA
 
 # we do this for indentation reasons below
 _udp = dns.trio.query.udp
@@ -87,62 +83,25 @@ class Resolver(dns.resolver.Resolver):
 
         """
 
-        if isinstance(qname, str):
-            qname = dns.name.from_text(qname, None)
-        if isinstance(rdtype, str):
-            rdtype = dns.rdatatype.from_text(rdtype)
-        if dns.rdatatype.is_metatype(rdtype):
-            raise NoMetaqueries
-        if isinstance(rdclass, str):
-            rdclass = dns.rdataclass.from_text(rdclass)
-        if dns.rdataclass.is_metaclass(rdclass):
-            raise NoMetaqueries
-        qnames_to_try = self._get_qnames_to_try(qname, search)
-        all_nxdomain = True
-        nxdomain_responses = {}
-        _qname = None  # make pylint happy
-        for _qname in qnames_to_try:
-            if self.cache:
-                answer = self.cache.get((_qname, rdtype, rdclass))
-                if answer is not None:
-                    if answer.rrset is None and raise_on_no_answer:
-                        raise NoAnswer(response=answer.response)
-                    else:
-                        return answer
-            request = dns.message.make_query(_qname, rdtype, rdclass)
-            if self.keyname is not None:
-                request.use_tsig(self.keyring, self.keyname,
-                                 algorithm=self.keyalgorithm)
-            request.use_edns(self.edns, self.ednsflags, self.payload)
-            if self.flags is not None:
-                request.flags = self.flags
-            response = None
-            #
-            # make a copy of the servers list so we can alter it later.
-            #
-            nameservers = self.nameservers[:]
-            errors = []
-            if self.rotate:
-                random.shuffle(nameservers)
-            backoff = 0.10
-            # keep track of nameserver and port
-            # to include them in Answer
-            nameserver_answered = None
-            port_answered = None
-            loops = 0
-            while response is None:
-                if len(nameservers) == 0:
-                    raise NoNameservers(request=request, errors=errors)
-                for nameserver in nameservers[:]:
-                    port = self.nameserver_ports.get(nameserver, self.port)
-                    protocol = urlparse(nameserver).scheme
-                    try:
-                        with trio.fail_after(self.timeout):
-                            if protocol == 'https':
-                                raise NotImplementedError
-                            elif protocol:
-                                continue
-                            tcp_attempt = tcp
+        resolution = dns.resolver._Resolution(self, qname, rdtype, rdclass, tcp,
+                                              raise_on_no_answer, search)
+        while True:
+            (request, answer) = resolution.next_request()
+            if answer:
+                # cache hit!
+                return answer
+            loops = 1
+            done = False
+            while not done:
+                (nameserver, port, tcp, backoff) = resolution.next_nameserver()
+                if backoff:
+                    loops += 1
+                    if loops >= 5:
+                        raise TooManyAttempts
+                    await trio.sleep(backoff)
+                try:
+                    with trio.fail_after(self.timeout):
+                        if dns.inet.is_address(nameserver):
                             if tcp:
                                 response = await \
                                     _stream(request, nameserver,
@@ -150,113 +109,20 @@ class Resolver(dns.resolver.Resolver):
                                             source=source,
                                             source_port=source_port)
                             else:
-                                try:
-                                    response = await \
-                                        _udp(request,
-                                             nameserver,
-                                             port=port,
-                                             source=source,
-                                             source_port=source_port)
-                                except dns.message.Truncated:
-                                    # Response truncated; retry with TCP.
-                                    tcp_attempt = True
-                                    response = await \
-                                        _stream(request, nameserver,
-                                                port=port,
-                                                source=source,
-                                                source_port=source_port)
-                    except (socket.error, trio.TooSlowError) as ex:
-                        #
-                        # Communication failure or timeout.  Go to the
-                        # next server
-                        #
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    except dns.query.UnexpectedSource as ex:
-                        #
-                        # Who knows?  Keep going.
-                        #
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    except dns.exception.FormError as ex:
-                        #
-                        # We don't understand what this server is
-                        # saying.  Take it out of the mix and
-                        # continue.
-                        #
-                        nameservers.remove(nameserver)
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    except EOFError as ex:
-                        #
-                        # We're using TCP and they hung up on us.
-                        # Probably they don't support TCP (though
-                        # they're supposed to!).  Take it out of the
-                        # mix and continue.
-                        #
-                        nameservers.remove(nameserver)
-                        errors.append((nameserver, tcp_attempt, port, ex,
-                                       response))
-                        response = None
-                        continue
-                    nameserver_answered = nameserver
-                    port_answered = port
-                    rcode = response.rcode()
-                    if rcode == dns.rcode.YXDOMAIN:
-                        yex = YXDOMAIN()
-                        errors.append((nameserver, tcp_attempt, port, yex,
-                                       response))
-                        raise yex
-                    if rcode == dns.rcode.NOERROR or \
-                       rcode == dns.rcode.NXDOMAIN:
-                        break
-                    #
-                    # We got a response, but we're not happy with the
-                    # rcode in it.  Remove the server from the mix if
-                    # the rcode isn't SERVFAIL.
-                    #
-                    if rcode != dns.rcode.SERVFAIL or not self.retry_servfail:
-                        nameservers.remove(nameserver)
-                    errors.append((nameserver, tcp_attempt, port,
-                                   dns.rcode.to_text(rcode), response))
-                    response = None
-                if response is not None:
-                    break
-                #
-                # All nameservers failed!
-                #
-                # Do not loop forever if caller hasn't used a timeout
-                # scope.
-                loops += 1
-                if loops >= 5:
-                    raise TooManyAttempts
-                if len(nameservers) > 0:
-                    #
-                    # But we still have servers to try.  Sleep a bit
-                    # so we don't pound them!
-                    #
-                    await trio.sleep(backoff)
-                    backoff *= 2
-                    if backoff > 2:
-                        backoff = 2
-            if response.rcode() == dns.rcode.NXDOMAIN:
-                nxdomain_responses[_qname] = response
-                continue
-            all_nxdomain = False
-            break
-        if all_nxdomain:
-            raise NXDOMAIN(qnames=qnames_to_try, responses=nxdomain_responses)
-        answer = Answer(_qname, rdtype, rdclass, response, raise_on_no_answer,
-                        nameserver_answered, port_answered)
-        if self.cache:
-            self.cache.put((_qname, rdtype, rdclass), answer)
-        return answer
+                                response = await \
+                                    _udp(request,
+                                         nameserver,
+                                         port=port,
+                                         source=source,
+                                         source_port=source_port)
+                        else:
+                            # We don't do DoH yet.
+                            raise NotImplementedError
+                    (answer, done) = resolution.query_result(response, None)
+                    if answer:
+                        return answer
+                except Exception as ex:
+                    (_, done) = resolution.query_result(None, ex)
 
     async def query(self, *args, **kwargs):
         # We have to define something here as we don't want to inherit the
@@ -320,6 +186,16 @@ async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
     return await get_default_resolver().resolve(qname, rdtype, rdclass, tcp,
                                                 source, raise_on_no_answer,
                                                 source_port, search)
+
+
+async def resolve_address(ipaddr, *args, **kwargs):
+    """Use a resolver to run a reverse query for PTR records.
+
+    See ``dns.trio.resolver.Resolver.resolve_address`` for more
+    information on the parameters.
+    """
+
+    return await get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
 
 
 async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,

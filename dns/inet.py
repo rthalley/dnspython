@@ -120,3 +120,22 @@ def is_multicast(text):
             return first == 255
         except Exception:
             raise ValueError
+
+
+def is_address(text):
+    """Is the specified string an IPv4 or IPv6 address?
+
+    *text*, a ``str``, the textual address.
+
+    Returns a ``bool``.
+    """
+
+    try:
+        dns.ipv4.inet_aton(text)
+        return True
+    except Exception:
+        try:
+            dns.ipv6.inet_aton(text, True)
+            return True
+        except Exception:
+            return False
