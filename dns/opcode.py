@@ -59,7 +59,7 @@ def from_text(text):
                 return value
     try:
         return Opcode[text.upper()]
-    except:
+    except KeyError:
         raise UnknownOpcode
 
 
