@@ -1243,6 +1243,16 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                    True)
 
 
+def resolve_address(ipaddr, *args, **kwargs):
+    """Use a resolver to run a reverse query for PTR records.
+
+    See ``dns.resolver.Resolver.resolve_address`` for more information on the
+    parameters.
+    """
+
+    return get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
+
+
 def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     """Find the name of the zone which contains the specified name.
 

@@ -188,6 +188,16 @@ async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                                                 source_port, search)
 
 
+async def resolve_address(ipaddr, *args, **kwargs):
+    """Use a resolver to run a reverse query for PTR records.
+
+    See ``dns.trio.resolver.Resolver.resolve_address`` for more
+    information on the parameters.
+    """
+
+    return await get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
+
+
 async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
                         resolver=None):
     """Find the name of the zone which contains the specified name.
