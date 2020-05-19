@@ -231,4 +231,4 @@ def register_type(rdtype, rdtype_text, is_singleton=False):
     _registered_by_text[rdtype_text] = rdtype
     _registered_by_value[rdtype] = rdtype_text
     if is_singleton:
-        _singletons[rdtype] = True
+        _singletons.add(rdtype)

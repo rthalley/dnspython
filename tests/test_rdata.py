@@ -23,6 +23,7 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 
+import tests.stxt_module
 import tests.ttxt_module
 
 class RdataTestCase(unittest.TestCase):
@@ -48,6 +49,16 @@ class RdataTestCase(unittest.TestCase):
             TTXTTWO = dns.rdatatype.TXT
             dns.rdata.register_type(tests.ttxt_module, TTXTTWO, 'TTXTTWO')
         self.assertRaises(dns.rdata.RdatatypeExists, bad)
+
+    def test_module_registration_singleton(self):
+        STXT = 64002
+        dns.rdata.register_type(tests.stxt_module, STXT, 'STXT',
+                                is_singleton=True)
+        rdata1 = dns.rdata.from_text(dns.rdataclass.IN, STXT, 'hello')
+        rdata2 = dns.rdata.from_text(dns.rdataclass.IN, STXT, 'world')
+        rdataset = dns.rdataset.from_rdata(3600, rdata1, rdata2)
+        self.assertEqual(len(rdataset), 1)
+        self.assertEqual(rdataset[0].strings, (b'world',))
 
     def test_replace(self):
         a1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
