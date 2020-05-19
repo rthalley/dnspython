@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import base64
+import enum
 import struct
 
 import dns.exception
@@ -23,54 +24,14 @@ import dns.dnssec
 import dns.rdata
 
 # wildcard import
-__all__ = ["SEP", "REVOKE", "ZONE",
-           "flags_to_text_set", "flags_from_text_set"]
+__all__ = ["SEP", "REVOKE", "ZONE"]
 
-# flag constants
-SEP = 0x0001
-REVOKE = 0x0080
-ZONE = 0x0100
+class Flag(enum.IntFlag):
+    SEP = 0x0001
+    REVOKE = 0x0080
+    ZONE = 0x0100
 
-_flag_by_text = {
-    'SEP': SEP,
-    'REVOKE': REVOKE,
-    'ZONE': ZONE
-}
-
-# We construct the inverse mapping programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mapping not to be true inverse.
-_flag_by_value = {y: x for x, y in _flag_by_text.items()}
-
-
-def flags_to_text_set(flags):
-    """Convert a DNSKEY flags value to set texts
-    @rtype: set([string])"""
-
-    flags_set = set()
-    mask = 0x1
-    while mask <= 0x8000:
-        if flags & mask:
-            text = _flag_by_value.get(mask)
-            if not text:
-                text = hex(mask)
-            flags_set.add(text)
-        mask <<= 1
-    return flags_set
-
-
-def flags_from_text_set(texts_set):
-    """Convert set of DNSKEY flag mnemonic texts to DNSKEY flag value
-    @rtype: int"""
-
-    flags = 0
-    for text in texts_set:
-        try:
-            flags += _flag_by_text[text]
-        except KeyError:
-            raise NotImplementedError(
-                "DNSKEY flag '%s' is not supported" % text)
-    return flags
+globals().update(Flag.__members__)
 
 
 class DNSKEYBase(dns.rdata.Rdata):
@@ -123,8 +84,3 @@ class DNSKEYBase(dns.rdata.Rdata):
         key = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
-
-    def flags_to_text_set(self):
-        """Convert a DNSKEY flags value to set texts
-        @rtype: set([string])"""
-        return flags_to_text_set(self.flags)

@@ -17,32 +17,23 @@
 
 """DNS Opcodes."""
 
+import enum
+
 import dns.exception
 
-#: Query
-QUERY = 0
-#: Inverse Query (historical)
-IQUERY = 1
-#: Server Status (unspecified and unimplemented anywhere)
-STATUS = 2
-#: Notify
-NOTIFY = 4
-#: Dynamic Update
-UPDATE = 5
+class Opcode(enum.IntEnum):
+    #: Query
+    QUERY = 0
+    #: Inverse Query (historical)
+    IQUERY = 1
+    #: Server Status (unspecified and unimplemented anywhere)
+    STATUS = 2
+    #: Notify
+    NOTIFY = 4
+    #: Dynamic Update
+    UPDATE = 5
 
-_by_text = {
-    'QUERY': QUERY,
-    'IQUERY': IQUERY,
-    'STATUS': STATUS,
-    'NOTIFY': NOTIFY,
-    'UPDATE': UPDATE
-}
-
-# We construct the inverse mapping programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mapping not to be true inverse.
-
-_by_value = {y: x for x, y in _by_text.items()}
+globals().update(Opcode.__members__)
 
 
 class UnknownOpcode(dns.exception.DNSException):
@@ -62,11 +53,14 @@ def from_text(text):
     if text.isdigit():
         value = int(text)
         if value >= 0 and value <= 15:
-            return value
-    value = _by_text.get(text.upper())
-    if value is None:
+            try:
+                return Opcode(value)
+            except ValueError:
+                return value
+    try:
+        return Opcode[text.upper()]
+    except:
         raise UnknownOpcode
-    return value
 
 
 def from_flags(flags):
@@ -102,10 +96,10 @@ def to_text(value):
     Returns a ``str``.
     """
 
-    text = _by_value.get(value)
-    if text is None:
-        text = str(value)
-    return text
+    try:
+        return Opcode(value).name
+    except ValueError:
+        return str(value)
 
 
 def is_update(flags):

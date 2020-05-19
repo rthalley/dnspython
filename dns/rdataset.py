@@ -309,10 +309,8 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None):
     Returns a ``dns.rdataset.Rdataset`` object.
     """
 
-    if isinstance(rdclass, str):
-        rdclass = dns.rdataclass.from_text(rdclass)
-    if isinstance(rdtype, str):
-        rdtype = dns.rdatatype.from_text(rdtype)
+    rdclass = dns.rdataclass.to_enum(rdclass)
+    rdtype = dns.rdatatype.to_enum(rdtype)
     r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:

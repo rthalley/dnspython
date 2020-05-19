@@ -58,8 +58,7 @@ class Update(dns.message.Message):
         if isinstance(zone, str):
             zone = dns.name.from_text(zone)
         self.origin = zone
-        if isinstance(rdclass, str):
-            rdclass = dns.rdataclass.from_text(rdclass)
+        rdclass = dns.rdataclass.to_enum(rdclass)
         self.zone_rdclass = rdclass
         self.find_rrset(self.question, self.origin, rdclass, dns.rdatatype.SOA,
                         create=True, force_unique=True)
@@ -109,9 +108,7 @@ class Update(dns.message.Message):
                 for rd in args:
                     self._add_rr(name, ttl, rd, section=section)
             else:
-                rdtype = args.pop(0)
-                if isinstance(rdtype, str):
-                    rdtype = dns.rdatatype.from_text(rdtype)
+                rdtype = dns.rdatatype.to_enum(args.pop(0))
                 if replace:
                     self.delete(name, rdtype)
                 for s in args:
@@ -165,9 +162,7 @@ class Update(dns.message.Message):
                 for rd in args:
                     self._add_rr(name, 0, rd, dns.rdataclass.NONE)
             else:
-                rdtype = args.pop(0)
-                if isinstance(rdtype, str):
-                    rdtype = dns.rdatatype.from_text(rdtype)
+                rdtype = dns.rdatatype.to_enum(args.pop(0))
                 if len(args) == 0:
                     self.find_rrset(self.authority, name,
                                     self.zone_rdclass, rdtype,
@@ -229,9 +224,7 @@ class Update(dns.message.Message):
                 args.insert(0, 0)
             self._add(False, self.answer, name, *args)
         else:
-            rdtype = args[0]
-            if isinstance(rdtype, str):
-                rdtype = dns.rdatatype.from_text(rdtype)
+            rdtype = dns.rdatatype.to_enum(args[0])
             self.find_rrset(self.answer, name,
                             dns.rdataclass.ANY, rdtype,
                             dns.rdatatype.NONE, None,
@@ -249,8 +242,7 @@ class Update(dns.message.Message):
                             dns.rdatatype.NONE, None,
                             True, True)
         else:
-            if isinstance(rdtype, str):
-                rdtype = dns.rdatatype.from_text(rdtype)
+            rdtype = dns.rdatatype.to_enum(rdtype)
             self.find_rrset(self.answer, name,
                             dns.rdataclass.NONE, rdtype,
                             dns.rdatatype.NONE, None,

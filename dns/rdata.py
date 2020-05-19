@@ -433,6 +433,8 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
 
     if isinstance(tok, str):
         tok = dns.tokenizer.Tokenizer(tok, idna_codec=idna_codec)
+    rdclass = dns.rdataclass.to_enum(rdclass)
+    rdtype = dns.rdatatype.to_enum(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
     if cls != GenericRdata:
         # peek at first token
@@ -482,6 +484,8 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
     """
 
     wire = dns.wiredata.maybe_wrap(wire)
+    rdclass = dns.rdataclass.to_enum(rdclass)
+    rdtype = dns.rdatatype.to_enum(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
     return cls.from_wire(rdclass, rdtype, wire, current, rdlen, origin)
 
@@ -512,8 +516,13 @@ def register_type(implementation, rdtype, rdtype_text, is_singleton=False,
     """
 
     existing_cls = get_rdata_class(rdclass, rdtype)
-    if existing_cls != GenericRdata:
+    if existing_cls != GenericRdata or dns.rdatatype.is_metatype(rdtype):
         raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
+    try:
+        if dns.rdatatype.RdataType(rdtype).name != rdtype_text:
+            raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
+    except ValueError:
+        pass
     _rdata_classes[(rdclass, rdtype)] = getattr(implementation,
                                                 rdtype_text.replace('-', '_'))
     dns.rdatatype.register_type(rdtype, rdtype_text, is_singleton)
