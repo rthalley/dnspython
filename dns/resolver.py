@@ -659,7 +659,7 @@ class _Resolution(object):
             # rcode in it.  Remove the server from the mix if
             # the rcode isn't SERVFAIL.
             #
-            if rcode != dns.rcode.SERVFAIL or not self.retry_servfail:
+            if rcode != dns.rcode.SERVFAIL or not self.resolver.retry_servfail:
                 self.nameservers.remove(self.nameserver)
             self.errors.append((self.nameserver, self.tcp_attempt, self.port,
                                 dns.rcode.to_text(rcode), response))
