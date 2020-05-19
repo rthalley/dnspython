@@ -24,16 +24,8 @@ import dns.exception
 import dns.name
 import dns.ttl
 
-_DELIMITERS = {
-    ' ': True,
-    '\t': True,
-    '\n': True,
-    ';': True,
-    '(': True,
-    ')': True,
-    '"': True}
-
-_QUOTING_DELIMITERS = {'"': True}
+_DELIMITERS = {' ', '\t', '\n', ';', '(', ')', '"'}
+_QUOTING_DELIMITERS = {'"'}
 
 EOF = 0
 EOL = 1
