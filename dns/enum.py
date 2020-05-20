@@ -62,7 +62,7 @@ class IntEnum(enum.IntEnum):
 
     @classmethod
     def _maximum(cls):
-        raise NotImplemented
+        raise NotImplementedError
 
     @classmethod
     def _short_name(cls):
