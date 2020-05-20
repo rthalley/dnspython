@@ -20,7 +20,6 @@
 
 import copy
 import struct
-import sys
 
 import encodings.idna    # type: ignore
 try:
@@ -31,8 +30,6 @@ except ImportError:
 
 import dns.exception
 import dns.wiredata
-
-maxint = sys.maxsize
 
 # fullcompare() result values
 
@@ -370,7 +367,7 @@ class Name(object):
         for label in self.labels:
             for c in label.lower():
                 h += (h << 3) + c
-        return h % maxint
+        return h
 
     def fullcompare(self, other):
         """Compare two names, returning a 3-tuple
