@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.dnskeybase
-from dns.rdtypes.dnskeybase import SEP, REVOKE, ZONE
+from dns.rdtypes.dnskeybase import SEP, REVOKE, ZONE  # noqa: F401
 
 
 class DNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):

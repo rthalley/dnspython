@@ -50,7 +50,7 @@ class RdataClass(dns.enum.IntEnum):
 
 globals().update(RdataClass.__members__)
 
-_metaclasses = {NONE, ANY}
+_metaclasses = {RdataClass.NONE, RdataClass.ANY}
 
 
 class UnknownRdataclass(dns.exception.DNSException):

@@ -24,7 +24,7 @@ import dns.dnssec
 import dns.rdata
 
 # wildcard import
-__all__ = ["SEP", "REVOKE", "ZONE"]
+__all__ = ["SEP", "REVOKE", "ZONE"]   # noqa: F822
 
 class Flag(enum.IntFlag):
     SEP = 0x0001

@@ -116,9 +116,10 @@ _registered_by_value = {}
 
 globals().update(RdataType.__members__)
 
-_metatypes = {OPT}
+_metatypes = {RdataType.OPT}
 
-_singletons = {SOA, NXT, DNAME, NSEC, CNAME}
+_singletons = {RdataType.SOA, RdataType.NXT, RdataType.DNAME,
+               RdataType.NSEC, RdataType.CNAME}
 
 
 class UnknownRdatatype(dns.exception.DNSException):

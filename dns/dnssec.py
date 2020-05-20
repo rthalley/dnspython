@@ -105,7 +105,7 @@ def key_id(key):
     """
 
     rdata = _to_rdata(key, None)
-    if key.algorithm == RSAMD5:
+    if key.algorithm == Algorithm.RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:
         total = 0
@@ -196,46 +196,46 @@ def _find_candidate_keys(keys, rrsig):
 
 
 def _is_rsa(algorithm):
-    return algorithm in (RSAMD5, RSASHA1,
-                         RSASHA1NSEC3SHA1, RSASHA256,
-                         RSASHA512)
+    return algorithm in (Algorithm.RSAMD5, Algorithm.RSASHA1,
+                         Algorithm.RSASHA1NSEC3SHA1, Algorithm.RSASHA256,
+                         Algorithm.RSASHA512)
 
 
 def _is_dsa(algorithm):
-    return algorithm in (DSA, DSANSEC3SHA1)
+    return algorithm in (Algorithm.DSA, Algorithm.DSANSEC3SHA1)
 
 
 def _is_ecdsa(algorithm):
-    return algorithm in (ECDSAP256SHA256, ECDSAP384SHA384)
+    return algorithm in (Algorithm.ECDSAP256SHA256, Algorithm.ECDSAP384SHA384)
 
 
 def _is_eddsa(algorithm):
-    return algorithm in (ED25519, ED448)
+    return algorithm in (Algorithm.ED25519, Algorithm.ED448)
 
 
 def _is_gost(algorithm):
-    return algorithm == ECCGOST
+    return algorithm == Algorithm.ECCGOST
 
 
 def _is_md5(algorithm):
-    return algorithm == RSAMD5
+    return algorithm == Algorithm.RSAMD5
 
 
 def _is_sha1(algorithm):
-    return algorithm in (DSA, RSASHA1,
-                         DSANSEC3SHA1, RSASHA1NSEC3SHA1)
+    return algorithm in (Algorithm.DSA, Algorithm.RSASHA1,
+                         Algorithm.DSANSEC3SHA1, Algorithm.RSASHA1NSEC3SHA1)
 
 
 def _is_sha256(algorithm):
-    return algorithm in (RSASHA256, ECDSAP256SHA256)
+    return algorithm in (Algorithm.RSASHA256, Algorithm.ECDSAP256SHA256)
 
 
 def _is_sha384(algorithm):
-    return algorithm == ECDSAP384SHA384
+    return algorithm == Algorithm.ECDSAP384SHA384
 
 
 def _is_sha512(algorithm):
-    return algorithm == RSASHA512
+    return algorithm == Algorithm.RSASHA512
 
 
 def _make_hash(algorithm):
@@ -249,9 +249,9 @@ def _make_hash(algorithm):
         return hashes.SHA384()
     if _is_sha512(algorithm):
         return hashes.SHA512()
-    if algorithm == ED25519:
+    if algorithm == Algorithm.ED25519:
         return hashes.SHA512()
-    if algorithm == ED448:
+    if algorithm == Algorithm.ED448:
         return hashes.SHAKE256(114)
 
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
@@ -358,7 +358,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                                              _bytes_to_long(sig_s))
         elif _is_ecdsa(rrsig.algorithm):
             keyptr = candidate_key.key
-            if rrsig.algorithm == ECDSAP256SHA256:
+            if rrsig.algorithm == Algorithm.ECDSAP256SHA256:
                 curve = ec.SECP256R1()
                 octets = 32
             else:
@@ -380,7 +380,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
 
         elif _is_eddsa(rrsig.algorithm):
             keyptr = candidate_key.key
-            if rrsig.algorithm == ED25519:
+            if rrsig.algorithm == Algorithm.ED25519:
                 loader = ed25519.Ed25519PublicKey
             else:
                 loader = ed448.Ed448PublicKey

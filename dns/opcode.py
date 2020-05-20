@@ -104,4 +104,4 @@ def is_update(flags):
     Returns a ``bool``.
     """
 
-    return from_flags(flags) == UPDATE
+    return from_flags(flags) == Opcode.UPDATE
