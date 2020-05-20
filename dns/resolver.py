@@ -201,8 +201,7 @@ class Answer(object):
     RRset's name might not be the query name.
     """
 
-    def __init__(self, qname, rdtype, rdclass, response,
-                 raise_on_no_answer=True, nameserver=None,
+    def __init__(self, qname, rdtype, rdclass, response, nameserver=None,
                  port=None):
         self.qname = qname
         self.rdtype = rdtype
@@ -233,12 +232,8 @@ class Answer(object):
                             break
                         continue
                     except KeyError:
-                        if raise_on_no_answer:
-                            raise NoAnswer(response=response)
-                if raise_on_no_answer:
-                    raise NoAnswer(response=response)
-        if rrset is None and raise_on_no_answer:
-            raise NoAnswer(response=response)
+                        # Exit the chaining loop
+                        break
         self.canonical_name = qname
         self.rrset = rrset
         if rrset is None:
@@ -635,11 +630,12 @@ class _Resolution(object):
         rcode = response.rcode()
         if rcode == dns.rcode.NOERROR:
             answer = Answer(self.qname, self.rdtype, self.rdclass, response,
-                            self.raise_on_no_answer, self.nameserver,
-                            self.port)
+                            self.nameserver, self.port)
             if self.resolver.cache:
                 self.resolver.cache.put((self.qname, self.rdtype,
                                          self.rdclass), answer)
+            if answer.rrset is None and self.raise_on_no_answer:
+                raise NoAnswer(response=answer.response)
             return (answer, True)
         elif rcode == dns.rcode.NXDOMAIN:
             self.nxdomain_responses[self.qname] = response
