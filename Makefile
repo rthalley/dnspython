@@ -79,3 +79,7 @@ potype:
 
 poflake:
 	poetry run flake8 dns
+
+pocov:
+	poetry run coverage run -m pytest
+	poetry run coverage html

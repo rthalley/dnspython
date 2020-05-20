@@ -21,6 +21,7 @@ mypy = "^0.770"
 pytest = "^5.4.1"
 flake8 = "^3.7.9"
 sphinx = "^3.0.0"
+coverage = "^5.1"
 
 [tool.poetry.extras]
 doh = ['requests', 'requests-toolbelt']
