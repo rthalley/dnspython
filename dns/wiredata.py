@@ -19,20 +19,6 @@
 
 import dns.exception
 
-# Figure out what constant python passes for an unspecified slice bound.
-# It's supposed to be sys.maxint, yet on 64-bit windows sys.maxint is 2^31 - 1
-# but Python uses 2^63 - 1 as the constant.  Rather than making pointless
-# extra comparisons, duplicating code, or weakening WireData, we just figure
-# out what constant Python will use.
-
-
-class _SliceUnspecifiedBound(bytes):
-
-    def __getitem__(self, key):
-        return key.stop
-
-_unspecified_bound = _SliceUnspecifiedBound()[1:]
-
 
 class WireData(bytes):
     # WireData is a binary type with stricter slicing
@@ -43,17 +29,14 @@ class WireData(bytes):
                 # make sure we are not going outside of valid ranges,
                 # do stricter control of boundaries than python does
                 # by default
-                start = key.start
-                stop = key.stop
 
-                for index in (start, stop):
+                for index in (key.start, key.stop):
                     if index is None:
                         continue
                     elif abs(index) > len(self):
                         raise dns.exception.FormError
 
-                return WireData(super(WireData, self).__getitem__(
-                    slice(start, stop)))
+                return WireData(super().__getitem__(key))
             return self.unwrap()[key]
         except IndexError:
             raise dns.exception.FormError
