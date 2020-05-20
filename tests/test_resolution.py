@@ -84,7 +84,7 @@ class ResolutionTestCase(unittest.TestCase):
         # immediately, but our negative response code does that.
         r = self.make_negative_response(q)
         cache_answer = dns.resolver.Answer(self.qname, dns.rdatatype.A,
-                                           dns.rdataclass.IN, r, False)
+                                           dns.rdataclass.IN, r)
         self.resolver.cache.put((self.qname, dns.rdatatype.A,
                                  dns.rdataclass.IN), cache_answer)
         def bad():
