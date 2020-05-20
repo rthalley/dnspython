@@ -740,7 +740,7 @@ class _MasterReader(object):
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
         except dns.exception.SyntaxError:
-            raise dns.exception.SyntaxError
+            raise
         except Exception:
             rdclass = self.zone.rdclass
         if rdclass != self.zone.rdclass:
@@ -761,8 +761,7 @@ class _MasterReader(object):
                                      self.zone.origin)
         except dns.exception.SyntaxError:
             # Catch and reraise.
-            (ty, va) = sys.exc_info()[:2]
-            raise va
+            raise
         except Exception:
             # All exceptions that occur in the processing of rdata
             # are treated as syntax errors.  This is not strictly
@@ -944,8 +943,7 @@ class _MasterReader(object):
                                          self.zone.origin)
             except dns.exception.SyntaxError:
                 # Catch and reraise.
-                (ty, va) = sys.exc_info()[:2]
-                raise va
+                raise
             except Exception:
                 # All exceptions that occur in the processing of rdata
                 # are treated as syntax errors.  This is not strictly
@@ -1042,8 +1040,10 @@ class _MasterReader(object):
             (filename, line_number) = self.tok.where()
             if detail is None:
                 detail = "syntax error"
-            raise dns.exception.SyntaxError(
+            ex = dns.exception.SyntaxError(
                 "%s:%d: %s" % (filename, line_number, detail))
+            tb = sys.exc_info()[2]
+            raise ex.with_traceback(tb) from None
 
         # Now that we're done reading, do some basic checking of the zone.
         if self.check_origin:
