@@ -56,7 +56,7 @@ class ResolutionTestCase(unittest.TestCase):
 
     def make_negative_response(self, q, nxdomain=False):
         r = dns.message.make_response(q)
-        rrs = r.get_rrset(r.authority, self.qname, dns.rdataclass.IN,
+        rrs = r.get_rrset(r.authority, q.question[0].name, dns.rdataclass.IN,
                           dns.rdatatype.SOA, create=True)
         rrs.add(dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
                                     '. . 1 2 3 4 300'), 300)
@@ -76,7 +76,7 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertTrue(request is None)
         self.assertTrue(answer is cache_answer)
 
-    def test_next_request_no_answer(self):
+    def test_next_request_cached_no_answer(self):
         # In default mode, we should raise on a no-answer hit
         self.resolver.cache = dns.resolver.Cache()
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
@@ -97,6 +97,35 @@ class ResolutionTestCase(unittest.TestCase):
         (request, answer) = self.resn.next_request()
         self.assertTrue(request is None)
         self.assertTrue(answer is cache_answer)
+
+    def test_next_request_cached_nxdomain(self):
+        # use a relative qname so we have two qnames to try
+        qname = dns.name.from_text('www.dnspython.org', None)
+        self.resn = dns.resolver._Resolution(self.resolver, qname,
+                                             'A', 'IN',
+                                             False, True, False)
+        qname1 = dns.name.from_text('www.dnspython.org.example.')
+        qname2 = dns.name.from_text('www.dnspython.org.')
+        # Arrange to get NXDOMAIN hits on both of those qnames.
+        self.resolver.cache = dns.resolver.Cache()
+        q1 = dns.message.make_query(qname1, dns.rdatatype.A)
+        r1 = self.make_negative_response(q1, True)
+        cache_answer = dns.resolver.Answer(qname1, dns.rdatatype.ANY,
+                                           dns.rdataclass.IN, r1)
+        self.resolver.cache.put((qname1, dns.rdatatype.ANY,
+                                 dns.rdataclass.IN), cache_answer)
+        q2 = dns.message.make_query(qname2, dns.rdatatype.A)
+        r2 = self.make_negative_response(q2, True)
+        cache_answer = dns.resolver.Answer(qname2, dns.rdatatype.ANY,
+                                           dns.rdataclass.IN, r2)
+        self.resolver.cache.put((qname2, dns.rdatatype.ANY,
+                                 dns.rdataclass.IN), cache_answer)
+        try:
+            (request, answer) = self.resn.next_request()
+            self.assertTrue(False)  # should not happen!
+        except dns.resolver.NXDOMAIN as nx:
+            self.assertTrue(nx.response(qname1) is r1)
+            self.assertTrue(nx.response(qname2) is r2)
 
     def test_next_nameserver_udp(self):
         (request, answer) = self.resn.next_request()
@@ -240,6 +269,19 @@ class ResolutionTestCase(unittest.TestCase):
         (answer, done) = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertTrue(done)
+
+    def test_query_result_nxdomain_cached(self):
+        self.resolver.cache = dns.resolver.Cache()
+        q = dns.message.make_query(self.qname, dns.rdatatype.A)
+        r = self.make_negative_response(q, True)
+        (_, _) = self.resn.next_request()
+        (_, _, _, _) = self.resn.next_nameserver()
+        (answer, done) = self.resn.query_result(r, None)
+        self.assertTrue(answer is None)
+        self.assertTrue(done)
+        cache_answer = self.resolver.cache.get((self.qname, dns.rdatatype.ANY,
+                                                dns.rdataclass.IN))
+        self.assertTrue(cache_answer.response is r)
 
     def test_query_result_yxdomain(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)

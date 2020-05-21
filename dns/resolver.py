@@ -536,51 +536,61 @@ class _Resolution(object):
         """
 
         # We return a tuple instead of Union[Message,Answer] as it lets
-        # the caller avoid isinstance.
+        # the caller avoid isinstance().
 
-        if len(self.qnames) == 0:
-            #
-            # We've tried everything and only gotten NXDOMAINs.  (We know
-            # it's only NXDOMAINs as anything else would have returned
-            # before now.)
-            #
-            raise NXDOMAIN(qnames=self.qnames_to_try,
-                           responses=self.nxdomain_responses)
+        while len(self.qnames) > 0:
+            self.qname = self.qnames.pop(0)
 
-        self.qname = self.qnames.pop(0)
+            # Do we know the answer?
+            if self.resolver.cache:
+                answer = self.resolver.cache.get((self.qname, self.rdtype,
+                                                  self.rdclass))
+                if answer is not None:
+                    if answer.rrset is None and self.raise_on_no_answer:
+                        raise NoAnswer(response=answer.response)
+                    else:
+                        return (None, answer)
+                answer = self.resolver.cache.get((self.qname,
+                                                  dns.rdatatype.ANY,
+                                                  self.rdclass))
+                if answer is not None and \
+                   answer.response.rcode() == dns.rcode.NXDOMAIN:
+                    # cached NXDOMAIN; record it and continue to next
+                    # name.
+                    self.nxdomain_responses[self.qname] = answer.response
+                    continue
 
-        # Do we know the answer?
-        if self.resolver.cache:
-            answer = self.resolver.cache.get((self.qname, self.rdtype,
-                                              self.rdclass))
-            if answer is not None:
-                if answer.rrset is None and self.raise_on_no_answer:
-                    raise NoAnswer(response=answer.response)
-                else:
-                    return (None, answer)
+            # Build the request
+            request = dns.message.make_query(self.qname, self.rdtype,
+                                             self.rdclass)
+            if self.resolver.keyname is not None:
+                request.use_tsig(self.resolver.keyring, self.resolver.keyname,
+                                 algorithm=self.resolver.keyalgorithm)
+            request.use_edns(self.resolver.edns, self.resolver.ednsflags,
+                             self.resolver.payload)
+            if self.resolver.flags is not None:
+                request.flags = self.resolver.flags
 
-        # Build the request
-        request = dns.message.make_query(self.qname, self.rdtype, self.rdclass)
-        if self.resolver.keyname is not None:
-            request.use_tsig(self.resolver.keyring, self.resolver.keyname,
-                             algorithm=self.resolver.keyalgorithm)
-        request.use_edns(self.resolver.edns, self.resolver.ednsflags,
-                         self.resolver.payload)
-        if self.resolver.flags is not None:
-            request.flags = self.resolver.flags
+            self.nameservers = self.resolver.nameservers[:]
+            if self.resolver.rotate:
+                random.shuffle(self.nameservers)
+            self.current_nameservers = self.nameservers[:]
+            self.errors = []
+            self.nameserver = None
+            self.tcp_attempt = False
+            self.retry_with_tcp = False
+            self.request = request
+            self.backoff = 0.10
 
-        self.nameservers = self.resolver.nameservers[:]
-        if self.resolver.rotate:
-            random.shuffle(self.nameservers)
-        self.current_nameservers = self.nameservers[:]
-        self.errors = []
-        self.nameserver = None
-        self.tcp_attempt = False
-        self.retry_with_tcp = False
-        self.request = request
-        self.backoff = 0.10
+            return (request, None)
 
-        return (request, None)
+        #
+        # We've tried everything and only gotten NXDOMAINs.  (We know
+        # it's only NXDOMAINs as anything else would have returned
+        # before now.)
+        #
+        raise NXDOMAIN(qnames=self.qnames_to_try,
+                       responses=self.nxdomain_responses)
 
     def next_nameserver(self):
         if self.retry_with_tcp:
@@ -641,6 +651,13 @@ class _Resolution(object):
             self.nxdomain_responses[self.qname] = response
             # Make next_nameserver() return None, so caller breaks its
             # inner loop and calls next_request().
+            if self.resolver.cache:
+                answer = Answer(self.qname, dns.rdatatype.ANY,
+                                dns.rdataclass.IN, response)
+                self.resolver.cache.put((self.qname,
+                                         dns.rdatatype.ANY,
+                                         self.rdclass), answer)
+
             return (None, True)
         elif rcode == dns.rcode.YXDOMAIN:
             yex = YXDOMAIN()
