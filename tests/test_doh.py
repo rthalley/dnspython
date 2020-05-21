@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 import unittest
 import random
+import socket
 
 import dns.query
 import dns.rdatatype
@@ -30,7 +31,15 @@ KNOWN_ANYCAST_DOH_RESOLVER_URLS = ['https://cloudflare-dns.com/dns-query',
                                    'https://dns.google/dns-query',
                                    'https://dns11.quad9.net/dns-query']
 
-@unittest.skipUnless(dns.query.have_doh,
+# Some tests require the internet to be available to run, so let's
+# skip those if it's not there.
+_network_available = True
+try:
+    socket.gethostbyname('dnspython.org')
+except socket.gaierror:
+    _network_available = False
+
+@unittest.skipUnless(dns.query.have_doh and _network_available,
                      "Python requests cannot be imported; no DNS over HTTPS (DOH)")
 class DNSOverHTTPSTestCase(unittest.TestCase):
     def setUp(self):
