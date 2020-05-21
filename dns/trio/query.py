@@ -4,6 +4,7 @@
 
 import socket
 import struct
+import time
 import trio
 import trio.socket  # type: ignore
 
@@ -38,7 +39,7 @@ async def send_udp(sock, what, destination):
 
     if isinstance(what, dns.message.Message):
         what = what.to_wire()
-    sent_time = trio.current_time()
+    sent_time = time.time()
     n = await sock.sendto(what, destination)
     return (n, sent_time)
 
@@ -84,7 +85,7 @@ async def receive_udp(sock, destination, ignore_unexpected=False,
             raise UnexpectedSource('got a response from '
                                    '%s instead of %s' % (from_address,
                                                          destination))
-    received_time = trio.current_time()
+    received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
                               one_rr_per_rrset=one_rr_per_rrset,
                               ignore_trailing=ignore_trailing)
@@ -159,7 +160,7 @@ async def send_stream(stream, what):
     # avoid writev() or doing a short write that would get pushed
     # onto the net
     stream_message = struct.pack("!H", l) + what
-    sent_time = trio.current_time()
+    sent_time = time.time()
     await stream.send_all(stream_message)
     return (len(stream_message), sent_time)
 
@@ -201,7 +202,7 @@ async def receive_stream(stream, one_rr_per_rrset=False, keyring=None,
     ldata = await _read_exactly(stream, 2)
     (l,) = struct.unpack("!H", ldata)
     wire = await _read_exactly(stream, l)
-    received_time = trio.current_time()
+    received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
                               one_rr_per_rrset=one_rr_per_rrset,
                               ignore_trailing=ignore_trailing)
@@ -260,7 +261,7 @@ async def stream(q, where, tls=False, port=None, source=None, source_port=0,
         dns.query._destination_and_source(None, where, port, source,
                                           source_port)
     with socket_factory(af, socket.SOCK_STREAM, 0) as s:
-        begin_time = trio.current_time()
+        begin_time = time.time()
         if source is not None:
             await s.bind(source)
         await s.connect(destination)
