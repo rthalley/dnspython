@@ -66,3 +66,4 @@ What's New in dnspython 2.0.0
 * Rounding is done in the standard python 3 fashion; dnspython 1.x rounded
   in the python 2 style on both python 2 and 3.
 
+* The resolver will now do negative caching if a cache has been configured.
