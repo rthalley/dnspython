@@ -590,21 +590,14 @@ def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
     return (r, received_time)
 
 def _connect(s, address, expiration):
-    try:
-        s.connect(address)
-    except socket.error:
-        (ty, v) = sys.exc_info()[:2]
-
-        if hasattr(v, 'errno'):
-            v_err = v.errno
-        else:
-            v_err = v[0]
-        if v_err not in [errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY]:
-            raise v
+    err = s.connect_ex(address)
+    if err == 0:
+        return
+    if err in (errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY):
         _wait_for_writable(s, expiration)
         err = s.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-        if err != 0:
-            raise OSError(err, os.strerror(err)) from None
+    if err != 0:
+        raise OSError(err, os.strerror(err))
 
 
 def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
