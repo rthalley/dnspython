@@ -23,7 +23,6 @@ import os
 import select
 import socket
 import struct
-import sys
 import time
 import base64
 import ipaddress
