@@ -194,6 +194,19 @@ class BaseResolverTests(unittest.TestCase):
             dns.resolver.zone_for_name(name)
         self.assertRaises(dns.resolver.NotAbsolute, bad)
 
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolve(self):
+        answer = dns.resolver.resolve('dns.google.', 'A')
+        seen = set([rdata.address for rdata in answer])
+        self.assertTrue('8.8.8.8' in seen)
+        self.assertTrue('8.8.4.4' in seen)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveAddress(self):
+        answer = dns.resolver.resolve_address('8.8.8.8')
+        dnsgoogle = dns.name.from_text('dns.google.')
+        self.assertEqual(answer[0].target, dnsgoogle)
+
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
         for i in range(0, 5):
