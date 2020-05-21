@@ -170,17 +170,6 @@ def to_text(value):
     return text.replace('_', '-')
 
 
-def to_enum(value):
-    """Convert a DNS rdata type value to an enumerated type, if possible.
-
-    *value*, an ``int`` or ``str``, the rdata type.
-
-    Returns an ``int``.
-    """
-
-    return RdataType.to_enum(value)
-
-
 def is_metatype(rdtype):
     """True if the specified type is a metatype.
 

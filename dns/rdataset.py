@@ -309,8 +309,8 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None):
     Returns a ``dns.rdataset.Rdataset`` object.
     """
 
-    rdclass = dns.rdataclass.to_enum(rdclass)
-    rdtype = dns.rdatatype.to_enum(rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
     r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:

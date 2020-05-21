@@ -51,7 +51,20 @@ class IntEnum(enum.IntEnum):
             return f"{cls._prefix()}{value}"
 
     @classmethod
-    def to_enum(cls, value):
+    def make(cls, value):
+        """Convert text or a value into an enumerated type, if possible.
+
+        *value*, the ``int`` or ``str`` to convert.
+
+        Raises a class-specific exception if a ``str`` is provided that
+        cannot be converted.
+
+        Raises ``ValueError`` if the value is out of range.
+
+        Returns an enumeration from the calling class corresponding to the
+        value, if one is defined, or an ``int`` otherwise.
+        """
+
         if isinstance(value, str):
             return cls.from_text(value)
         cls._check_value(value)
