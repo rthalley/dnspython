@@ -140,8 +140,8 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
 
     if isinstance(name, str):
         name = dns.name.from_text(name, None, idna_codec=idna_codec)
-    rdclass = dns.rdataclass.to_enum(rdclass)
-    rdtype = dns.rdatatype.to_enum(rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
     r = RRset(name, rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:

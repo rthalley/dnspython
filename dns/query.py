@@ -786,7 +786,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
 
     if isinstance(zone, str):
         zone = dns.name.from_text(zone)
-    rdtype = dns.rdatatype.to_enum(rdtype)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
     q = dns.message.make_query(zone, rdtype, rdclass)
     if rdtype == dns.rdatatype.IXFR:
         rrset = dns.rrset.from_text(zone, 0, 'IN', 'SOA',

@@ -501,10 +501,10 @@ class _Resolution(object):
                  raise_on_no_answer, search):
         if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
-        rdtype = dns.rdatatype.to_enum(rdtype)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
         if dns.rdatatype.is_metatype(rdtype):
             raise NoMetaqueries
-        rdclass = dns.rdataclass.to_enum(rdclass)
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
         if dns.rdataclass.is_metaclass(rdclass):
             raise NoMetaqueries
         self.resolver = resolver

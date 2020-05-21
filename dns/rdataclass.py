@@ -89,17 +89,6 @@ def to_text(value):
     return RdataClass.to_text(value)
 
 
-def to_enum(value):
-    """Convert a DNS rdata class value to an enumerated type, if possible.
-
-    *value*, an ``int`` or ``str``, the rdata class.
-
-    Returns an ``int``.
-    """
-
-    return RdataClass.to_enum(value)
-
-
 def is_metaclass(rdclass):
     """True if the specified class is a metaclass.
 

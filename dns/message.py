@@ -1110,8 +1110,8 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
 
     if isinstance(qname, str):
         qname = dns.name.from_text(qname, idna_codec=idna_codec)
-    rdtype = dns.rdatatype.to_enum(rdtype)
-    rdclass = dns.rdataclass.to_enum(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
     m = Message()
     m.flags |= dns.flags.RD
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
