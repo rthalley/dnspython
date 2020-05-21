@@ -230,7 +230,7 @@ def _destination_and_source(af, where, port, source, source_port,
         destination = None
     return (af, destination, source)
 
-def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
+def https(q, where, timeout=None, port=443, source=None, source_port=0,
           one_rr_per_rrset=False, ignore_trailing=False,
           session=None, path='/dns-query', post=True,
           bootstrap_address=None, verify=True):
@@ -246,11 +246,6 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
     wait before the query times out. If ``None``, the default, wait forever.
 
     *port*, a ``int``, the port to send the query to. The default is 443.
-
-    *af*, an ``int``, the address family to use.  The default is ``None``,
-    which causes the address family to use to be inferred from the form of
-    *where*, or uses the system default.  Setting this to AF_INET or
-    AF_INET6 currently has no effect.
 
     *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
@@ -284,7 +279,7 @@ def https(q, where, timeout=None, port=443, af=None, source=None, source_port=0,
         raise NoDOH
 
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(af, where, port,
+    (af, destination, source) = _destination_and_source(None, where, port,
                                                         source, source_port,
                                                         False)
     transport_adapter = None
@@ -422,7 +417,7 @@ def receive_udp(sock, destination, expiration=None,
                               ignore_trailing=ignore_trailing)
     return (r, received_time)
 
-def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
+def udp(q, where, timeout=None, port=53, source=None, source_port=0,
         ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via UDP.
 
@@ -435,11 +430,6 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     query times out.  If ``None``, the default, wait forever.
 
     *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *af*, an ``int``, the address family to use.  The default is ``None``,
-    which causes the address family to use to be inferred from the form of
-    *where*.  If the inference attempt fails, AF_INET is used.  This
-    parameter is historical; you need never set it.
 
     *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
@@ -460,7 +450,7 @@ def udp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     """
 
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(af, where, port,
+    (af, destination, source) = _destination_and_source(None, where, port,
                                                         source, source_port)
     with socket_factory(af, socket.SOCK_DGRAM, 0) as s:
         expiration = _compute_expiration(timeout)
@@ -590,7 +580,7 @@ def _connect(s, address, expiration):
         raise OSError(err, os.strerror(err))
 
 
-def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
+def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
         one_rr_per_rrset=False, ignore_trailing=False):
     """Return the response obtained after sending a query via TCP.
 
@@ -603,11 +593,6 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     query times out.  If ``None``, the default, wait forever.
 
     *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *af*, an ``int``, the address family to use.  The default is ``None``,
-    which causes the address family to use to be inferred from the form of
-    *where*.  If the inference attempt fails, AF_INET is used.  This
-    parameter is historical; you need never set it.
 
     *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
@@ -625,7 +610,7 @@ def tcp(q, where, timeout=None, port=53, af=None, source=None, source_port=0,
     """
 
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(af, where, port,
+    (af, destination, source) = _destination_and_source(None, where, port,
                                                         source, source_port)
     with socket_factory(af, socket.SOCK_STREAM, 0) as s:
         expiration = _compute_expiration(timeout)
@@ -654,7 +639,7 @@ def _tls_handshake(s, expiration):
             _wait_for_writable(s, expiration)
 
 
-def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
+def tls(q, where, timeout=None, port=853, source=None, source_port=0,
         one_rr_per_rrset=False, ignore_trailing=False,
         ssl_context=None, server_hostname=None):
     """Return the response obtained after sending a query via TLS.
@@ -668,11 +653,6 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
     query times out.  If ``None``, the default, wait forever.
 
     *port*, an ``int``, the port send the message to.  The default is 853.
-
-    *af*, an ``int``, the address family to use.  The default is ``None``,
-    which causes the address family to use to be inferred from the form of
-    *where*.  If the inference attempt fails, AF_INET is used.  This
-    parameter is historical; you need never set it.
 
     *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
     the source address.  The default is the wildcard address.
@@ -698,7 +678,7 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
     """
 
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(af, where, port,
+    (af, destination, source) = _destination_and_source(None, where, port,
                                                         source, source_port)
     if ssl_context is None:
         ssl_context = ssl.create_default_context()
@@ -725,7 +705,7 @@ def tls(q, where, timeout=None, port=853, af=None, source=None, source_port=0,
 
 def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         timeout=None, port=53, keyring=None, keyname=None, relativize=True,
-        af=None, lifetime=None, source=None, source_port=0, serial=0,
+        lifetime=None, source=None, source_port=0, serial=0,
         use_udp=False, keyalgorithm=dns.tsig.default_algorithm):
     """Return a generator for the responses to a zone transfer.
 
@@ -755,11 +735,6 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     relativized to the zone origin.  It is essential that the
     relativize setting matches the one specified to
     ``dns.zone.from_xfr()`` if using this generator to make a zone.
-
-    *af*, an ``int``, the address family to use.  The default is ``None``,
-    which causes the address family to use to be inferred from the form of
-    *where*.  If the inference attempt fails, AF_INET is used.  This
-    parameter is historical; you need never set it.
 
     *lifetime*, a ``float``, the total number of seconds to spend
     doing the transfer.  If ``None``, the default, then there is no
@@ -795,7 +770,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
     if keyring is not None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(af, where, port,
+    (af, destination, source) = _destination_and_source(None, where, port,
                                                         source, source_port)
     if use_udp and rdtype != dns.rdatatype.IXFR:
         raise ValueError('cannot do a UDP AXFR')
