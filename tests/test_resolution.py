@@ -33,11 +33,11 @@ class ResolutionTestCase(unittest.TestCase):
                                              False, True, False)
         (request, answer) = self.resn.next_request()
         self.assertTrue(answer is None)
-        self.assertEqual(request.question[0].name, abs_qname_1)
+        self.assertEqual(request.question[0].name, self.qname)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
         (request, answer) = self.resn.next_request()
         self.assertTrue(answer is None)
-        self.assertEqual(request.question[0].name, self.qname)
+        self.assertEqual(request.question[0].name, abs_qname_1)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
 
     def test_next_request_exhaust_causes_nxdomain(self):

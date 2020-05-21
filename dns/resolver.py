@@ -547,7 +547,7 @@ class _Resolution(object):
             raise NXDOMAIN(qnames=self.qnames_to_try,
                            responses=self.nxdomain_responses)
 
-        self.qname = self.qnames.pop()
+        self.qname = self.qnames.pop(0)
 
         # Do we know the answer?
         if self.resolver.cache:
@@ -598,7 +598,7 @@ class _Resolution(object):
             backoff = self.backoff
             self.backoff = min(self.backoff * 2, 2)
 
-        self.nameserver = self.current_nameservers.pop()
+        self.nameserver = self.current_nameservers.pop(0)
         self.port = self.resolver.nameserver_ports.get(self.nameserver,
                                                        self.resolver.port)
         self.tcp_attempt = self.tcp
