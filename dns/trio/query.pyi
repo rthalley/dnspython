@@ -1,6 +1,5 @@
-!from typing import Optional, Union, Dict, Generator, Any
-from . import tsig, rdatatype, rdataclass, name, message
-from requests.sessions import Session
+from typing import Optional, Dict, Any
+from . import rdatatype, rdataclass, name, message
 
 # If the ssl import works, then
 #
