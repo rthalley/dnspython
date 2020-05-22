@@ -17,6 +17,7 @@ UDP
 ---
 
 .. autofunction:: dns.query.udp
+.. autofunction:: dns.query.udp_with_fallback
 .. autofunction:: dns.query.send_udp
 .. autofunction:: dns.query.receive_udp
 

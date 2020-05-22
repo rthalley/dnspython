@@ -68,6 +68,15 @@ class UnknownTSIGKey(dns.exception.DNSException):
 class Truncated(dns.exception.DNSException):
     """The truncated flag is set."""
 
+    supp_kwargs = {'message'}
+
+    def message(self):
+        """As much of the message as could be processed.
+
+        Returns a ``dns.message.Message``.
+        """
+        return self.kwargs['message']
+
 
 #: The question section number
 QUESTION = 0
@@ -745,8 +754,6 @@ class _WireReader(object):
         self.message.original_id = self.message.id
         if dns.opcode.is_update(self.message.flags):
             self.updating = True
-        if self.message.flags & dns.flags.TC:
-            raise Truncated
         self._get_question(qcount)
         if self.question_only:
             return
@@ -763,7 +770,7 @@ class _WireReader(object):
 def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
               tsig_ctx=None, multi=False, first=True,
               question_only=False, one_rr_per_rrset=False,
-              ignore_trailing=False):
+              ignore_trailing=False, raise_on_truncation=False):
     """Convert a DNS wire format message into a message
     object.
 
@@ -798,6 +805,9 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the message.
 
+    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if
+    the TC bit is set.
+
     Raises ``dns.message.ShortHeader`` if the message is less than 12 octets
     long.
 
@@ -810,7 +820,8 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     Raises ``dns.message.BadTSIG`` if a TSIG record was not the last
     record of the additional data section.
 
-    Raises ``dns.message.Truncated`` if the TC flag is set.
+    Raises ``dns.message.Truncated`` if the TC flag is set and
+    *raise_on_truncation* is ``True``.
 
     Returns a ``dns.message.Message``.
     """
@@ -826,7 +837,17 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
 
     reader = _WireReader(wire, m, question_only, one_rr_per_rrset,
                          ignore_trailing)
-    reader.read()
+    try:
+        reader.read()
+    except dns.exception.FormError:
+        if m.flags & dns.flags.TC and raise_on_truncation:
+            raise Truncated(message=m)
+        else:
+            raise
+    # Reading a truncated message might not have any errors, so we
+    # have to do this check here too.
+    if m.flags & dns.flags.TC and raise_on_truncation:
+        raise Truncated(message=m)
 
     return m
 

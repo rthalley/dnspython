@@ -114,7 +114,8 @@ class Resolver(dns.resolver.Resolver):
                                          nameserver,
                                          port=port,
                                          source=source,
-                                         source_port=source_port)
+                                         source_port=source_port,
+                                         raise_on_truncation=True)
                         else:
                             # We don't do DoH yet.
                             raise NotImplementedError

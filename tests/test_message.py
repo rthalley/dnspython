@@ -225,7 +225,7 @@ class MessageTestCase(unittest.TestCase):
             a = dns.message.from_text(answer_text)
             a.flags |= dns.flags.TC
             wire = a.to_wire(want_shuffle=False)
-            dns.message.from_wire(wire)
+            dns.message.from_wire(wire, raise_on_truncation=True)
         self.assertRaises(dns.message.Truncated, bad)
 
     def test_MessyTruncated(self):
@@ -233,7 +233,7 @@ class MessageTestCase(unittest.TestCase):
             a = dns.message.from_text(answer_text)
             a.flags |= dns.flags.TC
             wire = a.to_wire(want_shuffle=False)
-            dns.message.from_wire(wire[:-3])
+            dns.message.from_wire(wire[:-3], raise_on_truncation=True)
         self.assertRaises(dns.message.Truncated, bad)
 
     def test_IDNA_2003(self):

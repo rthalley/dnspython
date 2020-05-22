@@ -1076,7 +1076,8 @@ class Resolver(object):
                                                      timeout=timeout,
                                                      port=port,
                                                      source=source,
-                                                     source_port=source_port)
+                                                     source_port=source_port,
+                                                     raise_on_truncation=True)
                     else:
                         protocol = urlparse(nameserver).scheme
                         if protocol == 'https':

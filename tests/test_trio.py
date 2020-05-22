@@ -125,6 +125,21 @@ try:
             self.assertTrue('8.8.8.8' in seen)
             self.assertTrue('8.8.4.4' in seen)
 
+        def testQueryUDPFallback(self):
+            qname = dns.name.from_text('.')
+            async def run():
+                q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
+                return await dns.trio.query.udp_with_fallback(q, '8.8.8.8')
+            (_, tcp) = trio.run(run)
+            self.assertTrue(tcp)
+
+        def testQueryUDPFallbackNoFallback(self):
+            qname = dns.name.from_text('dns.google.')
+            async def run():
+                q = dns.message.make_query(qname, dns.rdatatype.A)
+                return await dns.trio.query.udp_with_fallback(q, '8.8.8.8')
+            (_, tcp) = trio.run(run)
+            self.assertFalse(tcp)
 
 except ModuleNotFoundError:
     pass

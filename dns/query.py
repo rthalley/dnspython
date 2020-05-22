@@ -368,7 +368,8 @@ def send_udp(sock, what, destination, expiration=None):
 
 def receive_udp(sock, destination, expiration=None,
                 ignore_unexpected=False, one_rr_per_rrset=False,
-                keyring=None, request_mac=b'', ignore_trailing=False):
+                keyring=None, request_mac=b'', ignore_trailing=False,
+                raise_on_truncation=False):
     """Read a DNS message from a UDP socket.
 
     *sock*, a ``socket``.
@@ -393,6 +394,9 @@ def receive_udp(sock, destination, expiration=None,
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
 
+    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if
+    the TC bit is set.
+
     Raises if the message is malformed, if network errors occur, of if
     there is a timeout.
 
@@ -414,11 +418,13 @@ def receive_udp(sock, destination, expiration=None,
     received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
                               one_rr_per_rrset=one_rr_per_rrset,
-                              ignore_trailing=ignore_trailing)
+                              ignore_trailing=ignore_trailing,
+                              raise_on_truncation=raise_on_truncation)
     return (r, received_time)
 
 def udp(q, where, timeout=None, port=53, source=None, source_port=0,
-        ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False):
+        ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False,
+        raise_on_truncation=False):
     """Return the response obtained after sending a query via UDP.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -446,6 +452,9 @@ def udp(q, where, timeout=None, port=53, source=None, source_port=0,
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
 
+    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if
+    the TC bit is set.
+
     Returns a ``dns.message.Message``.
     """
 
@@ -460,12 +469,56 @@ def udp(q, where, timeout=None, port=53, source=None, source_port=0,
         (_, sent_time) = send_udp(s, wire, destination, expiration)
         (r, received_time) = receive_udp(s, destination, expiration,
                                          ignore_unexpected, one_rr_per_rrset,
-                                         q.keyring, q.mac, ignore_trailing)
+                                         q.keyring, q.mac, ignore_trailing,
+                                         raise_on_truncation)
         r.time = received_time - sent_time
         if not q.is_response(r):
             raise BadResponse
         return r
 
+def udp_with_fallback(q, where, timeout=None, port=53, source=None,
+                      source_port=0, ignore_unexpected=False,
+                      one_rr_per_rrset=False, ignore_trailing=False):
+    """Return the response to the query, trying UDP first and falling back
+    to TCP if UDP results in a truncated response.
+
+    *q*, a ``dns.message.Message``, the query to send
+
+    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
+    to send the message.
+
+    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
+    query times out.  If ``None``, the default, wait forever.
+
+    *port*, an ``int``, the port send the message to.  The default is 53.
+
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
+    the source address.  The default is the wildcard address.
+
+    *source_port*, an ``int``, the port from which to send the message.
+    The default is 0.
+
+    *ignore_unexpected*, a ``bool``.  If ``True``, ignore responses from
+    unexpected sources.
+
+    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
+    RRset.
+
+    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
+    junk at end of the received message.
+
+    Returns a (``dns.message.Message``, tcp) tuple where tcp is ``True``
+    if and only if TCP was used.
+    """
+    try:
+        response = udp(q, where, timeout, port, source, source_port,
+                       ignore_unexpected, one_rr_per_rrset,
+                       ignore_trailing, True)
+        return (response, False)
+    except dns.message.Truncated:
+        response = tcp(q, where, timeout, port, source, source_port,
+                       one_rr_per_rrset, ignore_trailing)
+        return (response, True)
 
 def _net_read(sock, count, expiration):
     """Read the specified number of bytes from sock.  Keep trying until we

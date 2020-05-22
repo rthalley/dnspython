@@ -57,9 +57,6 @@ What's New in dnspython 2.0.0
 
 * The NINFO record is supported.
 
-* When decoding from wire format, if a message as TC (truncated) set,
-  a ``Truncated`` exception is now raised.
-
 * The ``dns.hash`` module has been removed; just use Python's native
   ``hashlib`` module.
 
