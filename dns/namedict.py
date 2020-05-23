@@ -69,8 +69,8 @@ class NameDict(MutableMapping):
         self.__update_max_depth(key)
 
     def __delitem__(self, key):
-        value = self.__store.pop(key)
-        if len(value) == self.max_depth:
+        self.__store.pop(key)
+        if len(key) == self.max_depth:
             self.max_depth_items = self.max_depth_items - 1
         if self.max_depth_items == 0:
             self.max_depth = 0
