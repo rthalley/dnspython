@@ -24,5 +24,12 @@ class RdatasetTestCase(unittest.TestCase):
                                          idna_codec=dns.name.IDNA_2008)
         self.assertEqual(r1, r2)
 
+    def testCopy(self):
+        r1 = dns.rdataset.from_text_list('in', 'a', 30,
+                                         ['10.0.0.1', '10.0.0.2'])
+        r2 = r1.copy()
+        self.assertFalse(r1 is r2)
+        self.assertTrue(r1 == r2)
+
 if __name__ == '__main__':
     unittest.main()

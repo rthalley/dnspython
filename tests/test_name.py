@@ -440,6 +440,18 @@ class NameTestCase(unittest.TestCase):
         v = n.to_wire()
         self.assertEqual(v, b'\x03FOO\x03bar\x00')
 
+    def testToWireRelativeNameWithOrigin(self):
+        n = dns.name.from_text('FOO', None)
+        o = dns.name.from_text('bar')
+        v = n.to_wire(origin=o)
+        self.assertEqual(v, b'\x03FOO\x03bar\x00')
+
+    def testToWireRelativeNameWithoutOrigin(self):
+        n = dns.name.from_text('FOO', None)
+        def bad():
+            v = n.to_wire()
+        self.assertRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
+
     def testBadToWire(self):
         def bad():
             n = dns.name.from_text('FOO.bar', None)
@@ -778,6 +790,18 @@ class NameTestCase(unittest.TestCase):
             # This throws in IDNA2003 because it doesn't "round trip".
             n.to_unicode(idna_codec=dns.name.IDNA_2003_Strict)
         self.assertRaises(dns.name.IDNAException, bad)
+
+    def testINDA2008Decode(self):
+        # groß.com. in IDNA2008 form, pre-encoded.
+        n = dns.name.from_text('xn--gro-7ka.com')
+        self.assertEqual(n.to_unicode(idna_codec=dns.name.IDNA_2008),
+                         'groß.com.')
+
+    def testToUnicodeOmitFinalDot(self):
+        # groß.com. in IDNA2008 form, pre-encoded.
+        n = dns.name.from_text('xn--gro-7ka.com')
+        self.assertEqual(n.to_unicode(True, dns.name.IDNA_2008),
+                         'groß.com')
 
     def testReverseIPv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')

@@ -100,5 +100,25 @@ class NameTestCase(unittest.TestCase):
         v = self.rndict.get_deepest_match(n)[1]
         self.assertEqual(v, 100)
 
+    def test_max_depth_increases(self):
+        n = dns.name.from_text('a.foo.bar.')
+        self.assertEqual(self.ndict.max_depth, 3)
+        self.ndict[n] = 1
+        self.assertEqual(self.ndict.max_depth, 4)
+
+    def test_delete_no_max_depth_change(self):
+        self.assertEqual(self.ndict.max_depth, 3)
+        n = dns.name.from_text('bar.')
+        del self.ndict[n]
+        self.assertEqual(self.ndict.max_depth, 3)
+        self.assertEqual(self.ndict.get(n), None)
+
+    def test_delete_max_depth_changes(self):
+        self.assertEqual(self.ndict.max_depth, 3)
+        n = dns.name.from_text('foo.bar.')
+        del self.ndict[n]
+        self.assertEqual(self.ndict.max_depth, 2)
+        self.assertEqual(self.ndict.get(n), None)
+
 if __name__ == '__main__':
     unittest.main()

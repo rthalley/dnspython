@@ -21,6 +21,7 @@ import binascii
 import dns.update
 import dns.rdata
 import dns.rdataset
+import dns.tsigkeyring
 
 goodhex = '0001 2800 0001 0005 0007 0000' \
           '076578616d706c6500 0006 0001' \
@@ -112,6 +113,16 @@ class UpdateTestCase(unittest.TestCase):
         w = update.to_wire(origin=dns.name.from_text('example'),
                            want_shuffle=False)
         self.assertEqual(w, goodwire)
+
+    def test_TSIG(self):
+        keyring = dns.tsigkeyring.from_text({
+            'keyname.' : 'NjHwPsMKjdN++dOfE5iAiQ=='
+        })
+        update = dns.update.Update('example.', keyring=keyring)
+        update.replace('host.example.', 300, 'A', '1.2.3.4')
+        wire = update.to_wire()
+        update2 = dns.message.from_wire(wire, keyring)
+        self.assertEqual(update, update2)
 
 if __name__ == '__main__':
     unittest.main()

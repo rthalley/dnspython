@@ -70,5 +70,49 @@ class RRsetTestCase(unittest.TestCase):
                                       idna_codec=dns.name.IDNA_2008)
         self.assertEqual(r1, r2)
 
+    def testCopy(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        r2 = r1.copy()
+        self.assertFalse(r1 is r2)
+        self.assertTrue(r1 == r2)
+
+    def testMatch1(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        self.assertTrue(r1.match(r1.name, dns.rdataclass.IN,
+                                 dns.rdatatype.A, dns.rdatatype.NONE))
+
+    def testMatch2(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        r1.deleting = dns.rdataclass.NONE
+        self.assertTrue(r1.match(r1.name, dns.rdataclass.IN,
+                                 dns.rdatatype.A, dns.rdatatype.NONE,
+                                 dns.rdataclass.NONE))
+
+    def testNoMatch1(self):
+        n = dns.name.from_text('bar', None)
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        self.assertFalse(r1.match(n, dns.rdataclass.IN,
+                                  dns.rdatatype.A, dns.rdatatype.NONE,
+                                  dns.rdataclass.ANY))
+
+    def testNoMatch2(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        r1.deleting = dns.rdataclass.NONE
+        self.assertFalse(r1.match(r1.name, dns.rdataclass.IN,
+                                  dns.rdatatype.A, dns.rdatatype.NONE,
+                                  dns.rdataclass.ANY))
+
+    def testToRdataset(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        r2 = dns.rdataset.from_text_list('in', 'a', 30,
+                                         ['10.0.0.1', '10.0.0.2'])
+        self.assertEqual(r1.to_rdataset(), r2)
+
 if __name__ == '__main__':
     unittest.main()

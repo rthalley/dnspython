@@ -71,6 +71,11 @@ class NtoAAtoNTestCase(unittest.TestCase):
             aton6('1:2:3:4:5:6:7:8:9')
         self.assertRaises(dns.exception.SyntaxError, bad)
 
+    def test_bad_aton4(self):
+        def bad():
+            aton4('001.002.003.004')
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
     def test_aton6(self):
         a = aton6('::')
         self.assertEqual(a, b'\x00' * 16)
@@ -159,13 +164,20 @@ class NtoAAtoNTestCase(unittest.TestCase):
 
     def test_bad_ntoa1(self):
         def bad():
-            ntoa6('')
+            ntoa6(b'')
         self.assertRaises(ValueError, bad)
 
     def test_bad_ntoa2(self):
         def bad():
-            ntoa6('\x00' * 17)
+            ntoa6(b'\x00' * 17)
         self.assertRaises(ValueError, bad)
+
+    def test_bad_ntoa3(self):
+        def bad():
+            ntoa4(b'\x00' * 5)
+        # Ideally we'd have been consistent and raised ValueError as
+        # we do for IPv6, but oh well!
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_good_v4_aton(self):
         pairs = [('1.2.3.4', b'\x01\x02\x03\x04'),
@@ -226,6 +238,11 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.assertFalse(dns.inet.is_multicast(t5))
         self.assertTrue(dns.inet.is_multicast(t6))
 
+    def test_is_multicast_bad_input(self):
+        def bad():
+            dns.inet.is_multicast('hello world')
+        self.assertRaises(ValueError, bad)
+
     def test_ignore_scope(self):
         t1 = 'fe80::1%lo0'
         t2 = 'fe80::1'
@@ -242,6 +259,21 @@ class NtoAAtoNTestCase(unittest.TestCase):
             t1 = 'fe80::1%lo0%lo1'
             aton6(t1, True)
         self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def test_ptontop(self):
+        for (af, a) in [(dns.inet.AF_INET, '1.2.3.4'),
+                        (dns.inet.AF_INET6, '2001:db8:0:1:1:1:1:1')]:
+            self.assertEqual(dns.inet.inet_ntop(af, dns.inet.inet_pton(af, a)),
+                             a)
+
+    def test_isaddress(self):
+        for (t, e) in [('1.2.3.4', True),
+                       ('2001:db8:0:1:1:1:1:1', True),
+                       ('hello world', False),
+                       ('http://www.dnspython.org', False),
+                       ('1.2.3.4a', False),
+                       ('2001:db8:0:1:1:1:1:q1', False)]:
+            self.assertEqual(dns.inet.is_address(t), e)
 
 if __name__ == '__main__':
     unittest.main()
