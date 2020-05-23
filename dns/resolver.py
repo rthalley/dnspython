@@ -407,6 +407,8 @@ class LRUCache(object):
         self.data = {}
         self.set_max_size(max_size)
         self.sentinel = LRUCacheNode(None, None)
+        self.sentinel.prev = self.sentinel
+        self.sentinel.next = self.sentinel
         self.lock = _threading.Lock()
 
     def set_max_size(self, max_size):
@@ -480,8 +482,7 @@ class LRUCache(object):
                 node = self.sentinel.next
                 while node != self.sentinel:
                     next = node.next
-                    node.prev = None
-                    node.next = None
+                    node.unlink()
                     node = next
                 self.data = {}
 
