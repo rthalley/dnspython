@@ -50,7 +50,7 @@ def inet_aton(text):
     for part in parts:
         if not part.isdigit():
             raise dns.exception.SyntaxError
-        if len(part) > 1 and part[0] == '0':
+        if len(part) > 1 and part[0] == ord('0'):
             # No leading zeros
             raise dns.exception.SyntaxError
     try:
