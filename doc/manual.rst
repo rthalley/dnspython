@@ -12,5 +12,6 @@ Dnspython Manual
    resolver
    zone
    dnssec
+   trio
    exceptions
    utilities
