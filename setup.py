@@ -29,7 +29,8 @@ except ValueError:
 else:
     compile_cython = True
     from Cython.Build import cythonize
-    ext_modules = cythonize(['dns/*.py', 'dns/rdtypes/*.py', 'dns/rdtypes/*/*.py'])
+    ext_modules = cythonize(['dns/*.py', 'dns/rdtypes/*.py', 'dns/rdtypes/*/*.py'],
+                            language_level='3')
 
 kwargs = {
     'name' : 'dnspython',
