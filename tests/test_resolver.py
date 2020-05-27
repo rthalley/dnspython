@@ -289,10 +289,10 @@ class BaseResolverTests(unittest.TestCase):
                           ['www.dnspython.org', 'www.dnspython.net']])
         qnames = res._get_qnames_to_try(qname, False)
         self.assertEqual(qnames,
-                         [dns.name.from_text('www.example.')])
+                         [dns.name.from_text('www.')])
         qnames = res._get_qnames_to_try(qname, None)
         self.assertEqual(qnames,
-                         [dns.name.from_text('www.example.')])
+                         [dns.name.from_text('www.')])
         #
         # Now change search default on resolver to True
         #

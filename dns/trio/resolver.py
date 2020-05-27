@@ -62,10 +62,12 @@ class Resolver(dns.resolver.Resolver):
 
         *source_port*, an ``int``, the port from which to send the message.
 
-        *search*, a ``bool`` or ``None``, determines whether the search
-        list configured in the system's resolver configuration are
-        used.  The default is ``None``, which causes the value of
-        the resolver's ``use_search_by_default`` attribute to be used.
+        *search*, a ``bool`` or ``None``, determines whether the
+        search list configured in the system's resolver configuration
+        are used for relative names, and whether the resolver's domain
+        may be added to relative names.  The default is ``None``,
+        which causes the value of the resolver's
+        ``use_search_by_default`` attribute to be used.
 
         Raises ``dns.resolver.NXDOMAIN`` if the query name does not exist.
 

@@ -987,13 +987,13 @@ class Resolver(object):
         if qname.is_absolute():
             qnames_to_try.append(qname)
         else:
-            if len(qname) > 1:
+            if len(qname) > 1 or not search:
                 qnames_to_try.append(qname.concatenate(dns.name.root))
             if search and self.search:
                 for suffix in self.search:
                     if self.ndots is None or len(qname.labels) >= self.ndots:
                         qnames_to_try.append(qname.concatenate(suffix))
-            else:
+            elif search:
                 qnames_to_try.append(qname.concatenate(self.domain))
         return qnames_to_try
 
@@ -1025,10 +1025,12 @@ class Resolver(object):
         *lifetime*, a ``float``, how many seconds a query should run
          before timing out.
 
-        *search*, a ``bool`` or ``None``, determines whether the search
-        list configured in the system's resolver configuration are
-        used.  The default is ``None``, which causes the value of
-        the resolver's ``use_search_by_default`` attribute to be used.
+        *search*, a ``bool`` or ``None``, determines whether the
+        search list configured in the system's resolver configuration
+        are used for relative names, and whether the resolver's domain
+        may be added to relative names.  The default is ``None``,
+        which causes the value of the resolver's
+        ``use_search_by_default`` attribute to be used.
 
         Raises ``dns.exception.Timeout`` if no answers could be found
         in the specified lifetime.

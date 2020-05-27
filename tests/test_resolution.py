@@ -25,7 +25,25 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertEqual(request.question[0].name, self.qname)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
 
-    def test_next_request_rel(self):
+    def test_next_request_rel_with_search(self):
+        qname = dns.name.from_text('www.dnspython.org', None)
+        abs_qname_1 = dns.name.from_text('www.dnspython.org.example')
+        self.resn = dns.resolver._Resolution(self.resolver, qname,
+                                             'A', 'IN',
+                                             False, True, True)
+        (request, answer) = self.resn.next_request()
+        self.assertTrue(answer is None)
+        self.assertEqual(request.question[0].name, self.qname)
+        self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
+        (request, answer) = self.resn.next_request()
+        self.assertTrue(answer is None)
+        self.assertEqual(request.question[0].name, abs_qname_1)
+        self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
+        def bad():
+            (request, answer) = self.resn.next_request()
+        self.assertRaises(dns.resolver.NXDOMAIN, bad)
+
+    def test_next_request_rel_without_search(self):
         qname = dns.name.from_text('www.dnspython.org', None)
         abs_qname_1 = dns.name.from_text('www.dnspython.org.example')
         self.resn = dns.resolver._Resolution(self.resolver, qname,
@@ -35,10 +53,9 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertTrue(answer is None)
         self.assertEqual(request.question[0].name, self.qname)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
-        (request, answer) = self.resn.next_request()
-        self.assertTrue(answer is None)
-        self.assertEqual(request.question[0].name, abs_qname_1)
-        self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
+        def bad():
+            (request, answer) = self.resn.next_request()
+        self.assertRaises(dns.resolver.NXDOMAIN, bad)
 
     def test_next_request_exhaust_causes_nxdomain(self):
         def bad():
@@ -98,12 +115,34 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertTrue(request is None)
         self.assertTrue(answer is cache_answer)
 
-    def test_next_request_cached_nxdomain(self):
-        # use a relative qname so we have two qnames to try
+    def test_next_request_cached_nxdomain_without_search(self):
+        # use a relative qname
         qname = dns.name.from_text('www.dnspython.org', None)
         self.resn = dns.resolver._Resolution(self.resolver, qname,
                                              'A', 'IN',
                                              False, True, False)
+        qname1 = dns.name.from_text('www.dnspython.org.')
+        # Arrange to get NXDOMAIN hits on it.
+        self.resolver.cache = dns.resolver.Cache()
+        q1 = dns.message.make_query(qname1, dns.rdatatype.A)
+        r1 = self.make_negative_response(q1, True)
+        cache_answer = dns.resolver.Answer(qname1, dns.rdatatype.ANY,
+                                           dns.rdataclass.IN, r1)
+        self.resolver.cache.put((qname1, dns.rdatatype.ANY,
+                                 dns.rdataclass.IN), cache_answer)
+        try:
+            (request, answer) = self.resn.next_request()
+            self.assertTrue(False)  # should not happen!
+        except dns.resolver.NXDOMAIN as nx:
+            self.assertTrue(nx.response(qname1) is r1)
+
+    def test_next_request_cached_nxdomain_with_search(self):
+        # use a relative qname so we have two qnames to try
+        qname = dns.name.from_text('www.dnspython.org', None)
+        # also enable search mode or we'll only see www.dnspython.org.
+        self.resn = dns.resolver._Resolution(self.resolver, qname,
+                                             'A', 'IN',
+                                             False, True, True)
         qname1 = dns.name.from_text('www.dnspython.org.example.')
         qname2 = dns.name.from_text('www.dnspython.org.')
         # Arrange to get NXDOMAIN hits on both of those qnames.
