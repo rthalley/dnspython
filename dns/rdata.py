@@ -127,6 +127,13 @@ class Rdata(object):
         # Rdatas are immutable
         raise TypeError("object doesn't support attribute deletion")
 
+    def __getstate__(self):
+        return tuple(getattr(self, slot) for slot in self.__slots__)
+
+    def __setstate__(self, state):
+        for slot, val in zip(self.__slots__, state):
+            object.__setattr__(self, slot, val)
+
     def covers(self):
         """Return the type a Rdata covers.
 
