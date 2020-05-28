@@ -1056,7 +1056,11 @@ class Resolver(object):
         start = time.time()
         while True:
             (request, answer) = resolution.next_request()
-            if answer:
+            # Note we need to say "if answer is not None" and not just
+            # "if answer" because answer implements __len__, and python
+            # will call that.  We want to return if we have an answer
+            # object, including in cases where its length is 0.
+            if answer is not None:
                 # cache hit!
                 return answer
             done = False
@@ -1088,11 +1092,15 @@ class Resolver(object):
                                                        timeout=timeout)
                         elif protocol:
                             continue
-                    (answer, done) = resolution.query_result(response, None)
-                    if answer:
-                        return answer
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
+                (answer, done) = resolution.query_result(response, None)
+                # Note we need to say "if answer is not None" and not just
+                # "if answer" because answer implements __len__, and python
+                # will call that.  We want to return if we have an answer
+                # object, including in cases where its length is 0.
+                if answer is not None:
+                    return answer
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
               tcp=False, source=None, raise_on_no_answer=True, source_port=0,
