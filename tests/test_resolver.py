@@ -167,71 +167,6 @@ class BaseResolverTests(unittest.TestCase):
             del answer[0]
         self.assertRaises(IndexError, bad)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testZoneForName1(self):
-        name = dns.name.from_text('www.dnspython.org.')
-        ezname = dns.name.from_text('dnspython.org.')
-        zname = dns.resolver.zone_for_name(name)
-        self.assertEqual(zname, ezname)
-
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testZoneForName2(self):
-        name = dns.name.from_text('a.b.www.dnspython.org.')
-        ezname = dns.name.from_text('dnspython.org.')
-        zname = dns.resolver.zone_for_name(name)
-        self.assertEqual(zname, ezname)
-
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testZoneForName3(self):
-        name = dns.name.from_text('dnspython.org.')
-        ezname = dns.name.from_text('dnspython.org.')
-        zname = dns.resolver.zone_for_name(name)
-        self.assertEqual(zname, ezname)
-
-    def testZoneForName4(self):
-        def bad():
-            name = dns.name.from_text('dnspython.org', None)
-            dns.resolver.zone_for_name(name)
-        self.assertRaises(dns.resolver.NotAbsolute, bad)
-
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testResolve(self):
-        answer = dns.resolver.resolve('dns.google.', 'A')
-        seen = set([rdata.address for rdata in answer])
-        self.assertTrue('8.8.8.8' in seen)
-        self.assertTrue('8.8.4.4' in seen)
-
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testResolveAddress(self):
-        answer = dns.resolver.resolve_address('8.8.8.8')
-        dnsgoogle = dns.name.from_text('dns.google.')
-        self.assertEqual(answer[0].target, dnsgoogle)
-
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testResolveNodataException(self):
-        def bad():
-            dns.resolver.resolve('dnspython.org.', 'TYPE3')  # obsolete MB
-        self.assertRaises(dns.resolver.NoAnswer, bad)
-
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testResolveNodataAnswer(self):
-        qname = dns.name.from_text('dnspython.org')
-        qclass = dns.rdataclass.from_text('IN')
-        qtype = dns.rdatatype.from_text('TYPE3')  # obsolete MB
-        answer = dns.resolver.resolve(qname, qtype, raise_on_no_answer=False)
-        self.assertRaises(KeyError,
-            lambda: answer.response.find_rrset(answer.response.answer,
-                                               qname, qclass, qtype))
-
-    @unittest.skipIf(not _network_available, "Internet not reachable")
-    def testResolveNXDOMAIN(self):
-        qname = dns.name.from_text('nxdomain.dnspython.org')
-        qclass = dns.rdataclass.from_text('IN')
-        qtype = dns.rdatatype.from_text('A')  # obsolete MB
-        def bad():
-            answer = dns.resolver.resolve(qname, qtype)
-        self.assertRaises(dns.resolver.NXDOMAIN, bad)
-
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
         for i in range(0, 5):
@@ -337,6 +272,73 @@ class BaseResolverTests(unittest.TestCase):
         qnames = res._get_qnames_to_try(qname, None)
         self.assertEqual(qnames, [qname])
 
+class LiveResolverTests(unittest.TestCase):
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testZoneForName1(self):
+        name = dns.name.from_text('www.dnspython.org.')
+        ezname = dns.name.from_text('dnspython.org.')
+        zname = dns.resolver.zone_for_name(name)
+        self.assertEqual(zname, ezname)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testZoneForName2(self):
+        name = dns.name.from_text('a.b.www.dnspython.org.')
+        ezname = dns.name.from_text('dnspython.org.')
+        zname = dns.resolver.zone_for_name(name)
+        self.assertEqual(zname, ezname)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testZoneForName3(self):
+        name = dns.name.from_text('dnspython.org.')
+        ezname = dns.name.from_text('dnspython.org.')
+        zname = dns.resolver.zone_for_name(name)
+        self.assertEqual(zname, ezname)
+
+    def testZoneForName4(self):
+        def bad():
+            name = dns.name.from_text('dnspython.org', None)
+            dns.resolver.zone_for_name(name)
+        self.assertRaises(dns.resolver.NotAbsolute, bad)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolve(self):
+        answer = dns.resolver.resolve('dns.google.', 'A')
+        seen = set([rdata.address for rdata in answer])
+        self.assertTrue('8.8.8.8' in seen)
+        self.assertTrue('8.8.4.4' in seen)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveAddress(self):
+        answer = dns.resolver.resolve_address('8.8.8.8')
+        dnsgoogle = dns.name.from_text('dns.google.')
+        self.assertEqual(answer[0].target, dnsgoogle)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveNodataException(self):
+        def bad():
+            dns.resolver.resolve('dnspython.org.', 'TYPE3')  # obsolete MB
+        self.assertRaises(dns.resolver.NoAnswer, bad)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveNodataAnswer(self):
+        qname = dns.name.from_text('dnspython.org')
+        qclass = dns.rdataclass.from_text('IN')
+        qtype = dns.rdatatype.from_text('TYPE3')  # obsolete MB
+        answer = dns.resolver.resolve(qname, qtype, raise_on_no_answer=False)
+        self.assertRaises(KeyError,
+            lambda: answer.response.find_rrset(answer.response.answer,
+                                               qname, qclass, qtype))
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveNXDOMAIN(self):
+        qname = dns.name.from_text('nxdomain.dnspython.org')
+        qclass = dns.rdataclass.from_text('IN')
+        qtype = dns.rdatatype.from_text('A')  # obsolete MB
+        def bad():
+            answer = dns.resolver.resolve(qname, qtype)
+        self.assertRaises(dns.resolver.NXDOMAIN, bad)
+
+
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
         self.__native_polling_backend = dns.query._polling_backend
@@ -349,12 +351,14 @@ class PollingMonkeyPatchMixin(object):
 
         unittest.TestCase.tearDown(self)
 
-class SelectResolverTestCase(PollingMonkeyPatchMixin, BaseResolverTests, unittest.TestCase):
+
+class SelectResolverTestCase(PollingMonkeyPatchMixin, LiveResolverTests, unittest.TestCase):
     def polling_backend(self):
         return dns.query._select_for
 
+
 if hasattr(select, 'poll'):
-    class PollResolverTestCase(PollingMonkeyPatchMixin, BaseResolverTests, unittest.TestCase):
+    class PollResolverTestCase(PollingMonkeyPatchMixin, LiveResolverTests, unittest.TestCase):
         def polling_backend(self):
             return dns.query._poll_for
 
