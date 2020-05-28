@@ -26,10 +26,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 import dns.zone
-import pprint
 
-
-pp = pprint.PrettyPrinter(indent=2)
 
 example_text = """$TTL 1h
 $ORIGIN 0.0.192.IN-ADDR.ARPA.

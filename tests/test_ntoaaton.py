@@ -195,7 +195,6 @@ class NtoAAtoNTestCase(unittest.TestCase):
                 return aton4(a)
             return bad
         for addr in v4_bad_addrs:
-            print(addr)
             self.assertRaises(dns.exception.SyntaxError, make_bad(addr))
 
     def test_bad_v6_aton(self):

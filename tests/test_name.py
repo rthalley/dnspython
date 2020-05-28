@@ -362,7 +362,6 @@ class NameTestCase(unittest.TestCase):
     def testBadEscape(self):
         def bad():
             n = dns.name.from_text(r'a.b\0q1.c.')
-            print(n)
         self.assertRaises(dns.name.BadEscape, bad)
 
     def testDigestable1(self):
