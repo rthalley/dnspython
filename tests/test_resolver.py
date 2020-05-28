@@ -223,6 +223,15 @@ class BaseResolverTests(unittest.TestCase):
             lambda: answer.response.find_rrset(answer.response.answer,
                                                qname, qclass, qtype))
 
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveNXDOMAIN(self):
+        qname = dns.name.from_text('nxdomain.dnspython.org')
+        qclass = dns.rdataclass.from_text('IN')
+        qtype = dns.rdatatype.from_text('A')  # obsolete MB
+        def bad():
+            answer = dns.resolver.resolve(qname, qtype)
+        self.assertRaises(dns.resolver.NXDOMAIN, bad)
+
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
         for i in range(0, 5):
