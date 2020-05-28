@@ -207,6 +207,22 @@ class BaseResolverTests(unittest.TestCase):
         dnsgoogle = dns.name.from_text('dns.google.')
         self.assertEqual(answer[0].target, dnsgoogle)
 
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveNodataException(self):
+        def bad():
+            dns.resolver.resolve('dnspython.org.', 'TYPE3')  # obsolete MB
+        self.assertRaises(dns.resolver.NoAnswer, bad)
+
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveNodataAnswer(self):
+        qname = dns.name.from_text('dnspython.org')
+        qclass = dns.rdataclass.from_text('IN')
+        qtype = dns.rdatatype.from_text('TYPE3')  # obsolete MB
+        answer = dns.resolver.resolve(qname, qtype, raise_on_no_answer=False)
+        self.assertRaises(KeyError,
+            lambda: answer.response.find_rrset(answer.response.answer,
+                                               qname, qclass, qtype))
+
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
         for i in range(0, 5):
@@ -487,4 +503,6 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
                 resolver.nameservers = invalid_nameserver
 
 if __name__ == '__main__':
+    from IPython.core.debugger import set_trace
+    set_trace()
     unittest.main()
