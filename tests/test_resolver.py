@@ -220,6 +220,61 @@ class BaseResolverTests(unittest.TestCase):
                                        dns.rdataclass.IN))
                             is None)
 
+    def test_cache_flush(self):
+        name1 = dns.name.from_text('name1')
+        name2 = dns.name.from_text('name2')
+        basic_cache = dns.resolver.Cache()
+        lru_cache = dns.resolver.LRUCache(100)
+        for cache in [basic_cache, lru_cache]:
+            answer1 = FakeAnswer(time.time() + 10)
+            answer2 = FakeAnswer(time.time() + 10)
+            cache.put((name1, dns.rdatatype.A, dns.rdataclass.IN), answer1)
+            cache.put((name2, dns.rdatatype.A, dns.rdataclass.IN), answer2)
+            canswer = cache.get((name1, dns.rdatatype.A, dns.rdataclass.IN))
+            self.assertTrue(canswer is answer1)
+            canswer = cache.get((name2, dns.rdatatype.A, dns.rdataclass.IN))
+            self.assertTrue(canswer is answer2)
+            # explicit flush
+            cache.flush((name1, dns.rdatatype.A, dns.rdataclass.IN))
+            canswer = cache.get((name1, dns.rdatatype.A, dns.rdataclass.IN))
+            self.assertTrue(canswer is None)
+            canswer = cache.get((name2, dns.rdatatype.A, dns.rdataclass.IN))
+            self.assertTrue(canswer is answer2)
+            # flush all
+            cache.flush()
+            canswer = cache.get((name1, dns.rdatatype.A, dns.rdataclass.IN))
+            self.assertTrue(canswer is None)
+            canswer = cache.get((name2, dns.rdatatype.A, dns.rdataclass.IN))
+            self.assertTrue(canswer is None)
+
+    def test_LRUCache_set_max_size(self):
+        cache = dns.resolver.LRUCache(4)
+        self.assertEqual(cache.max_size, 4)
+        cache.set_max_size(0)
+        self.assertEqual(cache.max_size, 1)
+
+    def test_LRUCache_overwrite(self):
+        def on_lru_list(cache, key, value):
+            cnode = cache.sentinel.next
+            while cnode != cache.sentinel:
+                if cnode.key == key and cnode.value is value:
+                    return True
+                cnode = cnode.next
+            return False
+        cache = dns.resolver.LRUCache(4)
+        answer1 = FakeAnswer(time.time() + 10)
+        answer2 = FakeAnswer(time.time() + 10)
+        key = (dns.name.from_text('key.'), dns.rdatatype.A, dns.rdataclass.IN)
+        cache.put(key, answer1)
+        canswer = cache.get(key)
+        self.assertTrue(canswer is answer1)
+        self.assertTrue(on_lru_list(cache, key, answer1))
+        cache.put(key, answer2)
+        canswer = cache.get(key)
+        self.assertTrue(canswer is answer2)
+        self.assertFalse(on_lru_list(cache, key, answer1))
+        self.assertTrue(on_lru_list(cache, key, answer2))
+
     def testEmptyAnswerSection(self):
         # TODO: dangling_cname_0_message_text was the only sample message
         #       with an empty answer section. Other than that it doesn't
