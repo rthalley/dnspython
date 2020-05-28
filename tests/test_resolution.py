@@ -1,11 +1,13 @@
 import unittest
 
+import dns.flags
 import dns.message
 import dns.name
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
+import dns.tsigkeyring
 
 # Test the resolver's Resolution, i.e. the business logic of the resolver.
 
@@ -165,6 +167,47 @@ class ResolutionTestCase(unittest.TestCase):
         except dns.resolver.NXDOMAIN as nx:
             self.assertTrue(nx.response(qname1) is r1)
             self.assertTrue(nx.response(qname2) is r2)
+
+    def test_next_request_rotate(self):
+        self.resolver.rotate = True
+        order1 = ['10.0.0.1', '10.0.0.2']
+        order2 = ['10.0.0.2', '10.0.0.1']
+        seen1 = False
+        seen2 = False
+        # We're not interested in testing the randomness, but we'd
+        # like to see some shuffling, so try up to 50 times to see
+        # both orders at least once.  This test can fail even with
+        # correct code, but it is *extremely* unlikely.
+        for count in range(0, 50):
+            self.resn = dns.resolver._Resolution(self.resolver, self.qname,
+                                                 'A', 'IN',
+                                                 False, True, False)
+            self.resn.next_request()
+            if self.resn.nameservers == order1:
+                seen1 = True
+            elif self.resn.nameservers == order2:
+                seen2 = True
+            else:
+                raise ValueError  # should not happen!
+            if seen1 and seen2:
+                break
+        self.assertTrue(seen1 and seen2)
+
+    def test_next_request_TSIG(self):
+        self.resolver.keyring = dns.tsigkeyring.from_text({
+            'keyname.' : 'NjHwPsMKjdN++dOfE5iAiQ=='
+        })
+        self.resolver.keyname = dns.name.from_text('keyname.')
+        (request, answer) = self.resn.next_request()
+        self.assertFalse(request is None)
+        self.assertEqual(request.keyring, self.resolver.keyring)
+        self.assertEqual(request.keyname, self.resolver.keyname)
+
+    def test_next_request_flags(self):
+        self.resolver.flags = dns.flags.RD | dns.flags.CD
+        (request, answer) = self.resn.next_request()
+        self.assertFalse(request is None)
+        self.assertEqual(request.flags, self.resolver.flags)
 
     def test_next_nameserver_udp(self):
         (request, answer) = self.resn.next_request()
@@ -366,3 +409,15 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertTrue(answer is None)
         self.assertFalse(done)
         self.assertTrue(nameserver not in self.resn.nameservers)
+
+    def test_no_metaqueries(self):
+        def bad1():
+            self.resn = dns.resolver._Resolution(self.resolver, self.qname,
+                                                 'ANY', 'IN',
+                                                 False, True, False)
+        def bad2():
+            self.resn = dns.resolver._Resolution(self.resolver, self.qname,
+                                                 'A', 'ANY',
+                                                 False, True, False)
+        self.assertRaises(dns.resolver.NoMetaqueries, bad1)
+        self.assertRaises(dns.resolver.NoMetaqueries, bad2)
