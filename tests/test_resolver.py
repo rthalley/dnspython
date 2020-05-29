@@ -393,6 +393,16 @@ class LiveResolverTests(unittest.TestCase):
             answer = dns.resolver.resolve(qname, qtype)
         self.assertRaises(dns.resolver.NXDOMAIN, bad)
 
+    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveCacheHit(self):
+        res = dns.resolver.Resolver()
+        res.cache = dns.resolver.Cache()
+        answer1 = res.resolve('dns.google.', 'A')
+        seen = set([rdata.address for rdata in answer1])
+        self.assertTrue('8.8.8.8' in seen)
+        self.assertTrue('8.8.4.4' in seen)
+        answer2 = res.resolve('dns.google.', 'A')
+        self.assertTrue(answer2 is answer1)
 
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
