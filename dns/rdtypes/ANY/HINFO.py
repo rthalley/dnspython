@@ -48,8 +48,8 @@ class HINFO(dns.rdata.Rdata):
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
-        cpu = tok.get_string()
-        os = tok.get_string()
+        cpu = tok.get_string(max_length=255)
+        os = tok.get_string(max_length=255)
         tok.get_eol()
         return cls(rdclass, rdtype, cpu, os)
 

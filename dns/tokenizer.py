@@ -533,10 +533,12 @@ class Tokenizer(object):
                 '%d is not an unsigned 32-bit integer' % value)
         return value
 
-    def get_string(self, origin=None):
+    def get_string(self, origin=None, max_length=None):
         """Read the next token and interpret it as a string.
 
         Raises dns.exception.SyntaxError if not a string.
+        Raises dns.exception.SyntaxError if token value length
+        exceeds max_length (if specified).
 
         Returns a string.
         """
@@ -544,6 +546,8 @@ class Tokenizer(object):
         token = self.get().unescape()
         if not (token.is_identifier() or token.is_quoted_string()):
             raise dns.exception.SyntaxError('expecting a string')
+        if max_length and len(token.value) > max_length:
+            raise dns.exception.SyntaxError("string too long")
         return token.value
 
     def get_identifier(self, origin=None):
