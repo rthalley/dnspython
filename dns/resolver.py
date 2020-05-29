@@ -1094,6 +1094,7 @@ class Resolver(object):
                             continue
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
+                    continue
                 (answer, done) = resolution.query_result(response, None)
                 # Note we need to say "if answer is not None" and not just
                 # "if answer" because answer implements __len__, and python
