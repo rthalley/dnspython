@@ -9,7 +9,7 @@
 import unittest
 
 from dns.exception import FormError
-from dns.wiredata import WireData
+from dns.wiredata import WireData, maybe_wrap
 
 
 class WireDataSlicingTestCase(unittest.TestCase):
@@ -121,3 +121,14 @@ class WireDataSlicingTestCase(unittest.TestCase):
         inst = WireData(b'0123456789')
         with self.assertRaises(FormError):
             inst[10]  # pylint: disable=pointless-statement
+
+    def testIteration(self):
+        bval = b'0123'
+        inst = WireData(bval)
+        l = list(inst)
+        self.assertEqual(l, [x for x in bval])
+
+    def testBadWrap(self):
+        def bad():
+            w = maybe_wrap(123)
+        self.assertRaises(ValueError, bad)
