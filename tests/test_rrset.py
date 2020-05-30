@@ -107,12 +107,54 @@ class RRsetTestCase(unittest.TestCase):
                                   dns.rdatatype.A, dns.rdatatype.NONE,
                                   dns.rdataclass.ANY))
 
+    def testNoMatch3(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        self.assertFalse(r1.match(r1.name, dns.rdataclass.IN,
+                                  dns.rdatatype.MX, dns.rdatatype.NONE,
+                                  dns.rdataclass.ANY))
+
     def testToRdataset(self):
         r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
                                       ['10.0.0.1', '10.0.0.2'])
         r2 = dns.rdataset.from_text_list('in', 'a', 30,
                                          ['10.0.0.1', '10.0.0.2'])
         self.assertEqual(r1.to_rdataset(), r2)
+
+    def testFromRdata(self):
+        rdata1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                     '10.0.0.1')
+        rdata2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                     '10.0.0.2')
+        expected_rrs = dns.rrset.from_text('foo', 300, 'in', 'a', '10.0.0.1',
+                                           '10.0.0.2')
+        rrs = dns.rrset.from_rdata('foo', 300, rdata1, rdata2)
+        self.assertEqual(rrs, expected_rrs)
+
+    def testEmptyList(self):
+        def bad():
+            rrs = dns.rrset.from_rdata_list('foo', 300, [])
+        self.assertRaises(ValueError, bad)
+
+    def testTTLMinimization(self):
+        rrs = dns.rrset.RRset(dns.name.from_text('foo'),
+                              dns.rdataclass.IN, dns.rdatatype.A)
+        rdata1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                     '10.0.0.1')
+        rdata2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                     '10.0.0.2')
+        rrs.add(rdata1, 300)
+        self.assertEqual(rrs.ttl, 300)
+        rrs.add(rdata2, 30)
+        self.assertEqual(rrs.ttl, 30)
+        # adding the same thing with a smaller TTL also minimizes
+        rrs.add(rdata2, 3)
+        self.assertEqual(rrs.ttl, 3)
+
+    def testNotEqualOtherType(self):
+        rrs = dns.rrset.RRset(dns.name.from_text('foo'),
+                              dns.rdataclass.IN, dns.rdatatype.A)
+        self.assertFalse(rrs == 123)
 
 if __name__ == '__main__':
     unittest.main()
