@@ -22,6 +22,7 @@ import socket
 import time
 import unittest
 
+import dns.e164
 import dns.message
 import dns.name
 import dns.rdataclass
@@ -35,6 +36,17 @@ try:
     socket.gethostbyname('dnspython.org')
 except socket.gaierror:
     _network_available = False
+
+# Some tests use a "nano nameserver" for testing.  It requires trio
+# and threading, so try to import it and if it doesn't work, skip
+# those tests.
+try:
+    from nanonameserver import Server
+    _nanonameserver_available = True
+except ImportError:
+    _nanonameserver_available = False
+    class Server(object):
+        pass
 
 resolv_conf = u"""
     /t/t
@@ -580,7 +592,40 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
             with self.assertRaises(ValueError):
                 resolver.nameservers = invalid_nameserver
 
-if __name__ == '__main__':
-    from IPython.core.debugger import set_trace
-    set_trace()
-    unittest.main()
+
+class NaptrNanoNameserver(Server):
+
+    def handle(self, message):
+        response = dns.message.make_response(message)
+        response.set_rcode(dns.rcode.REFUSED)
+        response.flags |= dns.flags.RA
+        try:
+            if message.question[0].rdtype == dns.rdatatype.NAPTR and \
+               message.question[0].rdclass == dns.rdataclass.IN:
+                rrs = dns.rrset.from_text(message.question[0].name, 300,
+                                          'IN', 'NAPTR',
+                                          '0 0 "" "" "" .')
+                response.answer.append(rrs)
+                response.set_rcode(dns.rcode.NOERROR)
+                response.flags |= dns.flags.AA
+        except Exception:
+            pass
+        return response
+
+
+@unittest.skipIf(not (_network_available and _nanonameserver_available),
+                 "Internet and NanoAuth required")
+class NanoTests(unittest.TestCase):
+
+    def testE164Query(self):
+        with NaptrNanoNameserver() as na:
+            res = dns.resolver.Resolver()
+            res.port = na.udp_address[1]
+            res.nameservers = [ na.udp_address[0] ]
+            answer = dns.e164.query('1650551212', ['e164.arpa'], res)
+            self.assertEqual(answer[0].order, 0)
+            self.assertEqual(answer[0].preference, 0)
+            self.assertEqual(answer[0].flags, b'')
+            self.assertEqual(answer[0].service, b'')
+            self.assertEqual(answer[0].regexp, b'')
+            self.assertEqual(answer[0].replacement, dns.name.root)
