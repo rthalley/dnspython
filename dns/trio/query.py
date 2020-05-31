@@ -214,7 +214,7 @@ async def send_stream(stream, what):
     await stream.send_all(stream_message)
     return (len(stream_message), sent_time)
 
-async def _read_exactly(stream, count):
+async def read_exactly(stream, count):
     """Read the specified number of bytes from stream.  Keep trying until we
     either get the desired amount, or we hit EOF.
     """
@@ -249,9 +249,9 @@ async def receive_stream(stream, one_rr_per_rrset=False, keyring=None,
     Returns a ``dns.message.Message`` object.
     """
 
-    ldata = await _read_exactly(stream, 2)
+    ldata = await read_exactly(stream, 2)
     (l,) = struct.unpack("!H", ldata)
-    wire = await _read_exactly(stream, l)
+    wire = await read_exactly(stream, l)
     received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
                               one_rr_per_rrset=one_rr_per_rrset,
