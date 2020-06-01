@@ -139,6 +139,8 @@ class RdataTestCase(unittest.TestCase):
         #
         #   types that don't have names: HINFO
         #
+        #   NSEC3, whose downcasing was removed by RFC 6840 section 5.1
+        #
         cases = [
             ('SOA', 'NAME NAME 1 2 3 4 5'),
             ('AFSDB', '0 NAME'),
@@ -147,7 +149,6 @@ class RdataTestCase(unittest.TestCase):
             ('KX', '10 NAME'),
             ('MX', '10 NAME'),
             ('NS', 'NAME'),
-            ('NSEC', 'NAME A'),
             ('NAPTR', '0 0 a B c NAME'),
             ('PTR', 'NAME'),
             ('PX', '65535 NAME NAME'),
@@ -171,6 +172,24 @@ class RdataTestCase(unittest.TestCase):
             f = io.BytesIO()
             canonical_rdata.to_wire(f)
             expected_wire = f.getvalue()
+            self.assertEqual(digestable_wire, expected_wire)
+
+    def test_digestable_no_downcasing(self):
+        # Make sure that currently known types with domain names that
+        # are NOT supposed to be downcased when canonicalized are
+        # handled properly.
+        #
+        cases = [
+            ('HIP', '2 200100107B1A74DF365639CC39F1D578 Ym9ndXM= NAME name'),
+            ('IPSECKEY', '10 3 2 NAME Ym9ndXM='),
+            ('NSEC', 'NAME A'),
+        ]
+        for rdtype, text in cases:
+            origin = dns.name.from_text('example')
+            rdata = dns.rdata.from_text(dns.rdataclass.IN, rdtype, text,
+                                        origin=origin, relativize=False)
+            digestable_wire = rdata.to_digestable(origin)
+            expected_wire = rdata.to_wire(origin=origin)
             self.assertEqual(digestable_wire, expected_wire)
 
 if __name__ == '__main__':

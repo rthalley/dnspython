@@ -88,7 +88,7 @@ class NSEC(dns.rdata.Rdata):
         return cls(rdclass, rdtype, next, windows)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        self.next.to_wire(file, None, origin, canonicalize)
+        self.next.to_wire(file, None, origin, False)
         for (window, bitmap) in self.windows:
             file.write(struct.pack('!BB', window, len(bitmap)))
             file.write(bitmap)
