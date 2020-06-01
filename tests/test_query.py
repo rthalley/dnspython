@@ -18,6 +18,12 @@
 import socket
 import unittest
 
+try:
+    import ssl
+    have_ssl = True
+except Exception:
+    have_ssl = False
+
 import dns.message
 import dns.name
 import dns.rdataclass
@@ -46,6 +52,19 @@ class QueryTests(unittest.TestCase):
         self.assertTrue('8.8.8.8' in seen)
         self.assertTrue('8.8.4.4' in seen)
 
+    def testQueryUDPWithSocket(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.setblocking(0)
+            qname = dns.name.from_text('dns.google.')
+            q = dns.message.make_query(qname, dns.rdatatype.A)
+            response = dns.query.udp(q, '8.8.8.8', sock=s)
+            rrs = response.get_rrset(response.answer, qname,
+                                     dns.rdataclass.IN, dns.rdatatype.A)
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue('8.8.8.8' in seen)
+            self.assertTrue('8.8.4.4' in seen)
+
     def testQueryTCP(self):
         qname = dns.name.from_text('dns.google.')
         q = dns.message.make_query(qname, dns.rdatatype.A)
@@ -56,6 +75,20 @@ class QueryTests(unittest.TestCase):
         seen = set([rdata.address for rdata in rrs])
         self.assertTrue('8.8.8.8' in seen)
         self.assertTrue('8.8.4.4' in seen)
+
+    def testQueryTCPWithSocket(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect(('8.8.8.8', 53))
+            s.setblocking(0)
+            qname = dns.name.from_text('dns.google.')
+            q = dns.message.make_query(qname, dns.rdatatype.A)
+            response = dns.query.tcp(q, None, sock=s)
+            rrs = response.get_rrset(response.answer, qname,
+                                     dns.rdataclass.IN, dns.rdatatype.A)
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue('8.8.8.8' in seen)
+            self.assertTrue('8.8.4.4' in seen)
 
     def testQueryTLS(self):
         qname = dns.name.from_text('dns.google.')
@@ -68,11 +101,41 @@ class QueryTests(unittest.TestCase):
         self.assertTrue('8.8.8.8' in seen)
         self.assertTrue('8.8.4.4' in seen)
 
+    @unittest.skipUnless(have_ssl, "No SSL support")
+    def testQueryTLSWithSocket(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect(('8.8.8.8', 853))
+            ctx = ssl.create_default_context()
+            s = ctx.wrap_socket(s, server_hostname='dns.google')
+            s.setblocking(0)
+            qname = dns.name.from_text('dns.google.')
+            q = dns.message.make_query(qname, dns.rdatatype.A)
+            response = dns.query.tls(q, None, sock=s)
+            rrs = response.get_rrset(response.answer, qname,
+                                     dns.rdataclass.IN, dns.rdatatype.A)
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue('8.8.8.8' in seen)
+            self.assertTrue('8.8.4.4' in seen)
+
     def testQueryUDPFallback(self):
         qname = dns.name.from_text('.')
         q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
         (_, tcp) = dns.query.udp_with_fallback(q, '8.8.8.8')
         self.assertTrue(tcp)
+
+    def testQueryUDPFallbackWithSocket(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_s:
+            udp_s.setblocking(0)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_s:
+                tcp_s.connect(('8.8.8.8', 53))
+                tcp_s.setblocking(0)
+                qname = dns.name.from_text('.')
+                q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
+                (_, tcp) = dns.query.udp_with_fallback(q, '8.8.8.8',
+                                                      udp_sock=udp_s,
+                                                      tcp_sock=tcp_s)
+                self.assertTrue(tcp)
 
     def testQueryUDPFallbackNoFallback(self):
         qname = dns.name.from_text('dns.google.')
