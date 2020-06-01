@@ -86,7 +86,7 @@ class CSYNC(dns.rdata.Rdata):
         windows.append((window, bitmap[0:octets]))
         return cls(rdclass, rdtype, serial, flags, windows)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack('!IH', self.serial, self.flags))
         for (window, bitmap) in self.windows:
             file.write(struct.pack('!BB', window, len(bitmap)))

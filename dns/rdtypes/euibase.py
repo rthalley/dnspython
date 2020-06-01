@@ -59,7 +59,7 @@ class EUIBase(dns.rdata.Rdata):
             raise dns.exception.SyntaxError('Hex decoding error: %s' % str(ex))
         return cls(rdclass, rdtype, data)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.eui)
 
     @classmethod

@@ -590,19 +590,10 @@ class Name(object):
         Returns a ``bytes``.
         """
 
-        out = bytearray()
-        for label in self.labels:
-            out.append(len(label))
-            out += label.lower()
-        if not self.is_absolute():
-            if origin is None or not origin.is_absolute():
-                raise NeedAbsoluteNameOrOrigin
-            for label in origin.labels:
-                out.append(len(label))
-                out += label.lower()
-        return bytes(out)
+        return self.to_wire(origin=origin, canonicalize=True)
 
-    def to_wire(self, file=None, compress=None, origin=None):
+    def to_wire(self, file=None, compress=None, origin=None,
+                canonicalize=False):
         """Convert name to wire format, possibly compressing it.
 
         *file* is the file where the name is emitted (typically an
@@ -619,6 +610,10 @@ class Name(object):
         relative and origin is not ``None``, then *origin* will be appended
         to it.
 
+        *canonicalize*, a ``bool``, indicates whether the name should
+        be canonicalized; that is, converted to a format suitable for
+        digesting in hashes.
+
         Raises ``dns.name.NeedAbsoluteNameOrOrigin`` if the name is
         relative and no origin was provided.
 
@@ -629,13 +624,19 @@ class Name(object):
             out = bytearray()
             for label in self.labels:
                 out.append(len(label))
-                out += label
+                if canonicalize:
+                    out += label.lower()
+                else:
+                    out += label
             if not self.is_absolute():
                 if origin is None or not origin.is_absolute():
                     raise NeedAbsoluteNameOrOrigin
                 for label in origin.labels:
                     out.append(len(label))
-                    out += label
+                    if canonicalize:
+                        out += label.lower()
+                    else:
+                        out += label
             return bytes(out)
 
         if not self.is_absolute():
@@ -666,7 +667,10 @@ class Name(object):
                 l = len(label)
                 file.write(struct.pack('!B', l))
                 if l > 0:
-                    file.write(label)
+                    if canonicalize:
+                        file.write(label.lower())
+                    else:
+                        file.write(label)
 
     def __len__(self):
         """The length of the name (in labels).

@@ -53,7 +53,7 @@ class CAA(dns.rdata.Rdata):
         value = tok.get_string().encode()
         return cls(rdclass, rdtype, flags, tag, value)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack('!B', self.flags))
         l = len(self.tag)
         assert l < 256

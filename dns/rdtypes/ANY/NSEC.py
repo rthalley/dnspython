@@ -87,19 +87,11 @@ class NSEC(dns.rdata.Rdata):
         windows.append((window, bitmap[0:octets]))
         return cls(rdclass, rdtype, next, windows)
 
-    def to_wire(self, file, compress=None, origin=None):
-        self.next.to_wire(file, None, origin)
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        self.next.to_wire(file, None, origin, canonicalize)
         for (window, bitmap) in self.windows:
             file.write(struct.pack('!BB', window, len(bitmap)))
             file.write(bitmap)
-
-    def to_digestable(self, origin=None):
-        file = io.BytesIO()
-        file.write(self.next.to_digestable(origin))
-        for (window, bitmap) in self.windows:
-            file.write(struct.pack('!BB', window, len(bitmap)))
-            file.write(bitmap)
-        return file.getvalue()
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

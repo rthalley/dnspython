@@ -63,7 +63,7 @@ class TLSA(dns.rdata.Rdata):
         cert = binascii.unhexlify(cert)
         return cls(rdclass, rdtype, usage, selector, mtype, cert)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         header = struct.pack("!BBB", self.usage, self.selector, self.mtype)
         file.write(header)
         file.write(self.cert)

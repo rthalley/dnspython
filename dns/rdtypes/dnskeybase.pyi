@@ -27,7 +27,7 @@ class DNSKEYBase(rdata.Rdata):
                   relativize_to=None):
         ...
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         ...
 
     @classmethod

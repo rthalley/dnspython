@@ -60,7 +60,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.salt)
         file.write(struct.pack("!BBHB", self.algorithm, self.flags,
                                self.iterations, l))

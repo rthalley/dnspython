@@ -69,7 +69,7 @@ class DNSKEYBase(dns.rdata.Rdata):
         key = base64.b64decode(b64)
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         header = struct.pack("!HBB", self.flags, self.protocol, self.algorithm)
         file.write(header)
         file.write(self.key)

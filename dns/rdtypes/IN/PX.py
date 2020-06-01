@@ -50,16 +50,11 @@ class PX(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, preference, map822, mapx400)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         pref = struct.pack("!H", self.preference)
         file.write(pref)
-        self.map822.to_wire(file, None, origin)
-        self.mapx400.to_wire(file, None, origin)
-
-    def to_digestable(self, origin=None):
-        return struct.pack("!H", self.preference) + \
-            self.map822.to_digestable(origin) + \
-            self.mapx400.to_digestable(origin)
+        self.map822.to_wire(file, None, origin, canonicalize)
+        self.mapx400.to_wire(file, None, origin, canonicalize)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

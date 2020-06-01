@@ -50,7 +50,7 @@ class NSAP(dns.rdata.Rdata):
         address = binascii.unhexlify(address.encode())
         return cls(rdclass, rdtype, address)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.address)
 
     @classmethod

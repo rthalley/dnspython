@@ -63,18 +63,12 @@ class SOA(dns.rdata.Rdata):
         return cls(rdclass, rdtype, mname, rname, serial, refresh, retry,
                    expire, minimum)
 
-    def to_wire(self, file, compress=None, origin=None):
-        self.mname.to_wire(file, compress, origin)
-        self.rname.to_wire(file, compress, origin)
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        self.mname.to_wire(file, compress, origin, canonicalize)
+        self.rname.to_wire(file, compress, origin, canonicalize)
         five_ints = struct.pack('!IIIII', self.serial, self.refresh,
                                 self.retry, self.expire, self.minimum)
         file.write(five_ints)
-
-    def to_digestable(self, origin=None):
-        return self.mname.to_digestable(origin) + \
-            self.rname.to_digestable(origin) + \
-            struct.pack('!IIIII', self.serial, self.refresh,
-                        self.retry, self.expire, self.minimum)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

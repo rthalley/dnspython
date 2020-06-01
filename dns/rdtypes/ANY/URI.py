@@ -57,7 +57,7 @@ class URI(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, priority, weight, target.value)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         two_ints = struct.pack("!HH", self.priority, self.weight)
         file.write(two_ints)
         file.write(self.target)

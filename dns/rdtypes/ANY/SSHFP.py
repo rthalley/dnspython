@@ -60,7 +60,7 @@ class SSHFP(dns.rdata.Rdata):
         fingerprint = binascii.unhexlify(fingerprint)
         return cls(rdclass, rdtype, algorithm, fp_type, fingerprint)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         header = struct.pack("!BB", self.algorithm, self.fp_type)
         file.write(header)
         file.write(self.fingerprint)

@@ -48,14 +48,10 @@ class MXBase(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, preference, exchange)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         pref = struct.pack("!H", self.preference)
         file.write(pref)
-        self.exchange.to_wire(file, compress, origin)
-
-    def to_digestable(self, origin=None):
-        return struct.pack("!H", self.preference) + \
-            self.exchange.to_digestable(origin)
+        self.exchange.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
@@ -77,13 +73,8 @@ class UncompressedMX(MXBase):
     is not compressed when converted to DNS wire format, and whose
     digestable form is not downcased."""
 
-    def to_wire(self, file, compress=None, origin=None):
-        super(UncompressedMX, self).to_wire(file, None, origin)
-
-    def to_digestable(self, origin=None):
-        f = io.BytesIO()
-        self.to_wire(f, None, origin)
-        return f.getvalue()
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        super()._to_wire(file, None, origin, False)
 
 
 class UncompressedDowncasingMX(MXBase):
@@ -91,5 +82,5 @@ class UncompressedDowncasingMX(MXBase):
     """Base class for rdata that is like an MX record, but whose name
     is not compressed when convert to DNS wire format."""
 
-    def to_wire(self, file, compress=None, origin=None):
-        super(UncompressedDowncasingMX, self).to_wire(file, None, origin)
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        super()._to_wire(file, None, origin, canonicalize)
