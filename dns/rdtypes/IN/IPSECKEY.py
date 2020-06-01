@@ -94,7 +94,7 @@ class IPSECKEY(dns.rdata.Rdata):
         return cls(rdclass, rdtype, precedence, gateway_type, algorithm,
                    gateway, key)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         header = struct.pack("!BBB", self.precedence, self.gateway_type,
                              self.algorithm)
         file.write(header)
@@ -105,7 +105,7 @@ class IPSECKEY(dns.rdata.Rdata):
         elif self.gateway_type == 2:
             file.write(dns.ipv6.inet_aton(self.gateway))
         elif self.gateway_type == 3:
-            self.gateway.to_wire(file, None, origin)
+            self.gateway.to_wire(file, None, origin, False)
         else:
             raise ValueError('invalid gateway type')
         file.write(self.key)

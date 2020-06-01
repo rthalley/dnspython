@@ -44,14 +44,10 @@ class A(dns.rdtypes.mxbase.MXBase):
         tok.get_eol()
         return cls(rdclass, rdtype, address, domain)
 
-    def to_wire(self, file, compress=None, origin=None):
-        self.domain.to_wire(file, compress, origin)
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        self.domain.to_wire(file, compress, origin, canonicalize)
         pref = struct.pack("!H", self.address)
         file.write(pref)
-
-    def to_digestable(self, origin=None):
-        return self.domain.to_digestable(origin) + \
-            struct.pack("!H", self.address)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

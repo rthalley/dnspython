@@ -166,22 +166,30 @@ class Rdata(object):
 
         raise NotImplementedError
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        raise NotImplementedError
+
+    def to_wire(self, file=None, compress=None, origin=None,
+                canonicalize=False):
         """Convert an rdata to wire format.
 
-        Returns ``None``.
+        Returns a ``bytes`` or ``None``.
         """
 
-        raise NotImplementedError
+        if file:
+            return self._to_wire(file, compress, origin, canonicalize)
+        else:
+            f = io.BytesIO()
+            self._to_wire(f, compress, origin, canonicalize)
+            return f.getvalue()
 
     def to_generic(self, origin=None):
         """Creates a dns.rdata.GenericRdata equivalent of this rdata.
 
         Returns a ``dns.rdata.GenericRdata``.
         """
-        f = io.BytesIO()
-        self.to_wire(f, origin=origin)
-        return dns.rdata.GenericRdata(self.rdclass, self.rdtype, f.getvalue())
+        return dns.rdata.GenericRdata(self.rdclass, self.rdtype,
+                                      self.to_wire(origin=origin))
 
     def to_digestable(self, origin=None):
         """Convert rdata to a format suitable for digesting in hashes.  This
@@ -190,9 +198,7 @@ class Rdata(object):
         Returns a ``bytes``.
         """
 
-        f = io.BytesIO()
-        self.to_wire(f, None, origin)
-        return f.getvalue()
+        return self.to_wire(origin=origin, canonicalize=True)
 
     def validate(self):
         """Check that the current contents of the rdata's fields are
@@ -361,7 +367,7 @@ class GenericRdata(Rdata):
                 'generic rdata hex data has wrong length')
         return cls(rdclass, rdtype, data)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.data)
 
     @classmethod

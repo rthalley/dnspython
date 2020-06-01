@@ -1,9 +1,9 @@
-from typing import Dict, Tuple, Any, Optional
+from typing import Dict, Tuple, Any, Optional, BinaryIO
 from .name import Name, IDNACodec
 class Rdata:
     def __init__(self):
         self.address : str
-    def to_wire(self, file, compress : Optional[Dict[Name,int]], origin : Optional[Name]) -> bytes:
+    def to_wire(self, file : Optional[BinaryIO], compress : Optional[Dict[Name,int]], origin : Optional[Name], canonicalize : Optional[bool]) -> Optional[bytes]:
         ...
     @classmethod
     def from_text(cls, rdclass : int, rdtype : int, tok, origin=None, relativize=True):

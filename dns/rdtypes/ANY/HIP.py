@@ -67,14 +67,14 @@ class HIP(dns.rdata.Rdata):
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         lh = len(self.hit)
         lk = len(self.key)
         file.write(struct.pack("!BBH", lh, self.algorithm, lk))
         file.write(self.hit)
         file.write(self.key)
         for server in self.servers:
-            server.to_wire(file, None, origin)
+            server.to_wire(file, None, origin, False)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

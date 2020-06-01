@@ -18,7 +18,6 @@
 """Common DNSSEC-related functions and constants."""
 
 import hashlib
-import io
 import struct
 import time
 import base64
@@ -90,12 +89,6 @@ def algorithm_to_text(value):
     return Algorithm.to_text(value)
 
 
-def _to_rdata(record, origin):
-    s = io.BytesIO()
-    record.to_wire(s, origin=origin)
-    return s.getvalue()
-
-
 def key_id(key):
     """Return the key id (a 16-bit number) for the specified key.
 
@@ -104,7 +97,7 @@ def key_id(key):
     Returns an ``int`` between 0 and 65535
     """
 
-    rdata = _to_rdata(key, None)
+    rdata = key.to_wire()
     if key.algorithm == Algorithm.RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:
@@ -166,7 +159,7 @@ def make_ds(name, key, algorithm, origin=None):
     if isinstance(name, str):
         name = dns.name.from_text(name, origin)
     dshash.update(name.canonicalize().to_wire())
-    dshash.update(_to_rdata(key, origin))
+    dshash.update(key.to_wire(origin=origin))
     digest = dshash.digest()
 
     dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, algorithm) + \
@@ -397,7 +390,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
 
         data = b''
-        data += _to_rdata(rrsig, origin)[:18]
+        data += rrsig.to_wire(origin=origin)[:18]
         data += rrsig.signer.to_digestable(origin)
 
         if rrsig.labels < len(rrname) - 1:

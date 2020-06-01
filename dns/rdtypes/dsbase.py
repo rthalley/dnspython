@@ -61,7 +61,7 @@ class DSBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
                    digest)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         header = struct.pack("!HBB", self.key_tag, self.algorithm,
                              self.digest_type)
         file.write(header)

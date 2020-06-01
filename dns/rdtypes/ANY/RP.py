@@ -46,13 +46,9 @@ class RP(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, mbox, txt)
 
-    def to_wire(self, file, compress=None, origin=None):
-        self.mbox.to_wire(file, None, origin)
-        self.txt.to_wire(file, None, origin)
-
-    def to_digestable(self, origin=None):
-        return self.mbox.to_digestable(origin) + \
-            self.txt.to_digestable(origin)
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        self.mbox.to_wire(file, None, origin, canonicalize)
+        self.txt.to_wire(file, None, origin, canonicalize)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

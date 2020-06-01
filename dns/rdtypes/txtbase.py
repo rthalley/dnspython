@@ -76,7 +76,7 @@ class TXTBase(dns.rdata.Rdata):
             raise dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         for s in self.strings:
             l = len(s)
             assert l < 256

@@ -15,7 +15,6 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import unittest
-from io import BytesIO
 
 import dns.rrset
 import dns.rdtypes.ANY.EUI48
@@ -89,9 +88,7 @@ class RdtypeAnyEUI48TestCase(unittest.TestCase):
         inst = dns.rdtypes.ANY.EUI48.EUI48(dns.rdataclass.IN,
                                            dns.rdatatype.EUI48,
                                            eui)
-        buff = BytesIO()
-        inst.to_wire(buff)
-        self.assertEqual(buff.getvalue(), eui)
+        self.assertEqual(inst.to_wire(), eui)
 
     def testFromWireOk(self):
         '''Valid wire format.'''
@@ -188,9 +185,7 @@ class RdtypeAnyEUI64TestCase(unittest.TestCase):
         inst = dns.rdtypes.ANY.EUI64.EUI64(dns.rdataclass.IN,
                                            dns.rdatatype.EUI64,
                                            eui)
-        buff = BytesIO()
-        inst.to_wire(buff)
-        self.assertEqual(buff.getvalue(), eui)
+        self.assertEqual(inst.to_wire(), eui)
 
     def testFromWireOk(self):
         '''Valid wire format.'''

@@ -53,16 +53,10 @@ class SRV(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, priority, weight, port, target)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         three_ints = struct.pack("!HHH", self.priority, self.weight, self.port)
         file.write(three_ints)
-        self.target.to_wire(file, compress, origin)
-
-    def to_digestable(self, origin=None):
-        f = io.BytesIO()
-        f.write(struct.pack("!HHH", self.priority, self.weight, self.port))
-        f.write(self.target.to_digestable(origin))
-        return f.getvalue()
+        self.target.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

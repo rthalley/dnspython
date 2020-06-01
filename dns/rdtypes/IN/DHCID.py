@@ -50,7 +50,7 @@ class DHCID(dns.rdata.Rdata):
         data = base64.b64decode(b64)
         return cls(rdclass, rdtype, data)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.data)
 
     @classmethod

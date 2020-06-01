@@ -97,7 +97,7 @@ class CERT(dns.rdata.Rdata):
         return cls(rdclass, rdtype, certificate_type, key_tag,
                    algorithm, certificate)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         prefix = struct.pack("!HHB", self.certificate_type, self.key_tag,
                              self.algorithm)
         file.write(prefix)

@@ -125,7 +125,7 @@ class NSEC3(dns.rdata.Rdata):
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
                    windows)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.salt)
         file.write(struct.pack("!BBHB", self.algorithm, self.flags,
                                self.iterations, l))
