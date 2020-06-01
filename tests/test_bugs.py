@@ -25,7 +25,6 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rdtypes.ANY.TXT
 import dns.ttl
-from dns import rdata, rdataclass, rdatatype
 
 
 class BugsTestCase(unittest.TestCase):
@@ -96,26 +95,6 @@ class BugsTestCase(unittest.TestCase):
         self.assertEqual(t1, t2)
         self.assertEqual(t1, t2)
         self.assertEqual(t1, t4)
-
-    def test_lowercase_canonicals(self):
-        for t, presentation_format in [
-            ('SRV', '100 1 5061 EXAMPLE.com.'),
-            # TODO also check NS, MD, MF, CNAME, SOA, MB, MG, MR, PTR,
-            #  HINFO, MINFO, MX, HINFO, RP, AFSDB, RT, SIG, PX, NXT,
-            #  NAPTR, KX, SRV, DNAME, A6, RRSIG, or NSEC
-        ]:
-            canonical_format = rdata.from_text(
-                    rdclass=rdataclass.IN,
-                    rdtype=rdatatype.from_text(t),
-                    tok=presentation_format,
-                    relativize=False
-                ).to_digestable()
-            self.assertIn(
-                b'example',
-                canonical_format,
-                f'Expected canonical format of {t} record type to have '
-                f'lowercase DNS names, but saw {canonical_format}.'
-            )
 
 
 if __name__ == '__main__':
