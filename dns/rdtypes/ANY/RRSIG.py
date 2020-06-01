@@ -122,6 +122,14 @@ class RRSIG(dns.rdata.Rdata):
         self.signer.to_wire(file, None, origin)
         file.write(self.signature)
 
+    def to_digestable(self, origin=None):
+        return struct.pack('!HBBIIIH', self.type_covered,
+                           self.algorithm, self.labels,
+                           self.original_ttl, self.expiration,
+                           self.inception, self.key_tag) + \
+                           self.signer.to_digestable(origin) + \
+                           self.signature
+
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         header = struct.unpack('!HBBIIIH', wire[current: current + 18])

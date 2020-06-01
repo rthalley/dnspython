@@ -139,8 +139,6 @@ class RdataTestCase(unittest.TestCase):
         #
         #   types that don't have names: HINFO
         #
-        #   types where the canonical form isn't relevant: RRSIG
-        #
         cases = [
             ('SOA', 'NAME NAME 1 2 3 4 5'),
             ('AFSDB', '0 NAME'),
@@ -156,6 +154,8 @@ class RdataTestCase(unittest.TestCase):
             ('RP', 'NAME NAME'),
             ('RT', '0 NAME'),
             ('SRV', '0 0 0 NAME'),
+            ('RRSIG',
+             'A 1 3 3600 20200701000000 20200601000000 1 NAME Ym9ndXM=')
         ]
         for rdtype, text in cases:
             upper_origin = dns.name.from_text('EXAMPLE')
