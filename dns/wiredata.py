@@ -41,10 +41,6 @@ class WireData(bytes):
         except IndexError:
             raise dns.exception.FormError
 
-    def __iter__(self):
-        for i in range(len(self)):
-            yield self[i]
-
     def unwrap(self):
         return bytes(self)
 
