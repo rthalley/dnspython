@@ -791,7 +791,7 @@ def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
     (af, destination, source) = _destination_and_source(None, where, port,
-                                                       source, source_port)
+                                                        source, source_port)
     if ssl_context is None and not sock:
         ssl_context = ssl.create_default_context()
         if server_hostname is None:
