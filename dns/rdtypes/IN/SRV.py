@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import io
 import struct
 
 import dns.exception
@@ -56,6 +57,13 @@ class SRV(dns.rdata.Rdata):
         three_ints = struct.pack("!HHH", self.priority, self.weight, self.port)
         file.write(three_ints)
         self.target.to_wire(file, compress, origin)
+
+    def to_digestable(self, origin=None):
+        # TODO how to avoid code duplication here? This is mostly identical to self.to_wire.
+        f = io.BytesIO()
+        f.write(struct.pack("!HHH", self.priority, self.weight, self.port))
+        f.write(self.target.to_digestable(origin))
+        return f.getvalue()
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
