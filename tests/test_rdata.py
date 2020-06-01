@@ -16,11 +16,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import io
 import unittest
 
 import dns.name
 import dns.rdata
 import dns.rdataclass
+import dns.rdataset
 import dns.rdatatype
 
 import tests.stxt_module
@@ -127,6 +129,49 @@ class RdataTestCase(unittest.TestCase):
                                     "Königsgäßchen",
                                     idna_codec=dns.name.IDNA_2008)
         self.assertEqual(str(rdata.target), 'xn--knigsgchen-b4a3dun')
+
+    def test_digestable_downcasing(self):
+        # Make sure all the types listed in RFC 4034 section 6.2 are
+        # downcased properly, except for:
+        #
+        #   types we don't implement:  MD, MF, MB, MG, MR, MINFO, SIG,
+        #                              NXT, A6
+        #
+        #   types that don't have names: HINFO
+        #
+        #   types where the canonical form isn't relevant: RRSIG
+        #
+        cases = [
+            ('SOA', 'NAME NAME 1 2 3 4 5'),
+            ('AFSDB', '0 NAME'),
+            ('CNAME', 'NAME'),
+            ('DNAME', 'NAME'),
+            ('KX', '10 NAME'),
+            ('MX', '10 NAME'),
+            ('NS', 'NAME'),
+            ('NSEC', 'NAME A'),
+            ('NAPTR', '0 0 a B c NAME'),
+            ('PTR', 'NAME'),
+            ('PX', '65535 NAME NAME'),
+            ('RP', 'NAME NAME'),
+            ('RT', '0 NAME'),
+            ('SRV', '0 0 0 NAME'),
+        ]
+        for rdtype, text in cases:
+            upper_origin = dns.name.from_text('EXAMPLE')
+            lower_origin = dns.name.from_text('example')
+            canonical_text = text.replace('NAME', 'name')
+            rdata = dns.rdata.from_text(dns.rdataclass.IN, rdtype, text,
+                                        origin=upper_origin, relativize=False)
+            canonical_rdata = dns.rdata.from_text(dns.rdataclass.IN, rdtype,
+                                                  canonical_text,
+                                                  origin=lower_origin,
+                                                  relativize=False)
+            digestable_wire = rdata.to_digestable()
+            f = io.BytesIO()
+            canonical_rdata.to_wire(f)
+            expected_wire = f.getvalue()
+            self.assertEqual(digestable_wire, expected_wire)
 
 if __name__ == '__main__':
     unittest.main()

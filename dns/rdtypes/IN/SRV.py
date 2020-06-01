@@ -59,7 +59,6 @@ class SRV(dns.rdata.Rdata):
         self.target.to_wire(file, compress, origin)
 
     def to_digestable(self, origin=None):
-        # TODO how to avoid code duplication here? This is mostly identical to self.to_wire.
         f = io.BytesIO()
         f.write(struct.pack("!HHH", self.priority, self.weight, self.port))
         f.write(self.target.to_digestable(origin))

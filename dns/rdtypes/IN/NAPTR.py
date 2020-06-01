@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import io
 import struct
 
 import dns.exception
@@ -83,6 +84,15 @@ class NAPTR(dns.rdata.Rdata):
         _write_string(file, self.service)
         _write_string(file, self.regexp)
         self.replacement.to_wire(file, compress, origin)
+
+    def to_digestable(self, origin=None):
+        file = io.BytesIO()
+        two_ints = struct.pack("!HH", self.order, self.preference)
+        file.write(two_ints)
+        _write_string(file, self.flags)
+        _write_string(file, self.service)
+        _write_string(file, self.regexp)
+        return file.getvalue() + self.replacement.to_digestable(origin)
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):

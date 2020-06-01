@@ -56,6 +56,11 @@ class PX(dns.rdata.Rdata):
         self.map822.to_wire(file, None, origin)
         self.mapx400.to_wire(file, None, origin)
 
+    def to_digestable(self, origin=None):
+        return struct.pack("!H", self.preference) + \
+            self.map822.to_digestable(origin) + \
+            self.mapx400.to_digestable(origin)
+
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (preference, ) = struct.unpack('!H', wire[current: current + 2])

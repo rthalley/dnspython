@@ -18,6 +18,6 @@
 import dns.rdtypes.mxbase
 
 
-class KX(dns.rdtypes.mxbase.UncompressedMX):
+class KX(dns.rdtypes.mxbase.UncompressedDowncasingMX):
 
     """KX record"""

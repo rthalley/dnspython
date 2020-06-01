@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import io
 import struct
 
 import dns.exception
@@ -91,6 +92,14 @@ class NSEC(dns.rdata.Rdata):
         for (window, bitmap) in self.windows:
             file.write(struct.pack('!BB', window, len(bitmap)))
             file.write(bitmap)
+
+    def to_digestable(self, origin=None):
+        file = io.BytesIO()
+        file.write(self.next.to_digestable(origin))
+        for (window, bitmap) in self.windows:
+            file.write(struct.pack('!BB', window, len(bitmap)))
+            file.write(bitmap)
+        return file.getvalue()
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
