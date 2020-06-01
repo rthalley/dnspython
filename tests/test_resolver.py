@@ -41,7 +41,7 @@ except socket.gaierror:
 # and threading, so try to import it and if it doesn't work, skip
 # those tests.
 try:
-    from nanonameserver import Server
+    from .nanonameserver import Server
     _nanonameserver_available = True
 except ImportError:
     _nanonameserver_available = False
