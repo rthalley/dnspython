@@ -136,6 +136,9 @@ class Server(threading.Thread):
         r = None
         try:
             q = dns.message.from_wire(wire)
+        except dns.message.ShortHeader:
+            # There is no hope of answering this one!
+            return None
         except Exception:
             # Try to make a FORMERR using just the question section.
             try:
