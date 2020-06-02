@@ -595,7 +595,7 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
 
 class NaptrNanoNameserver(Server):
 
-    def handle(self, message):
+    def handle(self, message, peer, connection_type):
         response = dns.message.make_response(message)
         response.set_rcode(dns.rcode.REFUSED)
         response.flags |= dns.flags.RA
