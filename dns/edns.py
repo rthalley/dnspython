@@ -43,7 +43,7 @@ PADDING = 12
 #: CHAIN
 CHAIN = 13
 
-class Option(object):
+class Option:
 
     """Base class for all EDNS option types."""
 
@@ -132,7 +132,7 @@ class GenericOption(Option):
     """
 
     def __init__(self, otype, data):
-        super(GenericOption, self).__init__(otype)
+        super().__init__(otype)
         self.data = data
 
     def to_wire(self, file):
@@ -169,7 +169,7 @@ class ECSOption(Option):
         must be 0 in queries, and should be set in responses.
         """
 
-        super(ECSOption, self).__init__(ECS)
+        super().__init__(ECS)
         af = dns.inet.af_for_address(address)
 
         if af == dns.inet.AF_INET6:

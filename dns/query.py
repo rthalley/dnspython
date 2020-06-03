@@ -47,7 +47,7 @@ except ImportError:
 try:
     import ssl
 except ImportError:
-    class ssl(object):    # type: ignore
+    class ssl:    # type: ignore
 
         class WantReadException(Exception):
             pass
@@ -55,7 +55,7 @@ except ImportError:
         class WantWriteException(Exception):
             pass
 
-        class SSLSocket(object):
+        class SSLSocket:
             pass
 
         def create_default_context(self, *args, **kwargs):
@@ -78,7 +78,7 @@ class TransferError(dns.exception.DNSException):
 
     def __init__(self, rcode):
         message = 'Zone transfer error: %s' % dns.rcode.to_text(rcode)
-        super(TransferError, self).__init__(message)
+        super().__init__(message)
         self.rcode = rcode
 
 

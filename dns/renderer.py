@@ -32,7 +32,7 @@ AUTHORITY = 2
 ADDITIONAL = 3
 
 
-class Renderer(object):
+class Renderer:
     """Helper class for building DNS wire-format messages.
 
     Most applications can use the higher-level L{dns.message.Message}

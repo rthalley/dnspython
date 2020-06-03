@@ -58,14 +58,14 @@ class Rdataset(dns.set.Set):
         *ttl*, an ``int``, the TTL.
         """
 
-        super(Rdataset, self).__init__()
+        super().__init__()
         self.rdclass = rdclass
         self.rdtype = rdtype
         self.covers = covers
         self.ttl = ttl
 
     def _clone(self):
-        obj = super(Rdataset, self)._clone()
+        obj = super()._clone()
         obj.rdclass = self.rdclass
         obj.rdtype = self.rdtype
         obj.covers = self.covers
@@ -123,15 +123,15 @@ class Rdataset(dns.set.Set):
                 raise DifferingCovers
         if dns.rdatatype.is_singleton(rd.rdtype) and len(self) > 0:
             self.clear()
-        super(Rdataset, self).add(rd)
+        super().add(rd)
 
     def union_update(self, other):
         self.update_ttl(other.ttl)
-        super(Rdataset, self).union_update(other)
+        super().union_update(other)
 
     def intersection_update(self, other):
         self.update_ttl(other.ttl)
-        super(Rdataset, self).intersection_update(other)
+        super().intersection_update(other)
 
     def update(self, other):
         """Add all rdatas in other to self.
@@ -141,7 +141,7 @@ class Rdataset(dns.set.Set):
         """
 
         self.update_ttl(other.ttl)
-        super(Rdataset, self).update(other)
+        super().update(other)
 
     def _rdata_repr(self):
         def maybe_truncate(s):
@@ -170,7 +170,7 @@ class Rdataset(dns.set.Set):
            self.rdtype != other.rdtype or \
            self.covers != other.covers:
             return False
-        return super(Rdataset, self).__eq__(other)
+        return super().__eq__(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)

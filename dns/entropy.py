@@ -25,7 +25,7 @@ except ImportError:
     import dummy_threading as _threading    # type: ignore
 
 
-class EntropyPool(object):
+class EntropyPool:
 
     # This is an entropy pool for Python implementations that do not
     # have a working SystemRandom.  I'm not sure there are any, but

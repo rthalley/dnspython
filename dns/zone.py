@@ -56,7 +56,7 @@ class UnknownOrigin(BadZone):
     """The DNS zone's origin is unknown."""
 
 
-class Zone(object):
+class Zone:
 
     """A DNS zone.
 
@@ -636,7 +636,7 @@ class Zone(object):
             raise NoNS
 
 
-class _MasterReader(object):
+class _MasterReader:
 
     """Read a DNS master file
 

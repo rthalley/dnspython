@@ -24,7 +24,7 @@ import dns.rdatatype
 import dns.renderer
 
 
-class Node(object):
+class Node:
 
     """A Node is a set of rdatasets."""
 

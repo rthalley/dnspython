@@ -90,7 +90,7 @@ AUTHORITY = 2
 #: The additional section number
 ADDITIONAL = 3
 
-class Message(object):
+class Message:
     """A DNS message."""
 
     def __init__(self, id=None):
@@ -592,7 +592,7 @@ class Message(object):
         self.flags |= dns.opcode.to_flags(opcode)
 
 
-class _WireReader(object):
+class _WireReader:
 
     """Wire format reader.
 
@@ -852,7 +852,7 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     return m
 
 
-class _TextReader(object):
+class _TextReader:
 
     """Text format reader.
 
