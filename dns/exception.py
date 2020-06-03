@@ -59,9 +59,9 @@ class DNSException(Exception):
             # doc string is better implicit message than empty string
             self.msg = self.__doc__
         if args:
-            super(DNSException, self).__init__(*args)
+            super().__init__(*args)
         else:
-            super(DNSException, self).__init__(self.msg)
+            super().__init__(self.msg)
 
     def _check_params(self, *args, **kwargs):
         """Old exceptions supported only args and not kwargs.
@@ -103,7 +103,7 @@ class DNSException(Exception):
             return self.fmt.format(**fmtargs)
         else:
             # print *args directly in the same way as old DNSException
-            return super(DNSException, self).__str__()
+            return super().__str__()
 
 
 class FormError(DNSException):

@@ -44,7 +44,7 @@ class NameDict(MutableMapping):
     __slots__ = ["max_depth", "max_depth_items", "__store"]
 
     def __init__(self, *args, **kwargs):
-        super(NameDict, self).__init__()
+        super().__init__()
         self.__store = dict()
         #: the maximum depth of the keys that have ever been added
         self.max_depth = 0

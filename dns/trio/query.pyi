@@ -9,7 +9,7 @@ from . import rdatatype, rdataclass, name, message
 try:
     import ssl
 except ImportError:
-    class ssl(object):    # type: ignore
+    class ssl:    # type: ignore
         SSLContext : Dict = {}
 
 def udp(q : message.Message, where : str, port=53,

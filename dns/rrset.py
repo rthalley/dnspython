@@ -41,12 +41,12 @@ class RRset(dns.rdataset.Rdataset):
                  deleting=None):
         """Create a new RRset."""
 
-        super(RRset, self).__init__(rdclass, rdtype, covers)
+        super().__init__(rdclass, rdtype, covers)
         self.name = name
         self.deleting = deleting
 
     def _clone(self):
-        obj = super(RRset, self)._clone()
+        obj = super()._clone()
         obj.name = self.name
         obj.deleting = self.deleting
         return obj
@@ -73,14 +73,14 @@ class RRset(dns.rdataset.Rdataset):
             return False
         if self.name != other.name:
             return False
-        return super(RRset, self).__eq__(other)
+        return super().__eq__(other)
 
     def match(self, name, rdclass, rdtype, covers, deleting=None):
         """Returns ``True`` if this rrset matches the specified class, type,
         covers, and deletion state.
         """
 
-        if not super(RRset, self).match(rdclass, rdtype, covers):
+        if not super().match(rdclass, rdtype, covers):
             return False
         if self.name != name or self.deleting != deleting:
             return False
@@ -103,8 +103,8 @@ class RRset(dns.rdataset.Rdataset):
         to *origin*.
         """
 
-        return super(RRset, self).to_text(self.name, origin, relativize,
-                                          self.deleting, **kw)
+        return super().to_text(self.name, origin, relativize,
+                               self.deleting, **kw)
 
     def to_wire(self, file, compress=None, origin=None, **kw):
         """Convert the RRset to wire format.
@@ -115,8 +115,8 @@ class RRset(dns.rdataset.Rdataset):
         Returns an ``int``, the number of records emitted.
         """
 
-        return super(RRset, self).to_wire(self.name, file, compress, origin,
-                                          self.deleting, **kw)
+        return super().to_wire(self.name, file, compress, origin,
+                               self.deleting, **kw)
 
     def to_rdataset(self):
         """Convert an RRset into an Rdataset.

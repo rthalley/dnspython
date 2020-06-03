@@ -28,7 +28,7 @@ class A(dns.rdtypes.mxbase.MXBase):
     __slots__ = ['domain', 'address']
 
     def __init__(self, rdclass, rdtype, address, domain):
-        super(A, self).__init__(rdclass, rdtype, address, domain)
+        super().__init__(rdclass, rdtype, address, domain)
         object.__setattr__(self, 'domain', domain)
         object.__setattr__(self, 'address', address)
 

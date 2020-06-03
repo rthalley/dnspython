@@ -23,7 +23,7 @@ if sys.version_info >= (3, 7):
 else:
     from collections import OrderedDict as odict
 
-class Set(object):
+class Set:
 
     """A simple set class.
 

@@ -40,7 +40,7 @@ class UngetBufferFull(dns.exception.DNSException):
     """An attempt was made to unget a token when the unget buffer was full."""
 
 
-class Token(object):
+class Token:
     """A DNS master file format token.
 
     ttype: The token type
@@ -183,7 +183,7 @@ class Token(object):
         return Token(self.ttype, bytes(unescaped))
 
 
-class Tokenizer(object):
+class Tokenizer:
     """A DNS master file format tokenizer.
 
     A token object is basically a (type, value) tuple.  The valid

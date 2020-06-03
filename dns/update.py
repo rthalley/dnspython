@@ -53,7 +53,7 @@ class Update(dns.message.Message):
 
         *keyalgorithm*, a ``dns.name.Name``, the TSIG algorithm to use.
         """
-        super(Update, self).__init__()
+        super().__init__()
         self.flags |= dns.opcode.to_flags(dns.opcode.UPDATE)
         if isinstance(zone, str):
             zone = dns.name.from_text(zone)
@@ -267,4 +267,4 @@ class Update(dns.message.Message):
 
         if origin is None:
             origin = self.origin
-        return super(Update, self).to_wire(origin, max_size)
+        return super().to_wire(origin, max_size)

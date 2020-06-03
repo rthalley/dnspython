@@ -66,7 +66,7 @@ class NXDOMAIN(dns.exception.DNSException):
 
     def __str__(self):
         if 'qnames' not in self.kwargs:
-            return super(NXDOMAIN, self).__str__()
+            return super().__str__()
         qnames = self.kwargs['qnames']
         if len(qnames) > 1:
             msg = 'None of DNS query names exist'
@@ -145,8 +145,7 @@ class NoAnswer(dns.exception.DNSException):
     supp_kwargs = {'response'}
 
     def _fmt_kwargs(self, **kwargs):
-        return super(NoAnswer, self)._fmt_kwargs(
-            query=kwargs['response'].question)
+        return super()._fmt_kwargs(query=kwargs['response'].question)
 
 
 class NoNameservers(dns.exception.DNSException):
@@ -167,8 +166,8 @@ class NoNameservers(dns.exception.DNSException):
         for err in kwargs['errors']:
             srv_msgs.append('Server {} {} port {} answered {}'.format(err[0],
                             'TCP' if err[1] else 'UDP', err[2], err[3]))
-        return super(NoNameservers, self)._fmt_kwargs(
-            query=kwargs['request'].question, errors='; '.join(srv_msgs))
+        return super()._fmt_kwargs(query=kwargs['request'].question,
+                                   errors='; '.join(srv_msgs))
 
 
 class NotAbsolute(dns.exception.DNSException):
@@ -185,7 +184,7 @@ class NoMetaqueries(dns.exception.DNSException):
 class NoResolverConfiguration(dns.exception.DNSException):
     """Resolver configuration could not be read or specified no nameservers."""
 
-class Answer(object):
+class Answer:
     """DNS stub resolver answer.
 
     Instances of this class bundle up the result of a successful DNS
@@ -286,7 +285,7 @@ class Answer(object):
         del self.rrset[i]
 
 
-class Cache(object):
+class Cache:
     """Simple thread-safe DNS answer cache."""
 
     def __init__(self, cleaning_interval=300.0):
@@ -363,7 +362,7 @@ class Cache(object):
                 self.next_cleaning = time.time() + self.cleaning_interval
 
 
-class LRUCacheNode(object):
+class LRUCacheNode:
     """LRUCache node."""
 
     def __init__(self, key, value):
@@ -389,7 +388,7 @@ class LRUCacheNode(object):
         self.prev.next = self.next
 
 
-class LRUCache(object):
+class LRUCache:
     """Thread-safe, bounded, least-recently-used DNS answer cache.
 
     This cache is better than the simple cache (above) if you're
@@ -486,7 +485,7 @@ class LRUCache(object):
                     node = next
                 self.data = {}
 
-class _Resolution(object):
+class _Resolution:
     """Helper class for dns.resolver.Resolver.resolve().
 
     All of the "business logic" of resolution is encapsulated in this
@@ -677,7 +676,7 @@ class _Resolution(object):
                                 dns.rcode.to_text(rcode), response))
             return (None, False)
 
-class Resolver(object):
+class Resolver:
     """DNS stub resolver."""
 
     # We initialize in reset()

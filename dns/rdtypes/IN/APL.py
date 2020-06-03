@@ -25,7 +25,7 @@ import dns.ipv6
 import dns.rdata
 import dns.tokenizer
 
-class APLItem(object):
+class APLItem:
 
     """An APL list item."""
 

@@ -103,7 +103,7 @@ def _constify(o):
         return tuple(_constify(elt) for elt in o)
     return o
 
-class Rdata(object):
+class Rdata:
     """Base class for all DNS rdata types."""
 
     __slots__ = ['rdclass', 'rdtype']
@@ -340,7 +340,7 @@ class GenericRdata(Rdata):
     __slots__ = ['data']
 
     def __init__(self, rdclass, rdtype, data):
-        super(GenericRdata, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         object.__setattr__(self, 'data', data)
 
     def to_text(self, origin=None, relativize=True, **kw):

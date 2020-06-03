@@ -95,7 +95,7 @@ class IDNAException(dns.exception.DNSException):
     fmt = "IDNA processing exception: {idna_exception}"
 
 
-class IDNACodec(object):
+class IDNACodec:
     """Abstract base class for IDNA encoder/decoders."""
 
     def __init__(self):
@@ -128,7 +128,7 @@ class IDNA2003Codec(IDNACodec):
         was encoded with IDNA2008.  The default is `False`.
         """
 
-        super(IDNA2003Codec, self).__init__()
+        super().__init__()
         self.strict_decode = strict_decode
 
     def encode(self, label):
@@ -144,7 +144,7 @@ class IDNA2003Codec(IDNACodec):
     def decode(self, label):
         """Decode *label*."""
         if not self.strict_decode:
-            return super(IDNA2003Codec, self).decode(label)
+            return super().decode(label)
         if label == b'':
             return ''
         try:
@@ -181,7 +181,7 @@ class IDNA2008Codec(IDNACodec):
         is done when decoding.  This can cause failures if the name
         was encoded with IDNA2003.  The default is False.
         """
-        super(IDNA2008Codec, self).__init__()
+        super().__init__()
         self.uts_46 = uts_46
         self.transitional = transitional
         self.allow_pure_ascii = allow_pure_ascii
@@ -203,7 +203,7 @@ class IDNA2008Codec(IDNACodec):
 
     def decode(self, label):
         if not self.strict_decode:
-            return super(IDNA2008Codec, self).decode(label)
+            return super().decode(label)
         if label == b'':
             return ''
         if not have_idna_2008:
@@ -300,7 +300,7 @@ def _maybe_convert_to_binary(label):
     raise ValueError
 
 
-class Name(object):
+class Name:
 
     """A DNS name.
 
@@ -316,7 +316,7 @@ class Name(object):
         """
 
         labels = [_maybe_convert_to_binary(x) for x in labels]
-        super(Name, self).__setattr__('labels', tuple(labels))
+        super().__setattr__('labels', tuple(labels))
         _validate_labels(self.labels)
 
     def __setattr__(self, name, value):
@@ -338,7 +338,7 @@ class Name(object):
         return {'labels': self.labels}
 
     def __setstate__(self, state):
-        super(Name, self).__setattr__('labels', state['labels'])
+        super().__setattr__('labels', state['labels'])
         _validate_labels(self.labels)
 
     def is_absolute(self):
