@@ -17,7 +17,6 @@
 
 """MX-like base classes."""
 
-import io
 import struct
 
 import dns.exception

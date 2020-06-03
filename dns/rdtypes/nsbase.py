@@ -17,8 +17,6 @@
 
 """NS-like base classes."""
 
-import io
-
 import dns.exception
 import dns.rdata
 import dns.name
