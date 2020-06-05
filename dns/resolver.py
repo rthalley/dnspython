@@ -42,10 +42,7 @@ import dns.reversename
 import dns.tsig
 
 if sys.platform == 'win32':
-    try:
-        import winreg as _winreg
-    except ImportError:
-        import _winreg  # pylint: disable=import-error
+    import winreg
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
@@ -827,33 +824,33 @@ class Resolver:
 
     def _config_win32_fromkey(self, key, always_try_domain):
         try:
-            servers, rtype = _winreg.QueryValueEx(key, 'NameServer')
+            servers, rtype = winreg.QueryValueEx(key, 'NameServer')
         except WindowsError:  # pylint: disable=undefined-variable
             servers = None
         if servers:
             self._config_win32_nameservers(servers)
         if servers or always_try_domain:
             try:
-                dom, rtype = _winreg.QueryValueEx(key, 'Domain')
+                dom, rtype = winreg.QueryValueEx(key, 'Domain')
                 if dom:
                     self._config_win32_domain(dom)
             except WindowsError:  # pylint: disable=undefined-variable
                 pass
         else:
             try:
-                servers, rtype = _winreg.QueryValueEx(key, 'DhcpNameServer')
+                servers, rtype = winreg.QueryValueEx(key, 'DhcpNameServer')
             except WindowsError:  # pylint: disable=undefined-variable
                 servers = None
             if servers:
                 self._config_win32_nameservers(servers)
                 try:
-                    dom, rtype = _winreg.QueryValueEx(key, 'DhcpDomain')
+                    dom, rtype = winreg.QueryValueEx(key, 'DhcpDomain')
                     if dom:
                         self._config_win32_domain(dom)
                 except WindowsError:  # pylint: disable=undefined-variable
                     pass
         try:
-            search, rtype = _winreg.QueryValueEx(key, 'SearchList')
+            search, rtype = winreg.QueryValueEx(key, 'SearchList')
         except WindowsError:  # pylint: disable=undefined-variable
             search = None
         if search:
@@ -862,36 +859,36 @@ class Resolver:
     def read_registry(self):
         """Extract resolver configuration from the Windows registry."""
 
-        lm = _winreg.ConnectRegistry(None, _winreg.HKEY_LOCAL_MACHINE)
+        lm = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
         want_scan = False
         try:
             try:
                 # XP, 2000
-                tcp_params = _winreg.OpenKey(lm,
-                                             r'SYSTEM\CurrentControlSet'
-                                             r'\Services\Tcpip\Parameters')
+                tcp_params = winreg.OpenKey(lm,
+                                            r'SYSTEM\CurrentControlSet'
+                                            r'\Services\Tcpip\Parameters')
                 want_scan = True
             except EnvironmentError:
                 # ME
-                tcp_params = _winreg.OpenKey(lm,
-                                             r'SYSTEM\CurrentControlSet'
-                                             r'\Services\VxD\MSTCP')
+                tcp_params = winreg.OpenKey(lm,
+                                            r'SYSTEM\CurrentControlSet'
+                                            r'\Services\VxD\MSTCP')
             try:
                 self._config_win32_fromkey(tcp_params, True)
             finally:
                 tcp_params.Close()
             if want_scan:
-                interfaces = _winreg.OpenKey(lm,
-                                             r'SYSTEM\CurrentControlSet'
-                                             r'\Services\Tcpip\Parameters'
-                                             r'\Interfaces')
+                interfaces = winreg.OpenKey(lm,
+                                            r'SYSTEM\CurrentControlSet'
+                                            r'\Services\Tcpip\Parameters'
+                                            r'\Interfaces')
                 try:
                     i = 0
                     while True:
                         try:
-                            guid = _winreg.EnumKey(interfaces, i)
+                            guid = winreg.EnumKey(interfaces, i)
                             i += 1
-                            key = _winreg.OpenKey(interfaces, guid)
+                            key = winreg.OpenKey(interfaces, guid)
                             if not self._win32_is_nic_enabled(lm, guid, key):
                                 continue
                             try:
@@ -914,7 +911,7 @@ class Resolver:
         try:
             # This hard-coded location seems to be consistent, at least
             # from Windows 2000 through Vista.
-            connection_key = _winreg.OpenKey(
+            connection_key = winreg.OpenKey(
                 lm,
                 r'SYSTEM\CurrentControlSet\Control\Network'
                 r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
@@ -922,21 +919,21 @@ class Resolver:
 
             try:
                 # The PnpInstanceID points to a key inside Enum
-                (pnp_id, ttype) = _winreg.QueryValueEx(
+                (pnp_id, ttype) = winreg.QueryValueEx(
                     connection_key, 'PnpInstanceID')
 
-                if ttype != _winreg.REG_SZ:
+                if ttype != winreg.REG_SZ:
                     raise ValueError
 
-                device_key = _winreg.OpenKey(
+                device_key = winreg.OpenKey(
                     lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
 
                 try:
                     # Get ConfigFlags for this device
-                    (flags, ttype) = _winreg.QueryValueEx(
+                    (flags, ttype) = winreg.QueryValueEx(
                         device_key, 'ConfigFlags')
 
-                    if ttype != _winreg.REG_DWORD:
+                    if ttype != winreg.REG_DWORD:
                         raise ValueError
 
                     # Based on experimentation, bit 0x1 indicates that the
@@ -954,8 +951,8 @@ class Resolver:
             # the old method since we don't know if the code above works
             # on Windows 95/98/ME.
             try:
-                (nte, ttype) = _winreg.QueryValueEx(interface_key,
-                                                    'NTEContextList')
+                (nte, ttype) = winreg.QueryValueEx(interface_key,
+                                                   'NTEContextList')
                 return nte is not None
             except WindowsError:  # pylint: disable=undefined-variable
                 return False
