@@ -696,7 +696,7 @@ def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
     *sock*, a ``socket.socket``, or ``None``, the socket to use for the
     query.  If ``None``, the default, a socket is created.  Note that
     if a socket is provided, it must be a nonblocking connected stream
-    socket, and *where*, *source* and *source_port* are ignored.
+    socket, and *where*, *port*, *source* and *source_port* are ignored.
 
     Returns a ``dns.message.Message``.
     """
@@ -765,10 +765,11 @@ def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
 
-    *sock*, an ``ssl.SSLSocket``, or ``None``, the socket to use for the
-    query.  If ``None``, the default, a socket is created.  Note that
-    if a socket is provided, it must be a nonblocking connected SSL stream
-    socket, and *where*, *source*, *source_port*, and *ssl_context* are ignored.
+    *sock*, an ``ssl.SSLSocket``, or ``None``, the socket to use for
+    the query.  If ``None``, the default, a socket is created.  Note
+    that if a socket is provided, it must be a nonblocking connected
+    SSL stream socket, and *where*, *port*, *source*, *source_port*,
+    and *ssl_context* are ignored.
 
     *ssl_context*, an ``ssl.SSLContext``, the context to use when establishing
     a TLS connection. If ``None``, the default, creates one with the default
@@ -779,6 +780,7 @@ def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     SSL context is created, hostname checking will be disabled.
 
     Returns a ``dns.message.Message``.
+
     """
 
     if sock:
