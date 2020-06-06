@@ -12,11 +12,14 @@ except ImportError:
     class ssl:    # type: ignore
         SSLContext : Dict = {}
 
+import trio
+
 def udp(q : message.Message, where : str, port=53,
         source : Optional[str] = None, source_port : Optional[int] = 0,
         ignore_unexpected : Optional[bool] = False,
         one_rr_per_rrset : Optional[bool] = False,
-        ignore_trailing : Optional[bool] = False) -> message.Message:
+        ignore_trailing : Optional[bool] = False,
+        sock : Optional[trio.socket.socket] = None) -> message.Message:
     ...
 
 def stream(q : message.Message, where : str, tls : Optional[bool] = False,
@@ -24,6 +27,7 @@ def stream(q : message.Message, where : str, tls : Optional[bool] = False,
            source_port : Optional[int] = 0,
            one_rr_per_rrset : Optional[bool] = False,
            ignore_trailing : Optional[bool] = False,
+           stream : Optional[trio.abc.Stream] = None,
            ssl_context: Optional[ssl.SSLContext] = None,
            server_hostname: Optional[str] = None) -> message.Message:
     ...

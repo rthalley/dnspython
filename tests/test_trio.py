@@ -20,6 +20,7 @@ import unittest
 
 try:
     import trio
+    import trio.socket
 
     import dns.message
     import dns.name
@@ -99,6 +100,20 @@ try:
             self.assertTrue('8.8.8.8' in seen)
             self.assertTrue('8.8.4.4' in seen)
 
+        def testQueryUDPWithSocket(self):
+            qname = dns.name.from_text('dns.google.')
+            async def run():
+                with trio.socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                    q = dns.message.make_query(qname, dns.rdatatype.A)
+                    return await dns.trio.query.udp(q, '8.8.8.8', sock=s)
+            response = trio.run(run)
+            rrs = response.get_rrset(response.answer, qname,
+                                     dns.rdataclass.IN, dns.rdatatype.A)
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue('8.8.8.8' in seen)
+            self.assertTrue('8.8.4.4' in seen)
+
         def testQueryTCP(self):
             qname = dns.name.from_text('dns.google.')
             async def run():
@@ -112,11 +127,40 @@ try:
             self.assertTrue('8.8.8.8' in seen)
             self.assertTrue('8.8.4.4' in seen)
 
+        def testQueryTCPWithSocket(self):
+            qname = dns.name.from_text('dns.google.')
+            async def run():
+                async with await trio.open_tcp_stream('8.8.8.8', 53) as s:
+                    q = dns.message.make_query(qname, dns.rdatatype.A)
+                    return await dns.trio.query.stream(q, '8.8.8.8', stream=s)
+            response = trio.run(run)
+            rrs = response.get_rrset(response.answer, qname,
+                                     dns.rdataclass.IN, dns.rdatatype.A)
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue('8.8.8.8' in seen)
+            self.assertTrue('8.8.4.4' in seen)
+
         def testQueryTLS(self):
             qname = dns.name.from_text('dns.google.')
             async def run():
                 q = dns.message.make_query(qname, dns.rdatatype.A)
                 return await dns.trio.query.stream(q, '8.8.8.8', True)
+            response = trio.run(run)
+            rrs = response.get_rrset(response.answer, qname,
+                                     dns.rdataclass.IN, dns.rdatatype.A)
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue('8.8.8.8' in seen)
+            self.assertTrue('8.8.4.4' in seen)
+
+        def testQueryTLSWithSocket(self):
+            qname = dns.name.from_text('dns.google.')
+            async def run():
+                async with await trio.open_ssl_over_tcp_stream('8.8.8.8',
+                                                               853) as s:
+                    q = dns.message.make_query(qname, dns.rdatatype.A)
+                    return await dns.trio.query.stream(q, '8.8.8.8', stream=s)
             response = trio.run(run)
             rrs = response.get_rrset(response.answer, qname,
                                      dns.rdataclass.IN, dns.rdatatype.A)
