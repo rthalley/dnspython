@@ -20,28 +20,36 @@
 import math
 import struct
 
+import dns.enum
 import dns.inet
 
-#: NSID
-NSID = 3
-#: DAU
-DAU = 5
-#: DHU
-DHU = 6
-#: N3U
-N3U = 7
-#: ECS (client-subnet)
-ECS = 8
-#: EXPIRE
-EXPIRE = 9
-#: COOKIE
-COOKIE = 10
-#: KEEPALIVE
-KEEPALIVE = 11
-#: PADDING
-PADDING = 12
-#: CHAIN
-CHAIN = 13
+class OptionType(dns.enum.IntEnum):
+    #: NSID
+    NSID = 3
+    #: DAU
+    DAU = 5
+    #: DHU
+    DHU = 6
+    #: N3U
+    N3U = 7
+    #: ECS (client-subnet)
+    ECS = 8
+    #: EXPIRE
+    EXPIRE = 9
+    #: COOKIE
+    COOKIE = 10
+    #: KEEPALIVE
+    KEEPALIVE = 11
+    #: PADDING
+    PADDING = 12
+    #: CHAIN
+    CHAIN = 13
+
+    @classmethod
+    def _maximum(cls):
+        return 65535
+
+globals().update(OptionType.__members__)
 
 class Option:
 
@@ -54,8 +62,11 @@ class Option:
         """
         self.otype = otype
 
-    def to_wire(self, file):
+    def to_wire(self, file=None):
         """Convert an option to wire format.
+
+        Returns a ``bytes`` or ``None``.
+
         """
         raise NotImplementedError
 
@@ -135,8 +146,11 @@ class GenericOption(Option):
         super().__init__(otype)
         self.data = data
 
-    def to_wire(self, file):
-        file.write(self.data)
+    def to_wire(self, file=None):
+        if file:
+            file.write(self.data)
+        else:
+            return data
 
     def to_text(self):
         return "Generic %d" % self.otype
@@ -258,10 +272,13 @@ class ECSOption(Option):
                              '"{}": srclen must be an integer'.format(srclen))
         return ECSOption(address, srclen, scope)
 
-    def to_wire(self, file):
-        file.write(struct.pack('!H', self.family))
-        file.write(struct.pack('!BB', self.srclen, self.scopelen))
-        file.write(self.addrdata)
+    def to_wire(self, file=None):
+        value = (struct.pack('!HBB', self.family, self.srclen, self.scopelen) +
+                 self.addrdata)
+        if file:
+            file.write(value)
+        else:
+            return value
 
     @classmethod
     def from_wire(cls, otype, wire, cur, olen):
@@ -324,4 +341,5 @@ def option_from_wire(otype, wire, current, olen):
     """
 
     cls = get_option_class(otype)
+    otype = OptionType.make(otype)
     return cls.from_wire(otype, wire, current, olen)
