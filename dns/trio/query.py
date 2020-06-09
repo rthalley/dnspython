@@ -324,8 +324,9 @@ async def stream(q, where, tls=False, port=None, source=None, source_port=0,
         else:
             port = 53
     wire = q.to_wire()
-    # We'd like to be able to use an AsyncExitStack here, but that's a 3.7
-    # feature, so we are forced to try ... finally.
+    # We'd like to be able to use an AsyncExitStack here, because
+    # unlike closing a socket, closing a stream requires an await, but
+    # that's a 3.7 feature, so we are forced to try ... finally.
     sock = None
     s = None
     begin_time = time.time()
