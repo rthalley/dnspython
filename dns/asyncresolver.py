@@ -106,7 +106,6 @@ class Resolver(dns.resolver.Resolver):
             if answer is not None:
                 # cache hit!
                 return answer
-            loops = 1
             done = False
             while not done:
                 (nameserver, port, tcp, backoff) = resolution.next_nameserver()
@@ -189,7 +188,7 @@ def reset_default_resolver():
 
 async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                   tcp=False, source=None, raise_on_no_answer=True,
-                  source_port=0, search=None):
+                  source_port=0, search=None, backend=None):
     """Query nameservers asynchronously to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -201,7 +200,7 @@ async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
 
     return await get_default_resolver().resolve(qname, rdtype, rdclass, tcp,
                                                 source, raise_on_no_answer,
-                                                source_port, search)
+                                                source_port, search, backend)
 
 
 async def resolve_address(ipaddr, *args, **kwargs):
@@ -215,7 +214,7 @@ async def resolve_address(ipaddr, *args, **kwargs):
 
 
 async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
-                        resolver=None):
+                        resolver=None, backend=None):
     """Find the name of the zone which contains the specified name.
 
     *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
@@ -226,6 +225,9 @@ async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
 
     *resolver*, a ``dns.asyncresolver.Resolver`` or ``None``, the
     resolver to use.  If ``None``, the default resolver is used.
+
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
 
     Raises ``dns.resolver.NoRootSOA`` if there is no SOA RR at the DNS
     root.  (This is only likely to happen if you're using non-default
@@ -243,7 +245,7 @@ async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
     while True:
         try:
             answer = await resolver.resolve(name, dns.rdatatype.SOA, rdclass,
-                                            tcp)
+                                            tcp, backend=backend)
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher

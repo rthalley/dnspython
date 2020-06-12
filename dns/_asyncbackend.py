@@ -1,5 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import socket
 
 import dns.inet
 

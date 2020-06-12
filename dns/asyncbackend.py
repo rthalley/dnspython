@@ -2,7 +2,7 @@
 
 
 from dns._asyncbackend import Socket, DatagramSocket, \
-    StreamSocket, Backend, low_level_address_tuple
+    StreamSocket, Backend, low_level_address_tuple  # noqa:
 
 
 _default_backend = None
@@ -81,5 +81,3 @@ def set_default_backend(name):
     global _default_backend
     _default_backend = get_backend(name)
     return _default_backend
-
-

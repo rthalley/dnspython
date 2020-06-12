@@ -17,12 +17,9 @@
 
 """Talk to a DNS server."""
 
-import os
 import socket
 import struct
 import time
-import base64
-import ipaddress
 
 import dns.asyncbackend
 import dns.exception
@@ -33,8 +30,8 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 
-from dns.query import _addresses_equal, _destination_and_source, \
-    _compute_times, UnexpectedSource
+from dns.query import _addresses_equal, _compute_times, UnexpectedSource, \
+    BadResponse
 
 
 # for brevity
@@ -220,7 +217,7 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
 async def udp_with_fallback(q, where, timeout=None, port=53, source=None,
                             source_port=0, ignore_unexpected=False,
                             one_rr_per_rrset=False, ignore_trailing=False,
-                            udp_sock=None, tcp_sock=None):
+                            udp_sock=None, tcp_sock=None, backend=None):
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
@@ -259,19 +256,22 @@ async def udp_with_fallback(q, where, timeout=None, port=53, source=None,
     socket is created.  Note that if a socket is provided *where*,
     *source* and *source_port* are ignored for the TCP query.
 
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
+
     Returns a (``dns.message.Message``, tcp) tuple where tcp is ``True``
     if and only if TCP was used.
     """
     try:
         response = await udp(q, where, timeout, port, source, source_port,
                              ignore_unexpected, one_rr_per_rrset,
-                             ignore_trailing, True, udp_sock)
+                             ignore_trailing, True, udp_sock, backend)
         return (response, False)
     except dns.message.Truncated:
         response = await tcp(q, where, timeout, port, source, source_port,
-                             one_rr_per_rrset, ignore_trailing, tcp_sock)
+                             one_rr_per_rrset, ignore_trailing, tcp_sock,
+                             backend)
         return (response, True)
-
 
 
 async def send_tcp(sock, what, expiration=None):
