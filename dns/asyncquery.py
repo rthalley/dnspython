@@ -186,8 +186,6 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
 
     Returns a ``dns.message.Message``.
     """
-    if not backend:
-        backend = dns.asyncbackend.get_default_backend()
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
     s = None
@@ -195,6 +193,8 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
         if sock:
             s = sock
         else:
+            if not backend:
+                backend = dns.asyncbackend.get_default_backend()
             af = dns.inet.af_for_address(where)
             stuple = _source_tuple(af, source, source_port)
             s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple)
@@ -388,8 +388,6 @@ async def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
     Returns a ``dns.message.Message``.
     """
 
-    if not backend:
-        backend = dns.asyncbackend.get_default_backend()
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
     s = None
@@ -407,6 +405,8 @@ async def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
             af = dns.inet.af_for_address(where)
             stuple = _source_tuple(af, source, source_port)
             dtuple = (where, port)
+            if not backend:
+                backend = dns.asyncbackend.get_default_backend()
             s = await backend.make_socket(af, socket.SOCK_STREAM, 0, stuple,
                                           dtuple, timeout)
         await send_tcp(s, wire, expiration)
@@ -468,8 +468,6 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
 
     Returns a ``dns.message.Message``.
     """
-    if not backend:
-        backend = dns.asyncbackend.get_default_backend()
     (begin_time, expiration) = _compute_times(timeout)
     if not sock:
         if ssl_context is None:
@@ -482,15 +480,14 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
         af = dns.inet.af_for_address(where)
         stuple = _source_tuple(af, source, source_port)
         dtuple = (where, port)
+        if not backend:
+            backend = dns.asyncbackend.get_default_backend()
         s = await backend.make_socket(af, socket.SOCK_STREAM, 0, stuple,
                                       dtuple, timeout, ssl_context,
                                       server_hostname)
     else:
         s = sock
     try:
-        #
-        # If a socket was provided, there's no special TLS handling needed.
-        #
         timeout = _timeout(expiration)
         response = await tcp(q, where, timeout, port, source, source_port,
                              one_rr_per_rrset, ignore_trailing, s, backend)
