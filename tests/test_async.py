@@ -43,7 +43,14 @@ class AsyncTests(unittest.TestCase):
         self.backend = dns.asyncbackend.set_default_backend('asyncio')
 
     def async_run(self, afunc):
-        return asyncio.run(afunc())
+        try:
+            runner = asyncio.run
+        except AttributeError:
+            def old_runner(awaitable):
+                loop = asyncio.get_event_loop()
+                return loop.run_until_complete(awaitable)
+            runner = old_runner
+        return runner(afunc())
 
     def testResolve(self):
         async def run():

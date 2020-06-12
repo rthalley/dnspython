@@ -8,6 +8,14 @@ import asyncio
 import dns._asyncbackend
 import dns.exception
 
+
+def _get_running_loop():
+    try:
+        return asyncio.get_running_loop()
+    except AttributeError:
+        return asyncio.get_event_loop()
+
+
 class _DatagramProtocol:
     def __init__(self):
         self.transport = None
@@ -42,6 +50,7 @@ async def _maybe_wait_for(awaitable, timeout):
     else:
         return await awaitable
 
+
 class DatagramSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, family, transport, protocol):
         self.family = family
@@ -53,7 +62,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         self.transport.sendto(what, destination)
 
     async def recvfrom(self, timeout):
-        done = asyncio.get_running_loop().create_future()
+        done = _get_running_loop().create_future()
         assert self.protocol.recvfrom is None
         self.protocol.recvfrom = done
         await _maybe_wait_for(done, timeout)
@@ -84,7 +93,10 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
 
     async def close(self):
         self.writer.close()
-        await self.writer.wait_closed()
+        try:
+            await self.writer.wait_closed()
+        except AttributeError:
+            pass
 
     async def getpeername(self):
         return self.reader.get_extra_info('peername')
@@ -97,7 +109,7 @@ class Backend(dns._asyncbackend.Backend):
     async def make_socket(self, af, socktype, proto=0,
                           source=None, destination=None, timeout=None,
                           ssl_context=None, server_hostname=None):
-        loop = asyncio.get_running_loop()
+        loop = _get_running_loop()
         if socktype == socket.SOCK_DGRAM:
             transport, protocol = await loop.create_datagram_endpoint(
                 _DatagramProtocol, source, family=af,
