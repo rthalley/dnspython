@@ -44,9 +44,10 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
 
 
 class StreamSocket(dns._asyncbackend.DatagramSocket):
-    def __init__(self, family, stream):
+    def __init__(self, family, stream, tls=False):
         self.family = family
         self.stream = stream
+        self.tls = tls
 
     async def sendall(self, what, timeout):
         with _maybe_timeout(timeout):
@@ -62,7 +63,10 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
         await self.stream.aclose()
 
     async def getpeername(self):
-        return self.stream.socket.getpeername()
+        if self.tls:
+            return self.stream.transport_stream.socket.getpeername()
+        else:
+            return self.stream.socket.getpeername()
 
 
 class Backend(dns._asyncbackend.Backend):
@@ -73,6 +77,7 @@ class Backend(dns._asyncbackend.Backend):
                           destination=None, timeout=None,
                           ssl_context=None, server_hostname=None):
         s = trio.socket.socket(af, socktype, proto)
+        stream = None
         try:
             if source:
                 await s.bind(_lltuple(af, source))
@@ -85,7 +90,20 @@ class Backend(dns._asyncbackend.Backend):
         if socktype == socket.SOCK_DGRAM:
             return DatagramSocket(s)
         elif socktype == socket.SOCK_STREAM:
-            return StreamSocket(af, trio.SocketStream(s))
+            stream = trio.SocketStream(s)
+            s = None
+            tls = False
+            if ssl_context:
+                print('TLS')
+                tls = True
+                try:
+                    stream = trio.SSLStream(stream, ssl_context,
+                                            server_hostname=server_hostname)
+                except Exception:
+                    await stream.aclose()
+                    raise
+            print('SOCKET')
+            return StreamSocket(af, stream, tls)
         raise NotImplementedError(f'unsupported socket type {socktype}')
 
     async def sleep(self, interval):

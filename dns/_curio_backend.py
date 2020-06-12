@@ -72,19 +72,24 @@ class Backend(dns._asyncbackend.Backend):
     async def make_socket(self, af, socktype, proto=0,
                           source=None, destination=None, timeout=None,
                           ssl_context=None, server_hostname=None):
-        s = curio.socket.socket(af, socktype, proto)
-        try:
-            if source:
-                s.bind(_lltuple(af, source))
-            if socktype == socket.SOCK_STREAM:
-                with _maybe_timeout(timeout):
-                    await s.connect(_lltuple(af, destination))
-        except Exception:
-            await s.close()
-            raise
         if socktype == socket.SOCK_DGRAM:
+            s = curio.socket.socket(af, socktype, proto)
+            try:
+                if source:
+                    s.bind(_lltuple(af, source))
+            except Exception:
+                await s.close()
+                raise
             return DatagramSocket(s)
         elif socktype == socket.SOCK_STREAM:
+            if source:
+                source_addr = (_lltuple(af, source))
+            else:
+                source_addr = None
+            s = await curio.open_connection(destination[0], destination[1],
+                                            ssl=ssl_context,
+                                            source_addr=source_addr,
+                                            server_hostname=server_hostname)
             return StreamSocket(s)
         raise NotImplementedError(f'unsupported socket type {socktype}')
 

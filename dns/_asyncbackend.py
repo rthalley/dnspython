@@ -73,6 +73,6 @@ class Backend:
         return 'unknown'
 
     async def make_socket(self, af, socktype, proto=0,
-                          source=None, raw_source=None,
+                          source=None, destination=None, timeout=None,
                           ssl_context=None, server_hostname=None):
         raise NotImplementedError

@@ -31,7 +31,7 @@ import dns.rdataclass
 import dns.rdatatype
 
 from dns.query import _addresses_equal, _compute_times, UnexpectedSource, \
-    BadResponse
+    BadResponse, ssl
 
 
 # for brevity
@@ -417,6 +417,80 @@ async def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
         if not q.is_response(r):
             raise BadResponse
         return r
+    finally:
+        if not sock and s:
+            await s.close()
+
+async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
+              one_rr_per_rrset=False, ignore_trailing=False, sock=None,
+              backend=None, ssl_context=None, server_hostname=None):
+    """Return the response obtained after sending a query via TLS.
+
+    *q*, a ``dns.message.Message``, the query to send
+
+    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
+    to send the message.
+
+    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
+    query times out.  If ``None``, the default, wait forever.
+
+    *port*, an ``int``, the port send the message to.  The default is 853.
+
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
+    the source address.  The default is the wildcard address.
+
+    *source_port*, an ``int``, the port from which to send the message.
+    The default is 0.
+
+    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
+    RRset.
+
+    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
+    junk at end of the received message.
+
+    *sock*, an ``asyncbackend.StreamSocket``, or ``None``, the socket
+    to use for the query.  If ``None``, the default, a socket is
+    created.  Note that if a socket is provided, it must be a
+    connected SSL stream socket, and *where*, *port*,
+    *source*, *source_port*, and *ssl_context* are ignored.
+
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
+
+    *ssl_context*, an ``ssl.SSLContext``, the context to use when establishing
+    a TLS connection. If ``None``, the default, creates one with the default
+    configuration.
+
+    *server_hostname*, a ``str`` containing the server's hostname.  The
+    default is ``None``, which means that no hostname is known, and if an
+    SSL context is created, hostname checking will be disabled.
+
+    Returns a ``dns.message.Message``.
+    """
+    if not backend:
+        backend = dns.asyncbackend.get_default_backend()
+    if not sock:
+        if ssl_context is None:
+            ssl_context = ssl.create_default_context()
+            if server_hostname is None:
+                ssl_context.check_hostname = False
+        else:
+            ssl_context = None
+            server_hostname = None
+        af = dns.inet.af_for_address(where)
+        stuple = _source_tuple(af, source, source_port)
+        dtuple = (where, port)
+        s = await backend.make_socket(af, socket.SOCK_STREAM, 0, stuple,
+                                      dtuple, timeout, ssl_context,
+                                      server_hostname)
+    else:
+        s = sock
+    try:
+        #
+        # If a socket was provided, there's no special TLS handling needed.
+        #
+        return await tcp(q, where, timeout, port, source, source_port,
+                         one_rr_per_rrset, ignore_trailing, s, backend)
     finally:
         if not sock and s:
             await s.close()
