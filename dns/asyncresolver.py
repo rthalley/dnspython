@@ -29,7 +29,7 @@ import dns.resolver
 from dns.resolver import NXDOMAIN, NoAnswer, NotAbsolute, NoRootSOA
 
 
-# for identation purposes below
+# for indentation purposes below
 _udp = dns.asyncquery.udp
 _tcp = dns.asyncquery.tcp
 
