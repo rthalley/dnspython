@@ -61,7 +61,8 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         # no timeout for asyncio sendto
         self.transport.sendto(what, destination)
 
-    async def recvfrom(self, timeout):
+    async def recvfrom(self, size, timeout):
+        # ignore size as there's no way I know to tell protocol about it
         done = _get_running_loop().create_future()
         assert self.protocol.recvfrom is None
         self.protocol.recvfrom = done

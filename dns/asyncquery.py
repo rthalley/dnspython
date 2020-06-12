@@ -126,7 +126,7 @@ async def receive_udp(sock, destination, expiration=None,
 
     wire = b''
     while 1:
-        (wire, from_address) = await sock.recvfrom(65535)
+        (wire, from_address) = await sock.recvfrom(65535, _timeout(expiration))
         if _addresses_equal(sock.family, from_address, destination) or \
            (dns.inet.is_multicast(destination[0]) and
             from_address[1:] == destination[1:]):
@@ -179,7 +179,7 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
     *sock*, a ``dns.asyncbackend.DatagramSocket``, or ``None``,
     the socket to use for the query.  If ``None``, the default, a
     socket is created.  Note that if a socket is provided, the
-    *source* and *source_port* are ignored.
+    *source*, *source_port*, and *backend* are ignored.
 
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
@@ -248,13 +248,13 @@ async def udp_with_fallback(q, where, timeout=None, port=53, source=None,
 
     *udp_sock*, a ``dns.asyncbackend.DatagramSocket``, or ``None``,
     the socket to use for the UDP query.  If ``None``, the default, a
-    socket is created.  Note that if a socket is provided the *source*
-    and *source_port* are ignored for the UDP query.
+    socket is created.  Note that if a socket is provided the *source*,
+    *source_port*, and *backend* are ignored for the UDP query.
 
     *tcp_sock*, a ``dns.asyncbackend.StreamSocket``, or ``None``, the
     socket to use for the TCP query.  If ``None``, the default, a
     socket is created.  Note that if a socket is provided *where*,
-    *source* and *source_port* are ignored for the TCP query.
+    *source*, *source_port*, and *backend*  are ignored for the TCP query.
 
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
@@ -380,7 +380,7 @@ async def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
     *sock*, a ``dns.asyncbacket.StreamSocket``, or ``None``, the
     socket to use for the query.  If ``None``, the default, a socket
     is created.  Note that if a socket is provided
-    *where*, *port*, *source* and *source_port* are ignored.
+    *where*, *port*, *source*, *source_port*, and *backend* are ignored.
 
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
@@ -452,7 +452,8 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     to use for the query.  If ``None``, the default, a socket is
     created.  Note that if a socket is provided, it must be a
     connected SSL stream socket, and *where*, *port*,
-    *source*, *source_port*, and *ssl_context* are ignored.
+    *source*, *source_port*, *backend*, *ssl_context*, and *server_hostname*
+    are ignored.
 
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
@@ -469,6 +470,7 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     """
     if not backend:
         backend = dns.asyncbackend.get_default_backend()
+    (begin_time, expiration) = _compute_times(timeout)
     if not sock:
         if ssl_context is None:
             ssl_context = ssl.create_default_context()
@@ -489,8 +491,12 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
         #
         # If a socket was provided, there's no special TLS handling needed.
         #
-        return await tcp(q, where, timeout, port, source, source_port,
-                         one_rr_per_rrset, ignore_trailing, s, backend)
+        timeout = _timeout(expiration)
+        response = await tcp(q, where, timeout, port, source, source_port,
+                             one_rr_per_rrset, ignore_trailing, s, backend)
+        end_time = time.time()
+        response.time = end_time - begin_time
+        return response
     finally:
         if not sock and s:
             await s.close()

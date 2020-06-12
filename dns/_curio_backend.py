@@ -31,9 +31,9 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
             return await self.socket.sendto(what, destination)
         raise dns.exception.Timeout(timeout=timeout)
 
-    async def recvfrom(self, timeout):
+    async def recvfrom(self, size, timeout):
         async with _maybe_timeout(timeout):
-            return await self.socket.recvfrom(65535)
+            return await self.socket.recvfrom(size)
         raise dns.exception.Timeout(timeout=timeout)
 
     async def close(self):
@@ -53,9 +53,9 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
             return await self.socket.sendall(what)
         raise dns.exception.Timeout(timeout=timeout)
 
-    async def recv(self, count, timeout):
+    async def recv(self, size, timeout):
         async with _maybe_timeout(timeout):
-            return await self.socket.recv(count)
+            return await self.socket.recv(size)
         raise dns.exception.Timeout(timeout=timeout)
 
     async def close(self):
