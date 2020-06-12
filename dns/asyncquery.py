@@ -300,7 +300,7 @@ async def send_tcp(sock, what, expiration=None):
     return (len(tcpmsg), sent_time)
 
 
-async def read_exactly(sock, count, expiration):
+async def _read_exactly(sock, count, expiration):
     """Read the specified number of bytes from stream.  Keep trying until we
     either get the desired amount, or we hit EOF.
     """
@@ -340,9 +340,9 @@ async def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
     Returns a ``dns.message.Message`` object.
     """
 
-    ldata = await read_exactly(sock, 2, expiration)
+    ldata = await _read_exactly(sock, 2, expiration)
     (l,) = struct.unpack("!H", ldata)
-    wire = await read_exactly(sock, l, expiration)
+    wire = await _read_exactly(sock, l, expiration)
     received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
                               one_rr_per_rrset=one_rr_per_rrset,
