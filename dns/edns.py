@@ -150,7 +150,7 @@ class GenericOption(Option):
         if file:
             file.write(self.data)
         else:
-            return data
+            return self.data
 
     def to_text(self):
         return "Generic %d" % self.otype
@@ -183,7 +183,7 @@ class ECSOption(Option):
         must be 0 in queries, and should be set in responses.
         """
 
-        super().__init__(ECS)
+        super().__init__(OptionType.ECS)
         af = dns.inet.af_for_address(address)
 
         if af == dns.inet.AF_INET6:
@@ -309,7 +309,7 @@ class ECSOption(Option):
         return self.to_text()
 
 _type_to_class = {
-        ECS: ECSOption
+    OptionType.ECS: ECSOption
 }
 
 def get_option_class(otype):
