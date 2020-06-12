@@ -86,10 +86,11 @@ class Backend(dns._asyncbackend.Backend):
                 source_addr = (_lltuple(af, source))
             else:
                 source_addr = None
-            s = await curio.open_connection(destination[0], destination[1],
-                                            ssl=ssl_context,
-                                            source_addr=source_addr,
-                                            server_hostname=server_hostname)
+            async with _maybe_timeout(timeout):
+                s = await curio.open_connection(destination[0], destination[1],
+                                                ssl=ssl_context,
+                                                source_addr=source_addr,
+                                                server_hostname=server_hostname)
             return StreamSocket(s)
         raise NotImplementedError(f'unsupported socket type {socktype}')
 
