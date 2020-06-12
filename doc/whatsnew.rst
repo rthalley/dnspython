@@ -21,10 +21,10 @@ What's New in dnspython 2.0.0
 * DNS-over-HTTPS is supported with ``dns.query.https()``, and the resolver
   will use DNS-over-HTTPS for a nameserver which is an HTTPS URL.
 
-* Basic query and resolver support for the Trio asynchronous I/O library has
-  been added in ``dns.trio.query`` and ``dns.trio.resolver``.  This API should
-  be viewed as experimental as asynchronous I/O support in dnspython is still
-  evolving.
+* Basic query and resolver support for the Trio, Curio, and asyncio
+  asynchronous I/O libraries has been added in ``dns.asyncquery`` and
+  ``dns.asyncresolver``.  This API should be viewed as experimental as
+  asynchronous I/O support in dnspython is still evolving.
 
 * TSIG now defaults to using SHA-256.
 
