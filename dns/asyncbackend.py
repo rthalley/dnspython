@@ -44,8 +44,8 @@ def sniff():
     """Attempt to determine the in-use asynchronous I/O library by using
     the ``sniffio`` module if it is available.
 
-    Returns the name of the library, defaulting to "asyncio" if no other
-    library appears to be in use.
+    Returns the name of the library, or raises AsyncLibraryNotFoundError
+    if the library cannot be determined.
     """
     try:
         import sniffio
