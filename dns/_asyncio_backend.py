@@ -99,7 +99,7 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
             pass
 
     async def getpeername(self):
-        return self.reader.get_extra_info('peername')
+        return self.writer.get_extra_info('peername')
 
 
 class Backend(dns._asyncbackend.Backend):
@@ -119,9 +119,11 @@ class Backend(dns._asyncbackend.Backend):
             (r, w) = await _maybe_wait_for(
                 asyncio.open_connection(destination[0],
                                         destination[1],
+                                        ssl=ssl_context,
                                         family=af,
                                         proto=proto,
-                                        local_addr=source),
+                                        local_addr=source,
+                                        server_hostname=server_hostname),
                 timeout)
             return StreamSocket(af, r, w)
         raise NotImplementedError(f'unsupported socket type {socktype}')
