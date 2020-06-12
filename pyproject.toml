@@ -16,6 +16,7 @@ idna = {version="^2.1", optional=true}
 cryptography = {version="^2.6", optional=true}
 trio = {version="^0.14", optional=true}
 curio = {version="^1.2", optional=true}
+sniffio = {version="^1.1", optional=true}
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"
