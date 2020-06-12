@@ -26,3 +26,8 @@ TCP
 .. autofunction:: dns.asyncquery.tcp
 .. autofunction:: dns.asyncquery.send_tcp
 .. autofunction:: dns.asyncquery.receive_tcp
+
+TLS
+---
+
+.. autofunction:: dns.asyncquery.tls
