@@ -81,10 +81,10 @@ class Backend(dns._asyncbackend.Backend):
         stream = None
         try:
             if source:
-                await s.bind(_lltuple(af, source))
+                await s.bind(_lltuple(source, af))
             if socktype == socket.SOCK_STREAM:
                 with _maybe_timeout(timeout):
-                    await s.connect(_lltuple(af, destination))
+                    await s.connect(_lltuple(destination, af))
         except Exception:
             s.close()
             raise

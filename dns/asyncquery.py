@@ -199,7 +199,7 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
             af = dns.inet.af_for_address(where)
             stuple = _source_tuple(af, source, source_port)
             s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple)
-            destination = _lltuple(af, (where, port))
+            destination = _lltuple((where, port), af)
         await send_udp(s, wire, destination, expiration)
         (r, received_time) = await receive_udp(s, destination, expiration,
                                                ignore_unexpected,

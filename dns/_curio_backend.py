@@ -77,14 +77,14 @@ class Backend(dns._asyncbackend.Backend):
             s = curio.socket.socket(af, socktype, proto)
             try:
                 if source:
-                    s.bind(_lltuple(af, source))
+                    s.bind(_lltuple(source, af))
             except Exception:
                 await s.close()
                 raise
             return DatagramSocket(s)
         elif socktype == socket.SOCK_STREAM:
             if source:
-                source_addr = (_lltuple(af, source))
+                source_addr = _lltuple(source, af)
             else:
                 source_addr = None
             async with _maybe_timeout(timeout):

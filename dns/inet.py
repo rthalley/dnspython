@@ -141,15 +141,22 @@ def is_address(text):
             return False
 
 
-def low_level_address_tuple(af, high_tuple):
-    """Given an address family and a "high-level" address tuple, i.e.
+def low_level_address_tuple(high_tuple, af=None):
+    """Given a "high-level" address tuple, i.e.
     an (address, port) return the appropriate "low-level" address tuple
     suitable for use in socket calls.
+
+    If an *af* other than ``None`` is provided, it is assumed the
+    address in the high-level tuple is valid and has that af.  If af
+    is ``None``, then af_for_address will be called.
+
     """
     address, port = high_tuple
-    if af == dns.inet.AF_INET:
+    if af is None:
+        af = af_for_address(address)
+    if af == AF_INET:
         return (address, port)
-    elif af == dns.inet.AF_INET6:
+    elif af == AF_INET6:
         ai_flags = socket.AI_NUMERICHOST
         ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
         return tup

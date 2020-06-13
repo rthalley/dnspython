@@ -17,6 +17,7 @@
 
 import unittest
 import binascii
+import socket
 
 import dns.exception
 import dns.ipv4
@@ -273,6 +274,20 @@ class NtoAAtoNTestCase(unittest.TestCase):
                        ('1.2.3.4a', False),
                        ('2001:db8:0:1:1:1:1:q1', False)]:
             self.assertEqual(dns.inet.is_address(t), e)
+
+    def test_low_level_address_tuple(self):
+        t = dns.inet.low_level_address_tuple(('1.2.3.4', 53))
+        self.assertEqual(t, ('1.2.3.4', 53))
+        t = dns.inet.low_level_address_tuple(('2600::1', 53))
+        self.assertEqual(t, ('2600::1', 53, 0, 0))
+        t = dns.inet.low_level_address_tuple(('1.2.3.4', 53), socket.AF_INET)
+        self.assertEqual(t, ('1.2.3.4', 53))
+        t = dns.inet.low_level_address_tuple(('2600::1', 53), socket.AF_INET6)
+        self.assertEqual(t, ('2600::1', 53, 0, 0))
+        def bad():
+            bogus = socket.AF_INET + socket.AF_INET6 + 1
+            t = dns.inet.low_level_address_tuple(('2600::1', 53), bogus)
+        self.assertRaises(NotImplementedError, bad)
 
 if __name__ == '__main__':
     unittest.main()
