@@ -35,7 +35,7 @@ from dns.query import _addresses_equal, _compute_times, UnexpectedSource, \
 
 
 # for brevity
-_lltuple = dns.asyncbackend.low_level_address_tuple
+_lltuple = dns.inet.low_level_address_tuple
 
 
 def _source_tuple(af, address, port):

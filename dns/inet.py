@@ -139,3 +139,19 @@ def is_address(text):
             return True
         except Exception:
             return False
+
+
+def low_level_address_tuple(af, high_tuple):
+    """Given an address family and a "high-level" address tuple, i.e.
+    an (address, port) return the appropriate "low-level" address tuple
+    suitable for use in socket calls.
+    """
+    address, port = high_tuple
+    if af == dns.inet.AF_INET:
+        return (address, port)
+    elif af == dns.inet.AF_INET6:
+        ai_flags = socket.AI_NUMERICHOST
+        ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
+        return tup
+    else:
+        raise NotImplementedError(f'unknown address family {af}')

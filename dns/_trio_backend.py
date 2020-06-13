@@ -8,6 +8,7 @@ import trio.socket  # type: ignore
 
 import dns._asyncbackend
 import dns.exception
+import dns.inet
 
 
 def _maybe_timeout(timeout):
@@ -18,7 +19,7 @@ def _maybe_timeout(timeout):
 
 
 # for brevity
-_lltuple = dns._asyncbackend.low_level_address_tuple
+_lltuple = dns.inet.low_level_address_tuple
 
 
 class DatagramSocket(dns._asyncbackend.DatagramSocket):

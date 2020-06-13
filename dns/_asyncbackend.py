@@ -25,24 +25,10 @@ class NullContext:
         pass
 
 
-# This is handy, but should probably move somewhere else!
-
-def low_level_address_tuple(af, high_level_address_tuple):
-    address, port = high_level_address_tuple
-    if af == dns.inet.AF_INET:
-        return (address, port)
-    elif af == dns.inet.AF_INET6:
-        ai_flags = socket.AI_NUMERICHOST
-        ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
-        return tup
-    else:
-        raise NotImplementedError(f'unknown address family {af}')
-
-
 # These are declared here so backends can import them without creating
 # circular dependencies with dns.asyncbackend.
 
-class Socket:
+class Socket:  # pragma: no cover
     async def close(self):
         pass
 
@@ -53,7 +39,7 @@ class Socket:
         await self.close()
 
 
-class DatagramSocket(Socket):
+class DatagramSocket(Socket):  # pragma: no cover
     async def sendto(self, what, destination, timeout):
         pass
 
@@ -61,7 +47,7 @@ class DatagramSocket(Socket):
         pass
 
 
-class StreamSocket(Socket):
+class StreamSocket(Socket):  # pragma: no cover
     async def sendall(self, what, destination, timeout):
         pass
 
@@ -69,7 +55,7 @@ class StreamSocket(Socket):
         pass
 
 
-class Backend:
+class Backend:    # pragma: no cover
     def name(self):
         return 'unknown'
 

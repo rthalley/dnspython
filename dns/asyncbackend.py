@@ -3,7 +3,7 @@
 import dns.exception
 
 from dns._asyncbackend import Socket, DatagramSocket, \
-    StreamSocket, Backend, low_level_address_tuple  # noqa:
+    StreamSocket, Backend  # noqa:
 
 
 _default_backend = None
