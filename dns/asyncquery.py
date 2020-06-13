@@ -189,6 +189,7 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
     s = None
+    # After 3.6 is no longer supported, this can use an AsyncExitStack.
     try:
         if sock:
             s = sock
@@ -391,6 +392,7 @@ async def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
     s = None
+    # After 3.6 is no longer supported, this can use an AsyncExitStack.
     try:
         if sock:
             # Verify that the socket is connected, as if it's not connected,
@@ -468,6 +470,7 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
 
     Returns a ``dns.message.Message``.
     """
+    # After 3.6 is no longer supported, this can use an AsyncExitStack.
     (begin_time, expiration) = _compute_times(timeout)
     if not sock:
         if ssl_context is None:

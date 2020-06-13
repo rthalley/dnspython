@@ -57,6 +57,7 @@ class AsyncTests(unittest.TestCase):
         try:
             runner = asyncio.run
         except AttributeError:
+            # this is only needed for 3.6
             def old_runner(awaitable):
                 loop = asyncio.get_event_loop()
                 return loop.run_until_complete(awaitable)

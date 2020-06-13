@@ -5,7 +5,8 @@ import socket
 import dns.inet
 
 
-# This is a nullcontext for both sync and async
+# This is a nullcontext for both sync and async.  3.7 has a nullcontext,
+# but it is only for sync use.
 
 class NullContext:
     def __init__(self, enter_result=None):
