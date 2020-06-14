@@ -862,14 +862,16 @@ class _TextReader:
     zone_rdclass: The class of the zone in messages which are
     DNS dynamic updates.
     last_name: The most recently read name when building a message object.
+    one_rr_per_rrset: Put each RR into its own RRset?
     """
 
-    def __init__(self, text, message, idna_codec):
+    def __init__(self, text, message, idna_codec, one_rr_per_rrset=False):
         self.message = message
         self.tok = dns.tokenizer.Tokenizer(text, idna_codec=idna_codec)
         self.last_name = None
         self.zone_rdclass = dns.rdataclass.IN
         self.updating = False
+        self.one_rr_per_rrset = one_rr_per_rrset
 
     def _header_line(self, section):
         """Process one line from the text format header section."""
@@ -993,9 +995,10 @@ class _TextReader:
         else:
             rd = None
             covers = dns.rdatatype.NONE
+        force_unique = self.updating or self.one_rr_per_rrset
         rrset = self.message.find_rrset(section, name,
                                         rdclass, rdtype, covers,
-                                        deleting, True, self.updating)
+                                        deleting, True, force_unique)
         if rd is not None:
             rrset.add(rd, ttl)
 
@@ -1031,7 +1034,7 @@ class _TextReader:
             line_method(section)
 
 
-def from_text(text, idna_codec=None):
+def from_text(text, idna_codec=None, one_rr_per_rrset=False):
     """Convert the text format message into a message object.
 
     The reader stops after reading the first blank line in the input to
@@ -1043,6 +1046,9 @@ def from_text(text, idna_codec=None):
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
     encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
     is used.
+
+    *one_rr_per_rrset*, a ``bool``.  If ``True``, then each RR is put
+    into its own rrset.  The default is ``False``.
 
     Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
 
@@ -1057,19 +1063,26 @@ def from_text(text, idna_codec=None):
 
     m = Message()
 
-    reader = _TextReader(text, m, idna_codec)
+    reader = _TextReader(text, m, idna_codec, one_rr_per_rrset)
     reader.read()
 
     return m
 
 
-def from_file(f):
+def from_file(f, idna_codec=None, one_rr_per_rrset=False):
     """Read the next text format message from the specified file.
 
     Message blocks are separated by a single blank line.
 
     *f*, a ``file`` or ``str``.  If *f* is text, it is treated as the
     pathname of a file to open.
+
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    is used.
+
+    *one_rr_per_rrset*, a ``bool``.  If ``True``, then each RR is put
+    into its own rrset.  The default is ``False``.
 
     Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
 
@@ -1081,7 +1094,7 @@ def from_file(f):
     with contextlib.ExitStack() as stack:
         if isinstance(f, str):
             f = stack.enter_context(open(f))
-        return from_text(f)
+        return from_text(f, idna_codec, one_rr_per_rrset)
 
 
 def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
