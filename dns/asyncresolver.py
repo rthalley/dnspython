@@ -15,31 +15,32 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""trio async I/O library DNS stub resolver."""
+"""Asynchronous DNS stub resolver."""
 
-import trio
+import time
 
+import dns.asyncbackend
+import dns.asyncquery
 import dns.exception
 import dns.query
 import dns.resolver
-import dns.trio.query
 
 # import some resolver symbols for brevity
 from dns.resolver import NXDOMAIN, NoAnswer, NotAbsolute, NoRootSOA
 
-# we do this for indentation reasons below
-_udp = dns.trio.query.udp
-_stream = dns.trio.query.stream
 
-class TooManyAttempts(dns.exception.DNSException):
-    """A resolution had too many unsuccessful attempts."""
+# for indentation purposes below
+_udp = dns.asyncquery.udp
+_tcp = dns.asyncquery.tcp
+
 
 class Resolver(dns.resolver.Resolver):
 
     async def resolve(self, qname, rdtype=dns.rdatatype.A,
                       rdclass=dns.rdataclass.IN,
                       tcp=False, source=None, raise_on_no_answer=True,
-                      source_port=0, search=None):
+                      source_port=0, lifetime=None, search=None,
+                      backend=None):
         """Query nameservers asynchronously to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
@@ -62,12 +63,18 @@ class Resolver(dns.resolver.Resolver):
 
         *source_port*, an ``int``, the port from which to send the message.
 
+        *lifetime*, a ``float``, how many seconds a query should run
+         before timing out.
+
         *search*, a ``bool`` or ``None``, determines whether the
         search list configured in the system's resolver configuration
         are used for relative names, and whether the resolver's domain
         may be added to relative names.  The default is ``None``,
         which causes the value of the resolver's
         ``use_search_by_default`` attribute to be used.
+
+        *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+        the default, then dnspython will use the default backend.
 
         Raises ``dns.resolver.NXDOMAIN`` if the query name does not exist.
 
@@ -87,6 +94,9 @@ class Resolver(dns.resolver.Resolver):
 
         resolution = dns.resolver._Resolution(self, qname, rdtype, rdclass, tcp,
                                               raise_on_no_answer, search)
+        if not backend:
+            backend = dns.asyncbackend.get_default_backend()
+        start = time.time()
         while True:
             (request, answer) = resolution.next_request()
             # Note we need to say "if answer is not None" and not just
@@ -96,35 +106,28 @@ class Resolver(dns.resolver.Resolver):
             if answer is not None:
                 # cache hit!
                 return answer
-            loops = 1
             done = False
             while not done:
                 (nameserver, port, tcp, backoff) = resolution.next_nameserver()
                 if backoff:
-                    loops += 1
-                    if loops >= 5:
-                        raise TooManyAttempts
-                    await trio.sleep(backoff)
+                    await backend.sleep(backoff)
+                timeout = self._compute_timeout(start, lifetime)
                 try:
-                    with trio.fail_after(self.timeout):
-                        if dns.inet.is_address(nameserver):
-                            if tcp:
-                                response = await \
-                                    _stream(request, nameserver,
-                                            port=port,
-                                            source=source,
-                                            source_port=source_port)
-                            else:
-                                response = await \
-                                    _udp(request,
-                                         nameserver,
-                                         port=port,
-                                         source=source,
-                                         source_port=source_port,
-                                         raise_on_truncation=True)
+                    if dns.inet.is_address(nameserver):
+                        if tcp:
+                            response = await _tcp(request, nameserver,
+                                                  timeout, port,
+                                                  source, source_port,
+                                                  backend=backend)
                         else:
-                            # We don't do DoH yet.
-                            raise NotImplementedError
+                            response = await _udp(request, nameserver,
+                                                  timeout, port,
+                                                  source, source_port,
+                                                  raise_on_truncation=True,
+                                                  backend=backend)
+                    else:
+                        # We don't do DoH yet.
+                        raise NotImplementedError
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
                     continue
@@ -185,25 +188,25 @@ def reset_default_resolver():
 
 async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                   tcp=False, source=None, raise_on_no_answer=True,
-                  source_port=0, search=None):
+                  source_port=0, search=None, backend=None):
     """Query nameservers asynchronously to find the answer to the question.
 
     This is a convenience function that uses the default resolver
     object to make the query.
 
-    See ``dns.trio.resolver.Resolver.resolve`` for more information on the
+    See ``dns.asyncresolver.Resolver.resolve`` for more information on the
     parameters.
     """
 
     return await get_default_resolver().resolve(qname, rdtype, rdclass, tcp,
                                                 source, raise_on_no_answer,
-                                                source_port, search)
+                                                source_port, search, backend)
 
 
 async def resolve_address(ipaddr, *args, **kwargs):
     """Use a resolver to run a reverse query for PTR records.
 
-    See ``dns.trio.resolver.Resolver.resolve_address`` for more
+    See ``dns.asyncresolver.Resolver.resolve_address`` for more
     information on the parameters.
     """
 
@@ -211,7 +214,7 @@ async def resolve_address(ipaddr, *args, **kwargs):
 
 
 async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
-                        resolver=None):
+                        resolver=None, backend=None):
     """Find the name of the zone which contains the specified name.
 
     *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
@@ -220,8 +223,11 @@ async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
 
     *tcp*, a ``bool``.  If ``True``, use TCP to make the query.
 
-    *resolver*, a ``dns.trio.resolver.Resolver`` or ``None``, the
+    *resolver*, a ``dns.asyncresolver.Resolver`` or ``None``, the
     resolver to use.  If ``None``, the default resolver is used.
+
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
 
     Raises ``dns.resolver.NoRootSOA`` if there is no SOA RR at the DNS
     root.  (This is only likely to happen if you're using non-default
@@ -239,7 +245,7 @@ async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
     while True:
         try:
             answer = await resolver.resolve(name, dns.rdatatype.SOA, rdclass,
-                                            tcp)
+                                            tcp, backend=backend)
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher
