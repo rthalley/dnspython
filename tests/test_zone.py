@@ -17,8 +17,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from io import BytesIO, StringIO
+import difflib
 import filecmp
 import os
+import sys
 import unittest
 from typing import cast
 
@@ -167,6 +169,12 @@ def make_xfr(zone):
     add_rdataset(msg, soa_name, soa)
     return [msg]
 
+def print_differences(a_name, b_name):
+    with open(a_name, 'r') as a:
+        with open(b_name, 'r') as b:
+            differ = difflib.Differ()
+            sys.stdout.writelines(differ.compare(a.readlines(), b.readlines()))
+
 class ZoneTestCase(unittest.TestCase):
 
     def testFromFile1(self): # type: () -> None
@@ -176,6 +184,9 @@ class ZoneTestCase(unittest.TestCase):
             z.to_file(here('example1.out'), nl=b'\x0a')
             ok = filecmp.cmp(here('example1.out'),
                              here('example1.good'))
+            if not ok:
+                print_differences(here('example1.out'),
+                                  here('example1.good'))
         finally:
             if not _keep_output:
                 os.unlink(here('example1.out'))
