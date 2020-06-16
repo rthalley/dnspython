@@ -41,11 +41,11 @@ try:
     from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
     have_doh = True
 except ImportError:
-    have_doh = False
+    have_doh = False  # pragma: no cover
 
 try:
     import ssl
-except ImportError:
+except ImportError:  # pragma: no cover
     class ssl:    # type: ignore
 
         class WantReadException(Exception):
