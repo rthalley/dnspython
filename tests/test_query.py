@@ -303,6 +303,15 @@ class XfrTests(unittest.TestCase):
             zone = dns.zone.from_xfr(xfr)
             self.assertEqual(zone, expected)
 
+    def test_axfr_tsig(self):
+        expected = dns.zone.from_text(axfr_zone, origin='example')
+        with AXFRNanoNameserver(keyring=keyring) as ns:
+            xfr = dns.query.xfr(ns.tcp_address[0], 'example',
+                                port=ns.tcp_address[1],
+                                keyring=keyring, keyname='name')
+            zone = dns.zone.from_xfr(xfr)
+            self.assertEqual(zone, expected)
+
     def test_axfr_udp(self):
         def bad():
             with AXFRNanoNameserver() as ns:
