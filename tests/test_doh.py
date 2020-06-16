@@ -18,9 +18,10 @@ import unittest
 import random
 import socket
 
+import dns.message
 import dns.query
 import dns.rdatatype
-import dns.message
+import dns.resolver
 
 if dns.query.have_doh:
     import requests
@@ -120,6 +121,21 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         q = dns.message.make_query('example.com.', dns.rdatatype.A)
         r = dns.query.https(q, nameserver_url)
         self.assertTrue(q.is_response(r))
+
+    def test_resolver(self):
+        res = dns.resolver.Resolver()
+        res.nameservers = ['https://dns.google/dns-query']
+        answer = res.resolve('dns.google', 'A')
+        seen = set([rdata.address for rdata in answer])
+        self.assertTrue('8.8.8.8' in seen)
+        self.assertTrue('8.8.4.4' in seen)
+
+    def test_resolver_bad_scheme(self):
+        res = dns.resolver.Resolver()
+        res.nameservers = ['bogus://dns.google/dns-query']
+        def bad():
+            answer = res.resolve('dns.google', 'A')
+        self.assertRaises(dns.resolver.NoNameservers, bad)
 
 if __name__ == '__main__':
     unittest.main()

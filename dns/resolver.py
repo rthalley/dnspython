@@ -26,7 +26,7 @@ import warnings
 try:
     import threading as _threading
 except ImportError:
-    import dummy_threading as _threading    # type: ignore
+    import dummy_threading as _threading    # type: ignore  # pragma: no cover
 
 import dns.exception
 import dns.flags
@@ -42,7 +42,7 @@ import dns.reversename
 import dns.tsig
 
 if sys.platform == 'win32':
-    import winreg
+    import winreg  # pragma: no cover
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
@@ -251,7 +251,7 @@ class Answer:
                         break
         self.expiration = time.time() + min_ttl
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr):  # pragma: no cover
         if attr == 'name':
             return self.rrset.name
         elif attr == 'ttl':
@@ -367,12 +367,6 @@ class LRUCacheNode:
         self.value = value
         self.prev = self
         self.next = self
-
-    def link_before(self, node):
-        self.prev = node.prev
-        self.next = node
-        node.prev.next = self
-        node.prev = self
 
     def link_after(self, node):
         self.prev = node
@@ -785,7 +779,7 @@ class Resolver:
         if len(self.nameservers) == 0:
             raise NoResolverConfiguration
 
-    def _determine_split_char(self, entry):
+    def _determine_split_char(self, entry):  # pragma: no cover
         #
         # The windows registry irritatingly changes the list element
         # delimiter in between ' ' and ',' (and vice-versa) in various
@@ -800,7 +794,7 @@ class Resolver:
             split_char = ' '
         return split_char
 
-    def _config_win32_nameservers(self, nameservers):
+    def _config_win32_nameservers(self, nameservers):  # pragma: no cover
         # we call str() on nameservers to convert it from unicode to ascii
         nameservers = str(nameservers)
         split_char = self._determine_split_char(nameservers)
@@ -809,11 +803,11 @@ class Resolver:
             if ns not in self.nameservers:
                 self.nameservers.append(ns)
 
-    def _config_win32_domain(self, domain):
+    def _config_win32_domain(self, domain):  # pragma: no cover
         # we call str() on domain to convert it from unicode to ascii
         self.domain = dns.name.from_text(str(domain))
 
-    def _config_win32_search(self, search):
+    def _config_win32_search(self, search):  # pragma: no cover
         # we call str() on search to convert it from unicode to ascii
         search = str(search)
         split_char = self._determine_split_char(search)
@@ -822,7 +816,7 @@ class Resolver:
             if s not in self.search:
                 self.search.append(dns.name.from_text(s))
 
-    def _config_win32_fromkey(self, key, always_try_domain):
+    def _config_win32_fromkey(self, key, always_try_domain):  # pragma: no cover
         try:
             servers, rtype = winreg.QueryValueEx(key, 'NameServer')
         except WindowsError:  # pylint: disable=undefined-variable
@@ -856,7 +850,7 @@ class Resolver:
         if search:
             self._config_win32_search(search)
 
-    def read_registry(self):
+    def read_registry(self):  # pragma: no cover
         """Extract resolver configuration from the Windows registry."""
 
         lm = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
@@ -902,7 +896,8 @@ class Resolver:
         finally:
             lm.Close()
 
-    def _win32_is_nic_enabled(self, lm, guid, interface_key):
+    def _win32_is_nic_enabled(self, lm, guid,
+                              interface_key):  # pragma: no cover
         # Look in the Windows Registry to determine whether the network
         # interface corresponding to the given guid is enabled.
         #

@@ -339,22 +339,20 @@ class BaseResolverTests(unittest.TestCase):
         qnames = res._get_qnames_to_try(qname, None)
         self.assertEqual(qnames, [qname])
 
+@unittest.skipIf(not _network_available, "Internet not reachable")
 class LiveResolverTests(unittest.TestCase):
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName1(self):
         name = dns.name.from_text('www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.assertEqual(zname, ezname)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName2(self):
         name = dns.name.from_text('a.b.www.dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
         zname = dns.resolver.zone_for_name(name)
         self.assertEqual(zname, ezname)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testZoneForName3(self):
         name = dns.name.from_text('dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
@@ -367,26 +365,28 @@ class LiveResolverTests(unittest.TestCase):
             dns.resolver.zone_for_name(name)
         self.assertRaises(dns.resolver.NotAbsolute, bad)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testResolve(self):
         answer = dns.resolver.resolve('dns.google.', 'A')
         seen = set([rdata.address for rdata in answer])
         self.assertTrue('8.8.8.8' in seen)
         self.assertTrue('8.8.4.4' in seen)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
+    def testResolveTCP(self):
+        answer = dns.resolver.resolve('dns.google.', 'A', tcp=True)
+        seen = set([rdata.address for rdata in answer])
+        self.assertTrue('8.8.8.8' in seen)
+        self.assertTrue('8.8.4.4' in seen)
+
     def testResolveAddress(self):
         answer = dns.resolver.resolve_address('8.8.8.8')
         dnsgoogle = dns.name.from_text('dns.google.')
         self.assertEqual(answer[0].target, dnsgoogle)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testResolveNodataException(self):
         def bad():
             dns.resolver.resolve('dnspython.org.', 'TYPE3')  # obsolete MB
         self.assertRaises(dns.resolver.NoAnswer, bad)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testResolveNodataAnswer(self):
         qname = dns.name.from_text('dnspython.org')
         qclass = dns.rdataclass.from_text('IN')
@@ -396,7 +396,6 @@ class LiveResolverTests(unittest.TestCase):
             lambda: answer.response.find_rrset(answer.response.answer,
                                                qname, qclass, qtype))
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testResolveNXDOMAIN(self):
         qname = dns.name.from_text('nxdomain.dnspython.org')
         qclass = dns.rdataclass.from_text('IN')
@@ -405,7 +404,6 @@ class LiveResolverTests(unittest.TestCase):
             answer = dns.resolver.resolve(qname, qtype)
         self.assertRaises(dns.resolver.NXDOMAIN, bad)
 
-    @unittest.skipIf(not _network_available, "Internet not reachable")
     def testResolveCacheHit(self):
         res = dns.resolver.Resolver()
         res.cache = dns.resolver.Cache()
