@@ -157,8 +157,20 @@ def low_level_address_tuple(high_tuple, af=None):
     if af == AF_INET:
         return (address, port)
     elif af == AF_INET6:
-        ai_flags = socket.AI_NUMERICHOST
-        ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
-        return tup
+        i = address.find('%')
+        if i < 0:
+            # no scope, shortcut!
+            return (address, port, 0, 0)
+        # try to avoid getaddrinfo()
+        addrpart = address[:i]
+        scope = address[i+1:]
+        if scope.isdigit():
+            return (addrpart, port, 0, int(scope))
+        try:
+            return (addrpart, port, 0, socket.if_nametoindex(scope))
+        except AttributeError:
+            ai_flags = socket.AI_NUMERICHOST
+            ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
+            return tup
     else:
         raise NotImplementedError(f'unknown address family {af}')
