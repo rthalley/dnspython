@@ -314,17 +314,20 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
     headers = {
         "accept": "application/dns-message"
     }
-    if af == dns.inet.AF_INET:
-        url = 'https://{}:{}{}'.format(where, port, path)
-    elif af == dns.inet.AF_INET6:
-        url = 'https://[{}]:{}{}'.format(where, port, path)
-    elif bootstrap_address is not None:
-        split_url = urllib.parse.urlsplit(where)
-        headers['Host'] = split_url.hostname
-        url = where.replace(split_url.hostname, bootstrap_address)
-        transport_adapter = HostHeaderSSLAdapter()
-    else:
-        url = where
+    try:
+        where_af = dns.inet.af_for_address(where)
+        if where_af == dns.inet.AF_INET:
+            url = 'https://{}:{}{}'.format(where, port, path)
+        elif where_af == dns.inet.AF_INET6:
+            url = 'https://[{}]:{}{}'.format(where, port, path)
+    except ValueError:
+        if bootstrap_address is not None:
+            split_url = urllib.parse.urlsplit(where)
+            headers['Host'] = split_url.hostname
+            url = where.replace(split_url.hostname, bootstrap_address)
+            transport_adapter = HostHeaderSSLAdapter()
+        else:
+            url = where
     if source is not None:
         # set source port and source address
         transport_adapter = SourceAddressAdapter(source)
