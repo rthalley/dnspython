@@ -32,7 +32,7 @@ if RELEASELEVEL == 0x0f:
     #: version
     version = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 elif RELEASELEVEL == 0x00:
-    version = '%d.%d.%dx%d' % \
+    version = '%d.%d.%ddev%d' % \
               (MAJOR, MINOR, MICRO, SERIAL)
 elif RELEASELEVEL == 0x0c:
     version = '%d.%d.%drc%d' % \
