@@ -51,7 +51,8 @@ class Server(threading.Thread):
     """
 
     def __init__(self, address='127.0.0.1', port=0, enable_udp=True,
-                 enable_tcp=True, use_thread=True, origin=None):
+                 enable_tcp=True, use_thread=True, origin=None,
+                 keyring=None):
         super().__init__()
         self.address = address
         self.port = port
@@ -59,6 +60,7 @@ class Server(threading.Thread):
         self.enable_tcp = enable_tcp
         self.use_thread = use_thread
         self.origin = origin
+        self.keyring = keyring
         self.left = None
         self.right = None
         self.udp = None
@@ -163,7 +165,7 @@ class Server(threading.Thread):
         items = []
         r = None
         try:
-            q = dns.message.from_wire(wire)
+            q = dns.message.from_wire(wire, keyring=self.keyring)
         except dns.message.ShortHeader:
             # There is no hope of answering this one!
             return []
