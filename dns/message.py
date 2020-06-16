@@ -790,7 +790,7 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     *tsig_ctx*, a ``hmac.HMAC`` object, the ongoing TSIG context, used
     when validating zone transfers.
 
-    *multi*, a ``bool``, should be set to ``True`` if this message
+    *multi*, a ``bool``, should be set to ``True`` if this message is
     part of a multiple message sequence.
 
     *first*, a ``bool``, should be set to ``True`` if this message is
