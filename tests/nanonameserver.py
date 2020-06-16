@@ -141,12 +141,6 @@ class Server(threading.Thread):
         else:
             return [thing]
 
-    def maybe_render(self, thing):
-        if isinstance(thing, dns.message.Message):
-            return thing.to_wire(self.origin)
-        else:
-            return thing
-
     def handle_wire(self, wire, peer, connection_type):
         #
         # This is the common code to parse wire format, call handle() on
@@ -168,7 +162,7 @@ class Server(threading.Thread):
             q = dns.message.from_wire(wire, keyring=self.keyring)
         except dns.message.ShortHeader:
             # There is no hope of answering this one!
-            return []
+            return
         except Exception:
             # Try to make a FORMERR using just the question section.
             try:
@@ -181,7 +175,7 @@ class Server(threading.Thread):
                 # if dnspython had a header_only option to
                 # from_wire(), or if we truncated wire outselves, but
                 # for now we just drop.
-                return []
+                return
         try:
             # items might have been appended to above, so skip
             # handle() if we already have a response.
@@ -193,7 +187,16 @@ class Server(threading.Thread):
             r = dns.message.make_response(q)
             r.set_rcode(dns.rcode.SERVFAIL)
             items = [r]
-        return [self.maybe_render(x) for x in items]
+
+        tsig_ctx = None
+        multi = len(items) > 1
+        for thing in items:
+            if isinstance(thing, dns.message.Message):
+                out = thing.to_wire(self.origin, multi=multi, tsig_ctx=tsig_ctx)
+                tsig_ctx = thing.tsig_ctx
+                yield out
+            else:
+                yield thing
 
     async def serve_udp(self):
         with trio.socket.from_stdlib_socket(self.udp) as sock:
