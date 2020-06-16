@@ -399,7 +399,7 @@ class Message:
             rrset = None
         return rrset
 
-    def to_wire(self, origin=None, max_size=0, **kw):
+    def to_wire(self, origin=None, max_size=0, multi=False, tsig_ctx=None, **kw):
         """Return a string containing the message in DNS compressed wire
         format.
 
@@ -412,6 +412,12 @@ class Message:
         *max_size*, an ``int``, the maximum size of the wire format
         output; default is 0, which means "the message's request
         payload, if nonzero, or 65535".
+
+        *multi*, a ``bool``, should be set to ``True`` if this message is
+        part of a multiple message sequence.
+
+        *tsig_ctx*, a ``hmac.HMAC`` object, the ongoing TSIG context, used
+        when signing zone transfers.
 
         Raises ``dns.exception.TooBig`` if *max_size* was exceeded.
 
@@ -440,10 +446,18 @@ class Message:
             r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
         r.write_header()
         if self.keyname is not None:
-            r.add_tsig(self.keyname, self.keyring[self.keyname],
-                       self.fudge, self.original_id, self.tsig_error,
-                       self.other_data, self.request_mac,
-                       self.keyalgorithm)
+            if multi:
+                ctx = r.add_multi_tsig(tsig_ctx,
+                                       self.keyname, self.keyring[self.keyname],
+                                       self.fudge, self.original_id,
+                                       self.tsig_error, self.other_data,
+                                       self.request_mac, self.keyalgorithm)
+                self.tsig_ctx = ctx
+            else:
+                r.add_tsig(self.keyname, self.keyring[self.keyname],
+                           self.fudge, self.original_id, self.tsig_error,
+                           self.other_data, self.request_mac,
+                           self.keyalgorithm)
             self.mac = r.mac
         return r.get_wire()
 
