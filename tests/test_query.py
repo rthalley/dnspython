@@ -291,8 +291,7 @@ class IXFRNanoNameserver(Server):
         except Exception:
             pass
 
-@unittest.skipIf(not _nanonameserver_available,
-                 "Internet and nanonameserver required")
+@unittest.skipIf(not _nanonameserver_available, "nanonameserver required")
 class XfrTests(unittest.TestCase):
 
     def test_axfr(self):
@@ -423,8 +422,7 @@ class TSIGNanoNameserver(Server):
             pass
         return response
 
-@unittest.skipIf(not _nanonameserver_available,
-                 "Internet and nanonameserver required")
+@unittest.skipIf(not _nanonameserver_available, "nanonameserver required")
 class TsigTests(unittest.TestCase):
 
     def test_tsig(self):
