@@ -39,7 +39,7 @@ try:
     with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as s:
         s.connect(('2001:4860:4860::8888', 53))
     resolver_v6_addresses = [
-        '2606:4700:4700::1111'
+        '2606:4700:4700::1111',
         # Google says 404
         # '2001:4860:4860::8888',
         '2620:fe::11'
