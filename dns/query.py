@@ -347,8 +347,7 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
                 "content-length": str(len(wire))
             })
             response = session.post(url, headers=headers, data=wire,
-                                    stream=True, timeout=timeout,
-                                    verify=verify)
+                                    timeout=timeout, verify=verify)
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             response = session.get(url, headers=headers,
