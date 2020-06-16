@@ -1,10 +1,5 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-import socket
-
-import dns.inet
-
-
 # This is a nullcontext for both sync and async.  3.7 has a nullcontext,
 # but it is only for sync use.
 

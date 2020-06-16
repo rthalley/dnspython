@@ -25,7 +25,6 @@ import socket
 import struct
 import time
 import base64
-import ipaddress
 import urllib.parse
 
 import dns.exception

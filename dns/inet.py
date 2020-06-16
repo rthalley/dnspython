@@ -163,7 +163,7 @@ def low_level_address_tuple(high_tuple, af=None):
             return (address, port, 0, 0)
         # try to avoid getaddrinfo()
         addrpart = address[:i]
-        scope = address[i+1:]
+        scope = address[i + 1:]
         if scope.isdigit():
             return (addrpart, port, 0, int(scope))
         try:
