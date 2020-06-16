@@ -399,7 +399,8 @@ class Message:
             rrset = None
         return rrset
 
-    def to_wire(self, origin=None, max_size=0, multi=False, tsig_ctx=None, **kw):
+    def to_wire(self, origin=None, max_size=0, multi=False, tsig_ctx=None,
+                **kw):
         """Return a string containing the message in DNS compressed wire
         format.
 

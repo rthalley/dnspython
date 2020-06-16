@@ -352,7 +352,7 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             response = session.get(url, headers=headers,
                                    timeout=timeout, verify=verify,
-                                   params={"dns" : wire})
+                                   params={"dns": wire})
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes
