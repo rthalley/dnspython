@@ -18,7 +18,6 @@
 
 from io import BytesIO, StringIO
 import difflib
-import filecmp
 import os
 import sys
 import unittest
@@ -169,11 +168,17 @@ def make_xfr(zone):
     add_rdataset(msg, soa_name, soa)
     return [msg]
 
-def print_differences(a_name, b_name):
+def compare_files(test_name, a_name, b_name):
     with open(a_name, 'r') as a:
         with open(b_name, 'r') as b:
-            differ = difflib.Differ()
-            sys.stdout.writelines(differ.compare(a.readlines(), b.readlines()))
+            differences = list(difflib.unified_diff(a.readlines(),
+                                                    b.readlines()))
+            if len(differences) == 0:
+                return True
+            else:
+                print(f'{test_name} differences:')
+                sys.stdout.writelines(differences)
+                return False
 
 class ZoneTestCase(unittest.TestCase):
 
@@ -182,11 +187,9 @@ class ZoneTestCase(unittest.TestCase):
         ok = False
         try:
             z.to_file(here('example1.out'), nl=b'\x0a')
-            ok = filecmp.cmp(here('example1.out'),
-                             here('example1.good'))
-            if not ok:
-                print_differences(here('example1.out'),
-                                  here('example1.good'))
+            ok = compare_files('testFromFile1',
+                               here('example1.out'),
+                               here('example1.good'))
         finally:
             if not _keep_output:
                 os.unlink(here('example1.out'))
@@ -197,8 +200,9 @@ class ZoneTestCase(unittest.TestCase):
         ok = False
         try:
             z.to_file(here('example2.out'), relativize=False, nl=b'\x0a')
-            ok = filecmp.cmp(here('example2.out'),
-                             here('example2.good'))
+            ok = compare_files('testFromFile2',
+                               here('example2.out'),
+                               here('example2.good'))
         finally:
             if not _keep_output:
                 os.unlink(here('example2.out'))
@@ -226,8 +230,9 @@ class ZoneTestCase(unittest.TestCase):
             f = open(here('example3-textual.out'), 'w')
             z.to_file(f)
             f.close()
-            ok = filecmp.cmp(here('example3-textual.out'),
-                             here('example3.good'))
+            ok = compare_files('testToFileTextual',
+                               here('example3-textual.out'),
+                               here('example3.good'))
         finally:
             if not _keep_output:
                 os.unlink(here('example3-textual.out'))
@@ -239,8 +244,9 @@ class ZoneTestCase(unittest.TestCase):
             f = open(here('example3-binary.out'), 'wb')
             z.to_file(f)
             f.close()
-            ok = filecmp.cmp(here('example3-binary.out'),
-                             here('example3.good'))
+            ok = compare_files('testToFileBinary',
+                               here('example3-binary.out'),
+                               here('example3.good'))
         finally:
             if not _keep_output:
                 os.unlink(here('example3-binary.out'))
@@ -250,8 +256,9 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_file(here('example'), 'example')
         try:
             z.to_file(here('example3-filename.out'))
-            ok = filecmp.cmp(here('example3-filename.out'),
-                             here('example3.good'))
+            ok = compare_files('testToFileFilename',
+                               here('example3-filename.out'),
+                               here('example3.good'))
         finally:
             if not _keep_output:
                 os.unlink(here('example3-filename.out'))
@@ -265,8 +272,9 @@ class ZoneTestCase(unittest.TestCase):
             f = open(here('example3.out'), 'w')
             f.write(text_zone)
             f.close()
-            ok = filecmp.cmp(here('example3.out'),
-                             here('example3.good'))
+            ok = compare_files('testToText',
+                               here('example3.out'),
+                               here('example3.good'))
         finally:
             if not _keep_output:
                 os.unlink(here('example3.out'))
