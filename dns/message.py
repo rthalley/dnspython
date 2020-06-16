@@ -787,7 +787,7 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     of a zone transfer, *origin* should be the origin name of the
     zone.
 
-    *tsig_ctx*, a ``hmac.HMAC`` objext, the ongoing TSIG context, used
+    *tsig_ctx*, a ``hmac.HMAC`` object, the ongoing TSIG context, used
     when validating zone transfers.
 
     *multi*, a ``bool``, should be set to ``True`` if this message
