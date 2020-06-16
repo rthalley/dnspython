@@ -26,7 +26,28 @@ if dns.query.have_doh:
     import requests
     from requests.exceptions import SSLError
 
-KNOWN_ANYCAST_DOH_RESOLVER_IPS = ['1.1.1.1', '8.8.8.8', '9.9.9.9']
+# Probe for IPv4 and IPv6
+resolver_v4_addresses = []
+resolver_v6_addresses = []
+try:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.connect(('8.8.8.8', 53))
+    resolver_v4_addresses = ['1.1.1.1', '8.8.8.8', '9.9.9.9']
+except Exception:
+    pass
+try:
+    with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as s:
+        s.connect(('2001:4860:4860::8888', 53))
+    resolver_v6_addresses = [
+        # Cloudflare says 403
+        # '2606:4700:4700:0:0:0:0:1111'
+        # Google says 404
+        # '2001:4860:4860::8888',
+        '2620:fe::11'
+    ]
+except Exception:
+    pass
+
 KNOWN_ANYCAST_DOH_RESOLVER_URLS = ['https://cloudflare-dns.com/dns-query',
                                    'https://dns.google/dns-query',
                                    'https://dns11.quad9.net/dns-query']
@@ -61,24 +82,39 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         self.assertTrue(q.is_response(r))
 
     def test_build_url_from_ip(self):
-        nameserver_ip = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_IPS)
-        q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        # For some reason Google's DNS over HTTPS fails when you POST to https://8.8.8.8/dns-query
-        # So we're just going to do GET requests here
-        r = dns.query.https(q, nameserver_ip, session=self.session, post=False)
-        self.assertTrue(q.is_response(r))
+        self.assertTrue(resolver_v4_addresses or resolver_v6_addresses)
+        if resolver_v4_addresses:
+            nameserver_ip = random.choice(resolver_v4_addresses)
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            # For some reason Google's DNS over HTTPS fails when you POST to
+            # https://8.8.8.8/dns-query
+            # So we're just going to do GET requests here
+            r = dns.query.https(q, nameserver_ip, session=self.session,
+                                post=False)
+
+            self.assertTrue(q.is_response(r))
+        if resolver_v6_addresses:
+            nameserver_ip = random.choice(resolver_v6_addresses)
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            r = dns.query.https(q, nameserver_ip, session=self.session,
+                                post=False)
+            self.assertTrue(q.is_response(r))
 
     def test_bootstrap_address(self):
-        ip = '185.228.168.168'
-        invalid_tls_url = 'https://{}/doh/family-filter/'.format(ip)
-        valid_tls_url = 'https://doh.cleanbrowsing.org/doh/family-filter/'
-        q = dns.message.make_query('example.com.', dns.rdatatype.A)
-        # make sure CleanBrowsing's IP address will fail TLS certificate check
-        with self.assertRaises(SSLError):
-            dns.query.https(q, invalid_tls_url, session=self.session)
-        # use host header
-        r = dns.query.https(q, valid_tls_url, session=self.session, bootstrap_address=ip)
-        self.assertTrue(q.is_response(r))
+        # We test this to see if v4 is available
+        if resolver_v4_addresses:
+            ip = '185.228.168.168'
+            invalid_tls_url = 'https://{}/doh/family-filter/'.format(ip)
+            valid_tls_url = 'https://doh.cleanbrowsing.org/doh/family-filter/'
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            # make sure CleanBrowsing's IP address will fail TLS certificate
+            # check
+            with self.assertRaises(SSLError):
+                dns.query.https(q, invalid_tls_url, session=self.session)
+            # use host header
+            r = dns.query.https(q, valid_tls_url, session=self.session,
+                                bootstrap_address=ip)
+            self.assertTrue(q.is_response(r))
 
     def test_new_session(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
