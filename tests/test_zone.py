@@ -219,7 +219,7 @@ class ZoneTestCase(unittest.TestCase):
     def testToFileBinaryStream(self): # type: () -> None
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         f = BytesIO()
-        z.to_file(f)
+        z.to_file(f, nl=b'\n')
         out = f.getvalue()
         f.close()
         self.assertEqual(out, example_text_output.encode())
