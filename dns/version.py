@@ -24,15 +24,18 @@ MINOR = 0
 #: MICRO
 MICRO = 0
 #: RELEASELEVEL
-RELEASELEVEL = 0x0f
+RELEASELEVEL = 0x0c
 #: SERIAL
-SERIAL = 0
+SERIAL = 1
 
 if RELEASELEVEL == 0x0f:
     #: version
     version = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 elif RELEASELEVEL == 0x00:
     version = '%d.%d.%dx%d' % \
+              (MAJOR, MINOR, MICRO, SERIAL)
+elif RELEASELEVEL == 0x0c:
+    version = '%d.%d.%drc%d' % \
               (MAJOR, MINOR, MICRO, SERIAL)
 else:
     version = '%d.%d.%d%x%d' % \
