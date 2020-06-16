@@ -350,10 +350,10 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
                                     stream=True, timeout=timeout,
                                     verify=verify)
         else:
-            wire = base64.urlsafe_b64encode(wire).decode('utf-8').strip("=")
-            url += "?dns={}".format(wire)
-            response = session.get(url, headers=headers, stream=True,
-                                   timeout=timeout, verify=verify)
+            wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
+            response = session.get(url, headers=headers,
+                                   timeout=timeout, verify=verify,
+                                   params={"dns" : wire})
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes
