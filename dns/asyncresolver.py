@@ -253,5 +253,5 @@ async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
             pass
         try:
             name = name.parent()
-        except dns.name.NoParent:
+        except dns.name.NoParent:  # pragma: no cover
             raise NoRootSOA

@@ -61,6 +61,94 @@ for (af, address) in ((socket.AF_INET, '8.8.8.8'),
         pass
 
 
+class AsyncDetectionTests(unittest.TestCase):
+    sniff_result = 'asyncio'
+
+    def async_run(self, afunc):
+        try:
+            runner = asyncio.run
+        except AttributeError:
+            # this is only needed for 3.6
+            def old_runner(awaitable):
+                loop = asyncio.get_event_loop()
+                return loop.run_until_complete(awaitable)
+            runner = old_runner
+        return runner(afunc())
+
+    def test_sniff(self):
+        dns.asyncbackend._default_backend = None
+        async def run():
+            self.assertEqual(dns.asyncbackend.sniff(), self.sniff_result)
+        self.async_run(run)
+
+    def test_get_default_backend(self):
+        dns.asyncbackend._default_backend = None
+        async def run():
+            backend = dns.asyncbackend.get_default_backend()
+            self.assertEqual(backend.name(), self.sniff_result)
+        self.async_run(run)
+
+class NoSniffioAsyncDetectionTests(AsyncDetectionTests):
+    expect_raise = False
+
+    def setUp(self):
+        dns.asyncbackend._no_sniffio = True
+
+    def tearDown(self):
+        dns.asyncbackend._no_sniffio = False
+
+    def test_sniff(self):
+        dns.asyncbackend._default_backend = None
+        if self.expect_raise:
+            async def abad():
+                dns.asyncbackend.sniff()
+            def bad():
+                self.async_run(abad)
+            self.assertRaises(dns.asyncbackend.AsyncLibraryNotFoundError, bad)
+        else:
+            super().test_sniff()
+
+    def test_get_default_backend(self):
+        dns.asyncbackend._default_backend = None
+        if self.expect_raise:
+            async def abad():
+                dns.asyncbackend.get_default_backend()
+            def bad():
+                self.async_run(abad)
+            self.assertRaises(dns.asyncbackend.AsyncLibraryNotFoundError, bad)
+        else:
+            super().test_get_default_backend()
+
+
+class MiscBackend(unittest.TestCase):
+    def test_sniff_without_run_loop(self):
+        dns.asyncbackend._default_backend = None
+        def bad():
+            dns.asyncbackend.sniff()
+        self.assertRaises(dns.asyncbackend.AsyncLibraryNotFoundError, bad)
+
+    def test_bogus_backend(self):
+        def bad():
+            dns.asyncbackend.get_backend('bogus')
+        self.assertRaises(NotImplementedError, bad)
+
+
+class MiscQuery(unittest.TestCase):
+    def test_source_tuple(self):
+        t = dns.asyncquery._source_tuple(socket.AF_INET, None, 0)
+        self.assertEqual(t, None)
+        t = dns.asyncquery._source_tuple(socket.AF_INET6, None, 0)
+        self.assertEqual(t, None)
+        t = dns.asyncquery._source_tuple(socket.AF_INET, '1.2.3.4', 53)
+        self.assertEqual(t, ('1.2.3.4', 53))
+        t = dns.asyncquery._source_tuple(socket.AF_INET6, '1::2', 53)
+        self.assertEqual(t, ('1::2', 53))
+        t = dns.asyncquery._source_tuple(socket.AF_INET, None, 53)
+        self.assertEqual(t, ('0.0.0.0', 53))
+        t = dns.asyncquery._source_tuple(socket.AF_INET6, None, 53)
+        self.assertEqual(t, ('::', 53))
+
+
 @unittest.skipIf(not _network_available, "Internet not reachable")
 class AsyncTests(unittest.TestCase):
 
@@ -92,6 +180,15 @@ class AsyncTests(unittest.TestCase):
         answer = self.async_run(run)
         dnsgoogle = dns.name.from_text('dns.google.')
         self.assertEqual(answer[0].target, dnsgoogle)
+
+    def testResolverBadScheme(self):
+        res = dns.asyncresolver.Resolver()
+        res.nameservers = ['bogus://dns.google/dns-query']
+        async def run():
+            answer = await res.resolve('dns.google', 'A')
+        def bad():
+            self.async_run(run)
+        self.assertRaises(dns.resolver.NoNameservers, bad)
 
     def testZoneForName1(self):
         async def run():
@@ -247,6 +344,17 @@ class AsyncTests(unittest.TestCase):
 
 try:
     import trio
+    import sniffio
+
+    class TrioAsyncDetectionTests(AsyncDetectionTests):
+        sniff_result = 'trio'
+        def async_run(self, afunc):
+            return trio.run(afunc)
+
+    class TrioNoSniffioAsyncDetectionTests(NoSniffioAsyncDetectionTests):
+        expect_raise = True
+        def async_run(self, afunc):
+            return trio.run(afunc)
 
     class TrioAsyncTests(AsyncTests):
         def setUp(self):
@@ -259,6 +367,17 @@ except ImportError:
 
 try:
     import curio
+    import sniffio
+
+    class CurioAsyncDetectionTests(AsyncDetectionTests):
+        sniff_result = 'curio'
+        def async_run(self, afunc):
+            return curio.run(afunc)
+
+    class CurioNoSniffioAsyncDetectionTests(NoSniffioAsyncDetectionTests):
+        expect_raise = True
+        def async_run(self, afunc):
+            return curio.run(afunc)
 
     class CurioAsyncTests(AsyncTests):
         def setUp(self):
