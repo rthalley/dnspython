@@ -261,8 +261,8 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_ptontop(self):
-        for (af, a) in [(dns.inet.AF_INET, '1.2.3.4'),
-                        (dns.inet.AF_INET6, '2001:db8:0:1:1:1:1:1')]:
+        for (af, a) in [(socket.AF_INET, '1.2.3.4'),
+                        (socket.AF_INET6, '2001:db8:0:1:1:1:1:1')]:
             self.assertEqual(dns.inet.inet_ntop(af, dns.inet.inet_pton(af, a)),
                              a)
 

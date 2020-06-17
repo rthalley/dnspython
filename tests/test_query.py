@@ -197,16 +197,16 @@ class DestinationAndSourceTests(unittest.TestCase):
 
     def test_af_inferred_from_where(self):
         (af, d, s) = _d_and_s('1.2.3.4', 53, None, 0)
-        self.assertEqual(af, dns.inet.AF_INET)
+        self.assertEqual(af, socket.AF_INET)
 
     def test_af_inferred_from_where(self):
         (af, d, s) = _d_and_s('1::2', 53, None, 0)
-        self.assertEqual(af, dns.inet.AF_INET6)
+        self.assertEqual(af, socket.AF_INET6)
 
     def test_af_inferred_from_source(self):
         (af, d, s) = _d_and_s('https://example/dns-query', 443,
                               '1.2.3.4', 0, False)
-        self.assertEqual(af, dns.inet.AF_INET)
+        self.assertEqual(af, socket.AF_INET)
 
     def test_af_mismatch(self):
         def bad():

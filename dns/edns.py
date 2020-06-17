@@ -18,6 +18,7 @@
 """EDNS Options"""
 
 import math
+import socket
 import struct
 
 import dns.enum
@@ -186,11 +187,11 @@ class ECSOption(Option):
         super().__init__(OptionType.ECS)
         af = dns.inet.af_for_address(address)
 
-        if af == dns.inet.AF_INET6:
+        if af == socket.AF_INET6:
             self.family = 2
             if srclen is None:
                 srclen = 56
-        elif af == dns.inet.AF_INET:
+        elif af == socket.AF_INET:
             self.family = 1
             if srclen is None:
                 srclen = 24

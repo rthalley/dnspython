@@ -228,9 +228,9 @@ def _destination_and_source(where, port, source, source_port,
         # Caller has specified a source_port but not an address, so we
         # need to return a source, and we need to use the appropriate
         # wildcard address as the address.
-        if af == dns.inet.AF_INET:
+        if af == socket.AF_INET:
             source = '0.0.0.0'
-        elif af == dns.inet.AF_INET6:
+        elif af == socket.AF_INET6:
             source = '::'
         else:
             raise ValueError('source_port specified but address family is '
@@ -316,9 +316,9 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
     }
     try:
         where_af = dns.inet.af_for_address(where)
-        if where_af == dns.inet.AF_INET:
+        if where_af == socket.AF_INET:
             url = 'https://{}:{}{}'.format(where, port, path)
-        elif where_af == dns.inet.AF_INET6:
+        elif where_af == socket.AF_INET6:
             url = 'https://[{}]:{}{}'.format(where, port, path)
     except ValueError:
         if bootstrap_address is not None:

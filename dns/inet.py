@@ -22,18 +22,12 @@ import socket
 import dns.ipv4
 import dns.ipv6
 
-# We assume that AF_INET is always defined.
 
+# We assume that AF_INET and AF_INET6 are always defined.  We keep
+# these here for the benefit of any old code (unlikely though that
+# is!).
 AF_INET = socket.AF_INET
-
-# AF_INET6 might not be defined in the socket module, but we need it.
-# We'll try to use the socket module's value, and if it doesn't work,
-# we'll use our own value.
-
-try:
-    AF_INET6 = socket.AF_INET6
-except AttributeError:
-    AF_INET6 = 9999    # type: ignore
+AF_INET6 = socket.AF_INET6
 
 
 def inet_pton(family, text):
