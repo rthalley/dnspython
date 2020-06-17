@@ -424,8 +424,6 @@ class XfrTests(unittest.TestCase):
             expected = dns.message.from_text(ixfr_up_to_date_message,
                                              one_rr_per_rrset=True)
             expected.id = l[0].id
-            print(expected)
-            print(l[0])
             self.assertEqual(l[0], expected)
 
     def test_ixfr_trailing_junk(self):
