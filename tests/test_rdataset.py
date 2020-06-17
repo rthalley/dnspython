@@ -15,6 +15,8 @@ class RdatasetTestCase(unittest.TestCase):
                                          ['xn--knigsgsschen-lcb0w'])
         self.assertEqual(r1, r2)
 
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
     def testCodec2008(self):
         r1 = dns.rdataset.from_text_list('in', 'ns', 30,
                                          ['Königsgäßchen'],

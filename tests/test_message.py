@@ -244,6 +244,8 @@ class MessageTestCase(unittest.TestCase):
                                        idna_codec=dns.name.IDNA_2003)
         self.assertEqual(a.answer[0], rrs)
 
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
     def test_IDNA_2008(self):
         a = dns.message.from_text(idna_text, idna_codec=dns.name.IDNA_2008)
         rrs = dns.rrset.from_text_list('xn--knigsgchen-b4a3dun.', 30,

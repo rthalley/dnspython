@@ -25,6 +25,7 @@ from typing import cast
 
 import dns.exception
 import dns.message
+import dns.name
 import dns.rdata
 import dns.rdataset
 import dns.rdataclass
@@ -613,6 +614,8 @@ class ZoneTestCase(unittest.TestCase):
         rrs = z.find_rrset(n2003, 'NS')
         self.assertEqual(rrs[0].target, n2003)
 
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
     def testCodec2008(self):
         z = dns.zone.from_text(codec_text, 'example.', relativize=True,
                                idna_codec=dns.name.IDNA_2008)

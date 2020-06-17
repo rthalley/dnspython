@@ -124,6 +124,8 @@ class RdataTestCase(unittest.TestCase):
                                     "Königsgäßchen")
         self.assertEqual(str(rdata.target), 'xn--knigsgsschen-lcb0w')
 
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
     def test_unicode_idna2008_in_rdata(self):
         rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS,
                                     "Königsgäßchen",
