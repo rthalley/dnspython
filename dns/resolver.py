@@ -616,6 +616,7 @@ class _Resolution:
                                 ex, response))
             if isinstance(ex, dns.exception.FormError) or \
                isinstance(ex, EOFError) or \
+               isinstance(ex, OSError) or \
                isinstance(ex, NotImplementedError):
                 # This nameserver is no good, take it out of the mix.
                 self.nameservers.remove(self.nameserver)
@@ -658,8 +659,7 @@ class _Resolution:
         else:
             #
             # We got a response, but we're not happy with the
-            # rcode in it.  Remove the server from the mix if
-            # the rcode isn't SERVFAIL.
+            # rcode in it.
             #
             if rcode != dns.rcode.SERVFAIL or not self.resolver.retry_servfail:
                 self.nameservers.remove(self.nameserver)
@@ -706,7 +706,7 @@ class Resolver:
         self.search = []
         self.use_search_by_default = False
         self.timeout = 2.0
-        self.lifetime = 30.0
+        self.lifetime = 5.0
         self.keyring = None
         self.keyname = None
         self.keyalgorithm = dns.tsig.default_algorithm
