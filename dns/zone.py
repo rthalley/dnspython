@@ -772,23 +772,20 @@ class _MasterReader:
             raise dns.exception.SyntaxError(
                 "caught exception {}: {}".format(str(ty), str(va)))
 
-        if not self.default_ttl_known and \
-           isinstance(rd, dns.rdtypes.ANY.SOA.SOA):
+        if not self.default_ttl_known and rdtype == dns.rdatatype.SOA:
             # The pre-RFC2308 and pre-BIND9 behavior inherits the zone default
             # TTL from the SOA minttl if no $TTL statement is present before the
             # SOA is parsed.
             self.default_ttl = rd.minimum
             self.default_ttl_known = True
+            if ttl is None:
+                # if we didn't have a TTL on the SOA, set it!
+                ttl = rd.minimum
 
-        # TTL check
+        # TTL check.  We had to wait until now to do this as the SOA RR's
+        # own TTL can be inferred from its minimum.
         if ttl is None:
-            if not (self.last_ttl_known or self.default_ttl_known):
-                raise dns.exception.SyntaxError("Missing default TTL value")
-            else:
-                if self.default_ttl_known:
-                    ttl = self.default_ttl
-                else:
-                    ttl = self.last_ttl
+            raise dns.exception.SyntaxError("Missing default TTL value")
 
         covers = rd.covers()
         rds = n.find_rdataset(rdclass, rdtype, covers, True)
