@@ -190,6 +190,52 @@ class QueryTests(unittest.TestCase):
             self.assertFalse(tcp)
 
 
+# for brevity
+_d_and_s = dns.query._destination_and_source
+
+class DestinationAndSourceTests(unittest.TestCase):
+
+    def test_af_inferred_from_where(self):
+        (af, d, s) = _d_and_s('1.2.3.4', 53, None, 0)
+        self.assertEqual(af, dns.inet.AF_INET)
+
+    def test_af_inferred_from_where(self):
+        (af, d, s) = _d_and_s('1::2', 53, None, 0)
+        self.assertEqual(af, dns.inet.AF_INET6)
+
+    def test_af_inferred_from_source(self):
+        (af, d, s) = _d_and_s('https://example/dns-query', 443,
+                              '1.2.3.4', 0, False)
+        self.assertEqual(af, dns.inet.AF_INET)
+
+    def test_af_mismatch(self):
+        def bad():
+            (af, d, s) = _d_and_s('1::2', 53, '1.2.3.4', 0)
+        self.assertRaises(ValueError, bad)
+
+    def test_source_port_but_no_af_inferred(self):
+        def bad():
+            (af, d, s) = _d_and_s('https://example/dns-query', 443,
+                                  None, 12345, False)
+        self.assertRaises(ValueError, bad)
+
+    def test_where_must_be_an_address(self):
+        def bad():
+            (af, d, s) = _d_and_s('not a valid address', 53, '1.2.3.4', 0)
+        self.assertRaises(ValueError, bad)
+
+    def test_destination_is_none_of_where_url(self):
+        (af, d, s) = _d_and_s('https://example/dns-query', 443, None, 0, False)
+        self.assertEqual(d, None)
+
+    def test_v4_wildcard_source_set(self):
+        (af, d, s) = _d_and_s('1.2.3.4', 53, None, 12345)
+        self.assertEqual(s, ('0.0.0.0', 12345))
+
+    def test_v6_wildcard_source_set(self):
+        (af, d, s) = _d_and_s('1::2', 53, None, 12345)
+        self.assertEqual(s, ('::', 12345, 0, 0))
+
 axfr_zone = '''
 $ORIGIN example.
 $TTL 300
