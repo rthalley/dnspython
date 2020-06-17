@@ -284,6 +284,27 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.assertEqual(t, ('1.2.3.4', 53))
         t = dns.inet.low_level_address_tuple(('2600::1', 53), socket.AF_INET6)
         self.assertEqual(t, ('2600::1', 53, 0, 0))
+        t = dns.inet.low_level_address_tuple(('fd80::1%2', 53), socket.AF_INET6)
+        self.assertEqual(t, ('fd80::1', 53, 0, 2))
+        try:
+            # This can fail on windows for python < 3.8, so we tolerate
+            # the failure and only test if we have something we can work
+            # with.
+            info = socket.if_nameindex()
+        except Exception:
+            info = []
+        if info:
+            # find first thing on list that is not zero (should be first thing!
+            pair = None
+            for p in info:
+                if p[0] != 0:
+                    pair = p
+                    break
+            if pair:
+                address = 'fd80::1%' + pair[1]
+                t = dns.inet.low_level_address_tuple((address, 53),
+                                                     socket.AF_INET6)
+                self.assertEqual(t, ('fd80::1', 53, 0, pair[0]))
         def bad():
             bogus = socket.AF_INET + socket.AF_INET6 + 1
             t = dns.inet.low_level_address_tuple(('2600::1', 53), bogus)
