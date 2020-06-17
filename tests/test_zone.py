@@ -695,6 +695,11 @@ class ZoneTestCase(unittest.TestCase):
             dns.zone.from_text('foo 300 in a 10.0.0.1')
         self.assertRaises(dns.zone.UnknownOrigin, bad)
 
+    def testBadClass(self):
+        def bad():
+            dns.zone.from_text('foo 300 ch txt hi', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
     def testDangling(self):
         def bad1():
             dns.zone.from_text('foo', 'example.')
