@@ -897,11 +897,8 @@ class _MasterReader:
             raise dns.exception.SyntaxError("unknown rdatatype '%s'" %
                                             token.value)
 
-        # lhs (required)
-        try:
-            rhs = token.value
-        except Exception:
-            raise dns.exception.SyntaxError
+        # rhs (required)
+        rhs = token.value
 
         lmod, lsign, loffset, lwidth, lbase = self._parse_modify(lhs)
         rmod, rsign, roffset, rwidth, rbase = self._parse_modify(rhs)
