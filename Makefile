@@ -83,4 +83,4 @@ poflake:
 pocov:
 	poetry run coverage run -m pytest
 	poetry run coverage html --include 'dns*'
-	poetry run coverage report --include 'dns*' --omit 'dns/rdtypes/*'
+	poetry run coverage report --include 'dns*'
