@@ -14,6 +14,12 @@ class EntropyTestCase(unittest.TestCase):
         self.assertEqual(pool.random_32(), 4226376065)
         self.assertEqual(pool.random_between(10, 50), 29)
 
+    def test_pool_random(self):
+        pool = dns.entropy.EntropyPool()
+        values = {pool.random_32() for n in range(12)}
+        # Make sure that the results are at least somewhat random.
+        self.assertGreater(len(values), 8)
+
     def test_functions(self):
         v = dns.entropy.random_16()
         self.assertTrue(0 <= v <= 65535)
