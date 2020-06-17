@@ -29,6 +29,7 @@ class OptionTestCase(unittest.TestCase):
         opt.to_wire(io)
         data = io.getvalue()
         self.assertEqual(data, b'data')
+        self.assertEqual(dns.edns.option_from_wire(3, data, 0, len(data)), opt)
 
     def testECSOption_prefix_length(self):
         opt = dns.edns.ECSOption('1.2.255.33', 20)
@@ -36,14 +37,6 @@ class OptionTestCase(unittest.TestCase):
         opt.to_wire(io)
         data = io.getvalue()
         self.assertEqual(data, b'\x00\x01\x14\x00\x01\x02\xf0')
-
-    def testECSOption_from_wire(self):
-        opt = dns.edns.option_from_wire(8, b'\x00\x01\x14\x00\x01\x02\xf0',
-                                        0, 7)
-        self.assertEqual(opt.otype, dns.edns.ECS)
-        self.assertEqual(opt.address, '1.2.240.0')
-        self.assertEqual(opt.srclen, 20)
-        self.assertEqual(opt.scopelen, 0)
 
     def testECSOption(self):
         opt = dns.edns.ECSOption('1.2.3.4', 24)
@@ -59,12 +52,24 @@ class OptionTestCase(unittest.TestCase):
         data = io.getvalue()
         self.assertEqual(data, b'\x00\x01\x19\x00\x01\x02\x03\x80')
 
+        opt2 = dns.edns.option_from_wire(dns.edns.ECS, data, 0, len(data))
+        self.assertEqual(opt2.otype, dns.edns.ECS)
+        self.assertEqual(opt2.address, '1.2.3.128')
+        self.assertEqual(opt2.srclen, 25)
+        self.assertEqual(opt2.scopelen, 0)
+
     def testECSOption_v6(self):
         opt = dns.edns.ECSOption('2001:4b98::1')
         io = BytesIO()
         opt.to_wire(io)
         data = io.getvalue()
         self.assertEqual(data, b'\x00\x02\x38\x00\x20\x01\x4b\x98\x00\x00\x00')
+
+        opt2 = dns.edns.option_from_wire(dns.edns.ECS, data, 0, len(data))
+        self.assertEqual(opt2.otype, dns.edns.ECS)
+        self.assertEqual(opt2.address, '2001:4b98::')
+        self.assertEqual(opt2.srclen, 56)
+        self.assertEqual(opt2.scopelen, 0)
 
     def testECSOption_from_text_valid(self):
         ecs1 = dns.edns.ECSOption.from_text('1.2.3.4/24/0')
