@@ -26,6 +26,7 @@ from typing import cast
 import dns.exception
 import dns.message
 import dns.name
+import dns.node
 import dns.rdata
 import dns.rdataset
 import dns.rdataclass
@@ -139,6 +140,32 @@ codec_text = """
 @ ns ns1
 @ ns ns2
 Königsgäßchen 300 NS Königsgäßchen
+"""
+
+misc_cases_input = """
+$ORIGIN example.
+$TTL 300
+      
+@ soa foo bar 1 2 3 4 5
+@ ns ns1
+@ ns ns2
+out-of-zone. in a 10.0.0.1
+"""
+
+misc_cases_expected = """
+$ORIGIN example.
+$TTL 300
+@ soa foo bar 1 2 3 4 5
+@ ns ns1
+@ ns ns2
+"""
+
+last_ttl_input = """
+$ORIGIN example.
+@ 300 ns ns1
+@ 300 ns ns2
+foo a 10.0.0.1
+@ soa foo bar 1 2 3 4 5
 """
 
 _keep_output = True
@@ -511,6 +538,36 @@ class ZoneTestCase(unittest.TestCase):
         exl.sort(key=_rdata_sort)
         self.assertEqual(l, exl)
 
+    def testNodeGetSetDel(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        n = z.node_factory()
+        rds = dns.rdataset.from_text('IN', 'A', 300, '10.0.0.1')
+        n.replace_rdataset(rds)
+        z['foo'] = n
+        self.assertTrue(z.find_rdataset('foo', 'A') is rds)
+        self.assertEqual(z['foo'], n)
+        self.assertEqual(z.get('foo'), n)
+        del z['foo']
+        self.assertEqual(z.get('foo'), None)
+        def bad1():
+            z[123] = n
+        self.assertRaises(KeyError, bad1)
+        def bad2():
+            z['foo.'] = n
+        self.assertRaises(KeyError, bad2)
+        def bad3():
+            bn = z.find_node('bar')
+        self.assertRaises(KeyError, bad3)
+        bn = z.find_node('bar', True)
+        self.assertTrue(isinstance(bn, dns.node.Node))
+
+    def testBadReplacement(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        rds = dns.rdataset.from_text('CH', 'TXT', 300, 'hi')
+        def bad():
+            z.replace_rdataset('foo', rds)
+        self.assertRaises(ValueError, bad)
+
     def testTTLs(self): # type: () -> None
         z = dns.zone.from_text(ttl_example_text, 'example.', relativize=True)
         n = z['@'] # type: dns.node.Node
@@ -625,6 +682,37 @@ class ZoneTestCase(unittest.TestCase):
         self.assertTrue(n2008 in z)
         rrs = z.find_rrset(n2008, 'NS')
         self.assertEqual(rrs[0].target, n2008)
+
+    def testZoneMiscCases(self):
+        # test that leading whitespace folllowed by EOL is treated like
+        # a blank line, and that out-of-zone names are dropped.
+        z1 = dns.zone.from_text(misc_cases_input, 'example.')
+        z2 = dns.zone.from_text(misc_cases_expected, 'example.')
+        self.assertEqual(z1, z2)
+
+    def testUnknownOrigin(self):
+        def bad():
+            dns.zone.from_text('foo 300 in a 10.0.0.1')
+        self.assertRaises(dns.zone.UnknownOrigin, bad)
+
+    def testDangling(self):
+        def bad1():
+            dns.zone.from_text('foo', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad1)
+        def bad2():
+            dns.zone.from_text('foo 300', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad2)
+        def bad3():
+            dns.zone.from_text('foo 300 in', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad3)
+        def bad4():
+            dns.zone.from_text('foo 300 in a', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad4)
+
+    def testUseLastTTL(self):
+        z = dns.zone.from_text(last_ttl_input, 'example.')
+        rds = z.find_rdataset('foo', 'A')
+        self.assertEqual(rds.ttl, 300)
 
 if __name__ == '__main__':
     unittest.main()
