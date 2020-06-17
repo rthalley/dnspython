@@ -37,7 +37,7 @@ class WireData(bytes):
                         raise dns.exception.FormError
 
                 return WireData(super().__getitem__(key))
-            return self.unwrap()[key]
+            return super().__getitem__(key)
         except IndexError:
             raise dns.exception.FormError
 
