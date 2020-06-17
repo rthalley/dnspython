@@ -144,6 +144,15 @@ class MessageTestCase(unittest.TestCase):
         m = dns.message.from_wire(goodwire3)
         self.assertEqual(str(m), query_text_2)
 
+    def test_EDNS_options_wire(self):
+        m = dns.message.make_query('foo', 'A')
+        opt = dns.edns.GenericOption(3, b'data')
+        m.use_edns(options=[opt])
+        m2 = dns.message.from_wire(m.to_wire())
+        self.assertEqual(m2.edns, 0)
+        self.assertEqual(len(m2.options), 1)
+        self.assertEqual(m2.options[0], opt)
+
     def test_TooBig(self):
         def bad():
             q = dns.message.from_text(query_text)
