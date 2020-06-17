@@ -146,13 +146,17 @@ class NameTestCase(unittest.TestCase):
         n1 = dns.name.from_text('a')
         n2 = dns.name.from_text('b')
         self.assertLess(n1, n2)
+        self.assertLessEqual(n1, n2)
         self.assertGreater(n2, n1)
+        self.assertGreaterEqual(n2, n1)
 
     def testCompare2(self):
         n1 = dns.name.from_text('')
         n2 = dns.name.from_text('b')
         self.assertLess(n1, n2)
+        self.assertLessEqual(n1, n2)
         self.assertGreater(n2, n1)
+        self.assertGreaterEqual(n2, n1)
 
     def testCompare3(self):
         self.assertLess(dns.name.empty, dns.name.root)
