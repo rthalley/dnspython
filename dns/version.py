@@ -31,13 +31,13 @@ SERIAL = 1
 if RELEASELEVEL == 0x0f:
     #: version
     version = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-elif RELEASELEVEL == 0x00:
+elif RELEASELEVEL == 0x00:  # pragma: no cover
     version = '%d.%d.%ddev%d' % \
               (MAJOR, MINOR, MICRO, SERIAL)
-elif RELEASELEVEL == 0x0c:
+elif RELEASELEVEL == 0x0c:  # pragma: no cover
     version = '%d.%d.%drc%d' % \
               (MAJOR, MINOR, MICRO, SERIAL)
-else:
+else:  # pragma: no cover
     version = '%d.%d.%d%x%d' % \
               (MAJOR, MINOR, MICRO, RELEASELEVEL, SERIAL)
 
