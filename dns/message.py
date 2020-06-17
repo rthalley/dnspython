@@ -826,7 +826,7 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     Raises ``dns.message.ShortHeader`` if the message is less than 12 octets
     long.
 
-    Raises ``dns.messaage.TrailingJunk`` if there were octets in the message
+    Raises ``dns.message.TrailingJunk`` if there were octets in the message
     past the end of the proper DNS message, and *ignore_trailing* is ``False``.
 
     Raises ``dns.message.BadEDNS`` if an OPT record was in the
