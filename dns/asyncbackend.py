@@ -70,6 +70,7 @@ def sniff():
             # we have to check current_task on 3.6
             if not asyncio.Task.current_task():
                 raise AsyncLibraryNotFoundError('no async library detected')
+            return 'asyncio'
 
 
 def get_default_backend():
