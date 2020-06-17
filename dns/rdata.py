@@ -200,21 +200,6 @@ class Rdata:
 
         return self.to_wire(origin=origin, canonicalize=True)
 
-    def validate(self):
-        """Check that the current contents of the rdata's fields are
-        valid.
-
-        If you change an rdata by assigning to its fields,
-        it is a good idea to call validate() when you are done making
-        changes.
-
-        Raises various exceptions if there are problems.
-
-        Returns ``None``.
-        """
-
-        dns.rdata.from_text(self.rdclass, self.rdtype, self.to_text())
-
     def __repr__(self):
         covers = self.covers()
         if covers == dns.rdatatype.NONE:
