@@ -191,15 +191,15 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
     s = None
     # After 3.6 is no longer supported, this can use an AsyncExitStack.
     try:
+        af = dns.inet.af_for_address(where)
+        destination = _lltuple((where, port), af)
         if sock:
             s = sock
         else:
             if not backend:
                 backend = dns.asyncbackend.get_default_backend()
-            af = dns.inet.af_for_address(where)
             stuple = _source_tuple(af, source, source_port)
             s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple)
-            destination = _lltuple((where, port), af)
         await send_udp(s, wire, destination, expiration)
         (r, received_time) = await receive_udp(s, destination, expiration,
                                                ignore_unexpected,

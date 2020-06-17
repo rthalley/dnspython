@@ -28,7 +28,7 @@ class Socket:  # pragma: no cover
         pass
 
     async def __aenter__(self):
-        pass
+        return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.close()
