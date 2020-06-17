@@ -752,6 +752,11 @@ class NameTestCase(unittest.TestCase):
                                   idna_codec=dns.name.IDNA_2008_Practical)
         self.assertEqual(str(e), '_sip._tcp.xn--knigsgchen-b4a3dun.')
 
+    def testFromUnicodeEscapes(self):
+        n = dns.name.from_unicode(r'\097.\098.\099.')
+        t = n.to_unicode()
+        self.assertEqual(t, 'a.b.c.')
+
     def testToUnicode1(self):
         n = dns.name.from_text('foo.bar')
         s = n.to_unicode()
