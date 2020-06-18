@@ -1,6 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import socket
+import sys
 import unittest
 
 import dns.name
@@ -79,6 +80,8 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
         b = dns.resolver._original_getaddrinfo(*args, **kwargs)
         return self.equivalent_info(a, b)
 
+    @unittest.skipIf(sys.platform == 'win32',
+                     'avoid windows original getaddrinfo issues')
     def test_basic_getaddrinfo(self):
         self.assertTrue(self.equivalent('dns.google', 53, socket.AF_INET,
                                         socket.SOCK_DGRAM))
