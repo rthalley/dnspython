@@ -189,6 +189,12 @@ class MessageTestCase(unittest.TestCase):
             dns.message.make_response(r1)
         self.assertRaises(dns.exception.FormError, bad)
 
+    def test_RespondingToEDNSRequestAndSettingRA(self):
+        q = dns.message.make_query('foo', 'A', use_edns=0)
+        r = dns.message.make_response(q, True)
+        self.assertTrue(r.flags & dns.flags.RA != 0)
+        self.assertEqual(r.edns, 0)
+
     def test_ExtendedRcodeSetting(self):
         m = dns.message.make_query('foo', 'A')
         m.set_rcode(4095)
