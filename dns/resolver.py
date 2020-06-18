@@ -30,6 +30,7 @@ except ImportError:
 
 import dns.exception
 import dns.flags
+import dns.inet
 import dns.ipv4
 import dns.ipv6
 import dns.message
@@ -1343,9 +1344,10 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
         # no EAI_SYSTEM on Windows [Issue #416].  We didn't go for
         # EAI_BADFLAGS as the flags aren't bad, we just don't
         # implement them.
-        raise socket.gaierror(socket.EAI_FAIL)
+        raise socket.gaierror(socket.EAI_FAIL,
+                              'Non-recoverable failure in name resolution')
     if host is None and service is None:
-        raise socket.gaierror(socket.EAI_NONAME)
+        raise socket.gaierror(socket.EAI_NONAME, 'Name or service not known')
     v6addrs = []
     v4addrs = []
     canonical_name = None
@@ -1384,12 +1386,14 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
                 for rdata in v4.rrset:
                     v4addrs.append(rdata.address)
     except dns.resolver.NXDOMAIN:
-        raise socket.gaierror(socket.EAI_NONAME)
-    except Exception:
+        raise socket.gaierror(socket.EAI_NONAME, 'Name or service not known')
+    except Exception as e:
+        print(e)
         # We raise EAI_AGAIN here as the failure may be temporary
         # (e.g. a timeout) and EAI_SYSTEM isn't defined on Windows.
         # [Issue #416]
-        raise socket.gaierror(socket.EAI_AGAIN)
+        raise socket.gaierror(socket.EAI_AGAIN,
+                              'Temporary failure in name resolution')
     port = None
     try:
         # Is it a port literal?
@@ -1404,7 +1408,7 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
             except Exception:
                 pass
     if port is None:
-        raise socket.gaierror(socket.EAI_NONAME)
+        raise socket.gaierror(socket.EAI_NONAME, 'Name or service not known')
     tuples = []
     if socktype == 0:
         socktypes = [socket.SOCK_DGRAM, socket.SOCK_STREAM]
@@ -1427,7 +1431,7 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
                     tuples.append((socket.AF_INET, socktype, proto,
                                    cname, (addr, port)))
     if len(tuples) == 0:
-        raise socket.gaierror(socket.EAI_NONAME)
+        raise socket.gaierror(socket.EAI_NONAME, 'Name or service not known')
     return tuples
 
 
@@ -1456,7 +1460,8 @@ def _getnameinfo(sockaddr, flags=0):
             hostname = answer.rrset[0].target.to_text(True)
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
             if flags & socket.NI_NAMEREQD:
-                raise socket.gaierror(socket.EAI_NONAME)
+                raise socket.gaierror(socket.EAI_NONAME,
+                                      'Name or service not known')
             hostname = addr
             if scope is not None:
                 hostname += '%' + str(scope)
@@ -1510,8 +1515,20 @@ def _gethostbyaddr(ip):
     tuples = _getaddrinfo(name, 0, family, socket.SOCK_STREAM, socket.SOL_TCP,
                           socket.AI_CANONNAME)
     canonical = tuples[0][3]
+    # We only want to include an address from the tuples if it's the
+    # same as the one we asked about.  We do this comparison in binary
+    # to avoid any differences in text representations.
+    try:
+        bin_ip = dns.inet.inet_pton(family, ip)
+    except Exception:
+        # socket.getfqdn() apparently calls gethostbyaddr() with a name,
+        # and this all works, so do what it does.
+        bin_ip = None
     for item in tuples:
-        addresses.append(item[4][0])
+        addr = item[4][0]
+        bin_addr = dns.inet.inet_pton(family, addr)
+        if bin_ip is None or bin_ip == bin_addr:
+            addresses.append(addr)
     # XXX we just ignore aliases
     return (canonical, aliases, addresses)
 
