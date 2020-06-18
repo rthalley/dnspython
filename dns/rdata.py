@@ -310,8 +310,13 @@ class Rdata:
         # kwargs if present, and the current value otherwise.
         args = (kwargs.get(key, getattr(self, key)) for key in parameters)
 
-        # Create and return the new object.
-        return self.__class__(*args)
+        # Create, validate, and return the new object.
+        #
+        # Note that if we make constructors do validation in the future,
+        # this validation can go away.
+        rd = self.__class__(*args)
+        dns.rdata.from_text(rd.rdclass, rd.rdtype, rd.to_text())
+        return rd
 
 
 class GenericRdata(Rdata):

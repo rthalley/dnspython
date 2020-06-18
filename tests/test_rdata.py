@@ -19,6 +19,7 @@
 import io
 import unittest
 
+import dns.exception
 import dns.name
 import dns.rdata
 import dns.rdataclass
@@ -78,6 +79,12 @@ class RdataTestCase(unittest.TestCase):
         for invalid_parameter in ("rdclass", "rdtype", "foo", "__class__"):
             with self.assertRaises(AttributeError):
                 mx.replace(invalid_parameter=1)
+
+    def test_invalid_replace(self):
+        a1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
+        def bad():
+            a1.replace(address="bogus")
+        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_to_generic(self):
         a = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
