@@ -17,6 +17,8 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import io
+import operator
+import pickle
 import unittest
 
 import dns.exception
@@ -200,6 +202,53 @@ class RdataTestCase(unittest.TestCase):
             digestable_wire = rdata.to_digestable(origin)
             expected_wire = rdata.to_wire(origin=origin)
             self.assertEqual(digestable_wire, expected_wire)
+
+    def test_basic_relations(self):
+        r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                 '10.0.0.1')
+        r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                 '10.0.0.2')
+        self.assertTrue(r1 == r1)
+        self.assertTrue(r1 != r2)
+        self.assertTrue(r1 < r2)
+        self.assertTrue(r1 <= r2)
+        self.assertTrue(r2 > r1)
+        self.assertTrue(r2 >= r1)
+
+    def test_incompatible_relations(self):
+        r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                 '10.0.0.1')
+        r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.AAAA,
+                                 '::1')
+        for oper in [operator.lt, operator.le, operator.ge, operator.gt]:
+            self.assertRaises(TypeError, lambda: oper(r1, r2))
+            self.assertFalse(r1 == r2)
+            self.assertTrue(r1 != r2)
+
+    def test_immutability(self):
+        def bad1():
+            r = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.1')
+            r.address = '10.0.0.2'
+        self.assertRaises(TypeError, bad1)
+        def bad2():
+            r = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    '10.0.0.1')
+            del r.address
+        self.assertRaises(TypeError, bad2)
+
+    def test_pickle(self):
+        r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                 '10.0.0.1')
+        p = pickle.dumps(r1)
+        r2 = pickle.loads(p)
+        self.assertEqual(r1, r2)
+        # Pickle something with a longer inheritance chain
+        r3 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
+                                 '10 mail.example.')
+        p = pickle.dumps(r3)
+        r4 = pickle.loads(p)
+        self.assertEqual(r3, r4)
 
 if __name__ == '__main__':
     unittest.main()
