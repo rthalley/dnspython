@@ -73,7 +73,7 @@ class Token:
     def is_comment(self):
         return self.ttype == COMMENT
 
-    def is_delimiter(self):
+    def is_delimiter(self):  # pragma: no cover (we don't return delimiters yet)
         return self.ttype == DELIMITER
 
     def is_eol_or_eof(self):
@@ -465,9 +465,9 @@ class Tokenizer:
     # Helpers
 
     def get_int(self, base=10):
-        """Read the next token and interpret it as an integer.
+        """Read the next token and interpret it as an unsigned integer.
 
-        Raises dns.exception.SyntaxError if not an integer.
+        Raises dns.exception.SyntaxError if not an unsigned integer.
 
         Returns an int.
         """
@@ -513,7 +513,7 @@ class Tokenizer:
                     '%d is not an unsigned 16-bit integer' % value)
         return value
 
-    def get_uint32(self):
+    def get_uint32(self, base=10):
         """Read the next token and interpret it as a 32-bit unsigned
         integer.
 
@@ -522,18 +522,13 @@ class Tokenizer:
         Returns an int.
         """
 
-        token = self.get().unescape()
-        if not token.is_identifier():
-            raise dns.exception.SyntaxError('expecting an identifier')
-        if not token.value.isdigit():
-            raise dns.exception.SyntaxError('expecting an integer')
-        value = int(token.value)
-        if value < 0 or value > 4294967296:
+        value = self.get_int(base=base)
+        if value < 0 or value > 4294967295:
             raise dns.exception.SyntaxError(
                 '%d is not an unsigned 32-bit integer' % value)
         return value
 
-    def get_string(self, origin=None, max_length=None):
+    def get_string(self, max_length=None):
         """Read the next token and interpret it as a string.
 
         Raises dns.exception.SyntaxError if not a string.
@@ -550,7 +545,7 @@ class Tokenizer:
             raise dns.exception.SyntaxError("string too long")
         return token.value
 
-    def get_identifier(self, origin=None):
+    def get_identifier(self):
         """Read the next token, which should be an identifier.
 
         Raises dns.exception.SyntaxError if not an identifier.
