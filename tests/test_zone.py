@@ -168,6 +168,13 @@ foo a 10.0.0.1
 @ soa foo bar 1 2 3 4 5
 """
 
+origin_sets_input = """
+$ORIGIN example.
+@ soa foo bar 1 2 3 4 5
+@ 300 ns ns1
+@ 300 ns ns2
+"""
+
 _keep_output = True
 
 def _rdata_sort(a):
@@ -700,6 +707,11 @@ class ZoneTestCase(unittest.TestCase):
             dns.zone.from_text('foo 300 ch txt hi', 'example.')
         self.assertRaises(dns.exception.SyntaxError, bad)
 
+    def testUnknownRdatatype(self):
+        def bad():
+            dns.zone.from_text('foo 300 BOGUSTYPE hi', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
     def testDangling(self):
         def bad1():
             dns.zone.from_text('foo', 'example.')
@@ -713,11 +725,26 @@ class ZoneTestCase(unittest.TestCase):
         def bad4():
             dns.zone.from_text('foo 300 in a', 'example.')
         self.assertRaises(dns.exception.SyntaxError, bad4)
+        def bad5():
+            dns.zone.from_text('$TTL', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad5)
+        def bad6():
+            dns.zone.from_text('$ORIGIN', 'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad6)
 
     def testUseLastTTL(self):
         z = dns.zone.from_text(last_ttl_input, 'example.')
         rds = z.find_rdataset('foo', 'A')
         self.assertEqual(rds.ttl, 300)
+
+    def testDollarOriginSetsZoneOriginIfUnknown(self):
+        z = dns.zone.from_text(origin_sets_input)
+        self.assertEqual(z.origin, dns.name.from_text('example'))
+
+    def testValidateNameRelativizesNameInZone(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        self.assertEqual(z._validate_name('foo.bar.example.'),
+                         dns.name.from_text('foo.bar', None))
 
 if __name__ == '__main__':
     unittest.main()

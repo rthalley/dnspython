@@ -138,6 +138,12 @@ ns2 3600 IN A 10.0.0.2
 $GENERATE 27-28 prefix-${0,3}  A 10.0.0.$
 """
 
+last_ttl_input = """foo 300 mx 10 target.
+$GENERATE 1-10 foo$ CNAME $.0
+@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns1
+@ 3600 IN NS ns2
+"""
 
 def _rdata_sort(a):
     return (a[0], a[2].rdclass, a[2].to_text())
@@ -544,6 +550,45 @@ class GenerateTestCase(unittest.TestCase):
         exl.sort(key=_rdata_sort)
         self.assertEqual(l, exl)
 
+    def testNoOrigin(self):
+        def bad():
+            dns.zone.from_text('$GENERATE 1-10 fooo$ CNAME $.0')
+        self.assertRaises(dns.zone.UnknownOrigin, bad)
+
+    def testBadRdata(self):
+        def bad():
+            dns.zone.from_text('$GENERATE 1-10 fooo$ CNAME 10 $.0', 'example')
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testUsesLastTTL(self):
+        z = dns.zone.from_text(last_ttl_input, 'example')
+        print(z.to_text())
+        rrs = z.find_rrset('foo9', 'CNAME')
+        self.assertEqual(rrs.ttl, 300)
+
+    def testClassMismatch(self):
+        def bad():
+            dns.zone.from_text('$GENERATE 1-10 fooo$ CH CNAME $.0', 'example')
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testUnknownRdatatype(self):
+        def bad():
+            dns.zone.from_text('$GENERATE 1-10 fooo$ BOGUSTYPE $.0', 'example')
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testBadAndDangling(self):
+        def bad1():
+            dns.zone.from_text('$GENERATE bogus fooo$ CNAME $.0',
+                               'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad1)
+        def bad2():
+            dns.zone.from_text('$GENERATE 1-10',
+                               'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad2)
+        def bad3():
+            dns.zone.from_text('$GENERATE 1-10 foo$',
+                               'example.')
+        self.assertRaises(dns.exception.SyntaxError, bad3)
 
 if __name__ == '__main__':
     unittest.main()
