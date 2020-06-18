@@ -113,7 +113,7 @@ pool = EntropyPool()
 
 try:
     system_random = random.SystemRandom()
-except Exception:
+except Exception:  # pragma: no cover
     system_random = None
 
 def random_16():

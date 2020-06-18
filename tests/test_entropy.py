@@ -37,3 +37,19 @@ class EntropyTestCase(unittest.TestCase):
         self.assertTrue(0 <= v <= 65535)
         v = dns.entropy.between(10, 50)
         self.assertTrue(10 <= v <= 50)
+
+
+class EntropyForcePoolTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.saved_system_random = dns.entropy.system_random
+        dns.entropy.system_random = None
+
+    def tearDown(self):
+        dns.entropy.system_random = self.saved_system_random
+
+    def test_functions(self):
+        v = dns.entropy.random_16()
+        self.assertTrue(0 <= v <= 65535)
+        v = dns.entropy.between(10, 50)
+        self.assertTrue(10 <= v <= 50)
