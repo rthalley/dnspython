@@ -20,6 +20,18 @@ class EntropyTestCase(unittest.TestCase):
         # Make sure that the results are at least somewhat random.
         self.assertGreater(len(values), 8)
 
+    def test_pool_random_between(self):
+        pool = dns.entropy.EntropyPool()
+        def bad():
+            pool.random_between(0, 4294967296)
+        self.assertRaises(ValueError, bad)
+        v = pool.random_between(50, 50 + 100000)
+        self.assertTrue(v >= 50 and v <= 50 + 100000)
+        v = pool.random_between(50, 50 + 10000)
+        self.assertTrue(v >= 50 and v <= 50 + 10000)
+        v = pool.random_between(50, 50 + 100)
+        self.assertTrue(v >= 50 and v <= 50 + 100)
+
     def test_functions(self):
         v = dns.entropy.random_16()
         self.assertTrue(0 <= v <= 65535)

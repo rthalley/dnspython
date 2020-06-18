@@ -21,7 +21,7 @@ import random
 import time
 try:
     import threading as _threading
-except ImportError:
+except ImportError:  # pragma: no cover
     import dummy_threading as _threading    # type: ignore
 
 
@@ -64,7 +64,7 @@ class EntropyPool:
         if not self.seeded or self.seed_pid != os.getpid():
             try:
                 seed = os.urandom(16)
-            except Exception:
+            except Exception:  # pragma: no cover
                 try:
                     with open('/dev/urandom', 'rb', 0) as r:
                         seed = r.read(16)
