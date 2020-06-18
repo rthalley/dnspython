@@ -64,10 +64,14 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
             return False
         for x in a:
             if x not in b:
-                print('NOT EQUIVALENT')
-                print(a)
-                print(b)
-                return False
+                # Windows does not set the protocol to non-zero, so try
+                # looking for a zero protocol.
+                y = (x[0], x[1], 0, x[3], x[4])
+                if y not in b:
+                    print('NOT EQUIVALENT')
+                    print(a)
+                    print(b)
+                    return False
         return True
 
     def equivalent(self, *args, **kwargs):
