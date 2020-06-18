@@ -201,5 +201,98 @@ class TokenizerTestCase(unittest.TestCase):
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
         self.assertEqual(t.value, r'child')
 
+    def testGetUInt(self):
+        tok = dns.tokenizer.Tokenizer('1234')
+        v = tok.get_int()
+        self.assertEqual(v, 1234)
+        def bad1():
+            tok = dns.tokenizer.Tokenizer('"1234"')
+            v = tok.get_int()
+        self.assertRaises(dns.exception.SyntaxError, bad1)
+        def bad2():
+            tok = dns.tokenizer.Tokenizer('q1234')
+            v = tok.get_int()
+        self.assertRaises(dns.exception.SyntaxError, bad2)
+        def bad3():
+            tok = dns.tokenizer.Tokenizer('4294967296')
+            v = tok.get_uint32()
+        self.assertRaises(dns.exception.SyntaxError, bad3)
+        def bad4():
+            tok = dns.tokenizer.Tokenizer('65536')
+            v = tok.get_uint16()
+        self.assertRaises(dns.exception.SyntaxError, bad4)
+        def bad5():
+            tok = dns.tokenizer.Tokenizer('256')
+            v = tok.get_uint8()
+        self.assertRaises(dns.exception.SyntaxError, bad5)
+        # Even though it is badly named get_int(), it's really get_unit!
+        def bad6():
+            tok = dns.tokenizer.Tokenizer('-1234')
+            v = tok.get_int()
+        self.assertRaises(dns.exception.SyntaxError, bad5)
+
+    def testGetString(self):
+        tok = dns.tokenizer.Tokenizer('foo')
+        v = tok.get_string()
+        self.assertEqual(v, 'foo')
+        tok = dns.tokenizer.Tokenizer('"foo"')
+        v = tok.get_string()
+        self.assertEqual(v, 'foo')
+        tok = dns.tokenizer.Tokenizer('abcdefghij')
+        v = tok.get_string(max_length=10)
+        self.assertEqual(v, 'abcdefghij')
+        def bad():
+            tok = dns.tokenizer.Tokenizer('abcdefghij')
+            v = tok.get_string(max_length=9)
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testMultiLineWithComment(self):
+        tok = dns.tokenizer.Tokenizer('( ; abc\n)')
+        tok.get_eol()
+        # Nothing to assert here, as we're testing tok.get_eol() does NOT
+        # raise.
+
+    def testEOLAfterComment(self):
+        tok = dns.tokenizer.Tokenizer('; abc\n')
+        t = tok.get()
+        self.assertTrue(t.is_eol())
+
+    def testEOFAfterComment(self):
+        tok = dns.tokenizer.Tokenizer('; abc')
+        t = tok.get()
+        self.assertTrue(t.is_eof())
+
+    def testMultiLineWithEOFAfterComment(self):
+        def bad():
+            tok = dns.tokenizer.Tokenizer('( ; abc')
+            tok.get_eol()
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testEscapeUnexpectedEnd(self):
+        def bad():
+            tok = dns.tokenizer.Tokenizer('\\')
+            tok.get()
+        self.assertRaises(dns.exception.UnexpectedEnd, bad)
+
+    def testGetUngetRegetComment(self):
+        tok = dns.tokenizer.Tokenizer(';comment')
+        t1 = tok.get(want_comment=True)
+        tok.unget(t1)
+        t2 = tok.get(want_comment=True)
+        self.assertEqual(t1, t2)
+
+    def testBadAsName(self):
+        def bad():
+            tok = dns.tokenizer.Tokenizer('"not an identifier"')
+            t = tok.get()
+            tok.as_name(t)
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testBadGetTTL(self):
+        def bad():
+            tok = dns.tokenizer.Tokenizer('"not an identifier"')
+            v = tok.get_ttl()
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
 if __name__ == '__main__':
     unittest.main()
