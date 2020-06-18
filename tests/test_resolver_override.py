@@ -64,6 +64,9 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
             return False
         for x in a:
             if x not in b:
+                print('NOT EQUIVALENT')
+                print(a)
+                print(b)
                 return False
         return True
 
