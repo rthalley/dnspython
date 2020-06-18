@@ -193,6 +193,11 @@ abs_ed448_mx_rrsig_2 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
 
 when5 = 1440021600
 
+class DNSSECMakeDSTestCase(unittest.TestCase):
+    def testMnemonicParser(self):
+        good_ds_mnemonic = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
+                              '57349 RSASHA1 2 53A79A3E7488AB44FFC56B2D1109F0699D1796DD977E72108B841F96 E47D7013')
+        self.assertEqual(good_ds, good_ds_mnemonic)
 
 @unittest.skipUnless(dns.dnssec._have_pyca,
                      "Python Cryptography cannot be imported")
