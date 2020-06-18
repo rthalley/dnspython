@@ -46,7 +46,7 @@ class DSBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         key_tag = tok.get_uint16()
-        algorithm = tok.get_uint8()
+        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         digest_type = tok.get_uint8()
         chunks = []
         while 1:
