@@ -297,7 +297,8 @@ class Tokenizer:
         """
 
         if self.ungotten_char is not None:
-            raise UngetBufferFull
+            # this should never happen!
+            raise UngetBufferFull  # pragma: no cover
         self.ungotten_char = c
 
     def skip_whitespace(self):

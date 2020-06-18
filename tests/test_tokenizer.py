@@ -294,5 +294,39 @@ class TokenizerTestCase(unittest.TestCase):
             v = tok.get_ttl()
         self.assertRaises(dns.exception.SyntaxError, bad)
 
+    def testDanglingEscapes(self):
+        def bad1():
+            tok = dns.tokenizer.Tokenizer('"\\"')
+            t = tok.get().unescape()
+        self.assertRaises(dns.exception.SyntaxError, bad1)
+        def bad2():
+            tok = dns.tokenizer.Tokenizer('"\\0"')
+            t = tok.get().unescape()
+        self.assertRaises(dns.exception.SyntaxError, bad2)
+        def bad3():
+            tok = dns.tokenizer.Tokenizer('"\\00"')
+            t = tok.get().unescape()
+        self.assertRaises(dns.exception.SyntaxError, bad3)
+        def bad4():
+            tok = dns.tokenizer.Tokenizer('"\\"')
+            t = tok.get().unescape_to_bytes()
+        self.assertRaises(dns.exception.SyntaxError, bad4)
+        def bad5():
+            tok = dns.tokenizer.Tokenizer('"\\0"')
+            t = tok.get().unescape_to_bytes()
+        self.assertRaises(dns.exception.SyntaxError, bad5)
+        def bad6():
+            tok = dns.tokenizer.Tokenizer('"\\00"')
+            t = tok.get().unescape_to_bytes()
+        self.assertRaises(dns.exception.SyntaxError, bad6)
+        def bad7():
+            tok = dns.tokenizer.Tokenizer('"\\00a"')
+            t = tok.get().unescape()
+        self.assertRaises(dns.exception.SyntaxError, bad7)
+        def bad8():
+            tok = dns.tokenizer.Tokenizer('"\\00a"')
+            t = tok.get().unescape_to_bytes()
+        self.assertRaises(dns.exception.SyntaxError, bad8)
+
 if __name__ == '__main__':
     unittest.main()
