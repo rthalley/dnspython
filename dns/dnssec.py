@@ -556,7 +556,8 @@ def nsec3_hash(domain, salt, iterations, algorithm):
 
 
 def _need_pyca(*args, **kwargs):
-    raise ImportError("DNSSEC validation requires python cryptography")
+    raise ImportError("DNSSEC validation requires " +
+                      "python cryptography")  # pragma: no cover
 
 
 try:
@@ -570,7 +571,7 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     from cryptography.hazmat.primitives.asymmetric import ed448
     from cryptography.hazmat.primitives.asymmetric import rsa
-except ImportError:
+except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca
     _have_pyca = False
