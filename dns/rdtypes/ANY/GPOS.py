@@ -23,11 +23,16 @@ import dns.tokenizer
 
 
 def _validate_float_string(what):
+    if len(what) == 0:
+        raise dns.exception.FormError
     if what[0] == b'-'[0] or what[0] == b'+'[0]:
         what = what[1:]
     if what.isdigit():
         return
-    (left, right) = what.split(b'.')
+    try:
+        (left, right) = what.split(b'.')
+    except ValueError:
+        raise dns.exception.FormError
     if left == b'' and right == b'':
         raise dns.exception.FormError
     if not left == b'' and not left.decode().isdigit():
@@ -70,6 +75,12 @@ class GPOS(dns.rdata.Rdata):
         object.__setattr__(self, 'latitude', latitude)
         object.__setattr__(self, 'longitude', longitude)
         object.__setattr__(self, 'altitude', altitude)
+        flat = self.float_latitude
+        if flat < -90.0 or flat > 90.0:
+            raise dns.exception.FormError('bad latitude')
+        flong = self.float_latitude
+        if flong < -180.0 or flong > 180.0:
+            raise dns.exception.FormError('bad longitude')
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '{} {} {}'.format(self.latitude.decode(),
