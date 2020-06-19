@@ -239,6 +239,10 @@ class Message:
                 dns.rcode.NOERROR:
             return True
         if dns.opcode.is_update(self.flags):
+            # This is assuming the "sender doesn't include anything
+            # from the update", but we don't care to check the other
+            # case, which is that all the sections are returned and
+            # identical.
             return True
         for n in self.question:
             if n not in other.question:
