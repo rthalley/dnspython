@@ -269,5 +269,35 @@ class MessageTestCase(unittest.TestCase):
                                        idna_codec=dns.name.IDNA_2008)
         self.assertEqual(a.answer[0], rrs)
 
+    def test_bad_section_number(self):
+        m = dns.message.make_query('foo', 'A')
+        self.assertRaises(ValueError,
+                          lambda: m.section_number(123))
+
+    def test_section_from_number(self):
+        m = dns.message.make_query('foo', 'A')
+        self.assertEqual(m.section_from_number(dns.message.QUESTION),
+                         m.question)
+        self.assertEqual(m.section_from_number(dns.message.ANSWER),
+                         m.answer)
+        self.assertEqual(m.section_from_number(dns.message.AUTHORITY),
+                         m.authority)
+        self.assertEqual(m.section_from_number(dns.message.ADDITIONAL),
+                         m.additional)
+        self.assertRaises(ValueError,
+                          lambda: m.section_from_number(999))
+
+    def test_wanting_EDNS_true_is_EDNS0(self):
+        m = dns.message.make_query('foo', 'A')
+        self.assertEqual(m.edns, -1)
+        m.use_edns(True)
+        self.assertEqual(m.edns, 0)
+
+    def test_wanting_DNSSEC_turns_on_EDNS(self):
+        m = dns.message.make_query('foo', 'A')
+        self.assertEqual(m.edns, -1)
+        m.want_dnssec()
+        self.assertEqual(m.edns, 0)
+
 if __name__ == '__main__':
     unittest.main()
