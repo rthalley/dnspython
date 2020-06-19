@@ -17,6 +17,7 @@
 
 import asyncio
 import socket
+import time
 import unittest
 
 import dns.asyncbackend
@@ -360,9 +361,10 @@ class AsyncTests(unittest.TestCase):
     def testSleep(self):
         async def run():
             before = time.time()
-            self.backend.sleep(0.1)
+            await self.backend.sleep(0.1)
             after = time.time()
             self.assertTrue(after - before >= 0.1)
+        self.async_run(run)
 
 try:
     import trio

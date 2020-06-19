@@ -12,7 +12,7 @@ import dns.exception
 def _get_running_loop():
     try:
         return asyncio.get_running_loop()
-    except AttributeError:
+    except AttributeError:  # pragma: no cover
         return asyncio.get_event_loop()
 
 
@@ -29,7 +29,7 @@ class _DatagramProtocol:
             self.recvfrom.set_result((data, addr))
             self.recvfrom = None
 
-    def error_received(self, exc):
+    def error_received(self, exc):  # pragma: no cover
         if self.recvfrom:
             self.recvfrom.set_exception(exc)
 
@@ -96,7 +96,7 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
         self.writer.close()
         try:
             await self.writer.wait_closed()
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             pass
 
     async def getpeername(self):
