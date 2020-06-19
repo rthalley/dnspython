@@ -69,7 +69,7 @@ class Option:
         Returns a ``bytes`` or ``None``.
 
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     @classmethod
     def from_wire(cls, otype, wire, current, olen):
@@ -87,14 +87,20 @@ class Option:
         Returns a ``dns.edns.Option``.
         """
 
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def _cmp(self, other):
         """Compare an EDNS option with another option of the same type.
 
         Returns < 0 if < *other*, 0 if == *other*, and > 0 if > *other*.
         """
-        raise NotImplementedError
+        wire = self.to_wire()
+        owire = other.to_wire()
+        if wire == owire:
+            return 0
+        if wire > owire:
+            return 1
+        return -1
 
     def __eq__(self, other):
         if not isinstance(other, Option):
@@ -105,9 +111,9 @@ class Option:
 
     def __ne__(self, other):
         if not isinstance(other, Option):
-            return False
+            return True
         if self.otype != other.otype:
-            return False
+            return True
         return self._cmp(other) != 0
 
     def __lt__(self, other):
@@ -159,13 +165,6 @@ class GenericOption(Option):
     @classmethod
     def from_wire(cls, otype, wire, current, olen):
         return cls(otype, wire[current: current + olen])
-
-    def _cmp(self, other):
-        if self.data == other.data:
-            return 0
-        if self.data > other.data:
-            return 1
-        return -1
 
     def __str__(self):
         return self.to_text()
@@ -298,13 +297,6 @@ class ECSOption(Option):
             raise ValueError('unsupported family')
 
         return cls(addr, src, scope)
-
-    def _cmp(self, other):
-        if self.addrdata == other.addrdata:
-            return 0
-        if self.addrdata > other.addrdata:
-            return 1
-        return -1
 
     def __str__(self):
         return self.to_text()
