@@ -598,7 +598,11 @@ class NaptrNanoNameserver(Server):
         response.set_rcode(dns.rcode.REFUSED)
         response.flags |= dns.flags.RA
         try:
-            if message.question[0].rdtype == dns.rdatatype.NAPTR and \
+            zero_subdomain = dns.e164.from_e164('0')
+            if message.question[0].name.is_subdomain(zero_subdomain):
+                response.set_rcode(dns.rcode.NXDOMAIN)
+                response.flags |= dns.flags.AA
+            elif message.question[0].rdtype == dns.rdatatype.NAPTR and \
                message.question[0].rdclass == dns.rdataclass.IN:
                 rrs = dns.rrset.from_text(message.question[0].name, 300,
                                           'IN', 'NAPTR',
@@ -627,3 +631,6 @@ class NanoTests(unittest.TestCase):
             self.assertEqual(answer[0].service, b'')
             self.assertEqual(answer[0].regexp, b'')
             self.assertEqual(answer[0].replacement, dns.name.root)
+            def nxdomain():
+                answer = dns.e164.query('0123456789', ['e164.arpa'], res)
+            self.assertRaises(dns.resolver.NXDOMAIN, nxdomain)

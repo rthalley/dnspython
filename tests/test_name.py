@@ -886,5 +886,10 @@ class NameTestCase(unittest.TestCase):
         text = dns.e164.to_e164(n)
         self.assertEqual(text, e)
 
+    def testBadEnumToE164(self):
+        n = dns.name.from_text('2.1.2.q.5.5.5.0.5.6.1.e164.arpa.')
+        self.assertRaises(dns.exception.SyntaxError,
+                          lambda: dns.e164.to_e164(n))
+
 if __name__ == '__main__':
     unittest.main()
