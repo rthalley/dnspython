@@ -342,6 +342,28 @@ class AsyncTests(unittest.TestCase):
             (_, tcp) = self.async_run(run)
             self.assertFalse(tcp)
 
+    def testUDPReceiveTimeout(self):
+        async def arun():
+            async with await self.backend.make_socket(socket.AF_INET,
+                                                      socket.SOCK_DGRAM) as s:
+                try:
+                    # for basic coverage
+                    await s.getpeername()
+                except Exception:
+                    # we expect failure as we haven't connected the socket
+                    pass
+                await s.recvfrom(1000, 0.05)
+        def run():
+            self.async_run(arun)
+        self.assertRaises(dns.exception.Timeout, run)
+
+    def testSleep(self):
+        async def run():
+            before = time.time()
+            self.backend.sleep(0.1)
+            after = time.time()
+            self.assertTrue(after - before >= 0.1)
+
 try:
     import trio
     import sniffio
