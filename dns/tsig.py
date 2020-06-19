@@ -138,13 +138,6 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     return (tsig_rdata, mac, ctx)
 
 
-def hmac_md5(wire, keyname, secret, time, fudge, original_id, error,
-             other_data, request_mac, ctx=None, multi=False, first=True,
-             algorithm=default_algorithm):
-    return sign(wire, keyname, secret, time, fudge, original_id, error,
-                other_data, request_mac, ctx, multi, first, algorithm)
-
-
 def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
              tsig_rdlen, ctx=None, multi=False, first=True):
     """Validate the specified TSIG rdata against the other input parameters.
