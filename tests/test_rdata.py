@@ -19,6 +19,7 @@
 import io
 import operator
 import pickle
+import struct
 import unittest
 
 import dns.exception
@@ -34,11 +35,13 @@ import tests.ttxt_module
 class RdataTestCase(unittest.TestCase):
 
     def test_str(self):
-        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    "1.2.3.4")
         self.assertEqual(rdata.address, "1.2.3.4")
 
     def test_unicode(self):
-        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, u"1.2.3.4")
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                    u"1.2.3.4")
         self.assertEqual(rdata.address, "1.2.3.4")
 
     def test_module_registration(self):
@@ -249,6 +252,133 @@ class RdataTestCase(unittest.TestCase):
         p = pickle.dumps(r3)
         r4 = pickle.loads(p)
         self.assertEqual(r3, r4)
+
+    def test_AFSDB_properties(self):
+        rd = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.AFSDB,
+                                 '0 afsdb.example.')
+        self.assertEqual(rd.preference, rd.subtype)
+        self.assertEqual(rd.exchange, rd.hostname)
+
+    def equal_loc(self, a, b):
+        rda = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC, a)
+        rdb = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC, b)
+        self.assertEqual(rda, rdb)
+
+    def test_misc_good_LOC_text(self):
+        # test variable length latitude
+        self.equal_loc('60 9 0.510 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                       '60 9 0.51 N 24 39 0.000 E 10.00m 20m 2000m 20m')
+        self.equal_loc('60 9 0.500 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                       '60 9 0.5 N 24 39 0.000 E 10.00m 20m 2000m 20m')
+        self.equal_loc('60 9 1.000 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                       '60 9 1 N 24 39 0.000 E 10.00m 20m 2000m 20m')
+        # test variable length longtitude
+        self.equal_loc('60 9 0.000 N 24 39 0.510 E 10.00m 20m 2000m 20m',
+                       '60 9 0.000 N 24 39 0.51 E 10.00m 20m 2000m 20m')
+        self.equal_loc('60 9 0.000 N 24 39 0.500 E 10.00m 20m 2000m 20m',
+                       '60 9 0.000 N 24 39 0.5 E 10.00m 20m 2000m 20m')
+        self.equal_loc('60 9 0.000 N 24 39 1.000 E 10.00m 20m 2000m 20m',
+                       '60 9 0.000 N 24 39 1 E 10.00m 20m 2000m 20m')
+
+    def test_bad_LOC_text(self):
+        bad_locs = ['60 9 a.000 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                    '60 9 60.000 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                    '60 9 0.00a N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                    '60 9 0.0001 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                    '60 9 0.000 Z 24 39 0.000 E 10.00m 20m 2000m 20m',
+                    '91 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                    '60 60 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+
+                    '60 9 0.000 N 24 39 a.000 E 10.00m 20m 2000m 20m',
+                    '60 9 0.000 N 24 39 60.000 E 10.00m 20m 2000m 20m',
+                    '60 9 0.000 N 24 39 0.00a E 10.00m 20m 2000m 20m',
+                    '60 9 0.000 N 24 39 0.0001 E 10.00m 20m 2000m 20m',
+                    '60 9 0.000 N 24 39 0.000 Z 10.00m 20m 2000m 20m',
+                    '60 9 0.000 N 181 39 0.000 E 10.00m 20m 2000m 20m',
+                    '60 9 0.000 N 24 60 0.000 E 10.00m 20m 2000m 20m',
+
+                    '60 9 0.000 N 24 39 0.000 E 10.00m 100000000m 2000m 20m',
+                    '60 9 0.000 N 24 39 0.000 E 10.00m 20m 100000000m 20m',
+                    '60 9 0.000 N 24 39 0.000 E 10.00m 20m 20m 100000000m',
+                    ]
+        def bad(text):
+            rd = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC,
+                                     text)
+        for loc in bad_locs:
+            self.assertRaises(dns.exception.SyntaxError,
+                              lambda: bad(loc))
+
+    def test_bad_LOC_wire(self):
+        bad_locs = [(0, 0, 0, 0x934fd901, 0x80000000, 100),
+                    (0, 0, 0, 0x6cb026ff, 0x80000000, 100),
+                    (0, 0, 0, 0x80000000, 0xa69fb201, 100),
+                    (0, 0, 0, 0x80000000, 0x59604dff, 100),
+                    (0xa0, 0, 0, 0x80000000, 0x80000000, 100),
+                    (0x0a, 0, 0, 0x80000000, 0x80000000, 100),
+                    (0, 0xa0, 0, 0x80000000, 0x80000000, 100),
+                    (0, 0x0a, 0, 0x80000000, 0x80000000, 100),
+                    (0, 0, 0xa0, 0x80000000, 0x80000000, 100),
+                    (0, 0, 0x0a, 0x80000000, 0x80000000, 100),
+                    ]
+        for t in bad_locs:
+            wire = struct.pack('!BBBBIII', 0, t[0], t[1], t[2],
+                               t[3], t[4], t[5])
+            self.assertRaises(dns.exception.FormError,
+                              lambda: dns.rdata.from_wire(dns.rdataclass.IN,
+                                                          dns.rdatatype.LOC,
+                                                          wire, 0, len(wire)))
+
+    def equal_wks(self, a, b):
+        rda = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS, a)
+        rdb = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS, b)
+        self.assertEqual(rda, rdb)
+
+    def test_misc_good_WKS_text(self):
+        self.equal_wks('10.0.0.1 tcp ( http )', '10.0.0.1 6 ( 80 )')
+        self.equal_wks('10.0.0.1 udp ( domain )', '10.0.0.1 17 ( 53 )')
+
+    def test_misc_bad_WKS_text(self):
+        def bad():
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS,
+                                '10.0.0.1 132 ( domain )')
+        self.assertRaises(NotImplementedError, bad)
+
+    def test_bad_GPOS_text(self):
+        bad_gpos = ['"-" "116.8652" "250"',
+                    '"+" "116.8652" "250"',
+                    '"" "116.8652" "250"',
+                    '"." "116.8652" "250"',
+                    '".a" "116.8652" "250"',
+                    '"a." "116.8652" "250"',
+                    '"a.a" "116.8652" "250"',
+                    # We don't need to test all the bad permutations again
+                    # but we do want to test that badness is detected
+                    # in the other strings
+                    '"0" "a" "250"',
+                    '"0" "0" "a"',
+                    # finally test bounds
+                    '"90.1" "0" "0"',
+                    '"-90.1" "0" "0"',
+                    '"0" "180.1" "0"',
+                    '"0" "-180.1" "0"',
+                    ]
+        def bad(text):
+            rd = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.GPOS,
+                                     text)
+        for gpos in bad_gpos:
+            self.assertRaises(dns.exception.FormError,
+                              lambda: bad(gpos))
+
+    def test_bad_GPOS_wire(self):
+        bad_gpos = [b'\x01',
+                    b'\x01\x31\x01',
+                    b'\x01\x31\x01\x31\x01',
+                    ]
+        for wire in bad_gpos:
+            self.assertRaises(dns.exception.FormError,
+                              lambda: dns.rdata.from_wire(dns.rdataclass.IN,
+                                                          dns.rdatatype.GPOS,
+                                                          wire, 0, len(wire)))
 
 if __name__ == '__main__':
     unittest.main()
