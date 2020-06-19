@@ -16,6 +16,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import operator
 import unittest
 
 from io import BytesIO
@@ -111,3 +112,29 @@ class OptionTestCase(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             dns.edns.ECSOption.from_text('1.2.3.4/2001:4b98::1/24')
+
+    def test_basic_relations(self):
+        o1 = dns.edns.ECSOption.from_text('1.2.3.0/24/0')
+        o2 = dns.edns.ECSOption.from_text('1.2.4.0/24/0')
+        self.assertTrue(o1 == o1)
+        self.assertTrue(o1 != o2)
+        self.assertTrue(o1 < o2)
+        self.assertTrue(o1 <= o2)
+        self.assertTrue(o2 > o1)
+        self.assertTrue(o2 >= o1)
+        o1 = dns.edns.ECSOption.from_text('1.2.4.0/23/0')
+        o2 = dns.edns.ECSOption.from_text('1.2.4.0/24/0')
+        self.assertTrue(o1 < o2)
+        o1 = dns.edns.ECSOption.from_text('1.2.4.0/24/0')
+        o2 = dns.edns.ECSOption.from_text('1.2.4.0/24/1')
+        self.assertTrue(o1 < o2)
+
+    def test_incompatible_relations(self):
+        o1 = dns.edns.GenericOption(3, b'data')
+        o2 = dns.edns.ECSOption.from_text('1.2.3.5/24/0')
+        for oper in [operator.lt, operator.le, operator.ge, operator.gt]:
+            self.assertRaises(TypeError, lambda: oper(o1, o2))
+        self.assertFalse(o1 == o2)
+        self.assertTrue(o1 != o2)
+        self.assertFalse(o1 == 123)
+        self.assertTrue(o1 != 123)
