@@ -78,7 +78,7 @@ class GPOS(dns.rdata.Rdata):
         flat = self.float_latitude
         if flat < -90.0 or flat > 90.0:
             raise dns.exception.FormError('bad latitude')
-        flong = self.float_latitude
+        flong = self.float_longitude
         if flong < -180.0 or flong > 180.0:
             raise dns.exception.FormError('bad longitude')
 
