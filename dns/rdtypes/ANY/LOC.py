@@ -29,10 +29,10 @@ _default_hprec = 1000000.0
 _default_vprec = 1000.0
 
 # for use by from_wire()
-_MAX_LATITUDE = 0x80000000 + 90*3600000
-_MIN_LATITUDE = 0x80000000 - 90*3600000
-_MAX_LONGITUDE = 0x80000000 + 180*3600000
-_MIN_LONGITUDE = 0x80000000 - 180*3600000
+_MAX_LATITUDE = 0x80000000 + 90 * 3600000
+_MIN_LATITUDE = 0x80000000 - 90 * 3600000
+_MAX_LONGITUDE = 0x80000000 + 180 * 3600000
+_MIN_LONGITUDE = 0x80000000 - 180 * 3600000
 
 # pylint complains about division since we don't have a from __future__ for
 # it, but we don't care about python 2 warnings, so turn them off.
