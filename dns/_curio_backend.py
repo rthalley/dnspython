@@ -30,7 +30,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def sendto(self, what, destination, timeout):
         async with _maybe_timeout(timeout):
             return await self.socket.sendto(what, destination)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # pragma: no cover
 
     async def recvfrom(self, size, timeout):
         async with _maybe_timeout(timeout):
@@ -78,7 +78,7 @@ class Backend(dns._asyncbackend.Backend):
             try:
                 if source:
                     s.bind(_lltuple(source, af))
-            except Exception:
+            except Exception:  # pragma: no cover
                 await s.close()
                 raise
             return DatagramSocket(s)
@@ -93,7 +93,8 @@ class Backend(dns._asyncbackend.Backend):
                                                 source_addr=source_addr,
                                                 server_hostname=server_hostname)
             return StreamSocket(s)
-        raise NotImplementedError(f'unsupported socket type {socktype}')
+        raise NotImplementedError('unsupported socket ' +
+                                  f'type {socktype}')  # pragma: no cover
 
     async def sleep(self, interval):
         await curio.sleep(interval)

@@ -30,7 +30,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def sendto(self, what, destination, timeout):
         with _maybe_timeout(timeout):
             return await self.socket.sendto(what, destination)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # pragma: no cover
 
     async def recvfrom(self, size, timeout):
         with _maybe_timeout(timeout):
@@ -85,7 +85,7 @@ class Backend(dns._asyncbackend.Backend):
             if socktype == socket.SOCK_STREAM:
                 with _maybe_timeout(timeout):
                     await s.connect(_lltuple(destination, af))
-        except Exception:
+        except Exception:  # pragma: no cover
             s.close()
             raise
         if socktype == socket.SOCK_DGRAM:
@@ -99,11 +99,12 @@ class Backend(dns._asyncbackend.Backend):
                 try:
                     stream = trio.SSLStream(stream, ssl_context,
                                             server_hostname=server_hostname)
-                except Exception:
+                except Exception:  # pragma: no cover
                     await stream.aclose()
                     raise
             return StreamSocket(af, stream, tls)
-        raise NotImplementedError(f'unsupported socket type {socktype}')
+        raise NotImplementedError('unsupported socket ' +
+                                  f'type {socktype}')    # pragma: no cover
 
     async def sleep(self, interval):
         await trio.sleep(interval)

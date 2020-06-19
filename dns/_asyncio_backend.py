@@ -57,7 +57,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         self.transport = transport
         self.protocol = protocol
 
-    async def sendto(self, what, destination, timeout):
+    async def sendto(self, what, destination, timeout):  # pragma: no cover
         # no timeout for asyncio sendto
         self.transport.sendto(what, destination)
 
@@ -127,7 +127,8 @@ class Backend(dns._asyncbackend.Backend):
                                         server_hostname=server_hostname),
                 timeout)
             return StreamSocket(af, r, w)
-        raise NotImplementedError(f'unsupported socket type {socktype}')
+        raise NotImplementedError('unsupported socket ' +
+                                  f'type {socktype}')  # pragma: no cover
 
     async def sleep(self, interval):
         await asyncio.sleep(interval)
