@@ -21,7 +21,7 @@ import sys
 if sys.version_info >= (3, 7):
     odict = dict
 else:
-    from collections import OrderedDict as odict
+    from collections import OrderedDict as odict  # pragma: no cover
 
 class Set:
 

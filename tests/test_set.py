@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import copy
 import unittest
 
 import dns.set
@@ -53,6 +54,12 @@ class SetTestCase(unittest.TestCase):
         s2 = S([3, 4])
         e = S([1, 2, 3, 4])
         self.assertEqual(s1 | s2, e)
+
+    def testUnionPlusSyntax(self):
+        s1 = S([1, 2, 3])
+        s2 = S([3, 4])
+        e = S([1, 2, 3, 4])
+        self.assertEqual(s1 + s2, e)
 
     def testIntersection1(self):
         s1 = S([1, 2, 3])
@@ -221,6 +228,39 @@ class SetTestCase(unittest.TestCase):
         self.assertNotEqual(s1, s2)
         s1.add(1)
         self.assertEqual(s1, s2)
+        s2 = copy.copy(s1)
+        self.assertEqual(s1, s2)
+
+    def testBadUpdates(self):
+        s = S([1, 2, 3])
+        self.assertRaises(ValueError, lambda: s.union_update(1))
+        self.assertRaises(ValueError, lambda: s.intersection_update(1))
+
+    def testSelfUpdates(self):
+        expected = S([1, 2, 3])
+        s = S([1, 2, 3])
+        s.union_update(s)
+        self.assertEqual(s, expected)
+        s.intersection_update(s)
+        self.assertEqual(s, expected)
+        s.difference_update(s)
+        self.assertTrue(len(s) == 0)
+
+    def testBadSubsetSuperset(self):
+        s = S([1, 2, 3])
+        self.assertRaises(ValueError, lambda: s.issubset(123))
+        self.assertRaises(ValueError, lambda: s.issuperset(123))
+
+    def testIncrementalOperators(self):
+        s = S([1, 2, 3])
+        s += S([5, 4])
+        self.assertEqual(s, S([1, 2, 3, 4, 5]))
+        s -= S([1, 2])
+        self.assertEqual(s, S([3, 4, 5]))
+        s |= S([1, 2])
+        self.assertEqual(s, S([1, 2, 3, 4, 5]))
+        s &= S([1, 2])
+        self.assertEqual(s, S([1, 2]))
 
 if __name__ == '__main__':
     unittest.main()
