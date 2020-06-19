@@ -26,7 +26,7 @@ try:
     import idna          # type: ignore
     have_idna_2008 = True
 except ImportError:
-    have_idna_2008 = False
+    have_idna_2008 = False  # pragma: no cover
 
 import dns.exception
 import dns.wiredata
@@ -105,7 +105,7 @@ class IDNACodec:
         return label.lower().startswith(b'xn--')
 
     def encode(self, label):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def decode(self, label):
         # We do not apply any IDNA policy on decode.
@@ -191,7 +191,10 @@ class IDNA2008Codec(IDNACodec):
         if label == '':
             return b''
         if self.allow_pure_ascii and is_all_ascii(label):
-            return label.encode('ascii')
+            encoded = label.encode('ascii')
+            if len(encoded) > 63:
+                raise LabelTooLong
+            return encoded
         if not have_idna_2008:
             raise NoIDNA2008
         try:
@@ -199,7 +202,10 @@ class IDNA2008Codec(IDNACodec):
                 label = idna.uts46_remap(label, False, self.transitional)
             return idna.alabel(label)
         except idna.IDNAError as e:
-            raise IDNAException(idna_exception=e)
+            if e.args[0] == 'Label too long':
+                raise LabelTooLong
+            else:
+                raise IDNAException(idna_exception=e)
 
     def decode(self, label):
         if not self.strict_decode:
