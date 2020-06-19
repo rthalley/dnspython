@@ -28,6 +28,12 @@ _default_size = 100.0
 _default_hprec = 1000000.0
 _default_vprec = 1000.0
 
+# for use by from_wire()
+_MAX_LATITUDE = 0x80000000 + 90*3600000
+_MIN_LATITUDE = 0x80000000 - 90*3600000
+_MAX_LONGITUDE = 0x80000000 + 180*3600000
+_MIN_LONGITUDE = 0x80000000 - 180*3600000
+
 # pylint complains about division since we don't have a from __future__ for
 # it, but we don't care about python 2 warnings, so turn them off.
 #
@@ -81,10 +87,10 @@ def _encode_size(what, desc):
 def _decode_size(what, desc):
     exponent = what & 0x0F
     if exponent > 9:
-        raise dns.exception.SyntaxError("bad %s exponent" % desc)
+        raise dns.exception.FormError("bad %s exponent" % desc)
     base = (what & 0xF0) >> 4
     if base > 9:
-        raise dns.exception.SyntaxError("bad %s base" % desc)
+        raise dns.exception.FormError("bad %s base" % desc)
     return base * pow(10, exponent)
 
 
@@ -161,9 +167,13 @@ class LOC(dns.rdata.Rdata):
         vprec = _default_vprec
 
         latitude[0] = tok.get_int()
+        if latitude[0] > 90:
+            raise dns.exception.SyntaxError('latitude >= 90')
         t = tok.get_string()
         if t.isdigit():
             latitude[1] = int(t)
+            if latitude[1] >= 60:
+                raise dns.exception.SyntaxError('latitude minutes >= 60')
             t = tok.get_string()
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
@@ -194,9 +204,13 @@ class LOC(dns.rdata.Rdata):
             raise dns.exception.SyntaxError('bad latitude hemisphere value')
 
         longitude[0] = tok.get_int()
+        if longitude[0] > 180:
+            raise dns.exception.SyntaxError('longitude > 180')
         t = tok.get_string()
         if t.isdigit():
             longitude[1] = int(t)
+            if longitude[1] >= 60:
+                raise dns.exception.SyntaxError('longitude minutes >= 60')
             t = tok.get_string()
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
@@ -251,6 +265,11 @@ class LOC(dns.rdata.Rdata):
                     vprec = float(value) * 100.0        # m -> cm
                     tok.get_eol()
 
+        # Try encoding these now so we raise if they are bad
+        _encode_size(size, "size")
+        _encode_size(hprec, "horizontal precision")
+        _encode_size(vprec, "vertical precision")
+
         return cls(rdclass, rdtype, latitude, longitude, altitude,
                    size, hprec, vprec)
 
@@ -277,18 +296,18 @@ class LOC(dns.rdata.Rdata):
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (version, size, hprec, vprec, latitude, longitude, altitude) = \
             struct.unpack("!BBBBIII", wire[current: current + rdlen])
+        if latitude < _MIN_LATITUDE or latitude > _MAX_LATITUDE:
+            raise dns.exception.FormError("bad latitude")
         if latitude > 0x80000000:
             latitude = (latitude - 0x80000000) / 3600000
         else:
             latitude = -1 * (0x80000000 - latitude) / 3600000
-        if latitude < -90.0 or latitude > 90.0:
-            raise dns.exception.FormError("bad latitude")
+        if longitude < _MIN_LONGITUDE or longitude > _MAX_LONGITUDE:
+            raise dns.exception.FormError("bad longitude")
         if longitude > 0x80000000:
             longitude = (longitude - 0x80000000) / 3600000
         else:
             longitude = -1 * (0x80000000 - longitude) / 3600000
-        if longitude < -180.0 or longitude > 180.0:
-            raise dns.exception.FormError("bad longitude")
         altitude = float(altitude) - 10000000.0
         size = _decode_size(size, "size")
         hprec = _decode_size(hprec, "horizontal precision")
