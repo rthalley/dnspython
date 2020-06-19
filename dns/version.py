@@ -28,7 +28,7 @@ RELEASELEVEL = 0x0c
 #: SERIAL
 SERIAL = 1
 
-if RELEASELEVEL == 0x0f:
+if RELEASELEVEL == 0x0f:  # pragma: no cover
     #: version
     version = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 elif RELEASELEVEL == 0x00:  # pragma: no cover
