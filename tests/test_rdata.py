@@ -225,8 +225,8 @@ class RdataTestCase(unittest.TestCase):
                                  '::1')
         for oper in [operator.lt, operator.le, operator.ge, operator.gt]:
             self.assertRaises(TypeError, lambda: oper(r1, r2))
-            self.assertFalse(r1 == r2)
-            self.assertTrue(r1 != r2)
+        self.assertFalse(r1 == r2)
+        self.assertTrue(r1 != r2)
 
     def test_immutability(self):
         def bad1():
