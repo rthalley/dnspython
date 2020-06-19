@@ -17,6 +17,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from typing import Dict # pylint: disable=unused-import
+import operator
 import unittest
 
 from io import BytesIO
@@ -776,6 +777,8 @@ class NameTestCase(unittest.TestCase):
         s = n.to_unicode()
         self.assertEqual(s, 'foo.bar.')
 
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
     def testToUnicode4(self):
         if dns.name.have_idna_2008:
             n = dns.name.from_text('ドメイン.テスト',
@@ -810,6 +813,20 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('xn--gro-7ka.com')
         self.assertEqual(n.to_unicode(True, dns.name.IDNA_2008),
                          'groß.com')
+
+    def testIDNA2003Misc(self):
+        self.assertEqual(dns.name.IDNA_2003.encode(''), b'')
+        self.assertRaises(dns.name.LabelTooLong,
+                          lambda: dns.name.IDNA_2003.encode('x' * 64))
+
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
+    def testIDNA2008Misc(self):
+        self.assertEqual(dns.name.IDNA_2008.encode(''), b'')
+        self.assertRaises(dns.name.LabelTooLong,
+                          lambda: dns.name.IDNA_2008.encode('x' * 64))
+        self.assertRaises(dns.name.LabelTooLong,
+                          lambda: dns.name.IDNA_2008.encode('groß' + 'x' * 60))
 
     def testReverseIPv4(self):
         e = dns.name.from_text('1.0.0.127.in-addr.arpa.')
@@ -890,6 +907,60 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text('2.1.2.q.5.5.5.0.5.6.1.e164.arpa.')
         self.assertRaises(dns.exception.SyntaxError,
                           lambda: dns.e164.to_e164(n))
+
+    def test_incompatible_relations(self):
+        n1 = dns.name.from_text('example')
+        n2 = 'abc'
+        for oper in [operator.lt, operator.le, operator.ge, operator.gt]:
+            self.assertRaises(TypeError, lambda: oper(n1, n2))
+        self.assertFalse(n1 == n2)
+        self.assertTrue(n1 != n2)
+
+    def testFromUnicodeSimpleEscape(self):
+        n = dns.name.from_unicode(r'a.\b')
+        e = dns.name.from_unicode(r'a.b')
+        self.assertEqual(n, e)
+
+    def testFromUnicodeBadEscape(self):
+        def bad1():
+            n = dns.name.from_unicode(r'a.b\0q1.c.')
+        self.assertRaises(dns.name.BadEscape, bad1)
+        def bad2():
+            n = dns.name.from_unicode(r'a.b\0')
+        self.assertRaises(dns.name.BadEscape, bad2)
+
+    def testFromUnicodeNotString(self):
+        def bad():
+            dns.name.from_unicode(b'123')
+        self.assertRaises(ValueError, bad)
+
+    def testFromUnicodeBadOrigin(self):
+        def bad():
+            dns.name.from_unicode('example', 123)
+        self.assertRaises(ValueError, bad)
+
+    def testFromUnicodeEmptyLabel(self):
+        def bad():
+            dns.name.from_unicode('a..b.example')
+        self.assertRaises(dns.name.EmptyLabel, bad)
+
+    def testFromUnicodeEmptyName(self):
+        self.assertEqual(dns.name.from_unicode('@', None), dns.name.empty)
+
+    def testFromTextNotString(self):
+        def bad():
+            dns.name.from_text(123)
+        self.assertRaises(ValueError, bad)
+
+    def testFromTextBadOrigin(self):
+        def bad():
+            dns.name.from_text('example', 123)
+        self.assertRaises(ValueError, bad)
+
+    def testFromWireNotBytes(self):
+        def bad():
+            dns.name.from_wire(123, 0)
+        self.assertRaises(ValueError, bad)
 
 if __name__ == '__main__':
     unittest.main()
