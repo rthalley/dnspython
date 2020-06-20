@@ -6,25 +6,77 @@
 trigger:
 - master
 
-pool:
-  vmImage: 'vs2017-win2016'
-strategy:
-  matrix:
-    Python37:
-      python.version: '3.7'
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  strategy:
+    matrix:
+      Python37:
+        python.version: '3.7'
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(python.version)'
-  displayName: 'Use Python $(python.version)'
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -e .[dnssec,idna,doh,trio,curio]
+    displayName: 'Install dependencies'
 
-- script: |
-    python -m pip install --upgrade pip
-    pip install -e .[dnssec,idna,doh,trio,curio]
-  displayName: 'Install dependencies'
+  - script: |
+      pip install pytest pytest-azurepipelines
+      pytest --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+    displayName: 'pytest'
 
-- script: |
-    pip install pytest pytest-azurepipelines
-    pytest
-  displayName: 'pytest'
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: '**/test-*.xml'
+      testRunTitle: 'Publish test results for Python $(python.version)'
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
+
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-18.04'
+  strategy:
+    matrix:
+      Python36:
+        python.version: '3.7'
+      Python37:
+        python.version: '3.7'
+      Python38:
+        python.version: '3.8'
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -e .[dnssec,idna,doh,trio,curio]
+    displayName: 'Install dependencies'
+
+  - script: |
+      pip install pytest pytest-azurepipelines
+      pytest --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+    displayName: 'pytest'
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: '**/test-*.xml'
+      testRunTitle: 'Publish test results for Python $(python.version)'
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
