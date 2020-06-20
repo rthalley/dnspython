@@ -346,7 +346,8 @@ class AsyncTests(unittest.TestCase):
     def testUDPReceiveTimeout(self):
         async def arun():
             async with await self.backend.make_socket(socket.AF_INET,
-                                                      socket.SOCK_DGRAM) as s:
+                                                      socket.SOCK_DGRAM, 0,
+                                                      ('127.0.0.1', 0)) as s:
                 try:
                     # for basic coverage
                     await s.getpeername()
