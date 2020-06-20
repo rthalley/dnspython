@@ -17,13 +17,22 @@ perform queries for data of a given name, type, and class, and return an answer
 set. The low level classes allow direct manipulation of DNS zones, messages,
 names, and records.
 
-To see a few of the ways dnspython can be used, look in the `examples/` directory.
+To see a few of the ways dnspython can be used, look in the `examples/`
+directory.
 
 dnspython is a utility to work with DNS, `/etc/hosts` is thus not used. For
-simple forward DNS lookups, it's better to use `socket.gethostbyname()`.
+simple forward DNS lookups, it's better to use `socket.getaddrinfo()` or
+`socket.gethostbyname()`.
 
 dnspython originated at Nominum where it was developed
 to facilitate the testing of DNS software.
+
+## ABOUT THIS RELEASE
+
+This is dnspython 2.0.0rc1, the first release candidate for dnspython
+2.0.0.  Please read
+[What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
+information about the changes in this release.
 
 ## INSTALLATION
 
@@ -47,14 +56,19 @@ functionality, you must run
 Note that you can install any combination of the above, e.g.:
 `pip install dnspython[doh,dnssec,idna]`
 
-## ABOUT THIS RELEASE
+If you want to use the Trio asynchronous I/O package, you must run
+`pip install dnspython[trio]`.
 
-This is the development version of dnspython 2.0.0
+If you want to use the Curio asynchronous I/O package, you must run
+`pip install dnspython[curio]`.
 
 ### Notices
 
 Python 2.x support ended with the release of 1.16.0.  dnspython 2.0.0 and
 later only support Python 3.6 and later.
+
+Documentation has moved to
+[dnspython.readthedocs.io](https://dnspython.readthedocs.io).
 
 The ChangeLog has been discontinued.  Please see the git history for detailed
 change information.
