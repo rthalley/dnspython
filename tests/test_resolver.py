@@ -572,6 +572,25 @@ class NXDOMAINExceptionTestCase(unittest.TestCase):
         self.assertEqual(e2.canonical_name, dns.name.from_text(cname2))
 
 
+class ResolverMiscTestCase(unittest.TestCase):
+    if sys.platform != 'win32':
+        def test_read_nonexistent_config(self):
+            res = dns.resolver.Resolver(configure=False)
+            pathname = '/etc/nonexistent-resolv.conf'
+            self.assertRaises(dns.resolver.NoResolverConfiguration,
+                              lambda: res.read_resolv_conf(pathname))
+
+    def test_compute_timeout(self):
+        res = dns.resolver.Resolver(configure=False)
+        now = time.time()
+        self.assertRaises(dns.resolver.Timeout,
+                          lambda: res._compute_timeout(now + 10000))
+        self.assertRaises(dns.resolver.Timeout,
+                          lambda: res._compute_timeout(0))
+        # not raising is the test
+        res._compute_timeout(now + 0.5)
+
+
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
     def test_set_nameservers_to_list(self):
         resolver = dns.resolver.Resolver()

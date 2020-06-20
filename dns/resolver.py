@@ -25,8 +25,8 @@ import random
 import warnings
 try:
     import threading as _threading
-except ImportError:
-    import dummy_threading as _threading    # type: ignore  # pragma: no cover
+except ImportError:  # pragma: no cover
+    import dummy_threading as _threading    # type: ignore
 
 import dns.exception
 import dns.flags
@@ -690,7 +690,7 @@ class Resolver:
         self.reset()
         if configure:
             if sys.platform == 'win32':
-                self.read_registry()
+                self.read_registry()  # pragma: no cover
             elif filename:
                 self.read_resolv_conf(filename)
 
@@ -741,7 +741,7 @@ class Resolver:
             if isinstance(f, str):
                 try:
                     f = stack.enter_context(open(f))
-                except IOError:
+                except OSError:
                     # /etc/resolv.conf doesn't exist, can't be read, etc.
                     raise NoResolverConfiguration
 
@@ -1096,7 +1096,7 @@ class Resolver:
 
     def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
               tcp=False, source=None, raise_on_no_answer=True, source_port=0,
-              lifetime=None):
+              lifetime=None):  # pragma: no cover
         """Query nameservers to find the answer to the question.
 
         This method calls resolve() with ``search=True``, and is
@@ -1243,7 +1243,7 @@ def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
 
 def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
           tcp=False, source=None, raise_on_no_answer=True,
-          source_port=0, lifetime=None):
+          source_port=0, lifetime=None):  # pragma: no cover
     """Query nameservers to find the answer to the question.
 
     This method calls resolve() with ``search=True``, and is
