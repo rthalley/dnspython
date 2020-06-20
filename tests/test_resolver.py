@@ -390,7 +390,7 @@ class LiveResolverTests(unittest.TestCase):
     def testResolveNodataAnswer(self):
         qname = dns.name.from_text('dnspython.org')
         qclass = dns.rdataclass.from_text('IN')
-        qtype = dns.rdatatype.from_text('TYPE3')  # obsolete MB
+        qtype = dns.rdatatype.from_text('SRV')
         answer = dns.resolver.resolve(qname, qtype, raise_on_no_answer=False)
         self.assertRaises(KeyError,
             lambda: answer.response.find_rrset(answer.response.answer,
@@ -399,7 +399,7 @@ class LiveResolverTests(unittest.TestCase):
     def testResolveNXDOMAIN(self):
         qname = dns.name.from_text('nxdomain.dnspython.org')
         qclass = dns.rdataclass.from_text('IN')
-        qtype = dns.rdatatype.from_text('A')  # obsolete MB
+        qtype = dns.rdatatype.from_text('A')
         def bad():
             answer = dns.resolver.resolve(qname, qtype)
         self.assertRaises(dns.resolver.NXDOMAIN, bad)
