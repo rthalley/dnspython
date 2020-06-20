@@ -29,8 +29,8 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 2.0.0rc1, the first release candidate for dnspython
-2.0.0.  Please read
+This is the dnspython 2.0.0 development branch.
+Please read
 [What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
 information about the changes in this release.
 
