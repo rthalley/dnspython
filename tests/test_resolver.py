@@ -384,7 +384,7 @@ class LiveResolverTests(unittest.TestCase):
 
     def testResolveNodataException(self):
         def bad():
-            dns.resolver.resolve('dnspython.org.', 'TYPE3')  # obsolete MB
+            dns.resolver.resolve('dnspython.org.', 'SRV')
         self.assertRaises(dns.resolver.NoAnswer, bad)
 
     def testResolveNodataAnswer(self):
