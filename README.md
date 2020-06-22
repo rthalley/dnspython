@@ -53,14 +53,14 @@ If you want to use internationalized domain names (IDNA)
 functionality, you must run
 `pip install dnspython[idna]`
 
-Note that you can install any combination of the above, e.g.:
-`pip install dnspython[doh,dnssec,idna]`
-
 If you want to use the Trio asynchronous I/O package, you must run
 `pip install dnspython[trio]`.
 
 If you want to use the Curio asynchronous I/O package, you must run
 `pip install dnspython[curio]`.
+
+Note that you can install any combination of the above, e.g.:
+`pip install dnspython[doh,dnssec,idna]`
 
 ### Notices
 
