@@ -18,6 +18,7 @@
 import struct
 import binascii
 
+import dns.dnssec
 import dns.rdata
 import dns.rdatatype
 
