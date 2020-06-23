@@ -248,16 +248,16 @@ ns2 A 10.0.0.1
 
 class AXFRNanoNameserver(Server):
 
-    def handle(self, message, peer, connection_type):
+    def handle(self, request):
         self.zone = dns.zone.from_text(axfr_zone, origin='example')
         self.origin = self.zone.origin
         items = []
         soa = self.zone.find_rrset(dns.name.empty, dns.rdatatype.SOA)
-        response = dns.message.make_response(message)
+        response = dns.message.make_response(request.message)
         response.flags |= dns.flags.AA
         response.answer.append(soa)
         items.append(response)
-        response = dns.message.make_response(message)
+        response = dns.message.make_response(request.message)
         response.question = []
         response.flags |= dns.flags.AA
         for (name, rdataset) in self.zone.iterate_rdatasets():
@@ -269,7 +269,7 @@ class AXFRNanoNameserver(Server):
             rrset.update(rdataset)
             response.answer.append(rrset)
         items.append(response)
-        response = dns.message.make_response(message)
+        response = dns.message.make_response(request.message)
         response.question = []
         response.flags |= dns.flags.AA
         response.answer.append(soa)
@@ -329,10 +329,10 @@ class IXFRNanoNameserver(Server):
         super().__init__()
         self.response_text = response_text
 
-    def handle(self, message, peer, connection_type):
+    def handle(self, request):
         try:
             r = dns.message.from_text(self.response_text, one_rr_per_rrset=True)
-            r.id = message.id
+            r.id = request.message.id
             return r
         except Exception:
             pass
@@ -450,14 +450,14 @@ class XfrTests(unittest.TestCase):
 
 class TSIGNanoNameserver(Server):
 
-    def handle(self, message, peer, connection_type):
-        response = dns.message.make_response(message)
+    def handle(self, request):
+        response = dns.message.make_response(request.message)
         response.set_rcode(dns.rcode.REFUSED)
         response.flags |= dns.flags.RA
         try:
-            if message.question[0].rdtype == dns.rdatatype.A and \
-               message.question[0].rdclass == dns.rdataclass.IN:
-                rrs = dns.rrset.from_text(message.question[0].name, 300,
+            if request.qtype == dns.rdatatype.A and \
+               request.qclass == dns.rdataclass.IN:
+                rrs = dns.rrset.from_text(request.qname, 300,
                                           'IN', 'A', '1.2.3.4')
                 response.answer.append(rrs)
                 response.set_rcode(dns.rcode.NOERROR)
