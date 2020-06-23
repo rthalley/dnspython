@@ -380,5 +380,18 @@ class RdataTestCase(unittest.TestCase):
                                                           dns.rdatatype.GPOS,
                                                           wire, 0, len(wire)))
 
+    def test_chaos(self):
+        # avoid red spot on our coverage :)
+        r1 = dns.rdata.from_text(dns.rdataclass.CH, dns.rdatatype.A,
+                                 'chaos. 12345')
+        w = r1.to_wire()
+        r2 = dns.rdata.from_wire(dns.rdataclass.CH, dns.rdatatype.A, w, 0,
+                                 len(w))
+        self.assertEqual(r1, r2)
+        self.assertEqual(r1.domain, dns.name.from_text('chaos'))
+        # the address input is octal
+        self.assertEqual(r1.address, 0o12345)
+        self.assertEqual(r1.to_text(), 'chaos. 12345')
+
 if __name__ == '__main__':
     unittest.main()
