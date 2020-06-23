@@ -5,6 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/dnspython.svg)](https://badge.fury.io/py/dnspython)
 [![PyPI Statistics](https://img.shields.io/pypi/dm/dnspython.svg)](https://pypistats.org/packages/dnspython)
 [![Build Status](https://dev.azure.com/halley0415/halley/_apis/build/status/rthalley.dnspython?branchName=master)](https://dev.azure.com/halley0415/halley/_build/latest?definitionId=1&branchName=master)
+[![Coverage](https://codecov.io/github/rthalley/dnspython/coverage.svg?branch=master)](https://codecov.io/gh/rthalley/dnspython)
 
 ## INTRODUCTION
 
