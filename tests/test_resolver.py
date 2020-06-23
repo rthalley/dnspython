@@ -60,6 +60,7 @@ nameserver 10.0.0.2
 resolv_conf_options1 = """
 nameserver 10.0.0.1
 nameserver 10.0.0.2
+search search1 search2
 options rotate timeout:1 edns0 ndots:2
 """
 
@@ -121,21 +122,20 @@ class FakeAnswer(object):
 
 class BaseResolverTests(unittest.TestCase):
 
-    if sys.platform != 'win32':
-        def testRead(self):
-            f = StringIO(resolv_conf)
-            r = dns.resolver.Resolver(f)
-            self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
-            self.assertEqual(r.domain, dns.name.from_text('foo'))
+    def testRead(self):
+        f = StringIO(resolv_conf)
+        r = dns.resolver.Resolver(f)
+        self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
+        self.assertEqual(r.domain, dns.name.from_text('foo'))
 
-        def testReadOptions(self):
-            f = StringIO(resolv_conf_options1)
-            r = dns.resolver.Resolver(f)
-            self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
-            self.assertTrue(r.rotate)
-            self.assertEqual(r.timeout, 1)
-            self.assertEqual(r.ndots, 2)
-            self.assertEqual(r.edns, 0)
+    def testReadOptions(self):
+        f = StringIO(resolv_conf_options1)
+        r = dns.resolver.Resolver(f)
+        self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
+        self.assertTrue(r.rotate)
+        self.assertEqual(r.timeout, 1)
+        self.assertEqual(r.ndots, 2)
+        self.assertEqual(r.edns, 0)
 
     def testCacheExpiration(self):
         message = dns.message.from_text(message_text)
@@ -589,26 +589,6 @@ class ResolverMiscTestCase(unittest.TestCase):
                           lambda: res._compute_timeout(0))
         # not raising is the test
         res._compute_timeout(now + 0.5)
-
-    def test_read_resolv_conf(self):
-        # We test this on win32 too as someone could use it even though
-        # it's not typical.
-        f = StringIO('''nameserver 1.2.3.4
-nameserver 5.6.7.8
-domain sub.example
-search search1 search2
-options rotate edns0 timeout:17 ndots:2
-'''
-        )
-        res = dns.resolver.Resolver(configure=False)
-        res.read_resolv_conf(f)
-        self.assertEqual(res.timeout, 17)
-        self.assertEqual(res.nameservers, ['1.2.3.4', '5.6.7.8'])
-        self.assertEqual(res.search, [dns.name.from_text(x) for x in
-                                      ['search1', 'search2']])
-        self.assertEqual(res.ndots, 2)
-        self.assertTrue(res.rotate)
-        self.assertEqual(res.edns, 0)
 
 
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
