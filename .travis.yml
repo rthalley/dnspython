@@ -7,9 +7,9 @@ branches:
   except:
     - python3
 install:
- - pip install --upgrade pytest
- - pip install typing coverage pytest pytest-cov cryptography idna requests requests-toolbelt trio curio
+ - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+ - ~/.poetry/bin/poetry install
 script:
- - pytest --cov=dns --cov-report=xml:coverage.xml
+ - ~/.poetry/bin/poetry run pytest --cov=dns --cov-report=xml:coverage.xml
 after_success:
  - bash <(curl -s https://codecov.io/bash)
