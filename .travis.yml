@@ -7,6 +7,8 @@ branches:
   except:
     - python3
 install:
- - pip install typing pylint cryptography idna requests requests-toolbelt
+ - pip install typing coverage pytest pytest-cov cryptography idna requests requests-toolbelt trio curio
 script:
- - make test
+ - pytest --cov=dns --cov-report=xml:coverage.xml
+after_success:
+ - bash <(curl -s https://codecov.io/bash)
