@@ -124,13 +124,15 @@ class BaseResolverTests(unittest.TestCase):
 
     def testRead(self):
         f = StringIO(resolv_conf)
-        r = dns.resolver.Resolver(f)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
         self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
         self.assertEqual(r.domain, dns.name.from_text('foo'))
 
     def testReadOptions(self):
         f = StringIO(resolv_conf_options1)
-        r = dns.resolver.Resolver(f)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
         self.assertEqual(r.nameservers, ['10.0.0.1', '10.0.0.2'])
         self.assertTrue(r.rotate)
         self.assertEqual(r.timeout, 1)
