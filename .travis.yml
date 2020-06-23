@@ -7,6 +7,7 @@ branches:
   except:
     - python3
 install:
+ - pip install --update pytest
  - pip install typing coverage pytest pytest-cov cryptography idna requests requests-toolbelt trio curio
 script:
  - pytest --cov=dns --cov-report=xml:coverage.xml
