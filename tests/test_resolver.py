@@ -590,6 +590,26 @@ class ResolverMiscTestCase(unittest.TestCase):
         # not raising is the test
         res._compute_timeout(now + 0.5)
 
+    def test_read_resolv_conf(self):
+        # We test this on win32 too as someone could use it even though
+        # it's not typical.
+        f = StringIO('''nameserver 1.2.3.4
+nameserver 5.6.7.8
+domain sub.example
+search search1 search2
+options rotate edns0 timeout:17 ndots:2
+'''
+        )
+        res = dns.resolver.Resolver(configure=False)
+        res.read_resolv_conf(f)
+        self.assertEqual(res.timeout, 17)
+        self.assertEqual(res.nameservers, ['1.2.3.4', '5.6.7.8'])
+        self.assertEqual(res.search, [dns.name.from_text(x) for x in
+                                      ['search1', 'search2']])
+        self.assertEqual(res.ndots, 2)
+        self.assertTrue(res.rotate)
+        self.assertEqual(res.edns, 0)
+
 
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
     def test_set_nameservers_to_list(self):
