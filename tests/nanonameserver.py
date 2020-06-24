@@ -111,7 +111,7 @@ class Server(threading.Thread):
                                              socket.SOCK_STREAM, 0)
                     self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
                                         1)
-                    if self.port is 0 and self.enable_udp:
+                    if self.port == 0 and self.enable_udp:
                         try:
                             self.tcp.bind((self.address, self.udp_address[1]))
                         except OSError as e:
