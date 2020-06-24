@@ -614,19 +614,18 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
 
 class NaptrNanoNameserver(Server):
 
-    def handle(self, message, peer, connection_type):
-        response = dns.message.make_response(message)
+    def handle(self, request):
+        response = dns.message.make_response(request.message)
         response.set_rcode(dns.rcode.REFUSED)
         response.flags |= dns.flags.RA
         try:
             zero_subdomain = dns.e164.from_e164('0')
-            if message.question[0].name.is_subdomain(zero_subdomain):
+            if request.qname.is_subdomain(zero_subdomain):
                 response.set_rcode(dns.rcode.NXDOMAIN)
                 response.flags |= dns.flags.AA
-            elif message.question[0].rdtype == dns.rdatatype.NAPTR and \
-               message.question[0].rdclass == dns.rdataclass.IN:
-                rrs = dns.rrset.from_text(message.question[0].name, 300,
-                                          'IN', 'NAPTR',
+            elif request.qtype == dns.rdatatype.NAPTR and \
+                 request.qclass == dns.rdataclass.IN:
+                rrs = dns.rrset.from_text(request.qname, 300, 'IN', 'NAPTR',
                                           '0 0 "" "" "" .')
                 response.answer.append(rrs)
                 response.set_rcode(dns.rcode.NOERROR)

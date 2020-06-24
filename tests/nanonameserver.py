@@ -2,6 +2,7 @@
 
 import contextlib
 import enum
+import errno
 import functools
 import socket
 import struct
@@ -28,6 +29,30 @@ async def read_exactly(stream, count):
 class ConnectionType(enum.IntEnum):
     UDP = 1
     TCP = 2
+
+class Request:
+    def __init__(self, message, wire, peer, local, connection_type):
+        self.message = message
+        self.wire = wire
+        self.peer = peer
+        self.local = local
+        self.connection_type = connection_type
+
+    @property
+    def question(self):
+        return self.message.question[0]
+
+    @property
+    def qname(self):
+        return self.question.name
+
+    @property
+    def qclass(self):
+        return self.question.rdclass
+
+    @property
+    def qtype(self):
+        return self.question.rdtype
 
 class Server(threading.Thread):
 
@@ -70,19 +95,39 @@ class Server(threading.Thread):
 
     def __enter__(self):
         (self.left, self.right) = socket.socketpair()
-        # We're making the UDP socket now so it can be sent to by the
+        # We're making the sockets now so they can be sent to by the
         # caller immediately (i.e. no race with the listener starting
         # in the thread).
-        if self.enable_udp:
-            self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
-            self.udp.bind((self.address, self.port))
-            self.udp_address = self.udp.getsockname()
-        if self.enable_tcp:
-            self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.tcp.bind((self.address, self.port))
-            self.tcp.listen()
-            self.tcp_address = self.tcp.getsockname()
+        open_udp_sockets = []
+        try:
+            while True:
+                if self.enable_udp:
+                    self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                                             0)
+                    self.udp.bind((self.address, self.port))
+                    self.udp_address = self.udp.getsockname()
+                if self.enable_tcp:
+                    self.tcp = socket.socket(socket.AF_INET,
+                                             socket.SOCK_STREAM, 0)
+                    self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
+                                        1)
+                    if self.port is 0 and self.enable_udp:
+                        try:
+                            self.tcp.bind((self.address, self.udp_address[1]))
+                        except OSError as e:
+                            if e.errno == errno.EADDRINUSE and \
+                               len(open_udp_sockets) < 100:
+                                open_udp_sockets.append(self.udp)
+                                continue
+                            raise
+                    else:
+                        self.tcp.bind((self.address, self.port))
+                    self.tcp.listen()
+                    self.tcp_address = self.tcp.getsockname()
+                break
+        finally:
+            for udp_socket in open_udp_sockets:
+                udp_socket.close()
         if self.use_thread:
             self.start()
         return self
@@ -141,7 +186,7 @@ class Server(threading.Thread):
         else:
             return [thing]
 
-    def handle_wire(self, wire, peer, connection_type):
+    def handle_wire(self, wire, peer, local, connection_type):
         #
         # This is the common code to parse wire format, call handle() on
         # the message, and then generate response wire format (if handle()
@@ -180,8 +225,8 @@ class Server(threading.Thread):
             # items might have been appended to above, so skip
             # handle() if we already have a response.
             if not items:
-                items = self.maybe_listify(self.handle(q, peer,
-                                                       connection_type))
+                request = Request(q, wire, peer, local, connection_type)
+                items = self.maybe_listify(self.handle(request))
         except Exception:
             # Exceptions from handle get a SERVFAIL response.
             r = dns.message.make_response(q)
@@ -201,10 +246,11 @@ class Server(threading.Thread):
     async def serve_udp(self):
         with trio.socket.from_stdlib_socket(self.udp) as sock:
             self.udp = None  # we own cleanup
+            local = self.udp_address
             while True:
                 try:
                     (wire, peer) = await sock.recvfrom(65535)
-                    for wire in self.handle_wire(wire, peer,
+                    for wire in self.handle_wire(wire, peer, local,
                                                  ConnectionType.UDP):
                         await sock.sendto(wire, peer)
                 except Exception:
@@ -213,11 +259,13 @@ class Server(threading.Thread):
     async def serve_tcp(self, stream):
         try:
             peer = stream.socket.getpeername()
+            local = stream.socket.getsockname()
             while True:
                 ldata = await read_exactly(stream, 2)
                 (l,) = struct.unpack("!H", ldata)
                 wire = await read_exactly(stream, l)
-                for wire in self.handle_wire(wire, peer, ConnectionType.TCP):
+                for wire in self.handle_wire(wire, peer, local,
+                                             ConnectionType.TCP):
                     l = len(wire)
                     stream_message = struct.pack("!H", l) + wire
                     await stream.send_all(stream_message)
