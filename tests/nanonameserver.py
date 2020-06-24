@@ -98,29 +98,36 @@ class Server(threading.Thread):
         # We're making the sockets now so they can be sent to by the
         # caller immediately (i.e. no race with the listener starting
         # in the thread).
-        open_udp_sockets = []
-        while True:
-            if self.enable_udp:
-                self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
-                self.udp.bind((self.address, self.port))
-                self.udp_address = self.udp.getsockname()
-            if self.enable_tcp:
-                self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-                self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                if self.port is 0 and self.enable_udp:
-                    try:
-                        self.tcp.bind((self.address, self.udp_address[1]))
-                    except OSError as e:
-                        if e.errno == errno.EADDRINUSE and \
-                           len(open_udp_sockets) < 100:
-                            open_udp_sockets.append(self.udp)
-                            continue
-                        raise
-                else:
-                    self.tcp.bind((self.address, self.port))
-                self.tcp.listen()
-                self.tcp_address = self.tcp.getsockname()
-            break
+        open_sockets = []
+        try:
+            while True:
+                if self.enable_udp:
+                    self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                                             0)
+                    self.udp.bind((self.address, self.port))
+                    self.udp_address = self.udp.getsockname()
+                if self.enable_tcp:
+                    self.tcp = socket.socket(socket.AF_INET,
+                                             socket.SOCK_STREAM, 0)
+                    self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
+                                        1)
+                    if self.port is 0 and self.enable_udp:
+                        try:
+                            self.tcp.bind((self.address, self.udp_address[1]))
+                        except OSError as e:
+                            if e.errno == errno.EADDRINUSE and \
+                               len(open_udp_sockets) < 100:
+                                open_udp_sockets.append(self.udp)
+                                continue
+                            raise
+                    else:
+                        self.tcp.bind((self.address, self.port))
+                    self.tcp.listen()
+                    self.tcp_address = self.tcp.getsockname()
+                break
+        finally:
+            for udp_socket in open_udp_sockets:
+                udp_socket.close()
         if self.use_thread:
             self.start()
         return self
