@@ -98,7 +98,7 @@ class Server(threading.Thread):
         # We're making the sockets now so they can be sent to by the
         # caller immediately (i.e. no race with the listener starting
         # in the thread).
-        open_sockets = []
+        open_udp_sockets = []
         try:
             while True:
                 if self.enable_udp:
