@@ -93,22 +93,6 @@ class Server(threading.Thread):
         self.tcp = None
         self.tcp_address = None
 
-    def _open_sockets(self):
-        if self.enable_udp:
-            self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
-            self.udp.bind((self.address, self.port))
-            self.udp_address = self.udp.getsockname()
-        if self.enable_tcp:
-            self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            port = self.port
-            if port is 0 and self.enable_udp:
-                port = self.udp_address[1]
-                port = 12347
-            self.tcp.bind((self.address, port))
-            self.tcp.listen()
-            self.tcp_address = self.tcp.getsockname()
-
     def __enter__(self):
         (self.left, self.right) = socket.socketpair()
         # We're making the sockets now so they can be sent to by the
