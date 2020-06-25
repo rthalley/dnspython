@@ -25,6 +25,7 @@ import time
 
 import dns.exception
 import dns.tsig
+import dns.rdtypes.ANY.OPT
 
 
 QUESTION = 0
@@ -172,18 +173,16 @@ class Renderer:
         ednsflags |= (edns << 16)
         self._set_section(ADDITIONAL)
         with self._track_size():
-            self.output.write(struct.pack('!BHHIH', 0, dns.rdatatype.OPT,
-                                          payload, ednsflags, 0))
-            if options is not None:
-                lstart = self.output.tell()
-                for opt in options:
-                    owire = opt.to_wire()
-                    self.output.write(struct.pack("!HH", opt.otype, len(owire)))
-                    self.output.write(owire)
-                lend = self.output.tell()
-                self.output.seek(lstart - 2)
-                self.output.write(struct.pack("!H", lend - lstart))
-                self.output.seek(0, io.SEEK_END)
+            self.output.write(struct.pack('!BHHI', 0, dns.rdatatype.OPT,
+                                          payload, ednsflags))
+            if options:
+                opt = dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT,
+                                              options)
+                odata = opt.to_wire()
+                self.output.write(struct.pack('!H', len(odata)))
+                self.output.write(odata)
+            else:
+                self.output.write(struct.pack('!H', 0))
         self.counts[ADDITIONAL] += 1
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,

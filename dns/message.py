@@ -685,27 +685,7 @@ class _WireReader:
                 struct.unpack('!HHIH',
                               self.wire[self.current:self.current + 10])
             self.current += 10
-            if rdtype == dns.rdatatype.OPT:
-                if section is not self.message.additional or seen_opt:
-                    raise BadEDNS
-                self.message.payload = rdclass
-                self.message.ednsflags = ttl
-                self.message.edns = (ttl & 0xff0000) >> 16
-                self.message.options = []
-                current = self.current
-                optslen = rdlen
-                while optslen > 0:
-                    (otype, olen) = \
-                        struct.unpack('!HH',
-                                      self.wire[current:current + 4])
-                    current = current + 4
-                    opt = dns.edns.option_from_wire(
-                        otype, self.wire, current, olen)
-                    self.message.options.append(opt)
-                    current = current + olen
-                    optslen = optslen - 4 - olen
-                seen_opt = True
-            elif rdtype == dns.rdatatype.TSIG:
+            if rdtype == dns.rdatatype.TSIG:
                 if not (section is self.message.additional and
                         i == (count - 1)):
                     raise BadTSIG
@@ -732,10 +712,19 @@ class _WireReader:
                                       self.message.first)
                 self.message.had_tsig = True
             else:
+                if rdtype == dns.rdatatype.OPT:
+                    if section is not self.message.additional or seen_opt:
+                        raise BadEDNS
+                    self.message.payload = rdclass
+                    self.message.ednsflags = ttl
+                    self.message.edns = (ttl & 0xff0000) >> 16
+                    seen_opt = True
+
                 if ttl > 0x7fffffff:
                     ttl = 0
                 if self.updating and \
-                   rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE):
+                   rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE) and \
+                   rdtype != dns.rdatatype.OPT:
                     deleting = rdclass
                     rdclass = self.zone_rdclass
                 else:
@@ -752,11 +741,14 @@ class _WireReader:
                     covers = rd.covers()
                 if self.message.xfr and rdtype == dns.rdatatype.SOA:
                     force_unique = True
-                rrset = self.message.find_rrset(section, name,
-                                                rdclass, rdtype, covers,
-                                                deleting, True, force_unique)
-                if rd is not None:
-                    rrset.add(rd, ttl)
+                if rdtype == dns.rdatatype.OPT:
+                    self.message.options = rd.options
+                else:
+                    rrset = self.message.find_rrset(section, name,
+                                                    rdclass, rdtype, covers,
+                                                    deleting, True, force_unique)
+                    if rd is not None:
+                        rrset.add(rd, ttl)
             self.current += rdlen
 
     def read(self):
