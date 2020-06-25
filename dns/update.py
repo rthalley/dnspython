@@ -27,7 +27,17 @@ import dns.rdataset
 import dns.tsig
 
 
+class UpdateSection(dns.enum.IntEnum):
+    """Update sections"""
+    ZONE = 0
+    PREREQ = 1
+    UPDATE = 2
+    ADDITIONAL = 3
+
+
 class Update(dns.message.Message):
+
+    _section_enum = UpdateSection
 
     def __init__(self, zone, rdclass=dns.rdataclass.IN, keyring=None,
                  keyname=None, keyalgorithm=dns.tsig.default_algorithm):

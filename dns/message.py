@@ -23,6 +23,7 @@ import struct
 import time
 
 import dns.edns
+import dns.enum
 import dns.exception
 import dns.flags
 import dns.name
@@ -77,21 +78,19 @@ class Truncated(dns.exception.DNSException):
         """
         return self.kwargs['message']
 
+class MessageSection(dns.enum.IntEnum):
+    """Message sections"""
+    QUESTION = 0
+    ANSWER = 1
+    AUTHORITY = 2
+    ADDITIONAL = 3
 
-#: The question section number
-QUESTION = 0
-
-#: The answer section number
-ANSWER = 1
-
-#: The authority section number
-AUTHORITY = 2
-
-#: The additional section number
-ADDITIONAL = 3
+globals().update(MessageSection.__members__)
 
 class Message:
     """A DNS message."""
+
+    _section_enum = MessageSection
 
     def __init__(self, id=None):
         if id is None:
@@ -155,32 +154,14 @@ class Message:
             s.write('payload %d\n' % self.payload)
         for opt in self.options:
             s.write('option %s\n' % opt.to_text())
-        is_update = dns.opcode.is_update(self.flags)
-        if is_update:
-            s.write(';ZONE\n')
-        else:
-            s.write(';QUESTION\n')
-        for rrset in self.question:
+
             s.write(rrset.to_text(origin, relativize, **kw))
             s.write('\n')
-        if is_update:
-            s.write(';PREREQ\n')
-        else:
-            s.write(';ANSWER\n')
-        for rrset in self.answer:
-            s.write(rrset.to_text(origin, relativize, **kw))
-            s.write('\n')
-        if is_update:
-            s.write(';UPDATE\n')
-        else:
-            s.write(';AUTHORITY\n')
-        for rrset in self.authority:
-            s.write(rrset.to_text(origin, relativize, **kw))
-            s.write('\n')
-        s.write(';ADDITIONAL\n')
-        for rrset in self.additional:
-            s.write(rrset.to_text(origin, relativize, **kw))
-            s.write('\n')
+        for (name, which) in self._section_enum.__members__.items():
+            s.write(f';{name}\n')
+            for rrset in self.section_from_number(which):
+                s.write(rrset.to_text(origin, relativize, **kw))
+                s.write('\n')
         #
         # We strip off the final \n so the caller can print the result without
         # doing weird things to get around eccentricities in Python print
