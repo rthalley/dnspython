@@ -646,15 +646,15 @@ class _WireReader:
         if self.updating and qcount > 1:
             raise dns.exception.FormError
 
-        for i in range(0, qcount):
+        for i in range(qcount):
             (qname, used) = dns.name.from_wire(self.wire, self.current)
             if self.message.origin is not None:
                 qname = qname.relativize(self.message.origin)
-            self.current = self.current + used
+            self.current += used
             (rdtype, rdclass) = \
                 struct.unpack('!HH',
                               self.wire[self.current:self.current + 4])
-            self.current = self.current + 4
+            self.current += 4
             self.message.find_rrset(self.message.question, qname,
                                     rdclass, rdtype, create=True,
                                     force_unique=True)
@@ -674,17 +674,17 @@ class _WireReader:
         else:
             force_unique = False
         seen_opt = False
-        for i in range(0, count):
+        for i in range(count):
             rr_start = self.current
             (name, used) = dns.name.from_wire(self.wire, self.current)
             absolute_name = name
             if self.message.origin is not None:
                 name = name.relativize(self.message.origin)
-            self.current = self.current + used
+            self.current += used
             (rdtype, rdclass, ttl, rdlen) = \
                 struct.unpack('!HHIH',
                               self.wire[self.current:self.current + 10])
-            self.current = self.current + 10
+            self.current += 10
             if rdtype == dns.rdatatype.OPT:
                 if section is not self.message.additional or seen_opt:
                     raise BadEDNS
@@ -735,8 +735,7 @@ class _WireReader:
                 if ttl < 0:
                     ttl = 0
                 if self.updating and \
-                   (rdclass == dns.rdataclass.ANY or
-                        rdclass == dns.rdataclass.NONE):
+                   rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE):
                     deleting = rdclass
                     rdclass = self.zone_rdclass
                 else:
@@ -758,7 +757,7 @@ class _WireReader:
                                                 deleting, True, force_unique)
                 if rd is not None:
                     rrset.add(rd, ttl)
-            self.current = self.current + rdlen
+            self.current += rdlen
 
     def read(self):
         """Read a wire format DNS message and build a dns.message.Message
