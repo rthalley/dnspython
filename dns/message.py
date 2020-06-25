@@ -712,16 +712,6 @@ class _WireReader:
                                       self.message.first)
                 self.message.had_tsig = True
             else:
-                if rdtype == dns.rdatatype.OPT:
-                    if section is not self.message.additional or seen_opt:
-                        raise BadEDNS
-                    self.message.payload = rdclass
-                    self.message.ednsflags = ttl
-                    self.message.edns = (ttl & 0xff0000) >> 16
-                    seen_opt = True
-
-                if ttl > 0x7fffffff:
-                    ttl = 0
                 if self.updating and \
                    rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE) and \
                    rdtype != dns.rdatatype.OPT:
@@ -742,12 +732,21 @@ class _WireReader:
                 if self.message.xfr and rdtype == dns.rdatatype.SOA:
                     force_unique = True
                 if rdtype == dns.rdatatype.OPT:
+                    if section is not self.message.additional or seen_opt:
+                        raise BadEDNS
+                    self.message.payload = rdclass
+                    self.message.ednsflags = ttl
+                    self.message.edns = (ttl & 0xff0000) >> 16
                     self.message.options = rd.options
+                    seen_opt = True
                 else:
                     rrset = self.message.find_rrset(section, name,
                                                     rdclass, rdtype, covers,
-                                                    deleting, True, force_unique)
+                                                    deleting, True,
+                                                    force_unique)
                     if rd is not None:
+                        if ttl > 0x7fffffff:
+                            ttl = 0
                         rrset.add(rd, ttl)
             self.current += rdlen
 
