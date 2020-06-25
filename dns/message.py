@@ -732,7 +732,7 @@ class _WireReader:
                                       self.message.first)
                 self.message.had_tsig = True
             else:
-                if ttl < 0:
+                if ttl > 0x7fffffff:
                     ttl = 0
                 if self.updating and \
                    rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE):
