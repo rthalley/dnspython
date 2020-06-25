@@ -307,7 +307,7 @@ class BaseResolverTests(unittest.TestCase):
             pass
 
     def testSearchListsRelative(self):
-        res = dns.resolver.Resolver()
+        res = dns.resolver.Resolver(configure=False)
         res.domain = dns.name.from_text('example')
         res.search = [dns.name.from_text(x) for x in
                       ['dnspython.org', 'dnspython.net']]
@@ -332,7 +332,7 @@ class BaseResolverTests(unittest.TestCase):
                           ['www.dnspython.org', 'www.dnspython.net']])
 
     def testSearchListsAbsolute(self):
-        res = dns.resolver.Resolver()
+        res = dns.resolver.Resolver(configure=False)
         qname = dns.name.from_text('absolute')
         qnames = res._get_qnames_to_try(qname, True)
         self.assertEqual(qnames, [qname])
@@ -595,17 +595,17 @@ class ResolverMiscTestCase(unittest.TestCase):
 
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
     def test_set_nameservers_to_list(self):
-        resolver = dns.resolver.Resolver()
+        resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = ['1.2.3.4']
         self.assertEqual(resolver.nameservers, ['1.2.3.4'])
 
     def test_set_namservers_to_empty_list(self):
-        resolver = dns.resolver.Resolver()
+        resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = []
         self.assertEqual(resolver.nameservers, [])
 
     def test_set_nameservers_invalid_type(self):
-        resolver = dns.resolver.Resolver()
+        resolver = dns.resolver.Resolver(configure=False)
         invalid_nameservers = [None, '1.2.3.4', 1234, (1, 2, 3, 4), {'invalid': 'nameserver'}]
         for invalid_nameserver in invalid_nameservers:
             with self.assertRaises(ValueError):
