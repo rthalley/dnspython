@@ -25,7 +25,6 @@ import time
 
 import dns.exception
 import dns.tsig
-import dns.rdtypes.ANY.OPT
 
 
 QUESTION = 0
@@ -165,25 +164,33 @@ class Renderer:
                                  **kw)
         self.counts[section] += n
 
+    def add_rdata(self, section, name, ttl, rdata):
+        """Add the rdata to the specified section, using the specified
+        name as the owner name.
+        """
+
+        self._set_section(section)
+        with self._track_size():
+            name.to_wire(self.output, self.compress, self.origin)
+            header = struct.pack("!HHIH", rdata.rdtype, rdata.rdclass, ttl, 0)
+            self.output.write(header)
+            start = self.output.tell()
+            rdata.to_wire(self.output, self.compress, self.origin)
+            end = self.output.tell()
+            assert end - start < 65536
+            self.output.seek(start - 2)
+            self.output.write(struct.pack("!H", end - start))
+            self.output.seek(0, io.SEEK_END)
+        self.counts[section] += 1
+
     def add_edns(self, edns, ednsflags, payload, options=None):
         """Add an EDNS OPT record to the message."""
 
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
         ednsflags |= (edns << 16)
-        self._set_section(ADDITIONAL)
-        with self._track_size():
-            self.output.write(struct.pack('!BHHI', 0, dns.rdatatype.OPT,
-                                          payload, ednsflags))
-            if options:
-                opt = dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT,
-                                              options)
-                odata = opt.to_wire()
-                self.output.write(struct.pack('!H', len(odata)))
-                self.output.write(odata)
-            else:
-                self.output.write(struct.pack('!H', 0))
-        self.counts[ADDITIONAL] += 1
+        opt = dns.message.Message._make_opt(payload, options)
+        self.add_rdata(ADDITIONAL, dns.name.root, ednsflags, opt)
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
                  request_mac, algorithm=dns.tsig.default_algorithm):
