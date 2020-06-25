@@ -229,6 +229,41 @@ class Rdataset(dns.set.Set):
         #
         return s.getvalue()[:-1]
 
+    @staticmethod
+    def rdata_to_wire(name, ttl, rdata, file, compress=None, origin=None,
+                      override_rdclass=None):
+        """Convert a single rdata to wire format, including the header.
+
+        *name*, a ``dns.name.Name`` is the owner name to use.
+
+        *file* is the file where the name is emitted (typically a
+        BytesIO file).
+
+        *compress*, a ``dict``, is the compression table to use.  If
+        ``None`` (the default), names will not be compressed.
+
+        *origin* is a ``dns.name.Name`` or ``None``.  If the name is
+        relative and origin is not ``None``, then *origin* will be appended
+        to it.
+
+        *override_rdclass*, an ``int``, is used as the class instead of the
+        class of the rdataset.  This is useful when rendering rdatasets
+        associated with dynamic updates.
+        """
+        if override_rdclass is not None:
+            rdclass = override_rdclass
+        else:
+            rdclass = rdata.rdclass
+        name.to_wire(file, compress, origin)
+        file.write(struct.pack("!HHIH", rdata.rdtype, rdclass, ttl, 0))
+        start = file.tell()
+        rdata.to_wire(file, compress, origin)
+        end = file.tell()
+        assert end - start < 65536
+        file.seek(start - 2)
+        file.write(struct.pack("!H", end - start))
+        file.seek(0, io.SEEK_END)
+
     def to_wire(self, name, file, compress=None, origin=None,
                 override_rdclass=None, want_shuffle=True):
         """Convert the rdataset to wire format.
@@ -273,18 +308,8 @@ class Rdataset(dns.set.Set):
             else:
                 l = self
             for rd in l:
-                name.to_wire(file, compress, origin)
-                stuff = struct.pack("!HHIH", self.rdtype, rdclass,
-                                    self.ttl, 0)
-                file.write(stuff)
-                start = file.tell()
-                rd.to_wire(file, compress, origin)
-                end = file.tell()
-                assert end - start < 65536
-                file.seek(start - 2)
-                stuff = struct.pack("!H", end - start)
-                file.write(stuff)
-                file.seek(0, 2)
+                self.rdata_to_wire(name, self.ttl, rd, file, compress, origin,
+                                   override_rdclass)
             return len(self)
 
     def match(self, rdclass, rdtype, covers):

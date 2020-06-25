@@ -171,16 +171,9 @@ class Renderer:
 
         self._set_section(section)
         with self._track_size():
-            name.to_wire(self.output, self.compress, self.origin)
-            header = struct.pack("!HHIH", rdata.rdtype, rdata.rdclass, ttl, 0)
-            self.output.write(header)
-            start = self.output.tell()
-            rdata.to_wire(self.output, self.compress, self.origin)
-            end = self.output.tell()
-            assert end - start < 65536
-            self.output.seek(start - 2)
-            self.output.write(struct.pack("!H", end - start))
-            self.output.seek(0, io.SEEK_END)
+            dns.rdataset.Rdataset.rdata_to_wire(name, ttl, rdata,
+                                                self.output, self.compress,
+                                                self.origin)
         self.counts[section] += 1
 
     def add_edns(self, edns, ednsflags, payload, options=None):
