@@ -836,7 +836,7 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
 
     *origin*, a ``dns.name.Name`` or ``None``.  If the message is part
     of a zone transfer, *origin* should be the origin name of the
-    zone.
+    zone.  If not ``None``, names will be relativized to the origin.
 
     *tsig_ctx*, a ``hmac.HMAC`` object, the ongoing TSIG context, used
     when validating zone transfers.
@@ -913,14 +913,21 @@ class _TextReader:
     DNS dynamic updates.
     last_name: The most recently read name when building a message object.
     one_rr_per_rrset: Put each RR into its own RRset?
+    origin: The origin for relative names
+    relativize: relativize names?
+    relativize_to: the origin to relativize to.
     """
 
-    def __init__(self, text, idna_codec, one_rr_per_rrset=False):
+    def __init__(self, text, idna_codec, one_rr_per_rrset=False,
+                 origin=None, relativize=True, relativize_to=None):
         self.message = None
         self.tok = dns.tokenizer.Tokenizer(text, idna_codec=idna_codec)
         self.last_name = None
         self.zone_rdclass = dns.rdataclass.IN
         self.one_rr_per_rrset = one_rr_per_rrset
+        self.origin = origin
+        self.relativize = relativize
+        self.relativize_to = relativize_to
         self.id = None
         self.edns = -1
         self.ednsflags = 0
@@ -977,7 +984,9 @@ class _TextReader:
         section = self.message.sections[section_number]
         token = self.tok.get(want_leading=True)
         if not token.is_whitespace():
-            self.last_name = self.tok.as_name(token, None)
+            self.last_name = self.tok.as_name(token, self.message.origin,
+                                              self.relativize,
+                                              self.relativize_to)
         name = self.last_name
         token = self.tok.get()
         if not token.is_identifier():
@@ -1011,7 +1020,9 @@ class _TextReader:
         # Name
         token = self.tok.get(want_leading=True)
         if not token.is_whitespace():
-            self.last_name = self.tok.as_name(token, None)
+            self.last_name = self.tok.as_name(token, self.message.origin,
+                                              self.relativize,
+                                              self.relativize_to)
         name = self.last_name
         token = self.tok.get()
         if not token.is_identifier():
@@ -1044,7 +1055,9 @@ class _TextReader:
         token = self.tok.get()
         if not token.is_eol_or_eof():
             self.tok.unget(token)
-            rd = dns.rdata.from_text(rdclass, rdtype, self.tok, None)
+            rd = dns.rdata.from_text(rdclass, rdtype, self.tok,
+                                     self.message.origin, self.relativize,
+                                     self.relativize_to)
             covers = rd.covers()
         else:
             rd = None
@@ -1072,6 +1085,8 @@ class _TextReader:
                 self.message.set_rcode(self.rcode)
             self.one_rr_per_rrset = \
                 self.message._get_one_rr_per_rrset(self.one_rr_per_rrset)
+            if self.origin:
+                self.message.origin = self.origin
 
     def read(self):
         """Read a text format DNS message and build a dns.message.Message
@@ -1107,7 +1122,8 @@ class _TextReader:
         return self.message
 
 
-def from_text(text, idna_codec=None, one_rr_per_rrset=False):
+def from_text(text, idna_codec=None, one_rr_per_rrset=False,
+              origin=None, relativize=True, relativize_to=None):
     """Convert the text format message into a message object.
 
     The reader stops after reading the first blank line in the input to
@@ -1123,6 +1139,14 @@ def from_text(text, idna_codec=None, one_rr_per_rrset=False):
     *one_rr_per_rrset*, a ``bool``.  If ``True``, then each RR is put
     into its own rrset.  The default is ``False``.
 
+    *origin*, a ``dns.name.Name`` (or ``None``), the
+    origin to use for relative names.
+
+    *relativize*, a ``bool``.  If true, name will be relativized.
+
+    *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
+    when relativizing names.  If not set, the *origin* value will be used.
+
     Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
 
     Raises ``dns.exception.SyntaxError`` if the text is badly formed.
@@ -1134,7 +1158,8 @@ def from_text(text, idna_codec=None, one_rr_per_rrset=False):
     # since it's an implementation detail.  The official file
     # interface is from_file().
 
-    reader = _TextReader(text, idna_codec, one_rr_per_rrset)
+    reader = _TextReader(text, idna_codec, one_rr_per_rrset, origin,
+                         relativize, relativize_to)
     return reader.read()
 
 
