@@ -110,9 +110,16 @@ class UpdateTestCase(unittest.TestCase):
 
     def test_from_text1(self): # type: () -> None
         update = dns.message.from_text(update_text)
+        self.assertTrue(isinstance(update, dns.update.UpdateMessage))
         w = update.to_wire(origin=dns.name.from_text('example'),
                            want_shuffle=False)
         self.assertEqual(w, goodwire)
+
+    def test_from_wire(self):
+        origin = dns.name.from_text('example')
+        u1 = dns.message.from_wire(goodwire, origin=origin)
+        u2 = dns.message.from_text(update_text, origin=origin)
+        self.assertEqual(u1, u2)
 
     def test_TSIG(self):
         keyring = dns.tsigkeyring.from_text({
