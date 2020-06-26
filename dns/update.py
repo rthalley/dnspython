@@ -41,19 +41,22 @@ class UpdateSection(dns.enum.IntEnum):
 globals().update(UpdateSection.__members__)
 
 
-class Update(dns.message.Message):
+class UpdateMessage(dns.message.Message):
 
     _section_enum = UpdateSection
 
-    def __init__(self, zone, rdclass=dns.rdataclass.IN, keyring=None,
-                 keyname=None, keyalgorithm=dns.tsig.default_algorithm):
+    def __init__(self, zone=None, rdclass=dns.rdataclass.IN, keyring=None,
+                 keyname=None, keyalgorithm=dns.tsig.default_algorithm,
+                 id=None):
         """Initialize a new DNS Update object.
 
         See the documentation of the Message class for a complete
         description of the keyring dictionary.
 
-        *zone*, a ``dns.name.Name`` or ``str``, the zone which is being
-        updated.
+        *zone*, a ``dns.name.Name``, ``str``, or ``None``, the zone
+        which is being updated.  ``None`` should only be used by dnspython's
+        message constructors, as a zone is required for the convenience
+        methods like ``add()``, ``replace()``, etc.
 
         *rdclass*, an ``int`` or ``str``, the class of the zone.
 
@@ -68,16 +71,18 @@ class Update(dns.message.Message):
         to use; defaults to ``None``. The key must be defined in the keyring.
 
         *keyalgorithm*, a ``dns.name.Name``, the TSIG algorithm to use.
+
         """
-        super().__init__()
+        super().__init__(id=id)
         self.flags |= dns.opcode.to_flags(dns.opcode.UPDATE)
         if isinstance(zone, str):
             zone = dns.name.from_text(zone)
         self.origin = zone
         rdclass = dns.rdataclass.RdataClass.make(rdclass)
         self.zone_rdclass = rdclass
-        self.find_rrset(self.zone, self.origin, rdclass, dns.rdatatype.SOA,
-                        create=True, force_unique=True)
+        if self.origin:
+            self.find_rrset(self.zone, self.origin, rdclass, dns.rdatatype.SOA,
+                            create=True, force_unique=True)
         if keyring is not None:
             self.use_tsig(keyring, keyname, algorithm=keyalgorithm)
 
@@ -288,23 +293,21 @@ class Update(dns.message.Message):
                             dns.rdatatype.NONE, None,
                             True, True)
 
-    def to_wire(self, origin=None, max_size=65535):
-        """Return a string containing the update in DNS compressed wire
-        format.
+    def _get_one_rr_per_rrset(self, value):
+        # Updates are always one_rr_per_rrset
+        return True
 
-        *origin*, a ``dns.name.Name`` or ``None``, the origin to be
-        appended to any relative names.  If *origin* is ``None``, then
-        the origin of the ``dns.update.Update`` message object is used
-        (i.e. the *zone* parameter passed when the Update object was
-        created).
+    def _validate_rrset(self, section, rrset):
+        if section == UpdateSection.ZONE:
+            if rrset.rdtype != dns.rdatatype.SOA:
+                raise dns.exception.FormError
 
-        *max_size*, an ``int``, the maximum size of the wire format
-        output; default is 0, which means "the message's request
-        payload, if nonzero, or 65535".
+    def _finish_section(self, section):
+        if section == UpdateSection.ZONE and len(self.zone) != 1:
+            raise dns.exception.FormError
+        self.zone_rdclass = self.zone[0].rdclass
+        # We do NOT want to set origin here, as that would cause
+        # from_wire() relativization.
 
-        Returns a ``bytes``.
-        """
-
-        if origin is None:
-            origin = self.origin
-        return super().to_wire(origin, max_size)
+# backwards compatibility
+Update = UpdateMessage
