@@ -300,21 +300,20 @@ class UpdateMessage(dns.message.Message):
         # Updates are always one_rr_per_rrset
         return True
 
-    def _parse_rr_header(self, reader, section, rdclass, rdtype):
+    def _parse_rr_header(self, section, rdclass, rdtype):
         deleting = None
         empty = False
         if section == UpdateSection.ZONE:
             if dns.rdataclass.is_metaclass(rdclass) or \
                rdtype != dns.rdatatype.SOA or \
-               getattr(reader, 'zone_rdclass', None):
+               self.question:
                 raise dns.exception.FormError
-            reader.zone_rdclass = rdclass
         else:
-            if not getattr(reader, 'zone_rdclass', None):
+            if not self.question:
                 raise dns.exception.FormError
             if rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE):
                 deleting = rdclass
-                rdclass = reader.zone_rdclass
+                rdclass = self.question[0].rdclass
                 empty = (deleting == dns.rdataclass.ANY or
                          section == UpdateSection.PREREQ)
         return (rdclass, rdtype, deleting, empty)

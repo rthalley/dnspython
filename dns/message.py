@@ -216,8 +216,7 @@ class Message:
             return False
         if self.flags != other.flags:
             return False
-        for i in range(4):
-            section = self.sections[i]
+        for i, section in enumerate(self.sections):
             other_section = other.sections[i]
             for n in section:
                 if n not in other_section:
@@ -269,8 +268,8 @@ class Message:
         Returns an ``int``.
         """
 
-        for i in range(4):
-            if section is self.sections[i]:
+        for i, our_section in enumerate(self.sections):
+            if section is our_section:
                 return self._section_enum(i)
         raise ValueError('unknown section')
 
@@ -647,7 +646,7 @@ class Message:
         # What the caller picked is fine.
         return value
 
-    def _parse_rr_header(self, reader, section, rdclass, rdtype):
+    def _parse_rr_header(self, section, rdclass, rdtype):
         if dns.rdataclass.is_metaclass(rdclass):
             raise dns.exception.FormError
         return (rdclass, rdtype, None, False)
@@ -716,10 +715,9 @@ class _WireReader:
                               self.wire[self.current:self.current + 4])
             self.current += 4
             (rdclass, rdtype, _, _) = \
-                self.message._parse_rr_header(self, section_number,
-                                              rdclass, rdtype)
-            rrset = self.message.find_rrset(section, qname, rdclass, rdtype,
-                                            create=True, force_unique=True)
+                self.message._parse_rr_header(section_number, rdclass, rdtype)
+            self.message.find_rrset(section, qname, rdclass, rdtype,
+                                    create=True, force_unique=True)
 
     def _get_section(self, section_number, count):
         """Read the next I{count} records from the wire data and add them to
@@ -777,7 +775,7 @@ class _WireReader:
                     empty = False
                 else:
                     (rdclass, rdtype, deleting, empty) = \
-                        self.message._parse_rr_header(self, section_number,
+                        self.message._parse_rr_header(section_number,
                                                       rdclass, rdtype)
                 if empty:
                     if rdlen > 0:
@@ -1019,7 +1017,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, _, _) = \
-            self.message._parse_rr_header(self, section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, rdclass, rdtype)
         self.message.find_rrset(section, name, rdclass, rdtype, create=True,
                                 force_unique=True)
         self.tok.get_eol()
@@ -1063,7 +1061,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, deleting, empty) = \
-            self.message._parse_rr_header(self, section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, rdclass, rdtype)
         token = self.tok.get()
         if empty and not token.is_eol_or_eof():
             raise dns.exception.SyntaxError
