@@ -561,11 +561,17 @@ class Message:
 
     @property
     def edns(self):
-        return ((self.ednsflags & 0xff0000) >> 16) if self.opt else -1
+        if self.opt:
+            return (self.ednsflags & 0xff0000) >> 16
+        else:
+            return -1
 
     @property
     def ednsflags(self):
-        return self.opt.ttl if self.opt else 0
+        if self.opt:
+            return self.opt.ttl
+        else:
+            return 0
 
     @ednsflags.setter
     def ednsflags(self, v):
@@ -576,11 +582,17 @@ class Message:
 
     @property
     def payload(self):
-        return self.opt[0].payload if self.opt else 0
+        if self.opt:
+            return self.opt[0].payload
+        else:
+            return 0
 
     @property
     def options(self):
-        return self.opt[0].options if self.opt else ()
+        if self.opt:
+            return self.opt[0].options
+        else:
+            return ()
 
     def want_dnssec(self, wanted=True):
         """Enable or disable 'DNSSEC desired' flag in requests.
