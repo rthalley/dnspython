@@ -105,6 +105,10 @@ Königsgäßchen. 3600 IN NS Königsgäßchen.
 
 class MessageTestCase(unittest.TestCase):
 
+    def test_class(self):
+        m = dns.message.from_text(query_text)
+        self.assertTrue(isinstance(m, dns.message.QueryMessage))
+
     def test_comparison_eq1(self):
         q1 = dns.message.from_text(query_text)
         q2 = dns.message.from_text(query_text)
