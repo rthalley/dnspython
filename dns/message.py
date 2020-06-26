@@ -609,7 +609,7 @@ class Message:
         # What the caller picked is fine.
         return value
 
-    def _parse_rr_header(self, reader, section, rdclass, rdtype):
+    def _parse_rr_header(self, section, rdclass, rdtype):
         if dns.rdataclass.is_metaclass(rdclass):
             raise dns.exception.FormError
         return (rdclass, rdtype, None, False)
@@ -678,8 +678,7 @@ class _WireReader:
                               self.wire[self.current:self.current + 4])
             self.current += 4
             (rdclass, rdtype, _, _) = \
-                self.message._parse_rr_header(self, section_number,
-                                              rdclass, rdtype)
+                self.message._parse_rr_header(section_number, rdclass, rdtype)
             self.message.find_rrset(section, qname, rdclass, rdtype,
                                     create=True, force_unique=True)
 
@@ -753,7 +752,7 @@ class _WireReader:
                 self.message.had_tsig = True
             else:
                 (rdclass, rdtype, deleting, empty) = \
-                    self.message._parse_rr_header(self, section_number,
+                    self.message._parse_rr_header(section_number,
                                                   rdclass, rdtype)
                 if empty:
                     if rdlen > 0:
@@ -991,7 +990,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, _, _) = \
-            self.message._parse_rr_header(self, section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, rdclass, rdtype)
         self.message.find_rrset(section, name, rdclass, rdtype, create=True,
                                 force_unique=True)
         self.tok.get_eol()
@@ -1035,7 +1034,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, deleting, empty) = \
-            self.message._parse_rr_header(self, section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, rdclass, rdtype)
         token = self.tok.get()
         if empty and not token.is_eol_or_eof():
             raise dns.exception.SyntaxError
