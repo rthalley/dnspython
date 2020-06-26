@@ -170,7 +170,7 @@ class Renderer:
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
         ednsflags |= (edns << 16)
-        opt = dns.message.Message._make_opt(flags, payload, options)
+        opt = dns.message.Message._make_opt(ednsflags, payload, options)
         self.add_rdataset(ADDITIONAL, dns.name.root, opt)
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
