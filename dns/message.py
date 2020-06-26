@@ -1066,24 +1066,21 @@ class _TextReader:
         if rd is not None:
             rrset.add(rd, ttl)
 
-    def _maybe_instantiate_message(self):
-        if self.message is None:
-            # Time to instantiate the message!
-            factory = _message_factory_from_opcode(self.opcode)
-            self.message = factory(id=self.id)
-            self.message.flags = self.flags
-            if self.edns >= 0:
-                self.message.edns = self.edns
-            if self.ednsflags:
-                self.message.ednsflags = self.ednsflags
-            if self.payload:
-                self.message.payload = self.payload
-            if self.rcode:
-                self.message.set_rcode(self.rcode)
-            self.one_rr_per_rrset = \
-                self.message._get_one_rr_per_rrset(self.one_rr_per_rrset)
-            if self.origin:
-                self.message.origin = self.origin
+    def _make_message(self):
+        factory = _message_factory_from_opcode(self.opcode)
+        message = factory(id=self.id)
+        message.flags = self.flags
+        if self.edns >= 0:
+            message.edns = self.edns
+        if self.ednsflags:
+            message.ednsflags = self.ednsflags
+        if self.payload:
+            message.payload = self.payload
+        if self.rcode:
+            message.set_rcode(self.rcode)
+        if self.origin:
+            message.origin = self.origin
+        return message
 
     def read(self):
         """Read a text format DNS message and build a dns.message.Message
@@ -1099,21 +1096,34 @@ class _TextReader:
                 u = token.value.upper()
                 if u == 'HEADER':
                     line_method = self._header_line
-                elif u in {'QUESTION', 'ANSWER', 'AUTHORITY', 'ADDITIONAL',
-                           'ZONE', 'PREREQ', 'UPDATE'}:
-                    # It's ugly, but we have to do the check above because
-                    # if the token is JUST a comment, we want to ignore it,
-                    # and not prehaps prematurely instantiate the message!
-                    self._maybe_instantiate_message()
-                    section_number = self.message._section_enum.make(u)
-                    if section_number == 0:
+
+                if self.message:
+                    message = self.message
+                else:
+                    # If we don't have a message, create one with the current
+                    # opcode, so that we know which section names to parse.
+                    message = self._make_message()
+                try:
+                    section_number = message._section_enum.from_text(u)
+                    # We found a section name.  If we don't have a message,
+                    # use the one we just created.
+                    if not self.message:
+                        self.message = message
+                        self.one_rr_per_rrset = \
+                            message._get_one_rr_per_rrset(self.one_rr_per_rrset)
+                    if section_number == MessageSection.QUESTION:
                         line_method = self._question_line
                     else:
                         line_method = self._rr_line
+                except Exception:
+                    # It's just a comment.
+                    pass
                 self.tok.get_eol()
                 continue
             self.tok.unget(token)
             line_method(section_number)
+        if not self.message:
+            self.message = self._make_message()
         for i in range(4):
             for rrset in self.message.sections[i]:
                 self.message._validate_rrset(i, rrset)
