@@ -651,6 +651,12 @@ class Message:
             raise dns.exception.FormError
         return (rdclass, rdtype, None, False)
 
+    def _parse_special_rr_header(self, section, rdclass, rdtype):
+        if rdtype == dns.rdatatype.OPT:
+            if section != MessageSection.ADDITIONAL or self.opt:
+                raise BadEDNS
+        return (rdclass, rdtype, None, False)
+
 
 class QueryMessage(Message):
     pass
@@ -768,11 +774,9 @@ class _WireReader:
                 self.message.had_tsig = True
             else:
                 if rdtype == dns.rdatatype.OPT:
-                    if section_number != MessageSection.ADDITIONAL or \
-                       self.message.opt:
-                        raise BadEDNS
-                    deleting = None
-                    empty = False
+                    (rdclass, rdtype, deleting, empty) = \
+                        self.message._parse_special_rr_header(section_number,
+                                                              rdclass, rdtype)
                 else:
                     (rdclass, rdtype, deleting, empty) = \
                         self.message._parse_rr_header(section_number,
