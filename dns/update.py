@@ -38,6 +38,8 @@ class UpdateSection(dns.enum.IntEnum):
     def _maximum(cls):
         return 3
 
+globals().update(UpdateSection.__members__)
+
 
 class Update(dns.message.Message):
 

@@ -89,8 +89,8 @@ class MessageSection(dns.enum.IntEnum):
     def _maximum(cls):
         return 3
 
-
 globals().update(MessageSection.__members__)
+
 
 class Message:
     """A DNS message."""
