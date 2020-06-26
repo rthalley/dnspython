@@ -3,6 +3,9 @@
 The dns.message.Message Class
 -----------------------------
 
+This is the base class for all messages, and the class used for any
+DNS opcodes that do not have a more specific class.
+
 .. autoclass:: dns.message.Message
    :members:
 
@@ -14,21 +17,9 @@ The dns.message.Message Class
 
       An ``int``, the DNS flags of the message.
 
-   .. attribute:: question
+   .. attribute:: sections
 
-      The question section, a list of ``dns.rrset.RRset`` objects.
-
-   .. attribute:: answer
-
-      The answer section, a list of ``dns.rrset.RRset`` objects.
-
-   .. attribute:: authority
-
-      The authority section, a list of ``dns.rrset.RRset`` objects.
-
-   .. attribute:: additional
-
-      The additional section, a list of ``dns.rrset.RRset`` objects.
+      A list of lists of ``dns.rrset.RRset`` objects.
 
    .. attribute:: edns
 

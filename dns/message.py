@@ -129,6 +129,7 @@ class Message:
 
     @property
     def question(self):
+        """ The question section."""
         return self.sections[0]
 
     @question.setter
@@ -137,6 +138,7 @@ class Message:
 
     @property
     def answer(self):
+        """ The answer section."""
         return self.sections[1]
 
     @answer.setter
@@ -145,6 +147,7 @@ class Message:
 
     @property
     def authority(self):
+        """ The authority section."""
         return self.sections[2]
 
     @authority.setter
@@ -153,6 +156,7 @@ class Message:
 
     @property
     def additional(self):
+        """ The additional data section."""
         return self.sections[3]
 
     @additional.setter
@@ -1226,14 +1230,14 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
     is used.
 
-    Returns a ``dns.message.Message``
+    Returns a ``dns.message.QueryMessage``
     """
 
     if isinstance(qname, str):
         qname = dns.name.from_text(qname, idna_codec=idna_codec)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
-    m = Message()
+    m = QueryMessage()
     m.flags |= dns.flags.RD
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
                  force_unique=True)
@@ -1283,12 +1287,15 @@ def make_response(query, recursion_available=False, our_payload=8192,
 
     *fudge*, an ``int``, the TSIG time fudge.
 
-    Returns a ``dns.message.Message`` object.
+    Returns a ``dns.message.Message`` object whose specific class is
+    appropriate for the query.  For example, if query is a
+    ``dns.update.UpdateMessage``, response will be too.
     """
 
     if query.flags & dns.flags.QR:
         raise dns.exception.FormError('specified query message is not a query')
-    response = dns.message.Message(query.id)
+    factory = _message_factory_from_opcode(query.opcode)
+    response = factory(id=query.id)
     response.flags = dns.flags.QR | (query.flags & dns.flags.RD)
     if recursion_available:
         response.flags |= dns.flags.RA

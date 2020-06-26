@@ -88,6 +88,7 @@ class UpdateMessage(dns.message.Message):
 
     @property
     def zone(self):
+        """The zone section."""
         return self.sections[0]
 
     @zone.setter
@@ -96,6 +97,7 @@ class UpdateMessage(dns.message.Message):
 
     @property
     def prerequisite(self):
+        """The prerequisite section."""
         return self.sections[1]
 
     @prerequisite.setter
@@ -104,6 +106,7 @@ class UpdateMessage(dns.message.Message):
 
     @property
     def update(self):
+        """The update section."""
         return self.sections[2]
 
     @update.setter
