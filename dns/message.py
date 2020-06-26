@@ -189,9 +189,6 @@ class Message:
             s.write('payload %d\n' % self.payload)
         for opt in self.options:
             s.write('option %s\n' % opt.to_text())
-
-            s.write(rrset.to_text(origin, relativize, **kw))
-            s.write('\n')
         for (name, which) in self._section_enum.__members__.items():
             s.write(f';{name}\n')
             for rrset in self.section_from_number(which):
