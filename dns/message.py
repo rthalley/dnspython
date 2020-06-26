@@ -661,6 +661,7 @@ class _WireReader:
             rrset = self.message.find_rrset(self.message.question, qname,
                                             rdclass, rdtype, create=True,
                                             force_unique=True)
+        for rrset in self.message.sections[MessageSection.QUESTION]:
             self.message._validate_rrset(MessageSection.QUESTION, rrset)
         self.message._finish_section(MessageSection.QUESTION)
 
@@ -757,13 +758,9 @@ class _WireReader:
                                                 deleting, True, force_unique)
                 if rd is not None:
                     rrset.add(rd, ttl)
-                # Note this validates the rrset every RR, but this is
-                # simpler than adding logic to remember a "last rrset"
-                # and validate it when the current rrset changes (or when
-                # we get to the end of the section.  If it becomes a
-                # performance problem, we can do that.
-                self.message._validate_rrset(section_number, rrset)
             self.current += rdlen
+        for rrset in self.message.sections[section_number]:
+            self.message._validate_rrset(section_number, rrset)
         self.message._finish_section(section_number)
 
     def read(self):
@@ -1000,10 +997,8 @@ class _TextReader:
             rdclass = dns.rdataclass.IN
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
-        rrset = self.message.find_rrset(section, name,
-                                        rdclass, rdtype, create=True,
-                                        force_unique=True)
-        self.message._validate_rrset(section_number, rrset)
+        self.message.find_rrset(section, name, rdclass, rdtype, create=True,
+                                force_unique=True)
         self.zone_rdclass = rdclass
         self.tok.get_eol()
 
@@ -1064,7 +1059,6 @@ class _TextReader:
                                         deleting, True, self.one_rr_per_rrset)
         if rd is not None:
             rrset.add(rd, ttl)
-        self.message._validate_rrset(section_number, rrset)
 
     def _maybe_instantiate_message(self):
         if self.message is None:
@@ -1115,6 +1109,8 @@ class _TextReader:
             self.tok.unget(token)
             line_method(section_number)
         for i in range(4):
+            for rrset in self.message.sections[i]:
+                self.message._validate_rrset(i, rrset)
             self.message._finish_section(i)
         return self.message
 
