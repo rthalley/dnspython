@@ -300,17 +300,24 @@ class UpdateMessage(dns.message.Message):
         # Updates are always one_rr_per_rrset
         return True
 
-    def _validate_rrset(self, section, rrset):
+    def _parse_rr_header(self, reader, section, rdclass, rdtype):
+        deleting = None
+        empty = False
         if section == UpdateSection.ZONE:
-            if rrset.rdtype != dns.rdatatype.SOA:
+            if dns.rdataclass.is_metaclass(rdclass) or \
+               rdtype != dns.rdatatype.SOA or \
+               getattr(reader, 'zone_rdclass', None):
                 raise dns.exception.FormError
-
-    def _finish_section(self, section):
-        if section == UpdateSection.ZONE and len(self.zone) != 1:
-            raise dns.exception.FormError
-        self.zone_rdclass = self.zone[0].rdclass
-        # We do NOT want to set origin here, as that would cause
-        # from_wire() relativization.
+            reader.zone_rdclass = rdclass
+        else:
+            if not getattr(reader, 'zone_rdclass', None):
+                raise dns.exception.FormError
+            if rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE):
+                deleting = rdclass
+                rdclass = reader.zone_rdclass
+                empty = (deleting == dns.rdataclass.ANY or
+                         section == UpdateSection.PREREQ)
+        return (rdclass, rdtype, deleting, empty)
 
 # backwards compatibility
 Update = UpdateMessage
