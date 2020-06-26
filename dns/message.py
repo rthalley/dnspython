@@ -85,6 +85,11 @@ class MessageSection(dns.enum.IntEnum):
     AUTHORITY = 2
     ADDITIONAL = 3
 
+    @classmethod
+    def _maximum(cls):
+        return 3
+
+
 globals().update(MessageSection.__members__)
 
 class Message:
@@ -98,10 +103,7 @@ class Message:
         else:
             self.id = id
         self.flags = 0
-        self.question = []
-        self.answer = []
-        self.authority = []
-        self.additional = []
+        self.sections = [[], [], [], []]
         self.edns = -1
         self.ednsflags = 0
         self.payload = 0
@@ -123,6 +125,38 @@ class Message:
         self.multi = False
         self.first = True
         self.index = {}
+
+    @property
+    def question(self):
+        return self.sections[0]
+
+    @question.setter
+    def question(self, v):
+        self.sections[0] = v
+
+    @property
+    def answer(self):
+        return self.sections[1]
+
+    @answer.setter
+    def answer(self, v):
+        self.sections[1] = v
+
+    @property
+    def authority(self):
+        return self.sections[2]
+
+    @authority.setter
+    def authority(self, v):
+        self.sections[2] = v
+
+    @property
+    def additional(self):
+        return self.sections[3]
+
+    @additional.setter
+    def additional(self, v):
+        self.sections[3] = v
 
     def __repr__(self):
         return '<DNS message, ID ' + repr(self.id) + '>'
@@ -182,24 +216,15 @@ class Message:
             return False
         if self.flags != other.flags:
             return False
-        for n in self.question:
-            if n not in other.question:
-                return False
-        for n in other.question:
-            if n not in self.question:
-                return False
-        for n in self.answer:
-            if n not in other.answer:
-                return False
-        for n in other.answer:
-            if n not in self.answer:
-                return False
-        for n in self.authority:
-            if n not in other.authority:
-                return False
-        for n in other.authority:
-            if n not in self.authority:
-                return False
+        for i in range(4):
+            section = self.sections[i]
+            other_section = other.sections[i]
+            for n in section:
+                if n not in other_section:
+                    return False
+            for n in other_section:
+                if n not in section:
+                    return False
         return True
 
     def __ne__(self, other):
@@ -235,8 +260,7 @@ class Message:
 
     def section_number(self, section):
         """Return the "section number" of the specified section for use
-        in indexing.  The question section is 0, the answer section is 1,
-        the authority section is 2, and the additional section is 3.
+        in indexing.
 
         *section* is one of the section attributes of this message.
 
@@ -245,39 +269,25 @@ class Message:
         Returns an ``int``.
         """
 
-        if section is self.question:
-            return QUESTION
-        elif section is self.answer:
-            return ANSWER
-        elif section is self.authority:
-            return AUTHORITY
-        elif section is self.additional:
-            return ADDITIONAL
-        else:
-            raise ValueError('unknown section')
+        for i in range(4):
+            if section is self.sections[i]:
+                return self._section_enum(i)
+        raise ValueError('unknown section')
 
     def section_from_number(self, number):
-        """Return the "section number" of the specified section for use
-        in indexing.  The question section is 0, the answer section is 1,
-        the authority section is 2, and the additional section is 3.
+        """Return the section list associated with the specified section
+        number.
 
-        *section* is one of the section attributes of this message.
+        *number* is a section number `int` or the text form of a section
+        name.
 
         Raises ``ValueError`` if the section isn't known.
 
-        Returns an ``int``.
+        Returns a ``list``.
         """
 
-        if number == QUESTION:
-            return self.question
-        elif number == ANSWER:
-            return self.answer
-        elif number == AUTHORITY:
-            return self.authority
-        elif number == ADDITIONAL:
-            return self.additional
-        else:
-            raise ValueError('unknown section')
+        section = self._section_enum.make(number)
+        return self.sections[section]
 
     def find_rrset(self, section, name, rdclass, rdtype,
                    covers=dns.rdatatype.NONE, deleting=None, create=False,

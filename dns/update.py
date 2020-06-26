@@ -34,6 +34,10 @@ class UpdateSection(dns.enum.IntEnum):
     UPDATE = 2
     ADDITIONAL = 3
 
+    @classmethod
+    def _maximum(cls):
+        return 3
+
 
 class Update(dns.message.Message):
 
@@ -70,16 +74,40 @@ class Update(dns.message.Message):
         self.origin = zone
         rdclass = dns.rdataclass.RdataClass.make(rdclass)
         self.zone_rdclass = rdclass
-        self.find_rrset(self.question, self.origin, rdclass, dns.rdatatype.SOA,
+        self.find_rrset(self.zone, self.origin, rdclass, dns.rdatatype.SOA,
                         create=True, force_unique=True)
         if keyring is not None:
             self.use_tsig(keyring, keyname, algorithm=keyalgorithm)
+
+    @property
+    def zone(self):
+        return self.sections[0]
+
+    @zone.setter
+    def zone(self, v):
+        self.sections[0] = v
+
+    @property
+    def prerequisite(self):
+        return self.sections[1]
+
+    @prerequisite.setter
+    def prerequisite(self, v):
+        self.sections[1] = v
+
+    @property
+    def update(self):
+        return self.sections[2]
+
+    @update.setter
+    def update(self, v):
+        self.sections[2] = v
 
     def _add_rr(self, name, ttl, rd, deleting=None, section=None):
         """Add a single RR to the update section."""
 
         if section is None:
-            section = self.authority
+            section = self.update
         covers = rd.covers()
         rrset = self.find_rrset(section, name, self.zone_rdclass, rd.rdtype,
                                 covers, deleting, True, True)
@@ -139,7 +167,7 @@ class Update(dns.message.Message):
                 - ttl, rdtype, string...
         """
 
-        self._add(False, self.authority, name, *args)
+        self._add(False, self.update, name, *args)
 
     def delete(self, name, *args):
         """Delete records.
@@ -159,7 +187,7 @@ class Update(dns.message.Message):
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         if len(args) == 0:
-            self.find_rrset(self.authority, name, dns.rdataclass.ANY,
+            self.find_rrset(self.update, name, dns.rdataclass.ANY,
                             dns.rdatatype.ANY, dns.rdatatype.NONE,
                             dns.rdatatype.ANY, True, True)
         elif isinstance(args[0], dns.rdataset.Rdataset):
@@ -174,7 +202,7 @@ class Update(dns.message.Message):
             else:
                 rdtype = dns.rdatatype.RdataType.make(args.pop(0))
                 if len(args) == 0:
-                    self.find_rrset(self.authority, name,
+                    self.find_rrset(self.update, name,
                                     self.zone_rdclass, rdtype,
                                     dns.rdatatype.NONE,
                                     dns.rdataclass.ANY,
@@ -201,7 +229,7 @@ class Update(dns.message.Message):
         a delete of the name followed by one or more calls to add.
         """
 
-        self._add(True, self.authority, name, *args)
+        self._add(True, self.update, name, *args)
 
     def present(self, name, *args):
         """Require that an owner name (and optionally an rdata type,
@@ -221,7 +249,7 @@ class Update(dns.message.Message):
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         if len(args) == 0:
-            self.find_rrset(self.answer, name,
+            self.find_rrset(self.prerequisite, name,
                             dns.rdataclass.ANY, dns.rdatatype.ANY,
                             dns.rdatatype.NONE, None,
                             True, True)
@@ -232,10 +260,10 @@ class Update(dns.message.Message):
                 # Add a 0 TTL
                 args = list(args)
                 args.insert(0, 0)
-            self._add(False, self.answer, name, *args)
+            self._add(False, self.prerequisite, name, *args)
         else:
             rdtype = dns.rdatatype.RdataType.make(args[0])
-            self.find_rrset(self.answer, name,
+            self.find_rrset(self.prerequisite, name,
                             dns.rdataclass.ANY, rdtype,
                             dns.rdatatype.NONE, None,
                             True, True)
@@ -247,13 +275,13 @@ class Update(dns.message.Message):
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         if rdtype is None:
-            self.find_rrset(self.answer, name,
+            self.find_rrset(self.prerequisite, name,
                             dns.rdataclass.NONE, dns.rdatatype.ANY,
                             dns.rdatatype.NONE, None,
                             True, True)
         else:
             rdtype = dns.rdatatype.RdataType.make(rdtype)
-            self.find_rrset(self.answer, name,
+            self.find_rrset(self.prerequisite, name,
                             dns.rdataclass.NONE, rdtype,
                             dns.rdatatype.NONE, None,
                             True, True)
