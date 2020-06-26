@@ -794,7 +794,7 @@ def _maybe_import_update():
     # We avoid circular imports by doing this here.  We do it in another
     # function as doing it in _message_factory_from_opcode() makes "dns"
     # a local symbol, and the first line fails :)
-    import dns.update
+    import dns.update  # noqa: F401
 
 
 def _message_factory_from_opcode(opcode):
@@ -1000,7 +1000,7 @@ class _TextReader:
             rdclass = dns.rdataclass.IN
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
-        rrset = self.message.find_rrset(self.message.question, name,
+        rrset = self.message.find_rrset(section, name,
                                         rdclass, rdtype, create=True,
                                         force_unique=True)
         self.message._validate_rrset(section_number, rrset)
