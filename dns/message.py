@@ -646,14 +646,15 @@ class Message:
         # What the caller picked is fine.
         return value
 
-    def _parse_rr_header(self, section, rdclass, rdtype):
+    def _parse_rr_header(self, section, name, rdclass, rdtype):
         if dns.rdataclass.is_metaclass(rdclass):
             raise dns.exception.FormError
         return (rdclass, rdtype, None, False)
 
-    def _parse_special_rr_header(self, section, rdclass, rdtype):
+    def _parse_special_rr_header(self, section, name, rdclass, rdtype):
         if rdtype == dns.rdatatype.OPT:
-            if section != MessageSection.ADDITIONAL or self.opt:
+            if section != MessageSection.ADDITIONAL or self.opt or \
+               name != dns.name.root:
                 raise BadEDNS
         return (rdclass, rdtype, None, False)
 
@@ -721,7 +722,8 @@ class _WireReader:
                               self.wire[self.current:self.current + 4])
             self.current += 4
             (rdclass, rdtype, _, _) = \
-                self.message._parse_rr_header(section_number, rdclass, rdtype)
+                self.message._parse_rr_header(section_number, qname, rdclass,
+                                              rdtype)
             self.message.find_rrset(section, qname, rdclass, rdtype,
                                     create=True, force_unique=True)
 
@@ -776,11 +778,12 @@ class _WireReader:
                 if rdtype == dns.rdatatype.OPT:
                     (rdclass, rdtype, deleting, empty) = \
                         self.message._parse_special_rr_header(section_number,
+                                                              name,
                                                               rdclass, rdtype)
                 else:
                     (rdclass, rdtype, deleting, empty) = \
                         self.message._parse_rr_header(section_number,
-                                                      rdclass, rdtype)
+                                                      name, rdclass, rdtype)
                 if empty:
                     if rdlen > 0:
                         raise dns.exception.FormError
@@ -1021,7 +1024,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, _, _) = \
-            self.message._parse_rr_header(section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, name, rdclass, rdtype)
         self.message.find_rrset(section, name, rdclass, rdtype, create=True,
                                 force_unique=True)
         self.tok.get_eol()
@@ -1065,7 +1068,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, deleting, empty) = \
-            self.message._parse_rr_header(section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, name, rdclass, rdtype)
         token = self.tok.get()
         if empty and not token.is_eol_or_eof():
             raise dns.exception.SyntaxError

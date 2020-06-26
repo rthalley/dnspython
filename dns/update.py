@@ -300,7 +300,7 @@ class UpdateMessage(dns.message.Message):
         # Updates are always one_rr_per_rrset
         return True
 
-    def _parse_rr_header(self, section, rdclass, rdtype):
+    def _parse_rr_header(self, section, name, rdclass, rdtype):
         deleting = None
         empty = False
         if section == UpdateSection.ZONE:
