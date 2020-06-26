@@ -218,8 +218,7 @@ class Message:
             return False
         if self.flags != other.flags:
             return False
-        for i in range(4):
-            section = self.sections[i]
+        for i, section in enumerate(self.sections):
             other_section = other.sections[i]
             for n in section:
                 if n not in other_section:
@@ -271,8 +270,8 @@ class Message:
         Returns an ``int``.
         """
 
-        for i in range(4):
-            if section is self.sections[i]:
+        for i, our_section in enumerate(self.sections):
+            if section is our_section:
                 return self._section_enum(i)
         raise ValueError('unknown section')
 
