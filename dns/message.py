@@ -681,8 +681,8 @@ class _WireReader:
             (rdclass, rdtype, _, _) = \
                 self.message._parse_rr_header(self, section_number,
                                               rdclass, rdtype)
-            rrset = self.message.find_rrset(section, qname, rdclass, rdtype,
-                                            create=True, force_unique=True)
+            self.message.find_rrset(section, qname, rdclass, rdtype,
+                                    create=True, force_unique=True)
 
     def _get_section(self, section_number, count):
         """Read the next I{count} records from the wire data and add them to
