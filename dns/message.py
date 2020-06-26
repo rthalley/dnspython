@@ -106,8 +106,6 @@ class Message:
             self.id = id
         self.flags = 0
         self.sections = [[], [], [], []]
-        self.edns = -1
-        self.ednsflags = 0
         self.opt = None
         self.request_payload = 0
         self.keyring = None
@@ -441,12 +439,8 @@ class Message:
             r.add_rrset(dns.renderer.ANSWER, rrset, **kw)
         for rrset in self.authority:
             r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
-        if self.edns >= 0:
-            # make sure the EDNS version in ednsflags agrees with edns
-            ednsflags = self.ednsflags & 0xFF00FFFF
-            ednsflags |= (self.edns << 16)
-            r.add_rdata(dns.renderer.ADDITIONAL, dns.name.root, ednsflags,
-                        self.opt)
+        if self.opt is not None:
+            r.add_rrset(dns.renderer.ADDITIONAL, self.opt)
         for rrset in self.additional:
             r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
         r.write_header()
@@ -514,9 +508,10 @@ class Message:
         self.other_data = other_data
 
     @staticmethod
-    def _make_opt(payload=1280, options=None):
-        return dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT,
-                                       options or ())
+    def _make_opt(flags=0, payload=1280, options=None):
+        opt = dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT,
+                                      options or ())
+        return dns.rrset.from_rdata(dns.name.root, int(flags), opt)
 
     def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None,
                  options=None):
@@ -558,18 +553,34 @@ class Message:
             ednsflags |= (edns << 16)
             if options is None:
                 options = []
-        self.edns = edns
-        self.ednsflags = ednsflags
-        self.opt = self._make_opt(payload, options)
+        if edns >= 0:
+            self.opt = self._make_opt(ednsflags, payload, options)
+        else:
+            self.opt = None
         self.request_payload = request_payload
 
     @property
-    def options(self):
-        return self.opt.options if self.opt else ()
+    def edns(self):
+        return ((self.ednsflags & 0xff0000) >> 16) if self.opt else -1
+
+    @property
+    def ednsflags(self):
+        return self.opt.ttl if self.opt else 0
+
+    @ednsflags.setter
+    def ednsflags(self, v):
+        if self.opt:
+            self.opt.ttl = v
+        else:
+            self.opt = self._make_opt(0, v)
 
     @property
     def payload(self):
-        return self.opt.payload if self.opt else 0
+        return self.opt[0].payload if self.opt else 0
+
+    @property
+    def options(self):
+        return self.opt[0].options if self.opt else ()
 
     def want_dnssec(self, wanted=True):
         """Enable or disable 'DNSSEC desired' flag in requests.
@@ -581,10 +592,8 @@ class Message:
         """
 
         if wanted:
-            if self.edns < 0:
-                self.use_edns()
             self.ednsflags |= dns.flags.DO
-        elif self.edns >= 0:
+        elif self.opt:
             self.ednsflags &= ~dns.flags.DO
 
     def rcode(self):
@@ -754,7 +763,7 @@ class _WireReader:
                         raise BadEDNS
                     deleting = None
                     empty = False
-                else
+                else:
                     (rdclass, rdtype, deleting, empty) = \
                         self.message._parse_rr_header(self, section_number,
                                                       rdclass, rdtype)
@@ -1066,11 +1075,7 @@ class _TextReader:
         message = factory(id=self.id)
         message.flags = self.flags
         if self.edns >= 0:
-            message.edns = self.edns
-        if self.ednsflags:
-            message.ednsflags = self.ednsflags
-        if self.payload:
-            message.payload = self.payload
+            message.use_edns(self.edns, self.ednsflags, self.payload)
         if self.rcode:
             message.set_rcode(self.rcode)
         if self.origin:

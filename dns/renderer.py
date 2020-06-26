@@ -164,26 +164,14 @@ class Renderer:
                                  **kw)
         self.counts[section] += n
 
-    def add_rdata(self, section, name, ttl, rdata):
-        """Add the rdata to the specified section, using the specified
-        name as the owner name.
-        """
-
-        self._set_section(section)
-        with self._track_size():
-            dns.rdataset.Rdataset.rdata_to_wire(name, ttl, rdata,
-                                                self.output, self.compress,
-                                                self.origin)
-        self.counts[section] += 1
-
     def add_edns(self, edns, ednsflags, payload, options=None):
         """Add an EDNS OPT record to the message."""
 
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
         ednsflags |= (edns << 16)
-        opt = dns.message.Message._make_opt(payload, options)
-        self.add_rdata(ADDITIONAL, dns.name.root, ednsflags, opt)
+        opt = dns.message.Message._make_opt(flags, payload, options)
+        self.add_rdataset(ADDITIONAL, dns.name.root, opt)
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
                  request_mac, algorithm=dns.tsig.default_algorithm):
