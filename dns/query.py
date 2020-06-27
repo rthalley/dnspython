@@ -34,6 +34,7 @@ import dns.message
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
+import dns.serial
 
 try:
     import requests
@@ -954,7 +955,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                 answer_index = 1
                 soa_rrset = rrset.copy()
                 if rdtype == dns.rdatatype.IXFR:
-                    if soa_rrset[0].serial <= serial:
+                    if dns.serial.Serial(soa_rrset[0].serial) <= serial:
                         #
                         # We're already up-to-date.
                         #
