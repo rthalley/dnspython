@@ -23,22 +23,73 @@ import dns.rdata
 import dns.rdataset
 import dns.tsigkeyring
 
-goodhex = '0001 2800 0001 0005 0007 0000' \
-          '076578616d706c6500 0006 0001' \
-          '03666f6fc00c 00ff 00ff 00000000 0000' \
-          'c019 0001 00ff 00000000 0000' \
-          '03626172c00c 0001 0001 00000000 0004 0a000005' \
-          '05626c617a32c00c 00ff 00fe 00000000 0000' \
-          'c049 0001 00fe 00000000 0000' \
-          'c019 0001 00ff 00000000 0000' \
-          'c019 0001 0001 0000012c 0004 0a000001' \
-          'c019 0001 0001 0000012c 0004 0a000002' \
-          'c035 0001 0001 0000012c 0004 0a000003' \
-          'c035 0001 00fe 00000000 0004 0a000004' \
-          '04626c617ac00c 0001 00ff 00000000 0000' \
-          'c049 00ff 00ff 00000000 0000'
+def hextowire(hex):
+    return binascii.unhexlify(hex.replace(' ', '').encode())
 
-goodwire = binascii.unhexlify(goodhex.replace(' ', '').encode())
+goodwire = hextowire(
+    '0001 2800 0001 0005 0007 0000'
+    '076578616d706c6500 0006 0001'
+    '03666f6fc00c 00ff 00ff 00000000 0000'
+    'c019 0001 00ff 00000000 0000'
+    '03626172c00c 0001 0001 00000000 0004 0a000005'
+    '05626c617a32c00c 00ff 00fe 00000000 0000'
+    'c049 0001 00fe 00000000 0000'
+    'c019 0001 00ff 00000000 0000'
+    'c019 0001 0001 0000012c 0004 0a000001'
+    'c019 0001 0001 0000012c 0004 0a000002'
+    'c035 0001 0001 0000012c 0004 0a000003'
+    'c035 0001 00fe 00000000 0004 0a000004'
+    '04626c617ac00c 0001 00ff 00000000 0000'
+    'c049 00ff 00ff 00000000 0000'
+)
+
+goodwirenone = hextowire(
+    '0001 2800 0001 0000 0001 0000'
+    '076578616d706c6500 0006 0001'
+    '03666f6fc00c 0001 00fe 00000000 0004 01020304'
+)
+
+badwirenone = hextowire(
+    '0001 2800 0001 0003 0000 0000'
+    '076578616d706c6500 0006 0001'
+    '03666f6fc00c 00ff 00ff 00000000 0000'
+    'c019 0001 00ff 00000000 0000'
+    'c019 0001 00fe 00000000 0004 01020304'
+)
+
+badwireany = hextowire(
+    '0001 2800 0001 0002 0000 0000'
+    '076578616d706c6500 0006 0001'
+    '03666f6fc00c 00ff 00ff 00000000 0000'
+    'c019 0001 00ff 00000000 0004 01020304'
+)
+
+badwireanyany = hextowire(
+    '0001 2800 0001 0001 0000 0000'
+    '076578616d706c6500 0006 0001'
+    '03666f6fc00c 00ff 00ff 00000000 0004 01020304'
+)
+
+badwirezonetype = hextowire(
+    '0001 2800 0001 0000 0000 0000'
+    '076578616d706c6500 0001 0001'
+)
+
+badwirezoneclass = hextowire(
+    '0001 2800 0001 0000 0000 0000'
+    '076578616d706c6500 0006 00ff'
+)
+
+badwirezonemulti = hextowire(
+    '0001 2800 0002 0000 0000 0000'
+    '076578616d706c6500 0006 0001'
+    'c019 0006 0001'
+)
+
+badwirenozone = hextowire(
+    '0001 2800 0000 0000 0001 0000'
+    '03666f6f076578616d706c6500 0001 0001 00000030 0004 01020304'
+)
 
 update_text = """id 1
 opcode UPDATE
@@ -120,6 +171,51 @@ class UpdateTestCase(unittest.TestCase):
         u1 = dns.message.from_wire(goodwire, origin=origin)
         u2 = dns.message.from_text(update_text, origin=origin)
         self.assertEqual(u1, u2)
+
+    def test_good_explicit_delete_wire(self):
+        name = dns.name.from_text('foo.example')
+        u = dns.message.from_wire(goodwirenone)
+        print(u)
+        self.assertEqual(u.update[0].name, name)
+        self.assertEqual(u.update[0].rdtype, dns.rdatatype.A)
+        self.assertEqual(u.update[0].rdclass, dns.rdataclass.IN)
+        self.assertTrue(u.update[0].deleting)
+        self.assertEqual(u.update[0][0].address, '1.2.3.4')
+
+    def test_none_with_rdata_from_wire(self):
+        def bad():
+            dns.message.from_wire(badwirenone)
+        self.assertRaises(dns.exception.FormError, bad)
+
+    def test_any_with_rdata_from_wire(self):
+        def bad():
+            dns.message.from_wire(badwireany)
+        self.assertRaises(dns.exception.FormError, bad)
+
+    def test_any_any_with_rdata_from_wire(self):
+        def bad():
+            dns.message.from_wire(badwireanyany)
+        self.assertRaises(dns.exception.FormError, bad)
+
+    def test_bad_zone_type_from_wire(self):
+        def bad():
+            dns.message.from_wire(badwirezonetype)
+        self.assertRaises(dns.exception.FormError, bad)
+
+    def test_bad_zone_class_from_wire(self):
+        def bad():
+            dns.message.from_wire(badwirezoneclass)
+        self.assertRaises(dns.exception.FormError, bad)
+
+    def test_bad_zone_multi_from_wire(self):
+        def bad():
+            dns.message.from_wire(badwirezonemulti)
+        self.assertRaises(dns.exception.FormError, bad)
+
+    def test_no_zone_section_from_wire(self):
+        def bad():
+            dns.message.from_wire(badwirenozone)
+        self.assertRaises(dns.exception.FormError, bad)
 
     def test_TSIG(self):
         keyring = dns.tsigkeyring.from_text({
