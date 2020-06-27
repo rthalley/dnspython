@@ -45,6 +45,7 @@ __all__ = [
     'resolver',
     'reversename',
     'rrset',
+    'serial',
     'set',
     'tokenizer',
     'tsig',
