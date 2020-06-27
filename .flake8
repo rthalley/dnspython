@@ -2,6 +2,7 @@
 ignore =
        # Prefer emacs indentation of continued lines
        E126,
+       E127,
        E129,
        # Whitespace round parameter '=' can be excessive
        E252,
