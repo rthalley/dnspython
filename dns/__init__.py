@@ -18,8 +18,9 @@
 """dnspython DNS toolkit"""
 
 __all__ = [
-    'asyncquery.py',
-    'asyncresolver.py',
+    'asyncbackend',
+    'asyncquery',
+    'asyncresolver',
     'dnssec',
     'e164',
     'edns',
