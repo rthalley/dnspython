@@ -170,21 +170,8 @@ class Renderer:
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
         ednsflags |= (edns << 16)
-        self._set_section(ADDITIONAL)
-        with self._track_size():
-            self.output.write(struct.pack('!BHHIH', 0, dns.rdatatype.OPT,
-                                          payload, ednsflags, 0))
-            if options is not None:
-                lstart = self.output.tell()
-                for opt in options:
-                    owire = opt.to_wire()
-                    self.output.write(struct.pack("!HH", opt.otype, len(owire)))
-                    self.output.write(owire)
-                lend = self.output.tell()
-                self.output.seek(lstart - 2)
-                self.output.write(struct.pack("!H", lend - lstart))
-                self.output.seek(0, io.SEEK_END)
-        self.counts[ADDITIONAL] += 1
+        opt = dns.message.Message._make_opt(ednsflags, payload, options)
+        self.add_rdataset(ADDITIONAL, dns.name.root, opt)
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
                  request_mac, algorithm=dns.tsig.default_algorithm):

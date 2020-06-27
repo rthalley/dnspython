@@ -37,6 +37,7 @@ import dns.rrset
 import dns.renderer
 import dns.tsig
 import dns.wiredata
+import dns.rdtypes.ANY.OPT
 
 
 class ShortHeader(dns.exception.FormError):
@@ -105,10 +106,7 @@ class Message:
             self.id = id
         self.flags = 0
         self.sections = [[], [], [], []]
-        self.edns = -1
-        self.ednsflags = 0
-        self.payload = 0
-        self.options = []
+        self.opt = None
         self.request_payload = 0
         self.keyring = None
         self.keyname = None
@@ -440,8 +438,8 @@ class Message:
             r.add_rrset(dns.renderer.ANSWER, rrset, **kw)
         for rrset in self.authority:
             r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
-        if self.edns >= 0:
-            r.add_edns(self.edns, self.ednsflags, self.payload, self.options)
+        if self.opt is not None:
+            r.add_rrset(dns.renderer.ADDITIONAL, self.opt)
         for rrset in self.additional:
             r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
         r.write_header()
@@ -508,6 +506,12 @@ class Message:
         self.tsig_error = tsig_error
         self.other_data = other_data
 
+    @staticmethod
+    def _make_opt(flags=0, payload=1280, options=None):
+        opt = dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT,
+                                      options or ())
+        return dns.rrset.from_rdata(dns.name.root, int(flags), opt)
+
     def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None,
                  options=None):
         """Configure EDNS behavior.
@@ -548,11 +552,46 @@ class Message:
             ednsflags |= (edns << 16)
             if options is None:
                 options = []
-        self.edns = edns
-        self.ednsflags = ednsflags
-        self.payload = payload
-        self.options = options
+        if edns >= 0:
+            self.opt = self._make_opt(ednsflags, payload, options)
+        else:
+            self.opt = None
         self.request_payload = request_payload
+
+    @property
+    def edns(self):
+        if self.opt:
+            return (self.ednsflags & 0xff0000) >> 16
+        else:
+            return -1
+
+    @property
+    def ednsflags(self):
+        if self.opt:
+            return self.opt.ttl
+        else:
+            return 0
+
+    @ednsflags.setter
+    def ednsflags(self, v):
+        if self.opt:
+            self.opt.ttl = v
+        else:
+            self.opt = self._make_opt(0, v)
+
+    @property
+    def payload(self):
+        if self.opt:
+            return self.opt[0].payload
+        else:
+            return 0
+
+    @property
+    def options(self):
+        if self.opt:
+            return self.opt[0].options
+        else:
+            return ()
 
     def want_dnssec(self, wanted=True):
         """Enable or disable 'DNSSEC desired' flag in requests.
@@ -564,10 +603,8 @@ class Message:
         """
 
         if wanted:
-            if self.edns < 0:
-                self.use_edns()
             self.ednsflags |= dns.flags.DO
-        elif self.edns >= 0:
+        elif self.opt:
             self.ednsflags &= ~dns.flags.DO
 
     def rcode(self):
@@ -609,9 +646,16 @@ class Message:
         # What the caller picked is fine.
         return value
 
-    def _parse_rr_header(self, section, rdclass, rdtype):
+    def _parse_rr_header(self, section, name, rdclass, rdtype):
         if dns.rdataclass.is_metaclass(rdclass):
             raise dns.exception.FormError
+        return (rdclass, rdtype, None, False)
+
+    def _parse_special_rr_header(self, section, name, rdclass, rdtype):
+        if rdtype == dns.rdatatype.OPT:
+            if section != MessageSection.ADDITIONAL or self.opt or \
+               name != dns.name.root:
+                raise BadEDNS
         return (rdclass, rdtype, None, False)
 
 
@@ -678,7 +722,8 @@ class _WireReader:
                               self.wire[self.current:self.current + 4])
             self.current += 4
             (rdclass, rdtype, _, _) = \
-                self.message._parse_rr_header(section_number, rdclass, rdtype)
+                self.message._parse_rr_header(section_number, qname, rdclass,
+                                              rdtype)
             self.message.find_rrset(section, qname, rdclass, rdtype,
                                     create=True, force_unique=True)
 
@@ -692,7 +737,6 @@ class _WireReader:
 
         section = self.message.sections[section_number]
         force_unique = self.one_rr_per_rrset
-        seen_opt = False
         for i in range(count):
             rr_start = self.current
             (name, used) = dns.name.from_wire(self.wire, self.current)
@@ -704,27 +748,7 @@ class _WireReader:
                 struct.unpack('!HHIH',
                               self.wire[self.current:self.current + 10])
             self.current += 10
-            if rdtype == dns.rdatatype.OPT:
-                if section is not self.message.additional or seen_opt:
-                    raise BadEDNS
-                self.message.payload = rdclass
-                self.message.ednsflags = ttl
-                self.message.edns = (ttl & 0xff0000) >> 16
-                self.message.options = []
-                current = self.current
-                optslen = rdlen
-                while optslen > 0:
-                    (otype, olen) = \
-                        struct.unpack('!HH',
-                                      self.wire[current:current + 4])
-                    current = current + 4
-                    opt = dns.edns.option_from_wire(
-                        otype, self.wire, current, olen)
-                    self.message.options.append(opt)
-                    current = current + olen
-                    optslen = optslen - 4 - olen
-                seen_opt = True
-            elif rdtype == dns.rdatatype.TSIG:
+            if rdtype == dns.rdatatype.TSIG:
                 if not (section is self.message.additional and
                         i == (count - 1)):
                     raise BadTSIG
@@ -751,9 +775,15 @@ class _WireReader:
                                       self.message.first)
                 self.message.had_tsig = True
             else:
-                (rdclass, rdtype, deleting, empty) = \
-                    self.message._parse_rr_header(section_number,
-                                                  rdclass, rdtype)
+                if rdtype == dns.rdatatype.OPT:
+                    (rdclass, rdtype, deleting, empty) = \
+                        self.message._parse_special_rr_header(section_number,
+                                                              name,
+                                                              rdclass, rdtype)
+                else:
+                    (rdclass, rdtype, deleting, empty) = \
+                        self.message._parse_rr_header(section_number,
+                                                      name, rdclass, rdtype)
                 if empty:
                     if rdlen > 0:
                         raise dns.exception.FormError
@@ -766,13 +796,17 @@ class _WireReader:
                     covers = rd.covers()
                 if self.message.xfr and rdtype == dns.rdatatype.SOA:
                     force_unique = True
-                rrset = self.message.find_rrset(section, name,
-                                                rdclass, rdtype, covers,
-                                                deleting, True, force_unique)
-                if rd is not None:
-                    if ttl > 0x7fffffff:
-                        ttl = 0
-                    rrset.add(rd, ttl)
+                if rdtype == dns.rdatatype.OPT:
+                    self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
+                else:
+                    rrset = self.message.find_rrset(section, name,
+                                                    rdclass, rdtype, covers,
+                                                    deleting, True,
+                                                    force_unique)
+                    if rd is not None:
+                        if ttl > 0x7fffffff:
+                            ttl = 0
+                        rrset.add(rd, ttl)
             self.current += rdlen
 
     def read(self):
@@ -990,7 +1024,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, _, _) = \
-            self.message._parse_rr_header(section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, name, rdclass, rdtype)
         self.message.find_rrset(section, name, rdclass, rdtype, create=True,
                                 force_unique=True)
         self.tok.get_eol()
@@ -1034,7 +1068,7 @@ class _TextReader:
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
         (rdclass, rdtype, deleting, empty) = \
-            self.message._parse_rr_header(section_number, rdclass, rdtype)
+            self.message._parse_rr_header(section_number, name, rdclass, rdtype)
         token = self.tok.get()
         if empty and not token.is_eol_or_eof():
             raise dns.exception.SyntaxError
@@ -1058,11 +1092,7 @@ class _TextReader:
         message = factory(id=self.id)
         message.flags = self.flags
         if self.edns >= 0:
-            message.edns = self.edns
-        if self.ednsflags:
-            message.ednsflags = self.ednsflags
-        if self.payload:
-            message.payload = self.payload
+            message.use_edns(self.edns, self.ednsflags, self.payload)
         if self.rcode:
             message.set_rcode(self.rcode)
         if self.origin:
