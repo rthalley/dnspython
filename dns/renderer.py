@@ -171,7 +171,7 @@ class Renderer:
         ednsflags &= 0xFF00FFFF
         ednsflags |= (edns << 16)
         opt = dns.message.Message._make_opt(ednsflags, payload, options)
-        self.add_rdataset(ADDITIONAL, dns.name.root, opt)
+        self.add_rrset(ADDITIONAL, opt)
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
                  request_mac, algorithm=dns.tsig.default_algorithm):
