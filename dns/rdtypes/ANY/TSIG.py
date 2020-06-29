@@ -62,7 +62,7 @@ class TSIG(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         algorithm = self.algorithm.choose_relativity(origin, relativize)
-        return f"{algorithm} ... {self.fudge} {self.time_signed} " + \
+        return f"{algorithm} {self.fudge} {self.time_signed} " + \
                f"{len(self.mac)} {dns.rdata._base64ify(self.mac)} " + \
                f"{self.original_id} {self.error} " + \
                f"{len(self.other)} {dns.rdata._base64ify(self.other)}"
@@ -75,7 +75,7 @@ class TSIG(dns.rdata.Rdata):
                                self.fudge,
                                len(self.mac)))
         file.write(self.mac)
-        file.write(struct.pack('HHH', self.original_id, self.error,
+        file.write(struct.pack('!HHH', self.original_id, self.error,
                                len(self.other)))
         file.write(self.other)
 

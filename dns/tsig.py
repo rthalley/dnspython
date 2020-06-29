@@ -85,9 +85,8 @@ BADTIME = 18
 BADTRUNC = 22
 
 
-def sign(wire, keyname, secret, time, fudge, original_id, error,
-         other_data, request_mac, ctx=None, multi=False, first=True,
-         algorithm=default_algorithm):
+def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
+         ctx=None, multi=False, first=True):
     """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
     for the input parameters, the HMAC MAC calculated by applying the
     TSIG signature algorithm, and the TSIG digest context.
@@ -96,46 +95,44 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    if isinstance(other_data, str):
-        other_data = other_data.encode()
-    (algorithm_name, digestmod) = get_algorithm(algorithm)
+    (algorithm_name, digestmod) = get_algorithm(rdata.algorithm)
     if first:
         ctx = hmac.new(secret, digestmod=digestmod)
-        ml = len(request_mac)
-        if ml > 0:
-            ctx.update(struct.pack('!H', ml))
+        if request_mac:
+            ctx.update(struct.pack('!H', len(request_mac)))
             ctx.update(request_mac)
-    id = struct.pack('!H', original_id)
-    ctx.update(id)
+    ctx.update(struct.pack('!H', rdata.original_id))
     ctx.update(wire[2:])
     if first:
         ctx.update(keyname.to_digestable())
         ctx.update(struct.pack('!H', dns.rdataclass.ANY))
         ctx.update(struct.pack('!I', 0))
+    if time is None:
+        time = rdata.time_signed
     upper_time = (time >> 32) & 0xffff
     lower_time = time & 0xffffffff
-    time_mac = struct.pack('!HIH', upper_time, lower_time, fudge)
-    pre_mac = algorithm_name + time_mac
-    ol = len(other_data)
-    if ol > 65535:
+    time_encoded = struct.pack('!HIH', upper_time, lower_time, rdata.fudge)
+    other_len = len(rdata.other)
+    if other_len > 65535:
         raise ValueError('TSIG Other Data is > 65535 bytes')
-    post_mac = struct.pack('!HH', error, ol) + other_data
     if first:
-        ctx.update(pre_mac)
-        ctx.update(post_mac)
+        ctx.update(algorithm_name + time_encoded)
+        ctx.update(struct.pack('!HH', rdata.error, other_len) + rdata.other)
     else:
-        ctx.update(time_mac)
+        ctx.update(time_encoded)
     mac = ctx.digest()
-    mpack = struct.pack('!H', len(mac))
-    tsig_rdata = pre_mac + mpack + mac + id + post_mac
     if multi:
         ctx = hmac.new(secret, digestmod=digestmod)
-        ml = len(mac)
-        ctx.update(struct.pack('!H', ml))
+        ctx.update(struct.pack('!H', len(mac)))
         ctx.update(mac)
     else:
         ctx = None
-    return (tsig_rdata, mac, ctx)
+    tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
+                                     rdata.algorithm, time, rdata.fudge, mac,
+                                     rdata.original_id, rdata.error,
+                                     rdata.other)
+
+    return (tsig, ctx)
 
 
 def validate(wire, keyname, rdata, secret, now, request_mac, tsig_start,
@@ -166,11 +163,9 @@ def validate(wire, keyname, rdata, secret, now, request_mac, tsig_start,
             raise PeerError('unknown TSIG error code %d' % rdata.error)
     if abs(rdata.time_signed - now) > rdata.fudge:
         raise BadTime
-    (junk, our_mac, ctx) = sign(new_wire, keyname, secret, rdata.time_signed,
-                                rdata.fudge, rdata.original_id, rdata.error,
-                                rdata.other, request_mac, ctx, multi, first,
-                                rdata.algorithm)
-    if our_mac != rdata.mac:
+    (our_rdata, ctx) = sign(new_wire, keyname, rdata, secret, None, request_mac,
+                            ctx, multi, first)
+    if our_rdata.mac != rdata.mac:
         raise BadSignature
     return ctx
 
@@ -191,20 +186,3 @@ def get_algorithm(algorithm):
     except KeyError:
         raise NotImplementedError("TSIG algorithm " + str(algorithm) +
                                   " is not supported")
-
-
-def get_algorithm_and_mac(wire, tsig_rdata, tsig_rdlen):
-    """Return the tsig algorithm for the specified tsig_rdata
-    @raises FormError: The TSIG is badly formed.
-    """
-    current = tsig_rdata
-    (aname, used) = dns.name.from_wire(wire, current)
-    current = current + used
-    (upper_time, lower_time, fudge, mac_size) = \
-        struct.unpack("!HIHH", wire[current:current + 10])
-    current += 10
-    mac = wire[current:current + mac_size]
-    current += mac_size
-    if current > tsig_rdata + tsig_rdlen:
-        raise dns.exception.FormError
-    return (aname, mac)

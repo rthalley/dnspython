@@ -38,6 +38,7 @@ import dns.renderer
 import dns.tsig
 import dns.wiredata
 import dns.rdtypes.ANY.OPT
+import dns.rdtypes.ANY.TSIG
 
 
 class ShortHeader(dns.exception.FormError):
@@ -109,18 +110,11 @@ class Message:
         self.opt = None
         self.request_payload = 0
         self.keyring = None
-        self.keyname = None
-        self.keyalgorithm = dns.tsig.default_algorithm
+        self.tsig = None
         self.request_mac = b''
-        self.other_data = b''
-        self.tsig_error = 0
-        self.fudge = 300
-        self.original_id = self.id
-        self.mac = b''
         self.xfr = False
         self.origin = None
         self.tsig_ctx = None
-        self.had_tsig = False
         self.multi = False
         self.first = True
         self.index = {}
@@ -443,21 +437,31 @@ class Message:
         for rrset in self.additional:
             r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
         r.write_header()
-        if self.keyname is not None:
+        if self.tsig is not None:
+            (new_tsig, ctx) = dns.tsig.sign(r.get_wire(),
+                                            self.tsig.name,
+                                            self.tsig[0],
+                                            self.keyring[self.tsig.name],
+                                            int(time.time()),
+                                            self.request_mac,
+                                            tsig_ctx,
+                                            multi,
+                                            tsig_ctx is None)
+            self.tsig.clear()
+            self.tsig.add(new_tsig)
+            r.add_rrset(dns.renderer.ADDITIONAL, self.tsig)
+            r.write_header()
             if multi:
-                ctx = r.add_multi_tsig(tsig_ctx,
-                                       self.keyname, self.keyring[self.keyname],
-                                       self.fudge, self.original_id,
-                                       self.tsig_error, self.other_data,
-                                       self.request_mac, self.keyalgorithm)
                 self.tsig_ctx = ctx
-            else:
-                r.add_tsig(self.keyname, self.keyring[self.keyname],
-                           self.fudge, self.original_id, self.tsig_error,
-                           self.other_data, self.request_mac,
-                           self.keyalgorithm)
-            self.mac = r.mac
         return r.get_wire()
+
+    @staticmethod
+    def _make_tsig(keyname, algorithm, time_signed, fudge, mac, original_id,
+                   error, other):
+        tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
+                                         algorithm, time_signed, fudge, mac,
+                                         original_id, error, other)
+        return dns.rrset.from_rdata(keyname, 0, tsig)
 
     def use_tsig(self, keyring, keyname=None, fudge=300,
                  original_id=None, tsig_error=0, other_data=b'',
@@ -492,19 +496,45 @@ class Message:
 
         self.keyring = keyring
         if keyname is None:
-            self.keyname = list(self.keyring.keys())[0]
-        else:
-            if isinstance(keyname, str):
-                keyname = dns.name.from_text(keyname)
-            self.keyname = keyname
-        self.keyalgorithm = algorithm
-        self.fudge = fudge
+            keyname = list(self.keyring.keys())[0]
+        elif isinstance(keyname, str):
+            keyname = dns.name.from_text(keyname)
         if original_id is None:
-            self.original_id = self.id
+            original_id = self.id
+        self.tsig = self._make_tsig(keyname, algorithm, 0, fudge, b'',
+                                    original_id, tsig_error, other_data)
+
+    @property
+    def keyname(self):
+        if self.tsig:
+            return self.tsig.name
         else:
-            self.original_id = original_id
-        self.tsig_error = tsig_error
-        self.other_data = other_data
+            return None
+
+    @property
+    def keyalgorithm(self):
+        if self.tsig:
+            return self.tsig[0].algorithm
+        else:
+            return None
+
+    @property
+    def mac(self):
+        if self.tsig:
+            return self.tsig[0].mac
+        else:
+            return None
+
+    @property
+    def tsig_error(self):
+        if self.tsig:
+            return self.tsig[0].error
+        else:
+            return None
+
+    @property
+    def had_tsig(self):
+        return bool(self.tsig)
 
     @staticmethod
     def _make_opt(flags=0, payload=1280, options=None):
@@ -659,7 +689,7 @@ class Message:
             if section != MessageSection.ADDITIONAL or \
                rdclass != dns.rdatatype.ANY or \
                position != count - 1:
-                raise dns.error.FormError
+                raise BadTSIG
         return (rdclass, rdtype, None, False)
 
 
@@ -781,7 +811,6 @@ class _WireReader:
                 secret = self.message.keyring.get(absolute_name)
                 if secret is None:
                     raise UnknownTSIGKey("key '%s' unknown" % name)
-                self.message.keyname = absolute_name
                 self.message.tsig_ctx = \
                     dns.tsig.validate(self.wire,
                                       absolute_name,
@@ -793,9 +822,7 @@ class _WireReader:
                                       self.message.tsig_ctx,
                                       self.message.multi,
                                       self.message.first)
-                self.message.keyalgorithm = rd.algorithm
-                self.message.mac = rd.mac
-                self.message.had_tsig = True
+                self.message.tsig = dns.rrset.from_rdata(absolute_name, 0, rd)
             else:
                 rrset = self.message.find_rrset(section, name,
                                                 rdclass, rdtype, covers,
@@ -1291,7 +1318,7 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
 
 
 def make_response(query, recursion_available=False, our_payload=8192,
-                  fudge=300):
+                  fudge=300, tsig_error=0):
     """Make a message which is a response for the specified query.
     The message returned is really a response skeleton; it has all
     of the infrastructure required of a response, but none of the
@@ -1310,6 +1337,8 @@ def make_response(query, recursion_available=False, our_payload=8192,
 
     *fudge*, an ``int``, the TSIG time fudge.
 
+    *tsig_error*, an ``int``, the TSIG error.
+
     Returns a ``dns.message.Message`` object whose specific class is
     appropriate for the query.  For example, if query is a
     ``dns.update.UpdateMessage``, response will be too.
@@ -1327,7 +1356,7 @@ def make_response(query, recursion_available=False, our_payload=8192,
     if query.edns >= 0:
         response.use_edns(0, 0, our_payload, query.payload)
     if query.had_tsig:
-        response.use_tsig(query.keyring, query.keyname, fudge, None, 0, b'',
-                          query.keyalgorithm)
+        response.use_tsig(query.keyring, query.keyname, fudge, None,
+                          tsig_error, b'', query.keyalgorithm)
         response.request_mac = query.mac
     return response
