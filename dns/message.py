@@ -649,11 +649,17 @@ class Message:
             raise dns.exception.FormError
         return (rdclass, rdtype, None, False)
 
-    def _parse_special_rr_header(self, section, name, rdclass, rdtype):
+    def _parse_special_rr_header(self, section, count, position,
+                                 name, rdclass, rdtype):
         if rdtype == dns.rdatatype.OPT:
             if section != MessageSection.ADDITIONAL or self.opt or \
                name != dns.name.root:
                 raise BadEDNS
+        elif rdtype == dns.rdatatype.TSIG:
+            if section != MessageSection.ADDITIONAL or \
+               rdclass != dns.rdatatype.ANY or \
+               position != count - 1:
+                raise dns.error.FormError
         return (rdclass, rdtype, None, False)
 
 
@@ -746,19 +752,36 @@ class _WireReader:
                 struct.unpack('!HHIH',
                               self.wire[self.current:self.current + 10])
             self.current += 10
-            if rdtype == dns.rdatatype.TSIG:
-                if not (section is self.message.additional and
-                        i == (count - 1)):
-                    raise BadTSIG
+            if rdtype in (dns.rdatatype.OPT, dns.rdatatype.TSIG):
+                (rdclass, rdtype, deleting, empty) = \
+                    self.message._parse_special_rr_header(section_number,
+                                                          count, i, name,
+                                                          rdclass, rdtype)
+            else:
+                (rdclass, rdtype, deleting, empty) = \
+                    self.message._parse_rr_header(section_number,
+                                                  name, rdclass, rdtype)
+            if empty:
+                if rdlen > 0:
+                    raise dns.exception.FormError
+                rd = None
+                covers = dns.rdatatype.NONE
+            else:
+                rd = dns.rdata.from_wire(rdclass, rdtype,
+                                         self.wire, self.current, rdlen,
+                                         self.message.origin)
+                covers = rd.covers()
+            if self.message.xfr and rdtype == dns.rdatatype.SOA:
+                force_unique = True
+            if rdtype == dns.rdatatype.OPT:
+                self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
+            elif rdtype == dns.rdatatype.TSIG:
                 if self.message.keyring is None:
                     raise UnknownTSIGKey('got signed message without keyring')
                 secret = self.message.keyring.get(absolute_name)
                 if secret is None:
                     raise UnknownTSIGKey("key '%s' unknown" % name)
                 self.message.keyname = absolute_name
-                (self.message.keyalgorithm, self.message.mac) = \
-                    dns.tsig.get_algorithm_and_mac(self.wire, self.current,
-                                                   rdlen)
                 self.message.tsig_ctx = \
                     dns.tsig.validate(self.wire,
                                       absolute_name,
@@ -771,40 +794,18 @@ class _WireReader:
                                       self.message.tsig_ctx,
                                       self.message.multi,
                                       self.message.first)
+                self.message.keyalgorithm = rd.algorithm
+                self.message.mac = rd.mac
                 self.message.had_tsig = True
             else:
-                if rdtype == dns.rdatatype.OPT:
-                    (rdclass, rdtype, deleting, empty) = \
-                        self.message._parse_special_rr_header(section_number,
-                                                              name,
-                                                              rdclass, rdtype)
-                else:
-                    (rdclass, rdtype, deleting, empty) = \
-                        self.message._parse_rr_header(section_number,
-                                                      name, rdclass, rdtype)
-                if empty:
-                    if rdlen > 0:
-                        raise dns.exception.FormError
-                    rd = None
-                    covers = dns.rdatatype.NONE
-                else:
-                    rd = dns.rdata.from_wire(rdclass, rdtype,
-                                             self.wire, self.current, rdlen,
-                                             self.message.origin)
-                    covers = rd.covers()
-                if self.message.xfr and rdtype == dns.rdatatype.SOA:
-                    force_unique = True
-                if rdtype == dns.rdatatype.OPT:
-                    self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
-                else:
-                    rrset = self.message.find_rrset(section, name,
-                                                    rdclass, rdtype, covers,
-                                                    deleting, True,
-                                                    force_unique)
-                    if rd is not None:
-                        if ttl > 0x7fffffff:
-                            ttl = 0
-                        rrset.add(rd, ttl)
+                rrset = self.message.find_rrset(section, name,
+                                                rdclass, rdtype, covers,
+                                                deleting, True,
+                                                force_unique)
+                if rd is not None:
+                    if ttl > 0x7fffffff:
+                        ttl = 0
+                    rrset.add(rd, ttl)
             self.current += rdlen
 
     def read(self):
