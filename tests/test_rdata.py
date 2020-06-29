@@ -16,6 +16,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import binascii
 import io
 import operator
 import pickle
@@ -28,6 +29,7 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
+from dns.rdtypes.ANY.OPT import OPT
 
 import tests.stxt_module
 import tests.ttxt_module
@@ -392,6 +394,20 @@ class RdataTestCase(unittest.TestCase):
         # the address input is octal
         self.assertEqual(r1.address, 0o12345)
         self.assertEqual(r1.to_text(), 'chaos. 12345')
+
+    def test_opt_repr(self):
+        opt = OPT(4096, dns.rdatatype.OPT, ())
+        self.assertEqual(repr(opt), '<DNS CLASS4096 OPT rdata: >')
+
+    def test_opt_short_lengths(self):
+        def bad1():
+            opt = OPT.from_wire(4096, dns.rdatatype.OPT,
+                                binascii.unhexlify('f00102'), 0, 3)
+        self.assertRaises(dns.exception.FormError, bad1)
+        def bad2():
+            opt = OPT.from_wire(4096, dns.rdatatype.OPT,
+                                binascii.unhexlify('f00100030000'), 0, 6)
+        self.assertRaises(dns.exception.FormError, bad2)
 
 if __name__ == '__main__':
     unittest.main()

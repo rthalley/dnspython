@@ -226,5 +226,12 @@ class UpdateTestCase(unittest.TestCase):
         update2 = dns.message.from_wire(wire, keyring)
         self.assertEqual(update, update2)
 
+    def test_is_response(self):
+        update = dns.message.from_text(update_text)
+        self.assertTrue(isinstance(update, dns.update.UpdateMessage))
+        r = dns.message.make_response(update)
+        self.assertTrue(isinstance(r, dns.update.UpdateMessage))
+        self.assertTrue(update.is_response(r))
+
 if __name__ == '__main__':
     unittest.main()

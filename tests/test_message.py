@@ -27,6 +27,7 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
+import dns.update
 
 def here(filename):
     return os.path.join(os.path.dirname(__file__), filename)
@@ -345,6 +346,91 @@ class MessageTestCase(unittest.TestCase):
         m = dns.message.from_text(';HEADER\n' + query_text)
         expected = dns.message.from_text(query_text)
         self.assertEqual(m, expected)
+
+    def test_repr(self):
+        q = dns.message.from_text(query_text)
+        self.assertEqual(repr(q), '<DNS message, ID 1234>')
+
+    def test_non_question_setters(self):
+        rrset = dns.rrset.from_text('foo', 300, 'in', 'a', '10.0.0.1')
+        q = dns.message.QueryMessage(id=1)
+        q.answer = [rrset]
+        self.assertEqual(q.sections[1], [rrset])
+        self.assertEqual(q.sections[2], [])
+        self.assertEqual(q.sections[3], [])
+        q.authority = [rrset]
+        self.assertEqual(q.sections[2], [rrset])
+        self.assertEqual(q.sections[3], [])
+        q.additional = [rrset]
+        self.assertEqual(q.sections[3], [rrset])
+
+    def test_not_a_response(self):
+        q = dns.message.QueryMessage(id=1)
+        self.assertFalse(q.is_response(q))
+        r = dns.message.QueryMessage(id=2)
+        r.flags = dns.flags.QR
+        self.assertFalse(q.is_response(r))
+        r = dns.update.UpdateMessage(id=1)
+        self.assertFalse(q.is_response(r))
+        q1 = dns.message.make_query('www.dnspython.org.', 'a')
+        q2 = dns.message.make_query('www.google.com.', 'a')
+        # Give them the same id, as we want to test if responses for
+        # differing questions are rejected.
+        q1.id = 1
+        q2.id = 1
+        r = dns.message.make_response(q2)
+        self.assertFalse(q1.is_response(r))
+        # Test the other case of differing questions, where there is
+        # something in the response's question section that is not in
+        # the question's.  We have to do multiple questions to test
+        # this :)
+        r = dns.message.make_query('www.dnspython.org.', 'a')
+        r.flags |= dns.flags.QR
+        r.id = 1
+        r.find_rrset(r.question, dns.name.from_text('example'),
+                     dns.rdataclass.IN, dns.rdatatype.A, create=True,
+                     force_unique=True)
+        self.assertFalse(q1.is_response(r))
+
+    def test_more_not_equal_cases(self):
+        q1 = dns.message.make_query('www.dnspython.org.', 'a')
+        q2 = dns.message.make_query('www.dnspython.org.', 'a')
+        # ensure ids are same
+        q1.id = 1
+        q2.id = 1
+        # and flags are different
+        q2.flags |= dns.flags.QR
+        self.assertFalse(q1 == q2)
+        q2.flags = q1.flags
+        q2.find_rrset(q2.question, dns.name.from_text('example'),
+                      dns.rdataclass.IN, dns.rdatatype.A, create=True,
+                      force_unique=True)
+        self.assertFalse(q1 == q2)
+
+    def test_edns_properties(self):
+        q = dns.message.make_query('www.dnspython.org.', 'a')
+        self.assertEqual(q.edns, -1)
+        self.assertEqual(q.payload, 0)
+        self.assertEqual(q.options, ())
+        q = dns.message.make_query('www.dnspython.org.', 'a', use_edns=0,
+                                   payload=4096)
+        self.assertEqual(q.edns, 0)
+        self.assertEqual(q.payload, 4096)
+        self.assertEqual(q.options, ())
+
+    def test_generic_message_class(self):
+        q1 = dns.message.Message(id=1)
+        q1.set_opcode(dns.opcode.NOTIFY)
+        q1.flags |= dns.flags.AA
+        q1.find_rrset(q1.question, dns.name.from_text('example'),
+                      dns.rdataclass.IN, dns.rdatatype.SOA, create=True,
+                      force_unique=True)
+        w = q1.to_wire()
+        q2 = dns.message.from_wire(w)
+        self.assertTrue(isinstance(q2, dns.message.Message))
+        self.assertFalse(isinstance(q2, dns.message.QueryMessage))
+        self.assertFalse(isinstance(q2, dns.update.UpdateMessage))
+        self.assertEqual(q1, q2)
 
 if __name__ == '__main__':
     unittest.main()
