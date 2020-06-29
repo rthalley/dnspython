@@ -1317,7 +1317,7 @@ def make_response(query, recursion_available=False, our_payload=8192,
 
     if query.flags & dns.flags.QR:
         raise dns.exception.FormError('specified query message is not a query')
-    factory = _message_factory_from_opcode(query.opcode)
+    factory = _message_factory_from_opcode(query.opcode())
     response = factory(id=query.id)
     response.flags = dns.flags.QR | (query.flags & dns.flags.RD)
     if recursion_available:
