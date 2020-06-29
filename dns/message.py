@@ -624,8 +624,6 @@ class Message:
         self.flags |= value
         self.ednsflags &= 0x00FFFFFF
         self.ednsflags |= evalue
-        if self.ednsflags != 0 and self.edns < 0:
-            self.edns = 0
 
     def opcode(self):
         """Return the opcode.
