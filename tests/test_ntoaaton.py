@@ -310,11 +310,11 @@ class NtoAAtoNTestCase(unittest.TestCase):
             t = dns.inet.low_level_address_tuple(('2600::1', 53), bogus)
         self.assertRaises(NotImplementedError, bad)
 
-        def test_bogus_family(self):
-            self.assertRaises(NotImplementedError,
-                              lambda: dns.inet.inet_pton(12345, 'bogus'))
-            self.assertRaises(NotImplementedError,
-                              lambda: dns.inet.inet_ntop(12345, b'bogus'))
+    def test_bogus_family(self):
+        self.assertRaises(NotImplementedError,
+                          lambda: dns.inet.inet_pton(12345, 'bogus'))
+        self.assertRaises(NotImplementedError,
+                          lambda: dns.inet.inet_ntop(12345, b'bogus'))
 
 if __name__ == '__main__':
     unittest.main()
