@@ -30,49 +30,30 @@ clean:
 	find . -name '*.pyc' -exec rm {} \;
 	find . -name '*.pyo' -exec rm {} \;
 	rm -f TAGS
+	rm -rf htmlcov .coverage
+	rm -rf .pytest_cache
 
 distclean: clean docclean
 	rm -rf build dist
 	rm -f MANIFEST
+	rm -rf dnspython.egg-info
 
-doco:
-	epydoc -v -n dnspython -u http://www.dnspython.org \
-		dns/*.py dns/rdtypes/*.py dns/rdtypes/ANY/*.py \
-		dns/rdtypes/CH/*.py \
-		dns/rdtypes/IN/*.py
-
-dockits: doco
-	mv html dnspython-html
-	tar czf html.tar.gz dnspython-html
-	zip -r html.zip dnspython-html
-	mv dnspython-html html
+doc:
+	cd doc; make html
 
 docclean:
-	rm -rf html.tar.gz html.zip html
-
-kits:
-	${PYTHON} ./setup.py sdist --formats=gztar,zip bdist_wheel
-
-tags:
-	find . -name '*.py' -print | etags -
+	rm -rf doc/_build
 
 check: test
 
 test:
 	cd tests; make test
 
-test3: test
-
-lint:
-	pylint dns tests examples/*.py
-
-lint3: lint
-
-typecheck:
-	mypy examples tests dns
-
 potest:
 	poetry run pytest
+
+potestlf:
+	poetry run pytest --lf
 
 potype:
 	poetry run python -m mypy examples tests dns/*.py
