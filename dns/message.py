@@ -785,12 +785,11 @@ class _WireReader:
                 self.message.tsig_ctx = \
                     dns.tsig.validate(self.wire,
                                       absolute_name,
+                                      rd,
                                       secret,
                                       int(time.time()),
                                       self.message.request_mac,
                                       rr_start,
-                                      self.current,
-                                      rdlen,
                                       self.message.tsig_ctx,
                                       self.message.multi,
                                       self.message.first)

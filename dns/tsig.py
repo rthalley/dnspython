@@ -138,8 +138,8 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     return (tsig_rdata, mac, ctx)
 
 
-def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
-             tsig_rdlen, ctx=None, multi=False, first=True):
+def validate(wire, keyname, rdata, secret, now, request_mac, tsig_start,
+             ctx=None, multi=False, first=True):
     """Validate the specified TSIG rdata against the other input parameters.
 
     @raises FormError: The TSIG is badly formed.
@@ -153,41 +153,24 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
         raise dns.exception.FormError
     adcount -= 1
     new_wire = wire[0:10] + struct.pack("!H", adcount) + wire[12:tsig_start]
-    current = tsig_rdata
-    (aname, used) = dns.name.from_wire(wire, current)
-    current = current + used
-    (upper_time, lower_time, fudge, mac_size) = \
-        struct.unpack("!HIHH", wire[current:current + 10])
-    time = (upper_time << 32) + lower_time
-    current += 10
-    mac = wire[current:current + mac_size]
-    current += mac_size
-    (original_id, error, other_size) = \
-        struct.unpack("!HHH", wire[current:current + 6])
-    current += 6
-    other_data = wire[current:current + other_size]
-    current += other_size
-    if current != tsig_rdata + tsig_rdlen:
-        raise dns.exception.FormError
-    if error != 0:
-        if error == BADSIG:
+    if rdata.error != 0:
+        if rdata.error == BADSIG:
             raise PeerBadSignature
-        elif error == BADKEY:
+        elif rdata.error == BADKEY:
             raise PeerBadKey
-        elif error == BADTIME:
+        elif rdata.error == BADTIME:
             raise PeerBadTime
-        elif error == BADTRUNC:
+        elif rdata.error == BADTRUNC:
             raise PeerBadTruncation
         else:
-            raise PeerError('unknown TSIG error code %d' % error)
-    time_low = time - fudge
-    time_high = time + fudge
-    if now < time_low or now > time_high:
+            raise PeerError('unknown TSIG error code %d' % rdata.error)
+    if abs(rdata.time_signed - now) > rdata.fudge:
         raise BadTime
-    (junk, our_mac, ctx) = sign(new_wire, keyname, secret, time, fudge,
-                                original_id, error, other_data,
-                                request_mac, ctx, multi, first, aname)
-    if our_mac != mac:
+    (junk, our_mac, ctx) = sign(new_wire, keyname, secret, rdata.time_signed,
+                                rdata.fudge, rdata.original_id, rdata.error,
+                                rdata.other, request_mac, ctx, multi, first,
+                                rdata.algorithm)
+    if our_mac != rdata.mac:
         raise BadSignature
     return ctx
 
