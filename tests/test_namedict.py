@@ -120,5 +120,42 @@ class NameTestCase(unittest.TestCase):
         self.assertEqual(self.ndict.max_depth, 2)
         self.assertEqual(self.ndict.get(n), None)
 
+    def test_delete_multiple_max_depth_changes(self):
+        self.assertEqual(self.ndict.max_depth, 3)
+        nr = dns.name.from_text('roo.')
+        self.ndict[nr] = 1
+        nf = dns.name.from_text('foo.bar.')
+        nb = dns.name.from_text('bar.bar.')
+        self.ndict[nb] = 1
+        self.assertEqual(self.ndict.max_depth, 3)
+        self.assertEqual(self.ndict.max_depth_items, 2)
+        del self.ndict[nb]
+        self.assertEqual(self.ndict.max_depth, 3)
+        self.assertEqual(self.ndict.max_depth_items, 1)
+        del self.ndict[nf]
+        self.assertEqual(self.ndict.max_depth, 2)
+        self.assertEqual(self.ndict.max_depth_items, 2)
+        self.assertEqual(self.ndict.get(nf), None)
+        self.assertEqual(self.ndict.get(nb), None)
+
+    def test_iter(self):
+        nf = dns.name.from_text('foo.bar.')
+        nb = dns.name.from_text('bar.')
+        keys = set([x for x in self.ndict])
+        self.assertEqual(len(keys), 2)
+        self.assertTrue(nf in keys)
+        self.assertTrue(nb in keys)
+
+    def test_len(self):
+        self.assertEqual(len(self.ndict), 2)
+
+    def test_haskey(self):
+        nf = dns.name.from_text('foo.bar.')
+        nb = dns.name.from_text('bar.')
+        nx = dns.name.from_text('x.')
+        self.assertTrue(self.ndict.has_key(nf))
+        self.assertTrue(self.ndict.has_key(nb))
+        self.assertFalse(self.ndict.has_key(nx))
+
 if __name__ == '__main__':
     unittest.main()
