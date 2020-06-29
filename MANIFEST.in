@@ -1,3 +1,3 @@
 include LICENSE ChangeLog README.md
 recursive-include examples *.txt *.py
-recursive-include tests *.txt *.py Makefile *.good example
+recursive-include tests *.txt *.py Makefile *.good example query

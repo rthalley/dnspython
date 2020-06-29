@@ -16,6 +16,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import os
 import unittest
 import binascii
 
@@ -26,6 +27,9 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
+
+def here(filename):
+    return os.path.join(os.path.dirname(__file__), filename)
 
 query_text = """id 1234
 opcode QUERY
@@ -203,6 +207,7 @@ class MessageTestCase(unittest.TestCase):
         m = dns.message.make_query('foo', 'A')
         m.set_rcode(4095)
         self.assertEqual(m.rcode(), 4095)
+        self.assertEqual(m.edns, 0)
         m.set_rcode(2)
         self.assertEqual(m.rcode(), 2)
 
@@ -237,6 +242,34 @@ class MessageTestCase(unittest.TestCase):
         rrs1 = a.find_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
         rrs2 = a.find_rrset(dns.message.ANSWER, n, dns.rdataclass.IN,
                             dns.rdatatype.SOA)
+        self.assertEqual(rrs1, rrs2)
+
+    def test_FindRRsetUnindexed(self):
+        a = dns.message.from_text(answer_text)
+        a.index = None
+        n = dns.name.from_text('dnspython.org.')
+        rrs1 = a.find_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        rrs2 = a.find_rrset(dns.message.ANSWER, n, dns.rdataclass.IN,
+                            dns.rdatatype.SOA)
+        self.assertEqual(rrs1, rrs2)
+
+    def test_GetRRset(self):
+        a = dns.message.from_text(answer_text)
+        a.index = None
+        n = dns.name.from_text('dnspython.org.')
+        rrs1 = a.get_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        rrs2 = a.get_rrset(dns.message.ANSWER, n, dns.rdataclass.IN,
+                           dns.rdatatype.SOA)
+        self.assertEqual(rrs1, rrs2)
+
+    def test_GetNonexistentRRset(self):
+        a = dns.message.from_text(answer_text)
+        a.index = None
+        n = dns.name.from_text('dnspython.org.')
+        rrs1 = a.get_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.TXT)
+        rrs2 = a.get_rrset(dns.message.ANSWER, n, dns.rdataclass.IN,
+                           dns.rdatatype.TXT)
+        self.assertTrue(rrs1 is None)
         self.assertEqual(rrs1, rrs2)
 
     def test_CleanTruncated(self):
@@ -302,6 +335,16 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(m.edns, -1)
         m.want_dnssec()
         self.assertEqual(m.edns, 0)
+
+    def test_from_file(self):
+        m = dns.message.from_file(here('query'))
+        expected = dns.message.from_text(query_text)
+        self.assertEqual(m, expected)
+
+    def test_explicit_header_comment(self):
+        m = dns.message.from_text(';HEADER\n' + query_text)
+        expected = dns.message.from_text(query_text)
+        self.assertEqual(m, expected)
 
 if __name__ == '__main__':
     unittest.main()

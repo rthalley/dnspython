@@ -158,5 +158,22 @@ class RRsetTestCase(unittest.TestCase):
                               dns.rdataclass.IN, dns.rdatatype.A)
         self.assertFalse(rrs == 123)
 
+    def testRepr(self):
+        rrset = dns.rrset.from_text('foo', 30, 'in', 'a', '10.0.0.1',
+                                    '10.0.0.2')
+        self.assertEqual(repr(rrset),
+                         '<DNS foo IN A RRset: [<10.0.0.1>, <10.0.0.2>]>')
+        rrset.deleting = dns.rdataclass.NONE
+        self.assertEqual(repr(rrset),
+                         '<DNS foo IN A delete=NONE RRset: ' +
+                         '[<10.0.0.1>, <10.0.0.2>]>')
+        rrset = dns.rrset.from_text(
+            'foo', 30, 'in', 'rrsig',
+            'A 1 3 3600 20200701000000 20200601000000 1 NAME Ym9ndXM=')
+        self.assertEqual(repr(rrset),
+                         '<DNS foo IN RRSIG(A) RRset: ' +
+                         '[<A 1 3 3600 20200701000000 20200601000000 ' +
+                         '1 NAME Ym9ndXM=>]>')
+
 if __name__ == '__main__':
     unittest.main()
