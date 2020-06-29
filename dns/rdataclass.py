@@ -19,6 +19,7 @@
 
 import dns.enum
 import dns.exception
+from dns.rdatatype import RdataType
 
 class RdataClass(dns.enum.IntEnum):
     """DNS Rdata Class"""
@@ -89,13 +90,19 @@ def to_text(value):
     return RdataClass.to_text(value)
 
 
-def is_metaclass(rdclass):
+def is_metaclass(rdclass, rdtype=None):
     """True if the specified class is a metaclass.
 
     The currently defined metaclasses are ANY and NONE.
 
     *rdclass* is an ``int``.
     """
+    # ANY is an allowed metaclass in the context of a TKEY RRs
+    # NB: if there are many more such exceptions, it might be better to
+    #     model these as some kind of 'allowed metaclasses' information
+    #     on the rdtype objects.
+    if rdclass == RdataClass.ANY and rdtype == RdataType.TKEY:
+        return False
 
     if rdclass in _metaclasses:
         return True
