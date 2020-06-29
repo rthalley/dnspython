@@ -562,7 +562,6 @@ class GenerateTestCase(unittest.TestCase):
 
     def testUsesLastTTL(self):
         z = dns.zone.from_text(last_ttl_input, 'example')
-        print(z.to_text())
         rrs = z.find_rrset('foo9', 'CNAME')
         self.assertEqual(rrs.ttl, 300)
 

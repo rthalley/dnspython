@@ -175,7 +175,6 @@ class UpdateTestCase(unittest.TestCase):
     def test_good_explicit_delete_wire(self):
         name = dns.name.from_text('foo.example')
         u = dns.message.from_wire(goodwirenone)
-        print(u)
         self.assertEqual(u.update[0].name, name)
         self.assertEqual(u.update[0].rdtype, dns.rdatatype.A)
         self.assertEqual(u.update[0].rdclass, dns.rdataclass.IN)
