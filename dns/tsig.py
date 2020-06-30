@@ -90,7 +90,7 @@ def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
     """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
     for the input parameters, the HMAC MAC calculated by applying the
     TSIG signature algorithm, and the TSIG digest context.
-    @rtype: (string, string, hmac.HMAC object)
+    @rtype: (string, hmac.HMAC object)
     @raises ValueError: I{other_data} is too long
     @raises NotImplementedError: I{algorithm} is not supported
     """
