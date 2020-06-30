@@ -559,6 +559,25 @@ class Tokenizer:
             raise dns.exception.SyntaxError('expecting an identifier')
         return token.value
 
+    def concatenate_remaining_identifiers(self):
+        """Read the remaining tokens on the line, which should be identifiers.
+
+        Raises dns.exception.SyntaxError if a token is seen that is not an
+        identifier.
+
+        Returns a string containing a concatenation of the remaining
+        identifiers.
+        """
+        s = ""
+        while True:
+            token = self.get().unescape()
+            if token.is_eol_or_eof():
+                break
+            if not token.is_identifier():
+                raise dns.exception.SyntaxError
+            s += token.value
+        return s
+
     def as_name(self, token, origin=None, relativize=False, relativize_to=None):
         """Try to interpret the token as a DNS name.
 

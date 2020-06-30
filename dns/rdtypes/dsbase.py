@@ -49,15 +49,7 @@ class DSBase(dns.rdata.Rdata):
         key_tag = tok.get_uint16()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
         digest_type = tok.get_uint8()
-        chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value.encode())
-        digest = b''.join(chunks)
+        digest = tok.concatenate_remaining_identifiers().encode()
         digest = binascii.unhexlify(digest)
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
                    digest)

@@ -99,15 +99,7 @@ class RRSIG(dns.rdata.Rdata):
         inception = sigtime_to_posixtime(tok.get_string())
         key_tag = tok.get_int()
         signer = tok.get_name(origin, relativize, relativize_to)
-        chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value.encode())
-        b64 = b''.join(chunks)
+        b64 = tok.concatenate_remaining_identifiers().encode()
         signature = base64.b64decode(b64)
         return cls(rdclass, rdtype, type_covered, algorithm, labels,
                    original_ttl, expiration, inception, key_tag, signer,

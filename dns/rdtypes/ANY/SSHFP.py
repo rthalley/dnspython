@@ -48,15 +48,7 @@ class SSHFP(dns.rdata.Rdata):
                   relativize_to=None):
         algorithm = tok.get_uint8()
         fp_type = tok.get_uint8()
-        chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value.encode())
-        fingerprint = b''.join(chunks)
+        fingerprint = tok.concatenate_remaining_identifiers().encode()
         fingerprint = binascii.unhexlify(fingerprint)
         return cls(rdclass, rdtype, algorithm, fp_type, fingerprint)
 

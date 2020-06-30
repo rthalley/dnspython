@@ -57,15 +57,7 @@ class DNSKEYBase(dns.rdata.Rdata):
         flags = tok.get_uint16()
         protocol = tok.get_uint8()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
-        chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value.encode())
-        b64 = b''.join(chunks)
+        b64 = tok.concatenate_remaining_identifiers().encode()
         key = base64.b64decode(b64)
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)
 

@@ -51,15 +51,7 @@ class TLSA(dns.rdata.Rdata):
         usage = tok.get_uint8()
         selector = tok.get_uint8()
         mtype = tok.get_uint8()
-        cert_chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            cert_chunks.append(t.value.encode())
-        cert = b''.join(cert_chunks)
+        cert = tok.concatenate_remaining_identifiers().encode()
         cert = binascii.unhexlify(cert)
         return cls(rdclass, rdtype, usage, selector, mtype, cert)
 
