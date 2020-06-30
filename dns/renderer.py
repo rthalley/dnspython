@@ -202,7 +202,7 @@ class Renderer:
                                               b'', id, tsig_error, other_data)
         (tsig, ctx) = dns.tsig.sign(s, keyname, tsig[0], secret,
                                     int(time.time()), request_mac,
-                                    ctx, True, ctx is None)
+                                    ctx, True)
         self._write_tsig(tsig, keyname)
         return ctx
 
