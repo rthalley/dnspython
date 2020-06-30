@@ -920,7 +920,6 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
             origin = None
             oname = zone
         tsig_ctx = None
-        first = True
         while not done:
             (_, mexpiration) = _compute_times(timeout)
             if mexpiration is None or \
@@ -937,13 +936,11 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
             r = dns.message.from_wire(wire, keyring=q.keyring,
                                       request_mac=q.mac, xfr=True,
                                       origin=origin, tsig_ctx=tsig_ctx,
-                                      multi=True, first=first,
-                                      one_rr_per_rrset=is_ixfr)
+                                      multi=True, one_rr_per_rrset=is_ixfr)
             rcode = r.rcode()
             if rcode != dns.rcode.NOERROR:
                 raise TransferError(rcode)
             tsig_ctx = r.tsig_ctx
-            first = False
             answer_index = 0
             if soa_rrset is None:
                 if not r.answer or r.answer[0].name != oname:

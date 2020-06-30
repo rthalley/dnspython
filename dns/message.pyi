@@ -35,7 +35,6 @@ class Message:
         self.tsig_ctx = None
         self.had_tsig = False
         self.multi = False
-        self.first = True
         self.index : Dict[Tuple[rrset.RRset, name.Name, int, int, Union[int,str], int], rrset.RRset] = {}
 
     def is_response(self, other : Message) -> bool:
@@ -45,7 +44,7 @@ def from_text(a : str, idna_codec : Optional[name.IDNACodec] = None) -> Message:
     ...
 
 def from_wire(wire, keyring : Optional[Dict[name.Name,bytes]] = None, request_mac = b'', xfr=False, origin=None,
-              tsig_ctx : Optional[hmac.HMAC] = None, multi=False, first=True,
+              tsig_ctx : Optional[hmac.HMAC] = None, multi=False,
               question_only=False, one_rr_per_rrset=False,
               ignore_trailing=False) -> Message:
     ...

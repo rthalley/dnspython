@@ -86,7 +86,7 @@ BADTRUNC = 22
 
 
 def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
-         ctx=None, multi=False, first=True):
+         ctx=None, multi=False):
     """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
     for the input parameters, the HMAC MAC calculated by applying the
     TSIG signature algorithm, and the TSIG digest context.
@@ -95,6 +95,7 @@ def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
+    first = not (ctx and multi)
     (algorithm_name, digestmod) = get_algorithm(rdata.algorithm)
     if first:
         ctx = hmac.new(secret, digestmod=digestmod)
@@ -136,7 +137,7 @@ def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
 
 
 def validate(wire, keyname, rdata, secret, now, request_mac, tsig_start,
-             ctx=None, multi=False, first=True):
+             ctx=None, multi=False):
     """Validate the specified TSIG rdata against the other input parameters.
 
     @raises FormError: The TSIG is badly formed.
@@ -164,7 +165,7 @@ def validate(wire, keyname, rdata, secret, now, request_mac, tsig_start,
     if abs(rdata.time_signed - now) > rdata.fudge:
         raise BadTime
     (our_rdata, ctx) = sign(new_wire, keyname, rdata, secret, None, request_mac,
-                            ctx, multi, first)
+                            ctx, multi)
     if our_rdata.mac != rdata.mac:
         raise BadSignature
     return ctx

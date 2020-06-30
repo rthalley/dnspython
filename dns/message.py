@@ -116,7 +116,6 @@ class Message:
         self.origin = None
         self.tsig_ctx = None
         self.multi = False
-        self.first = True
         self.index = {}
 
     @property
@@ -445,8 +444,7 @@ class Message:
                                             int(time.time()),
                                             self.request_mac,
                                             tsig_ctx,
-                                            multi,
-                                            tsig_ctx is None)
+                                            multi)
             self.tsig.clear()
             self.tsig.add(new_tsig)
             r.add_rrset(dns.renderer.ADDITIONAL, self.tsig)
@@ -820,8 +818,7 @@ class _WireReader:
                                       self.message.request_mac,
                                       rr_start,
                                       self.message.tsig_ctx,
-                                      self.message.multi,
-                                      self.message.first)
+                                      self.message.multi)
                 self.message.tsig = dns.rrset.from_rdata(absolute_name, 0, rd)
             else:
                 rrset = self.message.find_rrset(section, name,
@@ -865,7 +862,7 @@ class _WireReader:
 
 
 def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
-              tsig_ctx=None, multi=False, first=True,
+              tsig_ctx=None, multi=False,
               question_only=False, one_rr_per_rrset=False,
               ignore_trailing=False, raise_on_truncation=False):
     """Convert a DNS wire format message into a message
@@ -889,9 +886,6 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
 
     *multi*, a ``bool``, should be set to ``True`` if this message is
     part of a multiple message sequence.
-
-    *first*, a ``bool``, should be set to ``True`` if this message is
-    stand-alone, or the first message in a multi-message sequence.
 
     *question_only*, a ``bool``.  If ``True``, read only up to
     the end of the question section.
@@ -930,7 +924,6 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
         message.origin = origin
         message.tsig_ctx = tsig_ctx
         message.multi = multi
-        message.first = first
 
     reader = _WireReader(wire, initialize_message, question_only,
                          one_rr_per_rrset, ignore_trailing)
