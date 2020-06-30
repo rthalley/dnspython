@@ -306,14 +306,14 @@ class UpdateMessage(dns.message.Message):
         if section == UpdateSection.ZONE:
             if dns.rdataclass.is_metaclass(rdclass) or \
                rdtype != dns.rdatatype.SOA or \
-               self.question:
+               self.zone:
                 raise dns.exception.FormError
         else:
-            if not self.question:
+            if not self.zone:
                 raise dns.exception.FormError
             if rdclass in (dns.rdataclass.ANY, dns.rdataclass.NONE):
                 deleting = rdclass
-                rdclass = self.question[0].rdclass
+                rdclass = self.zone[0].rdclass
                 empty = (deleting == dns.rdataclass.ANY or
                          section == UpdateSection.PREREQ)
         return (rdclass, rdtype, deleting, empty)
