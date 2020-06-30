@@ -25,8 +25,8 @@ import encodings.idna    # type: ignore
 try:
     import idna          # type: ignore
     have_idna_2008 = True
-except ImportError:
-    have_idna_2008 = False  # pragma: no cover
+except ImportError:  # pragma: no cover
+    have_idna_2008 = False
 
 import dns.exception
 import dns.wiredata
@@ -218,7 +218,7 @@ class IDNA2008Codec(IDNACodec):
             if self.uts_46:
                 label = idna.uts46_remap(label, False, False)
             return _escapify(idna.ulabel(label))
-        except idna.IDNAError as e:
+        except (idna.IDNAError, UnicodeError) as e:
             raise IDNAException(idna_exception=e)
 
 _escaped = b'"().;\\@$'
@@ -303,7 +303,7 @@ def _maybe_convert_to_binary(label):
         return label
     if isinstance(label, str):
         return label.encode()
-    raise ValueError
+    raise ValueError  # pragma: no cover
 
 
 class Name:
