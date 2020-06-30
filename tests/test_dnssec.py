@@ -327,6 +327,10 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             keys[name].rdatasets.append(key_rrset.to_rdataset())
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, keys, None, when)
 
+        # Pass origin as a string, not a name.
+        dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
+                            'dnspython.org', when)
+
 class DNSSECMakeDSTestCase(unittest.TestCase):
 
     def testMakeExampleSHA1DS(self):  # type: () -> None
