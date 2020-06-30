@@ -112,6 +112,34 @@ blaz ANY A
 blaz2 ANY ANY
 """
 
+added_text = """id 1
+opcode UPDATE
+;ZONE
+example. IN SOA
+;UPDATE
+foo 300 IN A 10.0.0.1
+foo 300 IN A 10.0.0.2
+"""
+
+replaced_text = """id 1
+opcode UPDATE
+;ZONE
+example. IN SOA
+;UPDATE
+foo ANY A
+foo 300 IN A 10.0.0.1
+foo 300 IN A 10.0.0.2
+"""
+
+deleted_text = """id 1
+opcode UPDATE
+;ZONE
+example. IN SOA
+;UPDATE
+foo 0 NONE A 10.0.0.1
+foo 0 NONE A 10.0.0.2
+"""
+
 class UpdateTestCase(unittest.TestCase):
 
     def test_to_wire1(self): # type: () -> None
@@ -232,6 +260,87 @@ class UpdateTestCase(unittest.TestCase):
         r = dns.message.make_response(update)
         self.assertTrue(isinstance(r, dns.update.UpdateMessage))
         self.assertTrue(update.is_response(r))
+
+    def test_making_UpdateSection(self):
+        self.assertEqual(dns.update.UpdateSection.make(0),
+                         dns.update.UpdateSection.make('ZONE'))
+        with self.assertRaises(ValueError):
+            dns.update.UpdateSection.make(99)
+
+    def test_setters(self):
+        u = dns.update.UpdateMessage(id=1)
+        qrrset = dns.rrset.RRset(dns.name.from_text('example'),
+                                 dns.rdataclass.IN, dns.rdatatype.SOA)
+        rrset = dns.rrset.from_text('foo', 300, 'in', 'a', '10.0.0.1')
+        u.zone = [qrrset]
+        self.assertEqual(u.sections[0], [qrrset])
+        self.assertEqual(u.sections[1], [])
+        self.assertEqual(u.sections[2], [])
+        self.assertEqual(u.sections[3], [])
+        u.prerequisite = [rrset]
+        self.assertEqual(u.sections[0], [qrrset])
+        self.assertEqual(u.sections[1], [rrset])
+        self.assertEqual(u.sections[2], [])
+        self.assertEqual(u.sections[3], [])
+        u.update = [rrset]
+        self.assertEqual(u.sections[0], [qrrset])
+        self.assertEqual(u.sections[1], [rrset])
+        self.assertEqual(u.sections[2], [rrset])
+        self.assertEqual(u.sections[3], [])
+
+    def test_added_rdataset(self):
+        u = dns.update.UpdateMessage('example.', id=1)
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1', '10.0.0.2')
+        u.add('foo', rds)
+        expected = dns.message.from_text(added_text)
+        self.assertEqual(u, expected)
+
+    def test_replaced_rdataset(self):
+        u = dns.update.UpdateMessage('example.', id=1)
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1', '10.0.0.2')
+        u.replace('foo', rds)
+        expected = dns.message.from_text(replaced_text)
+        self.assertEqual(u, expected)
+
+    def test_delete_rdataset(self):
+        u = dns.update.UpdateMessage('example.', id=1)
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1', '10.0.0.2')
+        u.delete('foo', rds)
+        expected = dns.message.from_text(deleted_text)
+        self.assertEqual(u, expected)
+
+    def test_added_rdata(self):
+        u = dns.update.UpdateMessage('example.', id=1)
+        rd1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                  '10.0.0.1')
+        rd2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                  '10.0.0.2')
+        u.add('foo', 300, rd1)
+        u.add('foo', 300, rd2)
+        expected = dns.message.from_text(added_text)
+        self.assertEqual(u, expected)
+
+    def test_replaced_rdata(self):
+        u = dns.update.UpdateMessage('example.', id=1)
+        rd1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                  '10.0.0.1')
+        rd2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                  '10.0.0.2')
+        u.replace('foo', 300, rd1)
+        u.add('foo', 300, rd2)
+        expected = dns.message.from_text(replaced_text)
+        self.assertEqual(u, expected)
+
+    def test_deleted_rdata(self):
+        u = dns.update.UpdateMessage('example.', id=1)
+        rd1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                  '10.0.0.1')
+        rd2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                  '10.0.0.2')
+        u.delete('foo', rd1)
+        u.delete('foo', rd2)
+        expected = dns.message.from_text(deleted_text)
+        self.assertEqual(u, expected)
 
 if __name__ == '__main__':
     unittest.main()
