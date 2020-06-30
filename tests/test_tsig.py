@@ -42,12 +42,11 @@ class TSIGTestCase(unittest.TestCase):
         # not raising is passing
         dns.message.from_wire(w, keyring)
 
-    def make_message_pair(self, qname='example', rdtype='A'):
+    def make_message_pair(self, qname='example', rdtype='A', tsig_error=0):
         q = dns.message.make_query(qname, rdtype)
         q.use_tsig(keyring=keyring, keyname=keyname)
-        q.had_tsig = True  # so make_response() does the right thing
         q.to_wire()  # to set q.mac
-        r = dns.message.make_response(q)
+        r = dns.message.make_response(q, tsig_error=tsig_error)
         return(q, r)
 
     def test_peer_errors(self):
@@ -58,8 +57,7 @@ class TSIGTestCase(unittest.TestCase):
                  (99, dns.tsig.PeerError),
                  ]
         for err, ex in items:
-            q, r = self.make_message_pair()
-            r.tsig_error = err
+            q, r = self.make_message_pair(tsig_error=err)
             w = r.to_wire()
             def bad():
                 dns.message.from_wire(w, keyring=keyring, request_mac=q.mac)

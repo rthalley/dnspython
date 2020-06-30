@@ -38,6 +38,7 @@ import dns.renderer
 import dns.tsig
 import dns.wiredata
 import dns.rdtypes.ANY.OPT
+import dns.rdtypes.ANY.TSIG
 
 
 class ShortHeader(dns.exception.FormError):
@@ -109,20 +110,11 @@ class Message:
         self.opt = None
         self.request_payload = 0
         self.keyring = None
-        self.keyname = None
-        self.keyalgorithm = dns.tsig.default_algorithm
+        self.tsig = None
         self.request_mac = b''
-        self.other_data = b''
-        self.tsig_error = 0
-        self.fudge = 300
-        self.original_id = self.id
-        self.mac = b''
         self.xfr = False
         self.origin = None
         self.tsig_ctx = None
-        self.had_tsig = False
-        self.multi = False
-        self.first = True
         self.index = {}
 
     @property
@@ -443,21 +435,30 @@ class Message:
         for rrset in self.additional:
             r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
         r.write_header()
-        if self.keyname is not None:
+        if self.tsig is not None:
+            (new_tsig, ctx) = dns.tsig.sign(r.get_wire(),
+                                            self.tsig.name,
+                                            self.tsig[0],
+                                            self.keyring[self.tsig.name],
+                                            int(time.time()),
+                                            self.request_mac,
+                                            tsig_ctx,
+                                            multi)
+            self.tsig.clear()
+            self.tsig.add(new_tsig)
+            r.add_rrset(dns.renderer.ADDITIONAL, self.tsig)
+            r.write_header()
             if multi:
-                ctx = r.add_multi_tsig(tsig_ctx,
-                                       self.keyname, self.keyring[self.keyname],
-                                       self.fudge, self.original_id,
-                                       self.tsig_error, self.other_data,
-                                       self.request_mac, self.keyalgorithm)
                 self.tsig_ctx = ctx
-            else:
-                r.add_tsig(self.keyname, self.keyring[self.keyname],
-                           self.fudge, self.original_id, self.tsig_error,
-                           self.other_data, self.request_mac,
-                           self.keyalgorithm)
-            self.mac = r.mac
         return r.get_wire()
+
+    @staticmethod
+    def _make_tsig(keyname, algorithm, time_signed, fudge, mac, original_id,
+                   error, other):
+        tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
+                                         algorithm, time_signed, fudge, mac,
+                                         original_id, error, other)
+        return dns.rrset.from_rdata(keyname, 0, tsig)
 
     def use_tsig(self, keyring, keyname=None, fudge=300,
                  original_id=None, tsig_error=0, other_data=b'',
@@ -492,19 +493,45 @@ class Message:
 
         self.keyring = keyring
         if keyname is None:
-            self.keyname = list(self.keyring.keys())[0]
-        else:
-            if isinstance(keyname, str):
-                keyname = dns.name.from_text(keyname)
-            self.keyname = keyname
-        self.keyalgorithm = algorithm
-        self.fudge = fudge
+            keyname = list(self.keyring.keys())[0]
+        elif isinstance(keyname, str):
+            keyname = dns.name.from_text(keyname)
         if original_id is None:
-            self.original_id = self.id
+            original_id = self.id
+        self.tsig = self._make_tsig(keyname, algorithm, 0, fudge, b'',
+                                    original_id, tsig_error, other_data)
+
+    @property
+    def keyname(self):
+        if self.tsig:
+            return self.tsig.name
         else:
-            self.original_id = original_id
-        self.tsig_error = tsig_error
-        self.other_data = other_data
+            return None
+
+    @property
+    def keyalgorithm(self):
+        if self.tsig:
+            return self.tsig[0].algorithm
+        else:
+            return None
+
+    @property
+    def mac(self):
+        if self.tsig:
+            return self.tsig[0].mac
+        else:
+            return None
+
+    @property
+    def tsig_error(self):
+        if self.tsig:
+            return self.tsig[0].error
+        else:
+            return None
+
+    @property
+    def had_tsig(self):
+        return bool(self.tsig)
 
     @staticmethod
     def _make_opt(flags=0, payload=1280, options=None):
@@ -649,11 +676,17 @@ class Message:
             raise dns.exception.FormError
         return (rdclass, rdtype, None, False)
 
-    def _parse_special_rr_header(self, section, name, rdclass, rdtype):
+    def _parse_special_rr_header(self, section, count, position,
+                                 name, rdclass, rdtype):
         if rdtype == dns.rdatatype.OPT:
             if section != MessageSection.ADDITIONAL or self.opt or \
                name != dns.name.root:
                 raise BadEDNS
+        elif rdtype == dns.rdatatype.TSIG:
+            if section != MessageSection.ADDITIONAL or \
+               rdclass != dns.rdatatype.ANY or \
+               position != count - 1:
+                raise BadTSIG
         return (rdclass, rdtype, None, False)
 
 
@@ -691,11 +724,12 @@ class _WireReader:
     question_only: Are we only reading the question?
     one_rr_per_rrset: Put each RR into its own RRset?
     ignore_trailing: Ignore trailing junk at end of request?
+    multi: Is this message part of a multi-message sequence?
     DNS dynamic updates.
     """
 
     def __init__(self, wire, initialize_message, question_only=False,
-                 one_rr_per_rrset=False, ignore_trailing=False):
+                 one_rr_per_rrset=False, ignore_trailing=False, multi=False):
         self.wire = dns.wiredata.maybe_wrap(wire)
         self.message = None
         self.current = 0
@@ -703,6 +737,7 @@ class _WireReader:
         self.question_only = question_only
         self.one_rr_per_rrset = one_rr_per_rrset
         self.ignore_trailing = ignore_trailing
+        self.multi = multi
 
     def _get_question(self, section_number, qcount):
         """Read the next *qcount* records from the wire data and add them to
@@ -746,65 +781,55 @@ class _WireReader:
                 struct.unpack('!HHIH',
                               self.wire[self.current:self.current + 10])
             self.current += 10
-            if rdtype == dns.rdatatype.TSIG:
-                if not (section is self.message.additional and
-                        i == (count - 1)):
-                    raise BadTSIG
+            if rdtype in (dns.rdatatype.OPT, dns.rdatatype.TSIG):
+                (rdclass, rdtype, deleting, empty) = \
+                    self.message._parse_special_rr_header(section_number,
+                                                          count, i, name,
+                                                          rdclass, rdtype)
+            else:
+                (rdclass, rdtype, deleting, empty) = \
+                    self.message._parse_rr_header(section_number,
+                                                  name, rdclass, rdtype)
+            if empty:
+                if rdlen > 0:
+                    raise dns.exception.FormError
+                rd = None
+                covers = dns.rdatatype.NONE
+            else:
+                rd = dns.rdata.from_wire(rdclass, rdtype,
+                                         self.wire, self.current, rdlen,
+                                         self.message.origin)
+                covers = rd.covers()
+            if self.message.xfr and rdtype == dns.rdatatype.SOA:
+                force_unique = True
+            if rdtype == dns.rdatatype.OPT:
+                self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
+            elif rdtype == dns.rdatatype.TSIG:
                 if self.message.keyring is None:
                     raise UnknownTSIGKey('got signed message without keyring')
                 secret = self.message.keyring.get(absolute_name)
                 if secret is None:
                     raise UnknownTSIGKey("key '%s' unknown" % name)
-                self.message.keyname = absolute_name
-                (self.message.keyalgorithm, self.message.mac) = \
-                    dns.tsig.get_algorithm_and_mac(self.wire, self.current,
-                                                   rdlen)
                 self.message.tsig_ctx = \
                     dns.tsig.validate(self.wire,
                                       absolute_name,
+                                      rd,
                                       secret,
                                       int(time.time()),
                                       self.message.request_mac,
                                       rr_start,
-                                      self.current,
-                                      rdlen,
                                       self.message.tsig_ctx,
-                                      self.message.multi,
-                                      self.message.first)
-                self.message.had_tsig = True
+                                      self.multi)
+                self.message.tsig = dns.rrset.from_rdata(absolute_name, 0, rd)
             else:
-                if rdtype == dns.rdatatype.OPT:
-                    (rdclass, rdtype, deleting, empty) = \
-                        self.message._parse_special_rr_header(section_number,
-                                                              name,
-                                                              rdclass, rdtype)
-                else:
-                    (rdclass, rdtype, deleting, empty) = \
-                        self.message._parse_rr_header(section_number,
-                                                      name, rdclass, rdtype)
-                if empty:
-                    if rdlen > 0:
-                        raise dns.exception.FormError
-                    rd = None
-                    covers = dns.rdatatype.NONE
-                else:
-                    rd = dns.rdata.from_wire(rdclass, rdtype,
-                                             self.wire, self.current, rdlen,
-                                             self.message.origin)
-                    covers = rd.covers()
-                if self.message.xfr and rdtype == dns.rdatatype.SOA:
-                    force_unique = True
-                if rdtype == dns.rdatatype.OPT:
-                    self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
-                else:
-                    rrset = self.message.find_rrset(section, name,
-                                                    rdclass, rdtype, covers,
-                                                    deleting, True,
-                                                    force_unique)
-                    if rd is not None:
-                        if ttl > 0x7fffffff:
-                            ttl = 0
-                        rrset.add(rd, ttl)
+                rrset = self.message.find_rrset(section, name,
+                                                rdclass, rdtype, covers,
+                                                deleting, True,
+                                                force_unique)
+                if rd is not None:
+                    if ttl > 0x7fffffff:
+                        ttl = 0
+                    rrset.add(rd, ttl)
             self.current += rdlen
 
     def read(self):
@@ -831,14 +856,13 @@ class _WireReader:
         self._get_section(MessageSection.ADDITIONAL, adcount)
         if not self.ignore_trailing and self.current != l:
             raise TrailingJunk
-        if self.message.multi and self.message.tsig_ctx and \
-                not self.message.had_tsig:
+        if self.multi and self.message.tsig_ctx and not self.message.had_tsig:
             self.message.tsig_ctx.update(self.wire)
         return self.message
 
 
 def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
-              tsig_ctx=None, multi=False, first=True,
+              tsig_ctx=None, multi=False,
               question_only=False, one_rr_per_rrset=False,
               ignore_trailing=False, raise_on_truncation=False):
     """Convert a DNS wire format message into a message
@@ -862,9 +886,6 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
 
     *multi*, a ``bool``, should be set to ``True`` if this message is
     part of a multiple message sequence.
-
-    *first*, a ``bool``, should be set to ``True`` if this message is
-    stand-alone, or the first message in a multi-message sequence.
 
     *question_only*, a ``bool``.  If ``True``, read only up to
     the end of the question section.
@@ -902,11 +923,9 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
         message.xfr = xfr
         message.origin = origin
         message.tsig_ctx = tsig_ctx
-        message.multi = multi
-        message.first = first
 
     reader = _WireReader(wire, initialize_message, question_only,
-                         one_rr_per_rrset, ignore_trailing)
+                         one_rr_per_rrset, ignore_trailing, multi)
     try:
         m = reader.read()
     except dns.exception.FormError:
@@ -1291,7 +1310,7 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
 
 
 def make_response(query, recursion_available=False, our_payload=8192,
-                  fudge=300):
+                  fudge=300, tsig_error=0):
     """Make a message which is a response for the specified query.
     The message returned is really a response skeleton; it has all
     of the infrastructure required of a response, but none of the
@@ -1310,6 +1329,8 @@ def make_response(query, recursion_available=False, our_payload=8192,
 
     *fudge*, an ``int``, the TSIG time fudge.
 
+    *tsig_error*, an ``int``, the TSIG error.
+
     Returns a ``dns.message.Message`` object whose specific class is
     appropriate for the query.  For example, if query is a
     ``dns.update.UpdateMessage``, response will be too.
@@ -1327,7 +1348,7 @@ def make_response(query, recursion_available=False, our_payload=8192,
     if query.edns >= 0:
         response.use_edns(0, 0, our_payload, query.payload)
     if query.had_tsig:
-        response.use_tsig(query.keyring, query.keyname, fudge, None, 0, b'',
-                          query.keyalgorithm)
+        response.use_tsig(query.keyring, query.keyname, fudge, None,
+                          tsig_error, b'', query.keyalgorithm)
         response.request_mac = query.mac
     return response

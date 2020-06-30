@@ -178,17 +178,12 @@ class Renderer:
         """Add a TSIG signature to the message."""
 
         s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
-                                                    keyname,
-                                                    secret,
-                                                    int(time.time()),
-                                                    fudge,
-                                                    id,
-                                                    tsig_error,
-                                                    other_data,
-                                                    request_mac,
-                                                    algorithm=algorithm)
-        self._write_tsig(tsig_rdata, keyname)
+
+        tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
+                                              b'', id, tsig_error, other_data)
+        (tsig, _) = dns.tsig.sign(s, keyname, tsig[0], secret,
+                                  int(time.time()), request_mac)
+        self._write_tsig(tsig, keyname)
 
     def add_multi_tsig(self, ctx, keyname, secret, fudge, id, tsig_error,
                        other_data, request_mac,
@@ -202,30 +197,23 @@ class Renderer:
         add_multi_tsig() call for the previous message."""
 
         s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
-                                                    keyname,
-                                                    secret,
-                                                    int(time.time()),
-                                                    fudge,
-                                                    id,
-                                                    tsig_error,
-                                                    other_data,
-                                                    request_mac,
-                                                    ctx=ctx,
-                                                    first=ctx is None,
-                                                    multi=True,
-                                                    algorithm=algorithm)
-        self._write_tsig(tsig_rdata, keyname)
+
+        tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
+                                              b'', id, tsig_error, other_data)
+        (tsig, ctx) = dns.tsig.sign(s, keyname, tsig[0], secret,
+                                    int(time.time()), request_mac,
+                                    ctx, True)
+        self._write_tsig(tsig, keyname)
         return ctx
 
-    def _write_tsig(self, tsig_rdata, keyname):
+    def _write_tsig(self, tsig, keyname):
         self._set_section(ADDITIONAL)
         with self._track_size():
             keyname.to_wire(self.output, self.compress, self.origin)
             self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
                                           dns.rdataclass.ANY, 0, 0))
             rdata_start = self.output.tell()
-            self.output.write(tsig_rdata)
+            tsig.to_wire(self.output)
 
         after = self.output.tell()
         self.output.seek(rdata_start - 2)

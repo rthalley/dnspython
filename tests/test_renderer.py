@@ -3,9 +3,11 @@
 import unittest
 
 import dns.exception
+import dns.flags
 import dns.message
 import dns.renderer
-import dns.flags
+import dns.tsig
+import dns.tsigkeyring
 
 basic_answer = \
     """flags QR
@@ -34,6 +36,50 @@ class RendererTestCase(unittest.TestCase):
         # exercise that code, so copy it into the expected message.
         expected.id = message.id
         self.assertEqual(message, expected)
+
+    def test_tsig(self):
+        r = dns.renderer.Renderer(flags=dns.flags.RD, max_size=512)
+        qname = dns.name.from_text('foo.example')
+        r.add_question(qname, dns.rdatatype.A)
+        keyring = dns.tsigkeyring.from_text({'key' : '12345678'})
+        keyname = next(iter(keyring))
+        r.write_header()
+        r.add_tsig(keyname, keyring[keyname], 300, r.id, 0, b'', b'',
+                   dns.tsig.HMAC_SHA256)
+        wire = r.get_wire()
+        message = dns.message.from_wire(wire, keyring=keyring)
+        expected = dns.message.make_query(qname, dns.rdatatype.A)
+        expected.id = message.id
+        self.assertEqual(message, expected)
+
+    def test_multi_tsig(self):
+        qname = dns.name.from_text('foo.example')
+        keyring = dns.tsigkeyring.from_text({'key' : '12345678'})
+        keyname = next(iter(keyring))
+
+        r = dns.renderer.Renderer(flags=dns.flags.RD, max_size=512)
+        r.add_question(qname, dns.rdatatype.A)
+        r.write_header()
+        ctx = r.add_multi_tsig(None, keyname, keyring[keyname], 300, r.id, 0,
+                               b'', b'', dns.tsig.HMAC_SHA256)
+        wire = r.get_wire()
+        message = dns.message.from_wire(wire, keyring=keyring, multi=True)
+        expected = dns.message.make_query(qname, dns.rdatatype.A)
+        expected.id = message.id
+        self.assertEqual(message, expected)
+
+        r = dns.renderer.Renderer(flags=dns.flags.RD, max_size=512)
+        r.add_question(qname, dns.rdatatype.A)
+        r.write_header()
+        ctx = r.add_multi_tsig(ctx, keyname, keyring[keyname], 300, r.id, 0,
+                               b'', b'', dns.tsig.HMAC_SHA256)
+        wire = r.get_wire()
+        message = dns.message.from_wire(wire, keyring=keyring,
+                                        tsig_ctx=message.tsig_ctx, multi=True)
+        expected = dns.message.make_query(qname, dns.rdatatype.A)
+        expected.id = message.id
+        self.assertEqual(message, expected)
+
 
     def test_going_backwards_fails(self):
         r = dns.renderer.Renderer(flags=dns.flags.QR, max_size=512)

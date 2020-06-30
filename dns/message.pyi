@@ -16,26 +16,14 @@ class Message:
         self.answer : List[rrset.RRset] = []
         self.authority : List[rrset.RRset] = []
         self.additional : List[rrset.RRset] = []
-        self.edns = -1
-        self.ednsflags = 0
-        self.payload = 0
-        self.options : List[edns.Option] = []
+        self.opt : rrset.RRset = None
         self.request_payload = 0
         self.keyring = None
-        self.keyname = None
-        self.keyalgorithm = tsig.default_algorithm
+        self.tsig : rrset.RRset = None
         self.request_mac = b''
-        self.other_data = b''
-        self.tsig_error = 0
-        self.fudge = 300
-        self.original_id = self.id
-        self.mac = b''
         self.xfr = False
         self.origin = None
         self.tsig_ctx = None
-        self.had_tsig = False
-        self.multi = False
-        self.first = True
         self.index : Dict[Tuple[rrset.RRset, name.Name, int, int, Union[int,str], int], rrset.RRset] = {}
 
     def is_response(self, other : Message) -> bool:
@@ -45,7 +33,7 @@ def from_text(a : str, idna_codec : Optional[name.IDNACodec] = None) -> Message:
     ...
 
 def from_wire(wire, keyring : Optional[Dict[name.Name,bytes]] = None, request_mac = b'', xfr=False, origin=None,
-              tsig_ctx : Optional[hmac.HMAC] = None, multi=False, first=True,
+              tsig_ctx : Optional[hmac.HMAC] = None, multi=False,
               question_only=False, one_rr_per_rrset=False,
               ignore_trailing=False) -> Message:
     ...
