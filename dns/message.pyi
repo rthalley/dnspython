@@ -34,7 +34,6 @@ class Message:
         self.origin = None
         self.tsig_ctx = None
         self.had_tsig = False
-        self.multi = False
         self.index : Dict[Tuple[rrset.RRset, name.Name, int, int, Union[int,str], int], rrset.RRset] = {}
 
     def is_response(self, other : Message) -> bool:

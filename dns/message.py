@@ -115,7 +115,6 @@ class Message:
         self.xfr = False
         self.origin = None
         self.tsig_ctx = None
-        self.multi = False
         self.index = {}
 
     @property
@@ -725,11 +724,12 @@ class _WireReader:
     question_only: Are we only reading the question?
     one_rr_per_rrset: Put each RR into its own RRset?
     ignore_trailing: Ignore trailing junk at end of request?
+    multi: Is this message part of a multi-message sequence?
     DNS dynamic updates.
     """
 
     def __init__(self, wire, initialize_message, question_only=False,
-                 one_rr_per_rrset=False, ignore_trailing=False):
+                 one_rr_per_rrset=False, ignore_trailing=False, multi=False):
         self.wire = dns.wiredata.maybe_wrap(wire)
         self.message = None
         self.current = 0
@@ -737,6 +737,7 @@ class _WireReader:
         self.question_only = question_only
         self.one_rr_per_rrset = one_rr_per_rrset
         self.ignore_trailing = ignore_trailing
+        self.multi = multi
 
     def _get_question(self, section_number, qcount):
         """Read the next *qcount* records from the wire data and add them to
@@ -818,7 +819,7 @@ class _WireReader:
                                       self.message.request_mac,
                                       rr_start,
                                       self.message.tsig_ctx,
-                                      self.message.multi)
+                                      self.multi)
                 self.message.tsig = dns.rrset.from_rdata(absolute_name, 0, rd)
             else:
                 rrset = self.message.find_rrset(section, name,
@@ -855,8 +856,7 @@ class _WireReader:
         self._get_section(MessageSection.ADDITIONAL, adcount)
         if not self.ignore_trailing and self.current != l:
             raise TrailingJunk
-        if self.message.multi and self.message.tsig_ctx and \
-                not self.message.had_tsig:
+        if self.multi and self.message.tsig_ctx and not self.message.had_tsig:
             self.message.tsig_ctx.update(self.wire)
         return self.message
 
@@ -923,10 +923,9 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
         message.xfr = xfr
         message.origin = origin
         message.tsig_ctx = tsig_ctx
-        message.multi = multi
 
     reader = _WireReader(wire, initialize_message, question_only,
-                         one_rr_per_rrset, ignore_trailing)
+                         one_rr_per_rrset, ignore_trailing, multi)
     try:
         m = reader.read()
     except dns.exception.FormError:
