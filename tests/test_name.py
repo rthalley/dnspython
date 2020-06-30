@@ -17,6 +17,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from typing import Dict # pylint: disable=unused-import
+import copy
 import operator
 import unittest
 
@@ -961,6 +962,71 @@ class NameTestCase(unittest.TestCase):
         def bad():
             dns.name.from_wire(123, 0)
         self.assertRaises(ValueError, bad)
+
+    def testBadPunycode(self):
+        c = dns.name.IDNACodec()
+        with self.assertRaises(dns.name.IDNAException):
+            c.decode(b'xn--0000h')
+
+    def testRootLabel2003StrictDecode(self):
+        c = dns.name.IDNA_2003_Strict
+        self.assertEqual(c.decode(b''), '')
+
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
+    def testRootLabel2008StrictDecode(self):
+        c = dns.name.IDNA_2008_Strict
+        self.assertEqual(c.decode(b''), '')
+
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
+    def testCodecNotFoundRaises(self):
+        dns.name.have_idna_2008 = False
+        with self.assertRaises(dns.name.NoIDNA2008):
+            c = dns.name.IDNA2008Codec()
+            c.encode('Königsgäßchen')
+        with self.assertRaises(dns.name.NoIDNA2008):
+            c = dns.name.IDNA2008Codec(strict_decode=True)
+            c.decode('xn--eckwd4c7c.xn--zckzah.')
+        dns.name.have_idna_2008 = True
+
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
+    def testBadPunycodeStrict2008(self):
+        c = dns.name.IDNA2008Codec(strict_decode=True)
+        with self.assertRaises(dns.name.IDNAException):
+            c.decode(b'xn--0000h')
+
+    def testRelativizeSubtractionSyntax(self):
+        n = dns.name.from_text('foo.example.')
+        o = dns.name.from_text('example.')
+        e = dns.name.from_text('foo', None)
+        self.assertEqual(n - o, e)
+
+    def testCopy(self):
+        n1 = dns.name.from_text('foo.example.')
+        n2 = copy.copy(n1)
+        self.assertTrue(n1 is not n2)
+        # the Name constructor always copies labels, so there is no
+        # difference between copy and deepcopy
+        self.assertTrue(n1.labels is not n2.labels)
+        self.assertEqual(len(n1.labels), len(n2.labels))
+        for i, l in enumerate(n1.labels):
+            self.assertTrue(l is n2[i])
+
+    def testDeepCopy(self):
+        n1 = dns.name.from_text('foo.example.')
+        n2 = copy.deepcopy(n1)
+        self.assertTrue(n1 is not n2)
+        self.assertTrue(n1.labels is not n2.labels)
+        self.assertEqual(len(n1.labels), len(n2.labels))
+        for i, l in enumerate(n1.labels):
+            self.assertTrue(l is n2[i])
+
+    def testNoAttributeDeletion(self):
+        n = dns.name.from_text('foo.example.')
+        with self.assertRaises(TypeError):
+            del n.labels
 
 if __name__ == '__main__':
     unittest.main()
