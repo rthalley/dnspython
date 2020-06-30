@@ -423,7 +423,7 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 # since if the algorithm is really unknown we'd already have
                 # raised an exception above
                 raise ValidationFailure('unknown algorithm %u' %
-                                        rrsig.algorithm)
+                                        rrsig.algorithm) # pragma: no cover
             # If we got here, we successfully verified so we can return
             # without error
             return

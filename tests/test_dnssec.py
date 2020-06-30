@@ -193,6 +193,18 @@ abs_ed448_mx_rrsig_2 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
 
 when5 = 1440021600
 
+wildcard_keys = {
+    abs_example_com : dns.rrset.from_text(
+        'example.com', 3600, 'IN', 'DNSKEY',
+        '256 3 5 AwEAAecNZbwD2thg3kaRLVqCC7ASP/3F79ZIu7pCu8HvZZ6ZdinffnxT npNoVvavjouHKFYTtJyUZAfw3ZMJSsGvEerc7uh6Ex9TgvOJtWPGUtxB Nnni2u9Nk+5k6nJzMiS3sL3RLvrfZW5d2Bwbl9L5f9Ud+r2Dbm7EG3tY pMY5OE8f')
+}
+wildcard_example_com = dns.name.from_text('*', abs_example_com)
+wildcard_txt = dns.rrset.from_text('*.example.com.', 3600, 'IN', 'TXT', 'foo')
+wildcard_txt_rrsig = dns.rrset.from_text('*.example.com.', 3600, 'IN', 'RRSIG',
+                                         'TXT 5 2 3600 20200707211255 20200630180755 42486 example.com. qevJYhdAHq1VmehXQ5i+Epa32xs4zcd4qmb39pHa3GUKr1V504nxzdzQ gsT5mvDkRoY95+HAiysDON6DCDtZc69iBUIHWWuFo/OrcD2q/mWANG4x vyU28Pf0U1gN6Gd5iapKC0Ya12flKh//NQiNN2skOQ2MoF2MW2/MaAK2 HBc=')
+
+wildcard_when = 1593541048
+
 class DNSSECMakeDSTestCase(unittest.TestCase):
     def testMnemonicParser(self):
         good_ds_mnemonic = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
@@ -282,6 +294,38 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(abs_other_ed448_mx, abs_ed448_mx_rrsig_2,
                                 abs_ed448_keys_2, None, when5)
+
+    def testWildcardGood(self): # type: () -> None
+        dns.dnssec.validate(wildcard_txt, wildcard_txt_rrsig,
+                            wildcard_keys, None, wildcard_when)
+
+        def clone_rrset(rrset, name):
+            return dns.rrset.from_rdata(name, rrset.ttl, rrset[0])
+
+        a_name = dns.name.from_text('a.example.com')
+        a_txt = clone_rrset(wildcard_txt, a_name)
+        a_txt_rrsig = clone_rrset(wildcard_txt_rrsig, a_name)
+        dns.dnssec.validate(a_txt, a_txt_rrsig, wildcard_keys, None,
+                            wildcard_when)
+
+        abc_name = dns.name.from_text('a.b.c.example.com')
+        abc_txt = clone_rrset(wildcard_txt, abc_name)
+        abc_txt_rrsig = clone_rrset(wildcard_txt_rrsig, abc_name)
+        dns.dnssec.validate(abc_txt, abc_txt_rrsig, wildcard_keys, None,
+                            wildcard_when)
+
+    def testAlternateParameterFormats(self):  # type: () -> None
+        # Pass rrset and rrsigset as (name, rdataset) tuples, not rrsets
+        rrset = (abs_soa.name, abs_soa.to_rdataset())
+        rrsigset = (abs_soa_rrsig.name, abs_soa_rrsig.to_rdataset())
+        dns.dnssec.validate(rrset, rrsigset, abs_keys, None, when)
+
+        # Pass keys as a name->node dict, not a name->rrset dict
+        keys = {}
+        for (name, key_rrset) in abs_keys.items():
+            keys[name] = dns.node.Node()
+            keys[name].rdatasets.append(key_rrset.to_rdataset())
+        dns.dnssec.validate(abs_soa, abs_soa_rrsig, keys, None, when)
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
 
