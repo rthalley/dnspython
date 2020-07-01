@@ -47,5 +47,5 @@ jobs:
 #      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
 
   - script: |
-      codecov
+      codecov -f coverage.xml
     displayName: 'Upload to codecov'
