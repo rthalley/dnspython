@@ -780,7 +780,7 @@ class Resolver:
         if len(self.nameservers) == 0:
             raise NoResolverConfiguration
 
-    def _determine_split_char(self, entry):  # pragma: no cover
+    def _determine_split_char(self, entry):
         #
         # The windows registry irritatingly changes the list element
         # delimiter in between ' ' and ',' (and vice-versa) in various
@@ -795,7 +795,7 @@ class Resolver:
             split_char = ' '
         return split_char
 
-    def _config_win32_nameservers(self, nameservers):  # pragma: no cover
+    def _config_win32_nameservers(self, nameservers):
         # we call str() on nameservers to convert it from unicode to ascii
         nameservers = str(nameservers)
         split_char = self._determine_split_char(nameservers)
@@ -804,11 +804,11 @@ class Resolver:
             if ns not in self.nameservers:
                 self.nameservers.append(ns)
 
-    def _config_win32_domain(self, domain):  # pragma: no cover
+    def _config_win32_domain(self, domain):
         # we call str() on domain to convert it from unicode to ascii
         self.domain = dns.name.from_text(str(domain))
 
-    def _config_win32_search(self, search):  # pragma: no cover
+    def _config_win32_search(self, search):
         # we call str() on search to convert it from unicode to ascii
         search = str(search)
         split_char = self._determine_split_char(search)
@@ -817,7 +817,7 @@ class Resolver:
             if s not in self.search:
                 self.search.append(dns.name.from_text(s))
 
-    def _config_win32_fromkey(self, key, always_try_domain):  # pragma: no cover
+    def _config_win32_fromkey(self, key, always_try_domain):
         try:
             servers, rtype = winreg.QueryValueEx(key, 'NameServer')
         except WindowsError:  # pylint: disable=undefined-variable
@@ -851,7 +851,7 @@ class Resolver:
         if search:
             self._config_win32_search(search)
 
-    def read_registry(self):  # pragma: no cover
+    def read_registry(self):
         """Extract resolver configuration from the Windows registry."""
 
         lm = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
@@ -880,7 +880,7 @@ class Resolver:
                             self._config_win32_fromkey(key, False)
                         finally:
                             key.Close()
-                    except EnvironmentError:
+                    except EnvironmentError:  # pragma: no cover
                         break
             finally:
                 interfaces.Close()
@@ -888,7 +888,7 @@ class Resolver:
             lm.Close()
 
     def _win32_is_nic_enabled(self, lm, guid,
-                              interface_key):  # pragma: no cover
+                              interface_key):
         # Look in the Windows Registry to determine whether the network
         # interface corresponding to the given guid is enabled.
         #
@@ -908,7 +908,7 @@ class Resolver:
                 (pnp_id, ttype) = winreg.QueryValueEx(
                     connection_key, 'PnpInstanceID')
 
-                if ttype != winreg.REG_SZ:
+                if ttype != winreg.REG_SZ:  # pragma: no cover
                     raise ValueError
 
                 device_key = winreg.OpenKey(
@@ -919,7 +919,7 @@ class Resolver:
                     (flags, ttype) = winreg.QueryValueEx(
                         device_key, 'ConfigFlags')
 
-                    if ttype != winreg.REG_DWORD:
+                    if ttype != winreg.REG_DWORD:  # pragma: no cover
                         raise ValueError
 
                     # Based on experimentation, bit 0x1 indicates that the
@@ -930,7 +930,7 @@ class Resolver:
                     device_key.Close()
             finally:
                 connection_key.Close()
-        except Exception:
+        except Exception:  # pragma: no cover
             return False
 
     def _compute_timeout(self, start, lifetime=None):
