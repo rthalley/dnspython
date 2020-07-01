@@ -64,3 +64,12 @@ What's New in dnspython 2.0.0
   in the python 2 style on both python 2 and 3.
 
 * The resolver will now do negative caching if a cache has been configured.
+
+* TSIG and OPT now have rdata types.
+
+* The class for query messages is now QueryMessage.  Class Message is now a
+  base class, and is also used for messages for which we don't have a better
+  class.  Update messages are now class UpdateMessage, though class Update
+  is retained for compatibility.
+
+* Support for Windows 95, 98, and ME has been removed.

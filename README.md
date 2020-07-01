@@ -30,7 +30,7 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is the dnspython 2.0.0 development branch.
+This is dnspython 2.0.0rc2.
 Please read
 [What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
 information about the changes in this release.

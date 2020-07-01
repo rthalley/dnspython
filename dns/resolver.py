@@ -780,22 +780,22 @@ class Resolver:
         if len(self.nameservers) == 0:
             raise NoResolverConfiguration
 
-    def _determine_split_char(self, entry):  # pragma: no cover
+    def _determine_split_char(self, entry):
         #
         # The windows registry irritatingly changes the list element
         # delimiter in between ' ' and ',' (and vice-versa) in various
         # versions of windows.
         #
-        if entry.find(' ') >= 0:
+        if entry.find(' ') >= 0:  # pragma: no cover
             split_char = ' '
-        elif entry.find(',') >= 0:
+        elif entry.find(',') >= 0:  # pragma: no cover
             split_char = ','
         else:
             # probably a singleton; treat as a space-separated list.
             split_char = ' '
         return split_char
 
-    def _config_win32_nameservers(self, nameservers):  # pragma: no cover
+    def _config_win32_nameservers(self, nameservers):
         # we call str() on nameservers to convert it from unicode to ascii
         nameservers = str(nameservers)
         split_char = self._determine_split_char(nameservers)
@@ -817,7 +817,7 @@ class Resolver:
             if s not in self.search:
                 self.search.append(dns.name.from_text(s))
 
-    def _config_win32_fromkey(self, key, always_try_domain):  # pragma: no cover
+    def _config_win32_fromkey(self, key, always_try_domain):
         try:
             servers, rtype = winreg.QueryValueEx(key, 'NameServer')
         except WindowsError:  # pylint: disable=undefined-variable
@@ -829,76 +829,66 @@ class Resolver:
                 dom, rtype = winreg.QueryValueEx(key, 'Domain')
                 if dom:
                     self._config_win32_domain(dom)
-            except WindowsError:  # pylint: disable=undefined-variable
+            except WindowsError:  # pragma: no cover
                 pass
         else:
             try:
                 servers, rtype = winreg.QueryValueEx(key, 'DhcpNameServer')
-            except WindowsError:  # pylint: disable=undefined-variable
+            except WindowsError:  # pragma: no cover
                 servers = None
-            if servers:
+            if servers:  # pragma: no cover
                 self._config_win32_nameservers(servers)
                 try:
                     dom, rtype = winreg.QueryValueEx(key, 'DhcpDomain')
-                    if dom:
+                    if dom:  # pragma: no cover
                         self._config_win32_domain(dom)
-                except WindowsError:  # pylint: disable=undefined-variable
+                except WindowsError:  # pragma: no cover
                     pass
         try:
             search, rtype = winreg.QueryValueEx(key, 'SearchList')
         except WindowsError:  # pylint: disable=undefined-variable
             search = None
-        if search:
+        if search:  # pragma: no cover
             self._config_win32_search(search)
 
-    def read_registry(self):  # pragma: no cover
+    def read_registry(self):
         """Extract resolver configuration from the Windows registry."""
 
         lm = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-        want_scan = False
         try:
-            try:
-                # XP, 2000
-                tcp_params = winreg.OpenKey(lm,
-                                            r'SYSTEM\CurrentControlSet'
-                                            r'\Services\Tcpip\Parameters')
-                want_scan = True
-            except EnvironmentError:
-                # ME
-                tcp_params = winreg.OpenKey(lm,
-                                            r'SYSTEM\CurrentControlSet'
-                                            r'\Services\VxD\MSTCP')
+            tcp_params = winreg.OpenKey(lm,
+                                        r'SYSTEM\CurrentControlSet'
+                                        r'\Services\Tcpip\Parameters')
             try:
                 self._config_win32_fromkey(tcp_params, True)
             finally:
                 tcp_params.Close()
-            if want_scan:
-                interfaces = winreg.OpenKey(lm,
-                                            r'SYSTEM\CurrentControlSet'
-                                            r'\Services\Tcpip\Parameters'
-                                            r'\Interfaces')
-                try:
-                    i = 0
-                    while True:
+            interfaces = winreg.OpenKey(lm,
+                                        r'SYSTEM\CurrentControlSet'
+                                        r'\Services\Tcpip\Parameters'
+                                        r'\Interfaces')
+            try:
+                i = 0
+                while True:
+                    try:
+                        guid = winreg.EnumKey(interfaces, i)
+                        i += 1
+                        key = winreg.OpenKey(interfaces, guid)
+                        if not self._win32_is_nic_enabled(lm, guid, key):
+                            continue
                         try:
-                            guid = winreg.EnumKey(interfaces, i)
-                            i += 1
-                            key = winreg.OpenKey(interfaces, guid)
-                            if not self._win32_is_nic_enabled(lm, guid, key):
-                                continue
-                            try:
-                                self._config_win32_fromkey(key, False)
-                            finally:
-                                key.Close()
-                        except EnvironmentError:
-                            break
-                finally:
-                    interfaces.Close()
+                            self._config_win32_fromkey(key, False)
+                        finally:
+                            key.Close()
+                    except EnvironmentError:  # pragma: no cover
+                        break
+            finally:
+                interfaces.Close()
         finally:
             lm.Close()
 
     def _win32_is_nic_enabled(self, lm, guid,
-                              interface_key):  # pragma: no cover
+                              interface_key):
         # Look in the Windows Registry to determine whether the network
         # interface corresponding to the given guid is enabled.
         #
@@ -918,7 +908,7 @@ class Resolver:
                 (pnp_id, ttype) = winreg.QueryValueEx(
                     connection_key, 'PnpInstanceID')
 
-                if ttype != winreg.REG_SZ:
+                if ttype != winreg.REG_SZ:  # pragma: no cover
                     raise ValueError
 
                 device_key = winreg.OpenKey(
@@ -929,7 +919,7 @@ class Resolver:
                     (flags, ttype) = winreg.QueryValueEx(
                         device_key, 'ConfigFlags')
 
-                    if ttype != winreg.REG_DWORD:
+                    if ttype != winreg.REG_DWORD:  # pragma: no cover
                         raise ValueError
 
                     # Based on experimentation, bit 0x1 indicates that the
@@ -940,18 +930,8 @@ class Resolver:
                     device_key.Close()
             finally:
                 connection_key.Close()
-        except (EnvironmentError, ValueError):
-            # Pre-vista, enabled interfaces seem to have a non-empty
-            # NTEContextList; this was how dnspython detected enabled
-            # nics before the code above was contributed.  We've retained
-            # the old method since we don't know if the code above works
-            # on Windows 95/98/ME.
-            try:
-                (nte, ttype) = winreg.QueryValueEx(interface_key,
-                                                   'NTEContextList')
-                return nte is not None
-            except WindowsError:  # pylint: disable=undefined-variable
-                return False
+        except Exception:  # pragma: no cover
+            return False
 
     def _compute_timeout(self, start, lifetime=None):
         lifetime = self.lifetime if lifetime is None else lifetime

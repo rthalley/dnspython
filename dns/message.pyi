@@ -12,10 +12,7 @@ class Message:
     def __init__(self, id : Optional[int] =None) -> None:
         self.id : int
         self.flags = 0
-        self.question : List[rrset.RRset] = []
-        self.answer : List[rrset.RRset] = []
-        self.authority : List[rrset.RRset] = []
-        self.additional : List[rrset.RRset] = []
+        self.sections : List[List[rrset.RRset]] = [[], [], [], []]
         self.opt : rrset.RRset = None
         self.request_payload = 0
         self.keyring = None
