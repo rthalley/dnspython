@@ -20,7 +20,7 @@
 import sys
 from setuptools import setup
 
-version = '2.0.0dev2'
+version = '2.0.0rc2'
 
 try:
     sys.argv.remove("--cython-compile")
