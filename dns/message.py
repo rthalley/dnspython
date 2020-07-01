@@ -437,9 +437,8 @@ class Message:
         r.write_header()
         if self.tsig is not None:
             (new_tsig, ctx) = dns.tsig.sign(r.get_wire(),
-                                            self.tsig.name,
+                                            self.keyring,
                                             self.tsig[0],
-                                            self.keyring[self.tsig.name],
                                             int(time.time()),
                                             self.request_mac,
                                             tsig_ctx,
@@ -463,21 +462,27 @@ class Message:
     def use_tsig(self, keyring, keyname=None, fudge=300,
                  original_id=None, tsig_error=0, other_data=b'',
                  algorithm=dns.tsig.default_algorithm):
-        """When sending, a TSIG signature using the specified keyring
-        and keyname should be added.
+        """When sending, a TSIG signature using the specified key
+        should be added.
 
-        See the documentation of the Message class for a complete
-        description of the keyring dictionary.
+        *key*, a ``dns.tsig.Key`` is the key to use.  If a key is specified,
+        the *keyring* and *algorithm* fields are not used.
 
-        *keyring*, a ``dict``, the TSIG keyring to use.  If a
-        *keyring* is specified but a *keyname* is not, then the key
-        used will be the first key in the *keyring*.  Note that the
-        order of keys in a dictionary is not defined, so applications
-        should supply a keyname when a keyring is used, unless they
-        know the keyring contains only one key.
+        *keyring*, a ``dict`` or ``dns.tsig.Key``, is either the TSIG
+        keyring or key to use.
 
-        *keyname*, a ``dns.name.Name`` or ``None``, the name of the TSIG key
-        to use; defaults to ``None``. The key must be defined in the keyring.
+        The format of a keyring dict is a mapping from TSIG key name, as
+        ``dns.name.Name`` to ``dns.tsig.Key`` or a TSIG secret, a ``bytes``.
+        If a ``dict`` *keyring* is specified but a *keyname* is not, the key
+        used will be the first key in the *keyring*.  Note that the order of
+        keys in a dictionary is not defined, so applications should supply a
+        keyname when a ``dict`` keyring is used, unless they know the keyring
+        contains only one key.
+
+        *keyname*, a ``dns.name.Name``, ``str`` or ``None``, the name of
+        thes TSIG key to use; defaults to ``None``.  If *keyring* is a
+        ``dict``, the key must be defined in it.  If *keyring* is a
+        ``dns.tsig.Key``, this is ignored.
 
         *fudge*, an ``int``, the TSIG time fudge.
 
@@ -488,18 +493,25 @@ class Message:
 
         *other_data*, a ``bytes``, the TSIG other data.
 
-        *algorithm*, a ``dns.name.Name``, the TSIG algorithm to use.
+        *algorithm*, a ``dns.name.Name``, the TSIG algorithm to use.  This is
+        only used if *keyring* is a ``dict``, and the key entry is a ``bytes``.
         """
 
-        self.keyring = keyring
-        if keyname is None:
-            keyname = list(self.keyring.keys())[0]
-        elif isinstance(keyname, str):
-            keyname = dns.name.from_text(keyname)
+        if isinstance(keyring, dns.tsig.Key):
+            self.keyring = keyring
+        else:
+            if isinstance(keyname, str):
+                keyname = dns.name.from_text(keyname)
+            if keyname is None:
+                keyname = next(iter(keyring))
+            key = keyring[keyname]
+            if isinstance(key, bytes):
+                key = dns.tsig.Key(keyname, key, algorithm)
+            self.keyring = key
         if original_id is None:
             original_id = self.id
-        self.tsig = self._make_tsig(keyname, algorithm, 0, fudge, b'',
-                                    original_id, tsig_error, other_data)
+        self.tsig = self._make_tsig(keyname, self.keyring.algorithm, 0, fudge,
+                                    b'', original_id, tsig_error, other_data)
 
     @property
     def keyname(self):
@@ -723,13 +735,15 @@ class _WireReader:
     initialize_message: Callback to set message parsing options
     question_only: Are we only reading the question?
     one_rr_per_rrset: Put each RR into its own RRset?
+    keyring: TSIG keyring
     ignore_trailing: Ignore trailing junk at end of request?
     multi: Is this message part of a multi-message sequence?
     DNS dynamic updates.
     """
 
     def __init__(self, wire, initialize_message, question_only=False,
-                 one_rr_per_rrset=False, ignore_trailing=False, multi=False):
+                 one_rr_per_rrset=False, ignore_trailing=False,
+                 keyring=None, multi=False):
         self.wire = dns.wiredata.maybe_wrap(wire)
         self.message = None
         self.current = 0
@@ -737,6 +751,7 @@ class _WireReader:
         self.question_only = question_only
         self.one_rr_per_rrset = one_rr_per_rrset
         self.ignore_trailing = ignore_trailing
+        self.keyring = keyring
         self.multi = multi
 
     def _get_question(self, section_number, qcount):
@@ -805,16 +820,22 @@ class _WireReader:
             if rdtype == dns.rdatatype.OPT:
                 self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
             elif rdtype == dns.rdatatype.TSIG:
-                if self.message.keyring is None:
+                if self.keyring is None:
                     raise UnknownTSIGKey('got signed message without keyring')
-                secret = self.message.keyring.get(absolute_name)
-                if secret is None:
+                if isinstance(self.keyring, dict):
+                    key = self.keyring.get(absolute_name)
+                    if isinstance(key, bytes):
+                        key = dns.tsig.Key(absolute_name, key, rd.algorithm)
+                else:
+                    key = self.keyring
+                if key is None:
                     raise UnknownTSIGKey("key '%s' unknown" % name)
+                self.message.keyring = key
                 self.message.tsig_ctx = \
                     dns.tsig.validate(self.wire,
+                                      key,
                                       absolute_name,
                                       rd,
-                                      secret,
                                       int(time.time()),
                                       self.message.request_mac,
                                       rr_start,
@@ -868,7 +889,8 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     """Convert a DNS wire format message into a message
     object.
 
-    *keyring*, a ``dict``, the keyring to use if the message is signed.
+    *keyring*, a ``dns.tsig.Key`` or ``dict``, the key or keyring to use
+    if the message is signed.
 
     *request_mac*, a ``bytes``.  If the message is a response to a
     TSIG-signed request, *request_mac* should be set to the MAC of
@@ -918,14 +940,13 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
     """
 
     def initialize_message(message):
-        message.keyring = keyring
         message.request_mac = request_mac
         message.xfr = xfr
         message.origin = origin
         message.tsig_ctx = tsig_ctx
 
     reader = _WireReader(wire, initialize_message, question_only,
-                         one_rr_per_rrset, ignore_trailing, multi)
+                         one_rr_per_rrset, ignore_trailing, keyring, multi)
     try:
         m = reader.read()
     except dns.exception.FormError:

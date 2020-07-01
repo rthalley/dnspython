@@ -17,6 +17,7 @@
 
 """DNS TSIG support."""
 
+import base64
 import hashlib
 import hmac
 import struct
@@ -33,6 +34,16 @@ class BadTime(dns.exception.DNSException):
 class BadSignature(dns.exception.DNSException):
 
     """The TSIG signature fails to verify."""
+
+
+class BadKey(dns.exception.DNSException):
+
+    """The TSIG record owner name does not match the key."""
+
+
+class BadAlgorithm(dns.exception.DNSException):
+
+    """The TSIG algorithm does not match the key."""
 
 
 class PeerError(dns.exception.DNSException):
@@ -85,8 +96,7 @@ BADTIME = 18
 BADTRUNC = 22
 
 
-def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
-         ctx=None, multi=False):
+def sign(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=False):
     """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
     for the input parameters, the HMAC MAC calculated by applying the
     TSIG signature algorithm, and the TSIG digest context.
@@ -98,14 +108,14 @@ def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
     first = not (ctx and multi)
     (algorithm_name, digestmod) = get_algorithm(rdata.algorithm)
     if first:
-        ctx = hmac.new(secret, digestmod=digestmod)
+        ctx = hmac.new(key.secret, digestmod=digestmod)
         if request_mac:
             ctx.update(struct.pack('!H', len(request_mac)))
             ctx.update(request_mac)
     ctx.update(struct.pack('!H', rdata.original_id))
     ctx.update(wire[2:])
     if first:
-        ctx.update(keyname.to_digestable())
+        ctx.update(key.name.to_digestable())
         ctx.update(struct.pack('!H', dns.rdataclass.ANY))
         ctx.update(struct.pack('!I', 0))
     if time is None:
@@ -123,7 +133,7 @@ def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
         ctx.update(time_encoded)
     mac = ctx.digest()
     if multi:
-        ctx = hmac.new(secret, digestmod=digestmod)
+        ctx = hmac.new(key.secret, digestmod=digestmod)
         ctx.update(struct.pack('!H', len(mac)))
         ctx.update(mac)
     else:
@@ -136,8 +146,8 @@ def sign(wire, keyname, rdata, secret, time=None, request_mac=None,
     return (tsig, ctx)
 
 
-def validate(wire, keyname, rdata, secret, now, request_mac, tsig_start,
-             ctx=None, multi=False):
+def validate(wire, key, owner, rdata, now, request_mac, tsig_start, ctx=None,
+             multi=False):
     """Validate the specified TSIG rdata against the other input parameters.
 
     @raises FormError: The TSIG is badly formed.
@@ -164,8 +174,11 @@ def validate(wire, keyname, rdata, secret, now, request_mac, tsig_start,
             raise PeerError('unknown TSIG error code %d' % rdata.error)
     if abs(rdata.time_signed - now) > rdata.fudge:
         raise BadTime
-    (our_rdata, ctx) = sign(new_wire, keyname, rdata, secret, None, request_mac,
-                            ctx, multi)
+    if key.name != owner:
+        raise BadKey
+    if key.algorithm != rdata.algorithm:
+        raise BadAlgorithm
+    (our_rdata, ctx) = sign(new_wire, key, rdata, None, request_mac, ctx, multi)
     if our_rdata.mac != rdata.mac:
         raise BadSignature
     return ctx
@@ -187,3 +200,19 @@ def get_algorithm(algorithm):
     except KeyError:
         raise NotImplementedError("TSIG algorithm " + str(algorithm) +
                                   " is not supported")
+
+class Key:
+    def __init__(self, name, secret, algorithm=default_algorithm):
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+        self.name = name
+        if isinstance(secret, str):
+            secret = base64.decodebytes(secret.encode())
+        self.secret = secret
+        self.algorithm = algorithm
+
+    def __eq__(self, other):
+        return (isinstance(other, Key) and
+                self.name == other.name and
+                self.secret == other.secret and
+                self.algorithm == other.algorithm)

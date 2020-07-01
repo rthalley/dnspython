@@ -179,10 +179,14 @@ class Renderer:
 
         s = self.output.getvalue()
 
+        if isinstance(secret, dns.tsig.Key):
+            key = secret
+        else:
+            key = dns.tsig.Key(keyname, secret, algorithm)
         tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
                                               b'', id, tsig_error, other_data)
-        (tsig, _) = dns.tsig.sign(s, keyname, tsig[0], secret,
-                                  int(time.time()), request_mac)
+        (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()),
+                                  request_mac)
         self._write_tsig(tsig, keyname)
 
     def add_multi_tsig(self, ctx, keyname, secret, fudge, id, tsig_error,
@@ -198,11 +202,14 @@ class Renderer:
 
         s = self.output.getvalue()
 
+        if isinstance(secret, dns.tsig.Key):
+            key = secret
+        else:
+            key = dns.tsig.Key(keyname, secret, algorithm)
         tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
                                               b'', id, tsig_error, other_data)
-        (tsig, ctx) = dns.tsig.sign(s, keyname, tsig[0], secret,
-                                    int(time.time()), request_mac,
-                                    ctx, True)
+        (tsig, ctx) = dns.tsig.sign(s, key, tsig[0], int(time.time()),
+                                    request_mac, ctx, True)
         self._write_tsig(tsig, keyname)
         return ctx
 
