@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import socket
+import sys
 import time
 import unittest
 
@@ -509,6 +510,8 @@ class TsigTests(unittest.TestCase):
             seen = set([rdata.address for rdata in rrs])
             self.assertTrue('1.2.3.4' in seen)
 
+@unittest.skipIf(sys.platform == 'win32',
+                 'low level tests do not work on win32')
 class LowLevelWaitTests(unittest.TestCase):
 
     def test_wait_for(self):
