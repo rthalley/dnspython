@@ -23,7 +23,11 @@ jobs:
   - script: |
       python -m pip install --upgrade pip
       pip install -e .[dnssec,idna,doh,trio,curio]
-    displayName: 'Install dependencies'
+    displayName: 'Install python dependencies'
+
+  - script: |
+      dotnet tool install --global Codecov.Tool
+    displayName: 'Install Codecov.Tool'
 
   - script: |
       pip install pytest pytest-cov pytest-azurepipelines
@@ -41,3 +45,7 @@ jobs:
       codeCoverageTool: Cobertura
       summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
 #      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
+
+  - script: |
+      codecov
+    displayName: 'Upload to codecov'
