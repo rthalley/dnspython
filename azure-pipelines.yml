@@ -40,4 +40,8 @@ jobs:
     inputs:
       codeCoverageTool: Cobertura
       summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
+#      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
+
+  - script: |
+      %USERPROFILE%\.nuget\packages\codecov\1.12.0\tools\codecov.exe
+    displayName: 'Upload coverage to codecov.io'

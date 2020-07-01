@@ -1,0 +1,3 @@
+<ItemGroup>
+    <PackageReference Include="Codecov" Version="1.12.0" />
+</ItemGroup>
