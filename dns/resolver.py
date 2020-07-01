@@ -855,45 +855,35 @@ class Resolver:
         """Extract resolver configuration from the Windows registry."""
 
         lm = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-        want_scan = False
         try:
-            try:
-                # XP, 2000
-                tcp_params = winreg.OpenKey(lm,
-                                            r'SYSTEM\CurrentControlSet'
-                                            r'\Services\Tcpip\Parameters')
-                want_scan = True
-            except EnvironmentError:
-                # ME
-                tcp_params = winreg.OpenKey(lm,
-                                            r'SYSTEM\CurrentControlSet'
-                                            r'\Services\VxD\MSTCP')
+            tcp_params = winreg.OpenKey(lm,
+                                        r'SYSTEM\CurrentControlSet'
+                                        r'\Services\Tcpip\Parameters')
             try:
                 self._config_win32_fromkey(tcp_params, True)
             finally:
                 tcp_params.Close()
-            if want_scan:
-                interfaces = winreg.OpenKey(lm,
-                                            r'SYSTEM\CurrentControlSet'
-                                            r'\Services\Tcpip\Parameters'
-                                            r'\Interfaces')
-                try:
-                    i = 0
-                    while True:
+            interfaces = winreg.OpenKey(lm,
+                                        r'SYSTEM\CurrentControlSet'
+                                        r'\Services\Tcpip\Parameters'
+                                        r'\Interfaces')
+            try:
+                i = 0
+                while True:
+                    try:
+                        guid = winreg.EnumKey(interfaces, i)
+                        i += 1
+                        key = winreg.OpenKey(interfaces, guid)
+                        if not self._win32_is_nic_enabled(lm, guid, key):
+                            continue
                         try:
-                            guid = winreg.EnumKey(interfaces, i)
-                            i += 1
-                            key = winreg.OpenKey(interfaces, guid)
-                            if not self._win32_is_nic_enabled(lm, guid, key):
-                                continue
-                            try:
-                                self._config_win32_fromkey(key, False)
-                            finally:
-                                key.Close()
-                        except EnvironmentError:
-                            break
-                finally:
-                    interfaces.Close()
+                            self._config_win32_fromkey(key, False)
+                        finally:
+                            key.Close()
+                    except EnvironmentError:
+                        break
+            finally:
+                interfaces.Close()
         finally:
             lm.Close()
 
@@ -940,18 +930,8 @@ class Resolver:
                     device_key.Close()
             finally:
                 connection_key.Close()
-        except (EnvironmentError, ValueError):
-            # Pre-vista, enabled interfaces seem to have a non-empty
-            # NTEContextList; this was how dnspython detected enabled
-            # nics before the code above was contributed.  We've retained
-            # the old method since we don't know if the code above works
-            # on Windows 95/98/ME.
-            try:
-                (nte, ttype) = winreg.QueryValueEx(interface_key,
-                                                   'NTEContextList')
-                return nte is not None
-            except WindowsError:  # pylint: disable=undefined-variable
-                return False
+        except Exception:
+            return False
 
     def _compute_timeout(self, start, lifetime=None):
         lifetime = self.lifetime if lifetime is None else lifetime
