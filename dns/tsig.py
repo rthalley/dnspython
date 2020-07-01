@@ -106,7 +106,7 @@ def sign(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=False):
     """
 
     first = not (ctx and multi)
-    (algorithm_name, digestmod) = get_algorithm(rdata.algorithm)
+    (algorithm_name, digestmod) = get_algorithm(key.algorithm)
     if first:
         ctx = hmac.new(key.secret, digestmod=digestmod)
         if request_mac:
@@ -139,7 +139,7 @@ def sign(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=False):
     else:
         ctx = None
     tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
-                                     rdata.algorithm, time, rdata.fudge, mac,
+                                     key.algorithm, time, rdata.fudge, mac,
                                      rdata.original_id, rdata.error,
                                      rdata.other)
 
