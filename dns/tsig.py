@@ -209,6 +209,8 @@ class Key:
         if isinstance(secret, str):
             secret = base64.decodebytes(secret.encode())
         self.secret = secret
+        if isinstance(algorithm, str):
+            algorithm = dns.name.from_text(algorithm)
         self.algorithm = algorithm
 
     def __eq__(self, other):

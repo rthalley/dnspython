@@ -24,40 +24,37 @@ import dns.name
 
 def from_text(textring):
     """Convert a dictionary containing (textual DNS name, base64 secret)
-    or (textual DNS name, (algorithm, base64 secret)) where algorithm
-    can be a dns.name.Name or string into a binary keyring which has
-    (dns.name.Name, dns.tsig.Key) pairs.
+    pairs into a binary keyring which has (dns.name.Name, bytes) pairs, or
+    a dictionary containing (textual DNS name, (algorithm, base64 secret))
+    pairs into a binary keyring which has (dns.name.Name, dns.tsig.Key) pairs.
     @rtype: dict"""
 
     keyring = {}
     for (name, value) in textring.items():
         name = dns.name.from_text(name)
         if isinstance(value, str):
-            algorithm = dns.tsig.default_algorithm
-            secret = value
+            keyring[name] = dns.tsig.Key(name, value).secret
         else:
             (algorithm, secret) = value
-            if isinstance(algorithm, str):
-                algorithm = dns.name.from_text(algorithm)
-        keyring[name] = dns.tsig.Key(name, secret, algorithm)
+            keyring[name] = dns.tsig.Key(name, secret, algorithm)
     return keyring
 
 
 def to_text(keyring):
     """Convert a dictionary containing (dns.name.Name, dns.tsig.Key) pairs
     into a text keyring which has (textual DNS name, (textual algorithm,
-    base64 secret)) pairs.
+    base64 secret)) pairs, or a dictionary containing (dns.name.Name, bytes)
+    pairs into a text keyring which has (textual DNS name, base64 secret) pairs.
     @rtype: dict"""
 
     textring = {}
+    b64encode = lambda secret: base64.encodebytes(secret).decode().rstrip()
     for (name, key) in keyring.items():
         name = name.to_text()
         if isinstance(key, bytes):
-            algorithm = dns.tsig.default_algorithm
-            secret = key
+            textring[name] = b64encode(key)
         else:
             algorithm = key.algorithm
             secret = key.secret
-        textring[name] = (algorithm.to_text(),
-                          base64.encodebytes(secret).decode().rstrip())
+            textring[name] = (key.algorithm.to_text(), b64encode(key.secret))
     return textring
