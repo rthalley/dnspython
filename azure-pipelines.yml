@@ -31,7 +31,7 @@ jobs:
 
   - script: |
       pip install pytest pytest-cov pytest-azurepipelines
-      pytest --junitxml=junit/test-results.xml --cov=dns --cov-report=xml --cov-report=html
+      pytest --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
     displayName: 'pytest'
 
   - task: PublishTestResults@2
