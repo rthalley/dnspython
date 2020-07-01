@@ -9,6 +9,8 @@ ignore =
        # Not excited by the "two blank lines" rule
        E302,
        E305,
+       # or the one blank line rule
+       E306,
        # Ambigious variables are ok.
        E741,
        # Lines ending with binary operators are OK

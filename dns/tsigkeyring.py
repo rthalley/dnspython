@@ -48,13 +48,12 @@ def to_text(keyring):
     @rtype: dict"""
 
     textring = {}
-    b64encode = lambda secret: base64.encodebytes(secret).decode().rstrip()
+    def b64encode(secret):
+        return base64.encodebytes(secret).decode().rstrip()
     for (name, key) in keyring.items():
         name = name.to_text()
         if isinstance(key, bytes):
             textring[name] = b64encode(key)
         else:
-            algorithm = key.algorithm
-            secret = key.secret
             textring[name] = (key.algorithm.to_text(), b64encode(key.secret))
     return textring
