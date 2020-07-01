@@ -786,9 +786,9 @@ class Resolver:
         # delimiter in between ' ' and ',' (and vice-versa) in various
         # versions of windows.
         #
-        if entry.find(' ') >= 0:
+        if entry.find(' ') >= 0:  # pragma: no cover
             split_char = ' '
-        elif entry.find(',') >= 0:
+        elif entry.find(',') >= 0:  # pragma: no cover
             split_char = ','
         else:
             # probably a singleton; treat as a space-separated list.
@@ -804,11 +804,11 @@ class Resolver:
             if ns not in self.nameservers:
                 self.nameservers.append(ns)
 
-    def _config_win32_domain(self, domain):
+    def _config_win32_domain(self, domain):  # pragma: no cover
         # we call str() on domain to convert it from unicode to ascii
         self.domain = dns.name.from_text(str(domain))
 
-    def _config_win32_search(self, search):
+    def _config_win32_search(self, search):  # pragma: no cover
         # we call str() on search to convert it from unicode to ascii
         search = str(search)
         split_char = self._determine_split_char(search)
@@ -829,26 +829,26 @@ class Resolver:
                 dom, rtype = winreg.QueryValueEx(key, 'Domain')
                 if dom:
                     self._config_win32_domain(dom)
-            except WindowsError:  # pylint: disable=undefined-variable
+            except WindowsError:  # pragma: no cover
                 pass
         else:
             try:
                 servers, rtype = winreg.QueryValueEx(key, 'DhcpNameServer')
             except WindowsError:  # pylint: disable=undefined-variable
                 servers = None
-            if servers:
+            if servers:  # pragma: no cover
                 self._config_win32_nameservers(servers)
                 try:
                     dom, rtype = winreg.QueryValueEx(key, 'DhcpDomain')
                     if dom:
                         self._config_win32_domain(dom)
-                except WindowsError:  # pylint: disable=undefined-variable
+                except WindowsError:  # pragma: no cover
                     pass
         try:
             search, rtype = winreg.QueryValueEx(key, 'SearchList')
         except WindowsError:  # pylint: disable=undefined-variable
             search = None
-        if search:
+        if search:  # pragma: no cover
             self._config_win32_search(search)
 
     def read_registry(self):
