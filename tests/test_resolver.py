@@ -64,6 +64,34 @@ search search1 search2
 options rotate timeout:1 edns0 ndots:2
 """
 
+bad_timeout_1 = """
+nameserver 10.0.0.1
+nameserver 10.0.0.2
+options rotate timeout
+"""
+
+bad_timeout_2 = """
+nameserver 10.0.0.1
+nameserver 10.0.0.2
+options rotate timeout:bogus
+"""
+
+bad_ndots_1 = """
+nameserver 10.0.0.1
+nameserver 10.0.0.2
+options rotate ndots
+"""
+
+bad_ndots_2 = """
+nameserver 10.0.0.1
+nameserver 10.0.0.2
+options rotate ndots:bogus
+"""
+
+no_nameservers = """
+options rotate
+"""
+
 message_text = """id 1234
 opcode QUERY
 rcode NOERROR
@@ -138,6 +166,36 @@ class BaseResolverTests(unittest.TestCase):
         self.assertEqual(r.timeout, 1)
         self.assertEqual(r.ndots, 2)
         self.assertEqual(r.edns, 0)
+
+    def testReadOptionsBadTimeouts(self):
+        f = StringIO(bad_timeout_1)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
+        # timeout should still be default
+        self.assertEqual(r.timeout, 2.0)
+        f = StringIO(bad_timeout_2)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
+        # timeout should still be default
+        self.assertEqual(r.timeout, 2.0)
+
+    def testReadOptionsBadNdots(self):
+        f = StringIO(bad_ndots_1)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
+        # ndots should still be default
+        self.assertEqual(r.ndots, None)
+        f = StringIO(bad_ndots_2)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
+        # ndots should still be default
+        self.assertEqual(r.ndots, None)
+
+    def testReadNoNameservers(self):
+        f = StringIO(no_nameservers)
+        r = dns.resolver.Resolver(configure=False)
+        with self.assertRaises(dns.resolver.NoResolverConfiguration):
+            r.read_resolv_conf(f)
 
     def testCacheExpiration(self):
         message = dns.message.from_text(message_text)

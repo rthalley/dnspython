@@ -834,13 +834,13 @@ class Resolver:
         else:
             try:
                 servers, rtype = winreg.QueryValueEx(key, 'DhcpNameServer')
-            except WindowsError:  # pylint: disable=undefined-variable
+            except WindowsError:  # pragma: no cover
                 servers = None
             if servers:  # pragma: no cover
                 self._config_win32_nameservers(servers)
                 try:
                     dom, rtype = winreg.QueryValueEx(key, 'DhcpDomain')
-                    if dom:
+                    if dom:  # pragma: no cover
                         self._config_win32_domain(dom)
                 except WindowsError:  # pragma: no cover
                     pass
