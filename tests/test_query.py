@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import socket
+import time
 import unittest
 
 try:
@@ -235,6 +236,31 @@ class DestinationAndSourceTests(unittest.TestCase):
     def test_v6_wildcard_source_set(self):
         (af, d, s) = _d_and_s('1::2', 53, None, 12345)
         self.assertEqual(s, ('::', 12345, 0, 0))
+
+
+class AddressesEqualTestCase(unittest.TestCase):
+
+    def test_v4(self):
+        self.assertTrue(dns.query._addresses_equal(socket.AF_INET,
+                                                   ('10.0.0.1', 53),
+                                                   ('10.0.0.1', 53)))
+        self.assertFalse(dns.query._addresses_equal(socket.AF_INET,
+                                                    ('10.0.0.1', 53),
+                                                    ('10.0.0.2', 53)))
+
+    def test_v6(self):
+        self.assertTrue(dns.query._addresses_equal(socket.AF_INET6,
+                                                   ('1::1', 53),
+                                                   ('0001:0000::1', 53)))
+        self.assertFalse(dns.query._addresses_equal(socket.AF_INET6,
+                                                   ('::1', 53),
+                                                   ('::2', 53)))
+
+    def test_mixed(self):
+        self.assertFalse(dns.query._addresses_equal(socket.AF_INET,
+                                                    ('10.0.0.1', 53),
+                                                    ('::2', 53)))
+
 
 axfr_zone = '''
 $ORIGIN example.
@@ -482,3 +508,34 @@ class TsigTests(unittest.TestCase):
             self.assertTrue(rrs is not None)
             seen = set([rdata.address for rdata in rrs])
             self.assertTrue('1.2.3.4' in seen)
+
+class LowLevelWaitTests(unittest.TestCase):
+
+    def test_wait_for(self):
+        try:
+            (l, r) = socket.socketpair()
+            # already expired
+            with self.assertRaises(dns.exception.Timeout):
+                dns.query._wait_for(l, True, True, True, 0)
+            # simple timeout
+            with self.assertRaises(dns.exception.Timeout):
+                dns.query._wait_for(l, False, False, False, time.time() + 0.05)
+            # writable no timeout (not hanging is passing)
+            dns.query._wait_for(l, False, True, False, None)
+        finally:
+            l.close()
+            r.close()
+
+    def test_select_for(self):
+        # we test this explicitly in case _wait_for didn't test it (i.e.
+        # if the default polling backing is _poll_for)
+        try:
+            (l, r) = socket.socketpair()
+            # simple timeout
+            self.assertFalse(dns.query._select_for(l, False, False, False,
+                                                   0.05))
+            # writable no timeout
+            self.assertTrue(dns.query._select_for(l, False, True, False, None))
+        finally:
+            l.close()
+            r.close()
