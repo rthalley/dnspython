@@ -225,5 +225,10 @@ LV5eYdPYqfKE+27qjEBARf6PYh/8WQ8CPKS8DILFbwCZbRxUogyrZf/7AiHAGdJi
 8dmpR1WPQYef2hF3kqGX6NngLBPzZ6CQRaHBhD4pHU1S/IRSlx9/3Ytww32PYD9A
 yO732NmCUcq3bmvqcOWy4Cc1NkEwU0Vg0qzwVBNGb84v/ex2MouwtAYScwc=
 )
+amtrelay01              AMTRELAY 0 0 0 .
+amtrelay02              AMTRELAY 0 1 0 .
+amtrelay03              AMTRELAY  10 0 1 203.0.113.15
+amtrelay04              AMTRELAY  10 0 2 2001:db8::15
+amtrelay05              AMTRELAY 128 1 3 amtrelays.example.com.
 csync0			CSYNC 12345 0 A MX RRSIG NSEC TYPE1234
 avc01			AVC "app-name:WOLFGANG|app-class:OAM|business=yes"

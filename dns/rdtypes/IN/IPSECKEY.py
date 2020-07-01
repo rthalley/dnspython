@@ -19,10 +19,11 @@ import struct
 import base64
 
 import dns.exception
-import dns.ipv4
-import dns.ipv6
-import dns.name
+import dns.rdtypes.util
 
+
+class Gateway(dns.rdtypes.util.Gateway):
+    name = 'IPSECKEY gateway'
 
 class IPSECKEY(dns.rdata.Rdata):
 
@@ -35,21 +36,7 @@ class IPSECKEY(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, precedence, gateway_type, algorithm,
                  gateway, key):
         super().__init__(rdclass, rdtype)
-        if gateway_type == 0:
-            if gateway != '.' and gateway is not None:
-                raise SyntaxError('invalid gateway for gateway type 0')
-            gateway = None
-        elif gateway_type == 1:
-            # check that it's OK
-            dns.ipv4.inet_aton(gateway)
-        elif gateway_type == 2:
-            # check that it's OK
-            dns.ipv6.inet_aton(gateway)
-        elif gateway_type == 3:
-            pass
-        else:
-            raise SyntaxError(
-                'invalid IPSECKEY gateway type: %d' % gateway_type)
+        Gateway(gateway_type, gateway).check()
         object.__setattr__(self, 'precedence', precedence)
         object.__setattr__(self, 'gateway_type', gateway_type)
         object.__setattr__(self, 'algorithm', algorithm)
@@ -57,16 +44,8 @@ class IPSECKEY(dns.rdata.Rdata):
         object.__setattr__(self, 'key', key)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        if self.gateway_type == 0:
-            gateway = '.'
-        elif self.gateway_type == 1:
-            gateway = self.gateway
-        elif self.gateway_type == 2:
-            gateway = self.gateway
-        elif self.gateway_type == 3:
-            gateway = str(self.gateway.choose_relativity(origin, relativize))
-        else:
-            raise ValueError('invalid gateway type')
+        gateway = Gateway(self.gateway_type, self.gateway).to_text(origin,
+                                                                   relativize)
         return '%d %d %d %s %s' % (self.precedence, self.gateway_type,
                                    self.algorithm, gateway,
                                    dns.rdata._base64ify(self.key))
@@ -77,10 +56,8 @@ class IPSECKEY(dns.rdata.Rdata):
         precedence = tok.get_uint8()
         gateway_type = tok.get_uint8()
         algorithm = tok.get_uint8()
-        if gateway_type == 3:
-            gateway = tok.get_name(origin, relativize, relativize_to)
-        else:
-            gateway = tok.get_string()
+        gateway = Gateway(gateway_type).from_text(tok, origin, relativize,
+                                                  relativize_to)
         b64 = tok.concatenate_remaining_identifiers().encode()
         key = base64.b64decode(b64)
         return cls(rdclass, rdtype, precedence, gateway_type, algorithm,
@@ -90,16 +67,8 @@ class IPSECKEY(dns.rdata.Rdata):
         header = struct.pack("!BBB", self.precedence, self.gateway_type,
                              self.algorithm)
         file.write(header)
-        if self.gateway_type == 0:
-            pass
-        elif self.gateway_type == 1:
-            file.write(dns.ipv4.inet_aton(self.gateway))
-        elif self.gateway_type == 2:
-            file.write(dns.ipv6.inet_aton(self.gateway))
-        elif self.gateway_type == 3:
-            self.gateway.to_wire(file, None, origin, False)
-        else:
-            raise ValueError('invalid gateway type')
+        Gateway(self.gateway_type, self.gateway).to_wire(file, compress,
+                                                         origin, canonicalize)
         file.write(self.key)
 
     @classmethod
@@ -110,23 +79,10 @@ class IPSECKEY(dns.rdata.Rdata):
         gateway_type = header[1]
         current += 3
         rdlen -= 3
-        if gateway_type == 0:
-            gateway = None
-        elif gateway_type == 1:
-            gateway = dns.ipv4.inet_ntoa(wire[current: current + 4])
-            current += 4
-            rdlen -= 4
-        elif gateway_type == 2:
-            gateway = dns.ipv6.inet_ntoa(wire[current: current + 16])
-            current += 16
-            rdlen -= 16
-        elif gateway_type == 3:
-            (gateway, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                                  current)
-            current += cused
-            rdlen -= cused
-        else:
-            raise dns.exception.FormError('invalid IPSECKEY gateway type')
+        (gateway, cused) = Gateway(gateway_type).from_wire(wire, current,
+                                                           rdlen, origin)
+        current += cused
+        rdlen -= cused
         key = wire[current: current + rdlen].unwrap()
         if origin is not None and gateway_type == 3:
             gateway = gateway.relativize(origin)
