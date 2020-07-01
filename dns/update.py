@@ -60,18 +60,8 @@ class UpdateMessage(dns.message.Message):
 
         *rdclass*, an ``int`` or ``str``, the class of the zone.
 
-        *keyring*, a ``dict``, the TSIG keyring to use.  If a
-        *keyring* is specified but a *keyname* is not, then the key
-        used will be the first key in the *keyring*.  Note that the
-        order of keys in a dictionary is not defined, so applications
-        should supply a keyname when a keyring is used, unless they
-        know the keyring contains only one key.
-
-        *keyname*, a ``dns.name.Name`` or ``None``, the name of the TSIG key
-        to use; defaults to ``None``. The key must be defined in the keyring.
-
-        *keyalgorithm*, a ``dns.name.Name``, the TSIG algorithm to use.
-
+        The *keyring*, *keyname*, and *keyalgorithm* parameters are passed to
+        ``use_tsig()``; see its documentation for details.
         """
         super().__init__(id=id)
         self.flags |= dns.opcode.to_flags(dns.opcode.UPDATE)

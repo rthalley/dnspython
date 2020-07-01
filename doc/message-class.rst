@@ -47,9 +47,7 @@ DNS opcodes that do not have a more specific class.
 
    .. attribute:: keyring
 
-      The TSIG keyring to use.  The default is `None`.  A TSIG keyring
-      is a dictionary mapping from TSIG key name, a ``dns.name.Name``, to
-      a TSIG secret, a ``bytes``.
+      A ``dns.tsig.Key``, the TSIG key.  The default is None.
 
    .. attribute:: keyname
 

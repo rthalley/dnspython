@@ -197,11 +197,12 @@ class ResolutionTestCase(unittest.TestCase):
         self.resolver.keyring = dns.tsigkeyring.from_text({
             'keyname.' : 'NjHwPsMKjdN++dOfE5iAiQ=='
         })
+        (keyname, secret) = next(iter(self.resolver.keyring.items()))
         self.resolver.keyname = dns.name.from_text('keyname.')
         (request, answer) = self.resn.next_request()
         self.assertFalse(request is None)
-        self.assertEqual(request.keyring, self.resolver.keyring)
-        self.assertEqual(request.keyname, self.resolver.keyname)
+        self.assertEqual(request.keyring.name, keyname)
+        self.assertEqual(request.keyring.secret, secret)
 
     def test_next_request_flags(self):
         self.resolver.flags = dns.flags.RD | dns.flags.CD

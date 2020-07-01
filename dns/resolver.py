@@ -1111,29 +1111,14 @@ class Resolver:
 
     def use_tsig(self, keyring, keyname=None,
                  algorithm=dns.tsig.default_algorithm):
-        """Add a TSIG signature to the query.
+        """Add a TSIG signature to each query.
 
-        See the documentation of the Message class for a complete
-        description of the keyring dictionary.
-
-        *keyring*, a ``dict``, the TSIG keyring to use.  If a
-        *keyring* is specified but a *keyname* is not, then the key
-        used will be the first key in the *keyring*.  Note that the
-        order of keys in a dictionary is not defined, so applications
-        should supply a keyname when a keyring is used, unless they
-        know the keyring contains only one key.
-
-        *keyname*, a ``dns.name.Name`` or ``None``, the name of the TSIG key
-        to use; defaults to ``None``. The key must be defined in the keyring.
-
-        *algorithm*, a ``dns.name.Name``, the TSIG algorithm to use.
+        The parameters are passed to ``dns.message.Message.use_tsig()``;
+        see its documentation for details.
         """
 
         self.keyring = keyring
-        if keyname is None:
-            self.keyname = list(self.keyring.keys())[0]
-        else:
-            self.keyname = keyname
+        self.keyname = keyname
         self.keyalgorithm = algorithm
 
     def use_edns(self, edns, ednsflags, payload):
