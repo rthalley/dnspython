@@ -58,9 +58,7 @@ class SSHFP(dns.rdata.Rdata):
         file.write(self.fingerprint)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        header = struct.unpack("!BB", wire[current: current + 2])
-        current += 2
-        rdlen -= 2
-        fingerprint = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct("BB")
+        fingerprint = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], fingerprint)

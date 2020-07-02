@@ -18,7 +18,7 @@
 import dns.rdtypes.mxbase
 import struct
 
-class A(dns.rdtypes.mxbase.MXBase):
+class A(dns.rdata.Rdata):
 
     """A record for Chaosnet"""
 
@@ -27,8 +27,8 @@ class A(dns.rdtypes.mxbase.MXBase):
 
     __slots__ = ['domain', 'address']
 
-    def __init__(self, rdclass, rdtype, address, domain):
-        super().__init__(rdclass, rdtype, address, domain)
+    def __init__(self, rdclass, rdtype, domain, address):
+        super().__init__(rdclass, rdtype)
         object.__setattr__(self, 'domain', domain)
         object.__setattr__(self, 'address', address)
 
@@ -42,7 +42,7 @@ class A(dns.rdtypes.mxbase.MXBase):
         domain = tok.get_name(origin, relativize, relativize_to)
         address = tok.get_uint16(base=8)
         tok.get_eol()
-        return cls(rdclass, rdtype, address, domain)
+        return cls(rdclass, rdtype, domain, address)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         self.domain.to_wire(file, compress, origin, canonicalize)
@@ -50,13 +50,7 @@ class A(dns.rdtypes.mxbase.MXBase):
         file.write(pref)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (domain, cused) = dns.name.from_wire(wire[:current + rdlen - 2],
-                                             current)
-        current += cused
-        (address,) = struct.unpack('!H', wire[current:current + 2])
-        if cused + 2 != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            domain = domain.relativize(origin)
-        return cls(rdclass, rdtype, address, domain)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        domain = parser.get_name(origin)
+        address = parser.get_uint16()
+        return cls(rdclass, rdtype, domain, address)

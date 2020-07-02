@@ -45,6 +45,6 @@ class OPENPGPKEY(dns.rdata.Rdata):
         file.write(self.key)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        key = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        key = parser.get_remaining()
         return cls(rdclass, rdtype, key)

@@ -47,13 +47,8 @@ class NSBase(dns.rdata.Rdata):
         self.target.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (target, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                             current)
-        if cused != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            target = target.relativize(origin)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        target = parser.get_name(origin)
         return cls(rdclass, rdtype, target)
 
 

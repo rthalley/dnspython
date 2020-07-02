@@ -58,15 +58,7 @@ class SRV(dns.rdata.Rdata):
         self.target.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (priority, weight, port) = struct.unpack('!HHH',
-                                                 wire[current: current + 6])
-        current += 6
-        rdlen -= 6
-        (target, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                             current)
-        if cused != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            target = target.relativize(origin)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (priority, weight, port) = parser.get_struct('!HHH')
+        target = parser.get_name(origin)
         return cls(rdclass, rdtype, priority, weight, port, target)

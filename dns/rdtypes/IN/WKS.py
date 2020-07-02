@@ -89,10 +89,8 @@ class WKS(dns.rdata.Rdata):
         file.write(self.bitmap)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = dns.ipv4.inet_ntoa(wire[current: current + 4])
-        protocol, = struct.unpack('!B', wire[current + 4: current + 5])
-        current += 5
-        rdlen -= 5
-        bitmap = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = dns.ipv4.inet_ntoa(parser.get_bytes(4))
+        protocol = parser.get_uint8()
+        bitmap = parser.get_remaining()
         return cls(rdclass, rdtype, address, protocol, bitmap)

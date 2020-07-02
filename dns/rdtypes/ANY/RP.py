@@ -51,18 +51,7 @@ class RP(dns.rdata.Rdata):
         self.txt.to_wire(file, None, origin, canonicalize)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (mbox, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                           current)
-        current += cused
-        rdlen -= cused
-        if rdlen <= 0:
-            raise dns.exception.FormError
-        (txt, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                          current)
-        if cused != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            mbox = mbox.relativize(origin)
-            txt = txt.relativize(origin)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        mbox = parser.get_name(origin)
+        txt = parser.get_name(origin)
         return cls(rdclass, rdtype, mbox, txt)

@@ -74,22 +74,10 @@ class ISDN(dns.rdata.Rdata):
             file.write(self.subaddress)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l > rdlen:
-            raise dns.exception.FormError
-        address = wire[current: current + l].unwrap()
-        current += l
-        rdlen -= l
-        if rdlen > 0:
-            l = wire[current]
-            current += 1
-            rdlen -= 1
-            if l != rdlen:
-                raise dns.exception.FormError
-            subaddress = wire[current: current + l].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = parser.get_counted_bytes()
+        if parser.remaining() > 0:
+            subaddress = parser.get_counted_bytes()
         else:
-            subaddress = ''
+            subaddress = b''
         return cls(rdclass, rdtype, address, subaddress)

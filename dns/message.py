@@ -19,9 +19,9 @@
 
 import contextlib
 import io
-import struct
 import time
 
+import dns.wire
 import dns.edns
 import dns.enum
 import dns.exception
@@ -36,7 +36,6 @@ import dns.rdatatype
 import dns.rrset
 import dns.renderer
 import dns.tsig
-import dns.wiredata
 import dns.rdtypes.ANY.OPT
 import dns.rdtypes.ANY.TSIG
 
@@ -727,11 +726,8 @@ class _WireReader:
 
     """Wire format reader.
 
-    wire: a binary, is the wire-format message.
+    parser: the binary parser
     message: The message object being built
-    current: When building a message object from wire format, this
-    variable contains the offset from the beginning of wire of the next octet
-    to be read.
     initialize_message: Callback to set message parsing options
     question_only: Are we only reading the question?
     one_rr_per_rrset: Put each RR into its own RRset?
@@ -744,9 +740,8 @@ class _WireReader:
     def __init__(self, wire, initialize_message, question_only=False,
                  one_rr_per_rrset=False, ignore_trailing=False,
                  keyring=None, multi=False):
-        self.wire = dns.wiredata.maybe_wrap(wire)
+        self.parser = dns.wire.Parser(wire)
         self.message = None
-        self.current = 0
         self.initialize_message = initialize_message
         self.question_only = question_only
         self.one_rr_per_rrset = one_rr_per_rrset
@@ -761,14 +756,8 @@ class _WireReader:
 
         section = self.message.sections[section_number]
         for i in range(qcount):
-            (qname, used) = dns.name.from_wire(self.wire, self.current)
-            if self.message.origin is not None:
-                qname = qname.relativize(self.message.origin)
-            self.current += used
-            (rdtype, rdclass) = \
-                struct.unpack('!HH',
-                              self.wire[self.current:self.current + 4])
-            self.current += 4
+            qname = self.parser.get_name(self.message.origin)
+            (rdtype, rdclass) = self.parser.get_struct('!HH')
             (rdclass, rdtype, _, _) = \
                 self.message._parse_rr_header(section_number, qname, rdclass,
                                               rdtype)
@@ -786,16 +775,13 @@ class _WireReader:
         section = self.message.sections[section_number]
         force_unique = self.one_rr_per_rrset
         for i in range(count):
-            rr_start = self.current
-            (name, used) = dns.name.from_wire(self.wire, self.current)
-            absolute_name = name
+            rr_start = self.parser.current
+            absolute_name = self.parser.get_name()
             if self.message.origin is not None:
-                name = name.relativize(self.message.origin)
-            self.current += used
-            (rdtype, rdclass, ttl, rdlen) = \
-                struct.unpack('!HHIH',
-                              self.wire[self.current:self.current + 10])
-            self.current += 10
+                name = absolute_name.relativize(self.message.origin)
+            else:
+                name = absolute_name
+            (rdtype, rdclass, ttl, rdlen) = self.parser.get_struct('!HHIH')
             if rdtype in (dns.rdatatype.OPT, dns.rdatatype.TSIG):
                 (rdclass, rdtype, deleting, empty) = \
                     self.message._parse_special_rr_header(section_number,
@@ -811,9 +797,10 @@ class _WireReader:
                 rd = None
                 covers = dns.rdatatype.NONE
             else:
-                rd = dns.rdata.from_wire(rdclass, rdtype,
-                                         self.wire, self.current, rdlen,
-                                         self.message.origin)
+                with self.parser.restrict_to(rdlen):
+                    rd = dns.rdata.from_wire_parser(rdclass, rdtype,
+                                                    self.parser,
+                                                    self.message.origin)
                 covers = rd.covers()
             if self.message.xfr and rdtype == dns.rdatatype.SOA:
                 force_unique = True
@@ -832,7 +819,7 @@ class _WireReader:
                     raise UnknownTSIGKey("key '%s' unknown" % name)
                 self.message.keyring = key
                 self.message.tsig_ctx = \
-                    dns.tsig.validate(self.wire,
+                    dns.tsig.validate(self.parser.wire,
                                       key,
                                       absolute_name,
                                       rd,
@@ -851,18 +838,15 @@ class _WireReader:
                     if ttl > 0x7fffffff:
                         ttl = 0
                     rrset.add(rd, ttl)
-            self.current += rdlen
 
     def read(self):
         """Read a wire format DNS message and build a dns.message.Message
         object."""
 
-        l = len(self.wire)
-        if l < 12:
+        if self.parser.remaining() < 12:
             raise ShortHeader
         (id, flags, qcount, ancount, aucount, adcount) = \
-            struct.unpack('!HHHHHH', self.wire[:12])
-        self.current = 12
+            self.parser.get_struct('!HHHHHH')
         factory = _message_factory_from_opcode(dns.opcode.from_flags(flags))
         self.message = factory(id=id)
         self.message.flags = flags
@@ -875,10 +859,10 @@ class _WireReader:
         self._get_section(MessageSection.ANSWER, ancount)
         self._get_section(MessageSection.AUTHORITY, aucount)
         self._get_section(MessageSection.ADDITIONAL, adcount)
-        if not self.ignore_trailing and self.current != l:
+        if not self.ignore_trailing and self.parser.remaining() != 0:
             raise TrailingJunk
         if self.multi and self.message.tsig_ctx and not self.message.had_tsig:
-            self.message.tsig_ctx.update(self.wire)
+            self.message.tsig_ctx.update(self.parser.wire)
         return self.message
 
 

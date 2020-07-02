@@ -54,6 +54,6 @@ class NSAP(dns.rdata.Rdata):
         file.write(self.address)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = parser.get_remaining()
         return cls(rdclass, rdtype, address)

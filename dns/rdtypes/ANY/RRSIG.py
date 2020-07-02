@@ -115,16 +115,8 @@ class RRSIG(dns.rdata.Rdata):
         file.write(self.signature)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        header = struct.unpack('!HBBIIIH', wire[current: current + 18])
-        current += 18
-        rdlen -= 18
-        (signer, cused) = dns.name.from_wire(wire[: current + rdlen], current)
-        current += cused
-        rdlen -= cused
-        if origin is not None:
-            signer = signer.relativize(origin)
-        signature = wire[current: current + rdlen].unwrap()
-        return cls(rdclass, rdtype, header[0], header[1], header[2],
-                   header[3], header[4], header[5], header[6], signer,
-                   signature)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct('!HBBIIIH')
+        signer = parser.get_name(origin)
+        signature = parser.get_remaining()
+        return cls(rdclass, rdtype, *header, signer, signature)

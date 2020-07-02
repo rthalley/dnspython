@@ -94,25 +94,19 @@ class RdtypeAnyEUI48TestCase(unittest.TestCase):
         '''Valid wire format.'''
         eui = b'\x01\x23\x45\x67\x89\xab'
         pad_len = 100
-        wire = dns.wiredata.WireData(b'x' * pad_len + eui + b'y' * pad_len * 2)
-        inst = dns.rdtypes.ANY.EUI48.EUI48.from_wire(dns.rdataclass.IN,
-                                                     dns.rdatatype.EUI48,
-                                                     wire,
-                                                     pad_len,
-                                                     len(eui))
+        wire = b'x' * pad_len + eui + b'y' * pad_len * 2
+        inst = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.EUI48,
+                                   wire, pad_len, len(eui))
         self.assertEqual(inst.eui, eui)
 
     def testFromWireLength(self):
         '''Valid wire format.'''
         eui = b'\x01\x23\x45\x67\x89'
         pad_len = 100
-        wire = dns.wiredata.WireData(b'x' * pad_len + eui + b'y' * pad_len * 2)
+        wire = b'x' * pad_len + eui + b'y' * pad_len * 2
         with self.assertRaises(dns.exception.FormError):
-            dns.rdtypes.ANY.EUI48.EUI48.from_wire(dns.rdataclass.IN,
-                                                  dns.rdatatype.EUI48,
-                                                  wire,
-                                                  pad_len,
-                                                  len(eui))
+            dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.EUI48,
+                                wire, pad_len, len(eui))
 
 
 class RdtypeAnyEUI64TestCase(unittest.TestCase):
@@ -191,25 +185,19 @@ class RdtypeAnyEUI64TestCase(unittest.TestCase):
         '''Valid wire format.'''
         eui = b'\x01\x23\x45\x67\x89\xab\xcd\xef'
         pad_len = 100
-        wire = dns.wiredata.WireData(b'x' * pad_len + eui + b'y' * pad_len * 2)
-        inst = dns.rdtypes.ANY.EUI64.EUI64.from_wire(dns.rdataclass.IN,
-                                                     dns.rdatatype.EUI64,
-                                                     wire,
-                                                     pad_len,
-                                                     len(eui))
+        wire = b'x' * pad_len + eui + b'y' * pad_len * 2
+        inst = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.EUI64,
+                                   wire, pad_len, len(eui))
         self.assertEqual(inst.eui, eui)
 
     def testFromWireLength(self):
         '''Valid wire format.'''
         eui = b'\x01\x23\x45\x67\x89'
         pad_len = 100
-        wire = dns.wiredata.WireData(b'x' * pad_len + eui + b'y' * pad_len * 2)
+        wire = b'x' * pad_len + eui + b'y' * pad_len * 2
         with self.assertRaises(dns.exception.FormError):
-            dns.rdtypes.ANY.EUI64.EUI64.from_wire(dns.rdataclass.IN,
-                                                  dns.rdatatype.EUI64,
-                                                  wire,
-                                                  pad_len,
-                                                  len(eui))
+            dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.EUI64,
+                                wire, pad_len, len(eui))
 
 
 if __name__ == '__main__':

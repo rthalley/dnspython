@@ -80,33 +80,12 @@ class TSIG(dns.rdata.Rdata):
         file.write(self.other)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (algorithm, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                                current)
-        current += cused
-        rdlen -= cused
-        if rdlen < 10:
-            raise dns.exception.FormError
-        (time_hi, time_lo, fudge, mac_len) = \
-                struct.unpack('!HIHH', wire[current: current + 10])
-        current += 10
-        rdlen -= 10
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        algorithm = parser.get_name(origin)
+        (time_hi, time_lo, fudge) = parser.get_struct('!HIH')
         time_signed = (time_hi << 32) + time_lo
-        if rdlen < mac_len:
-            raise dns.exception.FormError
-        mac = wire[current: current + mac_len].unwrap()
-        current += mac_len
-        rdlen -= mac_len
-        if rdlen < 6:
-            raise dns.exception.FormError
-        (original_id, error, other_len) = \
-                struct.unpack('!HHH', wire[current: current + 6])
-        current += 6
-        rdlen -= 6
-        if rdlen < other_len:
-            raise dns.exception.FormError
-        other = wire[current: current + other_len].unwrap()
-        current += other_len
-        rdlen -= other_len
+        mac = parser.get_counted_bytes(2)
+        (original_id, error) = parser.get_struct('!HH')
+        other = parser.get_counted_bytes(2)
         return cls(rdclass, rdtype, algorithm, time_signed, fudge, mac,
                    original_id, error, other)

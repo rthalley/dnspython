@@ -57,22 +57,8 @@ class PX(dns.rdata.Rdata):
         self.mapx400.to_wire(file, None, origin, canonicalize)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (preference, ) = struct.unpack('!H', wire[current: current + 2])
-        current += 2
-        rdlen -= 2
-        (map822, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                             current)
-        if cused > rdlen:
-            raise dns.exception.FormError
-        current += cused
-        rdlen -= cused
-        if origin is not None:
-            map822 = map822.relativize(origin)
-        (mapx400, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                              current)
-        if cused != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            mapx400 = mapx400.relativize(origin)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        preference = parser.get_uint16()
+        map822 = parser.get_name(origin)
+        mapx400 = parser.get_name(origin)
         return cls(rdclass, rdtype, preference, map822, mapx400)

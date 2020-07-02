@@ -111,29 +111,10 @@ class GPOS(dns.rdata.Rdata):
         file.write(self.altitude)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l > rdlen:
-            raise dns.exception.FormError
-        latitude = wire[current: current + l].unwrap()
-        current += l
-        rdlen -= l
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l > rdlen:
-            raise dns.exception.FormError
-        longitude = wire[current: current + l].unwrap()
-        current += l
-        rdlen -= l
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l != rdlen:
-            raise dns.exception.FormError
-        altitude = wire[current: current + l].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        latitude = parser.get_counted_bytes()
+        longitude = parser.get_counted_bytes()
+        altitude = parser.get_counted_bytes()
         return cls(rdclass, rdtype, latitude, longitude, altitude)
 
     @property

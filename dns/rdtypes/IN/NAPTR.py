@@ -85,26 +85,12 @@ class NAPTR(dns.rdata.Rdata):
         self.replacement.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (order, preference) = struct.unpack('!HH', wire[current: current + 4])
-        current += 4
-        rdlen -= 4
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (order, preference) = parser.get_struct('!HH')
         strings = []
         for i in range(3):
-            l = wire[current]
-            current += 1
-            rdlen -= 1
-            if l > rdlen or rdlen < 0:
-                raise dns.exception.FormError
-            s = wire[current: current + l].unwrap()
-            current += l
-            rdlen -= l
+            s = parser.get_counted_bytes()
             strings.append(s)
-        (replacement, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                                  current)
-        if cused != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            replacement = replacement.relativize(origin)
+        replacement = parser.get_name(origin)
         return cls(rdclass, rdtype, order, preference, strings[0], strings[1],
                    strings[2], replacement)

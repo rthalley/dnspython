@@ -61,9 +61,7 @@ class DSBase(dns.rdata.Rdata):
         file.write(self.digest)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        header = struct.unpack("!HBB", wire[current: current + 4])
-        current += 4
-        rdlen -= 4
-        digest = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct("!HBB")
+        digest = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)

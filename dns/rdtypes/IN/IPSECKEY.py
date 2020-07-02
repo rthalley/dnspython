@@ -72,19 +72,10 @@ class IPSECKEY(dns.rdata.Rdata):
         file.write(self.key)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        if rdlen < 3:
-            raise dns.exception.FormError
-        header = struct.unpack('!BBB', wire[current: current + 3])
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct('!BBB')
         gateway_type = header[1]
-        current += 3
-        rdlen -= 3
-        (gateway, cused) = Gateway(gateway_type).from_wire(wire, current,
-                                                           rdlen, origin)
-        current += cused
-        rdlen -= cused
-        key = wire[current: current + rdlen].unwrap()
-        if origin is not None and gateway_type == 3:
-            gateway = gateway.relativize(origin)
+        gateway = Gateway(gateway_type).from_wire_parser(parser, origin)
+        key = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], gateway_type, header[2],
                    gateway, key)

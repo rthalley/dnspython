@@ -84,16 +84,9 @@ class TXTBase(dns.rdata.Rdata):
             file.write(s)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         strings = []
-        while rdlen > 0:
-            l = wire[current]
-            current += 1
-            rdlen -= 1
-            if l > rdlen:
-                raise dns.exception.FormError
-            s = wire[current: current + l].unwrap()
-            current += l
-            rdlen -= l
+        while parser.remaining() > 0:
+            s = parser.get_counted_bytes()
             strings.append(s)
         return cls(rdclass, rdtype, strings)

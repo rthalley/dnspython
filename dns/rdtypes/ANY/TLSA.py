@@ -61,9 +61,7 @@ class TLSA(dns.rdata.Rdata):
         file.write(self.cert)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        header = struct.unpack("!BBB", wire[current: current + 3])
-        current += 3
-        rdlen -= 3
-        cert = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct("BBB")
+        cert = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2], cert)

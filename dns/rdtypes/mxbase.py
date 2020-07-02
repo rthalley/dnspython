@@ -53,16 +53,9 @@ class MXBase(dns.rdata.Rdata):
         self.exchange.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (preference, ) = struct.unpack('!H', wire[current: current + 2])
-        current += 2
-        rdlen -= 2
-        (exchange, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                               current)
-        if cused != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            exchange = exchange.relativize(origin)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        preference = parser.get_uint16()
+        exchange = parser.get_name(origin)
         return cls(rdclass, rdtype, preference, exchange)
 
 

@@ -23,6 +23,7 @@ import pickle
 import struct
 import unittest
 
+import dns.wire
 import dns.exception
 import dns.name
 import dns.rdata
@@ -401,13 +402,19 @@ class RdataTestCase(unittest.TestCase):
 
     def test_opt_short_lengths(self):
         def bad1():
-            opt = OPT.from_wire(4096, dns.rdatatype.OPT,
-                                binascii.unhexlify('f00102'), 0, 3)
+            parser = dns.wire.Parser(bytes.fromhex('f00102'))
+            opt = OPT.from_wire_parser(4096, dns.rdatatype.OPT, parser)
         self.assertRaises(dns.exception.FormError, bad1)
         def bad2():
-            opt = OPT.from_wire(4096, dns.rdatatype.OPT,
-                                binascii.unhexlify('f00100030000'), 0, 6)
+            parser = dns.wire.Parser(bytes.fromhex('f00100030000'))
+            opt = OPT.from_wire_parser(4096, dns.rdatatype.OPT, parser)
         self.assertRaises(dns.exception.FormError, bad2)
+
+    def test_from_wire_parser(self):
+        wire = bytes.fromhex('01020304')
+        rdata = dns.rdata.from_wire('in', 'a', wire, 0, 4)
+        print(rdata)
+        self.assertEqual(rdata, dns.rdata.from_text('in', 'a', '1.2.3.4'))
 
 if __name__ == '__main__':
     unittest.main()
