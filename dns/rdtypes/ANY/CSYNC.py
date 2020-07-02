@@ -93,26 +93,14 @@ class CSYNC(dns.rdata.Rdata):
             file.write(bitmap)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        if rdlen < 6:
-            raise dns.exception.FormError("CSYNC too short")
-        (serial, flags) = struct.unpack("!IH", wire[current: current + 6])
-        current += 6
-        rdlen -= 6
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (serial, flags) = parser.get_struct("!IH")
         windows = []
-        while rdlen > 0:
-            if rdlen < 3:
-                raise dns.exception.FormError("CSYNC too short")
-            window = wire[current]
-            octets = wire[current + 1]
+        while parser.remaining() > 0:
+            window = parser.get_uint8()
+            octets = parser.get_uint8()
             if octets == 0 or octets > 32:
                 raise dns.exception.FormError("bad CSYNC octets")
-            current += 2
-            rdlen -= 2
-            if rdlen < octets:
-                raise dns.exception.FormError("bad CSYNC bitmap length")
-            bitmap = bytearray(wire[current: current + octets].unwrap())
-            current += octets
-            rdlen -= octets
+            bitmap = parser.get_bytes(octets)
             windows.append((window, bitmap))
         return cls(rdclass, rdtype, serial, flags, windows)

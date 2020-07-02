@@ -93,26 +93,13 @@ class NSEC(dns.rdata.Rdata):
             file.write(bitmap)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (next, cused) = dns.name.from_wire(wire[: current + rdlen], current)
-        current += cused
-        rdlen -= cused
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        next = parser.get_name(origin)
         windows = []
-        while rdlen > 0:
-            if rdlen < 3:
-                raise dns.exception.FormError("NSEC too short")
-            window = wire[current]
-            octets = wire[current + 1]
-            if octets == 0 or octets > 32:
+        while parser.remaining() > 0:
+            window = parser.get_uint8()
+            bitmap = parser.get_counted_bytes()
+            if len(bitmap) == 0 or len(bitmap) > 32:
                 raise dns.exception.FormError("bad NSEC octets")
-            current += 2
-            rdlen -= 2
-            if rdlen < octets:
-                raise dns.exception.FormError("bad NSEC bitmap length")
-            bitmap = bytearray(wire[current: current + octets].unwrap())
-            current += octets
-            rdlen -= octets
             windows.append((window, bitmap))
-        if origin is not None:
-            next = next.relativize(origin)
         return cls(rdclass, rdtype, next, windows)

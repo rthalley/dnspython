@@ -78,14 +78,14 @@ class Gateway:
         else:
             raise ValueError(self._invalid_type())
 
-    def from_wire(self, wire, current, rdlen, origin=None):
+    def from_wire_parser(self, parser, origin=None):
         if self.type == 0:
-            return (None, 0)
+            return None
         elif self.type == 1:
-            return (dns.ipv4.inet_ntoa(wire[current: current + 4]), 4)
+            return dns.ipv4.inet_ntoa(parser.get_bytes(4))
         elif self.type == 2:
-            return (dns.ipv6.inet_ntoa(wire[current: current + 16]), 16)
+            return dns.ipv6.inet_ntoa(parser.get_bytes(16))
         elif self.type == 3:
-            return dns.name.from_wire(wire[: current + rdlen], current)
+            return parser.get_name(origin)
         else:
             raise dns.exception.FormError(self._invalid_type())

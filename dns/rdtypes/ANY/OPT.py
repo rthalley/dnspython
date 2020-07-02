@@ -52,19 +52,12 @@ class OPT(dns.rdata.Rdata):
         return ' '.join(opt.to_text() for opt in self.options)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         options = []
-        while rdlen > 0:
-            if rdlen < 4:
-                raise dns.exception.FormError
-            (otype, olen) = struct.unpack('!HH', wire[current:current + 4])
-            current += 4
-            rdlen -= 4
-            if olen > rdlen:
-                raise dns.exception.FormError
-            opt = dns.edns.option_from_wire(otype, wire, current, olen)
-            current += olen
-            rdlen -= olen
+        while parser.remaining() > 0:
+            (otype, olen) = parser.get_struct('!HH')
+            with parser.restrict_to(olen):
+                opt = dns.edns.option_from_wire_parser(otype, parser)
             options.append(opt)
         return cls(rdclass, rdtype, options)
 

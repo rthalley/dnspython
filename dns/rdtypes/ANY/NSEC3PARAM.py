@@ -67,15 +67,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
         file.write(self.salt)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (algorithm, flags, iterations, slen) = \
-             struct.unpack('!BBHB',
-                           wire[current: current + 5])
-        current += 5
-        rdlen -= 5
-        salt = wire[current: current + slen].unwrap()
-        current += slen
-        rdlen -= slen
-        if rdlen != 0:
-            raise dns.exception.FormError
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (algorithm, flags, iterations) = parser.get_struct('!BBH')
+        salt = parser.get_counted_bytes()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)

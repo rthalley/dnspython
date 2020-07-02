@@ -28,8 +28,8 @@ try:
 except ImportError:  # pragma: no cover
     have_idna_2008 = False
 
+import dns.wire
 import dns.exception
-import dns.wiredata
 
 # fullcompare() result values
 
@@ -966,6 +966,39 @@ def from_text(text, origin=root, idna_codec=None):
     return Name(labels)
 
 
+def from_wire_parser(parser):
+    """Convert possibly compressed wire format into a Name.
+
+    *parser* is a dns.wire.Parser.
+
+    Raises ``dns.name.BadPointer`` if a compression pointer did not
+    point backwards in the message.
+
+    Raises ``dns.name.BadLabelType`` if an invalid label type was encountered.
+
+    Returns a ``dns.name.Name``
+    """
+
+    labels = []
+    biggest_pointer = parser.current
+    with parser.restore_furthest():
+        count = parser.get_uint8()
+        while count != 0:
+            if count < 64:
+                labels.append(parser.get_bytes(count))
+            elif count >= 192:
+                current = (count & 0x3f) * 256 + parser.get_uint8()
+                if current >= biggest_pointer:
+                    raise BadPointer
+                biggest_pointer = current
+                parser.seek(current)
+            else:
+                raise BadLabelType
+            count = parser.get_uint8()
+        labels.append(b'')
+    return Name(labels)
+
+
 def from_wire(message, current):
     """Convert possibly compressed wire format into a Name.
 
@@ -987,32 +1020,6 @@ def from_wire(message, current):
 
     if not isinstance(message, bytes):
         raise ValueError("input to from_wire() must be a byte string")
-    message = dns.wiredata.maybe_wrap(message)
-    labels = []
-    biggest_pointer = current
-    hops = 0
-    count = message[current]
-    current += 1
-    cused = 1
-    while count != 0:
-        if count < 64:
-            labels.append(message[current: current + count].unwrap())
-            current += count
-            if hops == 0:
-                cused += count
-        elif count >= 192:
-            current = (count & 0x3f) * 256 + message[current]
-            if hops == 0:
-                cused += 1
-            if current >= biggest_pointer:
-                raise BadPointer
-            biggest_pointer = current
-            hops += 1
-        else:
-            raise BadLabelType
-        count = message[current]
-        current += 1
-        if hops == 0:
-            cused += 1
-    labels.append('')
-    return (Name(labels), cused)
+    parser = dns.wire.Parser(message, current)
+    name = from_wire_parser(parser)
+    return (name, parser.current - current)

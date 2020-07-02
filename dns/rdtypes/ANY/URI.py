@@ -63,14 +63,9 @@ class URI(dns.rdata.Rdata):
         file.write(self.target)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        if rdlen < 5:
-            raise dns.exception.FormError('URI RR is shorter than 5 octets')
-
-        (priority, weight) = struct.unpack('!HH', wire[current: current + 4])
-        current += 4
-        rdlen -= 4
-        target = wire[current: current + rdlen]
-        current += rdlen
-
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (priority, weight) = parser.get_struct('!HH')
+        target = parser.get_remaining()
+        if len(target) == 0:
+            raise dns.exception.FormError('URI target may not be empty')
         return cls(rdclass, rdtype, priority, weight, target)

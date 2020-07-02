@@ -293,9 +293,9 @@ class LOC(dns.rdata.Rdata):
         file.write(wire)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (version, size, hprec, vprec, latitude, longitude, altitude) = \
-            struct.unpack("!BBBBIII", wire[current: current + rdlen])
+            parser.get_struct("!BBBBIII")
         if latitude < _MIN_LATITUDE or latitude > _MAX_LATITUDE:
             raise dns.exception.FormError("bad latitude")
         if latitude > 0x80000000:

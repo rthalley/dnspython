@@ -67,12 +67,8 @@ class DNSKEYBase(dns.rdata.Rdata):
         file.write(self.key)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        if rdlen < 4:
-            raise dns.exception.FormError
-        header = struct.unpack('!HBB', wire[current: current + 4])
-        current += 4
-        rdlen -= 4
-        key = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct('!HBB')
+        key = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)

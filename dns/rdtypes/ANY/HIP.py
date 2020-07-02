@@ -77,24 +77,12 @@ class HIP(dns.rdata.Rdata):
             server.to_wire(file, None, origin, False)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (lh, algorithm, lk) = struct.unpack('!BBH',
-                                            wire[current: current + 4])
-        current += 4
-        rdlen -= 4
-        hit = wire[current: current + lh].unwrap()
-        current += lh
-        rdlen -= lh
-        key = wire[current: current + lk].unwrap()
-        current += lk
-        rdlen -= lk
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (lh, algorithm, lk) = parser.get_struct('!BBH')
+        hit = parser.get_bytes(lh)
+        key = parser.get_bytes(lk)
         servers = []
-        while rdlen > 0:
-            (server, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                                 current)
-            current += cused
-            rdlen -= cused
-            if origin is not None:
-                server = server.relativize(origin)
+        while parser.remaining() > 0:
+            server = parser.get_name(origin)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)

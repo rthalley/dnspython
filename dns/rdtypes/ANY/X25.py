@@ -54,11 +54,6 @@ class X25(dns.rdata.Rdata):
         file.write(self.address)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l != rdlen:
-            raise dns.exception.FormError
-        address = wire[current: current + l].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = parser.get_counted_bytes()
         return cls(rdclass, rdtype, address)

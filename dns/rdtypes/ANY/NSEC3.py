@@ -138,36 +138,16 @@ class NSEC3(dns.rdata.Rdata):
             file.write(bitmap)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (algorithm, flags, iterations, slen) = \
-            struct.unpack('!BBHB', wire[current: current + 5])
-
-        current += 5
-        rdlen -= 5
-        salt = wire[current: current + slen].unwrap()
-        current += slen
-        rdlen -= slen
-        nlen = wire[current]
-        current += 1
-        rdlen -= 1
-        next = wire[current: current + nlen].unwrap()
-        current += nlen
-        rdlen -= nlen
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (algorithm, flags, iterations) = parser.get_struct('!BBH')
+        salt = parser.get_counted_bytes()
+        next = parser.get_counted_bytes()
         windows = []
-        while rdlen > 0:
-            if rdlen < 3:
-                raise dns.exception.FormError("NSEC3 too short")
-            window = wire[current]
-            octets = wire[current + 1]
-            if octets == 0 or octets > 32:
+        while parser.remaining() > 0:
+            window = parser.get_uint8()
+            bitmap = parser.get_counted_bytes()
+            if len(bitmap) == 0 or len(bitmap) > 32:
                 raise dns.exception.FormError("bad NSEC3 octets")
-            current += 2
-            rdlen -= 2
-            if rdlen < octets:
-                raise dns.exception.FormError("bad NSEC3 bitmap length")
-            bitmap = bytearray(wire[current: current + octets].unwrap())
-            current += octets
-            rdlen -= octets
             windows.append((window, bitmap))
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
                    windows)

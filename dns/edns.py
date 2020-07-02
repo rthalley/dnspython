@@ -72,21 +72,16 @@ class Option:
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def from_wire(cls, otype, wire, current, olen):
+    def from_wire_parser(cls, otype, parser):
         """Build an EDNS option object from wire format.
 
         *otype*, an ``int``, is the option type.
 
-        *wire*, a ``bytes``, is the wire-format message.
-
-        *current*, an ``int``, is the offset in *wire* of the beginning
-        of the rdata.
-
-        *olen*, an ``int``, is the length of the wire-format option data
+        *parser*, a ``dns.wire.Parser``, the parser, which should be
+        restructed to the option length.
 
         Returns a ``dns.edns.Option``.
         """
-
         raise NotImplementedError  # pragma: no cover
 
     def _cmp(self, other):
@@ -163,8 +158,8 @@ class GenericOption(Option):
         return "Generic %d" % self.otype
 
     @classmethod
-    def from_wire(cls, otype, wire, current, olen):
-        return cls(otype, wire[current: current + olen])
+    def from_wire_parser(cls, otype, parser):
+        return cls(otype, parser.get_remaining())
 
     def __str__(self):
         return self.to_text()
@@ -281,18 +276,16 @@ class ECSOption(Option):
             return value
 
     @classmethod
-    def from_wire(cls, otype, wire, cur, olen):
-        family, src, scope = struct.unpack('!HBB', wire[cur:cur + 4])
-        cur += 4
-
+    def from_wire_parser(cls, otype, parser):
+        family, src, scope = parser.get_struct('!HBB')
         addrlen = int(math.ceil(src / 8.0))
-
+        prefix = parser.get_bytes(addrlen)
         if family == 1:
             pad = 4 - addrlen
-            addr = dns.ipv4.inet_ntoa(wire[cur:cur + addrlen] + b'\x00' * pad)
+            addr = dns.ipv4.inet_ntoa(prefix + b'\x00' * pad)
         elif family == 2:
             pad = 16 - addrlen
-            addr = dns.ipv6.inet_ntoa(wire[cur:cur + addrlen] + b'\x00' * pad)
+            addr = dns.ipv6.inet_ntoa(prefix + b'\x00' * pad)
         else:
             raise ValueError('unsupported family')
 
@@ -300,6 +293,7 @@ class ECSOption(Option):
 
     def __str__(self):
         return self.to_text()
+
 
 _type_to_class = {
     OptionType.ECS: ECSOption
@@ -318,6 +312,21 @@ def get_option_class(otype):
     return cls
 
 
+def option_from_wire_parser(otype, parser):
+    """Build an EDNS option object from wire format.
+
+    *otype*, an ``int``, is the option type.
+
+    *parser*, a ``dns.wire.Parser``, the parser, which should be
+    restricted to the option length.
+
+    Returns an instance of a subclass of ``dns.edns.Option``.
+    """
+    cls = get_option_class(otype)
+    otype = OptionType.make(otype)
+    return cls.from_wire_parser(otype, parser)
+
+
 def option_from_wire(otype, wire, current, olen):
     """Build an EDNS option object from wire format.
 
@@ -332,7 +341,6 @@ def option_from_wire(otype, wire, current, olen):
 
     Returns an instance of a subclass of ``dns.edns.Option``.
     """
-
-    cls = get_option_class(otype)
-    otype = OptionType.make(otype)
-    return cls.from_wire(otype, wire, current, olen)
+    parser = dns.wire.Parser(wire, current)
+    with parser.restrict_to(olen):
+        return option_from_wire_parser(otype, parser)

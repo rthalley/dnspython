@@ -111,26 +111,18 @@ class APL(dns.rdata.Rdata):
             item.to_wire(file)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
 
         items = []
-        while 1:
-            if rdlen == 0:
-                break
-            if rdlen < 4:
-                raise dns.exception.FormError
-            header = struct.unpack('!HBB', wire[current: current + 4])
+        while parser.remaining() > 0:
+            header = parser.get_struct('!HBB')
             afdlen = header[2]
             if afdlen > 127:
                 negation = True
                 afdlen -= 128
             else:
                 negation = False
-            current += 4
-            rdlen -= 4
-            if rdlen < afdlen:
-                raise dns.exception.FormError
-            address = wire[current: current + afdlen].unwrap()
+            address = parser.get_bytes(afdlen)
             l = len(address)
             if header[0] == 1:
                 if l < 4:
@@ -146,8 +138,6 @@ class APL(dns.rdata.Rdata):
                 # seems better than throwing an exception
                 #
                 address = codecs.encode(address, 'hex_codec')
-            current += afdlen
-            rdlen -= afdlen
             item = APLItem(header[0], negation, address, header[1])
             items.append(item)
         return cls(rdclass, rdtype, items)

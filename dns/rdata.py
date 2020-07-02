@@ -24,12 +24,12 @@ import io
 import inspect
 import itertools
 
+import dns.wire
 import dns.exception
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
-import dns.wiredata
 
 _hex_chunksize = 32
 
@@ -377,8 +377,8 @@ class GenericRdata(Rdata):
         file.write(self.data)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        return cls(rdclass, rdtype, wire[current: current + rdlen])
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        return cls(rdclass, rdtype, parser.get_remaining())
 
 _rdata_classes = {}
 _module_prefix = 'dns.rdtypes'
@@ -474,6 +474,36 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
                          relativize_to)
 
 
+def from_wire_parser(rdclass, rdtype, parser, origin=None):
+    """Build an rdata object from wire format
+
+    This function attempts to dynamically load a class which
+    implements the specified rdata class and type.  If there is no
+    class-and-type-specific implementation, the GenericRdata class
+    is used.
+
+    Once a class is chosen, its from_wire() class method is called
+    with the parameters to this function.
+
+    *rdclass*, an ``int``, the rdataclass.
+
+    *rdtype*, an ``int``, the rdatatype.
+
+    *parser*, a ``dns.wire.Parser``, the parser, which should be
+    restricted to the rdata length.
+
+    *origin*, a ``dns.name.Name`` (or ``None``).  If not ``None``,
+    then names will be relativized to this origin.
+
+    Returns an instance of the chosen Rdata subclass.
+    """
+
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    cls = get_rdata_class(rdclass, rdtype)
+    return cls.from_wire_parser(rdclass, rdtype, parser, origin)
+
+
 def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
     """Build an rdata object from wire format
 
@@ -501,12 +531,9 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
 
     Returns an instance of the chosen Rdata subclass.
     """
-
-    wire = dns.wiredata.maybe_wrap(wire)
-    rdclass = dns.rdataclass.RdataClass.make(rdclass)
-    rdtype = dns.rdatatype.RdataType.make(rdtype)
-    cls = get_rdata_class(rdclass, rdtype)
-    return cls.from_wire(rdclass, rdtype, wire, current, rdlen, origin)
+    parser = dns.wire.Parser(wire, current)
+    with parser.restrict_to(rdlen):
+        return from_wire_parser(rdclass, rdtype, parser, origin)
 
 
 class RdatatypeExists(dns.exception.DNSException):

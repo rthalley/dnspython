@@ -47,6 +47,6 @@ class AAAA(dns.rdata.Rdata):
         file.write(dns.ipv6.inet_aton(self.address))
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = dns.ipv6.inet_ntoa(wire[current: current + rdlen])
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = dns.ipv6.inet_ntoa(parser.get_remaining())
         return cls(rdclass, rdtype, address)

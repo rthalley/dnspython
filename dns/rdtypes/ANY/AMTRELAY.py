@@ -70,18 +70,10 @@ class AMTRELAY(dns.rdata.Rdata):
                                                    canonicalize)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        if rdlen < 2:
-            raise dns.exception.FormError
-        (precedence, relay_type) = struct.unpack('!BB',
-                                                 wire[current: current + 2])
-        current += 2
-        rdlen -= 2
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (precedence, relay_type) = parser.get_struct('!BB')
         discovery_optional = bool(relay_type >> 7)
         relay_type &= 0x7f
-        (relay, cused) = Relay(relay_type).from_wire(wire, current, rdlen,
-                                                     origin)
-        current += cused
-        rdlen -= cused
+        relay = Relay(relay_type).from_wire_parser(parser, origin)
         return cls(rdclass, rdtype, precedence, discovery_optional, relay_type,
                    relay)
