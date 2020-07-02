@@ -21,6 +21,12 @@ import dns.exception
 import dns.rdata
 import dns.rdatatype
 import dns.name
+import dns.rdtypes.util
+
+
+class Bitmap(dns.rdtypes.util.Bitmap):
+    type_name = 'CSYNC'
+
 
 class CSYNC(dns.rdata.Rdata):
 
@@ -35,15 +41,7 @@ class CSYNC(dns.rdata.Rdata):
         object.__setattr__(self, 'windows', dns.rdata._constify(windows))
 
     def to_text(self, origin=None, relativize=True, **kw):
-        text = ''
-        for (window, bitmap) in self.windows:
-            bits = []
-            for (i, byte) in enumerate(bitmap):
-                for j in range(0, 8):
-                    if byte & (0x80 >> j):
-                        bits.append(dns.rdatatype.to_text(window * 256 +
-                                                          i * 8 + j))
-            text += (' ' + ' '.join(bits))
+        text = Bitmap(self.windows).to_text()
         return '%d %d%s' % (self.serial, self.flags, text)
 
     @classmethod
@@ -51,56 +49,15 @@ class CSYNC(dns.rdata.Rdata):
                   relativize_to=None):
         serial = tok.get_uint32()
         flags = tok.get_uint16()
-        rdtypes = []
-        while 1:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            nrdtype = dns.rdatatype.from_text(token.value)
-            if nrdtype == 0:
-                raise dns.exception.SyntaxError("CSYNC with bit 0")
-            if nrdtype > 65535:
-                raise dns.exception.SyntaxError("CSYNC with bit > 65535")
-            rdtypes.append(nrdtype)
-        rdtypes.sort()
-        window = 0
-        octets = 0
-        prior_rdtype = 0
-        bitmap = bytearray(b'\0' * 32)
-        windows = []
-        for nrdtype in rdtypes:
-            if nrdtype == prior_rdtype:
-                continue
-            prior_rdtype = nrdtype
-            new_window = nrdtype // 256
-            if new_window != window:
-                windows.append((window, bitmap[0:octets]))
-                bitmap = bytearray(b'\0' * 32)
-                window = new_window
-            offset = nrdtype % 256
-            byte = offset // 8
-            bit = offset % 8
-            octets = byte + 1
-            bitmap[byte] = bitmap[byte] | (0x80 >> bit)
-
-        windows.append((window, bitmap[0:octets]))
+        windows = Bitmap().from_text(tok)
         return cls(rdclass, rdtype, serial, flags, windows)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack('!IH', self.serial, self.flags))
-        for (window, bitmap) in self.windows:
-            file.write(struct.pack('!BB', window, len(bitmap)))
-            file.write(bitmap)
+        Bitmap(self.windows).to_wire(file)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (serial, flags) = parser.get_struct("!IH")
-        windows = []
-        while parser.remaining() > 0:
-            window = parser.get_uint8()
-            octets = parser.get_uint8()
-            if octets == 0 or octets > 32:
-                raise dns.exception.FormError("bad CSYNC octets")
-            bitmap = parser.get_bytes(octets)
-            windows.append((window, bitmap))
+        windows = Bitmap().from_wire_parser(parser)
         return cls(rdclass, rdtype, serial, flags, windows)

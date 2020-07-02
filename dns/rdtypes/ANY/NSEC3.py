@@ -22,6 +22,7 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.rdatatype
+import dns.rdtypes.util
 
 
 b32_hex_to_normal = bytes.maketrans(b'0123456789ABCDEFGHIJKLMNOPQRSTUV',
@@ -34,6 +35,10 @@ SHA1 = 1
 
 # flag constants
 OPTOUT = 1
+
+
+class Bitmap(dns.rdtypes.util.Bitmap):
+    type_name = 'NSEC3'
 
 
 class NSEC3(dns.rdata.Rdata):
@@ -62,15 +67,7 @@ class NSEC3(dns.rdata.Rdata):
             salt = '-'
         else:
             salt = binascii.hexlify(self.salt).decode()
-        text = ''
-        for (window, bitmap) in self.windows:
-            bits = []
-            for (i, byte) in enumerate(bitmap):
-                for j in range(0, 8):
-                    if byte & (0x80 >> j):
-                        bits.append(dns.rdatatype.to_text(window * 256 +
-                                                          i * 8 + j))
-            text += (' ' + ' '.join(bits))
+        text = Bitmap(self.windows).to_text()
         return '%u %u %u %s %s%s' % (self.algorithm, self.flags,
                                      self.iterations, salt, next, text)
 
@@ -88,40 +85,7 @@ class NSEC3(dns.rdata.Rdata):
         next = tok.get_string().encode(
             'ascii').upper().translate(b32_hex_to_normal)
         next = base64.b32decode(next)
-        rdtypes = []
-        while 1:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            nrdtype = dns.rdatatype.from_text(token.value)
-            if nrdtype == 0:
-                raise dns.exception.SyntaxError("NSEC3 with bit 0")
-            if nrdtype > 65535:
-                raise dns.exception.SyntaxError("NSEC3 with bit > 65535")
-            rdtypes.append(nrdtype)
-        rdtypes.sort()
-        window = 0
-        octets = 0
-        prior_rdtype = 0
-        bitmap = bytearray(b'\0' * 32)
-        windows = []
-        for nrdtype in rdtypes:
-            if nrdtype == prior_rdtype:
-                continue
-            prior_rdtype = nrdtype
-            new_window = nrdtype // 256
-            if new_window != window:
-                if octets != 0:
-                    windows.append((window, bitmap[0:octets]))
-                bitmap = bytearray(b'\0' * 32)
-                window = new_window
-            offset = nrdtype % 256
-            byte = offset // 8
-            bit = offset % 8
-            octets = byte + 1
-            bitmap[byte] = bitmap[byte] | (0x80 >> bit)
-        if octets != 0:
-            windows.append((window, bitmap[0:octets]))
+        windows = Bitmap().from_text(tok)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
                    windows)
 
@@ -133,21 +97,13 @@ class NSEC3(dns.rdata.Rdata):
         l = len(self.next)
         file.write(struct.pack("!B", l))
         file.write(self.next)
-        for (window, bitmap) in self.windows:
-            file.write(struct.pack("!BB", window, len(bitmap)))
-            file.write(bitmap)
+        Bitmap(self.windows).to_wire(file)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (algorithm, flags, iterations) = parser.get_struct('!BBH')
         salt = parser.get_counted_bytes()
         next = parser.get_counted_bytes()
-        windows = []
-        while parser.remaining() > 0:
-            window = parser.get_uint8()
-            bitmap = parser.get_counted_bytes()
-            if len(bitmap) == 0 or len(bitmap) > 32:
-                raise dns.exception.FormError("bad NSEC3 octets")
-            windows.append((window, bitmap))
+        windows = Bitmap().from_wire_parser(parser)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
                    windows)

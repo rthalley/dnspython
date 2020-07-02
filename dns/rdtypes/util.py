@@ -15,6 +15,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import struct
+
 import dns.exception
 import dns.name
 import dns.ipv4
@@ -89,3 +91,76 @@ class Gateway:
             return parser.get_name(origin)
         else:
             raise dns.exception.FormError(self._invalid_type())
+
+class Bitmap:
+    """A helper class for the NSEC/NSEC3/CSYNC type bitmaps"""
+    type_name = ""
+
+    def __init__(self, windows=None):
+        self.windows = windows
+
+    def to_text(self):
+        text = ""
+        for (window, bitmap) in self.windows:
+            bits = []
+            for (i, byte) in enumerate(bitmap):
+                for j in range(0, 8):
+                    if byte & (0x80 >> j):
+                        rdtype = window * 256 + i * 8 + j
+                        bits.append(dns.rdatatype.to_text(rdtype))
+            text += (' ' + ' '.join(bits))
+        return text
+
+    def from_text(self, tok):
+        rdtypes = []
+        while True:
+            token = tok.get().unescape()
+            if token.is_eol_or_eof():
+                break
+            rdtype = dns.rdatatype.from_text(token.value)
+            if rdtype == 0:
+                raise dns.exception.SyntaxError(f"{self.type_name} with bit 0")
+            rdtypes.append(rdtype)
+        rdtypes.sort()
+        window = 0
+        octets = 0
+        prior_rdtype = 0
+        bitmap = bytearray(b'\0' * 32)
+        windows = []
+        for rdtype in rdtypes:
+            if rdtype == prior_rdtype:
+                continue
+            prior_rdtype = rdtype
+            new_window = rdtype // 256
+            if new_window != window:
+                if octets != 0:
+                    windows.append((window, bitmap[0:octets]))
+                bitmap = bytearray(b'\0' * 32)
+                window = new_window
+            offset = rdtype % 256
+            byte = offset // 8
+            bit = offset % 8
+            octets = byte + 1
+            bitmap[byte] = bitmap[byte] | (0x80 >> bit)
+        if octets != 0:
+            windows.append((window, bitmap[0:octets]))
+        return windows
+
+    def to_wire(self, file):
+        for (window, bitmap) in self.windows:
+            file.write(struct.pack('!BB', window, len(bitmap)))
+            file.write(bitmap)
+
+    def from_wire_parser(self, parser):
+        windows = []
+        last_window = -1
+        while parser.remaining() > 0:
+            window = parser.get_uint8()
+            if window <= last_window:
+                raise dns.exception.FormError(f"bad {self.type_name} bitmap")
+            bitmap = parser.get_counted_bytes()
+            if len(bitmap) == 0 or len(bitmap) > 32:
+                raise dns.exception.FormError(f"bad {self.type_name} octets")
+            windows.append((window, bitmap))
+            last_window = window
+        return windows
