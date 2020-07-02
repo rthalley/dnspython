@@ -15,12 +15,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import struct
-
 import dns.exception
 import dns.rdata
 import dns.rdatatype
 import dns.name
+import dns.rdtypes.util
+
+
+class Bitmap(dns.rdtypes.util.Bitmap):
+    type_name = 'NSEC'
 
 
 class NSEC(dns.rdata.Rdata):
@@ -36,70 +39,22 @@ class NSEC(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)
-        text = ''
-        for (window, bitmap) in self.windows:
-            bits = []
-            for (i, byte) in enumerate(bitmap):
-                for j in range(0, 8):
-                    if byte & (0x80 >> j):
-                        bits.append(dns.rdatatype.to_text(window * 256 +
-                                                          i * 8 + j))
-            text += (' ' + ' '.join(bits))
+        text = Bitmap(self.windows).to_text()
         return '{}{}'.format(next, text)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         next = tok.get_name(origin, relativize, relativize_to)
-        rdtypes = []
-        while 1:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            nrdtype = dns.rdatatype.from_text(token.value)
-            if nrdtype == 0:
-                raise dns.exception.SyntaxError("NSEC with bit 0")
-            if nrdtype > 65535:
-                raise dns.exception.SyntaxError("NSEC with bit > 65535")
-            rdtypes.append(nrdtype)
-        rdtypes.sort()
-        window = 0
-        octets = 0
-        prior_rdtype = 0
-        bitmap = bytearray(b'\0' * 32)
-        windows = []
-        for nrdtype in rdtypes:
-            if nrdtype == prior_rdtype:
-                continue
-            prior_rdtype = nrdtype
-            new_window = nrdtype // 256
-            if new_window != window:
-                windows.append((window, bitmap[0:octets]))
-                bitmap = bytearray(b'\0' * 32)
-                window = new_window
-            offset = nrdtype % 256
-            byte = offset // 8
-            bit = offset % 8
-            octets = byte + 1
-            bitmap[byte] = bitmap[byte] | (0x80 >> bit)
-
-        windows.append((window, bitmap[0:octets]))
+        windows = Bitmap().from_text(tok)
         return cls(rdclass, rdtype, next, windows)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         self.next.to_wire(file, None, origin, False)
-        for (window, bitmap) in self.windows:
-            file.write(struct.pack('!BB', window, len(bitmap)))
-            file.write(bitmap)
+        Bitmap(self.windows).to_wire(file)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         next = parser.get_name(origin)
-        windows = []
-        while parser.remaining() > 0:
-            window = parser.get_uint8()
-            bitmap = parser.get_counted_bytes()
-            if len(bitmap) == 0 or len(bitmap) > 32:
-                raise dns.exception.FormError("bad NSEC octets")
-            windows.append((window, bitmap))
+        windows = Bitmap().from_wire_parser(parser)
         return cls(rdclass, rdtype, next, windows)
