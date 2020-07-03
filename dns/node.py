@@ -31,7 +31,7 @@ class Node:
     __slots__ = ['rdatasets']
 
     def __init__(self):
-        #: the set of rdatsets, represented as a list.
+        # the set of rdatasets, represented as a list.
         self.rdatasets = []
 
     def to_text(self, name, **kw):
