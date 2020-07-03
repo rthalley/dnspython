@@ -1028,5 +1028,9 @@ class NameTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             del n.labels
 
+    def testUnicodeEscapify(self):
+        n = dns.name.from_unicode('Königsgäßchen;\ttext')
+        self.assertEqual(n.to_unicode(), 'königsgässchen\\;\\009text.')
+
 if __name__ == '__main__':
     unittest.main()
