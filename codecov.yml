@@ -2,7 +2,7 @@ coverage:
   status:
     project:
       default:
-        target: auto
+        target: 85%
         threshold: 2%
 ignore:
   - 'tests/*'
