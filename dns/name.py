@@ -241,8 +241,6 @@ def _escapify(label):
         # Ordinary DNS label mode.  Escape special characters and values
         # < 0x20 or > 0x7f.
         text = ''
-        if isinstance(label, str):
-            label = label.encode()
         for c in label:
             if c in _escaped:
                 text += '\\' + chr(c)
