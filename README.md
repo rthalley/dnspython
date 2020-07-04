@@ -31,7 +31,7 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 2.0.0rc2.
+This is the development version of dnspython 2.0.0.
 Please read
 [What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
 information about the changes in this release.
