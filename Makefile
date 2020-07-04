@@ -65,3 +65,7 @@ pocov:
 	poetry run coverage run -m pytest
 	poetry run coverage html --include 'dns*'
 	poetry run coverage report --include 'dns*'
+
+pokit:
+	po run python setup.py sdist --formats=zip bdist_wheel
+
