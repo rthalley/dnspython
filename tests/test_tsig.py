@@ -1,8 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-import hashlib
 import unittest
-import time
+from unittest.mock import Mock
 
 import dns.rcode
 import dns.tsig
@@ -16,6 +15,7 @@ keyring = dns.tsigkeyring.from_text(
 )
 
 keyname = dns.name.from_text('keyname')
+
 
 class TSIGTestCase(unittest.TestCase):
 
@@ -42,6 +42,30 @@ class TSIGTestCase(unittest.TestCase):
         m = dns.message.make_query('example', 'a')
         m.use_tsig(keyring, keyname, tsig_error=dns.rcode.BADKEY)
         self.assertEqual(m.tsig_error, dns.rcode.BADKEY)
+
+    def test_gssapi_context(self):
+        # mock out the gssapi context to return some dummy values
+        gssapi_context_mock = Mock()
+        gssapi_context_mock.get_signature.return_value = b'xxxxxxxxxxx'
+        gssapi_context_mock.verify_signature.return_value = None
+
+        # create the key and add it to the keyring
+        key = dns.tsig.Key('gsstsigtest', gssapi_context_mock, 'gss-tsig')
+        ctx = dns.tsig.get_context(key)
+        self.assertEqual(ctx.name, 'gss-tsig')
+        gsskeyname = dns.name.from_text('gsstsigtest')
+        keyring[gsskeyname] = key
+
+        # create example message and go to/from wire to simulate sign/verify
+        m = dns.message.make_query('example', 'a')
+        m.use_tsig(keyring, gsskeyname)
+        w = m.to_wire()
+        # not raising is passing
+        dns.message.from_wire(w, keyring)
+
+        # assertions to make sure the "gssapi" functions were called
+        gssapi_context_mock.get_signature.assert_called_once()
+        gssapi_context_mock.verify_signature.assert_called_once()
 
     def test_sign_and_validate(self):
         m = dns.message.make_query('example', 'a')
