@@ -43,6 +43,8 @@ class Rcode(dns.enum.IntEnum):
     NOTAUTH = 9
     #: Name not in zone.
     NOTZONE = 10
+    #: DSO-TYPE Not Implemented
+    DSOTYPENI = 11
     #: Bad EDNS version.
     BADVERS = 16
     #: TSIG Signature Failure
