@@ -614,7 +614,7 @@ class Message:
     def ednsflags(self, v):
         if self.opt:
             self.opt.ttl = v
-        else:
+        elif v:
             self.opt = self._make_opt(v)
 
     @property
