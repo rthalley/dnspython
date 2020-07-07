@@ -336,6 +336,7 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(m.edns, -1)
         m.want_dnssec()
         self.assertEqual(m.edns, 0)
+        self.assertTrue(m.ednsflags & dns.flags.DO)
 
     def test_from_file(self):
         m = dns.message.from_file(here('query'))

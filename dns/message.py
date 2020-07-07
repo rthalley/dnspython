@@ -615,7 +615,7 @@ class Message:
         if self.opt:
             self.opt.ttl = v
         else:
-            self.opt = self._make_opt(0, v)
+            self.opt = self._make_opt(v)
 
     @property
     def payload(self):
