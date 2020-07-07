@@ -683,8 +683,6 @@ class Message:
         return value
 
     def _parse_rr_header(self, section, name, rdclass, rdtype):
-        if dns.rdataclass.is_metaclass(rdclass):
-            raise dns.exception.FormError
         return (rdclass, rdtype, None, False)
 
     def _parse_special_rr_header(self, section, count, position,
