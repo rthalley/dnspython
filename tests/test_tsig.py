@@ -18,14 +18,16 @@ keyname = dns.name.from_text('keyname')
 
 class TSIGTestCase(unittest.TestCase):
 
-    def test_get_algorithm(self):
-        n = dns.name.from_text('hmac-sha256')
-        (w, alg) = dns.tsig.get_algorithm(n)
-        self.assertEqual(alg, hashlib.sha256)
-        (w, alg) = dns.tsig.get_algorithm('hmac-sha256')
-        self.assertEqual(alg, hashlib.sha256)
-        self.assertRaises(NotImplementedError,
-                          lambda: dns.tsig.get_algorithm('bogus'))
+    def test_get_context(self):
+        key = dns.tsig.Key('foo.com', 'abcd', 'hmac-sha256')
+        ctx = dns.tsig.get_context(key)
+        self.assertEqual(ctx.name, 'hmac-sha256')
+        key = dns.tsig.Key('foo.com', 'abcd', 'hmac-sha512')
+        ctx = dns.tsig.get_context(key)
+        self.assertEqual(ctx.name, 'hmac-sha512')
+        bogus = dns.tsig.Key('foo.com', 'abcd', 'bogus')
+        with self.assertRaises(NotImplementedError):
+            dns.tsig.get_context(bogus)
 
     def test_sign_and_validate(self):
         m = dns.message.make_query('example', 'a')
