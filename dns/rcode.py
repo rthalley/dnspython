@@ -46,13 +46,13 @@ class Rcode(dns.enum.IntEnum):
     #: Bad EDNS version.
     BADVERS = 16
     #: TSIG Signature Failure
-    # BADSIG = 16
+    BADSIG = 16
     #: Key not recognized.
-    BADKEY	= 17
+    BADKEY = 17
     #: Signature out of time window.
-    BADTIME	= 18
+    BADTIME = 18
     #: Bad TKEY Mode.
-    BADMODE	= 19
+    BADMODE = 19
     #: Duplicate key name.
     BADNAME = 20
     #: Algorithm not supported.
@@ -124,14 +124,16 @@ def to_flags(value):
     return (v, ev)
 
 
-def to_text(value):
+def to_text(value, tsig=False):
     """Convert rcode into text.
 
-    *value*, and ``int``, the rcode.
+    *value*, an ``int``, the rcode.
 
     Raises ``ValueError`` if rcode is < 0 or > 4095.
 
     Returns a ``str``.
     """
 
+    if tsig and value == Rcode.BADVERS:
+        return 'BADSIG'
     return Rcode.to_text(value)

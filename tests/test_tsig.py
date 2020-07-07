@@ -4,6 +4,7 @@ import hashlib
 import unittest
 import time
 
+import dns.rcode
 import dns.tsig
 import dns.tsigkeyring
 import dns.message
@@ -50,10 +51,10 @@ class TSIGTestCase(unittest.TestCase):
         return(q, r)
 
     def test_peer_errors(self):
-        items = [(dns.tsig.BADSIG, dns.tsig.PeerBadSignature),
-                 (dns.tsig.BADKEY, dns.tsig.PeerBadKey),
-                 (dns.tsig.BADTIME, dns.tsig.PeerBadTime),
-                 (dns.tsig.BADTRUNC, dns.tsig.PeerBadTruncation),
+        items = [(dns.rcode.BADSIG, dns.tsig.PeerBadSignature),
+                 (dns.rcode.BADKEY, dns.tsig.PeerBadKey),
+                 (dns.rcode.BADTIME, dns.tsig.PeerBadTime),
+                 (dns.rcode.BADTRUNC, dns.tsig.PeerBadTruncation),
                  (99, dns.tsig.PeerError),
                  ]
         for err, ex in items:

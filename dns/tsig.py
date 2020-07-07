@@ -25,6 +25,7 @@ import struct
 import dns.exception
 import dns.rdataclass
 import dns.name
+import dns.rcode
 
 class BadTime(dns.exception.DNSException):
 
@@ -89,11 +90,6 @@ _hashes = {
 }
 
 default_algorithm = HMAC_SHA256
-
-BADSIG = 16
-BADKEY = 17
-BADTIME = 18
-BADTRUNC = 22
 
 
 def sign(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=False):
@@ -162,13 +158,13 @@ def validate(wire, key, owner, rdata, now, request_mac, tsig_start, ctx=None,
     adcount -= 1
     new_wire = wire[0:10] + struct.pack("!H", adcount) + wire[12:tsig_start]
     if rdata.error != 0:
-        if rdata.error == BADSIG:
+        if rdata.error == dns.rcode.BADSIG:
             raise PeerBadSignature
-        elif rdata.error == BADKEY:
+        elif rdata.error == dns.rcode.BADKEY:
             raise PeerBadKey
-        elif rdata.error == BADTIME:
+        elif rdata.error == dns.rcode.BADTIME:
             raise PeerBadTime
-        elif rdata.error == BADTRUNC:
+        elif rdata.error == dns.rcode.BADTRUNC:
             raise PeerBadTruncation
         else:
             raise PeerError('unknown TSIG error code %d' % rdata.error)
