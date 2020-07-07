@@ -45,6 +45,22 @@ class Rcode(dns.enum.IntEnum):
     NOTZONE = 10
     #: Bad EDNS version.
     BADVERS = 16
+    #: TSIG Signature Failure
+    # BADSIG = 16
+    #: Key not recognized.
+    BADKEY	= 17
+    #: Signature out of time window.
+    BADTIME	= 18
+    #: Bad TKEY Mode.
+    BADMODE	= 19
+    #: Duplicate key name.
+    BADNAME = 20
+    #: Algorithm not supported.
+    BADALG = 21
+    #: Bad Truncation
+    BADTRUNC = 22
+    #: Bad/missing Server Cookie
+    BADCOOKIE = 23
 
     @classmethod
     def _maximum(cls):
