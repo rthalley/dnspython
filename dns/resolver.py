@@ -1445,9 +1445,12 @@ def _getfqdn(name=None):
     if name is None:
         name = socket.gethostname()
     try:
-        return _getnameinfo(_getaddrinfo(name, 80)[0][4])[0]
+        (name, _, _) = _gethostbyaddr(name)
+        # Python's version checks aliases too, but our gethostbyname
+        # ignores them, so we do so here as well.
     except Exception:
-        return name
+        pass
+    return name
 
 
 def _gethostbyname(name):
