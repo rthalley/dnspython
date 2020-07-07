@@ -1475,6 +1475,11 @@ def _gethostbyaddr(ip):
         sockaddr = (ip, 80, 0, 0)
         family = socket.AF_INET6
     except Exception:
+        try:
+            dns.ipv4.inet_aton(ip)
+        except Exception:
+            raise socket.gaierror(socket.EAI_NONAME,
+                                  'Name or service not known')
         sockaddr = (ip, 80)
         family = socket.AF_INET
     (name, port) = _getnameinfo(sockaddr, socket.NI_NAMEREQD)
@@ -1486,16 +1491,11 @@ def _gethostbyaddr(ip):
     # We only want to include an address from the tuples if it's the
     # same as the one we asked about.  We do this comparison in binary
     # to avoid any differences in text representations.
-    try:
-        bin_ip = dns.inet.inet_pton(family, ip)
-    except Exception:
-        # socket.getfqdn() apparently calls gethostbyaddr() with a name,
-        # and this all works, so do what it does.
-        bin_ip = None
+    bin_ip = dns.inet.inet_pton(family, ip)
     for item in tuples:
         addr = item[4][0]
         bin_addr = dns.inet.inet_pton(family, addr)
-        if bin_ip is None or bin_ip == bin_addr:
+        if bin_ip == bin_addr:
             addresses.append(addr)
     # XXX we just ignore aliases
     return (canonical, aliases, addresses)
