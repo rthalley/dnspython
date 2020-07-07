@@ -118,13 +118,22 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
         except socket.gaierror as e:
             self.assertEqual(e.errno, socket.EAI_NONAME)
 
-    def test_getfqdn(self):
-        b = socket.getfqdn('www.dnspython.org')
-        # we do this now because python's original getfqdn calls
-        # gethostbyaddr() and we don't want it to call us!
-        dns.resolver.restore_system_resolver()
-        a = dns.resolver._original_getfqdn('www.dnspython.org')
-        self.assertEqual(dns.name.from_text(a), dns.name.from_text(b))
+# Give up on testing this for now as all of the names I've considered
+# using for testing are part of CDNs and there is deep magic in
+# gethostbyaddr() that python's getfqdn() is using.  At any rate,
+# the problem is that dnspython just gives up whereas the native python
+# code is looking up www.dnspython.org, picking a CDN IPv4 address
+# (sometimes) and returning the reverse lookup of that address (i.e.
+# the domain name of the CDN server).  This isn't what I'd consider the
+# FQDN of www.dnspython.org to be!
+#
+#    def test_getfqdn(self):
+#        b = socket.getfqdn('www.dnspython.org')
+#        # we do this now because python's original getfqdn calls
+#        # gethostbyaddr() and we don't want it to call us!
+#        dns.resolver.restore_system_resolver()
+#        a = dns.resolver._original_getfqdn('www.dnspython.org')
+#        self.assertEqual(dns.name.from_text(a), dns.name.from_text(b))
 
     def test_gethostbyaddr(self):
         a = dns.resolver._original_gethostbyaddr('8.8.8.8')
