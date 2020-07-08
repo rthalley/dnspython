@@ -135,6 +135,9 @@ class Option:
             return NotImplemented
         return self._cmp(other) > 0
 
+    def __str__(self):
+        return self.to_text()
+
 
 class GenericOption(Option):
 
@@ -161,8 +164,6 @@ class GenericOption(Option):
     def from_wire_parser(cls, otype, parser):
         return cls(otype, parser.get_remaining())
 
-    def __str__(self):
-        return self.to_text()
 
 class ECSOption(Option):
     """EDNS Client Subnet (ECS, RFC7871)"""
@@ -290,9 +291,6 @@ class ECSOption(Option):
             raise ValueError('unsupported family')
 
         return cls(addr, src, scope)
-
-    def __str__(self):
-        return self.to_text()
 
 
 _type_to_class = {
