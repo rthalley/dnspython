@@ -43,6 +43,9 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def getpeername(self):
         return self.socket.getpeername()
 
+    async def getsockname(self):
+        return self.socket.getsockname()
+
 
 class StreamSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, family, stream, tls=False):
@@ -68,6 +71,12 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
             return self.stream.transport_stream.socket.getpeername()
         else:
             return self.stream.socket.getpeername()
+
+    async def getsockname(self):
+        if self.tls:
+            return self.stream.transport_stream.socket.getsockname()
+        else:
+            return self.stream.socket.getsockname()
 
 
 class Backend(dns._asyncbackend.Backend):
