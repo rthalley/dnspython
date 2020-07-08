@@ -465,14 +465,15 @@ class LiveResolverTests(unittest.TestCase):
         self.assertRaises(dns.resolver.NXDOMAIN, bad)
 
     def testResolveCacheHit(self):
-        res = dns.resolver.Resolver()
+        res = dns.resolver.Resolver(configure=False)
+        res.nameservers = ['8.8.8.8']
         res.cache = dns.resolver.Cache()
         answer1 = res.resolve('dns.google.', 'A')
         seen = set([rdata.address for rdata in answer1])
-        self.assertTrue('8.8.8.8' in seen)
-        self.assertTrue('8.8.4.4' in seen)
+        self.assertIn('8.8.8.8', seen)
+        self.assertIn('8.8.4.4', seen)
         answer2 = res.resolve('dns.google.', 'A')
-        self.assertTrue(answer2 is answer1)
+        self.assertIs(answer2, answer1)
 
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
@@ -699,7 +700,7 @@ class NanoTests(unittest.TestCase):
 
     def testE164Query(self):
         with NaptrNanoNameserver() as na:
-            res = dns.resolver.Resolver()
+            res = dns.resolver.Resolver(configure=False)
             res.port = na.udp_address[1]
             res.nameservers = [ na.udp_address[0] ]
             answer = dns.e164.query('1650551212', ['e164.arpa'], res)

@@ -183,7 +183,7 @@ class AsyncTests(unittest.TestCase):
         self.assertEqual(answer[0].target, dnsgoogle)
 
     def testResolverBadScheme(self):
-        res = dns.asyncresolver.Resolver()
+        res = dns.asyncresolver.Resolver(configure=False)
         res.nameservers = ['bogus://dns.google/dns-query']
         async def run():
             answer = await res.resolve('dns.google', 'A')

@@ -21,7 +21,7 @@ except socket.gaierror:
 class OverrideSystemResolverTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.res = dns.resolver.Resolver()
+        self.res = dns.resolver.Resolver(configure=False)
         self.res.nameservers = ['8.8.8.8']
         self.res.cache = dns.resolver.LRUCache()
         dns.resolver.override_system_resolver(self.res)

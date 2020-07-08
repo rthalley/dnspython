@@ -123,7 +123,7 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         self.assertTrue(q.is_response(r))
 
     def test_resolver(self):
-        res = dns.resolver.Resolver()
+        res = dns.resolver.Resolver(configure=False)
         res.nameservers = ['https://dns.google/dns-query']
         answer = res.resolve('dns.google', 'A')
         seen = set([rdata.address for rdata in answer])
@@ -131,7 +131,7 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         self.assertTrue('8.8.4.4' in seen)
 
     def test_resolver_bad_scheme(self):
-        res = dns.resolver.Resolver()
+        res = dns.resolver.Resolver(configure=False)
         res.nameservers = ['bogus://dns.google/dns-query']
         def bad():
             answer = res.resolve('dns.google', 'A')
