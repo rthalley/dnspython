@@ -30,8 +30,7 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 
-from dns.query import _addresses_equal, _compute_times, UnexpectedSource, \
-    BadResponse, ssl
+from dns.query import _compute_times, _matches_destination, BadResponse, ssl
 
 
 # for brevity
@@ -87,7 +86,7 @@ async def send_udp(sock, what, destination, expiration=None):
     return (n, sent_time)
 
 
-async def receive_udp(sock, destination, expiration=None,
+async def receive_udp(sock, destination=None, expiration=None,
                       ignore_unexpected=False, one_rr_per_rrset=False,
                       keyring=None, request_mac=b'', ignore_trailing=False,
                       raise_on_truncation=False):
@@ -96,7 +95,9 @@ async def receive_udp(sock, destination, expiration=None,
     *sock*, a ``dns.asyncbackend.DatagramSocket``.
 
     *destination*, a destination tuple appropriate for the address family
-    of the socket, specifying where the associated query was sent.
+    of the socket, specifying where the message is expected to arrive from.
+    When receiving a response, this would be where the associated query was
+    sent.
 
     *expiration*, a ``float`` or ``None``, the absolute time at which
     a timeout exception should be raised.  If ``None``, no timeout will
@@ -121,27 +122,22 @@ async def receive_udp(sock, destination, expiration=None,
     Raises if the message is malformed, if network errors occur, of if
     there is a timeout.
 
-    Returns a ``(dns.message.Message, float)`` tuple of the received message
-    and the received time.
+    Returns a ``(dns.message.Message, float, tuple)`` tuple of the received
+    message, the received time, and the address where the message arrived from.
     """
 
     wire = b''
     while 1:
         (wire, from_address) = await sock.recvfrom(65535, _timeout(expiration))
-        if _addresses_equal(sock.family, from_address, destination) or \
-           (dns.inet.is_multicast(destination[0]) and
-            from_address[1:] == destination[1:]):
+        if _matches_destination(sock.family, from_address, destination,
+                                ignore_unexpected):
             break
-        if not ignore_unexpected:
-            raise UnexpectedSource('got a response from '
-                                   '%s instead of %s' % (from_address,
-                                                         destination))
     received_time = time.time()
     r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
                               one_rr_per_rrset=one_rr_per_rrset,
                               ignore_trailing=ignore_trailing,
                               raise_on_truncation=raise_on_truncation)
-    return (r, received_time)
+    return (r, received_time, from_address)
 
 async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
               ignore_unexpected=False, one_rr_per_rrset=False,
@@ -202,12 +198,12 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
             stuple = _source_tuple(af, source, source_port)
             s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple)
         await send_udp(s, wire, destination, expiration)
-        (r, received_time) = await receive_udp(s, destination, expiration,
-                                               ignore_unexpected,
-                                               one_rr_per_rrset,
-                                               q.keyring, q.mac,
-                                               ignore_trailing,
-                                               raise_on_truncation)
+        (r, received_time, _) = await receive_udp(s, destination, expiration,
+                                                  ignore_unexpected,
+                                                  one_rr_per_rrset,
+                                                  q.keyring, q.mac,
+                                                  ignore_trailing,
+                                                  raise_on_truncation)
         r.time = received_time - begin_time
         if not q.is_response(r):
             raise BadResponse

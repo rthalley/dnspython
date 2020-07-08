@@ -75,6 +75,9 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def getpeername(self):
         return self.transport.get_extra_info('peername')
 
+    async def getsockname(self):
+        return self.transport.get_extra_info('sockname')
+
 
 class StreamSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, af, reader, writer):
@@ -101,6 +104,9 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
 
     async def getpeername(self):
         return self.writer.get_extra_info('peername')
+
+    async def getsockname(self):
+        return self.writer.get_extra_info('sockname')
 
 
 class Backend(dns._asyncbackend.Backend):

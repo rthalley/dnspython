@@ -343,6 +343,25 @@ class AsyncTests(unittest.TestCase):
             (_, tcp) = self.async_run(run)
             self.assertFalse(tcp)
 
+    def testUDPReceiveQuery(self):
+        async def run():
+            async with await self.backend.make_socket(
+                    socket.AF_INET, socket.SOCK_DGRAM,
+                    source=('127.0.0.1', 0)) as listener:
+                listener_address = await listener.getsockname()
+                async with await self.backend.make_socket(
+                        socket.AF_INET, socket.SOCK_DGRAM,
+                        source=('127.0.0.1', 0)) as sender:
+                    sender_address = await sender.getsockname()
+                    q = dns.message.make_query('dns.google', dns.rdatatype.A)
+                    await dns.asyncquery.send_udp(sender, q, listener_address)
+                    expiration = time.time() + 2
+                    (_, _, recv_address) = await dns.asyncquery.receive_udp(
+                            listener, expiration=expiration)
+                    return (sender_address, recv_address)
+        (sender_address, recv_address) = self.async_run(run)
+        self.assertEqual(sender_address, recv_address)
+
     def testUDPReceiveTimeout(self):
         async def arun():
             async with await self.backend.make_socket(socket.AF_INET,

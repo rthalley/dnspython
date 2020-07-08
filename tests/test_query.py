@@ -191,6 +191,18 @@ class QueryTests(unittest.TestCase):
             (_, tcp) = dns.query.udp_with_fallback(q, address)
             self.assertFalse(tcp)
 
+    def testUDPReceiveQuery(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as listener:
+            listener.bind(('127.0.0.1', 0))
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+                sender.bind(('127.0.0.1', 0))
+                q = dns.message.make_query('dns.google', dns.rdatatype.A)
+                dns.query.send_udp(sender, q, listener.getsockname())
+                expiration = time.time() + 2
+                (q, _, addr) = dns.query.receive_udp(listener,
+                                                     expiration=expiration)
+                self.assertEqual(addr, sender.getsockname())
+
 
 # for brevity
 _d_and_s = dns.query._destination_and_source
