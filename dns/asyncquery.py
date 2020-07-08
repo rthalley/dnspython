@@ -121,7 +121,8 @@ async def receive_udp(sock, destination, expiration=None,
     Raises if the message is malformed, if network errors occur, of if
     there is a timeout.
 
-    Returns a ``dns.message.Message`` object.
+    Returns a ``(dns.message.Message, float)`` tuple of the received message
+    and the received time.
     """
 
     wire = b''
@@ -338,7 +339,8 @@ async def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
     Raises if the message is malformed, if network errors occur, of if
     there is a timeout.
 
-    Returns a ``dns.message.Message`` object.
+    Returns a ``(dns.message.Message, float)`` tuple of the received message
+    and the received time.
     """
 
     ldata = await _read_exactly(sock, 2, expiration)
