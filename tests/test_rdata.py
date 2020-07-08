@@ -413,7 +413,6 @@ class RdataTestCase(unittest.TestCase):
     def test_from_wire_parser(self):
         wire = bytes.fromhex('01020304')
         rdata = dns.rdata.from_wire('in', 'a', wire, 0, 4)
-        print(rdata)
         self.assertEqual(rdata, dns.rdata.from_text('in', 'a', '1.2.3.4'))
 
 if __name__ == '__main__':
