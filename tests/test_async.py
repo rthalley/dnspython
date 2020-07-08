@@ -277,6 +277,8 @@ class AsyncTests(unittest.TestCase):
                         socket.SOCK_STREAM, 0,
                         None,
                         (address, 53)) as s:
+                    # for basic coverage
+                    await s.getsockname()
                     q = dns.message.make_query(qname, dns.rdatatype.A)
                     return await dns.asyncquery.tcp(q, address, sock=s)
             response = self.async_run(run)
@@ -315,6 +317,8 @@ class AsyncTests(unittest.TestCase):
                         None,
                         (address, 853), None,
                         ssl_context, None) as s:
+                    # for basic coverage
+                    await s.getsockname()
                     q = dns.message.make_query(qname, dns.rdatatype.A)
                     return await dns.asyncquery.tls(q, '8.8.8.8', sock=s)
             response = self.async_run(run)
