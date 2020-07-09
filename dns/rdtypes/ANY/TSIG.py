@@ -63,9 +63,9 @@ class TSIG(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         algorithm = self.algorithm.choose_relativity(origin, relativize)
         return f"{algorithm} {self.fudge} {self.time_signed} " + \
-               f"{len(self.mac)} {dns.rdata._base64ify(self.mac, 256)} " + \
+               f"{len(self.mac)} {dns.rdata._base64ify(self.mac, 0)} " + \
                f"{self.original_id} {self.error} " + \
-               f"{len(self.other)} {dns.rdata._base64ify(self.other, 256)}"
+               f"{len(self.other)} {dns.rdata._base64ify(self.other, 0)}"
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         self.algorithm.to_wire(file, None, origin, False)

@@ -53,6 +53,8 @@ def _base64ify(data, chunksize=_base64_chunksize):
     """
 
     line = base64.b64encode(data)
+    if not chunksize:
+        return line
     return b' '.join([line[i:i + chunksize]
                       for i
                       in range(0, len(line), chunksize)]).decode()
