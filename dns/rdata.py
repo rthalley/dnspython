@@ -34,15 +34,16 @@ import dns.tokenizer
 _chunksize = 32
 
 
-def _wordbreak(line, chunksize=_chunksize):
-    """Break a string into chunks of chunksize characters separated by a space.
+def _wordbreak(data, chunksize=_chunksize):
+    """Break a binary string into chunks of chunksize characters separated by
+    a space.
     """
 
     if not chunksize:
-        return line
-    return b' '.join([line[i:i + chunksize]
+        return data.decode()
+    return b' '.join([data[i:i + chunksize]
                       for i
-                      in range(0, len(line), chunksize)]).decode()
+                      in range(0, len(data), chunksize)]).decode()
 
 
 def _hexify(data, chunksize=_chunksize):
