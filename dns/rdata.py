@@ -31,33 +31,34 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
 
-_hex_chunksize = 32
+_chunksize = 32
 
 
-def _hexify(data, chunksize=_hex_chunksize):
-    """Convert a binary string into its hex encoding, broken up into chunks
-    of chunksize characters separated by a space.
+def _wordbreak(line, chunksize=_chunksize):
+    """Break a string into chunks of chunksize characters separated by a space.
     """
 
-    line = binascii.hexlify(data)
-    return b' '.join([line[i:i + chunksize]
-                      for i
-                      in range(0, len(line), chunksize)]).decode()
-
-_base64_chunksize = 32
-
-
-def _base64ify(data, chunksize=_base64_chunksize):
-    """Convert a binary string into its base64 encoding, broken up into chunks
-    of chunksize characters separated by a space.
-    """
-
-    line = base64.b64encode(data)
     if not chunksize:
         return line
     return b' '.join([line[i:i + chunksize]
                       for i
                       in range(0, len(line), chunksize)]).decode()
+
+
+def _hexify(data, chunksize=_chunksize):
+    """Convert a binary string into its hex encoding, broken up into chunks
+    of chunksize characters separated by a space.
+    """
+
+    return _wordbreak(binascii.hexlify(data), chunksize)
+
+
+def _base64ify(data, chunksize=_chunksize):
+    """Convert a binary string into its base64 encoding, broken up into chunks
+    of chunksize characters separated by a space.
+    """
+
+    return _wordbreak(base64.b64encode(data), chunksize)
 
 __escaped = b'"\\'
 
