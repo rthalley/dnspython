@@ -142,6 +142,16 @@ class TSIGTestCase(unittest.TestCase):
         # not raising is passing
         dns.message.from_wire(w, keyring)
 
+    def test_sign_respond_and_validate(self):
+        mq = dns.message.make_query('example', 'a')
+        mq.use_tsig(keyring, keyname)
+        wq = mq.to_wire()
+        mq_with_tsig = dns.message.from_wire(wq, keyring)
+        mr = dns.message.make_response(mq)
+        mr.use_tsig(keyring, keyname)
+        wr = mr.to_wire()
+        dns.message.from_wire(wr, keyring, request_mac=mq_with_tsig.mac)
+
     def make_message_pair(self, qname='example', rdtype='A', tsig_error=0):
         q = dns.message.make_query(qname, rdtype)
         q.use_tsig(keyring=keyring, keyname=keyname)
