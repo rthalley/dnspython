@@ -20,13 +20,13 @@
 #: MAJOR
 MAJOR = 2
 #: MINOR
-MINOR = 0
+MINOR = 1
 #: MICRO
 MICRO = 0
 #: RELEASELEVEL
-RELEASELEVEL = 0x0f
+RELEASELEVEL = 0x00
 #: SERIAL
-SERIAL = 0
+SERIAL = 1
 
 if RELEASELEVEL == 0x0f:  # pragma: no cover
     #: version
