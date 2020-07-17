@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from io import StringIO
-import select
+import selectors
 import sys
 import socket
 import time
@@ -477,26 +477,26 @@ class LiveResolverTests(unittest.TestCase):
 
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
-        self.__native_polling_backend = dns.query._polling_backend
-        dns.query._set_polling_backend(self.polling_backend())
+        self.__native_selector_class = dns.query._selector_class
+        dns.query._set_selector_class(self.selector_class())
 
         unittest.TestCase.setUp(self)
 
     def tearDown(self):
-        dns.query._set_polling_backend(self.__native_polling_backend)
+        dns.query._set_selector_class(self.__native_selector_class)
 
         unittest.TestCase.tearDown(self)
 
 
 class SelectResolverTestCase(PollingMonkeyPatchMixin, LiveResolverTests, unittest.TestCase):
-    def polling_backend(self):
-        return dns.query._select_for
+    def selector_class(self):
+        return selectors.SelectSelector
 
 
-if hasattr(select, 'poll'):
+if hasattr(selectors, 'PollSelector'):
     class PollResolverTestCase(PollingMonkeyPatchMixin, LiveResolverTests, unittest.TestCase):
-        def polling_backend(self):
-            return dns.query._poll_for
+        def selector_class(self):
+            return selectors.PollSelector
 
 
 class NXDOMAINExceptionTestCase(unittest.TestCase):
