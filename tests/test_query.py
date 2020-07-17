@@ -540,17 +540,3 @@ class LowLevelWaitTests(unittest.TestCase):
         finally:
             l.close()
             r.close()
-
-    def test_select_for(self):
-        # we test this explicitly in case _wait_for didn't test it (i.e.
-        # if the default polling backing is _poll_for)
-        try:
-            (l, r) = socket.socketpair()
-            # simple timeout
-            self.assertFalse(dns.query._select_for(l, False, False, False,
-                                                   0.05))
-            # writable no timeout
-            self.assertTrue(dns.query._select_for(l, False, True, False, None))
-        finally:
-            l.close()
-            r.close()
