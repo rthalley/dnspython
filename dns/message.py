@@ -577,24 +577,19 @@ class Message:
             edns = -1
         if edns is True:
             edns = 0
-        if request_payload is None:
-            request_payload = payload
         if edns < 0:
-            ednsflags = 0
-            payload = 0
-            request_payload = 0
-            options = []
+            self.opt = None
+            self.request_payload = 0
         else:
             # make sure the EDNS version in ednsflags agrees with edns
             ednsflags &= 0xFF00FFFF
             ednsflags |= (edns << 16)
             if options is None:
                 options = []
-        if edns >= 0:
             self.opt = self._make_opt(ednsflags, payload, options)
-        else:
-            self.opt = None
-        self.request_payload = request_payload
+            if request_payload is None:
+                request_payload = payload
+            self.request_payload = request_payload
 
     @property
     def edns(self):
@@ -1292,20 +1287,14 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     kwargs = {}
     if ednsflags is not None:
         kwargs['ednsflags'] = ednsflags
-        if use_edns is None:
-            use_edns = 0
     if payload is not None:
         kwargs['payload'] = payload
-        if use_edns is None:
-            use_edns = 0
     if request_payload is not None:
         kwargs['request_payload'] = request_payload
-        if use_edns is None:
-            use_edns = 0
     if options is not None:
         kwargs['options'] = options
-        if use_edns is None:
-            use_edns = 0
+    if kwargs and use_edns is None:
+        use_edns = 0
     kwargs['edns'] = use_edns
     m.use_edns(**kwargs)
     m.want_dnssec(want_dnssec)
