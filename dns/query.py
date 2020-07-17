@@ -365,7 +365,7 @@ def _udp_send(sock, data, destination, expiration):
                 return sock.sendto(data, destination)
             else:
                 return sock.send(data)
-        except BlockingIOError:
+        except BlockingIOError:  # pragma: no cover
             _wait_for_writable(sock, expiration)
 
 
