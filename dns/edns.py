@@ -342,3 +342,13 @@ def option_from_wire(otype, wire, current, olen):
     parser = dns.wire.Parser(wire, current)
     with parser.restrict_to(olen):
         return option_from_wire_parser(otype, parser)
+
+def register_type(implementation, otype):
+    """Register the implementation of an option type.
+
+    *implementation*, a ``class``, is a subclass of ``dns.edns.Option``.
+
+    *otype*, an ``int``, is the option type.
+    """
+
+    _type_to_class[otype] = implementation

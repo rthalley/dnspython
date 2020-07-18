@@ -17,6 +17,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import operator
+import struct
 import unittest
 
 from io import BytesIO
@@ -138,3 +139,39 @@ class OptionTestCase(unittest.TestCase):
         self.assertTrue(o1 != o2)
         self.assertFalse(o1 == 123)
         self.assertTrue(o1 != 123)
+
+    def test_option_registration(self):
+        U32OptionType = 9999
+
+        class U32Option(dns.edns.Option):
+            def __init__(self, value=None):
+                super().__init__(U32OptionType)
+                self.value = value
+
+            def to_wire(self, file=None):
+                data = struct.pack('!I', self.value)
+                if file:
+                    file.write(data)
+                else:
+                    return data
+
+            @classmethod
+            def from_wire_parser(cls, otype, parser):
+                (value,) = parser.get_struct('!I')
+                return cls(value)
+
+        try:
+            dns.edns.register_type(U32Option, U32OptionType)
+            generic = dns.edns.GenericOption(U32OptionType, b'\x00\x00\x00\x01')
+            wire1 = generic.to_wire()
+            u32 = dns.edns.option_from_wire_parser(U32OptionType,
+                                                   dns.wire.Parser(wire1))
+            self.assertEqual(u32.value, 1)
+            wire2 = u32.to_wire()
+            self.assertEqual(wire1, wire2)
+            self.assertEqual(u32, generic)
+        finally:
+            dns.edns._type_to_class.pop(U32OptionType, None)
+
+        opt = dns.edns.option_from_wire_parser(9999, dns.wire.Parser(wire1))
+        self.assertEqual(opt, generic)
