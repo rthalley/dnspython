@@ -86,9 +86,9 @@ class NXDOMAIN(dns.exception.DNSException):
             for answer in response.answer:
                 if answer.rdtype != CNAME or answer.rdclass != IN:
                     continue
-                cname = answer[0].target.to_text()
+                cname = answer[0].target
             if cname is not None:
-                return dns.name.from_text(cname)
+                return cname
         return self.kwargs['qnames'][0]
 
     def __add__(self, e_nx):
