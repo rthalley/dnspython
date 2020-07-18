@@ -47,7 +47,6 @@ class PX(dns.rdata.Rdata):
         preference = tok.get_uint16()
         map822 = tok.get_name(origin, relativize, relativize_to)
         mapx400 = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, preference, map822, mapx400)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

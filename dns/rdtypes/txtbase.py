@@ -63,10 +63,8 @@ class TXTBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         strings = []
-        while 1:
-            token = tok.get().unescape_to_bytes()
-            if token.is_eol_or_eof():
-                break
+        for token in tok.get_remaining():
+            token = token.unescape_to_bytes()
             if not (token.is_quoted_string() or token.is_identifier()):
                 raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:

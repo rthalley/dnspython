@@ -50,7 +50,6 @@ class HINFO(dns.rdata.Rdata):
                   relativize_to=None):
         cpu = tok.get_string(max_length=255)
         os = tok.get_string(max_length=255)
-        tok.get_eol()
         return cls(rdclass, rdtype, cpu, os)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

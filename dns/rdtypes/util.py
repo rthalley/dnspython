@@ -113,11 +113,8 @@ class Bitmap:
 
     def from_text(self, tok):
         rdtypes = []
-        while True:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            rdtype = dns.rdatatype.from_text(token.value)
+        for token in tok.get_remaining():
+            rdtype = dns.rdatatype.from_text(token.unescape().value)
             if rdtype == 0:
                 raise dns.exception.SyntaxError(f"{self.type_name} with bit 0")
             rdtypes.append(rdtype)

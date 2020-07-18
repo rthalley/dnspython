@@ -41,7 +41,6 @@ class A(dns.rdata.Rdata):
                   relativize_to=None):
         domain = tok.get_name(origin, relativize, relativize_to)
         address = tok.get_uint16(base=8)
-        tok.get_eol()
         return cls(rdclass, rdtype, domain, address)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

@@ -59,12 +59,10 @@ class WKS(dns.rdata.Rdata):
         else:
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
-        while 1:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            if token.value.isdigit():
-                serv = int(token.value)
+        for token in tok.get_remaining():
+            value = token.unescape().value
+            if value.isdigit():
+                serv = int(value)
             else:
                 if protocol != _proto_udp and protocol != _proto_tcp:
                     raise NotImplementedError("protocol must be TCP or UDP")
@@ -72,7 +70,7 @@ class WKS(dns.rdata.Rdata):
                     protocol_text = "udp"
                 else:
                     protocol_text = "tcp"
-                serv = socket.getservbyname(token.value, protocol_text)
+                serv = socket.getservbyname(value, protocol_text)
             i = serv // 8
             l = len(bitmap)
             if l < i + 1:

@@ -35,8 +35,7 @@ import dns.rrset
 import dns.zone
 import dns.node
 
-def here(filename):
-    return os.path.join(os.path.dirname(__file__), filename)
+from tests.util import here
 
 example_text = """$TTL 3600
 $ORIGIN example.
@@ -173,6 +172,23 @@ $ORIGIN example.
 @ soa foo bar 1 2 3 4 5
 @ 300 ns ns1
 @ 300 ns ns2
+"""
+
+example_comments_text = """$TTL 3600
+$ORIGIN example.
+@ soa foo bar (1 ; not kept
+2 3 4 5) ; kept
+@ ns ns1
+@ ns ns2
+ns1 a 10.0.0.1 ; comment1
+ns2 a 10.0.0.2 ; comment2
+"""
+
+example_comments_text_output = """@ 3600 IN SOA foo bar 1 2 3 4 5 ; kept
+@ 3600 IN NS ns1
+@ 3600 IN NS ns2
+ns1 3600 IN A 10.0.0.1 ; comment1
+ns2 3600 IN A 10.0.0.2 ; comment2
 """
 
 _keep_output = True
@@ -745,6 +761,15 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         self.assertEqual(z._validate_name('foo.bar.example.'),
                          dns.name.from_text('foo.bar', None))
+
+    def testComments(self):
+        z = dns.zone.from_text(example_comments_text, 'example.',
+                               relativize=True)
+        f = StringIO()
+        z.to_file(f, want_comments=True)
+        out = f.getvalue()
+        f.close()
+        self.assertEqual(out, example_comments_text_output)
 
 if __name__ == '__main__':
     unittest.main()

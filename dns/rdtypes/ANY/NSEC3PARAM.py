@@ -57,7 +57,6 @@ class NSEC3PARAM(dns.rdata.Rdata):
             salt = ''
         else:
             salt = binascii.unhexlify(salt.encode())
-        tok.get_eol()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

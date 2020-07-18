@@ -111,7 +111,7 @@ def _constify(o):
 class Rdata:
     """Base class for all DNS rdata types."""
 
-    __slots__ = ['rdclass', 'rdtype']
+    __slots__ = ['rdclass', 'rdtype', 'rdcomment']
 
     def __init__(self, rdclass, rdtype):
         """Initialize an rdata.
@@ -123,6 +123,7 @@ class Rdata:
 
         object.__setattr__(self, 'rdclass', rdclass)
         object.__setattr__(self, 'rdtype', rdtype)
+        object.__setattr__(self, 'rdcomment', None)
 
     def __setattr__(self, name, value):
         # Rdatas are immutable
@@ -153,6 +154,10 @@ class Rdata:
     def __setstate__(self, state):
         for slot, val in state.items():
             object.__setattr__(self, slot, val)
+        if not hasattr(self, 'rdcomment'):
+            # Pickled rdata from 2.0.x might not have a rdcomment, so add
+            # it if needed.
+            object.__setattr__(self, 'rdcomment', None)
 
     def covers(self):
         """Return the type a Rdata covers.
@@ -319,6 +324,8 @@ class Rdata:
         # Ensure that all of the arguments correspond to valid fields.
         # Don't allow rdclass or rdtype to be changed, though.
         for key in kwargs:
+            if key == 'rdcomment':
+                continue
             if key not in parameters:
                 raise AttributeError("'{}' object has no attribute '{}'"
                                      .format(self.__class__.__name__, key))
@@ -336,6 +343,11 @@ class Rdata:
         # this validation can go away.
         rd = self.__class__(*args)
         dns.rdata.from_text(rd.rdclass, rd.rdtype, rd.to_text())
+        # The comment is not set in the constructor, so give it special
+        # handling.
+        rdcomment = kwargs.get('rdcomment', self.rdcomment)
+        if rdcomment is not None:
+            object.__setattr__(rd, 'rdcomment', rdcomment)
         return rd
 
 
@@ -364,13 +376,7 @@ class GenericRdata(Rdata):
             raise dns.exception.SyntaxError(
                 r'generic rdata does not start with \#')
         length = tok.get_int()
-        chunks = []
-        while 1:
-            token = tok.get()
-            if token.is_eol_or_eof():
-                break
-            chunks.append(token.value.encode())
-        hex = b''.join(chunks)
+        hex = tok.concatenate_remaining_identifiers().encode()
         data = binascii.unhexlify(hex)
         if len(data) != length:
             raise dns.exception.SyntaxError(
@@ -459,6 +465,7 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
+    rdata = None
     if cls != GenericRdata:
         # peek at first token
         token = tok.get()
@@ -470,12 +477,17 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
             # wire form from the generic syntax, and then run
             # from_wire on it.
             #
-            rdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
-                                           relativize, relativize_to)
-            return from_wire(rdclass, rdtype, rdata.data, 0, len(rdata.data),
-                             origin)
-    return cls.from_text(rdclass, rdtype, tok, origin, relativize,
-                         relativize_to)
+            grdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
+                                            relativize, relativize_to)
+            rdata = from_wire(rdclass, rdtype, grdata.data, 0, len(grdata.data),
+                              origin)
+    if rdata is None:
+        rdata = cls.from_text(rdclass, rdtype, tok, origin, relativize,
+                              relativize_to)
+    token = tok.get_eol_as_token()
+    if token.comment is not None:
+        object.__setattr__(rdata, 'rdcomment', token.comment)
+    return rdata
 
 
 def from_wire_parser(rdclass, rdtype, parser, origin=None):

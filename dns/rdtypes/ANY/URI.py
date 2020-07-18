@@ -54,7 +54,6 @@ class URI(dns.rdata.Rdata):
         target = tok.get().unescape()
         if not (target.is_quoted_string() or target.is_identifier()):
             raise dns.exception.SyntaxError("URI target must be a string")
-        tok.get_eol()
         return cls(rdclass, rdtype, priority, weight, target.value)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

@@ -52,14 +52,11 @@ class ISDN(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         address = tok.get_string()
-        t = tok.get()
-        if not t.is_eol_or_eof():
-            tok.unget(t)
-            subaddress = tok.get_string()
+        tokens = tok.get_remaining(max_tokens=1)
+        if len(tokens) >= 1:
+            subaddress = tokens[0].unescape().value
         else:
-            tok.unget(t)
             subaddress = ''
-        tok.get_eol()
         return cls(rdclass, rdtype, address, subaddress)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

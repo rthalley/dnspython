@@ -245,25 +245,22 @@ class LOC(dns.rdata.Rdata):
             t = t[0: -1]
         altitude = float(t) * 100.0        # m -> cm
 
-        token = tok.get().unescape()
-        if not token.is_eol_or_eof():
-            value = token.value
+        tokens = tok.get_remaining(max_tokens=3)
+        if len(tokens) >= 1:
+            value = tokens[0].unescape().value
             if value[-1] == 'm':
                 value = value[0: -1]
             size = float(value) * 100.0        # m -> cm
-            token = tok.get().unescape()
-            if not token.is_eol_or_eof():
-                value = token.value
+            if len(tokens) >= 2:
+                value = tokens[1].unescape().value
                 if value[-1] == 'm':
                     value = value[0: -1]
                 hprec = float(value) * 100.0        # m -> cm
-                token = tok.get().unescape()
-                if not token.is_eol_or_eof():
-                    value = token.value
+                if len(tokens) >= 3:
+                    value = tokens[2].unescape().value
                     if value[-1] == 'm':
                         value = value[0: -1]
                     vprec = float(value) * 100.0        # m -> cm
-                    tok.get_eol()
 
         # Try encoding these now so we raise if they are bad
         _encode_size(size, "size")

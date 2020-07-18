@@ -34,6 +34,7 @@ from dns.rdtypes.ANY.OPT import OPT
 
 import tests.stxt_module
 import tests.ttxt_module
+from tests.util import here
 
 class RdataTestCase(unittest.TestCase):
 
@@ -93,6 +94,15 @@ class RdataTestCase(unittest.TestCase):
         def bad():
             a1.replace(address="bogus")
         self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def test_replace_comment(self):
+        a1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
+                                 "1.2.3.4 ;foo")
+        self.assertEqual(a1.rdcomment, "foo")
+        a2 = a1.replace(rdcomment="bar")
+        self.assertEqual(a1, a2)
+        self.assertEqual(a1.rdcomment, "foo")
+        self.assertEqual(a2.rdcomment, "bar")
 
     def test_to_generic(self):
         a = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
@@ -414,6 +424,14 @@ class RdataTestCase(unittest.TestCase):
         wire = bytes.fromhex('01020304')
         rdata = dns.rdata.from_wire('in', 'a', wire, 0, 4)
         self.assertEqual(rdata, dns.rdata.from_text('in', 'a', '1.2.3.4'))
+
+    def test_unpickle(self):
+        expected_mx = dns.rdata.from_text('in', 'mx', '10 mx.example.')
+        with open(here('mx-2-0.pickle'), 'rb') as f:
+            mx = pickle.load(f)
+        self.assertEqual(mx, expected_mx)
+        self.assertIsNone(mx.rdcomment)
+
 
 if __name__ == '__main__':
     unittest.main()

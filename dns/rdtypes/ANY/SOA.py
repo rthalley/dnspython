@@ -59,7 +59,6 @@ class SOA(dns.rdata.Rdata):
         retry = tok.get_ttl()
         expire = tok.get_ttl()
         minimum = tok.get_ttl()
-        tok.get_eol()
         return cls(rdclass, rdtype, mname, rname, serial, refresh, retry,
                    expire, minimum)
 

@@ -48,12 +48,13 @@ class Token:
     has_escape: Does the token value contain escapes?
     """
 
-    def __init__(self, ttype, value='', has_escape=False):
+    def __init__(self, ttype, value='', has_escape=False, comment=None):
         """Initialize a token instance."""
 
         self.ttype = ttype
         self.value = value
         self.has_escape = has_escape
+        self.comment = comment
 
     def is_eof(self):
         return self.ttype == EOF
@@ -396,13 +397,13 @@ class Tokenizer:
                             if self.multiline:
                                 raise dns.exception.SyntaxError(
                                     'unbalanced parentheses')
-                            return Token(EOF)
+                            return Token(EOF, comment=token)
                         elif self.multiline:
                             self.skip_whitespace()
                             token = ''
                             continue
                         else:
-                            return Token(EOL, '\n')
+                            return Token(EOL, '\n', comment=token)
                     else:
                         # This code exists in case we ever want a
                         # delimiter to be returned.  It never produces
@@ -559,6 +560,25 @@ class Tokenizer:
             raise dns.exception.SyntaxError('expecting an identifier')
         return token.value
 
+    def get_remaining(self, max_tokens=None):
+        """Return the remaining tokens on the line, until an EOL or EOF is seen.
+
+        max_tokens: If not None, stop after this number of tokens.
+
+        Returns a list of tokens.
+        """
+
+        tokens = []
+        while True:
+            token = self.get()
+            if token.is_eol_or_eof():
+                self.unget(token)
+                break
+            tokens.append(token)
+            if len(tokens) == max_tokens:
+                break
+        return tokens
+
     def concatenate_remaining_identifiers(self):
         """Read the remaining tokens on the line, which should be identifiers.
 
@@ -572,6 +592,7 @@ class Tokenizer:
         while True:
             token = self.get().unescape()
             if token.is_eol_or_eof():
+                self.unget(token)
                 break
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
@@ -601,7 +622,7 @@ class Tokenizer:
         token = self.get()
         return self.as_name(token, origin, relativize, relativize_to)
 
-    def get_eol(self):
+    def get_eol_as_token(self):
         """Read the next token and raise an exception if it isn't EOL or
         EOF.
 
@@ -613,7 +634,10 @@ class Tokenizer:
             raise dns.exception.SyntaxError(
                 'expected EOL or EOF, got %d "%s"' % (token.ttype,
                                                       token.value))
-        return token.value
+        return token
+
+    def get_eol(self):
+        return self.get_eol_as_token().value
 
     def get_ttl(self):
         """Read the next token and interpret it as a DNS TTL.
