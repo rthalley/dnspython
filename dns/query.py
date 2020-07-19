@@ -133,7 +133,7 @@ if hasattr(selectors, 'PollSelector'):
     # be more efficient for high values).
     _selector_class = selectors.PollSelector
 else:
-    _selector_class = selectors.SelectSelector # pragma: no cover
+    _selector_class = selectors.SelectSelector  # pragma: no cover
 
 
 def _wait_for_readable(s, expiration):
