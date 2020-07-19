@@ -347,6 +347,41 @@ class BaseResolverTests(unittest.TestCase):
         self.assertFalse(on_lru_list(cache, key, answer1))
         self.assertTrue(on_lru_list(cache, key, answer2))
 
+    def test_cache_stats(self):
+        caches = [dns.resolver.Cache(), dns.resolver.LRUCache(4)]
+        key1 = (dns.name.from_text('key1.'), dns.rdatatype.A, dns.rdataclass.IN)
+        key2 = (dns.name.from_text('key2.'), dns.rdatatype.A, dns.rdataclass.IN)
+        for cache in caches:
+            answer1 = FakeAnswer(time.time() + 10)
+            answer2 = FakeAnswer(10)  # expired!
+            a = cache.get(key1)
+            self.assertIsNone(a)
+            self.assertEqual(cache.hits(), 0)
+            self.assertEqual(cache.misses(), 1)
+            if isinstance(cache, dns.resolver.LRUCache):
+                self.assertEqual(cache.get_hits_for_key(key1), 0)
+            cache.put(key1, answer1)
+            a = cache.get(key1)
+            self.assertIs(a, answer1)
+            self.assertEqual(cache.hits(), 1)
+            self.assertEqual(cache.misses(), 1)
+            if isinstance(cache, dns.resolver.LRUCache):
+                self.assertEqual(cache.get_hits_for_key(key1), 1)
+            cache.put(key2, answer2)
+            a = cache.get(key2)
+            self.assertIsNone(a)
+            self.assertEqual(cache.hits(), 1)
+            self.assertEqual(cache.misses(), 2)
+            if isinstance(cache, dns.resolver.LRUCache):
+                self.assertEqual(cache.get_hits_for_key(key2), 0)
+            stats = cache.get_statistics_snapshot()
+            self.assertEqual(stats.hits, 1)
+            self.assertEqual(stats.misses, 2)
+            cache.reset_statistics()
+            stats = cache.get_statistics_snapshot()
+            self.assertEqual(stats.hits, 0)
+            self.assertEqual(stats.misses, 0)
+
     def testEmptyAnswerSection(self):
         # TODO: dangling_cname_0_message_text was the only sample message
         #       with an empty answer section. Other than that it doesn't
