@@ -283,7 +283,7 @@ class Answer:
         del self.rrset[i]
 
 
-class CacheStats:
+class CacheStatistics:
     """Cache Statistics
     """
 
@@ -296,13 +296,13 @@ class CacheStats:
         self.misses = 0
 
     def clone(self):
-        return CacheStats(self.hits, self.misses)
+        return CacheStatistics(self.hits, self.misses)
 
 
 class CacheBase:
     def __init__(self):
         self.lock = _threading.Lock()
-        self.statistics = CacheStats()
+        self.statistics = CacheStatistics()
 
     def reset_statistics(self):
         """Reset all statistics to zero."""
