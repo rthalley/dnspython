@@ -165,6 +165,28 @@ class Resolver(dns.resolver.Resolver):
                                   rdclass=dns.rdataclass.IN,
                                   *args, **kwargs)
 
+    async def canonical_name(self, name):
+        """Determine the canonical name of *name*.
+
+        The canonical name is the name the resolver uses for queries
+        after all CNAME and DNAME renamings have been applied.
+
+        *name*, a ``dns.name.Name`` or ``str``, the query name.
+
+        This method can raise any exception that ``resolve()`` can
+        raise, other than ``dns.resolver.NoAnswer`` and
+        ``dns.resolver.NXDOMAIN``.
+
+        Returns a ``dns.name.Name``.
+        """
+        try:
+            answer = await self.resolve(name, raise_on_no_answer=False)
+            canonical_name = answer.canonical_name
+        except dns.resolver.NXDOMAIN as e:
+            canonical_name = e.canonical_name
+        return canonical_name
+
+
 default_resolver = None
 
 
@@ -212,6 +234,14 @@ async def resolve_address(ipaddr, *args, **kwargs):
 
     return await get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
 
+async def canonical_name(name):
+    """Determine the canonical name of *name*.
+
+    See ``dns.resolver.Resolver.canonical_name`` for more information on the
+    parameters and possible exceptions.
+    """
+
+    return await get_default_resolver().canonical_name(name)
 
 async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
                         resolver=None, backend=None):
