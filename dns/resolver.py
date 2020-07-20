@@ -81,6 +81,9 @@ class NXDOMAIN(dns.exception.DNSException):
         IN = dns.rdataclass.IN
         CNAME = dns.rdatatype.CNAME
         cname = None
+        # This code assumes the CNAME chain is in proper order, though
+        # the Answer code does not make a similar assumption when
+        # chaining.
         for qname in self.kwargs['qnames']:
             response = self.kwargs['responses'][qname]
             for answer in response.answer:
@@ -1181,13 +1184,11 @@ class Resolver:
         *name*, a ``dns.name.Name`` or ``str``, the query name.
 
         This method can raise any exception that ``resolve()`` can
-        raise, other than `dns.resolver.NoAnswer`` and
+        raise, other than ``dns.resolver.NoAnswer`` and
         ``dns.resolver.NXDOMAIN``.
 
         Returns a ``dns.name.Name``.
         """
-        if isinstance(name, str):
-            name = dns.name.from_text(name)
         try:
             answer = self.resolve(name, raise_on_no_answer=False)
             canonical_name = answer.canonical_name
