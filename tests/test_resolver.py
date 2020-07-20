@@ -510,6 +510,20 @@ class LiveResolverTests(unittest.TestCase):
         answer2 = res.resolve('dns.google.', 'A')
         self.assertIs(answer2, answer1)
 
+    def testCanonicalNameNoCNAME(self):
+        cname = dns.name.from_text('www.google.com')
+        self.assertEqual(dns.resolver.canonical_name('www.google.com'), cname)
+
+    def testCanonicalNameCNAME(self):
+        name = dns.name.from_text('www.dnspython.org')
+        cname = dns.name.from_text('dmfrjf4ips8xa.cloudfront.net')
+        self.assertEqual(dns.resolver.canonical_name(name), cname)
+
+    def testCanonicalNameDangling(self):
+        name = dns.name.from_text('dangling-cname.dnspython.org')
+        cname = dns.name.from_text('dangling-target.dnspython.org')
+        self.assertEqual(dns.resolver.canonical_name(name), cname)
+
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
         self.__native_selector_class = dns.query._selector_class

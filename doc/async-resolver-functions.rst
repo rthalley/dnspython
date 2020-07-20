@@ -5,4 +5,5 @@ Asynchronous Resolver Functions
 
 .. autofunction:: dns.asyncresolver.resolve
 .. autofunction:: dns.asyncresolver.resolve_address
+.. autofunction:: dns.asyncresolver.canonical_name
 .. autofunction:: dns.asyncresolver.zone_for_name

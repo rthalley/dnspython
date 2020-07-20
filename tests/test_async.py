@@ -182,6 +182,26 @@ class AsyncTests(unittest.TestCase):
         dnsgoogle = dns.name.from_text('dns.google.')
         self.assertEqual(answer[0].target, dnsgoogle)
 
+    def testCanonicalNameNoCNAME(self):
+        cname = dns.name.from_text('www.google.com')
+        async def run():
+            return await dns.asyncresolver.canonical_name('www.google.com')
+        self.assertEqual(self.async_run(run), cname)
+
+    def testCanonicalNameCNAME(self):
+        name = dns.name.from_text('www.dnspython.org')
+        cname = dns.name.from_text('dmfrjf4ips8xa.cloudfront.net')
+        async def run():
+            return await dns.asyncresolver.canonical_name(name)
+        self.assertEqual(self.async_run(run), cname)
+
+    def testCanonicalNameDangling(self):
+        name = dns.name.from_text('dangling-cname.dnspython.org')
+        cname = dns.name.from_text('dangling-target.dnspython.org')
+        async def run():
+            return await dns.asyncresolver.canonical_name(name)
+        self.assertEqual(self.async_run(run), cname)
+
     def testResolverBadScheme(self):
         res = dns.asyncresolver.Resolver(configure=False)
         res.nameservers = ['bogus://dns.google/dns-query']
