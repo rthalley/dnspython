@@ -62,7 +62,7 @@ poflake:
 	poetry run flake8 dns
 
 pocov:
-	poetry run coverage run -m pytest
+	poetry run coverage run --branch -m pytest
 	poetry run coverage html --include 'dns*'
 	poetry run coverage report --include 'dns*'
 
