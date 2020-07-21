@@ -1,5 +1,24 @@
 .. _whatsnew:
 
+What's New in dnspython 2.1.0
+=============================
+
+* End-of-line comments are now associated with rdata when read from text.
+  For backwards compatibility with prior versions of dnspython, they are
+  only emitted in to_text() when requested.
+
+* Synchronous I/O is a bit more efficient, as we now try the I/O and only
+  use poll() or select() if the I/O would block.
+
+* The resolver cache classes now offer basic hit and miss statistics, and
+  the LRUCache can also provide hits for every cache key.
+
+* The resolver has a canonical_name() method.
+
+* There is now a registration mechanism for EDNS option types.
+
+* The default EDNS payload size has changed from 1280 to 1232.
+
 What's New in dnspython 2.0.0
 =============================
 
