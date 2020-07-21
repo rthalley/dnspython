@@ -745,8 +745,7 @@ class QueryMessage(Message):
             try:
                 rrset = self.find_rrset(self.answer, qname, question.rdclass,
                                         question.rdtype)
-                if rrset.ttl < min_ttl:
-                    min_ttl = rrset.ttl
+                min_ttl = min(min_ttl, rrset.ttl)
                 break
             except KeyError:
                 if question.rdtype != dns.rdatatype.CNAME:
@@ -754,8 +753,7 @@ class QueryMessage(Message):
                         crrset = self.find_rrset(self.answer, qname,
                                                  question.rdclass,
                                                  dns.rdatatype.CNAME)
-                        if crrset.ttl < min_ttl:
-                            min_ttl = crrset.ttl
+                        min_ttl = min(min_ttl, crrset.ttl)
                         for rd in crrset:
                             qname = rd.target
                             break
@@ -778,10 +776,7 @@ class QueryMessage(Message):
                     srrset = self.find_rrset(self.authority, auname,
                                              question.rdclass,
                                              dns.rdatatype.SOA)
-                    if srrset.ttl < min_ttl:
-                        min_ttl = srrset.ttl
-                    if srrset[0].minimum < min_ttl:
-                        min_ttl = srrset[0].minimum
+                    min_ttl = min(min_ttl, srrset.ttl, srrset[0].minimum)
                     break
                 except KeyError:
                     try:
