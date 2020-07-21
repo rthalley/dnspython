@@ -716,19 +716,21 @@ class QueryMessage(Message):
         """Follow the CNAME chain in the response to determine the answer
         RRset.
 
-        Raises NotQueryResponse if the message is not a response.
+        Raises ``dns.message.NotQueryResponse`` if the message is not
+        a response.
 
-        Raises dns.message.ChainTooLong if the CNAME chain is too long.
+        Raises ``dns.message.ChainTooLong`` if the CNAME chain is too long.
 
-        Raises AnswerForNXDOMAIN if the rcode is NXDOMAIN but an answer was
-        found.
+        Raises ``dns.message.AnswerForNXDOMAIN`` if the rcode is NXDOMAIN
+        but an answer was found.
 
-        Raises dns.exception.FormError if the question count is not 1.
+        Raises ``dns.exception.FormError`` if the question count is not 1.
 
         Returns a tuple (dns.name.Name, int, rrset) where the name is the
         canonical name, the int is the minimized TTL, and rrset is their
         answer RRset, which may be ``None`` if the chain was dangling or
         the response is an NXDOMAIN.
+
         """
         if self.flags & dns.flags.QR == 0:
             raise NotQueryResponse
@@ -792,14 +794,15 @@ class QueryMessage(Message):
         """Return the canonical name of the first name in the question
         section.
 
-        Raises dns.message.NotQueryResponse if the message is not a response.
+        Raises ``dns.message.NotQueryResponse`` if the message is not
+        a response.
 
-        Raises dns.message.ChainTooLong if the CNAME chain is too long.
+        Raises ``dns.message.ChainTooLong`` if the CNAME chain is too long.
 
-        Raises AnswerForNXDOMAIN if the rcode is NXDOMAIN but an answer was
-        found.
+        Raises ``dns.message.AnswerForNXDOMAIN`` if the rcode is NXDOMAIN
+        but an answer was found.
 
-        Raises dns.exception.FormError if the question count is not 1.
+        Raises ``dns.exception.FormError`` if the question count is not 1.
         """
         return self.resolve_chaining()[0]
 
