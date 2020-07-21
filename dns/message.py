@@ -80,6 +80,18 @@ class Truncated(dns.exception.DNSException):
         return self.kwargs['message']
 
 
+class NotQueryResponse(dns.exception.DNSException):
+    """Message is not a response to a query."""
+
+
+class ChainTooLong(dns.exception.DNSException):
+    """The CNAME chain is too long."""
+
+
+class AnswerForNXDOMAIN(dns.exception.DNSException):
+    """The rcode is NXDOMAIN but an answer was found."""
+
+
 class MessageSection(dns.enum.IntEnum):
     """Message sections"""
     QUESTION = 0
@@ -94,6 +106,7 @@ class MessageSection(dns.enum.IntEnum):
 globals().update(MessageSection.__members__)
 
 DEFAULT_EDNS_PAYLOAD = 1232
+MAX_CHAIN = 16
 
 class Message:
     """A DNS message."""
@@ -232,8 +245,10 @@ class Message:
            dns.opcode.from_flags(self.flags) != \
            dns.opcode.from_flags(other.flags):
             return False
-        if dns.rcode.from_flags(other.flags, other.ednsflags) != \
-                dns.rcode.NOERROR:
+        if other.rcode() in {dns.rcode.FORMERR, dns.rcode.SERVFAIL,
+                             dns.rcode.NOTIMP, dns.rcode.REFUSED}:
+            # We don't check the question section in these cases, even
+            # though they still ought to have the same question.
             return True
         if dns.opcode.is_update(self.flags):
             # This is assuming the "sender doesn't include anything
@@ -696,7 +711,96 @@ class Message:
 
 
 class QueryMessage(Message):
-    pass
+    def resolve_chaining(self):
+        """Follow the CNAME chain in the response to determine the answer
+        RRset.
+
+        Raises NotQueryResponse if the message is not a response.
+
+        Raises dns.message.ChainTooLong if the CNAME chain is too long.
+
+        Raises AnswerForNXDOMAIN if the rcode is NXDOMAIN but an answer was
+        found.
+
+        Raises dns.exception.FormError if the question count is not 1.
+
+        Returns a tuple (dns.name.Name, int, rrset) where the name is the
+        canonical name, the int is the minimized TTL, and rrset is their
+        answer RRset, which may be ``None`` if the chain was dangling or
+        the response is an NXDOMAIN.
+        """
+        if self.flags & dns.flags.QR == 0:
+            raise NotQueryResponse
+        if len(self.question) != 1:
+            raise dns.exception.FormError
+        question = self.question[0]
+        qname = question.name
+        min_ttl = -1
+        rrset = None
+        count = 0
+        while count < MAX_CHAIN:
+            try:
+                rrset = self.find_rrset(self.answer, qname, question.rdclass,
+                                        question.rdtype)
+                if min_ttl == -1 or rrset.ttl < min_ttl:
+                    min_ttl = rrset.ttl
+                break
+            except KeyError:
+                if question.rdtype != dns.rdatatype.CNAME:
+                    try:
+                        crrset = self.find_rrset(self.answer, qname,
+                                                 question.rdclass,
+                                                 dns.rdatatype.CNAME)
+                        if min_ttl == -1 or crrset.ttl < min_ttl:
+                            min_ttl = crrset.ttl
+                        for rd in crrset:
+                            qname = rd.target
+                            break
+                        count += 1
+                        continue
+                    except KeyError:
+                        # Exit the chaining loop
+                        break
+        if count >= MAX_CHAIN:
+            raise ChainTooLong
+        if self.rcode() == dns.rcode.NXDOMAIN and rrset is not None:
+            raise AnswerForNXDOMAIN
+        if rrset is None:
+            # Further minimize the TTL with NCACHE.
+            auname = qname
+            while True:
+                # Look for an SOA RR whose owner name is a superdomain
+                # of qname.
+                try:
+                    srrset = self.find_rrset(self.authority, auname,
+                                             question.rdclass,
+                                             dns.rdatatype.SOA)
+                    if min_ttl == -1 or srrset.ttl < min_ttl:
+                        min_ttl = srrset.ttl
+                    if srrset[0].minimum < min_ttl:
+                        min_ttl = srrset[0].minimum
+                    break
+                except KeyError:
+                    try:
+                        auname = auname.parent()
+                    except dns.name.NoParent:
+                        break
+        return (qname, min_ttl, rrset)
+
+    def canonical_name(self):
+        """Return the canonical name of the first name in the question
+        section.
+
+        Raises dns.message.NotQueryResponse if the message is not a response.
+
+        Raises dns.message.ChainTooLong if the CNAME chain is too long.
+
+        Raises AnswerForNXDOMAIN if the rcode is NXDOMAIN but an answer was
+        found.
+
+        Raises dns.exception.FormError if the question count is not 1.
+        """
+        return self.resolve_chaining()[0]
 
 
 def _maybe_import_update():
