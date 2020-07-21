@@ -1208,7 +1208,8 @@ class Resolver:
         self.keyname = keyname
         self.keyalgorithm = algorithm
 
-    def use_edns(self, edns=0, ednsflags=0, payload=1280):
+    def use_edns(self, edns=0, ednsflags=0,
+                 payload=dns.message.DEFAULT_EDNS_PAYLOAD):
         """Configure EDNS behavior.
 
         *edns*, an ``int``, is the EDNS level to use.  Specifying

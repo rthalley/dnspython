@@ -16,7 +16,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import os
 import unittest
 import binascii
 
@@ -336,6 +335,11 @@ class MessageTestCase(unittest.TestCase):
         m.want_dnssec()
         self.assertEqual(m.edns, 0)
         self.assertTrue(m.ednsflags & dns.flags.DO)
+
+    def test_EDNS_default_payload_is_1232(self):
+        m = dns.message.make_query('foo', 'A')
+        m.use_edns()
+        self.assertEqual(m.payload, dns.message.DEFAULT_EDNS_PAYLOAD)
 
     def test_from_file(self):
         m = dns.message.from_file(here('query'))

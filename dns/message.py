@@ -93,6 +93,7 @@ class MessageSection(dns.enum.IntEnum):
 
 globals().update(MessageSection.__members__)
 
+DEFAULT_EDNS_PAYLOAD = 1232
 
 class Message:
     """A DNS message."""
@@ -545,13 +546,13 @@ class Message:
         return bool(self.tsig)
 
     @staticmethod
-    def _make_opt(flags=0, payload=1280, options=None):
+    def _make_opt(flags=0, payload=DEFAULT_EDNS_PAYLOAD, options=None):
         opt = dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT,
                                       options or ())
         return dns.rrset.from_rdata(dns.name.root, int(flags), opt)
 
-    def use_edns(self, edns=0, ednsflags=0, payload=1280, request_payload=None,
-                 options=None):
+    def use_edns(self, edns=0, ednsflags=0, payload=DEFAULT_EDNS_PAYLOAD,
+                 request_payload=None, options=None):
         """Configure EDNS behavior.
 
         *edns*, an ``int``, is the EDNS level to use.  Specifying
