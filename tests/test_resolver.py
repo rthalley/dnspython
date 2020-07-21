@@ -166,6 +166,7 @@ class BaseResolverTests(unittest.TestCase):
         self.assertEqual(r.timeout, 1)
         self.assertEqual(r.ndots, 2)
         self.assertEqual(r.edns, 0)
+        self.assertEqual(r.payload, 1280)
 
     def testReadOptionsBadTimeouts(self):
         f = StringIO(bad_timeout_1)

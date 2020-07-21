@@ -832,7 +832,7 @@ class Resolver:
                         if opt == 'rotate':
                             self.rotate = True
                         elif opt == 'edns0':
-                            self.use_edns(0, 0, 0)
+                            self.use_edns()
                         elif 'timeout' in opt:
                             try:
                                 self.timeout = int(opt.split(':')[1])
@@ -1208,7 +1208,7 @@ class Resolver:
         self.keyname = keyname
         self.keyalgorithm = algorithm
 
-    def use_edns(self, edns, ednsflags, payload):
+    def use_edns(self, edns=0, ednsflags=0, payload=1280):
         """Configure EDNS behavior.
 
         *edns*, an ``int``, is the EDNS level to use.  Specifying
