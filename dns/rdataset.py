@@ -176,7 +176,7 @@ class Rdataset(dns.set.Set):
         return not self.__eq__(other)
 
     def to_text(self, name=None, origin=None, relativize=True,
-                override_rdclass=None, **kw):
+                override_rdclass=None, want_comments=False, **kw):
         """Convert the rdataset into DNS master file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
@@ -194,6 +194,9 @@ class Rdataset(dns.set.Set):
 
         *relativize*, a ``bool``.  If ``True``, names will be relativized
         to *origin*.
+
+        *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
+        which have them.  The default is ``False``.
         """
 
         if name is not None:
@@ -219,11 +222,16 @@ class Rdataset(dns.set.Set):
                                          dns.rdatatype.to_text(self.rdtype)))
         else:
             for rd in self:
-                s.write('%s%s%d %s %s %s\n' %
+                extra = ''
+                if want_comments:
+                    if rd.rdcomment:
+                        extra = f' ;{rd.rdcomment}'
+                s.write('%s%s%d %s %s %s%s\n' %
                         (ntext, pad, self.ttl, dns.rdataclass.to_text(rdclass),
                          dns.rdatatype.to_text(self.rdtype),
                          rd.to_text(origin=origin, relativize=relativize,
-                         **kw)))
+                                    **kw),
+                         extra))
         #
         # We strip off the final \n for the caller's convenience in printing
         #

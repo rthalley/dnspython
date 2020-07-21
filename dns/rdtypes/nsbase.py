@@ -40,7 +40,6 @@ class NSBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         target = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, target)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

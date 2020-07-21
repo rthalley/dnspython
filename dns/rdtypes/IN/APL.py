@@ -87,11 +87,8 @@ class APL(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         items = []
-        while True:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            item = token.value
+        for token in tok.get_remaining():
+            item = token.unescape().value
             if item[0] == '!':
                 negation = True
                 item = item[1:]

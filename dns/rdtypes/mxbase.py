@@ -44,7 +44,6 @@ class MXBase(dns.rdata.Rdata):
                   relativize_to=None):
         preference = tok.get_uint16()
         exchange = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, preference, exchange)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

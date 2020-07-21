@@ -44,7 +44,6 @@ class EUIBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         text = tok.get_string()
-        tok.get_eol()
         if len(text) != cls.text_len:
             raise dns.exception.SyntaxError(
                 'Input text must have %s characters' % cls.text_len)

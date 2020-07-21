@@ -59,10 +59,7 @@ class HIP(dns.rdata.Rdata):
             raise dns.exception.SyntaxError("HIT too long")
         key = base64.b64decode(tok.get_string().encode())
         servers = []
-        while 1:
-            token = tok.get()
-            if token.is_eol_or_eof():
-                break
+        for token in tok.get_remaining():
             server = tok.as_name(token, origin, relativize, relativize_to)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)

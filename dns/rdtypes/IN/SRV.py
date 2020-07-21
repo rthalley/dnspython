@@ -49,7 +49,6 @@ class SRV(dns.rdata.Rdata):
         weight = tok.get_uint16()
         port = tok.get_uint16()
         target = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, priority, weight, port, target)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

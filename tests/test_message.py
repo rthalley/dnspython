@@ -29,8 +29,7 @@ import dns.rdatatype
 import dns.rrset
 import dns.update
 
-def here(filename):
-    return os.path.join(os.path.dirname(__file__), filename)
+from tests.util import here
 
 query_text = """id 1234
 opcode QUERY

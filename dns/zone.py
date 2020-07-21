@@ -532,7 +532,8 @@ class Zone:
                     for rdata in rds:
                         yield (name, rds.ttl, rdata)
 
-    def to_file(self, f, sorted=True, relativize=True, nl=None):
+    def to_file(self, f, sorted=True, relativize=True, nl=None,
+                want_comments=False):
         """Write a zone to a file.
 
         *f*, a file or `str`.  If *f* is a string, it is treated
@@ -550,6 +551,10 @@ class Zone:
         *nl*, a ``str`` or None.  The end of line string.  If not
         ``None``, the output will use the platform's native
         end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
+
+        *want_comments*, a ``bool``.  If ``True``, emit end-of-line comments
+        as part of writing the file.  If ``False``, the default, do not
+        emit them.
         """
 
         with contextlib.ExitStack() as stack:
@@ -579,7 +584,8 @@ class Zone:
                 names = self.keys()
             for n in names:
                 l = self[n].to_text(n, origin=self.origin,
-                                    relativize=relativize)
+                                    relativize=relativize,
+                                    want_comments=want_comments)
                 if isinstance(l, str):
                     l_b = l.encode(file_enc)
                 else:
@@ -593,7 +599,8 @@ class Zone:
                     f.write(l)
                     f.write(nl)
 
-    def to_text(self, sorted=True, relativize=True, nl=None):
+    def to_text(self, sorted=True, relativize=True, nl=None,
+                want_comments=False):
         """Return a zone's text as though it were written to a file.
 
         *sorted*, a ``bool``.  If True, the default, then the file
@@ -609,10 +616,14 @@ class Zone:
         ``None``, the output will use the platform's native
         end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
 
+        *want_comments*, a ``bool``.  If ``True``, emit end-of-line comments
+        as part of writing the file.  If ``False``, the default, do not
+        emit them.
+
         Returns a ``str``.
         """
         temp_buffer = io.StringIO()
-        self.to_file(temp_buffer, sorted, relativize, nl)
+        self.to_file(temp_buffer, sorted, relativize, nl, want_comments)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
         return return_value

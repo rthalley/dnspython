@@ -72,7 +72,6 @@ class NAPTR(dns.rdata.Rdata):
         service = tok.get_string()
         regexp = tok.get_string()
         replacement = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, order, preference, flags, service,
                    regexp, replacement)
 
