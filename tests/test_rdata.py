@@ -31,6 +31,7 @@ import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
 from dns.rdtypes.ANY.OPT import OPT
+from dns.rdtypes.ANY.LOC import LOC
 
 import tests.stxt_module
 import tests.ttxt_module
@@ -278,6 +279,11 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(rda, rdb)
 
     def test_misc_good_LOC_text(self):
+        # test just degrees
+        self.equal_loc('60 N 24 39 0.000 E 10.00m 20m 2000m 20m',
+                       '60 0 0 N 24 39 0.000 E 10.00m 20m 2000m 20m')
+        self.equal_loc('60 0 0 N 24 E 10.00m 20m 2000m 20m',
+                       '60 0 0 N 24 0 0 E 10.00m 20m 2000m 20m')
         # test variable length latitude
         self.equal_loc('60 9 0.510 N 24 39 0.000 E 10.00m 20m 2000m 20m',
                        '60 9 0.51 N 24 39 0.000 E 10.00m 20m 2000m 20m')
@@ -292,6 +298,27 @@ class RdataTestCase(unittest.TestCase):
                        '60 9 0.000 N 24 39 0.5 E 10.00m 20m 2000m 20m')
         self.equal_loc('60 9 0.000 N 24 39 1.000 E 10.00m 20m 2000m 20m',
                        '60 9 0.000 N 24 39 1 E 10.00m 20m 2000m 20m')
+        # test siz, hp, vp defaults
+        self.equal_loc('60 9 0.510 N 24 39 0.000 E 10.00m',
+                       '60 9 0.51 N 24 39 0.000 E 10.00m 1m 10000m 10m')
+        self.equal_loc('60 9 0.510 N 24 39 0.000 E 10.00m 2m',
+                       '60 9 0.51 N 24 39 0.000 E 10.00m 2m 10000m 10m')
+        self.equal_loc('60 9 0.510 N 24 39 0.000 E 10.00m 2m 2000m',
+                       '60 9 0.51 N 24 39 0.000 E 10.00m 2m 2000m 10m')
+        # test siz, hp, vp optional units
+        self.equal_loc('60 9 0.510 N 24 39 0.000 E 1m 20m 2000m 20m',
+                       '60 9 0.51 N 24 39 0.000 E 1 20 2000 20')
+
+    def test_LOC_to_text_SW_hemispheres(self):
+        # As an extra, we test int->float conversion in the constructor
+        loc = LOC(dns.rdataclass.IN, dns.rdatatype.LOC, -60, -24, 1)
+        text = '60 0 0.000 S 24 0 0.000 W 0.01m'
+        self.assertEqual(loc.to_text(), text)
+
+    def test_zero_size(self):
+        # This is to exercise the 0 path in _exponent_of.
+        loc = dns.rdata.from_text('in', 'loc', '60 S 24 W 1 0')
+        self.assertEqual(loc.size, 0.0)
 
     def test_bad_LOC_text(self):
         bad_locs = ['60 9 a.000 N 24 39 0.000 E 10.00m 20m 2000m 20m',
