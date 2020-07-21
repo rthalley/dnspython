@@ -35,6 +35,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 import dns.renderer
+import dns.ttl
 import dns.tsig
 import dns.rdtypes.ANY.OPT
 import dns.rdtypes.ANY.TSIG
@@ -735,14 +736,14 @@ class QueryMessage(Message):
             raise dns.exception.FormError
         question = self.question[0]
         qname = question.name
-        min_ttl = -1
+        min_ttl = dns.ttl.MAX_TTL
         rrset = None
         count = 0
         while count < MAX_CHAIN:
             try:
                 rrset = self.find_rrset(self.answer, qname, question.rdclass,
                                         question.rdtype)
-                if min_ttl == -1 or rrset.ttl < min_ttl:
+                if rrset.ttl < min_ttl:
                     min_ttl = rrset.ttl
                 break
             except KeyError:
@@ -751,7 +752,7 @@ class QueryMessage(Message):
                         crrset = self.find_rrset(self.answer, qname,
                                                  question.rdclass,
                                                  dns.rdatatype.CNAME)
-                        if min_ttl == -1 or crrset.ttl < min_ttl:
+                        if crrset.ttl < min_ttl:
                             min_ttl = crrset.ttl
                         for rd in crrset:
                             qname = rd.target
@@ -775,7 +776,7 @@ class QueryMessage(Message):
                     srrset = self.find_rrset(self.authority, auname,
                                              question.rdclass,
                                              dns.rdatatype.SOA)
-                    if min_ttl == -1 or srrset.ttl < min_ttl:
+                    if srrset.ttl < min_ttl:
                         min_ttl = srrset.ttl
                     if srrset[0].minimum < min_ttl:
                         min_ttl = srrset[0].minimum

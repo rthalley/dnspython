@@ -19,6 +19,7 @@
 
 import dns.exception
 
+MAX_TTL = 2147483647
 
 class BadTTL(dns.exception.SyntaxError):
     """DNS TTL value is not well-formed."""
@@ -64,6 +65,6 @@ def from_text(text):
                 current = 0
         if not current == 0:
             raise BadTTL("trailing integer")
-    if total < 0 or total > 2147483647:
+    if total < 0 or total > MAX_TTL:
         raise BadTTL("TTL should be between 0 and 2^31 - 1 (inclusive)")
     return total
