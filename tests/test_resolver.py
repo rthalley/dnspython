@@ -104,6 +104,18 @@ example. 1 IN A 10.0.0.1
 ;ADDITIONAL
 """
 
+message_text_mx = """id 1234
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+example. IN MX
+;ANSWER
+example. 1 IN A 10.0.0.1
+;AUTHORITY
+;ADDITIONAL
+"""
+
 dangling_cname_0_message_text = """id 10000
 opcode QUERY
 rcode NOERROR
@@ -222,7 +234,7 @@ class BaseResolverTests(unittest.TestCase):
 
     def testIndexErrorOnEmptyRRsetAccess(self):
         def bad():
-            message = dns.message.from_text(message_text)
+            message = dns.message.from_text(message_text_mx)
             name = dns.name.from_text('example.')
             answer = dns.resolver.Answer(name, dns.rdatatype.MX,
                                          dns.rdataclass.IN, message,
@@ -232,7 +244,7 @@ class BaseResolverTests(unittest.TestCase):
 
     def testIndexErrorOnEmptyRRsetDelete(self):
         def bad():
-            message = dns.message.from_text(message_text)
+            message = dns.message.from_text(message_text_mx)
             name = dns.name.from_text('example.')
             answer = dns.resolver.Answer(name, dns.rdatatype.MX,
                                          dns.rdataclass.IN, message,

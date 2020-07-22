@@ -78,20 +78,16 @@ class NXDOMAIN(dns.exception.DNSException):
         """Return the unresolved canonical name."""
         if 'qnames' not in self.kwargs:
             raise TypeError("parametrized exception required")
-        IN = dns.rdataclass.IN
-        CNAME = dns.rdatatype.CNAME
-        cname = None
-        # This code assumes the CNAME chain is in proper order, though
-        # the Answer code does not make a similar assumption when
-        # chaining.
         for qname in self.kwargs['qnames']:
             response = self.kwargs['responses'][qname]
-            for answer in response.answer:
-                if answer.rdtype != CNAME or answer.rdclass != IN:
-                    continue
-                cname = answer[0].target
-            if cname is not None:
-                return cname
+            try:
+                cname = response.canonical_name()
+                if cname != qname:
+                    return cname
+            except Exception:
+                # We can just eat this exception as it means there was
+                # something wrong with the response.
+                pass
         return self.kwargs['qnames'][0]
 
     def __add__(self, e_nx):
@@ -209,50 +205,7 @@ class Answer:
         self.response = response
         self.nameserver = nameserver
         self.port = port
-        min_ttl = -1
-        rrset = None
-        for count in range(0, 15):
-            try:
-                rrset = response.find_rrset(response.answer, qname,
-                                            rdclass, rdtype)
-                if min_ttl == -1 or rrset.ttl < min_ttl:
-                    min_ttl = rrset.ttl
-                break
-            except KeyError:
-                if rdtype != dns.rdatatype.CNAME:
-                    try:
-                        crrset = response.find_rrset(response.answer,
-                                                     qname,
-                                                     rdclass,
-                                                     dns.rdatatype.CNAME)
-                        if min_ttl == -1 or crrset.ttl < min_ttl:
-                            min_ttl = crrset.ttl
-                        for rd in crrset:
-                            qname = rd.target
-                            break
-                        continue
-                    except KeyError:
-                        # Exit the chaining loop
-                        break
-        self.canonical_name = qname
-        self.rrset = rrset
-        if rrset is None:
-            while 1:
-                # Look for a SOA RR whose owner name is a superdomain
-                # of qname.
-                try:
-                    srrset = response.find_rrset(response.authority, qname,
-                                                 rdclass, dns.rdatatype.SOA)
-                    if min_ttl == -1 or srrset.ttl < min_ttl:
-                        min_ttl = srrset.ttl
-                    if srrset[0].minimum < min_ttl:
-                        min_ttl = srrset[0].minimum
-                    break
-                except KeyError:
-                    try:
-                        qname = qname.parent()
-                    except dns.name.NoParent:
-                        break
+        (self.canonical_name, min_ttl, self.rrset) = response.resolve_chaining()
         self.expiration = time.time() + min_ttl
 
     def __getattr__(self, attr):  # pragma: no cover
@@ -698,8 +651,13 @@ class _Resolution:
         assert response is not None
         rcode = response.rcode()
         if rcode == dns.rcode.NOERROR:
-            answer = Answer(self.qname, self.rdtype, self.rdclass, response,
-                            self.nameserver, self.port)
+            try:
+                answer = Answer(self.qname, self.rdtype, self.rdclass, response,
+                                self.nameserver, self.port)
+            except Exception:
+                # The nameserver is no good, take it out of the mix.
+                self.nameservers.remove(self.nameserver)
+                return (None, False)
             if self.resolver.cache:
                 self.resolver.cache.put((self.qname, self.rdtype,
                                          self.rdclass), answer)
@@ -707,16 +665,22 @@ class _Resolution:
                 raise NoAnswer(response=answer.response)
             return (answer, True)
         elif rcode == dns.rcode.NXDOMAIN:
-            self.nxdomain_responses[self.qname] = response
-            # Make next_nameserver() return None, so caller breaks its
-            # inner loop and calls next_request().
-            if self.resolver.cache:
+            # Further validate the response by making an Answer, even
+            # if we aren't going to cache it.
+            try:
                 answer = Answer(self.qname, dns.rdatatype.ANY,
                                 dns.rdataclass.IN, response)
+            except Exception:
+                # The nameserver is no good, take it out of the mix.
+                self.nameservers.remove(self.nameserver)
+                return (None, False)
+            self.nxdomain_responses[self.qname] = response
+            if self.resolver.cache:
                 self.resolver.cache.put((self.qname,
                                          dns.rdatatype.ANY,
                                          self.rdclass), answer)
-
+            # Make next_nameserver() return None, so caller breaks its
+            # inner loop and calls next_request().
             return (None, True)
         elif rcode == dns.rcode.YXDOMAIN:
             yex = YXDOMAIN()
