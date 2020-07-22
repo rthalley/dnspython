@@ -92,6 +92,17 @@ no_nameservers = """
 options rotate
 """
 
+unknown_and_bad_directives = """
+nameserver 10.0.0.1
+foo bar
+bad
+"""
+
+unknown_option = """
+nameserver 10.0.0.1
+option foobar
+"""
+
 message_text = """id 1234
 opcode QUERY
 rcode NOERROR
@@ -241,6 +252,21 @@ class BaseResolverTests(unittest.TestCase):
         r = dns.resolver.Resolver(configure=False)
         with self.assertRaises(dns.resolver.NoResolverConfiguration):
             r.read_resolv_conf(f)
+
+    def testReadUnknownDirective(self):
+        # The real test here is ignoring the unknown directive and the bad
+        # directive.
+        f = StringIO(unknown_and_bad_directives)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
+        self.assertEqual(r.nameservers, ['10.0.0.1'])
+
+    def testReadUnknownOption(self):
+        # The real test here is ignoring the unknown option
+        f = StringIO(unknown_option)
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(f)
+        self.assertEqual(r.nameservers, ['10.0.0.1'])
 
     def testCacheExpiration(self):
         with FakeTime() as fake_time:
@@ -537,9 +563,8 @@ class LiveResolverTests(unittest.TestCase):
         self.assertEqual(zname, ezname)
 
     def testZoneForName3(self):
-        name = dns.name.from_text('dnspython.org.')
         ezname = dns.name.from_text('dnspython.org.')
-        zname = dns.resolver.zone_for_name(name)
+        zname = dns.resolver.zone_for_name('dnspython.org.')
         self.assertEqual(zname, ezname)
 
     def testZoneForName4(self):
