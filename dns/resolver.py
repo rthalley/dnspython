@@ -43,7 +43,7 @@ import dns.reversename
 import dns.tsig
 
 if sys.platform == 'win32':
-    import winreg  # pragma: no cover
+    import winreg
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
@@ -720,7 +720,7 @@ class Resolver:
         self.reset()
         if configure:
             if sys.platform == 'win32':
-                self.read_registry()  # pragma: no cover
+                self.read_registry()
             elif filename:
                 self.read_resolv_conf(filename)
 
@@ -858,7 +858,7 @@ class Resolver:
             try:
                 dom, rtype = winreg.QueryValueEx(key, 'Domain')
                 if dom:
-                    self._config_win32_domain(dom)
+                    self._config_win32_domain(dom)  # pragma: no cover
             except WindowsError:  # pragma: no cover
                 pass
         else:
@@ -866,17 +866,17 @@ class Resolver:
                 servers, rtype = winreg.QueryValueEx(key, 'DhcpNameServer')
             except WindowsError:  # pragma: no cover
                 servers = None
-            if servers:  # pragma: no cover
+            if servers:
                 self._config_win32_nameservers(servers)
                 try:
                     dom, rtype = winreg.QueryValueEx(key, 'DhcpDomain')
-                    if dom:  # pragma: no cover
+                    if dom:
                         self._config_win32_domain(dom)
                 except WindowsError:  # pragma: no cover
                     pass
         try:
             search, rtype = winreg.QueryValueEx(key, 'SearchList')
-        except WindowsError:  # pylint: disable=undefined-variable
+        except WindowsError:  # pragma: no cover
             search = None
         if search:  # pragma: no cover
             self._config_win32_search(search)
@@ -938,8 +938,8 @@ class Resolver:
                 (pnp_id, ttype) = winreg.QueryValueEx(
                     connection_key, 'PnpInstanceID')
 
-                if ttype != winreg.REG_SZ:  # pragma: no cover
-                    raise ValueError
+                if ttype != winreg.REG_SZ:
+                    raise ValueError  # pragma: no cover
 
                 device_key = winreg.OpenKey(
                     lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
@@ -949,8 +949,8 @@ class Resolver:
                     (flags, ttype) = winreg.QueryValueEx(
                         device_key, 'ConfigFlags')
 
-                    if ttype != winreg.REG_DWORD:  # pragma: no cover
-                        raise ValueError
+                    if ttype != winreg.REG_DWORD:
+                        raise ValueError  # pragma: no cover
 
                     # Based on experimentation, bit 0x1 indicates that the
                     # device is disabled.
