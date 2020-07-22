@@ -288,8 +288,7 @@ class BaseResolverTests(unittest.TestCase):
             message = dns.message.from_text(message_text_mx)
             name = dns.name.from_text('example.')
             answer = dns.resolver.Answer(name, dns.rdatatype.MX,
-                                         dns.rdataclass.IN, message,
-                                         False)
+                                         dns.rdataclass.IN, message)
             return answer[0]
         self.assertRaises(IndexError, bad)
 
@@ -298,8 +297,7 @@ class BaseResolverTests(unittest.TestCase):
             message = dns.message.from_text(message_text_mx)
             name = dns.name.from_text('example.')
             answer = dns.resolver.Answer(name, dns.rdatatype.MX,
-                                         dns.rdataclass.IN, message,
-                                         False)
+                                         dns.rdataclass.IN, message)
             del answer[0]
         self.assertRaises(IndexError, bad)
 
