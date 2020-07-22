@@ -512,6 +512,16 @@ class BaseResolverTests(unittest.TestCase):
         qnames = res._get_qnames_to_try(qname, None)
         self.assertEqual(qnames, [qname])
 
+    def testUseEDNS(self):
+        r = dns.resolver.Resolver(configure=False)
+        r.use_edns(None)
+        self.assertEqual(r.edns, -1)
+        r.use_edns(False)
+        self.assertEqual(r.edns, -1)
+        r.use_edns(True)
+        self.assertEqual(r.edns, 0)
+
+
 @unittest.skipIf(not _network_available, "Internet not reachable")
 class LiveResolverTests(unittest.TestCase):
     def testZoneForName1(self):

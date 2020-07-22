@@ -592,7 +592,7 @@ class Message:
 
         if edns is None or edns is False:
             edns = -1
-        if edns is True:
+        elif edns is True:
             edns = 0
         if edns < 0:
             self.opt = None

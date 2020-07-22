@@ -1188,8 +1188,10 @@ class Resolver:
         a response to this message can be.
         """
 
-        if edns is None:
+        if edns is None or edns is False:
             edns = -1
+        elif edns is True:
+            edns = 0
         self.edns = edns
         self.ednsflags = ednsflags
         self.payload = payload
