@@ -781,12 +781,30 @@ class NameTestCase(unittest.TestCase):
     @unittest.skipUnless(dns.name.have_idna_2008,
                          'Python idna cannot be imported; no IDNA2008')
     def testToUnicode4(self):
-        if dns.name.have_idna_2008:
-            n = dns.name.from_text('ドメイン.テスト',
-                                   idna_codec=dns.name.IDNA_2008)
-            s = n.to_unicode()
-            self.assertEqual(str(n), 'xn--eckwd4c7c.xn--zckzah.')
-            self.assertEqual(s, 'ドメイン.テスト.')
+        n = dns.name.from_text('ドメイン.テスト',
+                               idna_codec=dns.name.IDNA_2008)
+        s = n.to_unicode()
+        self.assertEqual(str(n), 'xn--eckwd4c7c.xn--zckzah.')
+        self.assertEqual(s, 'ドメイン.テスト.')
+
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
+    def testToUnicode5(self):
+        # Exercise UTS 46 remapping in decode.  This doesn't normally happen
+        # as you can see from us having to instantiate the codec as
+        # transitional with strict decoding, not one of our usual choices.
+        codec = dns.name.IDNA2008Codec(True, True, False, True)
+        n = dns.name.from_text('xn--gro-7ka.com')
+        self.assertEqual(n.to_unicode(idna_codec=codec),
+                         'gross.com.')
+
+    @unittest.skipUnless(dns.name.have_idna_2008,
+                         'Python idna cannot be imported; no IDNA2008')
+    def testToUnicode6(self):
+        # Test strict 2008 decoding without UTS 46
+        n = dns.name.from_text('xn--gro-7ka.com')
+        self.assertEqual(n.to_unicode(idna_codec=dns.name.IDNA_2008_Strict),
+                         'groß.com.')
 
     def testDefaultDecodeIsJustPunycode(self):
         # groß.com. in IDNA2008 form, pre-encoded.

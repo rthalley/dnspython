@@ -215,9 +215,10 @@ class IDNA2008Codec(IDNACodec):
         if not have_idna_2008:
             raise NoIDNA2008
         try:
+            ulabel = idna.ulabel(label)
             if self.uts_46:
-                label = idna.uts46_remap(label, False, False)
-            return _escapify(idna.ulabel(label))
+                ulabel = idna.uts46_remap(ulabel, False, self.transitional)
+            return _escapify(ulabel)
         except (idna.IDNAError, UnicodeError) as e:
             raise IDNAException(idna_exception=e)
 
