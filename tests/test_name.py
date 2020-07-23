@@ -465,6 +465,30 @@ class NameTestCase(unittest.TestCase):
             n.to_wire(f, compress)
         self.assertRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
 
+    def testGiantCompressionTable(self):
+        # Only the first 16KiB of a message can have compression pointers.
+        f = BytesIO()
+        compress = {}  # type: Dict[dns.name.Name,int]
+        # exactly 16 bytes encoded
+        n = dns.name.from_text('0000000000.com.')
+        n.to_wire(f, compress)
+        # There are now two entries in the compression table (for the full
+        # name, and for the com. suffix.
+        self.assertEqual(len(compress), 2)
+        for i in range(1023):
+            # exactly 16 bytes encoded with compression
+            n = dns.name.from_text(f'{i:013d}.com')
+            n.to_wire(f, compress)
+        # There are now 1025 entries in the compression table with
+        # the last entry at offset 16368.
+        self.assertEqual(len(compress), 1025)
+        self.assertEqual(compress[n], 16368)
+        # Adding another name should not increase the size of the compression
+        # table, as the pointer would be at offset 16384, which is too big.
+        n = dns.name.from_text('toobig.com.')
+        n.to_wire(f, compress)
+        self.assertEqual(len(compress), 1025)
+
     def testSplit1(self):
         n = dns.name.from_text('foo.bar.')
         (prefix, suffix) = n.split(2)
