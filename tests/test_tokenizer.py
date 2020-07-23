@@ -205,31 +205,32 @@ class TokenizerTestCase(unittest.TestCase):
         tok = dns.tokenizer.Tokenizer('1234')
         v = tok.get_int()
         self.assertEqual(v, 1234)
-        def bad1():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('"1234"')
-            v = tok.get_int()
-        self.assertRaises(dns.exception.SyntaxError, bad1)
-        def bad2():
+            tok.get_int()
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('q1234')
-            v = tok.get_int()
-        self.assertRaises(dns.exception.SyntaxError, bad2)
-        def bad3():
+            tok.get_int()
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('4294967296')
-            v = tok.get_uint32()
-        self.assertRaises(dns.exception.SyntaxError, bad3)
-        def bad4():
+            tok.get_uint32()
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('65536')
-            v = tok.get_uint16()
-        self.assertRaises(dns.exception.SyntaxError, bad4)
-        def bad5():
+            tok.get_uint16()
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('256')
-            v = tok.get_uint8()
-        self.assertRaises(dns.exception.SyntaxError, bad5)
+            tok.get_uint8()
         # Even though it is badly named get_int(), it's really get_unit!
-        def bad6():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('-1234')
-            v = tok.get_int()
-        self.assertRaises(dns.exception.SyntaxError, bad5)
+            tok.get_int()
+        # get_uint16 can do other bases too, and has a custom error
+        # for base 8.
+        tok = dns.tokenizer.Tokenizer('177777')
+        self.assertEqual(tok.get_uint16(base=8), 65535)
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('200000')
+            tok.get_uint16(base=8)
 
     def testGetString(self):
         tok = dns.tokenizer.Tokenizer('foo')
@@ -241,10 +242,12 @@ class TokenizerTestCase(unittest.TestCase):
         tok = dns.tokenizer.Tokenizer('abcdefghij')
         v = tok.get_string(max_length=10)
         self.assertEqual(v, 'abcdefghij')
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('abcdefghij')
-            v = tok.get_string(max_length=9)
-        self.assertRaises(dns.exception.SyntaxError, bad)
+            tok.get_string(max_length=9)
+        tok = dns.tokenizer.Tokenizer('')
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok.get_string()
 
     def testMultiLineWithComment(self):
         tok = dns.tokenizer.Tokenizer('( ; abc\n)')
