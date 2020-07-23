@@ -64,9 +64,6 @@ class SerialTestCase(unittest.TestCase):
     def test_sub(self):
         self.assertEqual(S8(0) - S8(1), S8(255))
 
-    def test_sub(self):
-        self.assertEqual(S8(0) - S8(1), S8(255))
-
     def test_addition_bounds(self):
         self.assertRaises(ValueError, lambda: S8(0) + 128)
         self.assertRaises(ValueError, lambda: S8(0) - 128)
@@ -100,6 +97,7 @@ class SerialTestCase(unittest.TestCase):
         self.assertRaises(ValueError, bad2)
 
     def test_uncomparable(self):
+        self.assertFalse(S8(0) == S2(0))
         self.assertFalse(S8(0) == 'a')
         self.assertTrue(S8(0) != 'a')
         self.assertRaises(TypeError, lambda: S8(0) < 'a')
@@ -113,3 +111,7 @@ class SerialTestCase(unittest.TestCase):
 
     def test_repr(self):
         self.assertEqual(repr(S8(1)), 'dns.serial.Serial(1, 8)')
+
+    def test_not_equal(self):
+        self.assertNotEqual(S8(0), S8(1))
+        self.assertNotEqual(S8(0), S2(0))
