@@ -51,22 +51,19 @@ class TokenizerTestCase(unittest.TestCase):
                                       'foo\\010bar'))
 
     def testQuotedString5(self):
-        def bad():
+        with self.assertRaises(dns.exception.UnexpectedEnd):
             tok = dns.tokenizer.Tokenizer(r'"foo')
             tok.get()
-        self.assertRaises(dns.exception.UnexpectedEnd, bad)
 
     def testQuotedString6(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer(r'"foo\01')
             tok.get()
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testQuotedString7(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('"foo\nbar"')
             tok.get()
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testEmpty1(self):
         tok = dns.tokenizer.Tokenizer('')
@@ -126,17 +123,16 @@ class TokenizerTestCase(unittest.TestCase):
         self.assertEqual(tokens, [Token(dns.tokenizer.IDENTIFIER, 'foo'),
                                   Token(dns.tokenizer.IDENTIFIER, 'bar'),
                                   Token(dns.tokenizer.EOL, '\n')])
+
     def testMultiline3(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('foo)')
             list(iter(tok))
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testMultiline4(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('((foo)')
             list(iter(tok))
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testUnget1(self):
         tok = dns.tokenizer.Tokenizer('foo')
@@ -148,12 +144,11 @@ class TokenizerTestCase(unittest.TestCase):
         self.assertEqual(t1.value, 'foo')
 
     def testUnget2(self):
-        def bad():
+        with self.assertRaises(dns.tokenizer.UngetBufferFull):
             tok = dns.tokenizer.Tokenizer('foo')
             t1 = tok.get()
             tok.unget(t1)
             tok.unget(t1)
-        self.assertRaises(dns.tokenizer.UngetBufferFull, bad)
 
     def testGetEOL1(self):
         tok = dns.tokenizer.Tokenizer('\n')
@@ -266,16 +261,14 @@ class TokenizerTestCase(unittest.TestCase):
         self.assertTrue(t.is_eof())
 
     def testMultiLineWithEOFAfterComment(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('( ; abc')
             tok.get_eol()
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testEscapeUnexpectedEnd(self):
-        def bad():
+        with self.assertRaises(dns.exception.UnexpectedEnd):
             tok = dns.tokenizer.Tokenizer('\\')
             tok.get()
-        self.assertRaises(dns.exception.UnexpectedEnd, bad)
 
     def testGetUngetRegetComment(self):
         tok = dns.tokenizer.Tokenizer(';comment')
@@ -285,51 +278,24 @@ class TokenizerTestCase(unittest.TestCase):
         self.assertEqual(t1, t2)
 
     def testBadAsName(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('"not an identifier"')
             t = tok.get()
             tok.as_name(t)
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testBadGetTTL(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('"not an identifier"')
-            v = tok.get_ttl()
-        self.assertRaises(dns.exception.SyntaxError, bad)
+            tok.get_ttl()
 
     def testDanglingEscapes(self):
-        def bad1():
-            tok = dns.tokenizer.Tokenizer('"\\"')
-            t = tok.get().unescape()
-        self.assertRaises(dns.exception.SyntaxError, bad1)
-        def bad2():
-            tok = dns.tokenizer.Tokenizer('"\\0"')
-            t = tok.get().unescape()
-        self.assertRaises(dns.exception.SyntaxError, bad2)
-        def bad3():
-            tok = dns.tokenizer.Tokenizer('"\\00"')
-            t = tok.get().unescape()
-        self.assertRaises(dns.exception.SyntaxError, bad3)
-        def bad4():
-            tok = dns.tokenizer.Tokenizer('"\\"')
-            t = tok.get().unescape_to_bytes()
-        self.assertRaises(dns.exception.SyntaxError, bad4)
-        def bad5():
-            tok = dns.tokenizer.Tokenizer('"\\0"')
-            t = tok.get().unescape_to_bytes()
-        self.assertRaises(dns.exception.SyntaxError, bad5)
-        def bad6():
-            tok = dns.tokenizer.Tokenizer('"\\00"')
-            t = tok.get().unescape_to_bytes()
-        self.assertRaises(dns.exception.SyntaxError, bad6)
-        def bad7():
-            tok = dns.tokenizer.Tokenizer('"\\00a"')
-            t = tok.get().unescape()
-        self.assertRaises(dns.exception.SyntaxError, bad7)
-        def bad8():
-            tok = dns.tokenizer.Tokenizer('"\\00a"')
-            t = tok.get().unescape_to_bytes()
-        self.assertRaises(dns.exception.SyntaxError, bad8)
+        for text in ['"\\"', '"\\0"', '"\\00"', '"\\00a"']:
+            with self.assertRaises(dns.exception.SyntaxError):
+                tok = dns.tokenizer.Tokenizer(text)
+                tok.get().unescape()
+            with self.assertRaises(dns.exception.SyntaxError):
+                tok = dns.tokenizer.Tokenizer(text)
+                tok.get().unescape_to_bytes()
 
 if __name__ == '__main__':
     unittest.main()
