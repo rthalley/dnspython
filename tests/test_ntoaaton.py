@@ -163,6 +163,12 @@ class NtoAAtoNTestCase(unittest.TestCase):
         t = ntoa6(b)
         self.assertEqual(t, '::0.1.255.255')
 
+    def test_ntoa15(self):
+        # This exercises the current_len > best_len branch in the <= case.
+        b = binascii.unhexlify(b'0000ffff00000000ffff00000000ffff')
+        t = ntoa6(b)
+        self.assertEqual(t, '0:ffff::ffff:0:0:ffff')
+
     def test_bad_ntoa1(self):
         def bad():
             ntoa6(b'')
