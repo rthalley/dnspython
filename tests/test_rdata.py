@@ -459,6 +459,14 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(mx, expected_mx)
         self.assertIsNone(mx.rdcomment)
 
+    def test_escaped_newline_in_quoted_string(self):
+        rd = dns.rdata.from_text('in', 'txt', '"foo\\\nbar"')
+        self.assertEqual(rd.strings, (b'foo\nbar',))
+        self.assertEqual(rd.to_text(), '"foo\\010bar"')
+
+    def test_escaped_newline_in_nonquoted_string(self):
+        with self.assertRaises(dns.exception.UnexpectedEnd):
+            dns.rdata.from_text('in', 'txt', 'foo\\\nbar')
 
 if __name__ == '__main__':
     unittest.main()

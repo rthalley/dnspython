@@ -423,7 +423,7 @@ class Tokenizer:
                 token += c
                 has_escape = True
                 c = self._get_char()
-                if c == '' or c == '\n':
+                if c == '' or (c == '\n' and not self.quoting):
                     raise dns.exception.UnexpectedEnd
             token += c
         if token == '' and ttype != QUOTED_STRING:
