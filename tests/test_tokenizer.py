@@ -288,6 +288,11 @@ class TokenizerTestCase(unittest.TestCase):
             tok = dns.tokenizer.Tokenizer('"not an identifier"')
             tok.get_ttl()
 
+    def testBadGetEOL(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('"not an identifier"')
+            tok.get_eol_as_token()
+
     def testDanglingEscapes(self):
         for text in ['"\\"', '"\\0"', '"\\00"', '"\\00a"']:
             with self.assertRaises(dns.exception.SyntaxError):
@@ -296,6 +301,51 @@ class TokenizerTestCase(unittest.TestCase):
             with self.assertRaises(dns.exception.SyntaxError):
                 tok = dns.tokenizer.Tokenizer(text)
                 tok.get().unescape_to_bytes()
+
+    def testTokenMisc(self):
+        t1 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, 'hi')
+        t2 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, 'hi')
+        t3 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, 'there')
+        self.assertEqual(t1, t2)
+        self.assertFalse(t1 == 'hi')  # not NotEqual because we want to use ==
+        self.assertNotEqual(t1, 'hi')
+        self.assertNotEqual(t1, t3)
+        self.assertEqual(str(t1), '3 "hi"')
+
+    def testBadConcatenateRemaining(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('a b "not an identifer" c')
+            tok.concatenate_remaining_identifiers()
+
+    def testStdinFilename(self):
+        tok = dns.tokenizer.Tokenizer()
+        self.assertEqual(tok.filename, '<stdin>')
+
+    def testBytesLiteral(self):
+        tok = dns.tokenizer.Tokenizer(b'this is input')
+        self.assertEqual(tok.get().value, 'this')
+        self.assertEqual(tok.filename, '<string>')
+        tok = dns.tokenizer.Tokenizer(b'this is input', 'myfilename')
+        self.assertEqual(tok.filename, 'myfilename')
+
+    def testUngetBranches(self):
+        tok = dns.tokenizer.Tokenizer(b'    this is input')
+        t = tok.get(want_leading=True)
+        tok.unget(t)
+        t = tok.get(want_leading=True)
+        self.assertEqual(t.ttype, dns.tokenizer.WHITESPACE)
+        tok.unget(t)
+        t = tok.get()
+        self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
+        self.assertEqual(t.value, 'this')
+        tok = dns.tokenizer.Tokenizer(b';    this is input\n')
+        t = tok.get(want_comment=True)
+        tok.unget(t)
+        t = tok.get(want_comment=True)
+        self.assertEqual(t.ttype, dns.tokenizer.COMMENT)
+        tok.unget(t)
+        t = tok.get()
+        self.assertEqual(t.ttype, dns.tokenizer.EOL)
 
 if __name__ == '__main__':
     unittest.main()

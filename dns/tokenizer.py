@@ -105,7 +105,7 @@ class Token:
             c = self.value[i]
             i += 1
             if c == '\\':
-                if i >= l:
+                if i >= l:  # pragma: no cover   (can't happen via get())
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
@@ -156,7 +156,7 @@ class Token:
             c = self.value[i]
             i += 1
             if c == '\\':
-                if i >= l:
+                if i >= l:  # pragma: no cover   (can't happen via get())
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
