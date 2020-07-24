@@ -34,6 +34,7 @@ from dns.rdtypes.ANY.LOC import LOC
 
 import tests.stxt_module
 import tests.ttxt_module
+import tests.md_module
 from tests.util import here
 
 class RdataTestCase(unittest.TestCase):
@@ -91,9 +92,8 @@ class RdataTestCase(unittest.TestCase):
 
     def test_invalid_replace(self):
         a1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             a1.replace(address="bogus")
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_replace_comment(self):
         a1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A,
@@ -103,6 +103,13 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(a1, a2)
         self.assertEqual(a1.rdcomment, "foo")
         self.assertEqual(a2.rdcomment, "bar")
+
+    def test_no_replace_class_or_type(self):
+        a1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
+        with self.assertRaises(AttributeError):
+            a1.replace(rdclass=255)
+        with self.assertRaises(AttributeError):
+            a1.replace(rdtype=2)
 
     def test_to_generic(self):
         a = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
@@ -457,6 +464,69 @@ class RdataTestCase(unittest.TestCase):
     def test_escaped_newline_in_nonquoted_string(self):
         with self.assertRaises(dns.exception.UnexpectedEnd):
             dns.rdata.from_text('in', 'txt', 'foo\\\nbar')
+
+    def test_wordbreak(self):
+        text = b'abcdefgh'
+        self.assertEqual(dns.rdata._wordbreak(text, 4), 'abcd efgh')
+        self.assertEqual(dns.rdata._wordbreak(text, 0), 'abcdefgh')
+
+    def test_escapify(self):
+        self.assertEqual(dns.rdata._escapify('abc'), 'abc')
+        self.assertEqual(dns.rdata._escapify(b'abc'), 'abc')
+        self.assertEqual(dns.rdata._escapify(bytearray(b'abc')), 'abc')
+        self.assertEqual(dns.rdata._escapify(b'ab"c'), 'ab\\"c')
+        self.assertEqual(dns.rdata._escapify(b'ab\\c'), 'ab\\\\c')
+        self.assertEqual(dns.rdata._escapify(b'ab\x01c'), 'ab\\001c')
+
+    def test_truncate_bitmap(self):
+        self.assertEqual(dns.rdata._truncate_bitmap(b'\x00\x01\x00\x00'),
+                         b'\x00\x01')
+        self.assertEqual(dns.rdata._truncate_bitmap(b'\x00\x01\x00\x01'),
+                         b'\x00\x01\x00\x01')
+        self.assertEqual(dns.rdata._truncate_bitmap(b'\x00\x00\x00\x00'),
+                         b'\x00')
+
+    def test_covers_and_extended_rdatatype(self):
+        rd = dns.rdata.from_text('in', 'a', '10.0.0.1')
+        self.assertEqual(rd.covers(), dns.rdatatype.NONE)
+        self.assertEqual(rd.extended_rdatatype(), 0x00000001)
+        rd = dns.rdata.from_text('in', 'rrsig',
+                                 'NSEC 1 3 3600 ' +
+                                 '20200101000000 20030101000000 ' +
+                                 '2143 foo Ym9ndXM=')
+        self.assertEqual(rd.covers(), dns.rdatatype.NSEC)
+        self.assertEqual(rd.extended_rdatatype(), 0x002f002e)
+
+    def test_uncomparable(self):
+        rd = dns.rdata.from_text('in', 'a', '10.0.0.1')
+        self.assertFalse(rd == 'a')
+        self.assertTrue(rd != 'a')
+
+    def test_bad_generic(self):
+        # does not start with \#
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'type45678', '# 7 000a03666f6f00')
+        # wrong length
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'type45678', '\\# 6 000a03666f6f00')
+
+    def test_covered_repr(self):
+        text = 'NSEC 1 3 3600 20190101000000 20030101000000 ' + \
+            '2143 foo Ym9ndXM='
+        rd = dns.rdata.from_text('in', 'rrsig', text)
+        self.assertEqual(repr(rd), '<DNS IN RRSIG(NSEC) rdata: ' + text + '>')
+
+    def test_bad_registration_implementing_known_type_with_wrong_name(self):
+        # Try to register an implementation at the MG codepoint that isn't
+        # called "MG"
+        with self.assertRaises(dns.rdata.RdatatypeExists):
+            dns.rdata.register_type(None, dns.rdatatype.MG, 'NOTMG')
+
+    def test_registration_implementing_known_type_with_right_name(self):
+        # Try to register an implementation at the MD codepoint
+        dns.rdata.register_type(tests.md_module, dns.rdatatype.MD, 'MD')
+        rd = dns.rdata.from_text('in', 'md', 'foo.')
+        self.assertEqual(rd.target, dns.name.from_text('foo.'))
 
 if __name__ == '__main__':
     unittest.main()
