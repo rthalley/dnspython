@@ -189,10 +189,10 @@ class Rdata:
         Returns a ``str``.
         """
 
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def to_wire(self, file=None, compress=None, origin=None,
                 canonicalize=False):
@@ -300,11 +300,11 @@ class Rdata:
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def replace(self, **kwargs):
         """
