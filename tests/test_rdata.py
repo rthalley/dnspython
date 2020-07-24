@@ -16,7 +16,6 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import binascii
 import io
 import operator
 import pickle
@@ -341,12 +340,9 @@ class RdataTestCase(unittest.TestCase):
                     '60 9 0.000 N 24 39 0.000 E 10.00m 20m 100000000m 20m',
                     '60 9 0.000 N 24 39 0.000 E 10.00m 20m 20m 100000000m',
                     ]
-        def bad(text):
-            rd = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC,
-                                     text)
         for loc in bad_locs:
-            self.assertRaises(dns.exception.SyntaxError,
-                              lambda: bad(loc))
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC, loc)
 
     def test_bad_LOC_wire(self):
         bad_locs = [(0, 0, 0, 0x934fd901, 0x80000000, 100),
@@ -361,12 +357,11 @@ class RdataTestCase(unittest.TestCase):
                     (0, 0, 0x0a, 0x80000000, 0x80000000, 100),
                     ]
         for t in bad_locs:
-            wire = struct.pack('!BBBBIII', 0, t[0], t[1], t[2],
-                               t[3], t[4], t[5])
-            self.assertRaises(dns.exception.FormError,
-                              lambda: dns.rdata.from_wire(dns.rdataclass.IN,
-                                                          dns.rdatatype.LOC,
-                                                          wire, 0, len(wire)))
+            with self.assertRaises(dns.exception.FormError):
+                wire = struct.pack('!BBBBIII', 0, t[0], t[1], t[2],
+                                   t[3], t[4], t[5])
+                dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.LOC,
+                                    wire, 0, len(wire))
 
     def equal_wks(self, a, b):
         rda = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS, a)
@@ -402,12 +397,9 @@ class RdataTestCase(unittest.TestCase):
                     '"0" "180.1" "0"',
                     '"0" "-180.1" "0"',
                     ]
-        def bad(text):
-            rd = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.GPOS,
-                                     text)
         for gpos in bad_gpos:
-            self.assertRaises(dns.exception.FormError,
-                              lambda: bad(gpos))
+            with self.assertRaises(dns.exception.FormError):
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.GPOS, gpos)
 
     def test_bad_GPOS_wire(self):
         bad_gpos = [b'\x01',
@@ -438,14 +430,12 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(repr(opt), '<DNS CLASS4096 OPT rdata: >')
 
     def test_opt_short_lengths(self):
-        def bad1():
+        with self.assertRaises(dns.exception.FormError):
             parser = dns.wire.Parser(bytes.fromhex('f00102'))
-            opt = OPT.from_wire_parser(4096, dns.rdatatype.OPT, parser)
-        self.assertRaises(dns.exception.FormError, bad1)
-        def bad2():
+            OPT.from_wire_parser(4096, dns.rdatatype.OPT, parser)
+        with self.assertRaises(dns.exception.FormError):
             parser = dns.wire.Parser(bytes.fromhex('f00100030000'))
-            opt = OPT.from_wire_parser(4096, dns.rdatatype.OPT, parser)
-        self.assertRaises(dns.exception.FormError, bad2)
+            OPT.from_wire_parser(4096, dns.rdatatype.OPT, parser)
 
     def test_from_wire_parser(self):
         wire = bytes.fromhex('01020304')
