@@ -1,7 +1,10 @@
 .. _whatsnew:
 
-What's New in dnspython 2.1.0
-=============================
+What's New in dnspython
+=======================
+
+2.1.0 (in development)
+----------------------
 
 * End-of-line comments are now associated with rdata when read from text.
   For backwards compatibility with prior versions of dnspython, they are
@@ -19,8 +22,8 @@ What's New in dnspython 2.1.0
 
 * The default EDNS payload size has changed from 1280 to 1232.
 
-What's New in dnspython 2.0.0
-=============================
+2.0.0
+-----
 
 * Python 3.6 or newer is required.
 
