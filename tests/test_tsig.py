@@ -30,6 +30,19 @@ class TSIGTestCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             dns.tsig.get_context(bogus)
 
+    def test_tsig_message_properties(self):
+        m = dns.message.make_query('example', 'a')
+        self.assertIsNone(m.keyname)
+        self.assertIsNone(m.keyalgorithm)
+        self.assertIsNone(m.tsig_error)
+        m.use_tsig(keyring, keyname)
+        self.assertEqual(m.keyname, keyname)
+        self.assertEqual(m.keyalgorithm, dns.tsig.default_algorithm)
+        self.assertEqual(m.tsig_error, dns.rcode.NOERROR)
+        m = dns.message.make_query('example', 'a')
+        m.use_tsig(keyring, keyname, tsig_error=dns.rcode.BADKEY)
+        self.assertEqual(m.tsig_error, dns.rcode.BADKEY)
+
     def test_sign_and_validate(self):
         m = dns.message.make_query('example', 'a')
         m.use_tsig(keyring, keyname)
@@ -39,7 +52,6 @@ class TSIGTestCase(unittest.TestCase):
 
     def test_sign_and_validate_with_other_data(self):
         m = dns.message.make_query('example', 'a')
-        other = b'other data'
         m.use_tsig(keyring, keyname, other_data=b'other')
         w = m.to_wire()
         # not raising is passing

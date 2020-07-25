@@ -448,5 +448,11 @@ class MessageTestCase(unittest.TestCase):
         self.assertFalse(isinstance(q2, dns.update.UpdateMessage))
         self.assertEqual(q1, q2)
 
+    def test_truncated_exception_message(self):
+        q = dns.message.Message(id=1)
+        q.flags |= dns.flags.TC
+        te = dns.message.Truncated(message=q)
+        self.assertEqual(te.message(), q)
+
 if __name__ == '__main__':
     unittest.main()
