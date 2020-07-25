@@ -31,6 +31,9 @@ import dns.rdataset
 import dns.rdatatype
 from dns.rdtypes.ANY.OPT import OPT
 from dns.rdtypes.ANY.LOC import LOC
+import dns.rdtypes.util
+import dns.tokenizer
+import dns.wire
 
 import tests.stxt_module
 import tests.ttxt_module
@@ -527,6 +530,105 @@ class RdataTestCase(unittest.TestCase):
         dns.rdata.register_type(tests.md_module, dns.rdatatype.MD, 'MD')
         rd = dns.rdata.from_text('in', 'md', 'foo.')
         self.assertEqual(rd.target, dns.name.from_text('foo.'))
+
+class UtilTestCase(unittest.TestCase):
+
+    def test_Gateway_bad_type0(self):
+        g = dns.rdtypes.util.Gateway(0, 'bad.')
+        with self.assertRaises(SyntaxError):
+            g.check()
+
+    def test_Gateway_bad_type3(self):
+        g = dns.rdtypes.util.Gateway(3, 'bad.')
+        with self.assertRaises(SyntaxError):
+            g.check()
+
+    def test_Gateway_type4(self):
+        g = dns.rdtypes.util.Gateway(4)
+        with self.assertRaises(SyntaxError):
+            g.check()
+        with self.assertRaises(ValueError):
+            g.to_text()
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('bogus')
+            g.from_text(tok)
+        with self.assertRaises(ValueError):
+            f = io.BytesIO()
+            g.to_wire(f)
+        with self.assertRaises(dns.exception.FormError):
+            g.from_wire_parser(None)
+
+    def test_Bitmap(self):
+        b = dns.rdtypes.util.Bitmap([])
+        tok = dns.tokenizer.Tokenizer('A MX')
+        windows = b.from_text(tok)
+        ba = bytearray()
+        ba.append(0x40)  # bit 1, for A
+        ba.append(0x01)  # bit 15, for MX
+        self.assertEqual(windows, [(0, ba)])
+
+    def test_Bitmap_with_duplicate_types(self):
+        b = dns.rdtypes.util.Bitmap([])
+        tok = dns.tokenizer.Tokenizer('A MX A A MX')
+        windows = b.from_text(tok)
+        ba = bytearray()
+        ba.append(0x40)  # bit 1, for A
+        ba.append(0x01)  # bit 15, for MX
+        self.assertEqual(windows, [(0, ba)])
+
+    def test_Bitmap_with_out_of_order_types(self):
+        b = dns.rdtypes.util.Bitmap([])
+        tok = dns.tokenizer.Tokenizer('MX A')
+        windows = b.from_text(tok)
+        ba = bytearray()
+        ba.append(0x40)  # bit 1, for A
+        ba.append(0x01)  # bit 15, for MX
+        self.assertEqual(windows, [(0, ba)])
+
+    def test_Bitmap_zero_padding_works(self):
+        b = dns.rdtypes.util.Bitmap([])
+        tok = dns.tokenizer.Tokenizer('SRV')
+        windows = b.from_text(tok)
+        ba = bytearray()
+        ba.append(0)
+        ba.append(0)
+        ba.append(0)
+        ba.append(0)
+        ba.append(0x40)  # bit 33, for SRV
+        self.assertEqual(windows, [(0, ba)])
+
+    def test_Bitmap_has_type_0_set(self):
+        b = dns.rdtypes.util.Bitmap([])
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('NONE A MX')
+            b.from_text(tok)
+
+    def test_Bitmap_empty_window_not_written(self):
+        b = dns.rdtypes.util.Bitmap([])
+        tok = dns.tokenizer.Tokenizer('URI CAA')  # types 256 and 257
+        windows = b.from_text(tok)
+        ba = bytearray()
+        ba.append(0xc0)  # bits 0 and 1 in window 1
+        self.assertEqual(windows, [(1, ba)])
+
+    def test_Bitmap_ok_parse(self):
+        parser = dns.wire.Parser(b'\x00\x01\x40')
+        b = dns.rdtypes.util.Bitmap([])
+        windows = b.from_wire_parser(parser)
+        self.assertEqual(windows, [(0, b'@')])
+
+    def test_Bitmap_0_length_window_parse(self):
+        parser = dns.wire.Parser(b'\x00\x00')
+        with self.assertRaises(dns.exception.FormError):
+            b = dns.rdtypes.util.Bitmap([])
+            b.from_wire_parser(parser)
+
+    def test_Bitmap_too_long_parse(self):
+        parser = dns.wire.Parser(b'\x00\x21' + b'\x01' * 33)
+        with self.assertRaises(dns.exception.FormError):
+            b = dns.rdtypes.util.Bitmap([])
+            b.from_wire_parser(parser)
+
 
 if __name__ == '__main__':
     unittest.main()
