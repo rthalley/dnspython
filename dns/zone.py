@@ -586,11 +586,7 @@ class Zone:
                 l = self[n].to_text(n, origin=self.origin,
                                     relativize=relativize,
                                     want_comments=want_comments)
-                if isinstance(l, str):
-                    l_b = l.encode(file_enc)
-                else:
-                    l_b = l
-                    l = l.decode()
+                l_b = l.encode(file_enc)
 
                 try:
                     f.write(l_b)
