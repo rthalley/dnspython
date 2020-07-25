@@ -28,6 +28,8 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
+import dns.tsig
+import dns.tsigkeyring
 
 # Some tests require the internet to be available to run, so let's
 # skip those if it's not there.
@@ -547,6 +549,27 @@ class BaseResolverTests(unittest.TestCase):
         r.use_edns(True)
         self.assertEqual(r.edns, 0)
 
+    def testSetFlags(self):
+        flags = dns.flags.CD | dns.flags.RD
+        r = dns.resolver.Resolver(configure=False)
+        r.set_flags(flags)
+        self.assertEqual(r.flags, flags)
+
+    def testUseTSIG(self):
+        keyring = dns.tsigkeyring.from_text(
+            {
+                'keyname.': 'NjHwPsMKjdN++dOfE5iAiQ=='
+            }
+        )
+        r = dns.resolver.Resolver(configure=False)
+        r.use_tsig(keyring)
+        self.assertEqual(r.keyring, keyring)
+        self.assertEqual(r.keyname, None)
+        self.assertEqual(r.keyalgorithm, dns.tsig.default_algorithm)
+
+keyname = dns.name.from_text('keyname')
+
+
 
 @unittest.skipIf(not _network_available, "Internet not reachable")
 class LiveResolverTests(unittest.TestCase):
@@ -864,7 +887,7 @@ class NanoTests(unittest.TestCase):
         with NaptrNanoNameserver() as na:
             res = dns.resolver.Resolver(configure=False)
             res.port = na.udp_address[1]
-            res.nameservers = [ na.udp_address[0] ]
+            res.nameservers = [na.udp_address[0]]
             answer = dns.e164.query('1650551212', ['e164.arpa'], res)
             self.assertEqual(answer[0].order, 0)
             self.assertEqual(answer[0].preference, 0)
@@ -872,6 +895,26 @@ class NanoTests(unittest.TestCase):
             self.assertEqual(answer[0].service, b'')
             self.assertEqual(answer[0].regexp, b'')
             self.assertEqual(answer[0].replacement, dns.name.root)
-            def nxdomain():
-                answer = dns.e164.query('0123456789', ['e164.arpa'], res)
-            self.assertRaises(dns.resolver.NXDOMAIN, nxdomain)
+            with self.assertRaises(dns.resolver.NXDOMAIN):
+                dns.e164.query('0123456789', ['e164.arpa'], res)
+
+
+class AlwaysType3NXDOMAINNanoNameserver(Server):
+
+    def handle(self, request):
+        response = dns.message.make_response(request.message)
+        response.set_rcode(dns.rcode.NXDOMAIN)
+        response.flags |= dns.flags.RA
+        return response
+
+@unittest.skipIf(not (_network_available and _nanonameserver_available),
+                 "Internet and NanoAuth required")
+class ZoneForNameNoParentTest(unittest.TestCase):
+
+    def testNoRootSOA(self):
+        with AlwaysType3NXDOMAINNanoNameserver() as na:
+            res = dns.resolver.Resolver(configure=False)
+            res.port = na.udp_address[1]
+            res.nameservers = [na.udp_address[0]]
+            with self.assertRaises(dns.resolver.NoRootSOA):
+                dns.resolver.zone_for_name('www.foo.bar.', resolver=res)
