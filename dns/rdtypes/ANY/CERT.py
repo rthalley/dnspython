@@ -82,8 +82,6 @@ class CERT(dns.rdata.Rdata):
         certificate_type = _ctype_from_text(tok.get_string())
         key_tag = tok.get_uint16()
         algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
-        if algorithm < 0 or algorithm > 255:
-            raise dns.exception.SyntaxError("bad algorithm type")
         b64 = tok.concatenate_remaining_identifiers().encode()
         certificate = base64.b64decode(b64)
         return cls(rdclass, rdtype, certificate_type, key_tag,
