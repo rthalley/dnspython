@@ -81,5 +81,46 @@ class RdatasetTestCase(unittest.TestCase):
         self.assertRaises(ValueError,
                           lambda: dns.rdataset.from_rdata_list(300, []))
 
+    def testToTextNoName(self):
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1')
+        text = rds.to_text()
+        self.assertEqual(text, '300 IN A 10.0.0.1')
+
+    def testToTextOverrideClass(self):
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1')
+        text = rds.to_text(override_rdclass=dns.rdataclass.NONE)
+        self.assertEqual(text, '300 NONE A 10.0.0.1')
+
+    def testRepr(self):
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1')
+        self.assertEqual(repr(rds), "<DNS IN A rdataset: [<10.0.0.1>]>")
+
+    def testTruncatedRepr(self):
+        rds = dns.rdataset.from_text('in', 'txt', 300,
+                                     'a' * 200)
+        # * 99 not * 100 below as the " counts as one of the 100 chars
+        self.assertEqual(repr(rds),
+                         '<DNS IN TXT rdataset: [<"' + 'a' * 99 + '...>]>')
+
+    def testStr(self):
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1')
+        self.assertEqual(str(rds), "300 IN A 10.0.0.1")
+
+    def testMultilineToText(self):
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1', '10.0.0.2')
+        self.assertEqual(rds.to_text(), "300 IN A 10.0.0.1\n300 IN A 10.0.0.2")
+
+    def testCoveredRepr(self):
+        rds = dns.rdataset.from_text('in', 'rrsig', 300,
+                                     'NSEC 1 3 3600 ' +
+                                     '20190101000000 20030101000000 ' +
+                                     '2143 foo Ym9ndXM=')
+        # Using startswith as I don't care about the repr of the rdata,
+        # just the covers
+        print(repr(rds))
+        self.assertTrue(repr(rds).startswith(
+            '<DNS IN RRSIG(NSEC) rdataset:'))
+
+
 if __name__ == '__main__':
     unittest.main()
