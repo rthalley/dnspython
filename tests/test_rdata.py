@@ -31,6 +31,8 @@ import dns.rdataset
 import dns.rdatatype
 from dns.rdtypes.ANY.OPT import OPT
 from dns.rdtypes.ANY.LOC import LOC
+from dns.rdtypes.ANY.GPOS import GPOS
+import dns.rdtypes.ANY.RRSIG
 import dns.rdtypes.util
 import dns.tokenizer
 import dns.wire
@@ -388,6 +390,22 @@ class RdataTestCase(unittest.TestCase):
                                 '10.0.0.1 132 ( domain )')
         self.assertRaises(NotImplementedError, bad)
 
+    def test_GPOS_float_converters(self):
+        rd = dns.rdata.from_text('in', 'gpos', '49 0 0')
+        self.assertEqual(rd.float_latitude, 49.0)
+        self.assertEqual(rd.float_longitude, 0.0)
+        self.assertEqual(rd.float_altitude, 0.0)
+
+    def test_GPOS_constructor_conversion(self):
+        rd = GPOS(dns.rdataclass.IN, dns.rdatatype.GPOS, 49.0, 0.0, 0.0)
+        self.assertEqual(rd.float_latitude, 49.0)
+        self.assertEqual(rd.float_longitude, 0.0)
+        self.assertEqual(rd.float_altitude, 0.0)
+        rd = GPOS(dns.rdataclass.IN, dns.rdatatype.GPOS, 49, 0, 0)
+        self.assertEqual(rd.float_latitude, 49.0)
+        self.assertEqual(rd.float_longitude, 0.0)
+        self.assertEqual(rd.float_altitude, 0.0)
+
     def test_bad_GPOS_text(self):
         bad_gpos = ['"-" "116.8652" "250"',
                     '"+" "116.8652" "250"',
@@ -530,6 +548,73 @@ class RdataTestCase(unittest.TestCase):
         dns.rdata.register_type(tests.md_module, dns.rdatatype.MD, 'MD')
         rd = dns.rdata.from_text('in', 'md', 'foo.')
         self.assertEqual(rd.target, dns.name.from_text('foo.'))
+
+    def test_CERT_with_string_type(self):
+        rd = dns.rdata.from_text('in', 'cert', 'SPKI 1 PRIVATEOID Ym9ndXM=')
+        self.assertEqual(rd.to_text(), 'SPKI 1 PRIVATEOID Ym9ndXM=')
+
+    def test_CERT_algorithm(self):
+        rd = dns.rdata.from_text('in', 'cert', 'SPKI 1 0 Ym9ndXM=')
+        self.assertEqual(rd.algorithm, 0)
+        with self.assertRaises(ValueError):
+            dns.rdata.from_text('in', 'cert', 'SPKI 1 -1 Ym9ndXM=')
+        with self.assertRaises(ValueError):
+            dns.rdata.from_text('in', 'cert', 'SPKI 1 256 Ym9ndXM=')
+        with self.assertRaises(ValueError):
+            dns.rdata.from_text('in', 'cert', 'SPKI 1 BOGUS Ym9ndXM=')
+
+    def test_bad_URI_text(self):
+        # empty target
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'uri', '10 1 ""')
+        # no target
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'uri', '10 1')
+
+    def test_bad_URI_wire(self):
+        wire = bytes.fromhex('000a0001')
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire('in', 'uri', wire, 0, 4)
+
+    def test_bad_NSAP_text(self):
+        # does not start with 0x
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'nsap', '0y4700')
+        # odd hex string length
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'nsap', '0x470')
+
+    def test_bad_CAA_text(self):
+        # tag too long
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'caa',
+                                '0 ' + 'a' * 256 + ' "ca.example.net"')
+        # tag not alphanumeric
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'caa',
+                                '0 a-b "ca.example.net"')
+
+    def test_bad_HIP_text(self):
+        # hit too long
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'hip',
+                                '2 ' +
+                                '00' * 256 +
+                                ' Ym9ndXM=')
+
+    def test_bad_sigtime(self):
+        with self.assertRaises(dns.rdtypes.ANY.RRSIG.BadSigTime):
+            dns.rdata.from_text('in', 'rrsig',
+                                'NSEC 1 3 3600 ' +
+                                '202001010000000 20030101000000 ' +
+                                '2143 foo Ym9ndXM=')
+        with self.assertRaises(dns.rdtypes.ANY.RRSIG.BadSigTime):
+            dns.rdata.from_text('in', 'rrsig',
+                                'NSEC 1 3 3600 ' +
+                                '20200101000000 2003010100000 ' +
+                                '2143 foo Ym9ndXM=')
+
+
 
 class UtilTestCase(unittest.TestCase):
 
