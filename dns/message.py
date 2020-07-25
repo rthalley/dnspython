@@ -248,9 +248,11 @@ class Message:
             return False
         if other.rcode() in {dns.rcode.FORMERR, dns.rcode.SERVFAIL,
                              dns.rcode.NOTIMP, dns.rcode.REFUSED}:
-            # We don't check the question section in these cases, even
-            # though they still ought to have the same question.
-            return True
+            # We don't check the question section in these cases if
+            # the other question section is empty, even though they
+            # still really ought to have a question section.
+            if len(other.question) == 0:
+                return True
         if dns.opcode.is_update(self.flags):
             # This is assuming the "sender doesn't include anything
             # from the update", but we don't care to check the other

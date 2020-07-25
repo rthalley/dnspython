@@ -368,6 +368,13 @@ class MessageTestCase(unittest.TestCase):
         q.additional = [rrset]
         self.assertEqual(q.sections[3], [rrset])
 
+    def test_is_a_response_empty_question(self):
+        q = dns.message.make_query('www.dnspython.org.', 'a')
+        r = dns.message.make_response(q)
+        r.question = []
+        r.set_rcode(dns.rcode.FORMERR)
+        self.assertTrue(q.is_response(r))
+
     def test_not_a_response(self):
         q = dns.message.QueryMessage(id=1)
         self.assertFalse(q.is_response(q))
@@ -383,6 +390,11 @@ class MessageTestCase(unittest.TestCase):
         q1.id = 1
         q2.id = 1
         r = dns.message.make_response(q2)
+        self.assertFalse(q1.is_response(r))
+        # Now set rcode to FORMERR and check again.  It should still
+        # not be a response as we check the question section for FORMERR
+        # if it is present.
+        r.set_rcode(dns.rcode.FORMERR)
         self.assertFalse(q1.is_response(r))
         # Test the other case of differing questions, where there is
         # something in the response's question section that is not in
