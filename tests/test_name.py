@@ -934,6 +934,11 @@ class NameTestCase(unittest.TestCase):
         text = dns.reversename.to_address(n, v6_origin=origin)
         self.assertEqual(text, e)
 
+    def testUnknownReverseOrigin(self):
+        n = dns.name.from_text('1.2.3.4.unknown.')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.reversename.to_address(n)
+
     def testE164ToEnum(self):
         text = '+1 650 555 1212'
         e = dns.name.from_text('2.1.2.1.5.5.5.0.5.6.1.e164.arpa.')
