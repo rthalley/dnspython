@@ -72,6 +72,10 @@ class FlagsTestCase(unittest.TestCase):
         # In TSIG text mode, it should be BADSIG
         self.assertEqual(dns.rcode.to_text(rcode, True), 'BADSIG')
 
+    def test_unknown_rcode(self):
+        with self.assertRaises(dns.rcode.UnknownRcode):
+            dns.rcode.Rcode.make('BOGUS')
+
 
 if __name__ == '__main__':
     unittest.main()
