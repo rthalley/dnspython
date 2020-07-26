@@ -13,6 +13,8 @@ class EntropyTestCase(unittest.TestCase):
         self.assertEqual(pool.random_16(), 61532)
         self.assertEqual(pool.random_32(), 4226376065)
         self.assertEqual(pool.random_between(10, 50), 29)
+        # stir in some not-really-entropy to exercise the stir API
+        pool.stir(b'not-really-entropy')
 
     def test_pool_random(self):
         pool = dns.entropy.EntropyPool()
