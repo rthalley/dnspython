@@ -206,15 +206,33 @@ wildcard_txt_rrsig = dns.rrset.from_text('*.example.com.', 3600, 'IN', 'RRSIG',
 
 wildcard_when = 1593541048
 
-class DNSSECMakeDSTestCase(unittest.TestCase):
-    def testMnemonicParser(self):
-        good_ds_mnemonic = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
-                              '57349 RSASHA1 2 53A79A3E7488AB44FFC56B2D1109F0699D1796DD977E72108B841F96 E47D7013')
-        self.assertEqual(good_ds, good_ds_mnemonic)
+
+rsamd5_keys = {
+    abs_example: dns.rrset.from_text(
+        'example', 3600, 'in', 'dnskey',
+        '257 3 1 AwEAAewnoEWe+AVEnQzcZTwpl8K/QKuScYIX 9xHOhejAL1enMjE0j97Gq3XXJJPWF7eQQGHs 1De4Srv2UT0zRCLkH9r36lOR/ggANvthO/Ub Es0hlD3A58LumEPudgIDwEkxGvQAXMFTMw0x 1d/a82UtzmNoPVzFOl2r+OCXx9Jbdh/L; KSK; alg = RSAMD5; key id = 30239',
+        '256 3 1 AwEAAb8OJM5YcqaYG0fenUdRlrhBQ6LuwCvr 5BRlrVbVzadSDBpq+yIiklfdGNBg3WZztDy1 du62NWC/olMfc6uRe/SjqTa7IJ3MdEuZQXQw	MedGdNSF73zbokx8wg7zBBr74xHczJcEpQhr ZLzwCDmIPu0yoVi3Yqdl4dm4vNBj9hAD; ZSK; alg = RSAMD5; key id = 62992')
+}
+
+rsamd5_ns = dns.rrset.from_text('example.', 3600, 'in', 'ns',
+                                'ns1.example.', 'ns2.example.')
+rsamd5_ns_rrsig = dns.rrset.from_text('example.', 3600, 'in', 'rrsig',
+                                      'NS 1 1 3600 20200825153103 20200726153103 62992 example. YPv0WVqzQBDH45mFcYGo9psCVoMoeeHeAugh 9RZuO2NmdwfQ3mmiQm7WJ3AYnzYIozFGf7CL nwn3vN8/fjsfcQgEv5xfhFTSd4IoAzJJiZAa vrI4L5590C/+aXQ8tjRmbMTPiqoudaXvsevE jP2lTFg5DCruJyFq5dnAY5b90RY=')
+
+rsamd5_when = 1595781671
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca,
                      "Python Cryptography cannot be imported")
 class DNSSECValidatorTestCase(unittest.TestCase):
+
+    def testAbsoluteRSAMD5Good(self):  # type: () -> None
+        dns.dnssec.validate(rsamd5_ns, rsamd5_ns_rrsig, rsamd5_keys, None,
+                            rsamd5_when)
+
+    def testRSAMD5Keyid(self):
+        self.assertEqual(dns.dnssec.key_id(rsamd5_keys[abs_example][0]), 30239)
+        self.assertEqual(dns.dnssec.key_id(rsamd5_keys[abs_example][1]), 62992)
 
     def testAbsoluteRSAGood(self):  # type: () -> None
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, abs_keys, None, when)
@@ -330,6 +348,12 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             keys[name] = dns.node.Node()
             keys[name].rdatasets.append(key_rrset.to_rdataset())
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, keys, None, when)
+        # test key not found.
+        keys = {}
+        for (name, key_rrset) in abs_keys.items():
+            keys[name] = dns.node.Node()
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_soa, abs_soa_rrsig, keys, None, when)
 
         # Pass origin as a string, not a name.
         dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
@@ -351,6 +375,11 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1,
                                 abs_ed448_keys_1, None, when5 + 1)
+        # expired using the current time (to test the "get the time" code
+        # path)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1,
+                                abs_ed448_keys_1, None)
 
     def testOwnerNameMismatch(self):
         bogus = dns.name.from_text('example.bogus')
@@ -368,8 +397,21 @@ class DNSSECMiscTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             dns.dnssec.NSEC3Hash.make(256)
 
+    def testIsNotGOST(self):
+        self.assertTrue(dns.dnssec._is_gost(dns.dnssec.Algorithm.ECCGOST))
+
+    def testUnknownHash(self):
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec._make_hash(100)
+
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
+
+    def testMnemonicParser(self):
+        good_ds_mnemonic = dns.rdata.from_text(dns.rdataclass.IN,
+                                               dns.rdatatype.DS,
+                                               '57349 RSASHA1 2 53A79A3E7488AB44FFC56B2D1109F0699D1796DD977E72108B841F96 E47D7013')
+        self.assertEqual(good_ds, good_ds_mnemonic)
 
     def testMakeExampleSHA1DS(self):  # type: () -> None
         for algorithm in ('SHA1', 'sha1', dns.dnssec.DSDigest.SHA1):
