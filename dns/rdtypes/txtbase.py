@@ -65,7 +65,10 @@ class TXTBase(dns.rdata.Rdata):
         strings = []
         for token in tok.get_remaining():
             token = token.unescape_to_bytes()
-            if not (token.is_quoted_string() or token.is_identifier()):
+            # The 'if' below is always true in the current code, but we
+            # are leaving this check in in case things change some day.
+            if not (token.is_quoted_string() or
+                    token.is_identifier()):  # pragma: no cover
                 raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
                 raise dns.exception.SyntaxError("string too long")

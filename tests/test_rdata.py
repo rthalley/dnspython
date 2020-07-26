@@ -614,6 +614,15 @@ class RdataTestCase(unittest.TestCase):
                                 '20200101000000 2003010100000 ' +
                                 '2143 foo Ym9ndXM=')
 
+    def test_empty_TXT(self):
+        # hit too long
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'txt', '')
+
+    def test_too_long_TXT(self):
+        # hit too long
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'txt', 'a' * 256)
 
 
 class UtilTestCase(unittest.TestCase):
