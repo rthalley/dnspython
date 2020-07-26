@@ -221,6 +221,43 @@ rsamd5_ns_rrsig = dns.rrset.from_text('example.', 3600, 'in', 'rrsig',
 
 rsamd5_when = 1595781671
 
+rsasha512_keys = {
+    abs_example: dns.rrset.from_text(
+        'example', 3600, 'in', 'dnskey',
+        '256 3 10 AwEAAb2JvKjZ6l5qg2ab3qqUQhLGGjsiMIuQ 2zhaXJHdTntS+8LgUXo5yLFn7YF9YL1VX9V4 5ASGxUpz0u0chjWqBNtUO3Ymzas/vck9o21M 2Ce/LrpfYsqvJaLvGf/dozW9uSeMQq1mPKYG xo4uxyhZBhZewX8znXZySrAIozBPH3yp ; ZSK; alg = RSASHA512 ; key id = 5957',
+        '257 3 10 AwEAAc7Lnoe+mHijJ8OOHgyJHKYantQGKx5t rIs267gOePyAL7cUt9HO1Sm3vABSGNsoHL6w 8/542SxGbT21osVISamtq7kUPTgDU9iKqCBq VdXEdzXYbhBKVoQkGPl4PflfbOgg/45xAiTi 7qOUERuRCPdKEkd4FW0tg6VfZmm7QjP1 ; KSK; alg = RSASHA512 ; key id = 53212')
+}
+
+rsasha512_ns = dns.rrset.from_text('example.', 3600, 'in', 'ns',
+                                   'ns1.example.', 'ns2.example.')
+rsasha512_ns_rrsig = dns.rrset.from_text(
+    'example.', 3600, 'in', 'rrsig',
+    'NS 10 1 3600 20200825161255 20200726161255 5957 example. P9A+1zYke7yIiKEnxFMm+UIW2CIwy2WDvbx6 g8hHiI8qISe6oeKveFW23OSk9+VwFgBiOpeM ygzzFbckY7RkGbOr4TR8ogDRANt6LhV402Hu SXTV9hCLVFWU4PS+/fxxfOHCetsY5tWWSxZi zSHfgpGfsHWzQoAamag4XYDyykc=')
+
+rsasha512_when = 1595783997
+
+
+unknown_alg_keys = {
+    abs_example: dns.rrset.from_text(
+        'example', 3600, 'in', 'dnskey',
+        '256 3 100 Ym9ndXM=',
+        '257 3 100 Ym9ndXM=')
+}
+
+unknown_alg_ns_rrsig = dns.rrset.from_text(
+    'example.', 3600, 'in', 'rrsig',
+    'NS 100 1 3600 20200825161255 20200726161255 16713 example. P9A+1zYke7yIiKEnxFMm+UIW2CIwy2WDvbx6 g8hHiI8qISe6oeKveFW23OSk9+VwFgBiOpeM ygzzFbckY7RkGbOr4TR8ogDRANt6LhV402Hu SXTV9hCLVFWU4PS+/fxxfOHCetsY5tWWSxZi zSHfgpGfsHWzQoAamag4XYDyykc=')
+
+fake_gost_keys = {
+    abs_example: dns.rrset.from_text(
+        'example', 3600, 'in', 'dnskey',
+        '256 3 12 Ym9ndXM=',
+        '257 3 12 Ym9ndXM=')
+}
+
+fake_gost_ns_rrsig = dns.rrset.from_text(
+    'example.', 3600, 'in', 'rrsig',
+    'NS 12 1 3600 20200825161255 20200726161255 16625 example. P9A+1zYke7yIiKEnxFMm+UIW2CIwy2WDvbx6 g8hHiI8qISe6oeKveFW23OSk9+VwFgBiOpeM ygzzFbckY7RkGbOr4TR8ogDRANt6LhV402Hu SXTV9hCLVFWU4PS+/fxxfOHCetsY5tWWSxZi zSHfgpGfsHWzQoAamag4XYDyykc=')
 
 @unittest.skipUnless(dns.dnssec._have_pyca,
                      "Python Cryptography cannot be imported")
@@ -317,7 +354,11 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             dns.dnssec.validate(abs_other_ed448_mx, abs_ed448_mx_rrsig_2,
                                 abs_ed448_keys_2, None, when5)
 
-    def testWildcardGood(self): # type: () -> None
+    def testAbsoluteRSASHA512Good(self):
+        dns.dnssec.validate(rsasha512_ns, rsasha512_ns_rrsig, rsasha512_keys,
+                            None, rsasha512_when)
+
+    def testWildcardGood(self):
         dns.dnssec.validate(wildcard_txt, wildcard_txt_rrsig,
                             wildcard_keys, None, wildcard_when)
 
@@ -386,6 +427,16 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate((bogus, abs_ed448_mx), abs_ed448_mx_rrsig_1,
                                 abs_ed448_keys_1, None, when5 + 1)
+
+    def testGOSTNotSupported(self):
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(rsasha512_ns, fake_gost_ns_rrsig,
+                                fake_gost_keys, None, rsasha512_when)
+
+    def testUnknownAlgorithm(self):
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(rsasha512_ns, unknown_alg_ns_rrsig,
+                                unknown_alg_keys, None, rsasha512_when)
 
 
 class DNSSECMiscTestCase(unittest.TestCase):
