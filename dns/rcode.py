@@ -104,8 +104,6 @@ def from_flags(flags, ednsflags):
     """
 
     value = (flags & 0x000f) | ((ednsflags >> 20) & 0xff0)
-    if value < 0 or value > 4095:
-        raise ValueError('rcode must be >= 0 and <= 4095')
     return value
 
 
