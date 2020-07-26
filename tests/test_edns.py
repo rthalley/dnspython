@@ -23,6 +23,7 @@ import unittest
 from io import BytesIO
 
 import dns.edns
+import dns.wire
 
 class OptionTestCase(unittest.TestCase):
     def testGenericOption(self):
@@ -32,6 +33,7 @@ class OptionTestCase(unittest.TestCase):
         data = io.getvalue()
         self.assertEqual(data, b'data')
         self.assertEqual(dns.edns.option_from_wire(3, data, 0, len(data)), opt)
+        self.assertEqual(str(opt), 'Generic 3')
 
     def testECSOption_prefix_length(self):
         opt = dns.edns.ECSOption('1.2.255.33', 20)
@@ -46,6 +48,13 @@ class OptionTestCase(unittest.TestCase):
         opt.to_wire(io)
         data = io.getvalue()
         self.assertEqual(data, b'\x00\x01\x18\x00\x01\x02\x03')
+        # default srclen
+        opt = dns.edns.ECSOption('1.2.3.4')
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b'\x00\x01\x18\x00\x01\x02\x03')
+        self.assertEqual(opt.to_text(), 'ECS 1.2.3.4/24 scope/0')
 
     def testECSOption25(self):
         opt = dns.edns.ECSOption('1.2.3.255', 25)
@@ -106,6 +115,12 @@ class OptionTestCase(unittest.TestCase):
             dns.edns.ECSOption.from_text('1.2.3.4/twentyfour')
 
         with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text('BOGUS 1.2.3.4/5/6/7')
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text('1.2.3.4/5/6/7')
+
+        with self.assertRaises(ValueError):
             dns.edns.ECSOption.from_text('1.2.3.4/24/O') # <-- that's not a zero
 
         with self.assertRaises(ValueError):
@@ -113,6 +128,12 @@ class OptionTestCase(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             dns.edns.ECSOption.from_text('1.2.3.4/2001:4b98::1/24')
+
+    def testECSOption_from_wire_invalid(self):
+        with self.assertRaises(ValueError):
+            opt = dns.edns.option_from_wire(dns.edns.ECS,
+                                            b'\x00\xff\x18\x00\x01\x02\x03',
+                                            0, 7)
 
     def test_basic_relations(self):
         o1 = dns.edns.ECSOption.from_text('1.2.3.0/24/0')

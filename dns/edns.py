@@ -190,8 +190,8 @@ class ECSOption(Option):
             self.family = 1
             if srclen is None:
                 srclen = 24
-        else:
-            raise ValueError('Bad ip family')
+        else:  # pragma: no cover   (this will never happen)
+            raise ValueError('Bad address family')
 
         self.address = address
         self.srclen = srclen
