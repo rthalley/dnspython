@@ -17,6 +17,7 @@ try:
 except socket.gaierror:
     _network_available = False
 
+
 @unittest.skipIf(not _network_available, "Internet not reachable")
 class OverrideSystemResolverTestCase(unittest.TestCase):
 
@@ -118,6 +119,30 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
         except socket.gaierror as e:
             self.assertEqual(e.errno, socket.EAI_NONAME)
 
+    def test_getaddrinfo_only_service(self):
+        infos = socket.getaddrinfo(service=53, family=socket.AF_INET,
+                                   socktype=socket.SOCK_DGRAM,
+                                   proto=socket.IPPROTO_UDP)
+        self.assertEqual(len(infos), 1)
+        info = infos[0]
+        self.assertEqual(info[0], socket.AF_INET)
+        self.assertEqual(info[1], socket.SOCK_DGRAM)
+        self.assertEqual(info[2], socket.IPPROTO_UDP)
+        self.assertEqual(info[4], ('127.0.0.1', 53))
+
+    def test_unknown_service_fails(self):
+        with self.assertRaises(socket.gaierror):
+            socket.getaddrinfo('dns.google.', 'bogus-service')
+
+    def test_getnameinfo_tcp(self):
+        info = socket.getnameinfo(('8.8.8.8', 53))
+        self.assertEqual(info, ('dns.google', 'domain'))
+
+    def test_getnameinfo_udp(self):
+        info = socket.getnameinfo(('8.8.8.8', 53), socket.NI_DGRAM)
+        self.assertEqual(info, ('dns.google', 'domain'))
+
+
 # Give up on testing this for now as all of the names I've considered
 # using for testing are part of CDNs and there is deep magic in
 # gethostbyaddr() that python's getfqdn() is using.  At any rate,
@@ -145,3 +170,52 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
         b = socket.gethostbyaddr('2001:4860:4860::8888')
         self.assertEqual(a[0], b[0])
         self.assertEqual(a[2], b[2])
+
+
+class FakeResolver:
+    def resolve(self, *args, **kwargs):
+        raise dns.exception.Timeout
+
+
+class OverrideSystemResolverUsingFakeResolverTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.res = FakeResolver()
+        dns.resolver.override_system_resolver(self.res)
+
+    def tearDown(self):
+        dns.resolver.restore_system_resolver()
+        self.res = None
+
+    def test_temporary_failure(self):
+        with self.assertRaises(socket.gaierror):
+            socket.getaddrinfo('dns.google')
+
+    # We don't need the fake resolver for the following tests, but we
+    # don't need the live network either, so we're testing here.
+
+    def test_no_host_or_service_fails(self):
+        with self.assertRaises(socket.gaierror):
+            socket.getaddrinfo()
+
+    def test_AI_ADDRCONFIG_fails(self):
+        with self.assertRaises(socket.gaierror):
+            socket.getaddrinfo('dns.google', flags=socket.AI_ADDRCONFIG)
+
+    def test_gethostbyaddr_of_name_fails(self):
+        with self.assertRaises(socket.gaierror):
+            socket.gethostbyaddr('bogus')
+
+
+class OverrideSystemResolverUsingDefaultResolverTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.res = FakeResolver()
+        dns.resolver.override_system_resolver()
+
+    def tearDown(self):
+        dns.resolver.restore_system_resolver()
+        self.res = None
+
+    def test_override(self):
+        self.assertEqual(dns.resolver._resolver, dns.resolver.default_resolver)

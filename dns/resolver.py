@@ -1416,8 +1416,7 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
                     v4addrs.append(rdata.address)
     except dns.resolver.NXDOMAIN:
         raise socket.gaierror(socket.EAI_NONAME, 'Name or service not known')
-    except Exception as e:
-        print(e)
+    except Exception:
         # We raise EAI_AGAIN here as the failure may be temporary
         # (e.g. a timeout) and EAI_SYSTEM isn't defined on Windows.
         # [Issue #416]

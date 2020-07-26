@@ -633,7 +633,12 @@ class LiveResolverTests(unittest.TestCase):
         qtype = dns.rdatatype.from_text('A')
         def bad():
             answer = dns.resolver.resolve(qname, qtype)
-        self.assertRaises(dns.resolver.NXDOMAIN, bad)
+        try:
+            dns.resolver.resolve(qname, qtype)
+            self.assertTrue(False)  # should not happen!
+        except dns.resolver.NXDOMAIN as nx:
+            self.assertIn(qname, nx.qnames())
+            self.assertGreaterEqual(len(nx.responses()), 1)
 
     def testResolveCacheHit(self):
         res = dns.resolver.Resolver(configure=False)
