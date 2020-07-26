@@ -192,6 +192,7 @@ abs_ed448_mx_rrsig_2 = dns.rrset.from_text('example.com.', 3600, 'IN', 'RRSIG',
                                            'MX 16 2 3600 1440021600 1438207200 38353 example.com. E1/oLjSGIbmLny/4fcgM1z4oL6aqo+izT3urCyHyvEp4Sp8Syg1eI+lJ57CSnZqjJP41O/9l4m0AsQ4f7qI1gVnML8vWWiyW2KXhT9kuAICUSxv5OWbf81Rq7Yu60npabODB0QFPb/rkW3kUZmQ0YQUA')
 
 when5 = 1440021600
+when5_start = 1438207200
 
 wildcard_keys = {
     abs_example_com : dns.rrset.from_text(
@@ -230,6 +231,9 @@ class DNSSECValidatorTestCase(unittest.TestCase):
     def testRelativeRSAGood(self):  # type: () -> None
         dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
                             abs_dnspython_org, when)
+        # test the text conversion for origin too
+        dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
+                            'dnspython.org', when)
 
     def testRelativeRSABad(self):  # type: () -> None
         def bad():  # type: () -> None
@@ -330,12 +334,48 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         # Pass origin as a string, not a name.
         dns.dnssec.validate(rel_soa, rel_soa_rrsig, rel_keys,
                             'dnspython.org', when)
+        dns.dnssec.validate_rrsig(rel_soa, rel_soa_rrsig[0], rel_keys,
+                                  'dnspython.org', when)
+
+    def testAbsoluteKeyNotFound(self):
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1, {}, None,
+                                when5)
+
+    def testTimeBounds(self):
+        # not yet valid
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1,
+                                abs_ed448_keys_1, None, when5_start - 1)
+        # expired
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(abs_ed448_mx, abs_ed448_mx_rrsig_1,
+                                abs_ed448_keys_1, None, when5 + 1)
+
+    def testOwnerNameMismatch(self):
+        bogus = dns.name.from_text('example.bogus')
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate((bogus, abs_ed448_mx), abs_ed448_mx_rrsig_1,
+                                abs_ed448_keys_1, None, when5 + 1)
+
+
+class DNSSECMiscTestCase(unittest.TestCase):
+    def testDigestToBig(self):
+        with self.assertRaises(ValueError):
+            dns.dnssec.DSDigest.make(256)
+
+    def testNSEC3HashTooBig(self):
+        with self.assertRaises(ValueError):
+            dns.dnssec.NSEC3Hash.make(256)
+
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
 
     def testMakeExampleSHA1DS(self):  # type: () -> None
         for algorithm in ('SHA1', 'sha1', dns.dnssec.DSDigest.SHA1):
             ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
+            self.assertEqual(ds, example_ds_sha1)
+            ds = dns.dnssec.make_ds('example.', example_sep_key, algorithm)
             self.assertEqual(ds, example_ds_sha1)
 
     def testMakeExampleSHA256DS(self):  # type: () -> None
