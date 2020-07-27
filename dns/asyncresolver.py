@@ -210,7 +210,7 @@ def reset_default_resolver():
 
 async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                   tcp=False, source=None, raise_on_no_answer=True,
-                  source_port=0, search=None, backend=None):
+                  source_port=0, lifetime=None, search=None, backend=None):
     """Query nameservers asynchronously to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -222,7 +222,8 @@ async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
 
     return await get_default_resolver().resolve(qname, rdtype, rdclass, tcp,
                                                 source, raise_on_no_answer,
-                                                source_port, search, backend)
+                                                source_port, lifetime, search,
+                                                backend)
 
 
 async def resolve_address(ipaddr, *args, **kwargs):
