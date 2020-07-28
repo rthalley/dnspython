@@ -788,9 +788,15 @@ class Resolver:
                     self.nameservers.append(tokens[1])
                 elif tokens[0] == 'domain':
                     self.domain = dns.name.from_text(tokens[1])
+                    # domain and search are exclusive
+                    self.search = []
                 elif tokens[0] == 'search':
+                    # the last search wins
+                    self.search = []
                     for suffix in tokens[1:]:
                         self.search.append(dns.name.from_text(suffix))
+                    # We don't set domain as it is not used if
+                    # len(self.search) > 0
                 elif tokens[0] == 'options':
                     for opt in tokens[1:]:
                         if opt == 'rotate':
@@ -989,14 +995,34 @@ class Resolver:
         if qname.is_absolute():
             qnames_to_try.append(qname)
         else:
-            if len(qname) > 1 or not search:
-                qnames_to_try.append(qname.concatenate(dns.name.root))
-            if search and self.search:
-                for suffix in self.search:
-                    if self.ndots is None or len(qname.labels) >= self.ndots:
-                        qnames_to_try.append(qname.concatenate(suffix))
-            elif search:
-                qnames_to_try.append(qname.concatenate(self.domain))
+            abs_qname = qname.concatenate(dns.name.root)
+            if search:
+                if len(self.search) > 0:
+                    # There is a search list, so use it exclusively
+                    search_list = self.search[:]
+                elif self.domain != dns.name.root and self.domain is not None:
+                    # We have some notion of a domain that isn't the root, so
+                    # use it as the search list.
+                    search_list = [self.domain]
+                else:
+                    search_list = []
+                # Figure out the effective ndots (default is 1)
+                if self.ndots is None:
+                    ndots = 1
+                else:
+                    ndots = self.ndots
+                for suffix in search_list:
+                    qnames_to_try.append(qname + suffix)
+                if len(qname) > ndots:
+                    # The name has at least ndots dots, so we should try an
+                    # absolute query first.
+                    qnames_to_try.insert(0, abs_qname)
+                else:
+                    # The name has less than ndots dots, so we should search
+                    # first, then try the absolute name.
+                    qnames_to_try.append(abs_qname)
+            else:
+                qnames_to_try.append(abs_qname)
         return qnames_to_try
 
     def resolve(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,

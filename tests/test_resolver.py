@@ -514,7 +514,7 @@ class BaseResolverTests(unittest.TestCase):
         qnames = res._get_qnames_to_try(qname, True)
         self.assertEqual(qnames,
                          [dns.name.from_text(x) for x in
-                          ['www.dnspython.org', 'www.dnspython.net']])
+                          ['www.dnspython.org', 'www.dnspython.net', 'www.']])
         qnames = res._get_qnames_to_try(qname, False)
         self.assertEqual(qnames,
                          [dns.name.from_text('www.')])
@@ -528,7 +528,27 @@ class BaseResolverTests(unittest.TestCase):
         qnames = res._get_qnames_to_try(qname, None)
         self.assertEqual(qnames,
                          [dns.name.from_text(x) for x in
-                          ['www.dnspython.org', 'www.dnspython.net']])
+                          ['www.dnspython.org', 'www.dnspython.net', 'www.']])
+        #
+        # Now test ndots
+        #
+        qname = dns.name.from_text('a.b', None)
+        res.ndots = 1
+        qnames = res._get_qnames_to_try(qname, True)
+        self.assertEqual(qnames,
+                         [dns.name.from_text(x) for x in
+                          ['a.b', 'a.b.dnspython.org', 'a.b.dnspython.net']])
+        res.ndots = 2
+        qnames = res._get_qnames_to_try(qname, True)
+        self.assertEqual(qnames,
+                         [dns.name.from_text(x) for x in
+                          ['a.b.dnspython.org', 'a.b.dnspython.net', 'a.b']])
+        qname = dns.name.from_text('a.b.c', None)
+        qnames = res._get_qnames_to_try(qname, True)
+        self.assertEqual(qnames,
+                         [dns.name.from_text(x) for x in
+                          ['a.b.c', 'a.b.c.dnspython.org',
+                           'a.b.c.dnspython.net']])
 
     def testSearchListsAbsolute(self):
         res = dns.resolver.Resolver(configure=False)
