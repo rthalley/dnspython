@@ -459,35 +459,35 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
     Returns an instance of the chosen Rdata subclass.
 
     """
-
     if isinstance(tok, str):
         tok = dns.tokenizer.Tokenizer(tok, idna_codec=idna_codec)
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
-    rdata = None
-    if cls != GenericRdata:
-        # peek at first token
-        token = tok.get()
-        tok.unget(token)
-        if token.is_identifier() and \
-           token.value == r'\#':
-            #
-            # Known type using the generic syntax.  Extract the
-            # wire form from the generic syntax, and then run
-            # from_wire on it.
-            #
-            grdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
-                                            relativize, relativize_to)
-            rdata = from_wire(rdclass, rdtype, grdata.data, 0, len(grdata.data),
-                              origin)
-    if rdata is None:
-        rdata = cls.from_text(rdclass, rdtype, tok, origin, relativize,
-                              relativize_to)
-    token = tok.get_eol_as_token()
-    if token.comment is not None:
-        object.__setattr__(rdata, 'rdcomment', token.comment)
-    return rdata
+    with dns.exception.ExceptionWrapper(dns.exception.SyntaxError):
+        rdata = None
+        if cls != GenericRdata:
+            # peek at first token
+            token = tok.get()
+            tok.unget(token)
+            if token.is_identifier() and \
+               token.value == r'\#':
+                #
+                # Known type using the generic syntax.  Extract the
+                # wire form from the generic syntax, and then run
+                # from_wire on it.
+                #
+                grdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
+                                                relativize, relativize_to)
+                rdata = from_wire(rdclass, rdtype, grdata.data, 0,
+                                  len(grdata.data), origin)
+        if rdata is None:
+            rdata = cls.from_text(rdclass, rdtype, tok, origin, relativize,
+                                  relativize_to)
+        token = tok.get_eol_as_token()
+        if token.comment is not None:
+            object.__setattr__(rdata, 'rdcomment', token.comment)
+        return rdata
 
 
 def from_wire_parser(rdclass, rdtype, parser, origin=None):
@@ -517,7 +517,8 @@ def from_wire_parser(rdclass, rdtype, parser, origin=None):
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
-    return cls.from_wire_parser(rdclass, rdtype, parser, origin)
+    with dns.exception.ExceptionWrapper(dns.exception.FormError):
+        return cls.from_wire_parser(rdclass, rdtype, parser, origin)
 
 
 def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):

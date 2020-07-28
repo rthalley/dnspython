@@ -385,10 +385,12 @@ class RdataTestCase(unittest.TestCase):
         self.equal_wks('10.0.0.1 udp ( domain )', '10.0.0.1 17 ( 53 )')
 
     def test_misc_bad_WKS_text(self):
-        def bad():
+        try:
             dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS,
                                 '10.0.0.1 132 ( domain )')
-        self.assertRaises(NotImplementedError, bad)
+            self.assertTrue(False)  # should not happen
+        except dns.exception.SyntaxError as e:
+            self.assertIsInstance(e.__cause__, NotImplementedError)
 
     def test_GPOS_float_converters(self):
         rd = dns.rdata.from_text('in', 'gpos', '49 0 0')
@@ -426,7 +428,7 @@ class RdataTestCase(unittest.TestCase):
                     '"0" "-180.1" "0"',
                     ]
         for gpos in bad_gpos:
-            with self.assertRaises(dns.exception.FormError):
+            with self.assertRaises(dns.exception.SyntaxError):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.GPOS, gpos)
 
     def test_bad_GPOS_wire(self):
@@ -556,11 +558,11 @@ class RdataTestCase(unittest.TestCase):
     def test_CERT_algorithm(self):
         rd = dns.rdata.from_text('in', 'cert', 'SPKI 1 0 Ym9ndXM=')
         self.assertEqual(rd.algorithm, 0)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('in', 'cert', 'SPKI 1 -1 Ym9ndXM=')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('in', 'cert', 'SPKI 1 256 Ym9ndXM=')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('in', 'cert', 'SPKI 1 BOGUS Ym9ndXM=')
 
     def test_bad_URI_text(self):
@@ -603,16 +605,24 @@ class RdataTestCase(unittest.TestCase):
                                 ' Ym9ndXM=')
 
     def test_bad_sigtime(self):
-        with self.assertRaises(dns.rdtypes.ANY.RRSIG.BadSigTime):
+        try:
             dns.rdata.from_text('in', 'rrsig',
                                 'NSEC 1 3 3600 ' +
                                 '202001010000000 20030101000000 ' +
                                 '2143 foo Ym9ndXM=')
-        with self.assertRaises(dns.rdtypes.ANY.RRSIG.BadSigTime):
+            self.assertTrue(False)  # should not happen
+        except dns.exception.SyntaxError as e:
+            self.assertIsInstance(e.__cause__,
+                                  dns.rdtypes.ANY.RRSIG.BadSigTime)
+        try:
             dns.rdata.from_text('in', 'rrsig',
                                 'NSEC 1 3 3600 ' +
                                 '20200101000000 2003010100000 ' +
                                 '2143 foo Ym9ndXM=')
+            self.assertTrue(False)  # should not happen
+        except dns.exception.SyntaxError as e:
+            self.assertIsInstance(e.__cause__,
+                                  dns.rdtypes.ANY.RRSIG.BadSigTime)
 
     def test_empty_TXT(self):
         # hit too long
