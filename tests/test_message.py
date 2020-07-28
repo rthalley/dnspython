@@ -538,5 +538,129 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(len(r.authority), 0)
         self.assertEqual(len(r.additional), 0)
 
+    def test_bad_resolve_chaining(self):
+        r = dns.message.make_query('www.dnspython.org.', 'a')
+        with self.assertRaises(dns.message.NotQueryResponse):
+            r.resolve_chaining()
+        r.flags |= dns.flags.QR
+        r.id = 1
+        r.find_rrset(r.question, dns.name.from_text('example'),
+                     dns.rdataclass.IN, dns.rdatatype.A, create=True,
+                     force_unique=True)
+        with self.assertRaises(dns.exception.FormError):
+            r.resolve_chaining()
+
+    def test_bad_text_questions(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+;QUESTION
+example.
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+;QUESTION
+example. IN
+''')
+        with self.assertRaises(dns.rdatatype.UnknownRdatatype):
+            dns.message.from_text('''id 1
+;QUESTION
+example. INA
+''')
+        with self.assertRaises(dns.rdatatype.UnknownRdatatype):
+            dns.message.from_text('''id 1
+;QUESTION
+example. IN BOGUS
+''')
+
+    def test_bad_text_rrs(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+;QUESTION
+example. IN A
+;ANSWER
+example.
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+;QUESTION
+example. IN A
+;ANSWER
+example. IN
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+;QUESTION
+example. IN A
+;ANSWER
+example. 300
+''')
+        with self.assertRaises(dns.rdatatype.UnknownRdatatype):
+            dns.message.from_text('''id 1
+flags QR
+;QUESTION
+example. IN A
+;ANSWER
+example. 30a IN A
+''')
+        with self.assertRaises(dns.rdatatype.UnknownRdatatype):
+            dns.message.from_text('''id 1
+flags QR
+;QUESTION
+example. IN A
+;ANSWER
+example. 300 INA A
+''')
+        with self.assertRaises(dns.exception.UnexpectedEnd):
+            dns.message.from_text('''id 1
+flags QR
+;QUESTION
+example. IN A
+;ANSWER
+example. 300 IN A
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+opcode UPDATE
+;ZONE
+example. IN SOA
+;UPDATE
+example. 300 IN A
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+opcode UPDATE
+;ZONE
+example. IN SOA
+;UPDATE
+example. 300 NONE A
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+opcode UPDATE
+;ZONE
+example. IN SOA
+;PREREQ
+example. 300 NONE A 10.0.0.1
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+;ANSWER
+            300 IN A 10.0.0.1
+''')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.message.from_text('''id 1
+flags QR
+;QUESTION
+            IN SOA
+''')
+
+
 if __name__ == '__main__':
     unittest.main()
