@@ -26,7 +26,10 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
+import dns.tsig
 import dns.update
+import dns.rdtypes.ANY.OPT
+import dns.rdtypes.ANY.TSIG
 
 from tests.util import here
 
@@ -453,6 +456,87 @@ class MessageTestCase(unittest.TestCase):
         q.flags |= dns.flags.TC
         te = dns.message.Truncated(message=q)
         self.assertEqual(te.message(), q)
+
+    def test_bad_opt(self):
+        # Not in addtional
+        q = dns.message.Message(id=1)
+        opt = dns.rdtypes.ANY.OPT.OPT(1200, dns.rdatatype.OPT, ())
+        rrs = dns.rrset.from_rdata(dns.name.root, 0, opt)
+        q.answer.append(rrs)
+        wire = q.to_wire()
+        with self.assertRaises(dns.message.BadEDNS):
+            dns.message.from_wire(wire)
+        # Owner name not root name
+        q = dns.message.Message(id=1)
+        rrs = dns.rrset.from_rdata('foo.', 0, opt)
+        q.additional.append(rrs)
+        wire = q.to_wire()
+        with self.assertRaises(dns.message.BadEDNS):
+            dns.message.from_wire(wire)
+        # Multiple opts
+        q = dns.message.Message(id=1)
+        rrs = dns.rrset.from_rdata(dns.name.root, 0, opt)
+        q.additional.append(rrs)
+        q.additional.append(rrs)
+        wire = q.to_wire()
+        with self.assertRaises(dns.message.BadEDNS):
+            dns.message.from_wire(wire)
+
+    def test_bad_tsig(self):
+        keyname = dns.name.from_text('key.')
+        # Not in addtional
+        q = dns.message.Message(id=1)
+        tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
+                                         dns.tsig.HMAC_SHA256, 0, 300, b'1234',
+                                         0, 0, b'')
+        rrs = dns.rrset.from_rdata(keyname, 0, tsig)
+        q.answer.append(rrs)
+        wire = q.to_wire()
+        with self.assertRaises(dns.message.BadTSIG):
+            dns.message.from_wire(wire)
+        # Multiple tsigs
+        q = dns.message.Message(id=1)
+        q.additional.append(rrs)
+        q.additional.append(rrs)
+        wire = q.to_wire()
+        with self.assertRaises(dns.message.BadTSIG):
+            dns.message.from_wire(wire)
+        # Class not ANY
+        tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.IN, dns.rdatatype.TSIG,
+                                         dns.tsig.HMAC_SHA256, 0, 300, b'1234',
+                                         0, 0, b'')
+        rrs = dns.rrset.from_rdata(keyname, 0, tsig)
+        wire = q.to_wire()
+        with self.assertRaises(dns.message.BadTSIG):
+            dns.message.from_wire(wire)
+
+    def test_read_no_content_message(self):
+        m = dns.message.from_text(';comment')
+        self.assertIsInstance(m, dns.message.QueryMessage)
+
+    def test_eflags_turns_on_edns(self):
+        m = dns.message.from_text('eflags DO')
+        self.assertIsInstance(m, dns.message.QueryMessage)
+        self.assertEqual(m.edns, 0)
+
+    def test_payload_turns_on_edns(self):
+        m = dns.message.from_text('payload 1200')
+        self.assertIsInstance(m, dns.message.QueryMessage)
+        self.assertEqual(m.payload, 1200)
+
+    def test_bogus_header(self):
+        with self.assertRaises(dns.message.UnknownHeaderField):
+            dns.message.from_text('bogus foo')
+
+    def test_question_only(self):
+        m = dns.message.from_text(answer_text)
+        w = m.to_wire()
+        r = dns.message.from_wire(w, question_only=True)
+        self.assertEqual(r.id, m.id)
+        self.assertEqual(r.question[0], m.question[0])
+        self.assertEqual(len(r.answer), 0)
+        self.assertEqual(len(r.authority), 0)
+        self.assertEqual(len(r.additional), 0)
 
 if __name__ == '__main__':
     unittest.main()
