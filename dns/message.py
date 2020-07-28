@@ -954,7 +954,7 @@ class _WireReader:
             self.message._get_one_rr_per_rrset(self.one_rr_per_rrset)
         self._get_question(MessageSection.QUESTION, qcount)
         if self.question_only:
-            return
+            return self.message
         self._get_section(MessageSection.ANSWER, ancount)
         self._get_section(MessageSection.AUTHORITY, aucount)
         self._get_section(MessageSection.ADDITIONAL, adcount)
