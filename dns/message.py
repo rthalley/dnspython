@@ -92,6 +92,9 @@ class ChainTooLong(dns.exception.DNSException):
 class AnswerForNXDOMAIN(dns.exception.DNSException):
     """The rcode is NXDOMAIN but an answer was found."""
 
+class NoPreviousName(dns.exception.SyntaxError):
+    """No previous name was known."""
+
 
 class MessageSection(dns.enum.IntEnum):
     """Message sections"""
@@ -1129,6 +1132,8 @@ class _TextReader:
                                               self.relativize,
                                               self.relativize_to)
         name = self.last_name
+        if name is None:
+            raise NoPreviousName
         token = self.tok.get()
         if not token.is_identifier():
             raise dns.exception.SyntaxError
@@ -1163,6 +1168,8 @@ class _TextReader:
                                               self.relativize,
                                               self.relativize_to)
         name = self.last_name
+        if name is None:
+            raise NoPreviousName
         token = self.tok.get()
         if not token.is_identifier():
             raise dns.exception.SyntaxError
@@ -1193,6 +1200,8 @@ class _TextReader:
         token = self.tok.get()
         if empty and not token.is_eol_or_eof():
             raise dns.exception.SyntaxError
+        if not empty and token.is_eol_or_eof():
+            raise dns.exception.UnexpectedEnd
         if not token.is_eol_or_eof():
             self.tok.unget(token)
             rd = dns.rdata.from_text(rdclass, rdtype, self.tok,
