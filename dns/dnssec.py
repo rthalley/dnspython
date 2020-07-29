@@ -393,10 +393,15 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         data += rrsig.to_wire(origin=origin)[:18]
         data += rrsig.signer.to_digestable(origin)
 
-        if rrsig.labels < len(rrname) - 1:
+        # Derelativize the name before considering labels.
+        rrname = rrname.derelativize(origin)
+
+        if len(rrname) - 1 < rrsig.labels:
+            raise ValidationFailure('owner name longer than RRSIG labels')
+        elif rrsig.labels < len(rrname) - 1:
             suffix = rrname.split(rrsig.labels + 1)[1]
             rrname = dns.name.from_text('*', suffix)
-        rrnamebuf = rrname.to_digestable(origin)
+        rrnamebuf = rrname.to_digestable()
         rrfixed = struct.pack('!HHI', rdataset.rdtype, rdataset.rdclass,
                               rrsig.original_ttl)
         rrlist = sorted(rdataset)

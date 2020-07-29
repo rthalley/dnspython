@@ -358,7 +358,7 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         dns.dnssec.validate(rsasha512_ns, rsasha512_ns_rrsig, rsasha512_keys,
                             None, rsasha512_when)
 
-    def testWildcardGood(self):
+    def testWildcardGoodAndBad(self):
         dns.dnssec.validate(wildcard_txt, wildcard_txt_rrsig,
                             wildcard_keys, None, wildcard_when)
 
@@ -376,6 +376,13 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         abc_txt_rrsig = clone_rrset(wildcard_txt_rrsig, abc_name)
         dns.dnssec.validate(abc_txt, abc_txt_rrsig, wildcard_keys, None,
                             wildcard_when)
+
+        com_name = dns.name.from_text('com.')
+        com_txt = clone_rrset(wildcard_txt, com_name)
+        com_txt_rrsig = clone_rrset(wildcard_txt_rrsig, abc_name)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate_rrsig(com_txt, com_txt_rrsig[0], wildcard_keys,
+                                      None, wildcard_when)
 
     def testAlternateParameterFormats(self):  # type: () -> None
         # Pass rrset and rrsigset as (name, rdataset) tuples, not rrsets
