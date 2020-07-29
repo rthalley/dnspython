@@ -1,5 +1,5 @@
 from typing import Optional, Dict, List, Tuple, Union
-from . import name, rrset, tsig, rdatatype, entropy, edns, rdataclass
+from . import name, rrset, tsig, rdatatype, entropy, edns, rdataclass, rcode
 import hmac
 
 class Message:
@@ -24,6 +24,9 @@ class Message:
         self.index : Dict[Tuple[rrset.RRset, name.Name, int, int, Union[int,str], int], rrset.RRset] = {}
 
     def is_response(self, other : Message) -> bool:
+        ...
+
+    def set_rcode(self, rcode : rcode.Rcode):
         ...
 
 def from_text(a : str, idna_codec : Optional[name.IDNACodec] = None) -> Message:
