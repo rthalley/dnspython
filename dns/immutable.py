@@ -3,13 +3,19 @@
 import collections.abc
 import sys
 
+# pylint: disable=unused-import
 if sys.version_info >= (3, 7):
     odict = dict
+    from dns._immutable_ctx import immutable
 else:
-    from collections import OrderedDict as odict  # pragma: no cover
+    # pragma: no cover
+    from collections import OrderedDict as odict
+    from dns._immutable_attr import immutable  # noqa
+# pylint: enable=unused-import
 
 
-class ImmutableDict(collections.abc.Mapping):
+@immutable
+class Dict(collections.abc.Mapping):
     def __init__(self, dictionary, no_copy=False):
         """Make an immutable dictionary from the specified dictionary.
 
@@ -28,9 +34,10 @@ class ImmutableDict(collections.abc.Mapping):
 
     def __hash__(self):
         if self._hash is None:
-            self._hash = 0
+            h = 0
             for key in sorted(self._odict.keys()):
-                self._hash ^= hash(key)
+                h ^= hash(key)
+            object.__setattr__(self, '_hash', h)
         return self._hash
 
     def __len__(self):
@@ -58,5 +65,5 @@ def constify(o):
         cdict = odict()
         for k, v in o.items():
             cdict[k] = constify(v)
-        return ImmutableDict(cdict, True)
+        return Dict(cdict, True)
     return o

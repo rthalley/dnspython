@@ -22,6 +22,7 @@ import random
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdatatype
 import dns.rdataclass
 import dns.rdata
@@ -304,6 +305,52 @@ class Rdataset(dns.set.Set):
            self.covers == covers:
             return True
         return False
+
+
+@dns.immutable.immutable
+class ImmutableRdataset(Rdataset):
+
+    """An immutable DNS rdataset."""
+
+    def __init__(self, rdataset):
+        """Create an immutable rdataset from the specified rdataset."""
+
+        super().__init__(rdataset.rdclass, rdataset.rdtype, rdataset.covers,
+                         rdataset.ttl)
+        self.items = dns.immutable.Dict(rdataset.items)
+
+    def update_ttl(self, ttl):
+        raise TypeError('immutable')
+
+    def add(self, rd, ttl=None):
+        raise TypeError('immutable')
+
+    def union_update(self, other):
+        raise TypeError('immutable')
+
+    def intersection_update(self, other):
+        raise TypeError('immutable')
+
+    def update(self, other):
+        raise TypeError('immutable')
+
+    def __delitem__(self, i):
+        raise TypeError('immutable')
+
+    def __ior__(self, other):
+        raise TypeError('immutable')
+
+    def __iand__(self, other):
+        raise TypeError('immutable')
+
+    def __iadd__(self, other):
+        raise TypeError('immutable')
+
+    def __isub__(self, other):
+        raise TypeError('immutable')
+
+    def clear(self):
+        raise TypeError('immutable')
 
 
 def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None,

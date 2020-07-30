@@ -122,5 +122,34 @@ class RdatasetTestCase(unittest.TestCase):
             '<DNS IN RRSIG(NSEC) rdataset:'))
 
 
+class ImmutableRdatasetTestCase(unittest.TestCase):
+
+    def test_basic(self):
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1', '10.0.0.2')
+        rd = dns.rdata.from_text('in', 'a', '10.0.0.3')
+        irds = dns.rdataset.ImmutableRdataset(rds)
+        with self.assertRaises(TypeError):
+            irds.update_ttl(100)
+        with self.assertRaises(TypeError):
+            irds.add(rd, 300)
+        with self.assertRaises(TypeError):
+            irds.union_update(rds)
+        with self.assertRaises(TypeError):
+            irds.intersection_update(rds)
+        with self.assertRaises(TypeError):
+            irds.update(rds)
+        with self.assertRaises(TypeError):
+            irds += rds
+        with self.assertRaises(TypeError):
+            irds -= rds
+        with self.assertRaises(TypeError):
+            irds &= rds
+        with self.assertRaises(TypeError):
+            irds |= rds
+        with self.assertRaises(TypeError):
+            del irds[0]
+        with self.assertRaises(TypeError):
+            irds.clear()
+
 if __name__ == '__main__':
     unittest.main()
