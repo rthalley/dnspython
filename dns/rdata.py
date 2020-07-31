@@ -303,7 +303,7 @@ class Rdata:
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         raise NotImplementedError  # pragma: no cover
 
     def replace(self, **kwargs):
