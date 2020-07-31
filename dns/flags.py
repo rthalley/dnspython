@@ -37,7 +37,15 @@ class Flag(enum.IntFlag):
     #: Checking Disabled
     CD = 0x0010
 
-globals().update(Flag.__members__)
+
+# 1.16 compatibility
+QR = Flag.QR
+AA = Flag.AA
+TC = Flag.TC
+RD = Flag.RD
+RA = Flag.RA
+AD = Flag.AD
+CD = Flag.CD
 
 
 # EDNS flags
@@ -47,7 +55,8 @@ class EDNSFlag(enum.IntFlag):
     DO = 0x8000
 
 
-globals().update(EDNSFlag.__members__)
+# 1.16 compatibility
+DO = EDNSFlag.DO
 
 
 def _from_text(text, enum_class):

@@ -72,7 +72,29 @@ class Rcode(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRcode
 
-globals().update(Rcode.__members__)
+# 1.16 compatibility
+NOERROR = Rcode.NOERROR
+FORMERR = Rcode.FORMERR
+SERVFAIL = Rcode.SERVFAIL
+NXDOMAIN = Rcode.NXDOMAIN
+NOTIMP = Rcode.NOTIMP
+REFUSED = Rcode.REFUSED
+YXDOMAIN = Rcode.YXDOMAIN
+YXRRSET = Rcode.YXRRSET
+NXRRSET = Rcode.NXRRSET
+NOTAUTH = Rcode.NOTAUTH
+NOTZONE = Rcode.NOTZONE
+DSOTYPENI = Rcode.DSOTYPENI
+BADVERS = Rcode.BADVERS
+BADSIG = Rcode.BADSIG
+BADKEY = Rcode.BADKEY
+BADTIME = Rcode.BADTIME
+BADMODE = Rcode.BADMODE
+BADNAME = Rcode.BADNAME
+BADALG = Rcode.BADALG
+BADTRUNC = Rcode.BADTRUNC
+BADCOOKIE = Rcode.BADCOOKIE
+
 
 class UnknownRcode(dns.exception.DNSException):
     """A DNS rcode is unknown."""

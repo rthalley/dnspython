@@ -20,6 +20,7 @@ import unittest
 import dns.flags
 import dns.rcode
 import dns.opcode
+import tests.util
 
 class FlagsTestCase(unittest.TestCase):
 
@@ -76,6 +77,10 @@ class FlagsTestCase(unittest.TestCase):
         with self.assertRaises(dns.rcode.UnknownRcode):
             dns.rcode.Rcode.make('BOGUS')
 
+    def test_1x_compatibility(self):
+        tests.util.check_enum_exports(dns.flags, self.assertEqual)
+        tests.util.check_enum_exports(dns.rcode, self.assertEqual)
+        tests.util.check_enum_exports(dns.opcode, self.assertEqual)
 
 if __name__ == '__main__':
     unittest.main()
