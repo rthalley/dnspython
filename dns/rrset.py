@@ -69,13 +69,17 @@ class RRset(dns.rdataset.Rdataset):
         return self.to_text()
 
     def __eq__(self, other):
-        if not isinstance(other, RRset):
-            return False
-        if self.name != other.name:
+        if isinstance(other, RRset):
+            if self.name != other.name:
+                return False
+        elif not isinstance(other, dns.rdataset.Rdataset):
             return False
         return super().__eq__(other)
 
-    def match(self, name, rdclass, rdtype, covers, deleting=None):
+    # pylint: disable=arguments-differ
+
+    def match(self, name, rdclass, rdtype, covers,
+              deleting=None):
         """Returns ``True`` if this rrset matches the specified class, type,
         covers, and deletion state.
         """
@@ -86,7 +90,8 @@ class RRset(dns.rdataset.Rdataset):
             return False
         return True
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin=None, relativize=True,
+                **kw):
         """Convert the RRset into DNS master file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
@@ -106,7 +111,8 @@ class RRset(dns.rdataset.Rdataset):
         return super().to_text(self.name, origin, relativize,
                                self.deleting, **kw)
 
-    def to_wire(self, file, compress=None, origin=None, **kw):
+    def to_wire(self, file, compress=None, origin=None,
+                **kw):
         """Convert the RRset to wire format.
 
         All keyword arguments are passed to ``dns.rdataset.to_wire()``; see
@@ -117,6 +123,8 @@ class RRset(dns.rdataset.Rdataset):
 
         return super().to_wire(self.name, file, compress, origin,
                                self.deleting, **kw)
+
+    # pylint: enable=arguments-differ
 
     def to_rdataset(self):
         """Convert an RRset into an Rdataset.

@@ -15,8 +15,9 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.mxbase
 import struct
+
+import dns.rdtypes.mxbase
 
 class A(dns.rdata.Rdata):
 

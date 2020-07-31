@@ -21,6 +21,8 @@ def _maybe_timeout(timeout):
 # for brevity
 _lltuple = dns.inet.low_level_address_tuple
 
+# pylint: disable=redefined-outer-name
+
 
 class DatagramSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, socket):

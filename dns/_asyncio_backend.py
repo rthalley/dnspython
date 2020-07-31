@@ -86,14 +86,12 @@ class StreamSocket(dns._asyncbackend.DatagramSocket):
         self.writer = writer
 
     async def sendall(self, what, timeout):
-        self.writer.write(what),
+        self.writer.write(what)
         return await _maybe_wait_for(self.writer.drain(), timeout)
-        raise dns.exception.Timeout(timeout=timeout)
 
     async def recv(self, count, timeout):
         return await _maybe_wait_for(self.reader.read(count),
                                      timeout)
-        raise dns.exception.Timeout(timeout=timeout)
 
     async def close(self):
         self.writer.close()

@@ -9,7 +9,6 @@ jobs=0
 
 enable=
     all,
-    python3
 
 # It's worth looking at len-as-condition for optimization, but it's disabled
 # here as it is not a correctness thing.  Similarly eq-without-hash is
@@ -18,36 +17,26 @@ enable=
 disable=
     R,
     I,
-    anomalous-backslash-in-string,
-    arguments-differ,
-    assigning-non-slot,
-    bad-builtin,
-    bad-continuation,
     broad-except,
-    deprecated-method,
     fixme,
     global-statement,
     invalid-name,
-    missing-docstring,
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
     no-absolute-import,
-    no-member,
+    no-member,  # We'd like to use this, but our immutability is too hard for it
     protected-access,
     redefined-builtin,
     too-many-lines,
-    unused-argument,
-    unused-variable,
-    wrong-import-order,
-    wrong-import-position,
-    len-as-condition,
-    eq-without-hash,
-    next-method-defined,
 
 [REPORTS]
 
 # Set the output format. Available formats are text, parseable, colorized, msvs
 # (visual studio) and html. You can also give a reporter class, eg
 # mypackage.mymodule.MyReporterClass.
-output-format=colorized
+#output-format=colorized
+output-format=parseable
 
 # Tells whether to display a full report or only the messages
 reports=no

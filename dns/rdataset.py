@@ -87,7 +87,7 @@ class Rdataset(dns.set.Set):
         elif ttl < self.ttl:
             self.ttl = ttl
 
-    def add(self, rd, ttl=None):
+    def add(self, rd, ttl=None):  # pylint: disable=arguments-differ
         """Add the specified rdata to the rdataset.
 
         If the optional *ttl* parameter is supplied, then

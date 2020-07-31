@@ -43,6 +43,7 @@ import dns.reversename
 import dns.tsig
 
 if sys.platform == 'win32':
+    # pylint: disable=import-error
     import winreg
 
 class NXDOMAIN(dns.exception.DNSException):
@@ -50,7 +51,10 @@ class NXDOMAIN(dns.exception.DNSException):
     supp_kwargs = {'qnames', 'responses'}
     fmt = None  # we have our own __str__ implementation
 
-    def _check_kwargs(self, qnames, responses=None):
+    # pylint: disable=arguments-differ
+
+    def _check_kwargs(self, qnames,
+                      responses=None):
         if not isinstance(qnames, (list, tuple, set)):
             raise AttributeError("qnames must be a list, tuple or set")
         if len(qnames) == 0:
@@ -161,6 +165,7 @@ class NoNameservers(dns.exception.DNSException):
     def _fmt_kwargs(self, **kwargs):
         srv_msgs = []
         for err in kwargs['errors']:
+            # pylint: disable=bad-continuation
             srv_msgs.append('Server {} {} port {} answered {}'.format(err[0],
                             'TCP' if err[1] else 'UDP', err[2], err[3]))
         return super()._fmt_kwargs(query=kwargs['request'].question,
@@ -854,34 +859,36 @@ class Resolver:
                 self.search.append(dns.name.from_text(s))
 
     def _config_win32_fromkey(self, key, always_try_domain):
+        # pylint: disable=undefined-variable
+        # (disabled for WindowsError)
         try:
-            servers, rtype = winreg.QueryValueEx(key, 'NameServer')
-        except WindowsError:  # pylint: disable=undefined-variable
+            servers, _ = winreg.QueryValueEx(key, 'NameServer')
+        except WindowsError:  # pragma: no cover
             servers = None
         if servers:
             self._config_win32_nameservers(servers)
         if servers or always_try_domain:
             try:
-                dom, rtype = winreg.QueryValueEx(key, 'Domain')
+                dom, _ = winreg.QueryValueEx(key, 'Domain')
                 if dom:
                     self._config_win32_domain(dom)  # pragma: no cover
             except WindowsError:  # pragma: no cover
                 pass
         else:
             try:
-                servers, rtype = winreg.QueryValueEx(key, 'DhcpNameServer')
+                servers, _ = winreg.QueryValueEx(key, 'DhcpNameServer')
             except WindowsError:  # pragma: no cover
                 servers = None
             if servers:
                 self._config_win32_nameservers(servers)
                 try:
-                    dom, rtype = winreg.QueryValueEx(key, 'DhcpDomain')
+                    dom, _ = winreg.QueryValueEx(key, 'DhcpDomain')
                     if dom:
                         self._config_win32_domain(dom)
                 except WindowsError:  # pragma: no cover
                     pass
         try:
-            search, rtype = winreg.QueryValueEx(key, 'SearchList')
+            search, _ = winreg.QueryValueEx(key, 'SearchList')
         except WindowsError:  # pragma: no cover
             search = None
         if search:  # pragma: no cover
@@ -909,6 +916,7 @@ class Resolver:
                     try:
                         guid = winreg.EnumKey(interfaces, i)
                         i += 1
+                        # XXXRTH why do we get this key and then not use it?
                         key = winreg.OpenKey(interfaces, guid)
                         if not self._win32_is_nic_enabled(lm, guid, key):
                             continue
@@ -923,8 +931,7 @@ class Resolver:
         finally:
             lm.Close()
 
-    def _win32_is_nic_enabled(self, lm, guid,
-                              interface_key):
+    def _win32_is_nic_enabled(self, lm, guid, _):
         # Look in the Windows Registry to determine whether the network
         # interface corresponding to the given guid is enabled.
         #
@@ -1027,7 +1034,7 @@ class Resolver:
 
     def resolve(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                 tcp=False, source=None, raise_on_no_answer=True, source_port=0,
-                lifetime=None, search=None):
+                lifetime=None, search=None):  # pylint: disable=arguments-differ
         """Query nameservers to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
@@ -1165,6 +1172,8 @@ class Resolver:
                             rdclass=dns.rdataclass.IN,
                             *args, **kwargs)
 
+    # pylint: disable=redefined-outer-name
+
     def canonical_name(self, name):
         """Determine the canonical name of *name*.
 
@@ -1185,6 +1194,8 @@ class Resolver:
         except dns.resolver.NXDOMAIN as e:
             canonical_name = e.canonical_name
         return canonical_name
+
+    # pylint: enable=redefined-outer-name
 
     def use_tsig(self, keyring, keyname=None,
                  algorithm=dns.tsig.default_algorithm):
@@ -1405,7 +1416,7 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
         raise socket.gaierror(socket.EAI_NONAME, 'Name or service not known')
     v6addrs = []
     v4addrs = []
-    canonical_name = None
+    canonical_name = None  # pylint: disable=redefined-outer-name
     # Is host None or an address literal?  If so, use the system's
     # getaddrinfo().
     if host is None:
@@ -1571,7 +1582,7 @@ def _gethostbyaddr(ip):
                                   'Name or service not known')
         sockaddr = (ip, 80)
         family = socket.AF_INET
-    (name, port) = _getnameinfo(sockaddr, socket.NI_NAMEREQD)
+    (name, _) = _getnameinfo(sockaddr, socket.NI_NAMEREQD)
     aliases = []
     addresses = []
     tuples = _getaddrinfo(name, 0, family, socket.SOCK_STREAM, socket.SOL_TCP,

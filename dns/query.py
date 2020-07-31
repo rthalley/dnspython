@@ -95,10 +95,13 @@ def _compute_times(timeout):
         return (now, now + timeout)
 
 
-def _wait_for(fd, readable, writable, error, expiration):
+def _wait_for(fd, readable, writable, _, expiration):
     # Use the selected selector class to wait for any of the specified
     # events.  An "expiration" absolute time is converted into a relative
     # timeout.
+    #
+    # The unused parameter is 'error', which is always set when
+    # selecting for read or write, and we have no error-only selects.
 
     if readable and isinstance(fd, ssl.SSLSocket) and fd.pending() > 0:
         return True
@@ -278,27 +281,24 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
         raise NoDOH  # pragma: no cover
 
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(where, port,
-                                                        source, source_port,
-                                                        False)
+    (af, _, source) = _destination_and_source(where, port, source, source_port,
+                                              False)
     transport_adapter = None
     headers = {
         "accept": "application/dns-message"
     }
-    try:
-        where_af = dns.inet.af_for_address(where)
-        if where_af == socket.AF_INET:
+    if af is not None:
+        if af == socket.AF_INET:
             url = 'https://{}:{}{}'.format(where, port, path)
-        elif where_af == socket.AF_INET6:
+        elif af == socket.AF_INET6:
             url = 'https://[{}]:{}{}'.format(where, port, path)
-    except ValueError:
-        if bootstrap_address is not None:
-            split_url = urllib.parse.urlsplit(where)
-            headers['Host'] = split_url.hostname
-            url = where.replace(split_url.hostname, bootstrap_address)
-            transport_adapter = HostHeaderSSLAdapter()
-        else:
-            url = where
+    elif bootstrap_address is not None:
+        split_url = urllib.parse.urlsplit(where)
+        headers['Host'] = split_url.hostname
+        url = where.replace(split_url.hostname, bootstrap_address)
+        transport_adapter = HostHeaderSSLAdapter()
+    else:
+        url = where
     if source is not None:
         # set source port and source address
         transport_adapter = SourceAddressAdapter(source)
@@ -917,7 +917,7 @@ def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
                (expiration is not None and mexpiration > expiration):
                 mexpiration = expiration
             if use_udp:
-                (wire, from_address) = _udp_recv(s, 65535, expiration)
+                (wire, _) = _udp_recv(s, 65535, expiration)
             else:
                 ldata = _net_read(s, 2, mexpiration)
                 (l,) = struct.unpack("!H", ldata)

@@ -2,9 +2,12 @@
 
 import dns.exception
 
+# pylint: disable=unused-import
+
 from dns._asyncbackend import Socket, DatagramSocket, \
     StreamSocket, Backend  # noqa:
 
+# pylint: enable=unused-import
 
 _default_backend = None
 
@@ -25,6 +28,7 @@ def get_backend(name):
 
     Raises NotImplementError if an unknown backend name is specified.
     """
+    # pylint: disable=import-outside-toplevel,redefined-outer-name
     backend = _backends.get(name)
     if backend:
         return backend
@@ -50,6 +54,7 @@ def sniff():
     Returns the name of the library, or raises AsyncLibraryNotFoundError
     if the library cannot be determined.
     """
+    # pylint: disable=import-outside-toplevel
     try:
         if _no_sniffio:
             raise ImportError

@@ -551,7 +551,7 @@ def nsec3_hash(domain, salt, iterations, algorithm):
     domain_encoded = domain.canonicalize().to_wire()
 
     digest = hashlib.sha1(domain_encoded + salt_encoded).digest()
-    for i in range(iterations):
+    for _ in range(iterations):
         digest = hashlib.sha1(digest + salt_encoded).digest()
 
     output = base64.b32encode(digest).decode("utf-8")

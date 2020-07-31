@@ -904,8 +904,10 @@ class _MasterReader:
         # rhs (required)
         rhs = token.value
 
-        lmod, lsign, loffset, lwidth, lbase = self._parse_modify(lhs)
-        rmod, rsign, roffset, rwidth, rbase = self._parse_modify(rhs)
+        # The code currently only supports base 'd', so the last value
+        # in the tuple _parse_modify returns is ignored
+        lmod, lsign, loffset, lwidth, _ = self._parse_modify(lhs)
+        rmod, rsign, roffset, rwidth, _ = self._parse_modify(rhs)
         for i in range(start, stop + 1, step):
             # +1 because bind is inclusive and python is exclusive
 

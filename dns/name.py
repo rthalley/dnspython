@@ -459,7 +459,7 @@ class Name:
         Returns a ``bool``.
         """
 
-        (nr, o, nl) = self.fullcompare(other)
+        (nr, _, _) = self.fullcompare(other)
         if nr == NAMERELN_SUBDOMAIN or nr == NAMERELN_EQUAL:
             return True
         return False
@@ -473,7 +473,7 @@ class Name:
         Returns a ``bool``.
         """
 
-        (nr, o, nl) = self.fullcompare(other)
+        (nr, _, _) = self.fullcompare(other)
         if nr == NAMERELN_SUPERDOMAIN or nr == NAMERELN_EQUAL:
             return True
         return False

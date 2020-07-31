@@ -58,6 +58,9 @@ potestlf:
 potype:
 	poetry run python -m mypy examples tests dns/*.py
 
+polint:
+	poetry run pylint dns/*.py
+
 poflake:
 	poetry run flake8 dns
 

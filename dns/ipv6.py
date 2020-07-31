@@ -157,7 +157,7 @@ def inet_aton(text, ignore_scope=False):
             if seen_empty:
                 raise dns.exception.SyntaxError
             seen_empty = True
-            for i in range(0, 8 - l + 1):
+            for _ in range(0, 8 - l + 1):
                 canonical.append(b'0000')
         else:
             lc = len(c)

@@ -699,8 +699,12 @@ class Message:
         # What the caller picked is fine.
         return value
 
+    # pylint: disable=unused-argument
+
     def _parse_rr_header(self, section, name, rdclass, rdtype):
         return (rdclass, rdtype, None, False)
+
+    # pylint: enable=unused-argument
 
     def _parse_special_rr_header(self, section, count, position,
                                  name, rdclass, rdtype):
@@ -811,6 +815,8 @@ def _maybe_import_update():
     # We avoid circular imports by doing this here.  We do it in another
     # function as doing it in _message_factory_from_opcode() makes "dns"
     # a local symbol, and the first line fails :)
+
+    # pylint: disable=redefined-outer-name,import-outside-toplevel,unused-import
     import dns.update  # noqa: F401
 
 
@@ -857,7 +863,7 @@ class _WireReader:
         """
 
         section = self.message.sections[section_number]
-        for i in range(qcount):
+        for _ in range(qcount):
             qname = self.parser.get_name(self.message.origin)
             (rdtype, rdclass) = self.parser.get_struct('!HH')
             (rdclass, rdtype, _, _) = \
@@ -1080,7 +1086,7 @@ class _TextReader:
         self.opcode = dns.opcode.QUERY
         self.flags = 0
 
-    def _header_line(self, section):
+    def _header_line(self, _):
         """Process one line from the text format header section."""
 
         token = self.tok.get()

@@ -36,6 +36,8 @@ _tcp = dns.asyncquery.tcp
 
 class Resolver(dns.resolver.Resolver):
 
+    # pylint: disable=invalid-overridden-method, arguments-differ
+
     async def resolve(self, qname, rdtype=dns.rdatatype.A,
                       rdclass=dns.rdataclass.IN,
                       tcp=False, source=None, raise_on_no_answer=True,
@@ -139,10 +141,14 @@ class Resolver(dns.resolver.Resolver):
                 if answer is not None:
                     return answer
 
+    # pylint: disable=signature-differs
+
     async def query(self, *args, **kwargs):
         # We have to define something here as we don't want to inherit the
         # parent's query().
         raise NotImplementedError
+
+    # pylint: enable=signature-differs
 
     async def resolve_address(self, ipaddr, *args, **kwargs):
         """Use an asynchronous resolver to run a reverse query for PTR
@@ -164,6 +170,8 @@ class Resolver(dns.resolver.Resolver):
                                   rdtype=dns.rdatatype.PTR,
                                   rdclass=dns.rdataclass.IN,
                                   *args, **kwargs)
+
+    # pylint: disable=redefined-outer-name
 
     async def canonical_name(self, name):
         """Determine the canonical name of *name*.
