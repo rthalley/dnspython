@@ -107,7 +107,9 @@ class MessageSection(dns.enum.IntEnum):
     def _maximum(cls):
         return 3
 
-globals().update(MessageSection.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._message_messagesection import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 DEFAULT_EDNS_PAYLOAD = 1232
 MAX_CHAIN = 16

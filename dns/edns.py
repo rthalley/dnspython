@@ -50,7 +50,10 @@ class OptionType(dns.enum.IntEnum):
     def _maximum(cls):
         return 65535
 
-globals().update(OptionType.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._edns_optiontype import *  # noqa
+# pylint: enable=C0413,W0401,W0614
+
 
 class Option:
 

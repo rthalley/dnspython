@@ -1,0 +1,21 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+#
+# This is a generated file, do not edit.
+
+RSAMD5 = 1
+DH = 2
+DSA = 3
+ECC = 4
+RSASHA1 = 5
+DSANSEC3SHA1 = 6
+RSASHA1NSEC3SHA1 = 7
+RSASHA256 = 8
+RSASHA512 = 10
+ECCGOST = 12
+ECDSAP256SHA256 = 13
+ECDSAP384SHA384 = 14
+ED25519 = 15
+ED448 = 16
+INDIRECT = 252
+PRIVATEDNS = 253
+PRIVATEOID = 254

@@ -57,13 +57,13 @@ class FlagsTestCase(unittest.TestCase):
         self.assertEqual(dns.flags.to_text(flags), "QR AA RD RA")
 
     def test_rcode_badvers(self):
-        rcode = dns.rcode.BADVERS
+        rcode = dns.rcode.Rcode.BADVERS
         self.assertEqual(rcode.value, 16)
         self.assertEqual(rcode.name, 'BADVERS')
         self.assertEqual(dns.rcode.to_text(rcode), 'BADVERS')
 
     def test_rcode_badsig(self):
-        rcode = dns.rcode.BADSIG
+        rcode = dns.rcode.Rcode.BADSIG
         self.assertEqual(rcode.value, 16)
         # Yes, we mean BADVERS on the next line.  BADSIG and BADVERS have
         # the same code.

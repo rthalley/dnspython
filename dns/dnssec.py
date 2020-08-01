@@ -63,8 +63,9 @@ class Algorithm(dns.enum.IntEnum):
     def _maximum(cls):
         return 255
 
-
-globals().update(Algorithm.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._dnssec_algorithm import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 
 def algorithm_from_text(text):

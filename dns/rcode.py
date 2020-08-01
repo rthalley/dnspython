@@ -72,7 +72,9 @@ class Rcode(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRcode
 
-globals().update(Rcode.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._rcode_rcode import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 class UnknownRcode(dns.exception.DNSException):
     """A DNS rcode is unknown."""

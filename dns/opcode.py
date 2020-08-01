@@ -40,7 +40,9 @@ class Opcode(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownOpcode
 
-globals().update(Opcode.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._opcode_opcode import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 
 class UnknownOpcode(dns.exception.DNSException):

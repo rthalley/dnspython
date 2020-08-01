@@ -115,7 +115,9 @@ class RdataType(dns.enum.IntEnum):
 _registered_by_text = {}
 _registered_by_value = {}
 
-globals().update(RdataType.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._rdatatype_rdatatype import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 _metatypes = {RdataType.OPT}
 

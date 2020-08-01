@@ -48,7 +48,9 @@ class RdataClass(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRdataclass
 
-globals().update(RdataClass.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._rdataclass_rdataclass import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 _metaclasses = {RdataClass.NONE, RdataClass.ANY}
 

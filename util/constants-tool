@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+from importlib import import_module
+import sys
+
+enum_names = [
+    'dns.dnssec.Algorithm',
+    'dns.edns.OptionType',
+    'dns.flags.Flag',
+    'dns.flags.EDNSFlag',
+    'dns.message.MessageSection',
+    'dns.opcode.Opcode',
+    'dns.rcode.Rcode',
+    'dns.rdataclass.RdataClass',
+    'dns.rdatatype.RdataType',
+    'dns.rdtypes.dnskeybase.Flag',
+    'dns.update.UpdateSection',
+]
+
+def generate():
+    for enum_name in enum_names:
+        dot = enum_name.rindex('.')
+        module_name = enum_name[:dot]
+        type_name = enum_name[dot + 1:]
+        mod = import_module(module_name)
+        enum = getattr(mod, type_name)
+        mname = module_name.lower().replace('.', '_')
+        mname = mname[4:]  # strip off 'dns.' too
+        tname = type_name.lower()
+        with open(f'dns/constants/_{mname}_{tname}.py', 'w') as f:
+            print('# Copyright (C) Dnspython Contributors, see LICENSE ' +
+                  'for text of ISC license', file=f)
+            print('#\n# This is a generated file, do not edit.\n', file=f)
+            # We have to use __members__.items() and not "in enum" because
+            # otherwise we miss values that have multiple names (e.g. NONE
+            # and TYPE0 for rdatatypes).
+            for name, value in enum.__members__.items():
+                print(f'{name} = {value}', file=f)
+
+def check():
+    ok = True
+    for enum_name in enum_names:
+        dot = enum_name.rindex('.')
+        module_name = enum_name[:dot]
+        type_name = enum_name[dot + 1:]
+        mod = import_module(module_name)
+        enum = getattr(mod, type_name)
+        mname = module_name.lower()[4:]  # strip off 'dns.' too
+        tname = type_name.lower()
+        cmod = import_module(f'dns.constants._{mname}_{tname}')
+        for name, value in enum.__members__.items():
+            try:
+                if value != getattr(cmod, name):
+                    ok = False
+                    print(f'{name} != {value}', file=sys.stderr)
+            except Exception:
+                ok = False
+                print('exception checking', name, file=sys.stderr)
+    return ok
+
+def usage():
+    print('usage: constants-tool [generate|check]', file=sys.stderr)
+    sys.exit(1)
+
+def main():
+    if len(sys.argv) < 2:
+        usage()
+    if sys.argv[1] == 'generate':
+        generate()
+    elif sys.argv[1] == 'check':
+        if not check():
+            sys.exit(2)
+    else:
+        usage()
+
+if __name__ == '__main__':
+    main()

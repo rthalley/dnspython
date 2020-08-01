@@ -37,18 +37,16 @@ class Flag(enum.IntFlag):
     #: Checking Disabled
     CD = 0x0010
 
-globals().update(Flag.__members__)
-
-
 # EDNS flags
 
 class EDNSFlag(enum.IntFlag):
     #: DNSSEC answer OK
     DO = 0x8000
 
-
-globals().update(EDNSFlag.__members__)
-
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._flags_flag import *  # noqa
+from dns.constants._flags_ednsflag import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 def _from_text(text, enum_class):
     flags = 0

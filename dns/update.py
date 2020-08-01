@@ -38,7 +38,9 @@ class UpdateSection(dns.enum.IntEnum):
     def _maximum(cls):
         return 3
 
-globals().update(UpdateSection.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._update_updatesection import *  # noqa
+# pylint: enable=C0413,W0401,W0614
 
 
 class UpdateMessage(dns.message.Message):

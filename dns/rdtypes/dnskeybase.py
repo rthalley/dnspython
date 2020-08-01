@@ -23,15 +23,18 @@ import dns.exception
 import dns.dnssec
 import dns.rdata
 
-# wildcard import
-__all__ = ["SEP", "REVOKE", "ZONE"]   # noqa: F822
 
 class Flag(enum.IntFlag):
     SEP = 0x0001
     REVOKE = 0x0080
     ZONE = 0x0100
 
-globals().update(Flag.__members__)
+# pylint: disable=C0413,W0401,W0614
+from dns.constants._rdtypes_dnskeybase_flag import *  # noqa
+# pylint: enable=C0413,W0401,W0614
+
+# wildcard import
+__all__ = ["SEP", "REVOKE", "ZONE"]   # noqa: F822,F405
 
 
 class DNSKEYBase(dns.rdata.Rdata):
