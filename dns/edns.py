@@ -50,7 +50,6 @@ class OptionType(dns.enum.IntEnum):
     def _maximum(cls):
         return 65535
 
-globals().update(OptionType.__members__)
 
 class Option:
 

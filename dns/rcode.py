@@ -72,7 +72,6 @@ class Rcode(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRcode
 
-globals().update(Rcode.__members__)
 
 class UnknownRcode(dns.exception.DNSException):
     """A DNS rcode is unknown."""

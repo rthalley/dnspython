@@ -115,8 +115,6 @@ class RdataType(dns.enum.IntEnum):
 _registered_by_text = {}
 _registered_by_value = {}
 
-globals().update(RdataType.__members__)
-
 _metatypes = {RdataType.OPT}
 
 _singletons = {RdataType.SOA, RdataType.NXT, RdataType.DNAME,

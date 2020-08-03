@@ -64,9 +64,6 @@ class Algorithm(dns.enum.IntEnum):
         return 255
 
 
-globals().update(Algorithm.__members__)
-
-
 def algorithm_from_text(text):
     """Convert text into a DNSSEC algorithm value.
 

@@ -40,8 +40,6 @@ class Opcode(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownOpcode
 
-globals().update(Opcode.__members__)
-
 
 class UnknownOpcode(dns.exception.DNSException):
     """An DNS opcode is unknown."""

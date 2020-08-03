@@ -107,7 +107,6 @@ class MessageSection(dns.enum.IntEnum):
     def _maximum(cls):
         return 3
 
-globals().update(MessageSection.__members__)
 
 DEFAULT_EDNS_PAYLOAD = 1232
 MAX_CHAIN = 16

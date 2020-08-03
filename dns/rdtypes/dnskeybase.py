@@ -31,8 +31,6 @@ class Flag(enum.IntFlag):
     REVOKE = 0x0080
     ZONE = 0x0100
 
-globals().update(Flag.__members__)
-
 
 class DNSKEYBase(dns.rdata.Rdata):
 
