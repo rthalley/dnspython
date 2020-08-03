@@ -6,6 +6,8 @@ ignore =
        E129,
        # Whitespace round parameter '=' can be excessive
        E252,
+       # Multiple # in a comment is OK
+       E266,
        # Not excited by the "two blank lines" rule
        E302,
        E305,
