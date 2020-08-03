@@ -137,3 +137,29 @@ def to_text(value, tsig=False):
     if tsig and value == Rcode.BADVERS:
         return 'BADSIG'
     return Rcode.to_text(value)
+
+### BEGIN generated rcode constants
+
+NOERROR = Rcode.NOERROR
+FORMERR = Rcode.FORMERR
+SERVFAIL = Rcode.SERVFAIL
+NXDOMAIN = Rcode.NXDOMAIN
+NOTIMP = Rcode.NOTIMP
+REFUSED = Rcode.REFUSED
+YXDOMAIN = Rcode.YXDOMAIN
+YXRRSET = Rcode.YXRRSET
+NXRRSET = Rcode.NXRRSET
+NOTAUTH = Rcode.NOTAUTH
+NOTZONE = Rcode.NOTZONE
+DSOTYPENI = Rcode.DSOTYPENI
+BADVERS = Rcode.BADVERS
+BADSIG = Rcode.BADSIG
+BADKEY = Rcode.BADKEY
+BADTIME = Rcode.BADTIME
+BADMODE = Rcode.BADMODE
+BADNAME = Rcode.BADNAME
+BADALG = Rcode.BADALG
+BADTRUNC = Rcode.BADTRUNC
+BADCOOKIE = Rcode.BADCOOKIE
+
+### END generated rcode constants

@@ -310,3 +310,12 @@ class UpdateMessage(dns.message.Message):
 
 # backwards compatibility
 Update = UpdateMessage
+
+### BEGIN generated updatesection constants
+
+ZONE = UpdateSection.ZONE
+PREREQ = UpdateSection.PREREQ
+UPDATE = UpdateSection.UPDATE
+ADDITIONAL = UpdateSection.ADDITIONAL
+
+### END generated updatesection constants

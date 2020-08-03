@@ -100,3 +100,17 @@ def is_metaclass(rdclass):
     if rdclass in _metaclasses:
         return True
     return False
+
+### BEGIN generated rdataclass constants
+
+RESERVED0 = RdataClass.RESERVED0
+IN = RdataClass.IN
+INTERNET = RdataClass.INTERNET
+CH = RdataClass.CH
+CHAOS = RdataClass.CHAOS
+HS = RdataClass.HS
+HESIOD = RdataClass.HESIOD
+NONE = RdataClass.NONE
+ANY = RdataClass.ANY
+
+### END generated rdataclass constants

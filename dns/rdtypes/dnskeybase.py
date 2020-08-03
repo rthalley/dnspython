@@ -72,3 +72,11 @@ class DNSKEYBase(dns.rdata.Rdata):
         key = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
+
+### BEGIN generated flag constants
+
+SEP = Flag.SEP
+REVOKE = Flag.REVOKE
+ZONE = Flag.ZONE
+
+### END generated flag constants
