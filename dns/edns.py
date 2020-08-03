@@ -352,7 +352,7 @@ def register_type(implementation, otype):
 
     _type_to_class[otype] = implementation
 
-### BEGIN generated optiontype constants
+### BEGIN generated OptionType constants
 
 NSID = OptionType.NSID
 DAU = OptionType.DAU
@@ -365,4 +365,4 @@ KEEPALIVE = OptionType.KEEPALIVE
 PADDING = OptionType.PADDING
 CHAIN = OptionType.CHAIN
 
-### END generated optiontype constants
+### END generated OptionType constants

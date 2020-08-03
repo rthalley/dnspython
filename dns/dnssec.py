@@ -582,7 +582,7 @@ else:
     validate_rrsig = _validate_rrsig    # type: ignore
     _have_pyca = True
 
-### BEGIN generated algorithm constants
+### BEGIN generated Algorithm constants
 
 RSAMD5 = Algorithm.RSAMD5
 DH = Algorithm.DH
@@ -602,4 +602,4 @@ INDIRECT = Algorithm.INDIRECT
 PRIVATEDNS = Algorithm.PRIVATEDNS
 PRIVATEOID = Algorithm.PRIVATEOID
 
-### END generated algorithm constants
+### END generated Algorithm constants

@@ -218,7 +218,7 @@ def register_type(rdtype, rdtype_text, is_singleton=False):
     if is_singleton:
         _singletons.add(rdtype)
 
-### BEGIN generated rdatatype constants
+### BEGIN generated RdataType constants
 
 TYPE0 = RdataType.TYPE0
 NONE = RdataType.NONE
@@ -294,4 +294,4 @@ AMTRELAY = RdataType.AMTRELAY
 TA = RdataType.TA
 DLV = RdataType.DLV
 
-### END generated rdatatype constants
+### END generated RdataType constants

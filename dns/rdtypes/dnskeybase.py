@@ -71,10 +71,10 @@ class DNSKEYBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
 
-### BEGIN generated flag constants
+### BEGIN generated Flag constants
 
 SEP = Flag.SEP
 REVOKE = Flag.REVOKE
 ZONE = Flag.ZONE
 
-### END generated flag constants
+### END generated Flag constants

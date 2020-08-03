@@ -104,7 +104,7 @@ def is_update(flags):
 
     return from_flags(flags) == Opcode.UPDATE
 
-### BEGIN generated opcode constants
+### BEGIN generated Opcode constants
 
 QUERY = Opcode.QUERY
 IQUERY = Opcode.IQUERY
@@ -112,4 +112,4 @@ STATUS = Opcode.STATUS
 NOTIFY = Opcode.NOTIFY
 UPDATE = Opcode.UPDATE
 
-### END generated opcode constants
+### END generated Opcode constants

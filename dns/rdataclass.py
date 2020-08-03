@@ -100,7 +100,7 @@ def is_metaclass(rdclass):
         return True
     return False
 
-### BEGIN generated rdataclass constants
+### BEGIN generated RdataClass constants
 
 RESERVED0 = RdataClass.RESERVED0
 IN = RdataClass.IN
@@ -112,4 +112,4 @@ HESIOD = RdataClass.HESIOD
 NONE = RdataClass.NONE
 ANY = RdataClass.ANY
 
-### END generated rdataclass constants
+### END generated RdataClass constants

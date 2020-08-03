@@ -137,7 +137,7 @@ def to_text(value, tsig=False):
         return 'BADSIG'
     return Rcode.to_text(value)
 
-### BEGIN generated rcode constants
+### BEGIN generated Rcode constants
 
 NOERROR = Rcode.NOERROR
 FORMERR = Rcode.FORMERR
@@ -161,4 +161,4 @@ BADALG = Rcode.BADALG
 BADTRUNC = Rcode.BADTRUNC
 BADCOOKIE = Rcode.BADCOOKIE
 
-### END generated rcode constants
+### END generated Rcode constants

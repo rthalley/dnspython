@@ -25,6 +25,7 @@ def generate():
         dot = enum_name.rindex('.')
         module_name = enum_name[:dot]
         type_name = enum_name[dot + 1:]
+        lname = type_name.lower()
         mod = import_module(module_name)
         enum = getattr(mod, type_name)
         filename = module_name.replace('.', '/') + '.py'
@@ -39,7 +40,8 @@ def generate():
                     l = lines[i].rstrip()
                     i += 1
                     if l.startswith(f'### BEGIN generated {type_name} ' +
-                                    'constants'):
+                                    'constants') or \
+                       l.startswith(f'### BEGIN generated {lname} constants'):
                         found = True
                         break
                     else:
@@ -50,7 +52,8 @@ def generate():
                         l = lines[i].rstrip()
                         i += 1
                         if l.startswith(f'### END generated {type_name} ' +
-                                        'constants'):
+                                        'constants') or \
+                           l.startswith(f'### END generated {lname} constants'):
                             found = True
                             break
                     if not found:

@@ -1465,11 +1465,11 @@ def make_response(query, recursion_available=False, our_payload=8192,
         response.request_mac = query.mac
     return response
 
-### BEGIN generated messagesection constants
+### BEGIN generated MessageSection constants
 
 QUESTION = MessageSection.QUESTION
 ANSWER = MessageSection.ANSWER
 AUTHORITY = MessageSection.AUTHORITY
 ADDITIONAL = MessageSection.ADDITIONAL
 
-### END generated messagesection constants
+### END generated MessageSection constants

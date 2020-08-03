@@ -100,7 +100,7 @@ def edns_to_text(flags):
 
     return _to_text(flags, EDNSFlag)
 
-### BEGIN generated flag constants
+### BEGIN generated Flag constants
 
 QR = Flag.QR
 AA = Flag.AA
@@ -110,10 +110,10 @@ RA = Flag.RA
 AD = Flag.AD
 CD = Flag.CD
 
-### END generated flag constants
+### END generated Flag constants
 
-### BEGIN generated ednsflag constants
+### BEGIN generated EDNSFlag constants
 
 DO = EDNSFlag.DO
 
-### END generated ednsflag constants
+### END generated EDNSFlag constants
