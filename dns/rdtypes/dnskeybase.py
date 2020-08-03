@@ -31,6 +31,7 @@ class Flag(enum.IntFlag):
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._rdtypes_dnskeybase_flag import *  # noqa
+globals().update(Flag.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 # wildcard import

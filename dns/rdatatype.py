@@ -117,6 +117,7 @@ _registered_by_value = {}
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._rdatatype_rdatatype import *  # noqa
+globals().update(RdataType.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 _metatypes = {RdataType.OPT}

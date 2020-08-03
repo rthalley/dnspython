@@ -50,6 +50,7 @@ class RdataClass(dns.enum.IntEnum):
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._rdataclass_rdataclass import *  # noqa
+globals().update(RdataClass.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 _metaclasses = {RdataClass.NONE, RdataClass.ANY}

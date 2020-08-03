@@ -52,6 +52,7 @@ class OptionType(dns.enum.IntEnum):
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._edns_optiontype import *  # noqa
+globals().update(OptionType.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 

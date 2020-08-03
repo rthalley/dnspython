@@ -42,6 +42,7 @@ class Opcode(dns.enum.IntEnum):
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._opcode_opcode import *  # noqa
+globals().update(Opcode.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 

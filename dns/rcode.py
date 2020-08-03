@@ -74,6 +74,7 @@ class Rcode(dns.enum.IntEnum):
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._rcode_rcode import *  # noqa
+globals().update(Rcode.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 class UnknownRcode(dns.exception.DNSException):

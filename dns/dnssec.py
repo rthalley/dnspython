@@ -65,6 +65,7 @@ class Algorithm(dns.enum.IntEnum):
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._dnssec_algorithm import *  # noqa
+globals().update(Algorithm.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 

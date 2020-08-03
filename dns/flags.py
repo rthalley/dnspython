@@ -46,6 +46,8 @@ class EDNSFlag(enum.IntFlag):
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._flags_flag import *  # noqa
 from dns.constants._flags_ednsflag import *  # noqa
+globals().update(Flag.__members__)
+globals().update(EDNSFlag.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 def _from_text(text, enum_class):

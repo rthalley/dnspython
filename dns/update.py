@@ -40,6 +40,7 @@ class UpdateSection(dns.enum.IntEnum):
 
 # pylint: disable=C0413,W0401,W0614
 from dns.constants._update_updatesection import *  # noqa
+globals().update(UpdateSection.__members__)
 # pylint: enable=C0413,W0401,W0614
 
 
