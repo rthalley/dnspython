@@ -78,38 +78,8 @@ def generate():
                     print(l, file=nf)
         os.rename(new_filename, filename)
 
-def check():
-    ok = True
-    for enum_name in enum_names:
-        dot = enum_name.rindex('.')
-        module_name = enum_name[:dot]
-        type_name = enum_name[dot + 1:]
-        mod = import_module(module_name)
-        enum = getattr(mod, type_name)
-        for name, value in enum.__members__.items():
-            try:
-                if value != getattr(mod, name):
-                    ok = False
-                    print(f'{name} != {value}', file=sys.stderr)
-            except Exception:
-                ok = False
-                print('exception checking', name, file=sys.stderr)
-    return ok
-
-def usage():
-    print('usage: constants-tool [generate|check]', file=sys.stderr)
-    sys.exit(1)
-
 def main():
-    if len(sys.argv) < 2:
-        usage()
-    if sys.argv[1] == 'generate':
-        generate()
-    elif sys.argv[1] == 'check':
-        if not check():
-            sys.exit(2)
-    else:
-        usage()
+    generate()
 
 if __name__ == '__main__':
     main()
