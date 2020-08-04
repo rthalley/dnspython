@@ -15,7 +15,26 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import enum
+import inspect
 import os.path
 
 def here(filename):
     return os.path.join(os.path.dirname(__file__), filename)
+
+def enumerate_module(module, super_class):
+    """Yield module attributes which are subclasses of given class"""
+    for attr_name in dir(module):
+        attr = getattr(module, attr_name)
+        if inspect.isclass(attr) and issubclass(attr, super_class):
+            yield attr
+
+def check_enum_exports(module, eq_callback, only=None):
+    """Make sure module exports all mnemonics from enums"""
+    for attr in enumerate_module(module, enum.Enum):
+        if only is not None and attr not in only:
+            print('SKIP', attr)
+            continue
+        for flag, value in attr.__members__.items():
+            print(module, flag, value)
+            eq_callback(getattr(module, flag), value)
