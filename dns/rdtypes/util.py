@@ -68,6 +68,7 @@ class Gateway:
         else:
             raise dns.exception.SyntaxError(self._invalid_type())
 
+    # pylint: disable=unused-argument
     def to_wire(self, file, compress=None, origin=None, canonicalize=False):
         if self.type == 0:
             pass
@@ -79,6 +80,7 @@ class Gateway:
             self.gateway.to_wire(file, None, origin, False)
         else:
             raise ValueError(self._invalid_type())
+    # pylint: enable=unused-argument
 
     def from_wire_parser(self, parser, origin=None):
         if self.type == 0:

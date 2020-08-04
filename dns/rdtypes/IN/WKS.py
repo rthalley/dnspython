@@ -74,7 +74,7 @@ class WKS(dns.rdata.Rdata):
             i = serv // 8
             l = len(bitmap)
             if l < i + 1:
-                for j in range(l, i + 1):
+                for _ in range(l, i + 1):
                     bitmap.append(0)
             bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)

@@ -21,6 +21,9 @@ import dns.exception
 import dns.rdata
 
 
+# We don't implement from_text, and that's ok.
+# pylint: disable=abstract-method
+
 class TSIG(dns.rdata.Rdata):
 
     """TSIG record"""

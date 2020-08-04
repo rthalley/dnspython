@@ -87,7 +87,7 @@ class NAPTR(dns.rdata.Rdata):
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (order, preference) = parser.get_struct('!HH')
         strings = []
-        for i in range(3):
+        for _ in range(3):
             s = parser.get_counted_bytes()
             strings.append(s)
         replacement = parser.get_name(origin)

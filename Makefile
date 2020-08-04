@@ -59,7 +59,7 @@ potype:
 	poetry run python -m mypy examples tests dns/*.py
 
 polint:
-	poetry run pylint dns/*.py
+	poetry run pylint dns
 
 poflake:
 	poetry run flake8 dns
