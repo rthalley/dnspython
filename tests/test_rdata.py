@@ -374,6 +374,10 @@ class RdataTestCase(unittest.TestCase):
                                    t[3], t[4], t[5])
                 dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.LOC,
                                     wire, 0, len(wire))
+            with self.assertRaises(dns.exception.FormError):
+                wire = b'\x01'
+                dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.LOC,
+                                    wire, 0, len(wire))
 
     def equal_wks(self, a, b):
         rda = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS, a)

@@ -293,6 +293,8 @@ class LOC(dns.rdata.Rdata):
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (version, size, hprec, vprec, latitude, longitude, altitude) = \
             parser.get_struct("!BBBBIII")
+        if version != 0:
+            raise dns.exception.FormError("LOC version not zero")
         if latitude < _MIN_LATITUDE or latitude > _MAX_LATITUDE:
             raise dns.exception.FormError("bad latitude")
         if latitude > 0x80000000:
