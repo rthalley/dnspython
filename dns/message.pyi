@@ -29,6 +29,11 @@ class Message:
     def set_rcode(self, rcode : rcode.Rcode):
         ...
 
+    def use_tsig(self, keyring, keyname=None, fudge : Optional[int]=300,
+                 original_id : Optional[int]=None, tsig_error : Optional[int]=0, other_data : Optional[str] =b'',
+                 algorithm: Optional[name.Name]=tsig.default_algorithm) -> None:
+        ...
+
 def from_text(a : str, idna_codec : Optional[name.IDNACodec] = None) -> Message:
     ...
 
