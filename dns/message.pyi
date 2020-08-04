@@ -33,7 +33,7 @@ def from_text(a : str, idna_codec : Optional[name.IDNACodec] = None) -> Message:
     ...
 
 def from_wire(wire, keyring : Optional[Dict[name.Name,bytes]] = None, request_mac = b'', xfr=False, origin=None,
-              tsig_ctx : Optional[hmac.HMAC] = None, multi=False,
+              tsig_ctx : Optional[Union[dns.tsig.HMACTSig, dns.tsig.GSSTSig]] = None, multi=False,
               question_only=False, one_rr_per_rrset=False,
               ignore_trailing=False) -> Message:
     ...

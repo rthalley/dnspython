@@ -8,8 +8,7 @@ import dns.rcode
 import dns.tsig
 import dns.tsigkeyring
 import dns.message
-from dns.rdatatype import RdataType
-from dns.rdataclass import RdataClass
+import dns.rdtypes.ANY.TKEY
 
 keyring = dns.tsigkeyring.from_text(
     {
@@ -51,13 +50,13 @@ class TSIGTestCase(unittest.TestCase):
         dummy_expected = None
         key = dns.tsig.Key('foo.com', 'abcd', 'bogus')
         with self.assertRaises(NotImplementedError):
-            dns.tsig._verify_mac_for_context(dummy_ctx, key, dummy_expected)
+            dummy_ctx = dns.tsig.get_context(key)
 
         key = dns.tsig.Key('foo.com', 'abcd', 'hmac-sha512')
         ctx = dns.tsig.get_context(key)
         bad_expected = b'xxxxxxxxxx'
         with self.assertRaises(dns.tsig.BadSignature):
-            dns.tsig._verify_mac_for_context(ctx, key, bad_expected)
+            ctx.verify(bad_expected)
 
     def test_validate(self):
         # make message and grab the TSIG
@@ -111,7 +110,7 @@ class TSIGTestCase(unittest.TestCase):
         # test exceptional case for _verify_mac_for_context
         with self.assertRaises(dns.tsig.BadSignature):
             ctx.update(b'throw')
-            dns.tsig._verify_mac_for_context(ctx, key, 'bogus')
+            ctx.verify(b'bogus')
         gssapi_context_mock.verify_signature.assert_called()
         self.assertEqual(gssapi_context_mock.verify_signature.call_count, 1)
 
