@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+from importlib import import_module
+import os
+import sys
+
+enum_names = [
+    'dns.dnssec.Algorithm',
+    'dns.edns.OptionType',
+    'dns.flags.Flag',
+    'dns.flags.EDNSFlag',
+    'dns.message.MessageSection',
+    'dns.opcode.Opcode',
+    'dns.rcode.Rcode',
+    'dns.rdataclass.RdataClass',
+    'dns.rdatatype.RdataType',
+    'dns.rdtypes.dnskeybase.Flag',
+    'dns.update.UpdateSection',
+]
+
+def generate():
+    for enum_name in enum_names:
+        dot = enum_name.rindex('.')
+        module_name = enum_name[:dot]
+        type_name = enum_name[dot + 1:]
+        lname = type_name.lower()
+        mod = import_module(module_name)
+        enum = getattr(mod, type_name)
+        filename = module_name.replace('.', '/') + '.py'
+        new_filename = filename + '.new'
+        with open(filename) as f:
+            with open(new_filename, 'w') as nf:
+                lines = f.readlines()
+                found = False
+                i = 0
+                length = len(lines)
+                while i < length:
+                    l = lines[i].rstrip()
+                    i += 1
+                    if l.startswith(f'### BEGIN generated {type_name} ' +
+                                    'constants') or \
+                       l.startswith(f'### BEGIN generated {lname} constants'):
+                        found = True
+                        break
+                    else:
+                        print(l, file=nf)
+                if found:
+                    found = False
+                    while i < length:
+                        l = lines[i].rstrip()
+                        i += 1
+                        if l.startswith(f'### END generated {type_name} ' +
+                                        'constants') or \
+                           l.startswith(f'### END generated {lname} constants'):
+                            found = True
+                            break
+                    if not found:
+                        print(f'Found begin marker for {type_name} but did ' +
+                              'not find end marker!', file=sys.stderr)
+                        sys.exit(1)
+                if not found:
+                    print('', file=nf)
+                print(f'### BEGIN generated {type_name} constants', file=nf)
+                print('', file=nf)
+                # We have to use __members__.items() and not "in enum" because
+                # otherwise we miss values that have multiple names (e.g. NONE
+                # and TYPE0 for rdatatypes).
+                for name, value in enum.__members__.items():
+                    print(f'{name} = {type_name}.{name}', file=nf)
+                print('', file=nf)
+                print(f'### END generated {type_name} constants', file=nf)
+                # Copy remaining lines (if any)
+                while i < length:
+                    l = lines[i].rstrip()
+                    i += 1
+                    print(l, file=nf)
+        os.rename(new_filename, filename)
+
+def main():
+    generate()
+
+if __name__ == '__main__':
+    main()

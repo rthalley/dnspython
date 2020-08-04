@@ -50,7 +50,6 @@ class OptionType(dns.enum.IntEnum):
     def _maximum(cls):
         return 65535
 
-globals().update(OptionType.__members__)
 
 class Option:
 
@@ -352,3 +351,18 @@ def register_type(implementation, otype):
     """
 
     _type_to_class[otype] = implementation
+
+### BEGIN generated OptionType constants
+
+NSID = OptionType.NSID
+DAU = OptionType.DAU
+DHU = OptionType.DHU
+N3U = OptionType.N3U
+ECS = OptionType.ECS
+EXPIRE = OptionType.EXPIRE
+COOKIE = OptionType.COOKIE
+KEEPALIVE = OptionType.KEEPALIVE
+PADDING = OptionType.PADDING
+CHAIN = OptionType.CHAIN
+
+### END generated OptionType constants

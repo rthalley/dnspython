@@ -107,7 +107,6 @@ class MessageSection(dns.enum.IntEnum):
     def _maximum(cls):
         return 3
 
-globals().update(MessageSection.__members__)
 
 DEFAULT_EDNS_PAYLOAD = 1232
 MAX_CHAIN = 16
@@ -1465,3 +1464,12 @@ def make_response(query, recursion_available=False, our_payload=8192,
                           tsig_error, b'', query.keyalgorithm)
         response.request_mac = query.mac
     return response
+
+### BEGIN generated MessageSection constants
+
+QUESTION = MessageSection.QUESTION
+ANSWER = MessageSection.ANSWER
+AUTHORITY = MessageSection.AUTHORITY
+ADDITIONAL = MessageSection.ADDITIONAL
+
+### END generated MessageSection constants

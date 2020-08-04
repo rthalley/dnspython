@@ -64,9 +64,6 @@ class Algorithm(dns.enum.IntEnum):
         return 255
 
 
-globals().update(Algorithm.__members__)
-
-
 def algorithm_from_text(text):
     """Convert text into a DNSSEC algorithm value.
 
@@ -584,3 +581,25 @@ else:
     validate = _validate                # type: ignore
     validate_rrsig = _validate_rrsig    # type: ignore
     _have_pyca = True
+
+### BEGIN generated Algorithm constants
+
+RSAMD5 = Algorithm.RSAMD5
+DH = Algorithm.DH
+DSA = Algorithm.DSA
+ECC = Algorithm.ECC
+RSASHA1 = Algorithm.RSASHA1
+DSANSEC3SHA1 = Algorithm.DSANSEC3SHA1
+RSASHA1NSEC3SHA1 = Algorithm.RSASHA1NSEC3SHA1
+RSASHA256 = Algorithm.RSASHA256
+RSASHA512 = Algorithm.RSASHA512
+ECCGOST = Algorithm.ECCGOST
+ECDSAP256SHA256 = Algorithm.ECDSAP256SHA256
+ECDSAP384SHA384 = Algorithm.ECDSAP384SHA384
+ED25519 = Algorithm.ED25519
+ED448 = Algorithm.ED448
+INDIRECT = Algorithm.INDIRECT
+PRIVATEDNS = Algorithm.PRIVATEDNS
+PRIVATEOID = Algorithm.PRIVATEOID
+
+### END generated Algorithm constants

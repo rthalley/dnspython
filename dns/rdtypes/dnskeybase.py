@@ -31,8 +31,6 @@ class Flag(enum.IntFlag):
     REVOKE = 0x0080
     ZONE = 0x0100
 
-globals().update(Flag.__members__)
-
 
 class DNSKEYBase(dns.rdata.Rdata):
 
@@ -72,3 +70,11 @@ class DNSKEYBase(dns.rdata.Rdata):
         key = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
+
+### BEGIN generated Flag constants
+
+SEP = Flag.SEP
+REVOKE = Flag.REVOKE
+ZONE = Flag.ZONE
+
+### END generated Flag constants
