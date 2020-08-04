@@ -375,7 +375,7 @@ class RdataTestCase(unittest.TestCase):
                 dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.LOC,
                                     wire, 0, len(wire))
             with self.assertRaises(dns.exception.FormError):
-                wire = b'\x01'
+                wire = struct.pack('!BBBBIII', 1, 0, 0, 0, 0, 0, 0)
                 dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.LOC,
                                     wire, 0, len(wire))
 
