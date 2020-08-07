@@ -79,8 +79,8 @@ hinfo01			HINFO	"Generic PC clone" "NetBSD-1.4"
 hinfo02			HINFO	"PC" "NetBSD"
 isdn01			ISDN	"isdn-address"
 isdn02			ISDN	"isdn-address" "subaddress"
-isdn03			ISDN	"isdn-address"
-isdn04			ISDN	"isdn-address" "subaddress"
+isdn03			ISDN	isdn-address
+isdn04			ISDN	isdn-address subaddress
 ;key01			KEY	512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aR yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3 GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o jqf0BaqHT+8= 
 ;key02			KEY	HOST|FLAG4 DNSSEC RSAMD5 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aR yzWZriO6i2odGWWQVucZqKVsENW91IOW4vqudngPZsY3 GvQ/xVA8/7pyFj6b7Esga60zyGW6LFe9r8n6paHrlG5o jqf0BaqHT+8= 
 kx01			KX	10 kdc
