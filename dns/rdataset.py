@@ -268,7 +268,7 @@ class Rdataset(dns.set.Set):
             want_shuffle = False
         else:
             rdclass = self.rdclass
-        file.seek(0, 2)
+        file.seek(0, io.SEEK_END)
         if len(self) == 0:
             name.to_wire(file, compress, origin)
             stuff = struct.pack("!HHIH", self.rdtype, rdclass, 0, 0)
@@ -292,7 +292,7 @@ class Rdataset(dns.set.Set):
                 file.seek(start - 2)
                 stuff = struct.pack("!H", end - start)
                 file.write(stuff)
-                file.seek(0, 2)
+                file.seek(0, io.SEEK_END)
             return len(self)
 
     def match(self, rdclass, rdtype, covers):

@@ -232,3 +232,9 @@ amtrelay04              AMTRELAY  10 0 2 2001:db8::15
 amtrelay05              AMTRELAY 128 1 3 amtrelays.example.com.
 csync0			CSYNC 12345 0 A MX RRSIG NSEC TYPE1234
 avc01			AVC "app-name:WOLFGANG|app-class:OAM|business=yes"
+svcb01                  SVCB (
+100 foo.com. mandatory="alpn,port" alpn="h2,h3" no-default-alpn port="12345"
+echconfig="abcd" ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4 key12345="foo"
+)
+https01                 HTTPS 0 svc
+https02                 HTTPS 1 . port=8002 echconfig="abcd"

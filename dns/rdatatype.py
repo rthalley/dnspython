@@ -78,6 +78,8 @@ class RdataType(dns.enum.IntEnum):
     CDNSKEY = 60
     OPENPGPKEY = 61
     CSYNC = 62
+    SVCB = 64
+    HTTPS = 65
     SPF = 99
     UNSPEC = 103
     EUI48 = 108
@@ -276,6 +278,8 @@ CDS = RdataType.CDS
 CDNSKEY = RdataType.CDNSKEY
 OPENPGPKEY = RdataType.OPENPGPKEY
 CSYNC = RdataType.CSYNC
+SVCB = RdataType.SVCB
+HTTPS = RdataType.HTTPS
 SPF = RdataType.SPF
 UNSPEC = RdataType.UNSPEC
 EUI48 = RdataType.EUI48
