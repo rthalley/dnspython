@@ -102,6 +102,38 @@ class GSSTSig:
             raise BadSignature
 
 
+class GSSTSigAdapter:
+    def __init__(self, keyring):
+        self.keyring = keyring
+
+    def __call__(self, message, keyname):
+        if keyname in self.keyring:
+            key = self.keyring[keyname]
+            if isinstance(key, Key) and key.algorithm == GSS_TSIG:
+                if message:
+                    GSSTSigAdapter.parse_tkey_and_step(key, message, keyname)
+            return key
+        else:
+            return None
+
+    @classmethod
+    def parse_tkey_and_step(cls, key, message, keyname):
+        # if the message is a TKEY type, absorb the key material
+        # into the context using step(); this is used to allow the
+        # client to complete the GSSAPI negotiation before attempting
+        # to verify the signed response to a TKEY message exchange
+        try:
+            rrset = message.find_rrset(message.answer, keyname,
+                                       dns.rdataclass.ANY,
+                                       dns.rdatatype.TKEY)
+            if rrset:
+                token = rrset[0].key
+                gssapi_context = key.secret
+                return gssapi_context.step(token)
+        except KeyError:
+            pass
+
+
 class HMACTSig:
     """
     HMAC TSIG implementation.  This uses the HMAC python module to handle the
