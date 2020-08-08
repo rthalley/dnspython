@@ -26,6 +26,7 @@ import itertools
 
 import dns.wire
 import dns.exception
+import dns.immutable
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -92,21 +93,9 @@ def _truncate_bitmap(what):
             return what[0: i + 1]
     return what[0:1]
 
-def _constify(o):
-    """
-    Convert mutable types to immutable types.
-    """
-    if isinstance(o, bytearray):
-        return bytes(o)
-    if isinstance(o, tuple):
-        try:
-            hash(o)
-            return o
-        except Exception:
-            return tuple(_constify(elt) for elt in o)
-    if isinstance(o, list):
-        return tuple(_constify(elt) for elt in o)
-    return o
+# So we don't have to edit all the rdata classes...
+_constify = dns.immutable.constify
+
 
 class Rdata:
     """Base class for all DNS rdata types."""
