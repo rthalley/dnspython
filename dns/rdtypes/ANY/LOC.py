@@ -34,17 +34,13 @@ _MIN_LATITUDE = 0x80000000 - 90 * 3600000
 _MAX_LONGITUDE = 0x80000000 + 180 * 3600000
 _MIN_LONGITUDE = 0x80000000 - 180 * 3600000
 
-# pylint complains about division since we don't have a from __future__ for
-# it, but we don't care about python 2 warnings, so turn them off.
-#
-# pylint: disable=old-division
 
 def _exponent_of(what, desc):
     if what == 0:
         return 0
     exp = None
     for (i, pow) in enumerate(_pows):
-        if what // pow == 0:
+        if what < pow:
             exp = i - 1
             break
     if exp is None or exp < 0:
