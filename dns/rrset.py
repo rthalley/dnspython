@@ -135,13 +135,22 @@ class RRset(dns.rdataset.Rdataset):
 
 
 def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
-                   idna_codec=None):
+                   idna_codec=None, origin=None, relativize=True,
+                   relativize_to=None):
     """Create an RRset with the specified name, TTL, class, and type, and with
     the specified list of rdatas in text format.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
     encoder/decoder to use; if ``None``, the default IDNA 2003
     encoder/decoder is used.
+
+    *origin*, a ``dns.name.Name`` (or ``None``), the
+    origin to use for relative names.
+
+    *relativize*, a ``bool``.  If true, name will be relativized.
+
+    *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
+    when relativizing names.  If not set, the *origin* value will be used.
 
     Returns a ``dns.rrset.RRset`` object.
     """
@@ -153,7 +162,8 @@ def from_text_list(name, ttl, rdclass, rdtype, text_rdatas,
     r = RRset(name, rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:
-        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t, idna_codec=idna_codec)
+        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t, origin, relativize,
+                                 relativize_to, idna_codec)
         r.add(rd)
     return r
 
