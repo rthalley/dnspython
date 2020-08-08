@@ -60,6 +60,8 @@ hinfo02.example. 3600 IN HINFO "PC" "NetBSD"
 hip01.example. 3600 IN HIP 2 200100107b1a74df365639cc39f1d578 AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cIvM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbWIy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+bSRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWxZ48AWkskmdHaVDP4BcelrTI3rMXdXF5D
 hip02.example. 3600 IN HIP 2 200100107b1a74df365639cc39f1d578 AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cIvM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbWIy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+bSRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWxZ48AWkskmdHaVDP4BcelrTI3rMXdXF5D rvs.example.com.
 hip03.example. 3600 IN HIP 2 200100107b1a74df365639cc39f1d578 AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cIvM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbWIy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+bSRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWxZ48AWkskmdHaVDP4BcelrTI3rMXdXF5D rvs1.example.com. rvs2.example.com.
+https01.example. 3600 IN HTTPS 0 svc.example.
+https02.example. 3600 IN HTTPS 1 . port="8002" echconfig="abcd"
 ipseckey01.example. 3600 IN IPSECKEY 10 1 2 192.0.2.38 AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
 ipseckey02.example. 3600 IN IPSECKEY 10 0 2 . AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
 ipseckey03.example. 3600 IN IPSECKEY 10 3 2 mygateway.example.com. AQNRU3mG7TVTO2BkR47usntb102uFJtu gbo6BSGvgqt4AQ==
@@ -110,6 +112,7 @@ spf.example. 3600 IN SPF "v=spf1 mx -all"
 srv01.example. 3600 IN SRV 0 0 0 .
 srv02.example. 3600 IN SRV 65535 65535 65535 old-slow-box.example.com.
 sshfp1.example. 3600 IN SSHFP 1 1 aa549bfe898489c02d1715d97d79c57ba2fa76ab
+svcb01.example. 3600 IN SVCB 100 foo.com. mandatory="alpn,port" alpn="h2,h3" no-default-alpn port="12345" ipv4hint="1.2.3.4,4.3.2.1" echconfig="abcd" ipv6hint="1::2,3::4" key12345="foo"
 t.example. 301 IN A 73.80.65.49
 tlsa1.example. 3600 IN TLSA 3 1 1 a9cdf989b504fe5dca90c0d2167b6550570734f7c763e09fdf88904e06157065
 tlsa2.example. 3600 IN TLSA 1 0 1 efddf0d915c7bdc5782c0881e1b2a95ad099fbdd06d7b1f77982d9364338d955
