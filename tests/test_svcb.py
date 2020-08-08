@@ -272,3 +272,14 @@ class SVCBTestCase(unittest.TestCase):
         wire = bytes.fromhex('0000000000000400010003')
         with self.assertRaises(dns.exception.FormError):
             dns.rdata.from_wire('in', 'svcb', wire, 0, len(wire))
+
+    def test_immutability(self):
+        alpn = dns.rdtypes.svcbbase.ALPNParam.from_value(['h2', 'h3'])
+        with self.assertRaises(TypeError):
+            alpn.ids[0] = 'foo'
+        with self.assertRaises(TypeError):
+            del alpn.ids[0]
+        with self.assertRaises(TypeError):
+            alpn.ids = 'foo'
+        with self.assertRaises(TypeError):
+            del alpn.ids
