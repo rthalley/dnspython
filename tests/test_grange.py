@@ -64,28 +64,30 @@ class GRangeTestCase(unittest.TestCase):
         self.assertEqual(step, 77)
 
     def testFailFromText1(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             start = 2
             stop = 1
             step = 1
             dns.grange.from_text('%d-%d/%d' % (start, stop, step))
-        self.assertRaises(AssertionError, bad)
+            self.assertTrue(False)
 
     def testFailFromText2(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             start = '-1'
             stop = 3
             step = 1
             dns.grange.from_text('%s-%d/%d' % (start, stop, step))
-        self.assertRaises(dns.exception.SyntaxError, bad)
 
     def testFailFromText3(self):
-        def bad():
+        with self.assertRaises(dns.exception.SyntaxError):
             start = 1
             stop = 4
             step = '-2'
             dns.grange.from_text('%d-%d/%s' % (start, stop, step))
-        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testFailFromText4(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.grange.from_text('1')
 
 if __name__ == '__main__':
     unittest.main()
