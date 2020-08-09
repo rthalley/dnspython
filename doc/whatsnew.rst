@@ -24,6 +24,9 @@ What's New in dnspython
 
 * The SVCB and HTTPS RR types are now supported.
 
+* TSIG has been enhanced with TKEY and GSS-TSIG support.  Thanks to
+Nick Hall for writing this.
+
 2.0.0
 -----
 
