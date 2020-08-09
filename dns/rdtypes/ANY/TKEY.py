@@ -46,7 +46,7 @@ class TKEY(dns.rdata.Rdata):
         text = '%s %u %u %u %u %s' % (str(_algorithm), self.inception,
                                       self.expiration, self.mode, self.error,
                                       dns.rdata._base64ify(self.key, 0))
-        if len(self.other):
+        if len(self.other) > 0:
             text += ' %s' % (dns.rdata._base64ify(self.other, 0))
 
         return text
@@ -74,7 +74,7 @@ class TKEY(dns.rdata.Rdata):
         file.write(struct.pack("!H", len(self.key)))
         file.write(self.key)
         file.write(struct.pack("!H", len(self.other)))
-        if len(self.other):
+        if len(self.other) > 0:
             file.write(self.other)
 
     @classmethod
@@ -114,4 +114,3 @@ class TKEY(dns.rdata.Rdata):
     GSSAPI_NEGOTIATION = 3
     RESOLVER_ASSIGNMENT = 4
     KEY_DELETION = 5
-
