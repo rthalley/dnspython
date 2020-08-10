@@ -226,3 +226,22 @@ class TSIGTestCase(unittest.TestCase):
             def bad():
                 dns.message.from_wire(w, keyring=keyring, request_mac=q.mac)
             self.assertRaises(ex, bad)
+
+    def _test_truncated_algorithm(self, alg, length):
+        key = dns.tsig.Key('foo', b'abcdefg', algorithm=alg)
+        q = dns.message.make_query('example', 'a')
+        q.use_tsig(key)
+        q2 = dns.message.from_wire(q.to_wire(), keyring=key)
+
+        self.assertTrue(q2.had_tsig)
+        self.assertEqual(q2.tsig[0].algorithm, q.tsig[0].algorithm)
+        self.assertEqual(len(q2.tsig[0].mac), length // 8)
+
+    def test_hmac_sha256_128(self):
+        self._test_truncated_algorithm(dns.tsig.HMAC_SHA256_128, 128)
+
+    def test_hmac_sha384_192(self):
+        self._test_truncated_algorithm(dns.tsig.HMAC_SHA384_192, 192)
+
+    def test_hmac_sha512_256(self):
+        self._test_truncated_algorithm(dns.tsig.HMAC_SHA512_256, 256)

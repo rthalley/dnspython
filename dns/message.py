@@ -520,9 +520,10 @@ class Message:
         """
 
         if isinstance(keyring, dns.tsig.Key):
-            self.keyring = keyring
+            key = keyring
+            keyname = key.name
         elif callable(keyring):
-            self.keyring = keyring(self, keyname)
+            key = keyring(self, keyname)
         else:
             if isinstance(keyname, str):
                 keyname = dns.name.from_text(keyname)
@@ -531,7 +532,7 @@ class Message:
             key = keyring[keyname]
             if isinstance(key, bytes):
                 key = dns.tsig.Key(keyname, key, algorithm)
-            self.keyring = key
+        self.keyring = key
         if original_id is None:
             original_id = self.id
         self.tsig = self._make_tsig(keyname, self.keyring.algorithm, 0, fudge,

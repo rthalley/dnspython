@@ -72,6 +72,22 @@ class PeerBadTruncation(PeerError):
     """The peer didn't like amount of truncation in the TSIG we sent"""
 
 
+# TSIG Algorithms
+
+HMAC_MD5 = dns.name.from_text("HMAC-MD5.SIG-ALG.REG.INT")
+HMAC_SHA1 = dns.name.from_text("hmac-sha1")
+HMAC_SHA224 = dns.name.from_text("hmac-sha224")
+HMAC_SHA256 = dns.name.from_text("hmac-sha256")
+HMAC_SHA256_128 = dns.name.from_text("hmac-sha256-128")
+HMAC_SHA384 = dns.name.from_text("hmac-sha384")
+HMAC_SHA384_192 = dns.name.from_text("hmac-sha384-192")
+HMAC_SHA512 = dns.name.from_text("hmac-sha512")
+HMAC_SHA512_256 = dns.name.from_text("hmac-sha512-256")
+GSS_TSIG = dns.name.from_text("gss-tsig")
+
+default_algorithm = HMAC_SHA256
+
+
 class GSSTSig:
     """
     GSS-TSIG TSIG implementation.  This uses the GSS-API context established
@@ -139,51 +155,52 @@ class HMACTSig:
     HMAC TSIG implementation.  This uses the HMAC python module to handle the
     sign/verify operations.
     """
+
+    _hashes = {
+        HMAC_SHA1: hashlib.sha1,
+        HMAC_SHA224: hashlib.sha224,
+        HMAC_SHA256: hashlib.sha256,
+        HMAC_SHA256_128: (hashlib.sha256, 128),
+        HMAC_SHA384: hashlib.sha384,
+        HMAC_SHA384_192: (hashlib.sha384, 192),
+        HMAC_SHA512: hashlib.sha512,
+        HMAC_SHA512_256: (hashlib.sha512, 256),
+        HMAC_MD5: hashlib.md5,
+    }
+
     def __init__(self, key, algorithm):
         try:
-            digestmod = _hashes[algorithm]
+            hashinfo = self._hashes[algorithm]
         except KeyError:
             raise NotImplementedError(f"TSIG algorithm {algorithm} " +
                                       "is not supported")
 
         # create the HMAC context
-        self.hmac_context = hmac.new(key, digestmod=digestmod)
+        if isinstance(hashinfo, tuple):
+            self.hmac_context = hmac.new(key, digestmod=hashinfo[0])
+            self.size = hashinfo[1]
+        else:
+            self.hmac_context = hmac.new(key, digestmod=hashinfo)
+            self.size = None
         self.name = self.hmac_context.name
+        if self.size:
+            self.name += f'-{self.size}'
 
     def update(self, data):
         return self.hmac_context.update(data)
 
     def sign(self):
         # defer to the HMAC digest() function for that digestmod
-        return self.hmac_context.digest()
+        digest = self.hmac_context.digest()
+        if self.size:
+            digest = digest[: (self.size // 8)]
+        return digest
 
     def verify(self, expected):
         # re-digest and compare the results
-        mac = self.hmac_context.digest()
+        mac = self.sign()
         if not hmac.compare_digest(mac, expected):
             raise BadSignature
-
-
-# TSIG Algorithms
-
-HMAC_MD5 = dns.name.from_text("HMAC-MD5.SIG-ALG.REG.INT")
-HMAC_SHA1 = dns.name.from_text("hmac-sha1")
-HMAC_SHA224 = dns.name.from_text("hmac-sha224")
-HMAC_SHA256 = dns.name.from_text("hmac-sha256")
-HMAC_SHA384 = dns.name.from_text("hmac-sha384")
-HMAC_SHA512 = dns.name.from_text("hmac-sha512")
-GSS_TSIG = dns.name.from_text("gss-tsig")
-
-_hashes = {
-    HMAC_SHA224: hashlib.sha224,
-    HMAC_SHA256: hashlib.sha256,
-    HMAC_SHA384: hashlib.sha384,
-    HMAC_SHA512: hashlib.sha512,
-    HMAC_SHA1: hashlib.sha1,
-    HMAC_MD5: hashlib.md5,
-}
-
-default_algorithm = HMAC_SHA256
 
 
 def _digest(wire, key, rdata, time=None, request_mac=None, ctx=None,
