@@ -37,7 +37,6 @@ class SVCBTestCase(unittest.TestCase):
             "1 . mandatory=\"alpn,no-default-alpn\" alpn=\"h2\" no-default-alpn",
             "1 . mandatory=alpn,no-default-alpn alpn=h2 no-default-alpn",
             "1 . mandatory=key1,key2 alpn=h2 no-default-alpn",
-            "1 . mandatory=alpn,no-default-alpn key1=\\002h2 key2=\"\"",
             "1 . mandatory=alpn,no-default-alpn key1=\\002h2 key2",
             "1 . key0=\\000\\001\\000\\002 alpn=h2 no-default-alpn",
             "1 . alpn=h2 no-default-alpn mandatory=alpn,no-default-alpn",
@@ -45,6 +44,9 @@ class SVCBTestCase(unittest.TestCase):
         self.check_valid_inputs(valid_inputs)
 
         invalid_inputs = (
+            # empty
+            "1 . mandatory=",
+            "1 . mandatory",
             # unknown key
             "1 . mandatory=foo",
             # key 0
@@ -56,6 +58,9 @@ class SVCBTestCase(unittest.TestCase):
             "1 . mandatory=alpn,alpn alpn=h2",
             # invalid escaping
             "1 . mandatory=\\alpn alpn=h2",
+            # empty wire format
+            "1 . key0",
+            "1 . key0=",
             # 0 in wire format
             "1 . key0=\\000\\000",
             # invalid length in wire format
@@ -86,6 +91,8 @@ class SVCBTestCase(unittest.TestCase):
         self.check_valid_inputs(valid_inputs_one_item)
 
         invalid_inputs = (
+            "1 . alpn",
+            "1 . alpn=",
             "1 . alpn=h2,,h3",
             "1 . alpn=01234567890abcdef01234567890abcdef01234567890abcdef"
                      "01234567890abcdef01234567890abcdef01234567890abcdef"
@@ -93,11 +100,12 @@ class SVCBTestCase(unittest.TestCase):
                      "01234567890abcdef01234567890abcdef01234567890abcdef"
                      "01234567890abcdef01234567890abcdef01234567890abcdef"
                      "01234567890abcdef",
-            "1 . key1=\\000",
-            "1 . key1=\\002x",
             "1 . alpn=\",h2,h3\"",
             "1 . alpn=\"h2,h3,\"",
-            "1 . alpn",
+            "1 . key1",
+            "1 . key1=",
+            "1 . key1=\\000",
+            "1 . key1=\\002x",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -127,13 +135,35 @@ class SVCBTestCase(unittest.TestCase):
         self.check_valid_inputs(valid_inputs)
 
         invalid_inputs = (
+            "1 . port",
             "1 . port=",
             "1 . port=53x",
             "1 . port=x53",
             "1 . port=53,54",
             "1 . port=53\\,54",
-            "1 . key3=\\000",
             "1 . port=65536",
+            "1 . key3",
+            "1 . key3=",
+            "1 . key3=\\000",
+        )
+        self.check_invalid_inputs(invalid_inputs)
+
+    def test_svcb_ipv4hint(self):
+        valid_inputs = (
+            "1 . ipv4hint=\"0.0.0.0,1.1.1.1\"",
+            "1 . ipv4hint=0.0.0.0,1.1.1.1",
+            "1 . key4=\\000\\000\\000\\000\\001\\001\\001\\001",
+        )
+        self.check_valid_inputs(valid_inputs)
+
+        invalid_inputs = (
+            "1 . ipv4hint",
+            "1 . ipv4hint=",
+            "1 . ipv4hint=1234",
+            "1 . ipv4hint=1\\.2.3.4",
+            "1 . ipv4hint=1.2.3.4\\,2.3.4.5",
+            "1 . key4=",
+            "1 . key4=123",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -147,29 +177,12 @@ class SVCBTestCase(unittest.TestCase):
         self.check_valid_inputs(valid_inputs)
 
         invalid_inputs = (
+            "1 . echconfig",
             "1 . echconfig=",
             "1 . echconfig=Zm9vMA",
             "1 . echconfig=\\090m9vMA==",
+            "1 . key5",
             "1 . key5=",
-        )
-        self.check_invalid_inputs(invalid_inputs)
-
-    def test_svcb_ipv4hint(self):
-        valid_inputs = (
-            "1 . ipv4hint=\"0.0.0.0,1.1.1.1\"",
-            "1 . ipv4hint=0.0.0.0,1.1.1.1",
-            "1 . key4=\\000\\000\\000\\000\\001\\001\\001\\001",
-        )
-        self.check_valid_inputs(valid_inputs)
-
-        invalid_inputs = (
-            "1 . ipv4hint=",
-            "1 . ipv4hint=1234",
-            "1 . ipv4hint=1\\.2.3.4",
-            "1 . ipv4hint=1.2.3.4\\,2.3.4.5",
-            "1 . ipv4hint",
-            "1 . key4=",
-            "1 . key4=123",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -185,11 +198,13 @@ class SVCBTestCase(unittest.TestCase):
         self.check_valid_inputs(valid_inputs)
 
         invalid_inputs = (
+            "1 . ipv6hint",
             "1 . ipv6hint=",
             "1 . ipv6hint=1234",
             "1 . ipv6hint=1\\::2",
             "1 . ipv6hint=::1\\,::2",
             "1 . ipv6hint",
+            "1 . key6",
             "1 . key6=",
             "1 . key6=123",
         )
@@ -205,17 +220,23 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_valid_inputs(valid_inputs_one_key)
 
+        valid_inputs_one_key_empty = (
+            "1 . key23",
+            "1 . key23=\"\"",
+        )
+        self.check_valid_inputs(valid_inputs_one_key_empty)
+
+        invalid_inputs_one_key = (
+            "1 . key65536=foo",
+            "1 . key24= key48",
+        )
+        self.check_invalid_inputs(invalid_inputs_one_key)
+
         valid_inputs_two_keys = (
             "1 . key24 key48",
             "1 . key24=\"\" key48",
         )
         self.check_valid_inputs(valid_inputs_two_keys)
-
-        invalid_inputs = (
-            "1 . key65536=foo",
-            "1 . key24= key48",
-        )
-        self.check_invalid_inputs(invalid_inputs)
 
     def test_svcb_wire(self):
         valid_inputs = (
@@ -239,6 +260,8 @@ class SVCBTestCase(unittest.TestCase):
             # As above, but the mandatory keys don't match
             "\\# 24 0001 00 0000000400010002 000300020101 00010003026832",
             "\\# 24 0001 00 0000000400010004 000300020101 00010003026832",
+            # Alias form shouldn't have parameters.
+            "\\# 08 0000 000300020101",
         )
         self.check_invalid_inputs(invalid_inputs)
 
