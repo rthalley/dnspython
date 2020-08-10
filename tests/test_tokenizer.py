@@ -207,6 +207,9 @@ class TokenizerTestCase(unittest.TestCase):
             tok = dns.tokenizer.Tokenizer('q1234')
             tok.get_int()
         with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('281474976710656')
+            tok.get_uint48()
+        with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('4294967296')
             tok.get_uint32()
         with self.assertRaises(dns.exception.SyntaxError):
