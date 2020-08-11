@@ -22,3 +22,15 @@ class TTLTestCase(unittest.TestCase):
     def test_bind_style_no_unit(self):
         with self.assertRaises(dns.ttl.BadTTL):
             dns.ttl.from_text('1d5')
+
+    def test_bind_style_leading_unit(self):
+        with self.assertRaises(dns.ttl.BadTTL):
+            dns.ttl.from_text('s')
+
+    def test_bind_style_unit_without_digits(self):
+        with self.assertRaises(dns.ttl.BadTTL):
+            dns.ttl.from_text('1mw')
+
+    def test_empty(self):
+        with self.assertRaises(dns.ttl.BadTTL):
+            dns.ttl.from_text('')

@@ -39,16 +39,20 @@ def from_text(text):
 
     if text.isdigit():
         total = int(text)
+    elif len(text) == 0:
+        raise BadTTL
     else:
-        if not text[0].isdigit():
-            raise BadTTL
         total = 0
         current = 0
+        need_digit = True
         for c in text:
             if c.isdigit():
                 current *= 10
                 current += int(c)
+                need_digit = False
             else:
+                if need_digit:
+                    raise BadTTL
                 c = c.lower()
                 if c == 'w':
                     total += current * 604800
@@ -63,6 +67,7 @@ def from_text(text):
                 else:
                     raise BadTTL("unknown unit '%s'" % c)
                 current = 0
+                need_digit = True
         if not current == 0:
             raise BadTTL("trailing integer")
     if total < 0 or total > MAX_TTL:
