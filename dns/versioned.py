@@ -201,7 +201,7 @@ class Zone(dns.zone.Zone):
         self._write_waiters = collections.deque()
         self._commit_version_unlocked(WritableVersion(self), origin)
 
-    def reader(self, id=None, serial=None):
+    def reader(self, id=None, serial=None):  # pylint: disable=arguments-differ
         if id is not None and serial is not None:
             raise ValueError('cannot specify both id and serial')
         with self.version_lock:

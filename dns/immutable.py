@@ -32,12 +32,13 @@ class Dict(collections.abc.Mapping):
     def __getitem__(self, key):
         return self._odict.__getitem__(key)
 
-    def __hash__(self):
+    def __hash__(self):  # pylint: disable=invalid-hash-returned
         if self._hash is None:
             h = 0
             for key in sorted(self._odict.keys()):
                 h ^= hash(key)
             object.__setattr__(self, '_hash', h)
+        # this does return an int, but pylint doesn't figure that out
         return self._hash
 
     def __len__(self):
