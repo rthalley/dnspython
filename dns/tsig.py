@@ -264,12 +264,9 @@ def sign(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=False):
 
     ctx = _digest(wire, key, rdata, time, request_mac, ctx, multi)
     mac = ctx.sign()
-    tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
-                                     key.algorithm, time, rdata.fudge, mac,
-                                     rdata.original_id, rdata.error,
-                                     rdata.other)
+    tsig = rdata.replace(time_signed=time, mac=mac)
 
-    return tsig, _maybe_start_digest(key, mac, multi)
+    return (tsig, _maybe_start_digest(key, mac, multi))
 
 
 def validate(wire, key, owner, rdata, now, request_mac, tsig_start, ctx=None,

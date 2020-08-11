@@ -245,3 +245,22 @@ class TSIGTestCase(unittest.TestCase):
 
     def test_hmac_sha512_256(self):
         self._test_truncated_algorithm(dns.tsig.HMAC_SHA512_256, 256)
+
+    def text_format(self):
+        key = dns.tsig.Key('foo', b'abcdefg', algorithm=alg)
+        q = dns.message.make_query('example', 'a')
+        q.use_tsig(key)
+        _ = q.to_wire()
+
+        text = q.tsig[0].to_text()
+        tsig2 = dns.rdata.from_text('ANY', 'TSIG', text)
+        self.assertEqual(tsig2, q.tsig[0])
+
+        q = dns.message.make_query('example', 'a')
+        q.use_tsig(key, other_data='abc')
+        q.use_tsig(key)
+        _ = q.to_wire()
+
+        text = q.tsig[0].to_text()
+        tsig2 = dns.rdata.from_text('ANY', 'TSIG', text)
+        self.assertEqual(tsig2, q.tsig[0])
