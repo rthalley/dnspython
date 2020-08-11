@@ -275,6 +275,8 @@ class SVCBTestCase(unittest.TestCase):
             dns.rdata.from_text('in', 'svcb', '1 . alpn=\\00')
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('in', 'svcb', '1 . alpn=\\00q')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('in', 'svcb', '1 . alpn=\\256')
         # This doesn't usually get exercised, so we do it directly.
         gp = dns.rdtypes.svcbbase.GenericParam.from_value('\\001\\002')
         expected = '"\\001\\002"'

@@ -273,6 +273,14 @@ class TokenizerTestCase(unittest.TestCase):
             tok = dns.tokenizer.Tokenizer('\\')
             tok.get()
 
+    def testEscapeBounds(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('\\256')
+            tok.get().unescape()
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer('\\256')
+            tok.get().unescape_to_bytes()
+
     def testGetUngetRegetComment(self):
         tok = dns.tokenizer.Tokenizer(';comment')
         t1 = tok.get(want_comment=True)

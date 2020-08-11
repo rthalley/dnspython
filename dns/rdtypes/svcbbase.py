@@ -122,7 +122,10 @@ def _unescape(value, list_mode=False):
                 i += 1
                 if not (c2.isdigit() and c3.isdigit()):
                     raise dns.exception.SyntaxError
-                c = chr(int(c) * 100 + int(c2) * 10 + int(c3))
+                codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
+                if codepoint > 255:
+                    raise dns.exception.SyntaxError
+                c = chr(codepoint)
         unescaped += c.encode()
     if len(unescaped) > 0:
         items.append(unescaped)

@@ -120,7 +120,10 @@ class Token:
                     i += 1
                     if not (c2.isdigit() and c3.isdigit()):
                         raise dns.exception.SyntaxError
-                    c = chr(int(c) * 100 + int(c2) * 10 + int(c3))
+                    codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
+                    if codepoint > 255:
+                        raise dns.exception.SyntaxError
+                    c = chr(codepoint)
             unescaped += c
         return Token(self.ttype, unescaped)
 
@@ -171,7 +174,10 @@ class Token:
                     i += 1
                     if not (c2.isdigit() and c3.isdigit()):
                         raise dns.exception.SyntaxError
-                    unescaped += b'%c' % (int(c) * 100 + int(c2) * 10 + int(c3))
+                    codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
+                    if codepoint > 255:
+                        raise dns.exception.SyntaxError
+                    unescaped += b'%c' % (codepoint)
                 else:
                     # Note that as mentioned above, if c is a Unicode
                     # code point outside of the ASCII range, then this
