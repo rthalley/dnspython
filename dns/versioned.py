@@ -51,13 +51,6 @@ class Version:
     def items(self):
         return self.nodes.items()  # pylint: disable=dict-items-not-iterating
 
-    def _print(self):  # pragma: no cover
-        # XXXRTH  This is for debugging
-        print('VERSION', self.id)
-        for (name, node) in self.nodes.items():
-            for rdataset in node:
-                print(rdataset.to_text(name))
-
 
 class WritableVersion(Version):
     def __init__(self, zone, replacement=False):
@@ -76,14 +69,6 @@ class WritableVersion(Version):
         # version, and we don't want to mutate the zone until we commit.
         self.origin = zone.origin
         self.changed = set()
-
-    def _validate_name(self, name):
-        if name.is_absolute():
-            if not name.is_subdomain(self.origin):
-                raise KeyError("name is not a subdomain of the zone origin")
-            if self.zone.relativize:
-                name = name.relativize(self.origin)
-        return name
 
     def _maybe_cow(self, name):
         name = self._validate_name(name)
@@ -150,17 +135,34 @@ class Node(dns.node.Node):
         self.id = 0
 
 
-# It would be nice if this were a subclass of Node (just above) but it's
-# less code duplication this way as we inherit all of the method disabling
-# code.
-
 @dns.immutable.immutable
-class ImmutableNode(dns.node.ImmutableNode):
+class ImmutableNode(Node):
     __slots__ = ['id']
 
     def __init__(self, node):
-        super().__init__(node)
+        super().__init__()
         self.id = node.id
+        self.rdatasets = tuple(
+            [dns.rdataset.ImmutableRdataset(rds) for rds in node.rdatasets]
+        )
+
+    def find_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
+                      create=False):
+        if create:
+            raise TypeError("immutable")
+        return super().find_rdataset(rdclass, rdtype, covers, False)
+
+    def get_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
+                     create=False):
+        if create:
+            raise TypeError("immutable")
+        return super().get_rdataset(rdclass, rdtype, covers, False)
+
+    def delete_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE):
+        raise TypeError("immutable")
+
+    def replace_rdataset(self, replacement):
+        raise TypeError("immutable")
 
 
 class Zone(dns.zone.Zone):
@@ -199,9 +201,36 @@ class Zone(dns.zone.Zone):
         self._write_waiters = collections.deque()
         self._commit_version_unlocked(WritableVersion(self), origin)
 
-    def reader(self):
+    def reader(self, id=None, serial=None):
+        if id is not None and serial is not None:
+            raise ValueError('cannot specify both id and serial')
         with self.version_lock:
-            return Transaction(False, self, self.versions[-1])
+            if id is not None:
+                version = None
+                for v in reversed(self.versions):
+                    if v.id == id:
+                        version = v
+                        break
+                if version is None:
+                    raise KeyError('version not found')
+            elif serial is not None:
+                if self.relativize:
+                    oname = dns.name.empty
+                else:
+                    oname = self.origin
+                version = None
+                for v in reversed(self.versions):
+                    n = v.nodes.get(oname)
+                    if n:
+                        rds = n.get_rdataset(self.rdclass, dns.rdatatype.SOA)
+                        if rds and rds[0].serial == serial:
+                            version = v
+                            break
+                if version is None:
+                    raise KeyError('serial not found')
+            else:
+                version = self.versions[-1]
+            return Transaction(False, self, version)
 
     def writer(self, replacement=False):
         event = None

@@ -398,19 +398,27 @@ def test_vzone_multiple_versions(vzone):
     with vzone.writer() as txn:
         txn.set_serial()
     with vzone.writer() as txn:
-        txn.set_serial()
+        txn.set_serial(increment=0, value=1000)
     rdataset = vzone.find_rdataset('@', 'soa')
-    assert rdataset[0].serial == 4
+    assert rdataset[0].serial == 1000
     assert len(vzone.versions) == 4
+    with vzone.reader(id=5) as txn:
+        assert txn.version.id == 5
+        rdataset = txn.get('@', 'in', 'soa')
+        assert rdataset[0].serial == 1000
+    with vzone.reader(serial=1000) as txn:
+        assert txn.version.id == 5
+        rdataset = txn.get('@', 'in', 'soa')
+        assert rdataset[0].serial == 1000
     vzone.set_max_versions(2)
     assert len(vzone.versions) == 2
-    # The ones that survived should be 3 and 4
+    # The ones that survived should be 3 and 1000
     rdataset = vzone.versions[0].get_rdataset(dns.name.empty, dns.rdatatype.SOA,
                                               dns.rdatatype.NONE)
     assert rdataset[0].serial == 3
     rdataset = vzone.versions[1].get_rdataset(dns.name.empty, dns.rdatatype.SOA,
                                               dns.rdatatype.NONE)
-    assert rdataset[0].serial == 4
+    assert rdataset[0].serial == 1000
     with pytest.raises(ValueError):
         vzone.set_max_versions(0)
 
