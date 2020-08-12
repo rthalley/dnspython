@@ -294,6 +294,19 @@ def test_zone_add_and_delete(zone):
         assert not txn.name_exists(a99)
         assert txn.name_exists(a100)
 
+def test_write_after_rollback(zone):
+    with pytest.raises(ExpectedException):
+        with zone.writer() as txn:
+            a99 = dns.name.from_text('a99', None)
+            rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.99')
+            txn.add(a99, rds)
+            raise ExpectedException
+    with zone.writer() as txn:
+        a99 = dns.name.from_text('a99', None)
+        rds = dns.rdataset.from_text('in', 'a', 300, '10.99.99.99')
+        txn.add(a99, rds)
+    assert zone.get_rdataset('a99', 'a') == rds
+
 def test_zone_get_deleted(zone):
     with zone.writer() as txn:
         print(zone.to_text())
@@ -415,7 +428,7 @@ def test_vzone_multiple_versions(vzone):
     # The ones that survived should be 3 and 1000
     rdataset = vzone._versions[0].get_rdataset(dns.name.empty,
                                                dns.rdatatype.SOA,
-                                              dns.rdatatype.NONE)
+                                               dns.rdatatype.NONE)
     assert rdataset[0].serial == 3
     rdataset = vzone._versions[1].get_rdataset(dns.name.empty,
                                                dns.rdatatype.SOA,
@@ -423,6 +436,35 @@ def test_vzone_multiple_versions(vzone):
     assert rdataset[0].serial == 1000
     with pytest.raises(ValueError):
         vzone.set_max_versions(0)
+
+# for debugging if needed
+def _dump(zone):
+    for v in zone._versions:
+        print('VERSION', v.id)
+        for (name, n) in v.nodes.items():
+            for rdataset in n:
+                print(rdataset.to_text(name))
+
+def test_vzone_open_txn_pins_versions(vzone):
+    assert len(vzone._versions) == 1
+    vzone.set_max_versions(None)  # unlimited!
+    with vzone.writer() as txn:
+        txn.set_serial()
+    with vzone.writer() as txn:
+        txn.set_serial()
+    with vzone.writer() as txn:
+        txn.set_serial()
+    with vzone.reader(id=2) as txn:
+        vzone.set_max_versions(1)
+        with vzone.reader(id=3) as txn:
+            rdataset = txn.get('@', 'in', 'soa')
+            assert rdataset[0].serial == 2
+            assert len(vzone._versions) == 4
+    assert len(vzone._versions) == 1
+    rdataset = vzone.find_rdataset('@', 'soa')
+    assert vzone._versions[0].id == 5
+    assert rdataset[0].serial == 4
+
 
 try:
     import threading
