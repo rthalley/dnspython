@@ -8,6 +8,7 @@ import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
 import dns.rrset
+import dns.serial
 import dns.ttl
 
 
@@ -148,20 +149,33 @@ class Transaction:
             name = dns.name.from_text(name, None)
         return self._name_exists(name)
 
-    def set_serial(self, increment=1, value=None, name=dns.name.empty,
-                   rdclass=dns.rdataclass.IN):
+    def update_serial(self, value=1, relative=True, name=dns.name.empty,
+                      rdclass=dns.rdataclass.IN):
+        """Update the serial number.
+
+        *value*, an `int`, is an increment if *relative* is `True`, or the
+        actual value to set if *relative* is `False`.
+
+        Raises `KeyError` if there is no SOA rdataset at *name*.
+
+        Raises `ValueError` if *value* is negative or if the increment is
+        so large that it would cause the new serial to be less than the
+        prior value.
+        """
+        if value < 0:
+            raise ValueError('negative update_serial() value')
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         rdataset = self._get_rdataset(name, rdclass, dns.rdatatype.SOA,
                                       dns.rdatatype.NONE)
         if rdataset is None or len(rdataset) == 0:
             raise KeyError
-        if value is not None:
-            serial = value
+        if relative:
+            serial = dns.serial.Serial(rdataset[0].serial) + value
         else:
-            serial = rdataset[0].serial
-        serial += increment
-        if serial > 0xffffffff or serial < 1:
+            serial = dns.serial.Serial(value)
+        serial = serial.value  # convert back to int
+        if serial == 0:
             serial = 1
         rdata = rdataset[0].replace(serial=serial)
         new_rdataset = dns.rdataset.from_rdata(rdataset.ttl, rdata)

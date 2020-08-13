@@ -334,30 +334,36 @@ def test_zone_bad_class(zone):
             txn.delete(dns.name.empty, dns.rdataclass.CH,
                        dns.rdatatype.NS, dns.rdatatype.NONE)
 
-def test_set_serial(zone):
+def test_update_serial(zone):
     # basic
     with zone.writer() as txn:
-        txn.set_serial()
+        txn.update_serial()
     rdataset = zone.find_rdataset('@', 'soa')
     assert rdataset[0].serial == 2
     # max
     with zone.writer() as txn:
-        txn.set_serial(0, 0xffffffff)
+        txn.update_serial(0xffffffff, False)
     rdataset = zone.find_rdataset('@', 'soa')
     assert rdataset[0].serial == 0xffffffff
     # wraparound to 1
     with zone.writer() as txn:
-        txn.set_serial()
+        txn.update_serial()
     rdataset = zone.find_rdataset('@', 'soa')
     assert rdataset[0].serial == 1
     # trying to set to zero sets to 1
     with zone.writer() as txn:
-        txn.set_serial(0, 0)
+        txn.update_serial(0, False)
     rdataset = zone.find_rdataset('@', 'soa')
     assert rdataset[0].serial == 1
     with pytest.raises(KeyError):
         with zone.writer() as txn:
-            txn.set_serial(name=dns.name.from_text('unknown', None))
+            txn.update_serial(name=dns.name.from_text('unknown', None))
+    with pytest.raises(ValueError):
+        with zone.writer() as txn:
+            txn.update_serial(-1)
+    with pytest.raises(ValueError):
+        with zone.writer() as txn:
+            txn.update_serial(2**31)
 
 class ExpectedException(Exception):
     pass
@@ -407,11 +413,11 @@ def test_vzone_multiple_versions(vzone):
     assert len(vzone._versions) == 1
     vzone.set_max_versions(None)  # unlimited!
     with vzone.writer() as txn:
-        txn.set_serial()
+        txn.update_serial()
     with vzone.writer() as txn:
-        txn.set_serial()
+        txn.update_serial()
     with vzone.writer() as txn:
-        txn.set_serial(increment=0, value=1000)
+        txn.update_serial(1000, False)
     rdataset = vzone.find_rdataset('@', 'soa')
     assert rdataset[0].serial == 1000
     assert len(vzone._versions) == 4
@@ -449,11 +455,11 @@ def test_vzone_open_txn_pins_versions(vzone):
     assert len(vzone._versions) == 1
     vzone.set_max_versions(None)  # unlimited!
     with vzone.writer() as txn:
-        txn.set_serial()
+        txn.update_serial()
     with vzone.writer() as txn:
-        txn.set_serial()
+        txn.update_serial()
     with vzone.writer() as txn:
-        txn.set_serial()
+        txn.update_serial()
     with vzone.reader(id=2) as txn:
         vzone.set_max_versions(1)
         with vzone.reader(id=3) as txn:
