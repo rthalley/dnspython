@@ -30,11 +30,11 @@ class _DatagramProtocol:
             self.recvfrom = None
 
     def error_received(self, exc):  # pragma: no cover
-        if self.recvfrom:
+        if self.recvfrom and not self.recvfrom.done():
             self.recvfrom.set_exception(exc)
 
     def connection_lost(self, exc):
-        if self.recvfrom:
+        if self.recvfrom and not self.recvfrom.done():
             self.recvfrom.set_exception(exc)
 
     def close(self):
