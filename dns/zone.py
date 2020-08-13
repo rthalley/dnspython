@@ -722,8 +722,14 @@ class Transaction(dns.transaction.Transaction):
             return True
         return False
 
+    def _changed(self):
+        if self.read_only:
+            return False
+        else:
+            return len(self.rdatasets) > 0
+
     def _end_transaction(self, commit):
-        if commit and not self.read_only:
+        if commit and self._changed():
             for (name, rdtype, covers), rdataset in \
                 self.rdatasets.items():
                 if rdataset is self._deleted_rdataset:

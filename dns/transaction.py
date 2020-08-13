@@ -36,11 +36,16 @@ class ReadOnly(dns.exception.DNSException):
     """Tried to write to a read-only transaction."""
 
 
+class AlreadyEnded(dns.exception.DNSException):
+    """Tried to use an already-ended transaction."""
+
+
 class Transaction:
 
     def __init__(self, replacement=False, read_only=False):
         self.replacement = replacement
         self.read_only = read_only
+        self._ended = False
 
     #
     # This is the high level API
@@ -52,6 +57,7 @@ class Transaction:
 
         Note that the returned rdataset is immutable.
         """
+        self._check_ended()
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         rdclass = dns.rdataclass.RdataClass.make(rdclass)
@@ -77,6 +83,7 @@ class Transaction:
 
             - name, ttl, rdata...
         """
+        self._check_ended()
         self._check_read_only()
         return self._add(False, args)
 
@@ -97,6 +104,7 @@ class Transaction:
         a delete of the name followed by one or more calls to add() or
         replace().
         """
+        self._check_ended()
         self._check_read_only()
         return self._add(True, args)
 
@@ -118,6 +126,7 @@ class Transaction:
 
             - name, rdata...
         """
+        self._check_ended()
         self._check_read_only()
         return self._delete(False, args)
 
@@ -140,11 +149,13 @@ class Transaction:
         are not in the existing set.
 
         """
+        self._check_ended()
         self._check_read_only()
         return self._delete(True, args)
 
     def name_exists(self, name):
         """Does the specified name exist?"""
+        self._check_ended()
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         return self._name_exists(name)
@@ -162,6 +173,7 @@ class Transaction:
         so large that it would cause the new serial to be less than the
         prior value.
         """
+        self._check_ended()
         if value < 0:
             raise ValueError('negative update_serial() value')
         if isinstance(name, str):
@@ -182,7 +194,44 @@ class Transaction:
         self.replace(name, new_rdataset)
 
     def __iter__(self):
+        self._check_ended()
         return self._iterate_rdatasets()
+
+    def changed(self):
+        """Has this transaction changed anything?
+
+        For read-only transactions, the result is always `False`.
+
+        For writable transactions, the result is `True` if at some time
+        during the life of the transaction, the content was changed.
+        """
+        self._check_ended()
+        return self._changed()
+
+    def commit(self):
+        """Commit the transaction.
+
+        Normally transactions are used as context managers and commit
+        or rollback automatically, but it may be done explicitly if needed.
+        A ``dns.transaction.Ended`` exception will be raised if you try
+        to use a transaction after it has been committed or rolled back.
+
+        Raises an exception if the commit fails (in which case the transaction
+        is also rolled back.
+        """
+        self._end(True)
+
+    def rollback(self):
+        """Rollback the transaction.
+
+        Normally transactions are used as context managers and commit
+        or rollback automatically, but it may be done explicitly if needed.
+        A ``dns.transaction.AlreadyEnded`` exception will be raised if you try
+        to use a transaction after it has been committed or rolled back.
+
+        Rollback cannot otherwise fail.
+        """
+        self._end(False)
 
     #
     # Helper methods
@@ -272,7 +321,8 @@ class Transaction:
                 arg = dns.name.from_text(arg, None)
             if isinstance(arg, dns.name.Name):
                 name = arg
-                if len(args) > 0 and isinstance(args[0], int):
+                if len(args) > 0 and (isinstance(args[0], int) or
+                                      isinstance(args[0], str)):
                     # deleting by type and class
                     rdclass = dns.rdataclass.RdataClass.make(args.popleft())
                     rdtype = dns.rdatatype.RdataType.make(args.popleft())
@@ -320,6 +370,19 @@ class Transaction:
         except IndexError:
             raise TypeError(f'not enough parameters to {method}')
 
+    def _check_ended(self):
+        if self._ended:
+            raise AlreadyEnded
+
+    def _end(self, commit):
+        self._check_ended()
+        if self._ended:
+            raise AlreadyEnded
+        try:
+            self._end_transaction(commit)
+        finally:
+            self._ended = True
+
     #
     # Transactions are context managers.
     #
@@ -328,10 +391,11 @@ class Transaction:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is None:
-            self._end_transaction(True)
-        else:
-            self._end_transaction(False)
+        if not self._ended:
+            if exc_type is None:
+                self.commit()
+            else:
+                self.rollback()
         return False
 
     #
@@ -370,13 +434,18 @@ class Transaction:
         """
         raise NotImplementedError  # pragma: no cover
 
+    def _changed(self):
+        """Has this transaction changed anything?"""
+        raise NotImplementedError  # pragma: no cover
+
     def _end_transaction(self, commit):
         """End the transaction.
 
         *commit*, a bool.  If ``True``, commit the transaction, otherwise
         roll it back.
 
-        Raises an exception if committing failed.
+        If committing adn the commit fails, then roll back and raise an
+        exception.
         """
         raise NotImplementedError  # pragma: no cover
 

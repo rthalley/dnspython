@@ -90,6 +90,7 @@ class WritableVersion(Version):
         name = self._validate_name(name)
         if name in self.nodes:
             del self.nodes[name]
+            self.changed.add(name)
             return True
         return False
 
@@ -435,6 +436,12 @@ class Transaction(dns.transaction.Transaction):
 
     def _name_exists(self, name):
         return self.version.get_node(name) is not None
+
+    def _changed(self):
+        if self.read_only:
+            return False
+        else:
+            return len(self.version.changed) > 0
 
     def _end_transaction(self, commit):
         if self.read_only:

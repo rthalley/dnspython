@@ -56,6 +56,12 @@ class Transaction(dns.transaction.Transaction):
                 return True
         return False
 
+    def _changed(self):
+        if self.read_only:
+            return False
+        else:
+            return len(self.rdatasets) > 0
+
     def _end_transaction(self, commit):
         if commit:
             self.db.rdatasets = self.rdatasets
@@ -243,6 +249,93 @@ def test_zone_basic(zone):
         txn.add(dns.name.from_text('ns3', None), 3600, rd)
     output = zone.to_text()
     assert output == example_text_output
+
+def test_explicit_rollback_and_commit(zone):
+    with zone.writer() as txn:
+        assert not txn.changed()
+        txn.delete(dns.name.from_text('bar.foo', None))
+        txn.rollback()
+    assert zone.get_node('bar.foo') is not None
+    with zone.writer() as txn:
+        assert not txn.changed()
+        txn.delete(dns.name.from_text('bar.foo', None))
+        txn.commit()
+    assert zone.get_node('bar.foo') is None
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.delete(dns.name.from_text('bar.foo', None))
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.add('bar.foo', 300, dns.rdata.from_text('in', 'txt', 'hi'))
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.replace('bar.foo', 300, dns.rdata.from_text('in', 'txt', 'hi'))
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.reader() as txn:
+            txn.rollback()
+            txn.get('bar.foo', 'in', 'mx')
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.delete_exact('bar.foo')
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.name_exists('bar.foo')
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.update_serial()
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.changed()
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.rollback()
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            txn.commit()
+    with pytest.raises(dns.transaction.AlreadyEnded):
+        with zone.writer() as txn:
+            txn.rollback()
+            for rdataset in txn:
+                print(rdataset)
+
+def test_zone_changed(zone):
+    # Read-only is not changed!
+    with zone.reader() as txn:
+        assert not txn.changed()
+    # delete an existing name
+    with zone.writer() as txn:
+        assert not txn.changed()
+        txn.delete(dns.name.from_text('bar.foo', None))
+        assert txn.changed()
+    # delete a nonexistent name
+    with zone.writer() as txn:
+        assert not txn.changed()
+        txn.delete(dns.name.from_text('unknown.bar.foo', None))
+        assert not txn.changed()
+    # delete a nonexistent rdataset from an extant node
+    with zone.writer() as txn:
+        assert not txn.changed()
+        txn.delete(dns.name.from_text('bar.foo', None), 'in', 'txt')
+        assert not txn.changed()
+    # add an rdataset to an extant Node
+    with zone.writer() as txn:
+        assert not txn.changed()
+        txn.add('bar.foo', 300, dns.rdata.from_text('in', 'txt', 'hi'))
+        assert txn.changed()
+    # add an rdataset to a nonexistent Node
+    with zone.writer() as txn:
+        assert not txn.changed()
+        txn.add('foo.foo', 300, dns.rdata.from_text('in', 'txt', 'hi'))
+        assert txn.changed()
 
 def test_zone_base_layer(zone):
     with zone.writer() as txn:
