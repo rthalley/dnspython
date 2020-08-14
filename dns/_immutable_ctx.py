@@ -47,6 +47,8 @@ def immutable(cls):
         # Some ancestor already has the mixin, so just make sure we keep
         # following the __init__ protocol.
         cls.__init__ = _immutable_init(cls.__init__)
+        if hasattr(cls, '__setstate__'):
+            cls.__setstate__ = _immutable_init(cls.__setstate__)
         ncls = cls
     else:
         # Mixin the Immutable class and follow the __init__ protocol.
