@@ -57,6 +57,12 @@ def immutable(cls):
             @_immutable_init
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
+
+            if hasattr(cls, '__setstate__'):
+                @_immutable_init
+                def __setstate__(self, *args, **kwargs):
+                    super().__setstate__(*args, **kwargs)
+
         # make ncls have the same name and module as cls
         ncls.__name__ = cls.__name__
         ncls.__qualname__ = cls.__qualname__
