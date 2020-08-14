@@ -4,6 +4,10 @@
 # which doesn't have Context Variables.  This implementation is somewhat
 # costly for classes with slots, as it adds a __dict__ to them.
 
+
+import inspect
+
+
 class _Immutable:
     """Immutable mixin class"""
 
@@ -48,6 +52,7 @@ def _immutable_init(f):
                 # If we started the initialzation, establish immutability
                 # by removing the attribute that allows mutation
                 object.__delattr__(args[0], '_immutable_init')
+    nf.__signature__ = inspect.signature(f)
     return nf
 
 

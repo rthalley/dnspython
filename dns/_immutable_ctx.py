@@ -5,6 +5,8 @@
 # with slots immutable.  It's also faster.
 
 import contextvars
+import inspect
+
 
 _in__init__ = contextvars.ContextVar('_immutable_in__init__', default=False)
 
@@ -39,6 +41,7 @@ def _immutable_init(f):
             f(*args, **kwargs)
         finally:
             _in__init__.reset(previous)
+    nf.__signature__ = inspect.signature(f)
     return nf
 
 
