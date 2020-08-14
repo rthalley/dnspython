@@ -125,6 +125,8 @@ def inet_aton(text, ignore_scope=False):
         raise dns.exception.SyntaxError
     elif text.endswith(b':') and not text.endswith(b'::'):
         raise dns.exception.SyntaxError
+    elif text.startswith(b':') and not text.startswith(b'::'):
+        raise dns.exception.SyntaxError
     elif text == b'::':
         text = b'0::'
     #
