@@ -19,6 +19,7 @@
 from typing import Dict # pylint: disable=unused-import
 import copy
 import operator
+import pickle
 import unittest
 
 from io import BytesIO
@@ -1078,6 +1079,12 @@ class NameTestCase(unittest.TestCase):
     def testUnicodeEscapify(self):
         n = dns.name.from_unicode('Königsgäßchen;\ttext')
         self.assertEqual(n.to_unicode(), 'königsgässchen\\;\\009text.')
+
+    def test_pickle(self):
+        n1 = dns.name.from_text('foo.example')
+        p = pickle.dumps(n1)
+        n2 = pickle.loads(p)
+        self.assertEqual(n1, n2)
 
 if __name__ == '__main__':
     unittest.main()
