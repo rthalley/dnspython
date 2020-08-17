@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 import time
 
 import pytest
