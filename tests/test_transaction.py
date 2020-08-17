@@ -13,6 +13,7 @@ import dns.transaction
 import dns.versioned
 import dns.zone
 
+
 class DB(dns.transaction.TransactionManager):
     def __init__(self):
         self.rdatasets = {}
@@ -24,7 +25,7 @@ class DB(dns.transaction.TransactionManager):
         return Transaction(self, replacement, False)
 
     def origin_information(self):
-        return (None, True)
+        return (dns.name.from_text('example'), True, dns.name.empty)
 
     def get_class(self):
         return dns.rdataclass.IN
@@ -223,6 +224,13 @@ def test_bad_parameters(db):
             txn.delete()
         with pytest.raises(TypeError):
             txn.delete(1)
+
+def test_cannot_store_non_origin_soa(db):
+    with pytest.raises(ValueError):
+        with db.writer() as txn:
+            rrset = dns.rrset.from_text('foo', 300, 'in', 'SOA',
+                                        '. . 1 2 3 4 5')
+            txn.add(rrset)
 
 example_text = """$TTL 3600
 $ORIGIN example.

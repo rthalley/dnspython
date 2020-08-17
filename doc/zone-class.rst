@@ -91,6 +91,15 @@ See below for more information on the ``Transaction`` API.
    A ``bool``, which is ``True`` if names in the zone should be relativized.
 
 
+The TransactionManager Class
+----------------------------
+
+This is the abstract base class of all objects that support transactions.
+
+.. autoclass:: dns.transaction.TransactionManager
+   :members:
+
+
 The Transaction Class
 ---------------------
 

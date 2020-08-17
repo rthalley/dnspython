@@ -57,6 +57,15 @@ class TransactionManager:
         """
         raise NotImplementedError  # pragma: no cover
 
+    def from_wire_origin(self):
+        """Origin to use in from_wire() calls.
+        """
+        (absolute_origin, relativize, _) = self.origin_information()
+        if relativize:
+            return absolute_origin
+        else:
+            return None
+
 
 class DeleteNotExact(dns.exception.DNSException):
     """Existing data did not match data specified by an exact delete."""
@@ -273,7 +282,9 @@ class Transaction:
     def _rdataset_from_args(self, method, deleting, args):
         try:
             arg = args.popleft()
-            if isinstance(arg, dns.rdataset.Rdataset):
+            if isinstance(arg, dns.rrset.RRset):
+                rdataset = arg.to_rdataset()
+            elif isinstance(arg, dns.rdataset.Rdataset):
                 rdataset = arg
             else:
                 if deleting:
@@ -315,15 +326,17 @@ class Transaction:
                 rrset = arg
                 name = rrset.name
                 # rrsets are also rdatasets, but they don't print the
-                # same, so convert.
-                rdataset = dns.rdataset.Rdataset(rrset.rdclass, rrset.rdtype,
-                                                 rrset.covers, rrset.ttl)
-                rdataset.union_update(rrset)
+                # same and can't be stored in nodes, so convert.
+                rdataset = rrset.to_rdataset()
             else:
                 raise TypeError(f'{method} requires a name or RRset ' +
                                 'as the first argument')
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f'{method} has objects of wrong RdataClass')
+            if rdataset.rdtype == dns.rdatatype.SOA:
+                (_, _, origin) = self.manager.origin_information()
+                if name != origin:
+                    raise ValueError(f'{method} has non-origin SOA')
             self._raise_if_not_empty(method, args)
             if not replace:
                 existing = self._get_rdataset(name, rdataset.rdtype,

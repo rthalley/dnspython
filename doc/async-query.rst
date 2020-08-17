@@ -9,8 +9,8 @@ processing their responses.  If you want "stub resolver" behavior, then
 you should use the higher level ``dns.asyncresolver`` module; see
 :ref:`async_resolver`.
 
-There is currently no support for zone transfers or DNS-over-HTTPS
-using asynchronous I/O but we hope to offer this in the future.
+There is currently no support for DNS-over-HTTPS using asynchronous
+I/O but we hope to offer this in the future.
 
 UDP
 ---
@@ -31,3 +31,8 @@ TLS
 ---
 
 .. autofunction:: dns.asyncquery.tls
+
+Zone Transfers
+--------------
+
+.. autofunction:: dns.asyncquery.inbound_xfr
