@@ -312,6 +312,8 @@ class ImmutableRdataset(Rdataset):
 
     """An immutable DNS rdataset."""
 
+    _clone_class = Rdataset
+
     def __init__(self, rdataset):
         """Create an immutable rdataset from the specified rdataset."""
 
@@ -351,6 +353,21 @@ class ImmutableRdataset(Rdataset):
 
     def clear(self):
         raise TypeError('immutable')
+
+    def __copy__(self):
+        return ImmutableRdataset(super().copy())
+
+    def copy(self):
+        return ImmutableRdataset(super().copy())
+
+    def union(self, other):
+        return ImmutableRdataset(super().union(other))
+
+    def intersection(self, other):
+        return ImmutableRdataset(super().intersection(other))
+
+    def difference(self, other):
+        return ImmutableRdataset(super().difference(other))
 
 
 def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None,

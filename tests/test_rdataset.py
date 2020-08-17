@@ -151,5 +151,14 @@ class ImmutableRdatasetTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             irds.clear()
 
+    def test_cloning(self):
+        rds1 = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1', '10.0.0.2')
+        rds1 = dns.rdataset.ImmutableRdataset(rds1)
+        rds2 = dns.rdataset.from_text('in', 'a', 300, '10.0.0.2', '10.0.0.3')
+        rds2 = dns.rdataset.ImmutableRdataset(rds2)
+        expected = dns.rdataset.from_text('in', 'a', 300, '10.0.0.2')
+        intersection = rds1.intersection(rds2)
+        self.assertEqual(intersection, expected)
+
 if __name__ == '__main__':
     unittest.main()
