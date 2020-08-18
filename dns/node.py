@@ -180,6 +180,10 @@ class Node:
 
         if not isinstance(replacement, dns.rdataset.Rdataset):
             raise ValueError('replacement is not an rdataset')
+        if isinstance(replacement, dns.rrset.RRset):
+            # RRsets are not good replacements as the match() method
+            # is not compatible.
+            replacement = replacement.to_rdataset()
         self.delete_rdataset(replacement.rdclass, replacement.rdtype,
                              replacement.covers)
         self.rdatasets.append(replacement)

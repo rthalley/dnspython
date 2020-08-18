@@ -792,5 +792,14 @@ class ZoneTestCase(unittest.TestCase):
         z2 = dns.zone.from_text(out, 'example.', relativize=True)
         self.assertEqual(z, z2)
 
+    def testNodeReplaceRdatasetConvertsRRsets(self):
+        node = dns.node.Node()
+        rrs = dns.rrset.from_text('foo', 300, 'in', 'a', '10.0.0.1')
+        node.replace_rdataset(rrs)
+        rds = node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.A)
+        self.assertEqual(rds, rrs)
+        self.assertTrue(rds is not rrs)
+        self.assertFalse(isinstance(rds, dns.rrset.RRset))
+
 if __name__ == '__main__':
     unittest.main()
