@@ -294,7 +294,7 @@ async def send_tcp(sock, what, expiration=None):
     # onto the net
     tcpmsg = struct.pack("!H", l) + what
     sent_time = time.time()
-    await sock.sendall(tcpmsg, expiration)
+    await sock.sendall(tcpmsg, _timeout(expiration, sent_time))
     return (len(tcpmsg), sent_time)
 
 
