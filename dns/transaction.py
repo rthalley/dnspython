@@ -44,6 +44,11 @@ class TransactionManager:
         """
         raise NotImplementedError  # pragma: no cover
 
+    def get_class(self):
+        """The class of the transaction manager.
+        """
+        raise NotImplementedError  # pragma: no cover
+
 
 class DeleteNotExact(dns.exception.DNSException):
     """Existing data did not match data specified by an exact delete."""
@@ -69,18 +74,17 @@ class Transaction:
     # This is the high level API
     #
 
-    def get(self, name, rdclass, rdtype, covers=dns.rdatatype.NONE):
-        """Return the rdataset associated with *name*, *rdclass*, *rdtype*,
-        and *covers*, or `None` if not found.
+    def get(self, name, rdtype, covers=dns.rdatatype.NONE):
+        """Return the rdataset associated with *name*, *rdtype*, and *covers*,
+        or `None` if not found.
 
         Note that the returned rdataset is immutable.
         """
         self._check_ended()
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
-        rdclass = dns.rdataclass.RdataClass.make(rdclass)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
-        rdataset = self._get_rdataset(name, rdclass, rdtype, covers)
+        rdataset = self._get_rdataset(name, rdtype, covers)
         if rdataset is not None and \
            not isinstance(rdataset, dns.rdataset.ImmutableRdataset):
             rdataset = dns.rdataset.ImmutableRdataset(rdataset)
@@ -178,8 +182,7 @@ class Transaction:
             name = dns.name.from_text(name, None)
         return self._name_exists(name)
 
-    def update_serial(self, value=1, relative=True, name=dns.name.empty,
-                      rdclass=dns.rdataclass.IN):
+    def update_serial(self, value=1, relative=True, name=dns.name.empty):
         """Update the serial number.
 
         *value*, an `int`, is an increment if *relative* is `True`, or the
@@ -196,7 +199,7 @@ class Transaction:
             raise ValueError('negative update_serial() value')
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
-        rdataset = self._get_rdataset(name, rdclass, dns.rdatatype.SOA,
+        rdataset = self._get_rdataset(name, dns.rdatatype.SOA,
                                       dns.rdatatype.NONE)
         if rdataset is None or len(rdataset) == 0:
             raise KeyError
@@ -311,10 +314,12 @@ class Transaction:
             else:
                 raise TypeError(f'{method} requires a name or RRset ' +
                                 'as the first argument')
+            if rdataset.rdclass != self.manager.get_class():
+                raise ValueError(f'{method} has objects of wrong RdataClass')
             self._raise_if_not_empty(method, args)
             if not replace:
-                existing = self._get_rdataset(name, rdataset.rdclass,
-                                              rdataset.rdtype, rdataset.covers)
+                existing = self._get_rdataset(name, rdataset.rdtype,
+                                              rdataset.covers)
                 if existing is not None:
                     if isinstance(existing, dns.rdataset.ImmutableRdataset):
                         trds = dns.rdataset.Rdataset(existing.rdclass,
@@ -341,20 +346,19 @@ class Transaction:
                 name = arg
                 if len(args) > 0 and (isinstance(args[0], int) or
                                       isinstance(args[0], str)):
-                    # deleting by type and class
-                    rdclass = dns.rdataclass.RdataClass.make(args.popleft())
+                    # deleting by type and (optionally) covers
                     rdtype = dns.rdatatype.RdataType.make(args.popleft())
                     if len(args) > 0:
                         covers = dns.rdatatype.RdataType.make(args.popleft())
                     else:
                         covers = dns.rdatatype.NONE
                     self._raise_if_not_empty(method, args)
-                    existing = self._get_rdataset(name, rdclass, rdtype, covers)
+                    existing = self._get_rdataset(name, rdtype, covers)
                     if existing is None:
                         if exact:
                             raise DeleteNotExact(f'{method}: missing rdataset')
                     else:
-                        self._delete_rdataset(name, rdclass, rdtype, covers)
+                        self._delete_rdataset(name, rdtype, covers)
                     return
                 else:
                     rdataset = self._rdataset_from_args(method, True, args)
@@ -366,8 +370,11 @@ class Transaction:
                                 'as the first argument')
             self._raise_if_not_empty(method, args)
             if rdataset:
-                existing = self._get_rdataset(name, rdataset.rdclass,
-                                              rdataset.rdtype, rdataset.covers)
+                if rdataset.rdclass != self.manager.get_class():
+                    raise ValueError(f'{method} has objects of wrong '
+                                     'RdataClass')
+                existing = self._get_rdataset(name, rdataset.rdtype,
+                                              rdataset.covers)
                 if existing is not None:
                     if exact:
                         intersection = existing.intersection(rdataset)
@@ -375,8 +382,8 @@ class Transaction:
                             raise DeleteNotExact(f'{method}: missing rdatas')
                     rdataset = existing.difference(rdataset)
                     if len(rdataset) == 0:
-                        self._delete_rdataset(name, rdataset.rdclass,
-                                              rdataset.rdtype, rdataset.covers)
+                        self._delete_rdataset(name, rdataset.rdtype,
+                                              rdataset.covers)
                     else:
                         self._put_rdataset(name, rdataset)
                 elif exact:
@@ -421,9 +428,10 @@ class Transaction:
     # of Transaction.
     #
 
-    def _get_rdataset(self, name, rdclass, rdtype, covers):
-        """Return the rdataset associated with *name*, *rdclass*, *rdtype*,
-        and *covers*, or `None` if not found."""
+    def _get_rdataset(self, name, rdtype, covers):
+        """Return the rdataset associated with *name*, *rdtype*, and *covers*,
+        or `None` if not found.
+        """
         raise NotImplementedError  # pragma: no cover
 
     def _put_rdataset(self, name, rdataset):
@@ -437,9 +445,8 @@ class Transaction:
         """
         raise NotImplementedError  # pragma: no cover
 
-    def _delete_rdataset(self, name, rdclass, rdtype, covers):
-        """Delete all data associated with *name*, *rdclass*, *rdtype*, and
-        *covers*.
+    def _delete_rdataset(self, name, rdtype, covers):
+        """Delete all data associated with *name*, *rdtype*, and *covers*.
 
         It is not an error if the rdataset does not exist.
         """

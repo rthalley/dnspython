@@ -651,6 +651,9 @@ class Zone(dns.transaction.TransactionManager):
     def origin_information(self):
         return (self.origin, self.relativize)
 
+    def get_class(self):
+        return self.rdclass
+
 
 class Transaction(dns.transaction.Transaction):
 
@@ -665,10 +668,7 @@ class Transaction(dns.transaction.Transaction):
     def zone(self):
         return self.manager
 
-    def _get_rdataset(self, name, rdclass, rdtype, covers):
-        if rdclass != self.zone.rdclass:
-            raise ValueError(f'class {rdclass} != ' +
-                             f'zone class {self.zone.rdclass}')
+    def _get_rdataset(self, name, rdtype, covers):
         rdataset = self.rdatasets.get((name, rdtype, covers))
         if rdataset is self._deleted_rdataset:
             return None
@@ -679,9 +679,6 @@ class Transaction(dns.transaction.Transaction):
     def _put_rdataset(self, name, rdataset):
         assert not self.read_only
         self.zone._validate_name(name)
-        if rdataset.rdclass != self.zone.rdclass:
-            raise ValueError(f'rdataset class {rdataset.rdclass} != ' +
-                             f'zone class {self.zone.rdclass}')
         self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset
 
     def _delete_name(self, name):
@@ -702,11 +699,8 @@ class Transaction(dns.transaction.Transaction):
                 self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = \
                     self._deleted_rdataset
 
-    def _delete_rdataset(self, name, rdclass, rdtype, covers):
+    def _delete_rdataset(self, name, rdtype, covers):
         assert not self.read_only
-        # The high-level code always does a _get_rdataset() before any
-        # situation where it would call _delete_rdataset(), so we don't
-        # need to check if rdclass != self.zone.rdclass.
         try:
             del self.rdatasets[(name, rdtype, covers)]
         except KeyError:

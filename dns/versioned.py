@@ -416,24 +416,18 @@ class Transaction(dns.transaction.Transaction):
         assert self.version is None
         self.version = WritableVersion(self.zone, self.replacement)
 
-    def _get_rdataset(self, name, rdclass, rdtype, covers):
-        if rdclass != self.zone.rdclass:
-            raise ValueError(f'class {rdclass} != ' +
-                             f'zone class {self.zone.rdclass}')
+    def _get_rdataset(self, name, rdtype, covers):
         return self.version.get_rdataset(name, rdtype, covers)
 
     def _put_rdataset(self, name, rdataset):
         assert not self.read_only
-        if rdataset.rdclass != self.zone.rdclass:
-            raise ValueError(f'rdataset class {rdataset.rdclass} != ' +
-                             f'zone class {self.zone.rdclass}')
         self.version.put_rdataset(name, rdataset)
 
     def _delete_name(self, name):
         assert not self.read_only
         self.version.delete_node(name)
 
-    def _delete_rdataset(self, name, rdclass, rdtype, covers):
+    def _delete_rdataset(self, name, rdtype, covers):
         assert not self.read_only
         self.version.delete_rdataset(name, rdtype, covers)
 
