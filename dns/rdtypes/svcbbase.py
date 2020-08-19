@@ -6,7 +6,6 @@ import io
 import struct
 
 import dns.enum
-import dns.immutable
 import dns.exception
 import dns.immutable
 import dns.ipv4
