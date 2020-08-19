@@ -1,6 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import socket
+import sys
 import unittest
 
 import dns.exception
@@ -247,6 +248,12 @@ class IPv6Tests(unittest.TestCase):
             "::0:a:b:c:d:e:f",
             "a:b:c:d:e:f:0::",
         )
+        if sys.platform == 'win32':
+            for s in valid:
+                try:
+                    socket.inet_pton(socket.AF_INET6, s)
+                except Exception:
+                    print('win32 rejects:', s)
         for s in valid:
             self.assertEqual(dns.ipv6.inet_aton(s),
                              socket.inet_pton(socket.AF_INET6, s))
