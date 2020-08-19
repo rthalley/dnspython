@@ -18,10 +18,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class SOA(dns.rdata.Rdata):
 
     """SOA record"""
@@ -34,13 +36,13 @@ class SOA(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, mname, rname, serial, refresh, retry,
                  expire, minimum):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'mname', mname)
-        object.__setattr__(self, 'rname', rname)
-        object.__setattr__(self, 'serial', serial)
-        object.__setattr__(self, 'refresh', refresh)
-        object.__setattr__(self, 'retry', retry)
-        object.__setattr__(self, 'expire', expire)
-        object.__setattr__(self, 'minimum', minimum)
+        self.mname = self.as_value(mname)
+        self.rname = self.as_value(rname)
+        self.serial = self.as_value(serial)
+        self.refresh = self.as_value(refresh)
+        self.retry = self.as_value(retry)
+        self.expire = self.as_value(expire)
+        self.minimum = self.as_value(minimum)
 
     def to_text(self, origin=None, relativize=True, **kw):
         mname = self.mname.choose_relativity(origin, relativize)

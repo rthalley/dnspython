@@ -19,9 +19,11 @@ import base64
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 
 
+@dns.immutable.immutable
 class TSIG(dns.rdata.Rdata):
 
     """TSIG record"""
@@ -53,13 +55,13 @@ class TSIG(dns.rdata.Rdata):
         """
 
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'time_signed', time_signed)
-        object.__setattr__(self, 'fudge', fudge)
-        object.__setattr__(self, 'mac', dns.rdata._constify(mac))
-        object.__setattr__(self, 'original_id', original_id)
-        object.__setattr__(self, 'error', error)
-        object.__setattr__(self, 'other', dns.rdata._constify(other))
+        self.algorithm = self.as_value(algorithm)
+        self.time_signed = self.as_value(time_signed)
+        self.fudge = self.as_value(fudge)
+        self.mac = self.as_value(dns.rdata._constify(mac))
+        self.original_id = self.as_value(original_id)
+        self.error = self.as_value(error)
+        self.other = self.as_value(dns.rdata._constify(other))
 
     def to_text(self, origin=None, relativize=True, **kw):
         algorithm = self.algorithm.choose_relativity(origin, relativize)

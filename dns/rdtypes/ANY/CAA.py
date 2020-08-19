@@ -18,10 +18,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class CAA(dns.rdata.Rdata):
 
     """CAA (Certification Authority Authorization) record"""
@@ -32,9 +34,9 @@ class CAA(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, flags, tag, value):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'flags', flags)
-        object.__setattr__(self, 'tag', tag)
-        object.__setattr__(self, 'value', value)
+        self.flags = self.as_value(flags)
+        self.tag = self.as_value(tag)
+        self.value = self.as_value(value)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%u %s "%s"' % (self.flags,

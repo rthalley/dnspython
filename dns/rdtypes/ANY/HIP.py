@@ -20,10 +20,12 @@ import base64
 import binascii
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 
 
+@dns.immutable.immutable
 class HIP(dns.rdata.Rdata):
 
     """HIP record"""
@@ -34,10 +36,10 @@ class HIP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'hit', hit)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'key', key)
-        object.__setattr__(self, 'servers', dns.rdata._constify(servers))
+        self.hit = self.as_value(hit)
+        self.algorithm = self.as_value(algorithm)
+        self.key = self.as_value(key)
+        self.servers = self.as_value(dns.rdata._constify(servers))
 
     def to_text(self, origin=None, relativize=True, **kw):
         hit = binascii.hexlify(self.hit).decode()

@@ -18,16 +18,19 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 import dns.name
 import dns.rdtypes.util
 
 
+@dns.immutable.immutable
 class Bitmap(dns.rdtypes.util.Bitmap):
     type_name = 'CSYNC'
 
 
+@dns.immutable.immutable
 class CSYNC(dns.rdata.Rdata):
 
     """CSYNC record"""
@@ -36,9 +39,9 @@ class CSYNC(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, serial, flags, windows):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'serial', serial)
-        object.__setattr__(self, 'flags', flags)
-        object.__setattr__(self, 'windows', dns.rdata._constify(windows))
+        self.serial = self.as_value(serial)
+        self.flags = self.as_value(flags)
+        self.windows = self.as_value(dns.rdata._constify(windows))
 
     def to_text(self, origin=None, relativize=True, **kw):
         text = Bitmap(self.windows).to_text()

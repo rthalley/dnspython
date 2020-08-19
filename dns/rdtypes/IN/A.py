@@ -16,11 +16,13 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.exception
+import dns.immutable
 import dns.ipv4
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class A(dns.rdata.Rdata):
 
     """A record."""
@@ -31,7 +33,7 @@ class A(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         # check that it's OK
         dns.ipv4.inet_aton(address)
-        object.__setattr__(self, 'address', address)
+        self.address = self.as_value(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return self.address

@@ -18,6 +18,7 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
@@ -47,6 +48,7 @@ def _sanitize(value):
     return value
 
 
+@dns.immutable.immutable
 class GPOS(dns.rdata.Rdata):
 
     """GPOS record"""
@@ -72,9 +74,9 @@ class GPOS(dns.rdata.Rdata):
         _validate_float_string(latitude)
         _validate_float_string(longitude)
         _validate_float_string(altitude)
-        object.__setattr__(self, 'latitude', latitude)
-        object.__setattr__(self, 'longitude', longitude)
-        object.__setattr__(self, 'altitude', altitude)
+        self.latitude = self.as_value(latitude)
+        self.longitude = self.as_value(longitude)
+        self.altitude = self.as_value(altitude)
         flat = self.float_latitude
         if flat < -90.0 or flat > 90.0:
             raise dns.exception.FormError('bad latitude')

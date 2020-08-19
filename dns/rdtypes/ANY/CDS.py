@@ -16,8 +16,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.dsbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class CDS(dns.rdtypes.dsbase.DSBase):
 
     """CDS record"""

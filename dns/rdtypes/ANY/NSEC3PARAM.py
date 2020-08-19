@@ -19,9 +19,11 @@ import struct
 import binascii
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 
 
+@dns.immutable.immutable
 class NSEC3PARAM(dns.rdata.Rdata):
 
     """NSEC3PARAM record"""
@@ -30,13 +32,13 @@ class NSEC3PARAM(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'flags', flags)
-        object.__setattr__(self, 'iterations', iterations)
+        self.algorithm = self.as_value(algorithm)
+        self.flags = self.as_value(flags)
+        self.iterations = self.as_value(iterations)
         if isinstance(salt, str):
-            object.__setattr__(self, 'salt', salt.encode())
+            self.salt = self.as_value(salt.encode())
         else:
-            object.__setattr__(self, 'salt', salt)
+            self.salt = self.as_value(salt)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.salt == b'':

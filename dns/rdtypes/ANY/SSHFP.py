@@ -19,9 +19,11 @@ import struct
 import binascii
 
 import dns.rdata
+import dns.immutable
 import dns.rdatatype
 
 
+@dns.immutable.immutable
 class SSHFP(dns.rdata.Rdata):
 
     """SSHFP record"""
@@ -33,9 +35,9 @@ class SSHFP(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, algorithm, fp_type,
                  fingerprint):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'fp_type', fp_type)
-        object.__setattr__(self, 'fingerprint', fingerprint)
+        self.algorithm = self.as_value(algorithm)
+        self.fp_type = self.as_value(fp_type)
+        self.fingerprint = self.as_value(fingerprint)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %s' % (self.algorithm,

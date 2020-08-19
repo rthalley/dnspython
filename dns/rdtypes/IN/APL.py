@@ -20,11 +20,13 @@ import codecs
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.ipv4
 import dns.ipv6
 import dns.rdata
 import dns.tokenizer
 
+@dns.immutable.immutable
 class APLItem:
 
     """An APL list item."""
@@ -68,6 +70,7 @@ class APLItem:
         file.write(address)
 
 
+@dns.immutable.immutable
 class APL(dns.rdata.Rdata):
 
     """APL record."""
@@ -78,7 +81,7 @@ class APL(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, items):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'items', dns.rdata._constify(items))
+        self.items = self.as_value(dns.rdata._constify(items))
 
     def to_text(self, origin=None, relativize=True, **kw):
         return ' '.join(map(str, self.items))

@@ -18,10 +18,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class ISDN(dns.rdata.Rdata):
 
     """ISDN record"""
@@ -33,13 +35,13 @@ class ISDN(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, address, subaddress):
         super().__init__(rdclass, rdtype)
         if isinstance(address, str):
-            object.__setattr__(self, 'address', address.encode())
+            self.address = self.as_value(address.encode())
         else:
-            object.__setattr__(self, 'address', address)
+            self.address = self.as_value(address)
         if isinstance(address, str):
-            object.__setattr__(self, 'subaddress', subaddress.encode())
+            self.subaddress = self.as_value(subaddress.encode())
         else:
-            object.__setattr__(self, 'subaddress', subaddress)
+            self.subaddress = self.as_value(subaddress)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.subaddress:

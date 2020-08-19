@@ -6,6 +6,7 @@ import io
 import struct
 
 import dns.enum
+import dns.immutable
 import dns.exception
 import dns.immutable
 import dns.ipv4
@@ -141,26 +142,26 @@ def _unescape(value, list_mode=False):
         return items[0]
 
 
+@dns.immutable.immutable
 class Param:
     """Abstract base class for SVCB parameters"""
-
-    def __setattr__(self, name, value):
-        # Params are immutable
-        raise TypeError("object doesn't support attribute assignment")
-
-    def __delattr__(self, name):
-        # Params are immutable
-        raise TypeError("object doesn't support attribute deletion")
 
     @classmethod
     def emptiness(cls):
         return Emptiness.NEVER
 
+    def as_value(self, value):
+        # This is the "additional type checking" placeholder that actually
+        # doesn't do any additional checking.
+        return value
+
+
+@dns.immutable.immutable
 class GenericParam(Param):
     """Generic SVCB parameter
     """
     def __init__(self, value):
-        object.__setattr__(self, 'value', value)
+        self.value = self.as_value(value)
 
     @classmethod
     def emptiness(cls):
@@ -188,6 +189,7 @@ class GenericParam(Param):
         file.write(self.value)
 
 
+@dns.immutable.immutable
 class MandatoryParam(Param):
     def __init__(self, keys):
         # check for duplicates
@@ -200,7 +202,7 @@ class MandatoryParam(Param):
             if k == ParamKey.MANDATORY:
                 raise ValueError('listed the mandatory key as mandatory')
         keys = dns.immutable.constify(keys)
-        object.__setattr__(self, 'keys', keys)
+        self.keys = self.as_value(keys)
 
     @classmethod
     def from_value(cls, value):
@@ -226,6 +228,8 @@ class MandatoryParam(Param):
         for key in self.keys:
             file.write(struct.pack('!H', key))
 
+
+@dns.immutable.immutable
 class ALPNParam(Param):
     def __init__(self, ids):
         for id in ids:
@@ -233,7 +237,7 @@ class ALPNParam(Param):
                 raise dns.exception.FormError('empty ALPN')
             if len(id) > 255:
                 raise ValueError('ALPN id too long')
-        object.__setattr__(self, 'ids', dns.immutable.constify(ids))
+        self.ids = self.as_value(dns.immutable.constify(ids))
 
     @classmethod
     def from_value(cls, value):
@@ -255,6 +259,8 @@ class ALPNParam(Param):
             file.write(struct.pack('!B', len(id)))
             file.write(id)
 
+
+@dns.immutable.immutable
 class NoDefaultALPNParam(Param):
     # We don't ever expect to instantiate this class, but we need
     # a from_value() and a from_wire_parser(), so we just return None
@@ -284,11 +290,12 @@ class NoDefaultALPNParam(Param):
         raise NotImplementedError  # pragma: no cover
 
 
+@dns.immutable.immutable
 class PortParam(Param):
     def __init__(self, port):
         if port < 0 or port > 65535:
             raise ValueError('port out-of-range')
-        object.__setattr__(self, 'port', port)
+        self.port = self.as_value(port)
 
     @classmethod
     def from_value(cls, value):
@@ -307,12 +314,13 @@ class PortParam(Param):
         file.write(struct.pack('!H', self.port))
 
 
+@dns.immutable.immutable
 class IPv4HintParam(Param):
     def __init__(self, addresses):
         for address in addresses:
             # check validity
             dns.ipv4.inet_aton(address)
-        object.__setattr__(self, 'addresses', dns.immutable.constify(addresses))
+        self.addresses = self.as_value(dns.immutable.constify(addresses))
 
     @classmethod
     def from_value(cls, value):
@@ -335,12 +343,13 @@ class IPv4HintParam(Param):
             file.write(dns.ipv4.inet_aton(address))
 
 
+@dns.immutable.immutable
 class IPv6HintParam(Param):
     def __init__(self, addresses):
         for address in addresses:
             # check validity
             dns.ipv6.inet_aton(address)
-        object.__setattr__(self, 'addresses', dns.immutable.constify(addresses))
+        self.addresses = self.as_value(dns.immutable.constify(addresses))
 
     @classmethod
     def from_value(cls, value):
@@ -363,9 +372,10 @@ class IPv6HintParam(Param):
             file.write(dns.ipv6.inet_aton(address))
 
 
+@dns.immutable.immutable
 class ECHConfigParam(Param):
     def __init__(self, echconfig):
-        object.__setattr__(self, 'echconfig', echconfig)
+        self.echconfig = self.as_value(echconfig)
 
     @classmethod
     def from_value(cls, value):
@@ -416,6 +426,7 @@ def _validate_and_define(params, key, value):
     params[key] = value
 
 
+@dns.immutable.immutable
 class SVCBBase(dns.rdata.Rdata):
 
     """Base class for SVCB-like records"""
@@ -426,9 +437,9 @@ class SVCBBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, priority, target, params):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'priority', priority)
-        object.__setattr__(self, 'target', target)
-        object.__setattr__(self, 'params', dns.immutable.constify(params))
+        self.priority = self.as_value(priority)
+        self.target = self.as_value(target)
+        self.params = self.as_value(dns.immutable.constify(params))
         # Make sure any paramater listed as mandatory is present in the
         # record.
         mandatory = params.get(ParamKey.MANDATORY)

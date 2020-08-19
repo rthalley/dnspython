@@ -30,6 +30,7 @@ except ImportError:  # pragma: no cover
 
 import dns.wire
 import dns.exception
+import dns.immutable
 
 # fullcompare() result values
 
@@ -305,6 +306,7 @@ def _maybe_convert_to_binary(label):
     raise ValueError  # pragma: no cover
 
 
+@dns.immutable.immutable
 class Name:
 
     """A DNS name.
@@ -321,16 +323,8 @@ class Name:
         """
 
         labels = [_maybe_convert_to_binary(x) for x in labels]
-        super().__setattr__('labels', tuple(labels))
+        self.labels = tuple(labels)
         _validate_labels(self.labels)
-
-    def __setattr__(self, name, value):
-        # Names are immutable
-        raise TypeError("object doesn't support attribute assignment")
-
-    def __delattr__(self, name):
-        # Names are immutable
-        raise TypeError("object doesn't support attribute deletion")
 
     def __copy__(self):
         return Name(self.labels)

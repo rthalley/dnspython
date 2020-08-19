@@ -19,12 +19,14 @@ import struct
 import base64
 
 import dns.exception
+import dns.immutable
 import dns.rdtypes.util
 
 
 class Gateway(dns.rdtypes.util.Gateway):
     name = 'IPSECKEY gateway'
 
+@dns.immutable.immutable
 class IPSECKEY(dns.rdata.Rdata):
 
     """IPSECKEY record"""
@@ -37,11 +39,11 @@ class IPSECKEY(dns.rdata.Rdata):
                  gateway, key):
         super().__init__(rdclass, rdtype)
         Gateway(gateway_type, gateway).check()
-        object.__setattr__(self, 'precedence', precedence)
-        object.__setattr__(self, 'gateway_type', gateway_type)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'gateway', gateway)
-        object.__setattr__(self, 'key', key)
+        self.precedence = self.as_value(precedence)
+        self.gateway_type = self.as_value(gateway_type)
+        self.algorithm = self.as_value(algorithm)
+        self.gateway = self.as_value(gateway)
+        self.key = self.as_value(key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         gateway = Gateway(self.gateway_type, self.gateway).to_text(origin,

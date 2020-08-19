@@ -18,6 +18,7 @@
 import struct
 
 import dns.edns
+import dns.immutable
 import dns.exception
 import dns.rdata
 
@@ -25,6 +26,7 @@ import dns.rdata
 # We don't implement from_text, and that's ok.
 # pylint: disable=abstract-method
 
+@dns.immutable.immutable
 class OPT(dns.rdata.Rdata):
 
     """OPT record"""
@@ -43,7 +45,7 @@ class OPT(dns.rdata.Rdata):
         """
 
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'options', dns.rdata._constify(options))
+        self.options = self.as_value(dns.rdata._constify(options))
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         for opt in self.options:

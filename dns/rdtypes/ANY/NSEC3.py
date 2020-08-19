@@ -20,6 +20,7 @@ import binascii
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 import dns.rdtypes.util
@@ -37,10 +38,12 @@ SHA1 = 1
 OPTOUT = 1
 
 
+@dns.immutable.immutable
 class Bitmap(dns.rdtypes.util.Bitmap):
     type_name = 'NSEC3'
 
 
+@dns.immutable.immutable
 class NSEC3(dns.rdata.Rdata):
 
     """NSEC3 record"""
@@ -50,15 +53,15 @@ class NSEC3(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt,
                  next, windows):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'flags', flags)
-        object.__setattr__(self, 'iterations', iterations)
+        self.algorithm = self.as_value(algorithm)
+        self.flags = self.as_value(flags)
+        self.iterations = self.as_value(iterations)
         if isinstance(salt, str):
-            object.__setattr__(self, 'salt', salt.encode())
+            self.salt = self.as_value(salt.encode())
         else:
-            object.__setattr__(self, 'salt', salt)
-        object.__setattr__(self, 'next', next)
-        object.__setattr__(self, 'windows', dns.rdata._constify(windows))
+            self.salt = self.as_value(salt)
+        self.next = self.as_value(next)
+        self.windows = self.as_value(dns.rdata._constify(windows))
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = base64.b32encode(self.next).translate(

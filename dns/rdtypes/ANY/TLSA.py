@@ -19,9 +19,11 @@ import struct
 import binascii
 
 import dns.rdata
+import dns.immutable
 import dns.rdatatype
 
 
+@dns.immutable.immutable
 class TLSA(dns.rdata.Rdata):
 
     """TLSA record"""
@@ -33,10 +35,10 @@ class TLSA(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, usage, selector,
                  mtype, cert):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'usage', usage)
-        object.__setattr__(self, 'selector', selector)
-        object.__setattr__(self, 'mtype', mtype)
-        object.__setattr__(self, 'cert', cert)
+        self.usage = self.as_value(usage)
+        self.selector = self.as_value(selector)
+        self.mtype = self.as_value(mtype)
+        self.cert = self.as_value(cert)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.usage,

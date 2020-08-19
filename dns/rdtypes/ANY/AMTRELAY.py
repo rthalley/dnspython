@@ -18,12 +18,14 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdtypes.util
 
 
 class Relay(dns.rdtypes.util.Gateway):
     name = 'AMTRELAY relay'
 
+@dns.immutable.immutable
 class AMTRELAY(dns.rdata.Rdata):
 
     """AMTRELAY record"""
@@ -36,10 +38,10 @@ class AMTRELAY(dns.rdata.Rdata):
                  relay_type, relay):
         super().__init__(rdclass, rdtype)
         Relay(relay_type, relay).check()
-        object.__setattr__(self, 'precedence', precedence)
-        object.__setattr__(self, 'discovery_optional', discovery_optional)
-        object.__setattr__(self, 'relay_type', relay_type)
-        object.__setattr__(self, 'relay', relay)
+        self.precedence = self.as_value(precedence)
+        self.discovery_optional = self.as_value(discovery_optional)
+        self.relay_type = self.as_value(relay_type)
+        self.relay = self.as_value(relay)
 
     def to_text(self, origin=None, relativize=True, **kw):
         relay = Relay(self.relay_type, self.relay).to_text(origin, relativize)

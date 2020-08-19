@@ -18,6 +18,7 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 
 
@@ -90,6 +91,7 @@ def _decode_size(what, desc):
     return base * pow(10, exponent)
 
 
+@dns.immutable.immutable
 class LOC(dns.rdata.Rdata):
 
     """LOC record"""
@@ -115,16 +117,16 @@ class LOC(dns.rdata.Rdata):
             latitude = float(latitude)
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
-        object.__setattr__(self, 'latitude', dns.rdata._constify(latitude))
+        self.latitude = self.as_value(dns.rdata._constify(latitude))
         if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
-        object.__setattr__(self, 'longitude', dns.rdata._constify(longitude))
-        object.__setattr__(self, 'altitude', float(altitude))
-        object.__setattr__(self, 'size', float(size))
-        object.__setattr__(self, 'horizontal_precision', float(hprec))
-        object.__setattr__(self, 'vertical_precision', float(vprec))
+        self.longitude = self.as_value(dns.rdata._constify(longitude))
+        self.altitude = self.as_value(float(altitude))
+        self.size = self.as_value(float(size))
+        self.horizontal_precision = self.as_value(float(hprec))
+        self.vertical_precision = self.as_value(float(vprec))
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.latitude[4] > 0:

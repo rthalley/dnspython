@@ -19,10 +19,12 @@ import struct
 import binascii
 
 import dns.dnssec
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 
 
+@dns.immutable.immutable
 class DSBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like a DS record"""
@@ -32,10 +34,10 @@ class DSBase(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, key_tag, algorithm, digest_type,
                  digest):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'key_tag', key_tag)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'digest_type', digest_type)
-        object.__setattr__(self, 'digest', digest)
+        self.key_tag = self.as_value(key_tag)
+        self.algorithm = self.as_value(algorithm)
+        self.digest_type = self.as_value(digest_type)
+        self.digest = self.as_value(digest)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.key_tag, self.algorithm,

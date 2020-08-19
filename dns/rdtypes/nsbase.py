@@ -18,10 +18,12 @@
 """NS-like base classes."""
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class NSBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like an NS record."""
@@ -30,7 +32,7 @@ class NSBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, target):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'target', target)
+        self.target = self.as_value(target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
@@ -51,6 +53,7 @@ class NSBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, target)
 
 
+@dns.immutable.immutable
 class UncompressedNS(NSBase):
 
     """Base class for rdata that is like an NS record, but whose name

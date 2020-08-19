@@ -20,10 +20,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class TXTBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like a TXT record (see RFC 1035)."""
@@ -49,7 +51,7 @@ class TXTBase(dns.rdata.Rdata):
             else:
                 string = dns.rdata._constify(string)
             encoded_strings.append(string)
-        object.__setattr__(self, 'strings', tuple(encoded_strings))
+        self.strings = self.as_value(tuple(encoded_strings))
 
     def to_text(self, origin=None, relativize=True, **kw):
         txt = ''

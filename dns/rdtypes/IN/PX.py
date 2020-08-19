@@ -18,10 +18,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class PX(dns.rdata.Rdata):
 
     """PX record."""
@@ -32,9 +34,9 @@ class PX(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, preference, map822, mapx400):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'preference', preference)
-        object.__setattr__(self, 'map822', map822)
-        object.__setattr__(self, 'mapx400', mapx400)
+        self.preference = self.as_value(preference)
+        self.map822 = self.as_value(map822)
+        self.mapx400 = self.as_value(mapx400)
 
     def to_text(self, origin=None, relativize=True, **kw):
         map822 = self.map822.choose_relativity(origin, relativize)

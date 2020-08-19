@@ -18,10 +18,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class HINFO(dns.rdata.Rdata):
 
     """HINFO record"""
@@ -33,13 +35,13 @@ class HINFO(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, cpu, os):
         super().__init__(rdclass, rdtype)
         if isinstance(cpu, str):
-            object.__setattr__(self, 'cpu', cpu.encode())
+            self.cpu = self.as_value(cpu.encode())
         else:
-            object.__setattr__(self, 'cpu', cpu)
+            self.cpu = self.as_value(cpu)
         if isinstance(os, str):
-            object.__setattr__(self, 'os', os.encode())
+            self.os = self.as_value(os.encode())
         else:
-            object.__setattr__(self, 'os', os)
+            self.os = self.as_value(os)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '"{}" "{}"'.format(dns.rdata._escapify(self.cpu),
