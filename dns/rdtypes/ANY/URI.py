@@ -19,10 +19,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class URI(dns.rdata.Rdata):
 
     """URI record"""
@@ -33,14 +35,14 @@ class URI(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, priority, weight, target):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'priority', priority)
-        object.__setattr__(self, 'weight', weight)
+        self.priority = self.as_value(priority)
+        self.weight = self.as_value(weight)
         if len(target) < 1:
             raise dns.exception.SyntaxError("URI target cannot be empty")
         if isinstance(target, str):
-            object.__setattr__(self, 'target', target.encode())
+            self.target = self.as_value(target.encode())
         else:
-            object.__setattr__(self, 'target', target)
+            self.target = self.as_value(target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d "%s"' % (self.priority, self.weight,

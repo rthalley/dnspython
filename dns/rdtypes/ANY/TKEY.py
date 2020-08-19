@@ -19,10 +19,12 @@ import base64
 import struct
 
 import dns.dnssec
+import dns.immutable
 import dns.exception
 import dns.rdata
 
 
+@dns.immutable.immutable
 class TKEY(dns.rdata.Rdata):
 
     """TKEY Record"""
@@ -33,13 +35,13 @@ class TKEY(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, algorithm, inception, expiration,
                  mode, error, key, other=b''):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'inception', inception)
-        object.__setattr__(self, 'expiration', expiration)
-        object.__setattr__(self, 'mode', mode)
-        object.__setattr__(self, 'error', error)
-        object.__setattr__(self, 'key', dns.rdata._constify(key))
-        object.__setattr__(self, 'other', dns.rdata._constify(other))
+        self.algorithm = self.as_value(algorithm)
+        self.inception = self.as_value(inception)
+        self.expiration = self.as_value(expiration)
+        self.mode = self.as_value(mode)
+        self.error = self.as_value(error)
+        self.key = self.as_value(dns.rdata._constify(key))
+        self.other = self.as_value(dns.rdata._constify(other))
 
     def to_text(self, origin=None, relativize=True, **kw):
         _algorithm = self.algorithm.choose_relativity(origin, relativize)

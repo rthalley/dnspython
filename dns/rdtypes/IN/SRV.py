@@ -18,10 +18,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class SRV(dns.rdata.Rdata):
 
     """SRV record"""
@@ -32,10 +34,10 @@ class SRV(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, priority, weight, port, target):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'priority', priority)
-        object.__setattr__(self, 'weight', weight)
-        object.__setattr__(self, 'port', port)
-        object.__setattr__(self, 'target', target)
+        self.priority = self.as_value(priority)
+        self.weight = self.as_value(weight)
+        self.port = self.as_value(port)
+        self.target = self.as_value(target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)

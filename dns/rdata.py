@@ -97,6 +97,7 @@ def _truncate_bitmap(what):
 _constify = dns.immutable.constify
 
 
+@dns.immutable.immutable
 class Rdata:
     """Base class for all DNS rdata types."""
 
@@ -110,17 +111,9 @@ class Rdata:
         *rdtype*, an ``int`` is the rdatatype of the Rdata.
         """
 
-        object.__setattr__(self, 'rdclass', rdclass)
-        object.__setattr__(self, 'rdtype', rdtype)
-        object.__setattr__(self, 'rdcomment', None)
-
-    def __setattr__(self, name, value):
-        # Rdatas are immutable
-        raise TypeError("object doesn't support attribute assignment")
-
-    def __delattr__(self, name):
-        # Rdatas are immutable
-        raise TypeError("object doesn't support attribute deletion")
+        self.rdclass = rdclass
+        self.rdtype = rdtype
+        self.rdcomment = None
 
     def _get_all_slots(self):
         return itertools.chain.from_iterable(getattr(cls, '__slots__', [])
@@ -338,6 +331,11 @@ class Rdata:
         if rdcomment is not None:
             object.__setattr__(rd, 'rdcomment', rdcomment)
         return rd
+
+    def as_value(self, value):
+        # This is the "additional type checking" placeholder that actually
+        # doesn't do any additional checking.
+        return value
 
 
 class GenericRdata(Rdata):

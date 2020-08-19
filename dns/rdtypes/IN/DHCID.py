@@ -18,8 +18,10 @@
 import base64
 
 import dns.exception
+import dns.immutable
 
 
+@dns.immutable.immutable
 class DHCID(dns.rdata.Rdata):
 
     """DHCID record"""
@@ -30,7 +32,7 @@ class DHCID(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, data):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'data', data)
+        self.data = self.as_value(data)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return dns.rdata._base64ify(self.data)

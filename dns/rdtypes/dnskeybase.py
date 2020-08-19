@@ -20,6 +20,7 @@ import enum
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.dnssec
 import dns.rdata
 
@@ -32,6 +33,7 @@ class Flag(enum.IntFlag):
     ZONE = 0x0100
 
 
+@dns.immutable.immutable
 class DNSKEYBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like a DNSKEY record"""
@@ -40,10 +42,10 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'flags', flags)
-        object.__setattr__(self, 'protocol', protocol)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'key', key)
+        self.flags = self.as_value(flags)
+        self.protocol = self.as_value(protocol)
+        self.algorithm = self.as_value(algorithm)
+        self.key = self.as_value(key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,

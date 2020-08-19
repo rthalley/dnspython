@@ -20,10 +20,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class MXBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like an MX record."""
@@ -32,8 +34,8 @@ class MXBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, preference, exchange):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'preference', preference)
-        object.__setattr__(self, 'exchange', exchange)
+        self.preference = self.as_value(preference)
+        self.exchange = self.as_value(exchange)
 
     def to_text(self, origin=None, relativize=True, **kw):
         exchange = self.exchange.choose_relativity(origin, relativize)
@@ -58,6 +60,7 @@ class MXBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, preference, exchange)
 
 
+@dns.immutable.immutable
 class UncompressedMX(MXBase):
 
     """Base class for rdata that is like an MX record, but whose name
@@ -68,6 +71,7 @@ class UncompressedMX(MXBase):
         super()._to_wire(file, None, origin, False)
 
 
+@dns.immutable.immutable
 class UncompressedDowncasingMX(MXBase):
 
     """Base class for rdata that is like an MX record, but whose name

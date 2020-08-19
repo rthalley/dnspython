@@ -16,16 +16,19 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 import dns.name
 import dns.rdtypes.util
 
 
+@dns.immutable.immutable
 class Bitmap(dns.rdtypes.util.Bitmap):
     type_name = 'NSEC'
 
 
+@dns.immutable.immutable
 class NSEC(dns.rdata.Rdata):
 
     """NSEC record"""
@@ -34,8 +37,8 @@ class NSEC(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, next, windows):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'next', next)
-        object.__setattr__(self, 'windows', dns.rdata._constify(windows))
+        self.next = self.as_value(next)
+        self.windows = self.as_value(dns.rdata._constify(windows))
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)

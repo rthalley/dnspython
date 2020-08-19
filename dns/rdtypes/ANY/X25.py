@@ -18,10 +18,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class X25(dns.rdata.Rdata):
 
     """X25 record"""
@@ -33,9 +35,9 @@ class X25(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, address):
         super().__init__(rdclass, rdtype)
         if isinstance(address, str):
-            object.__setattr__(self, 'address', address.encode())
+            self.address = self.as_value(address.encode())
         else:
-            object.__setattr__(self, 'address', address)
+            self.address = self.as_value(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '"%s"' % dns.rdata._escapify(self.address)

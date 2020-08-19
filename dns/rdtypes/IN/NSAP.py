@@ -18,10 +18,12 @@
 import binascii
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class NSAP(dns.rdata.Rdata):
 
     """NSAP record."""
@@ -32,7 +34,7 @@ class NSAP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'address', address)
+        self.address = self.as_value(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return "0x%s" % binascii.hexlify(self.address).decode()

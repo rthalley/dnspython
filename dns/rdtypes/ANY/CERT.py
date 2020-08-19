@@ -19,6 +19,7 @@ import struct
 import base64
 
 import dns.exception
+import dns.immutable
 import dns.dnssec
 import dns.rdata
 import dns.tokenizer
@@ -54,6 +55,7 @@ def _ctype_to_text(what):
     return str(what)
 
 
+@dns.immutable.immutable
 class CERT(dns.rdata.Rdata):
 
     """CERT record"""
@@ -65,10 +67,10 @@ class CERT(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, certificate_type, key_tag, algorithm,
                  certificate):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'certificate_type', certificate_type)
-        object.__setattr__(self, 'key_tag', key_tag)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'certificate', certificate)
+        self.certificate_type = self.as_value(certificate_type)
+        self.key_tag = self.as_value(key_tag)
+        self.algorithm = self.as_value(algorithm)
+        self.certificate = self.as_value(certificate)
 
     def to_text(self, origin=None, relativize=True, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)

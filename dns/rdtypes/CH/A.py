@@ -18,7 +18,9 @@
 import struct
 
 import dns.rdtypes.mxbase
+import dns.immutable
 
+@dns.immutable.immutable
 class A(dns.rdata.Rdata):
 
     """A record for Chaosnet"""
@@ -30,8 +32,8 @@ class A(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, domain, address):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'domain', domain)
-        object.__setattr__(self, 'address', address)
+        self.domain = self.as_value(domain)
+        self.address = self.as_value(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         domain = self.domain.choose_relativity(origin, relativize)

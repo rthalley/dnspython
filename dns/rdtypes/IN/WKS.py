@@ -19,12 +19,14 @@ import socket
 import struct
 
 import dns.ipv4
+import dns.immutable
 import dns.rdata
 
 _proto_tcp = socket.getprotobyname('tcp')
 _proto_udp = socket.getprotobyname('udp')
 
 
+@dns.immutable.immutable
 class WKS(dns.rdata.Rdata):
 
     """WKS record"""
@@ -35,9 +37,9 @@ class WKS(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address, protocol, bitmap):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'address', address)
-        object.__setattr__(self, 'protocol', protocol)
-        object.__setattr__(self, 'bitmap', dns.rdata._constify(bitmap))
+        self.address = self.as_value(address)
+        self.protocol = self.as_value(protocol)
+        self.bitmap = self.as_value(dns.rdata._constify(bitmap))
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
