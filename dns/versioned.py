@@ -181,7 +181,7 @@ class Zone(dns.zone.Zone):
 
         *origin* is the origin of the zone.  It may be a ``dns.name.Name``,
         a ``str``, or ``None``.  If ``None``, then the zone's origin will
-        be set by the first ``$ORIGIN`` line in a masterfile.
+        be set by the first ``$ORIGIN`` line in a zone file.
 
         *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
 

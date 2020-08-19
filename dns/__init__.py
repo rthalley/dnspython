@@ -31,7 +31,6 @@ __all__ = [
     'inet',
     'ipv4',
     'ipv6',
-    'masterfile',
     'message',
     'name',
     'namedict',
@@ -60,6 +59,7 @@ __all__ = [
     'versioned',
     'wire',
     'zone',
+    'zonefile',
 ]
 
 from dns.version import version as __version__  # noqa

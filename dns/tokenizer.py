@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""Tokenize DNS master file format"""
+"""Tokenize DNS zone file format"""
 
 import io
 import sys
@@ -41,7 +41,7 @@ class UngetBufferFull(dns.exception.DNSException):
 
 
 class Token:
-    """A DNS master file format token.
+    """A DNS zone file format token.
 
     ttype: The token type
     value: The token value
@@ -191,7 +191,7 @@ class Token:
 
 
 class Tokenizer:
-    """A DNS master file format tokenizer.
+    """A DNS zone file format tokenizer.
 
     A token object is basically a (type, value) tuple.  The valid
     types are EOF, EOL, WHITESPACE, IDENTIFIER, QUOTED_STRING,

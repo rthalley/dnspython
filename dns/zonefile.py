@@ -40,7 +40,7 @@ class UnknownOrigin(dns.exception.DNSException):
 
 class Reader:
 
-    """Read a DNS master file into a transaction."""
+    """Read a DNS zone file into a transaction."""
 
     def __init__(self, tok, rdclass, txn, allow_include=False):
         self.tok = tok
@@ -64,7 +64,7 @@ class Reader:
                 break
 
     def _rr_line(self):
-        """Process one line from a DNS master file."""
+        """Process one line from a DNS zone file."""
         # Name
         if self.current_origin is None:
             raise UnknownOrigin
@@ -197,7 +197,7 @@ class Reader:
     def _generate_line(self):
         # range lhs [ttl] [class] type rhs [ comment ]
         """Process one line containing the GENERATE statement from a DNS
-        master file."""
+        zone file."""
         if self.current_origin is None:
             raise UnknownOrigin
 
@@ -312,7 +312,7 @@ class Reader:
             self.txn.add(name, ttl, rd)
 
     def read(self):
-        """Read a DNS master file and build a zone object.
+        """Read a DNS zone file and build a zone object.
 
         @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
         @raises dns.zone.NoNS: No NS RRset was found at the zone origin
@@ -386,7 +386,7 @@ class Reader:
                         self._generate_line()
                     else:
                         raise dns.exception.SyntaxError(
-                            "Unknown master file directive '" + c + "'")
+                            "Unknown zone file directive '" + c + "'")
                     continue
                 self.tok.unget(token)
                 self._rr_line()

@@ -178,7 +178,7 @@ class Rdataset(dns.set.Set):
 
     def to_text(self, name=None, origin=None, relativize=True,
                 override_rdclass=None, want_comments=False, **kw):
-        """Convert the rdataset into DNS master file format.
+        """Convert the rdataset into DNS zone file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
         on how *origin* and *relativize* determine the way names

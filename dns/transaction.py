@@ -472,7 +472,7 @@ class Transaction:
 
         This method is called when reading a possibly relativized
         source, and an origin setting operation occurs (e.g. $ORIGIN
-        in a masterfile).
+        in a zone file).
         """
         raise NotImplementedError  # pragma: no cover
 

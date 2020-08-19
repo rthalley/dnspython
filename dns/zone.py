@@ -22,7 +22,6 @@ import io
 import os
 
 import dns.exception
-import dns.masterfile
 import dns.name
 import dns.node
 import dns.rdataclass
@@ -34,6 +33,7 @@ import dns.tokenizer
 import dns.transaction
 import dns.ttl
 import dns.grange
+import dns.zonefile
 
 
 class BadZone(dns.exception.DNSException):
@@ -77,7 +77,7 @@ class Zone(dns.transaction.TransactionManager):
 
         *origin* is the origin of the zone.  It may be a ``dns.name.Name``,
         a ``str``, or ``None``.  If ``None``, then the zone's origin will
-        be set by the first ``$ORIGIN`` line in a masterfile.
+        be set by the first ``$ORIGIN`` line in a zone file.
 
         *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
 
@@ -761,13 +761,13 @@ class Transaction(dns.transaction.Transaction):
 def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
               relativize=True, zone_factory=Zone, filename=None,
               allow_include=False, check_origin=True, idna_codec=None):
-    """Build a zone object from a master file format string.
+    """Build a zone object from a zone file format string.
 
-    *text*, a ``str``, the master file format input.
+    *text*, a ``str``, the zone file format input.
 
     *origin*, a ``dns.name.Name``, a ``str``, or ``None``.  The origin
     of the zone; if not specified, the first ``$ORIGIN`` statement in the
-    masterfile will determine the origin of the zone.
+    zone file will determine the origin of the zone.
 
     *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
 
@@ -811,11 +811,11 @@ def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
     zone = zone_factory(origin, rdclass, relativize=relativize)
     with zone.writer(True) as txn:
         tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
-        reader = dns.masterfile.Reader(tok, rdclass, txn,
-                                       allow_include=allow_include)
+        reader = dns.zonefile.Reader(tok, rdclass, txn,
+                                     allow_include=allow_include)
         try:
             reader.read()
-        except dns.masterfile.UnknownOrigin:
+        except dns.zonefile.UnknownOrigin:
             # for backwards compatibility
             raise dns.zone.UnknownOrigin
     # Now that we're done reading, do some basic checking of the zone.
@@ -827,14 +827,14 @@ def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
 def from_file(f, origin=None, rdclass=dns.rdataclass.IN,
               relativize=True, zone_factory=Zone, filename=None,
               allow_include=True, check_origin=True):
-    """Read a master file and build a zone object.
+    """Read a zone file and build a zone object.
 
     *f*, a file or ``str``.  If *f* is a string, it is treated
     as the name of a file to open.
 
     *origin*, a ``dns.name.Name``, a ``str``, or ``None``.  The origin
     of the zone; if not specified, the first ``$ORIGIN`` statement in the
-    masterfile will determine the origin of the zone.
+    zone file will determine the origin of the zone.
 
     *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
 
