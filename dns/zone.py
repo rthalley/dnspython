@@ -643,10 +643,13 @@ class Zone(dns.transaction.TransactionManager):
             raise NoNS
 
     def reader(self):
-        return Transaction(False, True, self)
+        return Transaction(self, False, True)
 
     def writer(self, replacement=False):
-        return Transaction(replacement, False, self)
+        return Transaction(self, replacement, False)
+
+    def origin_information(self):
+        return (self.origin, self.relativize)
 
 
 class Transaction(dns.transaction.Transaction):
@@ -654,10 +657,13 @@ class Transaction(dns.transaction.Transaction):
     _deleted_rdataset = dns.rdataset.Rdataset(dns.rdataclass.ANY,
                                               dns.rdatatype.ANY)
 
-    def __init__(self, replacement, read_only, zone):
-        super().__init__(replacement, read_only)
-        self.zone = zone
+    def __init__(self, zone, replacement, read_only):
+        super().__init__(zone, replacement, read_only)
         self.rdatasets = {}
+
+    @property
+    def zone(self):
+        return self.manager
 
     def _get_rdataset(self, name, rdclass, rdtype, covers):
         if rdclass != self.zone.rdclass:
@@ -805,7 +811,7 @@ def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
     zone = zone_factory(origin, rdclass, relativize=relativize)
     with zone.writer(True) as txn:
         tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
-        reader = dns.masterfile.Reader(tok, origin, rdclass, relativize, txn,
+        reader = dns.masterfile.Reader(tok, rdclass, txn,
                                        allow_include=allow_include)
         try:
             reader.read()

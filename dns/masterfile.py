@@ -42,19 +42,15 @@ class Reader:
 
     """Read a DNS master file into a transaction."""
 
-    def __init__(self, tok, origin, rdclass, relativize, txn,
-                 allow_include=False):
-        if isinstance(origin, str):
-            origin = dns.name.from_text(origin)
+    def __init__(self, tok, rdclass, txn, allow_include=False):
         self.tok = tok
-        self.current_origin = origin
-        self.relativize = relativize
+        (self.zone_origin, self.relativize) = txn.manager.origin_information()
+        self.current_origin = self.zone_origin
         self.last_ttl = 0
         self.last_ttl_known = False
         self.default_ttl = 0
         self.default_ttl_known = False
         self.last_name = self.current_origin
-        self.zone_origin = origin
         self.zone_rdclass = rdclass
         self.txn = txn
         self.saved_state = []

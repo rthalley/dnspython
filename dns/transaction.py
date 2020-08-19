@@ -20,10 +20,27 @@ class TransactionManager:
     def writer(self, replacement=False):
         """Begin a writable transaction.
 
-        *replacement*, a `bool`.  If `True`, the content of the
+        *replacement*, a ``bool``.  If `True`, the content of the
         transaction completely replaces any prior content.  If False,
         the default, then the content of the transaction updates the
         existing content.
+        """
+        raise NotImplementedError  # pragma: no cover
+
+    def origin_information(self):
+        """Returns an (origin: ``dns.name.Name``, relativize: ``bool``) tuple
+        giving the absolute name of the default origin for any
+        relative domain names, and whether names should be relativized
+        to that origin.
+
+        If the returned name is `None`, then no origin information is
+        available.
+
+        This information is used by code working with transactions to
+        allow it to coordinate relativization.  The transaction code
+        itself takes what it gets (i.e. does not change name
+        relativity).
+
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -42,7 +59,8 @@ class AlreadyEnded(dns.exception.DNSException):
 
 class Transaction:
 
-    def __init__(self, replacement=False, read_only=False):
+    def __init__(self, manager, replacement=False, read_only=False):
+        self.manager = manager
         self.replacement = replacement
         self.read_only = read_only
         self._ended = False

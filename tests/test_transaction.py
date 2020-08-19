@@ -18,14 +18,17 @@ class DB(dns.transaction.TransactionManager):
         self.rdatasets = {}
 
     def reader(self):
-        return Transaction(False, True, self)
+        return Transaction(self, False, True)
 
     def writer(self, replacement=False):
-        return Transaction(replacement, False, self)
+        return Transaction(self, replacement, False)
+
+    def origin_information(self):
+        return (None, True)
 
 
 class Transaction(dns.transaction.Transaction):
-    def __init__(self, replacement, read_only, db):
+    def __init__(self, db, replacement, read_only):
         super().__init__(replacement)
         self.db = db
         self.rdatasets = {}

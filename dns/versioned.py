@@ -234,7 +234,7 @@ class Zone(dns.zone.Zone):
                     raise KeyError('serial not found')
             else:
                 version = self._versions[-1]
-            txn = Transaction(False, self, version)
+            txn = Transaction(self, False, version)
             self._readers.add(txn)
             return txn
 
@@ -252,7 +252,7 @@ class Zone(dns.zone.Zone):
                     # give up the lock, so that we hold the lock as
                     # short a time as possible.  This is why we call
                     # _setup_version() below.
-                    self._write_txn = Transaction(replacement, self)
+                    self._write_txn = Transaction(self, replacement)
                     # give up our exclusive right to make a Transaction
                     self._write_event = None
                     break
@@ -403,11 +403,14 @@ class Zone(dns.zone.Zone):
 
 class Transaction(dns.transaction.Transaction):
 
-    def __init__(self, replacement, zone, version=None):
+    def __init__(self, zone, replacement, version=None):
         read_only = version is not None
-        super().__init__(replacement, read_only)
-        self.zone = zone
+        super().__init__(zone, replacement, read_only)
         self.version = version
+
+    @property
+    def zone(self):
+        return self.manager
 
     def _setup_version(self):
         assert self.version is None
