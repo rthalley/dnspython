@@ -248,13 +248,20 @@ class IPv6Tests(unittest.TestCase):
             "::0:a:b:c:d:e:f",
             "a:b:c:d:e:f:0::",
         )
-        if sys.platform == 'win32':
-            for s in valid:
-                try:
-                    socket.inet_pton(socket.AF_INET6, s)
-                except Exception:
-                    print('win32 rejects:', s)
+
+        win32_invalid = {
+            "::2:3:4:5:6:7:8",
+            "::2222:3333:4444:5555:6666:7777:8888",
+            "::2222:3333:4444:5555:6666:123.123.123.123",
+            "::0:0:0:0:0:0:0",
+            "::0:a:b:c:d:e:f",
+        }
+
         for s in valid:
+            if sys.platform == 'win32' and s in win32_invalid:
+                # socket.inet_pton() on win32 rejects some valid (as
+                # far as we can tell) IPv6 addresses.  Skip them.
+                continue
             self.assertEqual(dns.ipv6.inet_aton(s),
                              socket.inet_pton(socket.AF_INET6, s))
 
