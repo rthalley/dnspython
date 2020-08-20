@@ -642,6 +642,8 @@ class Zone(dns.transaction.TransactionManager):
         if self.get_rdataset(name, dns.rdatatype.NS) is None:
             raise NoNS
 
+    # TransactionManager methods
+
     def reader(self):
         return Transaction(self, False, True)
 
@@ -649,7 +651,11 @@ class Zone(dns.transaction.TransactionManager):
         return Transaction(self, replacement, False)
 
     def origin_information(self):
-        return (self.origin, self.relativize)
+        if self.relativize:
+            effective = dns.name.empty
+        else:
+            effective = self.origin
+        return (self.origin, self.relativize, effective)
 
     def get_class(self):
         return self.rdclass

@@ -44,7 +44,8 @@ class Reader:
 
     def __init__(self, tok, rdclass, txn, allow_include=False):
         self.tok = tok
-        (self.zone_origin, self.relativize) = txn.manager.origin_information()
+        (self.zone_origin, self.relativize, _) = \
+            txn.manager.origin_information()
         self.current_origin = self.zone_origin
         self.last_ttl = 0
         self.last_ttl_known = False

@@ -28,12 +28,20 @@ class TransactionManager:
         raise NotImplementedError  # pragma: no cover
 
     def origin_information(self):
-        """Returns an (origin: ``dns.name.Name``, relativize: ``bool``) tuple
-        giving the absolute name of the default origin for any
-        relative domain names, and whether names should be relativized
-        to that origin.
+        """Returns a tuple
 
-        If the returned name is `None`, then no origin information is
+            (absolute_origin, relativize, effective_origin)
+
+        giving the absolute name of the default origin for any
+        relative domain names, the "effective origin", and whether
+        names should be relativized.  The "effective origin" is the
+        absolute origin if relativize is False, and the empty name if
+        relativize is true.  (The effective origin is provided even
+        though it can be computed from the absolute_origin and
+        relativize setting because it avoids a lot of code
+        duplication.)
+
+        If the returned names are `None`, then no origin information is
         available.
 
         This information is used by code working with transactions to
