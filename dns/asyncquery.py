@@ -30,7 +30,8 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 
-from dns.query import _compute_times, _matches_destination, BadResponse, ssl
+from dns.query import _compute_times, _matches_destination, BadResponse, ssl, \
+    UDPMode
 
 
 # for brevity
@@ -498,3 +499,91 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     finally:
         if not sock and s:
             await s.close()
+
+async def inbound_xfr(where, txn_manager, query=None,
+                      port=53, timeout=None, lifetime=None, source=None,
+                      source_port=0, udp_mode=UDPMode.NEVER,
+                      keyring=None, keyname=None,
+                      keyalgorithm=dns.tsig.default_algorithm,
+                      backend=None):
+    """Conduct an inbound transfer and apply it via a transaction from the
+    txn_manager.
+
+    For a description of most of the parameters to this method, see
+    the documentation of :py:func:`dns.query.inbound_xfr()`.
+
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
+
+    Raises on errors.
+
+    """
+    if query is None:
+        (query, serial) = dns.xfr.make_query(txn_manager)
+    rdtype = query.question[0].rdtype
+    is_ixfr = rdtype == dns.rdatatype.IXFR
+    origin = txn_manager.from_wire_origin()
+    wire = query.to_wire()
+    af = dns.inet.af_for_address(where)
+    stuple = _source_tuple(af, source, source_port)
+    dtuple = (where, port)
+    (_, expiration) = _compute_times(lifetime)
+    retry = True
+    while retry:
+        retry = False
+        if is_ixfr and udp_mode != UDPMode.NEVER:
+            sock_type = socket.SOCK_DGRAM
+            is_udp = True
+        else:
+            sock_type = socket.SOCK_STREAM
+            is_udp = False
+        if not backend:
+            backend = dns.asyncbackend.get_default_backend()
+        s = await backend.make_socket(af, sock_type, 0, stuple, dtuple,
+                                      _timeout(expiration))
+        async with s:
+            if is_udp:
+                await s.sendto(wire, dtuple, _timeout(expiration))
+            else:
+                tcpmsg = struct.pack("!H", len(wire)) + wire
+                await s.sendall(tcpmsg, expiration)
+            with dns.xfr.Inbound(txn_manager, rdtype, serial) as inbound:
+                done = False
+                tsig_ctx = None
+                while not done:
+                    (_, mexpiration) = _compute_times(timeout)
+                    if mexpiration is None or \
+                       (expiration is not None and mexpiration > expiration):
+                        mexpiration = expiration
+                    if is_udp:
+                        destination = _lltuple((where, port), af)
+                        while True:
+                            timeout = _timeout(mexpiration)
+                            (rwire, from_address) = await s.recvfrom(65535,
+                                                                     timeout)
+                            if _matches_destination(af, from_address,
+                                                    destination, True):
+                                break
+                    else:
+                        ldata = await _read_exactly(s, 2, mexpiration)
+                        (l,) = struct.unpack("!H", ldata)
+                        rwire = await _read_exactly(s, l, mexpiration)
+                    is_ixfr = (rdtype == dns.rdatatype.IXFR)
+                    r = dns.message.from_wire(rwire, keyring=query.keyring,
+                                              request_mac=query.mac, xfr=True,
+                                              origin=origin, tsig_ctx=tsig_ctx,
+                                              multi=(not is_udp),
+                                              one_rr_per_rrset=is_ixfr)
+                    try:
+                        done = inbound.process_message(r, is_udp)
+                    except dns.xfr.UseTCP:
+                        assert is_udp  # should not happen if we used TCP!
+                        if udp_mode == UDPMode.ONLY:
+                            raise
+                        done = True
+                        retry = True
+                        udp_mode = UDPMode.NEVER
+                        continue
+                    tsig_ctx = r.tsig_ctx
+                if not retry and query.keyring and not r.had_tsig:
+                    raise dns.exception.FormError("missing TSIG")
