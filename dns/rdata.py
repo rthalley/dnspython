@@ -111,8 +111,8 @@ class Rdata:
         *rdtype*, an ``int`` is the rdatatype of the Rdata.
         """
 
-        self.rdclass = rdclass
-        self.rdtype = rdtype
+        self.rdclass = self.as_rdataclass(rdclass)
+        self.rdtype = self.as_rdatatype(rdtype)
         self.rdcomment = None
 
     def _get_all_slots(self):
@@ -336,6 +336,12 @@ class Rdata:
         # This is the "additional type checking" placeholder that actually
         # doesn't do any additional checking.
         return value
+
+    def as_rdataclass(self, value):
+        return dns.rdataclass.RdataClass.make(value)
+
+    def as_rdatatype(self, value):
+        return dns.rdatatype.RdataType.make(value)
 
 
 class GenericRdata(Rdata):
