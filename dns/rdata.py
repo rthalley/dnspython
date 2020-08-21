@@ -468,6 +468,16 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
                                                 relativize, relativize_to)
                 rdata = from_wire(rdclass, rdtype, grdata.data, 0,
                                   len(grdata.data), origin)
+                #
+                # If this comparison isn't equal, then there must have been
+                # compressed names in the wire format, which is an error,
+                # there being no reasonable context to decompress with.
+                #
+                rwire = rdata.to_wire()
+                if rwire != grdata.data:
+                    raise dns.exception.SyntaxError('compressed data in '
+                                                    'generic syntax form '
+                                                    'of known rdatatype')
         if rdata is None:
             rdata = cls.from_text(rdclass, rdtype, tok, origin, relativize,
                                   relativize_to)

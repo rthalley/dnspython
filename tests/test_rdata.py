@@ -737,6 +737,10 @@ class UtilTestCase(unittest.TestCase):
             b = dns.rdtypes.util.Bitmap([])
             b.from_wire_parser(parser)
 
+    def test_compressed_in_generic_is_bad(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
+                                r'\# 4 000aC000')
 
 if __name__ == '__main__':
     unittest.main()
