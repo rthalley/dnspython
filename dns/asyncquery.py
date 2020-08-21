@@ -95,36 +95,8 @@ async def receive_udp(sock, destination=None, expiration=None,
 
     *sock*, a ``dns.asyncbackend.DatagramSocket``.
 
-    *destination*, a destination tuple appropriate for the address family
-    of the socket, specifying where the message is expected to arrive from.
-    When receiving a response, this would be where the associated query was
-    sent.
-
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
-
-    *ignore_unexpected*, a ``bool``.  If ``True``, ignore responses from
-    unexpected sources.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *keyring*, a ``dict``, the keyring to use for TSIG.
-
-    *request_mac*, a ``bytes``, the MAC of the request (for TSIG).
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if
-    the TC bit is set.
-
-    Raises if the message is malformed, if network errors occur, of if
-    there is a timeout.
-
-    Returns a ``(dns.message.Message, float, tuple)`` tuple of the received
-    message, the received time, and the address where the message arrived from.
+    See :py:func:`dns.query.receive_udp()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
     """
 
     wire = b''
@@ -146,34 +118,6 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
               backend=None):
     """Return the response obtained after sending a query via UDP.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
-    to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
-    query times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *ignore_unexpected*, a ``bool``.  If ``True``, ignore responses from
-    unexpected sources.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if
-    the TC bit is set.
-
     *sock*, a ``dns.asyncbackend.DatagramSocket``, or ``None``,
     the socket to use for the query.  If ``None``, the default, a
     socket is created.  Note that if a socket is provided, the
@@ -182,7 +126,8 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
 
-    Returns a ``dns.message.Message``.
+    See :py:func:`dns.query.udp()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
     """
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
@@ -220,31 +165,6 @@ async def udp_with_fallback(q, where, timeout=None, port=53, source=None,
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
-    to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
-    query times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *ignore_unexpected*, a ``bool``.  If ``True``, ignore responses from
-    unexpected sources.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
     *udp_sock*, a ``dns.asyncbackend.DatagramSocket``, or ``None``,
     the socket to use for the UDP query.  If ``None``, the default, a
     socket is created.  Note that if a socket is provided the *source*,
@@ -258,8 +178,9 @@ async def udp_with_fallback(q, where, timeout=None, port=53, source=None,
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
 
-    Returns a (``dns.message.Message``, tcp) tuple where tcp is ``True``
-    if and only if TCP was used.
+    See :py:func:`dns.query.udp_with_fallback()` for the documentation
+    of the other parameters, exceptions, and return type of this
+    method.
     """
     try:
         response = await udp(q, where, timeout, port, source, source_port,
@@ -276,15 +197,10 @@ async def udp_with_fallback(q, where, timeout=None, port=53, source=None,
 async def send_tcp(sock, what, expiration=None):
     """Send a DNS message to the specified TCP socket.
 
-    *sock*, a ``socket``.
+    *sock*, a ``dns.asyncbackend.StreamSocket``.
 
-    *what*, a ``bytes`` or ``dns.message.Message``, the message to send.
-
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
-
-    Returns an ``(int, float)`` tuple of bytes sent and the sent time.
+    See :py:func:`dns.query.send_tcp()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
     """
 
     if isinstance(what, dns.message.Message):
@@ -317,27 +233,10 @@ async def receive_tcp(sock, expiration=None, one_rr_per_rrset=False,
                       keyring=None, request_mac=b'', ignore_trailing=False):
     """Read a DNS message from a TCP socket.
 
-    *sock*, a ``socket``.
+    *sock*, a ``dns.asyncbackend.StreamSocket``.
 
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *keyring*, a ``dict``, the keyring to use for TSIG.
-
-    *request_mac*, a ``bytes``, the MAC of the request (for TSIG).
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    Raises if the message is malformed, if network errors occur, of if
-    there is a timeout.
-
-    Returns a ``(dns.message.Message, float)`` tuple of the received message
-    and the received time.
+    See :py:func:`dns.query.receive_tcp()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
     """
 
     ldata = await _read_exactly(sock, 2, expiration)
@@ -355,28 +254,6 @@ async def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
               backend=None):
     """Return the response obtained after sending a query via TCP.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address, where
-    to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
-    query times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
     *sock*, a ``dns.asyncbacket.StreamSocket``, or ``None``, the
     socket to use for the query.  If ``None``, the default, a socket
     is created.  Note that if a socket is provided
@@ -385,7 +262,8 @@ async def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
 
-    Returns a ``dns.message.Message``.
+    See :py:func:`dns.query.tcp()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
     """
 
     wire = q.to_wire()
@@ -427,28 +305,6 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
               backend=None, ssl_context=None, server_hostname=None):
     """Return the response obtained after sending a query via TLS.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
-    to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
-    query times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 853.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
     *sock*, an ``asyncbackend.StreamSocket``, or ``None``, the socket
     to use for the query.  If ``None``, the default, a socket is
     created.  Note that if a socket is provided, it must be a
@@ -459,15 +315,8 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
 
-    *ssl_context*, an ``ssl.SSLContext``, the context to use when establishing
-    a TLS connection. If ``None``, the default, creates one with the default
-    configuration.
-
-    *server_hostname*, a ``str`` containing the server's hostname.  The
-    default is ``None``, which means that no hostname is known, and if an
-    SSL context is created, hostname checking will be disabled.
-
-    Returns a ``dns.message.Message``.
+    See :py:func:`dns.query.tls()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
     """
     # After 3.6 is no longer supported, this can use an AsyncExitStack.
     (begin_time, expiration) = _compute_times(timeout)
@@ -509,14 +358,11 @@ async def inbound_xfr(where, txn_manager, query=None,
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
-    For a description of most of the parameters to this method, see
-    the documentation of :py:func:`dns.query.inbound_xfr()`.
-
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
 
-    Raises on errors.
-
+    See :py:func:`dns.query.inbound_xfr()` for the documentation of
+    the other parameters, exceptions, and return type of this method.
     """
     if query is None:
         (query, serial) = dns.xfr.make_query(txn_manager)
