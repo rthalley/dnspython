@@ -1087,7 +1087,7 @@ class _TextReader:
         self.id = None
         self.edns = -1
         self.ednsflags = 0
-        self.payload = None
+        self.payload = DEFAULT_EDNS_PAYLOAD
         self.rcode = None
         self.opcode = dns.opcode.QUERY
         self.flags = 0
