@@ -27,6 +27,19 @@ What's New in dnspython
 * TSIG has been enhanced with TKEY and GSS-TSIG support.  Thanks to
   Nick Hall for writing this.
 
+* Zones now can be updated via transactions.
+
+* A new zone subclass, dns.versioned.Zone is available which has a
+  thread-safe transaction implementation and support for keeping many
+  versions of a zone.
+
+* The zone file reading code has been adapted to use transactions, and
+  is now a public API.
+
+* Inbound zone transfer support has been rewritten and is available as
+  dns.query.inbound_xfr() and dns.asyncquery.inbound_xfr().  It uses
+  the transaction mechanism, and fully supports IXFR and AXFR.
+
 2.0.0
 -----
 
