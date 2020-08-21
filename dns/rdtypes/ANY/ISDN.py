@@ -34,14 +34,8 @@ class ISDN(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address, subaddress):
         super().__init__(rdclass, rdtype)
-        if isinstance(address, str):
-            self.address = self.as_value(address.encode())
-        else:
-            self.address = self.as_value(address)
-        if isinstance(address, str):
-            self.subaddress = self.as_value(subaddress.encode())
-        else:
-            self.subaddress = self.as_value(subaddress)
+        self.address = self._as_bytes(address, True, 255)
+        self.subaddress = self._as_bytes(subaddress, True, 255)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.subaddress:

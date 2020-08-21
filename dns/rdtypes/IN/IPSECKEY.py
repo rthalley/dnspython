@@ -39,11 +39,11 @@ class IPSECKEY(dns.rdata.Rdata):
                  gateway, key):
         super().__init__(rdclass, rdtype)
         Gateway(gateway_type, gateway).check()
-        self.precedence = self.as_value(precedence)
-        self.gateway_type = self.as_value(gateway_type)
-        self.algorithm = self.as_value(algorithm)
-        self.gateway = self.as_value(gateway)
-        self.key = self.as_value(key)
+        self.precedence = self._as_uint8(precedence)
+        self.gateway_type = self._as_uint8(gateway_type)
+        self.algorithm = self._as_uint8(algorithm)
+        self.gateway = gateway
+        self.key = self._as_bytes(key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         gateway = Gateway(self.gateway_type, self.gateway).to_text(origin,

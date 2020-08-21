@@ -32,7 +32,7 @@ class NSBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, target):
         super().__init__(rdclass, rdtype)
-        self.target = self.as_value(target)
+        self.target = self._as_name(target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)

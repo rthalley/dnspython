@@ -34,10 +34,10 @@ class SRV(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, priority, weight, port, target):
         super().__init__(rdclass, rdtype)
-        self.priority = self.as_value(priority)
-        self.weight = self.as_value(weight)
-        self.port = self.as_value(port)
-        self.target = self.as_value(target)
+        self.priority = self._as_uint16(priority)
+        self.weight = self._as_uint16(weight)
+        self.port = self._as_uint16(port)
+        self.target = self._as_name(target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)

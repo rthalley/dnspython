@@ -34,10 +34,17 @@ class APLItem:
     __slots__ = ['family', 'negation', 'address', 'prefix']
 
     def __init__(self, family, negation, address, prefix):
-        self.family = family
-        self.negation = negation
-        self.address = address
-        self.prefix = prefix
+        self.family = dns.rdata.Rdata._as_uint16(family)
+        self.negation = dns.rdata.Rdata._as_bool(negation)
+        if self.family == 1:
+            self.address = dns.rdata.Rdata._as_ipv4_address(address)
+            self.prefix = dns.rdata.Rdata._as_int(prefix, 0, 32)
+        elif self.family == 2:
+            self.address = dns.rdata.Rdata._as_ipv6_address(address)
+            self.prefix = dns.rdata.Rdata._as_int(prefix, 0, 128)
+        else:
+            self.address = dns.rdata.Rdata._as_bytes(address)
+            self.prefix = dns.rdata.Rdata._as_uint8(prefix)
 
     def __str__(self):
         if self.negation:
@@ -81,7 +88,10 @@ class APL(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, items):
         super().__init__(rdclass, rdtype)
-        self.items = self.as_value(dns.rdata._constify(items))
+        for item in items:
+            if not isinstance(item, APLItem):
+                raise ValueError('item not an APLItem')
+        self.items = dns.rdata._constify(items)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return ' '.join(map(str, self.items))
@@ -127,11 +137,9 @@ class APL(dns.rdata.Rdata):
             if header[0] == 1:
                 if l < 4:
                     address += b'\x00' * (4 - l)
-                address = dns.ipv4.inet_ntoa(address)
             elif header[0] == 2:
                 if l < 16:
                     address += b'\x00' * (16 - l)
-                address = dns.ipv6.inet_ntoa(address)
             else:
                 #
                 # This isn't really right according to the RFC, but it

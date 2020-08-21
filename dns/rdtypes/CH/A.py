@@ -32,8 +32,8 @@ class A(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, domain, address):
         super().__init__(rdclass, rdtype)
-        self.domain = self.as_value(domain)
-        self.address = self.as_value(address)
+        self.domain = self._as_name(domain)
+        self.address = self._as_uint16(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         domain = self.domain.choose_relativity(origin, relativize)

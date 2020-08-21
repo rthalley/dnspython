@@ -32,8 +32,8 @@ class RP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, mbox, txt):
         super().__init__(rdclass, rdtype)
-        self.mbox = self.as_value(mbox)
-        self.txt = self.as_value(txt)
+        self.mbox = self._as_name(mbox)
+        self.txt = self._as_name(txt)
 
     def to_text(self, origin=None, relativize=True, **kw):
         mbox = self.mbox.choose_relativity(origin, relativize)

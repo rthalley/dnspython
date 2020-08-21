@@ -42,10 +42,10 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
         super().__init__(rdclass, rdtype)
-        self.flags = self.as_value(flags)
-        self.protocol = self.as_value(protocol)
-        self.algorithm = self.as_value(algorithm)
-        self.key = self.as_value(key)
+        self.flags = self._as_uint16(flags)
+        self.protocol = self._as_uint8(protocol)
+        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.key = self._as_bytes(key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
@@ -56,7 +56,7 @@ class DNSKEYBase(dns.rdata.Rdata):
                   relativize_to=None):
         flags = tok.get_uint16()
         protocol = tok.get_uint8()
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = tok.get_string()
         b64 = tok.concatenate_remaining_identifiers().encode()
         key = base64.b64decode(b64)
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)

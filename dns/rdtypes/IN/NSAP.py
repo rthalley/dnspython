@@ -34,7 +34,7 @@ class NSAP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address):
         super().__init__(rdclass, rdtype)
-        self.address = self.as_value(address)
+        self.address = self._as_bytes(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return "0x%s" % binascii.hexlify(self.address).decode()

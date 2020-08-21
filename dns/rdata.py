@@ -27,10 +27,13 @@ import itertools
 import dns.wire
 import dns.exception
 import dns.immutable
+import dns.ipv4
+import dns.ipv6
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
+import dns.ttl
 
 _chunksize = 32
 
@@ -111,8 +114,8 @@ class Rdata:
         *rdtype*, an ``int`` is the rdatatype of the Rdata.
         """
 
-        self.rdclass = self.as_rdataclass(rdclass)
-        self.rdtype = self.as_rdatatype(rdtype)
+        self.rdclass = self._as_rdataclass(rdclass)
+        self.rdtype = self._as_rdatatype(rdtype)
         self.rdcomment = None
 
     def _get_all_slots(self):
@@ -337,11 +340,109 @@ class Rdata:
         # doesn't do any additional checking.
         return value
 
-    def as_rdataclass(self, value):
+    # Type checking and conversion helpers.  These are class methods as
+    # they don't touch object state and may be useful to others.
+
+    @classmethod
+    def _as_rdataclass(cls, value):
         return dns.rdataclass.RdataClass.make(value)
 
-    def as_rdatatype(self, value):
+    @classmethod
+    def _as_rdatatype(cls, value):
         return dns.rdatatype.RdataType.make(value)
+
+    @classmethod
+    def _as_bytes(cls, value, encode=False, max_length=None):
+        if encode and isinstance(value, str):
+            value = value.encode()
+        elif not isinstance(value, bytes):
+            raise ValueError('not bytes')
+        if max_length is not None and len(value) > max_length:
+            raise ValueError('too long')
+        return value
+
+    @classmethod
+    def _as_name(cls, value):
+        # Note that proper name conversion (e.g. with origin and IDNA
+        # awareness) is expected to be done via from_text.  This is just
+        # a simple thing for people invoking the constructor directly.
+        if isinstance(value, str):
+            return dns.name.from_text(value)
+        elif not isinstance(value, dns.name.Name):
+            raise ValueError('not a name')
+        return value
+
+    @classmethod
+    def _as_uint8(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 255:
+            raise ValueError('not a uint8')
+        return value
+
+    @classmethod
+    def _as_uint16(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 65535:
+            raise ValueError('not a uint16')
+        return value
+
+    @classmethod
+    def _as_uint32(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 4294967295:
+            raise ValueError('not a uint32')
+        return value
+
+    @classmethod
+    def _as_int(cls, value, low=None, high=None):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if low is not None and value < low:
+            raise ValueError('value too small')
+        if high is not None and value > high:
+            raise ValueError('value too large')
+        return value
+
+    @classmethod
+    def _as_ipv4_address(cls, value):
+        if isinstance(value, str):
+            # call to check validity
+            dns.ipv4.inet_aton(value)
+            return value
+        elif isinstance(value, bytes):
+            return dns.ipv4.inet_ntoa(value)
+        else:
+            raise ValueError('not an IPv4 address')
+
+    @classmethod
+    def _as_ipv6_address(cls, value):
+        if isinstance(value, str):
+            # call to check validity
+            dns.ipv6.inet_aton(value)
+            return value
+        elif isinstance(value, bytes):
+            return dns.ipv6.inet_ntoa(value)
+        else:
+            raise ValueError('not an IPv6 address')
+
+    @classmethod
+    def _as_bool(cls, value):
+        if isinstance(value, bool):
+            return value
+        else:
+            raise ValueError('not a boolean')
+
+    @classmethod
+    def _as_ttl(cls, value):
+        if isinstance(value, int):
+            return cls._as_int(value, 0, dns.ttl.MAX_TTL)
+        elif isinstance(value, str):
+            value = dns.ttl.from_text(value)
+        else:
+            raise ValueError('not a TTL')
 
 
 class GenericRdata(Rdata):

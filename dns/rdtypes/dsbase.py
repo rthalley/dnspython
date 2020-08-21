@@ -34,10 +34,10 @@ class DSBase(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, key_tag, algorithm, digest_type,
                  digest):
         super().__init__(rdclass, rdtype)
-        self.key_tag = self.as_value(key_tag)
-        self.algorithm = self.as_value(algorithm)
-        self.digest_type = self.as_value(digest_type)
-        self.digest = self.as_value(digest)
+        self.key_tag = self._as_uint16(key_tag)
+        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.digest_type = self._as_uint8(digest_type)
+        self.digest = self._as_bytes(digest)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.key_tag, self.algorithm,
@@ -49,7 +49,7 @@ class DSBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         key_tag = tok.get_uint16()
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = tok.get_string()
         digest_type = tok.get_uint8()
         digest = tok.concatenate_remaining_identifiers().encode()
         digest = binascii.unhexlify(digest)

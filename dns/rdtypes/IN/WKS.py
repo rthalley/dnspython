@@ -37,9 +37,9 @@ class WKS(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address, protocol, bitmap):
         super().__init__(rdclass, rdtype)
-        self.address = self.as_value(address)
-        self.protocol = self.as_value(protocol)
-        self.bitmap = self.as_value(dns.rdata._constify(bitmap))
+        self.address = self._as_ipv4_address(address)
+        self.protocol = self._as_uint8(protocol)
+        self.bitmap = self._as_bytes(dns.rdata._constify(bitmap))
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
@@ -90,7 +90,7 @@ class WKS(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        address = dns.ipv4.inet_ntoa(parser.get_bytes(4))
+        address = parser.get_bytes(4)
         protocol = parser.get_uint8()
         bitmap = parser.get_remaining()
         return cls(rdclass, rdtype, address, protocol, bitmap)

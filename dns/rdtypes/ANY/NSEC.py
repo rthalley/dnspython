@@ -37,8 +37,8 @@ class NSEC(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, next, windows):
         super().__init__(rdclass, rdtype)
-        self.next = self.as_value(next)
-        self.windows = self.as_value(dns.rdata._constify(windows))
+        self.next = self._as_name(next)
+        self.windows = dns.rdata._constify(windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)

@@ -34,10 +34,7 @@ class X25(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address):
         super().__init__(rdclass, rdtype)
-        if isinstance(address, str):
-            self.address = self.as_value(address.encode())
-        else:
-            self.address = self.as_value(address)
+        self.address = self._as_bytes(address, True, 255)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '"%s"' % dns.rdata._escapify(self.address)

@@ -34,9 +34,9 @@ class PX(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, preference, map822, mapx400):
         super().__init__(rdclass, rdtype)
-        self.preference = self.as_value(preference)
-        self.map822 = self.as_value(map822)
-        self.mapx400 = self.as_value(mapx400)
+        self.preference = self._as_uint16(preference)
+        self.map822 = self._as_name(map822)
+        self.mapx400 = self._as_name(mapx400)
 
     def to_text(self, origin=None, relativize=True, **kw):
         map822 = self.map822.choose_relativity(origin, relativize)

@@ -32,7 +32,7 @@ class DHCID(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, data):
         super().__init__(rdclass, rdtype)
-        self.data = self.as_value(data)
+        self.data = self._as_bytes(data)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return dns.rdata._base64ify(self.data)

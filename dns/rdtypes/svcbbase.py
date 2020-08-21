@@ -436,9 +436,9 @@ class SVCBBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, priority, target, params):
         super().__init__(rdclass, rdtype)
-        self.priority = self.as_value(priority)
-        self.target = self.as_value(target)
-        self.params = self.as_value(dns.immutable.constify(params))
+        self.priority = self._as_uint16(priority)
+        self.target = self._as_name(target)
+        self.params = dns.immutable.constify(params)
         # Make sure any paramater listed as mandatory is present in the
         # record.
         mandatory = params.get(ParamKey.MANDATORY)

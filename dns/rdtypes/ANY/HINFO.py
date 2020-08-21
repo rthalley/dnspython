@@ -34,14 +34,8 @@ class HINFO(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, cpu, os):
         super().__init__(rdclass, rdtype)
-        if isinstance(cpu, str):
-            self.cpu = self.as_value(cpu.encode())
-        else:
-            self.cpu = self.as_value(cpu)
-        if isinstance(os, str):
-            self.os = self.as_value(os.encode())
-        else:
-            self.os = self.as_value(os)
+        self.cpu = self._as_bytes(cpu, True, 255)
+        self.os = self._as_bytes(os, True, 255)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '"{}" "{}"'.format(dns.rdata._escapify(self.cpu),
