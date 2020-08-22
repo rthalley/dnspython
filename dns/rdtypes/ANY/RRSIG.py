@@ -64,15 +64,15 @@ class RRSIG(dns.rdata.Rdata):
                  original_ttl, expiration, inception, key_tag, signer,
                  signature):
         super().__init__(rdclass, rdtype)
-        self.type_covered = self.as_value(type_covered)
-        self.algorithm = self.as_value(algorithm)
-        self.labels = self.as_value(labels)
-        self.original_ttl = self.as_value(original_ttl)
-        self.expiration = self.as_value(expiration)
-        self.inception = self.as_value(inception)
-        self.key_tag = self.as_value(key_tag)
-        self.signer = self.as_value(signer)
-        self.signature = self.as_value(signature)
+        self.type_covered = self._as_rdatatype(type_covered)
+        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.labels = self._as_uint8(labels)
+        self.original_ttl = self._as_ttl(original_ttl)
+        self.expiration = self._as_uint32(expiration)
+        self.inception = self._as_uint32(inception)
+        self.key_tag = self._as_uint16(key_tag)
+        self.signer = self._as_name(signer)
+        self.signature = self._as_bytes(signature)
 
     def covers(self):
         return self.type_covered

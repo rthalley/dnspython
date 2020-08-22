@@ -38,10 +38,10 @@ class AMTRELAY(dns.rdata.Rdata):
                  relay_type, relay):
         super().__init__(rdclass, rdtype)
         Relay(relay_type, relay).check()
-        self.precedence = self.as_value(precedence)
-        self.discovery_optional = self.as_value(discovery_optional)
-        self.relay_type = self.as_value(relay_type)
-        self.relay = self.as_value(relay)
+        self.precedence = self._as_uint8(precedence)
+        self.discovery_optional = self._as_bool(discovery_optional)
+        self.relay_type = self._as_uint8(relay_type)
+        self.relay = relay
 
     def to_text(self, origin=None, relativize=True, **kw):
         relay = Relay(self.relay_type, self.relay).to_text(origin, relativize)

@@ -45,7 +45,10 @@ class OPT(dns.rdata.Rdata):
         """
 
         super().__init__(rdclass, rdtype)
-        self.options = self.as_value(dns.rdata._constify(options))
+        for option in options:
+            if not isinstance(option, dns.edns.Option):
+                raise ValueError('option is not a dns.edns.option')
+        self.options = dns.rdata._constify(options)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         for opt in self.options:

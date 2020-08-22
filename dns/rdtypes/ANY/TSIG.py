@@ -20,6 +20,7 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.rcode
 import dns.rdata
 
 
@@ -55,13 +56,13 @@ class TSIG(dns.rdata.Rdata):
         """
 
         super().__init__(rdclass, rdtype)
-        self.algorithm = self.as_value(algorithm)
-        self.time_signed = self.as_value(time_signed)
-        self.fudge = self.as_value(fudge)
-        self.mac = self.as_value(dns.rdata._constify(mac))
-        self.original_id = self.as_value(original_id)
-        self.error = self.as_value(error)
-        self.other = self.as_value(dns.rdata._constify(other))
+        self.algorithm = self._as_name(algorithm)
+        self.time_signed = self._as_uint48(time_signed)
+        self.fudge = self._as_uint16(fudge)
+        self.mac = dns.rdata._constify(self._as_bytes(mac))
+        self.original_id = self._as_uint16(original_id)
+        self.error = dns.rcode.Rcode.make(error)
+        self.other = self._as_bytes(other)
 
     def to_text(self, origin=None, relativize=True, **kw):
         algorithm = self.algorithm.choose_relativity(origin, relativize)

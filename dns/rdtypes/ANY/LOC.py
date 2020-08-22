@@ -91,6 +91,19 @@ def _decode_size(what, desc):
     return base * pow(10, exponent)
 
 
+def _check_coordinate_list(value, low, high):
+    if value[0] < low or value[0] > high:
+        raise ValueError(f'not in range [{low}, {high}]')
+    if value[1] < 0 or value[1] > 59:
+        raise ValueError('bad minutes value')
+    if value[2] < 0 or value[2] > 59:
+        raise ValueError('bad seconds value')
+    if value[3] < 0 or value[3] > 999:
+        raise ValueError('bad milliseconds value')
+    if value[4] != 1 and value[4] != -1:
+        raise ValueError('bad hemisphere value')
+
+
 @dns.immutable.immutable
 class LOC(dns.rdata.Rdata):
 
@@ -117,16 +130,18 @@ class LOC(dns.rdata.Rdata):
             latitude = float(latitude)
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
-        self.latitude = self.as_value(dns.rdata._constify(latitude))
+        _check_coordinate_list(latitude, -90, 90)
+        self.latitude = dns.rdata._constify(latitude)
         if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
-        self.longitude = self.as_value(dns.rdata._constify(longitude))
-        self.altitude = self.as_value(float(altitude))
-        self.size = self.as_value(float(size))
-        self.horizontal_precision = self.as_value(float(hprec))
-        self.vertical_precision = self.as_value(float(vprec))
+        _check_coordinate_list(longitude, -180, 180)
+        self.longitude = dns.rdata._constify(longitude)
+        self.altitude = float(altitude)
+        self.size = float(size)
+        self.horizontal_precision = float(hprec)
+        self.vertical_precision = float(vprec)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.latitude[4] > 0:
@@ -165,13 +180,9 @@ class LOC(dns.rdata.Rdata):
         vprec = _default_vprec
 
         latitude[0] = tok.get_int()
-        if latitude[0] > 90:
-            raise dns.exception.SyntaxError('latitude >= 90')
         t = tok.get_string()
         if t.isdigit():
             latitude[1] = int(t)
-            if latitude[1] >= 60:
-                raise dns.exception.SyntaxError('latitude minutes >= 60')
             t = tok.get_string()
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
@@ -179,8 +190,6 @@ class LOC(dns.rdata.Rdata):
                     raise dns.exception.SyntaxError(
                         'bad latitude seconds value')
                 latitude[2] = int(seconds)
-                if latitude[2] >= 60:
-                    raise dns.exception.SyntaxError('latitude seconds >= 60')
                 l = len(milliseconds)
                 if l == 0 or l > 3 or not milliseconds.isdigit():
                     raise dns.exception.SyntaxError(
@@ -202,13 +211,9 @@ class LOC(dns.rdata.Rdata):
             raise dns.exception.SyntaxError('bad latitude hemisphere value')
 
         longitude[0] = tok.get_int()
-        if longitude[0] > 180:
-            raise dns.exception.SyntaxError('longitude > 180')
         t = tok.get_string()
         if t.isdigit():
             longitude[1] = int(t)
-            if longitude[1] >= 60:
-                raise dns.exception.SyntaxError('longitude minutes >= 60')
             t = tok.get_string()
             if '.' in t:
                 (seconds, milliseconds) = t.split('.')
@@ -216,8 +221,6 @@ class LOC(dns.rdata.Rdata):
                     raise dns.exception.SyntaxError(
                         'bad longitude seconds value')
                 longitude[2] = int(seconds)
-                if longitude[2] >= 60:
-                    raise dns.exception.SyntaxError('longitude seconds >= 60')
                 l = len(milliseconds)
                 if l == 0 or l > 3 or not milliseconds.isdigit():
                     raise dns.exception.SyntaxError(

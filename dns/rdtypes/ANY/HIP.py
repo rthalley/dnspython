@@ -36,10 +36,11 @@ class HIP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
         super().__init__(rdclass, rdtype)
-        self.hit = self.as_value(hit)
-        self.algorithm = self.as_value(algorithm)
-        self.key = self.as_value(key)
-        self.servers = self.as_value(dns.rdata._constify(servers))
+        self.hit = self._as_bytes(hit, True, 255)
+        self.algorithm = self._as_uint8(algorithm)
+        self.key = self._as_bytes(key, True)
+        self.servers = dns.rdata._constify([dns.rdata.Rdata._as_name(s)
+                                            for s in servers])
 
     def to_text(self, origin=None, relativize=True, **kw):
         hit = binascii.hexlify(self.hit).decode()
@@ -57,8 +58,6 @@ class HIP(dns.rdata.Rdata):
                   relativize_to=None):
         algorithm = tok.get_uint8()
         hit = binascii.unhexlify(tok.get_string().encode())
-        if len(hit) > 255:
-            raise dns.exception.SyntaxError("HIT too long")
         key = base64.b64decode(tok.get_string().encode())
         servers = []
         for token in tok.get_remaining():

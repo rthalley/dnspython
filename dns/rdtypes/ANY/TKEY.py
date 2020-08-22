@@ -35,13 +35,13 @@ class TKEY(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, algorithm, inception, expiration,
                  mode, error, key, other=b''):
         super().__init__(rdclass, rdtype)
-        self.algorithm = self.as_value(algorithm)
-        self.inception = self.as_value(inception)
-        self.expiration = self.as_value(expiration)
-        self.mode = self.as_value(mode)
-        self.error = self.as_value(error)
-        self.key = self.as_value(dns.rdata._constify(key))
-        self.other = self.as_value(dns.rdata._constify(other))
+        self.algorithm = self._as_name(algorithm)
+        self.inception = self._as_uint32(inception)
+        self.expiration = self._as_uint32(expiration)
+        self.mode = self._as_uint16(mode)
+        self.error = self._as_uint16(error)
+        self.key = self._as_bytes(key)
+        self.other = self._as_bytes(other)
 
     def to_text(self, origin=None, relativize=True, **kw):
         _algorithm = self.algorithm.choose_relativity(origin, relativize)

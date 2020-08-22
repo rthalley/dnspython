@@ -35,10 +35,10 @@ class TLSA(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, usage, selector,
                  mtype, cert):
         super().__init__(rdclass, rdtype)
-        self.usage = self.as_value(usage)
-        self.selector = self.as_value(selector)
-        self.mtype = self.as_value(mtype)
-        self.cert = self.as_value(cert)
+        self.usage = self._as_uint8(usage)
+        self.selector = self._as_uint8(selector)
+        self.mtype = self._as_uint8(mtype)
+        self.cert = self._as_bytes(cert)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.usage,

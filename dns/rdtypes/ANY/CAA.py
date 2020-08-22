@@ -34,9 +34,11 @@ class CAA(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, flags, tag, value):
         super().__init__(rdclass, rdtype)
-        self.flags = self.as_value(flags)
-        self.tag = self.as_value(tag)
-        self.value = self.as_value(value)
+        self.flags = self._as_uint8(flags)
+        self.tag = self._as_bytes(tag, True, 255)
+        if not tag.isalnum():
+            raise ValueError("tag is not alphanumeric")
+        self.value = self._as_bytes(value)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%u %s "%s"' % (self.flags,
@@ -48,10 +50,6 @@ class CAA(dns.rdata.Rdata):
                   relativize_to=None):
         flags = tok.get_uint8()
         tag = tok.get_string().encode()
-        if len(tag) > 255:
-            raise dns.exception.SyntaxError("tag too long")
-        if not tag.isalnum():
-            raise dns.exception.SyntaxError("tag is not alphanumeric")
         value = tok.get_string().encode()
         return cls(rdclass, rdtype, flags, tag, value)
 

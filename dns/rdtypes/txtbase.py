@@ -46,12 +46,9 @@ class TXTBase(dns.rdata.Rdata):
             strings = (strings,)
         encoded_strings = []
         for string in strings:
-            if isinstance(string, str):
-                string = string.encode()
-            else:
-                string = dns.rdata._constify(string)
+            string = self._as_bytes(string, True, 255)
             encoded_strings.append(string)
-        self.strings = self.as_value(tuple(encoded_strings))
+        self.strings = dns.rdata._constify(encoded_strings)
 
     def to_text(self, origin=None, relativize=True, **kw):
         txt = ''

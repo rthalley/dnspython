@@ -335,11 +335,6 @@ class Rdata:
             object.__setattr__(rd, 'rdcomment', rdcomment)
         return rd
 
-    def as_value(self, value):
-        # This is the "additional type checking" placeholder that actually
-        # doesn't do any additional checking.
-        return value
-
     # Type checking and conversion helpers.  These are class methods as
     # they don't touch object state and may be useful to others.
 
@@ -394,6 +389,14 @@ class Rdata:
             raise ValueError('not an integer')
         if value < 0 or value > 4294967295:
             raise ValueError('not a uint32')
+        return value
+
+    @classmethod
+    def _as_uint48(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 281474976710655:
+            raise ValueError('not a uint48')
         return value
 
     @classmethod

@@ -35,14 +35,11 @@ class URI(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, priority, weight, target):
         super().__init__(rdclass, rdtype)
-        self.priority = self.as_value(priority)
-        self.weight = self.as_value(weight)
-        if len(target) < 1:
+        self.priority = self._as_uint16(priority)
+        self.weight = self._as_uint16(weight)
+        self.target = self._as_bytes(target, True)
+        if len(self.target) == 0:
             raise dns.exception.SyntaxError("URI target cannot be empty")
-        if isinstance(target, str):
-            self.target = self.as_value(target.encode())
-        else:
-            self.target = self.as_value(target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d "%s"' % (self.priority, self.weight,

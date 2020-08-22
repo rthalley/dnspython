@@ -42,12 +42,6 @@ def _validate_float_string(what):
         raise dns.exception.FormError
 
 
-def _sanitize(value):
-    if isinstance(value, str):
-        return value.encode()
-    return value
-
-
 @dns.immutable.immutable
 class GPOS(dns.rdata.Rdata):
 
@@ -68,15 +62,15 @@ class GPOS(dns.rdata.Rdata):
         if isinstance(altitude, float) or \
            isinstance(altitude, int):
             altitude = str(altitude)
-        latitude = _sanitize(latitude)
-        longitude = _sanitize(longitude)
-        altitude = _sanitize(altitude)
+        latitude = self._as_bytes(latitude, True, 255)
+        longitude = self._as_bytes(longitude, True, 255)
+        altitude = self._as_bytes(altitude, True, 255)
         _validate_float_string(latitude)
         _validate_float_string(longitude)
         _validate_float_string(altitude)
-        self.latitude = self.as_value(latitude)
-        self.longitude = self.as_value(longitude)
-        self.altitude = self.as_value(altitude)
+        self.latitude = latitude
+        self.longitude = longitude
+        self.altitude = altitude
         flat = self.float_latitude
         if flat < -90.0 or flat > 90.0:
             raise dns.exception.FormError('bad latitude')

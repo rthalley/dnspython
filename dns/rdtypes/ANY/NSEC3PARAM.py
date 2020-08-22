@@ -32,13 +32,10 @@ class NSEC3PARAM(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt):
         super().__init__(rdclass, rdtype)
-        self.algorithm = self.as_value(algorithm)
-        self.flags = self.as_value(flags)
-        self.iterations = self.as_value(iterations)
-        if isinstance(salt, str):
-            self.salt = self.as_value(salt.encode())
-        else:
-            self.salt = self.as_value(salt)
+        self.algorithm = self._as_uint8(algorithm)
+        self.flags = self._as_uint8(flags)
+        self.iterations = self._as_uint16(iterations)
+        self.salt = self._as_bytes(salt, True, 255)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.salt == b'':
