@@ -29,9 +29,9 @@ order is the DNSSEC canonical ordering.  Relative names always sort before
 absolute names.
 
 Names may also be compared according to the DNS tree hierarchy with
-the ``fullcompare()`` method.  For example ```www.dnspython.org.`` is
-a subdomain of ``dnspython.org.``.  See the method description for
-full details.
+the :py:func:`dns.name.Name.fullcompare` method.  For example
+```www.dnspython.org.`` is a subdomain of ``dnspython.org.``.  See the
+method description for full details.
 
 .. toctree::
 
