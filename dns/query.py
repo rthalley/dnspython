@@ -997,9 +997,7 @@ class UDPMode(enum.IntEnum):
 
 def inbound_xfr(where, txn_manager, query=None,
                 port=53, timeout=None, lifetime=None, source=None,
-                source_port=0, udp_mode=UDPMode.NEVER,
-                keyring=None, keyname=None,
-                keyalgorithm=dns.tsig.default_algorithm):
+                source_port=0, udp_mode=UDPMode.NEVER):
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
@@ -1034,15 +1032,7 @@ def inbound_xfr(where, txn_manager, query=None,
     ``dns.UDPMode.ONLY``, which means "try UDP and raise
     ``dns.xfr.UseTCP`` if it does not succeeed.
 
-    *keyring*, a ``dict``, the keyring to use for TSIG.
-
-    *keyname*, a ``dns.name.Name`` or ``str``, the name of the TSIG
-    key to use.
-
-    *keyalgorithm*, a ``dns.name.Name`` or ``str``, the TSIG algorithm to use.
-
     Raises on errors.
-
     """
     if query is None:
         (query, serial) = dns.xfr.make_query(txn_manager)
