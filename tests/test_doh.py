@@ -33,7 +33,11 @@ resolver_v6_addresses = []
 try:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.connect(('8.8.8.8', 53))
-    resolver_v4_addresses = ['1.1.1.1', '8.8.8.8', '9.9.9.9']
+    resolver_v4_addresses = [
+        '1.1.1.1',
+        '8.8.8.8',
+        # '9.9.9.9',
+    ]
 except Exception:
     pass
 try:
@@ -43,7 +47,7 @@ try:
         '2606:4700:4700::1111',
         # Google says 404
         # '2001:4860:4860::8888',
-        '2620:fe::11'
+        # '2620:fe::fe',
     ]
 except Exception:
     pass
