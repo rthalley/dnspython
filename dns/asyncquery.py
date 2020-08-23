@@ -391,7 +391,8 @@ async def inbound_xfr(where, txn_manager, query=None,
             else:
                 tcpmsg = struct.pack("!H", len(wire)) + wire
                 await s.sendall(tcpmsg, expiration)
-            with dns.xfr.Inbound(txn_manager, rdtype, serial) as inbound:
+            with dns.xfr.Inbound(txn_manager, rdtype, serial,
+                                 is_udp) as inbound:
                 done = False
                 tsig_ctx = None
                 while not done:
@@ -419,7 +420,7 @@ async def inbound_xfr(where, txn_manager, query=None,
                                               multi=(not is_udp),
                                               one_rr_per_rrset=is_ixfr)
                     try:
-                        done = inbound.process_message(r, is_udp)
+                        done = inbound.process_message(r)
                     except dns.xfr.UseTCP:
                         assert is_udp  # should not happen if we used TCP!
                         if udp_mode == UDPMode.ONLY:

@@ -47,7 +47,7 @@ class Inbound:
     """
 
     def __init__(self, txn_manager, rdtype=dns.rdatatype.AXFR,
-                 serial=None):
+                 serial=None, is_udp=False):
         """Initialize an inbound zone transfer.
 
         *txn_manager* is a :py:class:`dns.transaction.TransactionManager`.
@@ -56,28 +56,32 @@ class Inbound:
 
         *serial* is the base serial number for IXFRs, and is required in
         that case.
+
+        *is_udp*, a ``bool`` indidicates if UDP is being used for this
+        XFR.
         """
         self.txn_manager = txn_manager
         self.txn = None
         self.rdtype = rdtype
-        if rdtype == dns.rdatatype.IXFR and serial is None:
-            raise ValueError('a starting serial must be supplied for IXFRs')
+        if rdtype == dns.rdatatype.IXFR:
+            if serial is None:
+                raise ValueError('a starting serial must be supplied for IXFRs')
+        elif is_udp:
+            raise ValueError('is_udp specified for AXFR')
         self.serial = serial
+        self.is_udp = is_udp
         (_, _, self.origin) = txn_manager.origin_information()
         self.soa_rdataset = None
         self.done = False
         self.expecting_SOA = False
         self.delete_mode = False
 
-    def process_message(self, message, is_udp=False):
+    def process_message(self, message):
         """Process one message in the transfer.
 
         The message should have the same relativization as was specified when
         the `dns.xfr.Inbound` was created.  The message should also have been
         created with `one_rr_per_rrset=True` because order matters.
-
-        *is_udp*, a ``bool`` indidicates if this message was received using
-        UDP.
 
         Returns `True` if the transfer is complete, and `False` otherwise.
         """
@@ -125,7 +129,7 @@ class Inbound:
                           self.serial)
                     raise SerialWentBackwards
                 else:
-                    if is_udp and len(message.answer[answer_index:]) == 0:
+                    if self.is_udp and len(message.answer[answer_index:]) == 0:
                         #
                         # There are no more records, so this is the
                         # "truncated" response.  Say to use TCP
@@ -216,7 +220,7 @@ class Inbound:
                 self.txn.delete_exact(name, rdataset)
             else:
                 self.txn.add(name, rdataset)
-        if is_udp and not self.done:
+        if self.is_udp and not self.done:
             #
             # This is a UDP IXFR and we didn't get to done, and we didn't
             # get the proper "truncated" response

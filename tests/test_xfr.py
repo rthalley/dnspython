@@ -211,6 +211,20 @@ ns3 3600 IN A 10.0.0.3
 @ 3600 IN SOA foo bar 4 2 3 4 5
 '''
 
+unexpected_end_ixfr_2 = '''id 1
+opcode QUERY
+rcode NOERROR
+flags AA
+;QUESTION
+example. IN IXFR
+;ANSWER
+@ 3600 IN SOA foo bar 4 2 3 4 5
+@ 3600 IN SOA foo bar 1 2 3 4 5
+bar.foo 300 IN MX 0 blaz.foo
+ns2 3600 IN A 10.0.0.2
+@ 3600 IN NS ns2
+'''
+
 bad_serial_ixfr = '''id 1
 opcode QUERY
 rcode NOERROR
@@ -329,9 +343,9 @@ def test_retry_tcp_ixfr():
                            zone_factory=dns.versioned.Zone)
     m = dns.message.from_text(retry_tcp_ixfr, origin=z.origin,
                               one_rr_per_rrset=True)
-    with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=1) as xfr:
+    with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=1, is_udp=True) as xfr:
         with pytest.raises(dns.xfr.UseTCP):
-            xfr.process_message(m, True)
+            xfr.process_message(m)
 
 def test_bad_empty_ixfr():
     z = dns.zone.from_text(ixfr_expected, 'example.',
@@ -368,12 +382,25 @@ def test_ixfr_requires_serial():
     with pytest.raises(ValueError):
         dns.xfr.Inbound(z, dns.rdatatype.IXFR)
 
-def test_ixfr_unexpected_end():
+def test_ixfr_unexpected_end_bad_diff_sequence():
+    # This is where we get the end serial, but haven't seen all of
+    # the expected diffs
     z = dns.zone.from_text(base, 'example.',
                            zone_factory=dns.versioned.Zone)
     m = dns.message.from_text(unexpected_end_ixfr, origin=z.origin,
                               one_rr_per_rrset=True)
     with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=1) as xfr:
+        with pytest.raises(dns.exception.FormError):
+            xfr.process_message(m)
+
+def test_udp_ixfr_unexpected_end_just_stops():
+    # This is where everything looks good, but the IXFR just stops
+    # in the middle.
+    z = dns.zone.from_text(base, 'example.',
+                           zone_factory=dns.versioned.Zone)
+    m = dns.message.from_text(unexpected_end_ixfr_2, origin=z.origin,
+                              one_rr_per_rrset=True)
+    with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=1, is_udp=True) as xfr:
         with pytest.raises(dns.exception.FormError):
             xfr.process_message(m)
 
@@ -385,6 +412,12 @@ def test_ixfr_bad_serial():
     with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=1) as xfr:
         with pytest.raises(dns.exception.FormError):
             xfr.process_message(m)
+
+def test_no_udp_with_axfr():
+    z = dns.versioned.Zone('example.')
+    with pytest.raises(ValueError):
+        with dns.xfr.Inbound(z, dns.rdatatype.AXFR, is_udp=True) as xfr:
+            pass
 
 refused = '''id 1
 opcode QUERY
