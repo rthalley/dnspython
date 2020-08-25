@@ -41,7 +41,11 @@ class CSYNC(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.serial = self._as_uint32(serial)
         self.flags = self._as_uint16(flags)
-        self.windows = dns.rdata._constify(windows)
+        if isinstance(windows, Bitmap):
+            bitmap = windows
+        else:
+            bitmap = Bitmap(windows)
+        self.windows = tuple(bitmap.windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         text = Bitmap(self.windows).to_text()
@@ -52,8 +56,8 @@ class CSYNC(dns.rdata.Rdata):
                   relativize_to=None):
         serial = tok.get_uint32()
         flags = tok.get_uint16()
-        windows = Bitmap().from_text(tok)
-        return cls(rdclass, rdtype, serial, flags, windows)
+        bitmap = Bitmap.from_text(tok)
+        return cls(rdclass, rdtype, serial, flags, bitmap)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack('!IH', self.serial, self.flags))
@@ -62,5 +66,5 @@ class CSYNC(dns.rdata.Rdata):
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (serial, flags) = parser.get_struct("!IH")
-        windows = Bitmap().from_wire_parser(parser)
-        return cls(rdclass, rdtype, serial, flags, windows)
+        bitmap = Bitmap.from_wire_parser(parser)
+        return cls(rdclass, rdtype, serial, flags, bitmap)

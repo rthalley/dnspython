@@ -350,6 +350,8 @@ class Rdata:
     def _as_bytes(cls, value, encode=False, max_length=None):
         if encode and isinstance(value, str):
             value = value.encode()
+        elif isinstance(value, bytearray):
+            value = bytes(value)
         elif not isinstance(value, bytes):
             raise ValueError('not bytes')
         if max_length is not None and len(value) > max_length:

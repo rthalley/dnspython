@@ -39,7 +39,7 @@ class WKS(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.address = self._as_ipv4_address(address)
         self.protocol = self._as_uint8(protocol)
-        self.bitmap = self._as_bytes(dns.rdata._constify(bitmap))
+        self.bitmap = self._as_bytes(bitmap)
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []

@@ -38,7 +38,11 @@ class NSEC(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, next, windows):
         super().__init__(rdclass, rdtype)
         self.next = self._as_name(next)
-        self.windows = dns.rdata._constify(windows)
+        if isinstance(windows, Bitmap):
+            bitmap = windows
+        else:
+            bitmap = Bitmap(windows)
+        self.windows = tuple(bitmap.windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)
@@ -49,7 +53,7 @@ class NSEC(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         next = tok.get_name(origin, relativize, relativize_to)
-        windows = Bitmap().from_text(tok)
+        windows = Bitmap.from_text(tok)
         return cls(rdclass, rdtype, next, windows)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
@@ -59,5 +63,5 @@ class NSEC(dns.rdata.Rdata):
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         next = parser.get_name(origin)
-        windows = Bitmap().from_wire_parser(parser)
-        return cls(rdclass, rdtype, next, windows)
+        bitmap = Bitmap.from_wire_parser(parser)
+        return cls(rdclass, rdtype, next, bitmap)

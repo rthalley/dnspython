@@ -48,7 +48,7 @@ class OPT(dns.rdata.Rdata):
         for option in options:
             if not isinstance(option, dns.edns.Option):
                 raise ValueError('option is not a dns.edns.option')
-        self.options = dns.rdata._constify(options)
+        self.options = tuple(options)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         for opt in self.options:

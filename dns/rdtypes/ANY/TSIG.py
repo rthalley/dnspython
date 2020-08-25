@@ -59,7 +59,7 @@ class TSIG(dns.rdata.Rdata):
         self.algorithm = self._as_name(algorithm)
         self.time_signed = self._as_uint48(time_signed)
         self.fudge = self._as_uint16(fudge)
-        self.mac = dns.rdata._constify(self._as_bytes(mac))
+        self.mac = self._as_bytes(mac)
         self.original_id = self._as_uint16(original_id)
         self.error = dns.rcode.Rcode.make(error)
         self.other = self._as_bytes(other)

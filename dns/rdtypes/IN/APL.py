@@ -91,7 +91,7 @@ class APL(dns.rdata.Rdata):
         for item in items:
             if not isinstance(item, APLItem):
                 raise ValueError('item not an APLItem')
-        self.items = dns.rdata._constify(items)
+        self.items = tuple(items)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return ' '.join(map(str, self.items))

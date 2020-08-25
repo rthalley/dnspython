@@ -58,7 +58,11 @@ class NSEC3(dns.rdata.Rdata):
         self.iterations = self._as_uint16(iterations)
         self.salt = self._as_bytes(salt, True, 255)
         self.next = self._as_bytes(next, True, 255)
-        self.windows = dns.rdata._constify(windows)
+        if isinstance(windows, Bitmap):
+            bitmap = windows
+        else:
+            bitmap = Bitmap(windows)
+        self.windows = tuple(bitmap.windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = base64.b32encode(self.next).translate(
@@ -85,9 +89,9 @@ class NSEC3(dns.rdata.Rdata):
         next = tok.get_string().encode(
             'ascii').upper().translate(b32_hex_to_normal)
         next = base64.b32decode(next)
-        windows = Bitmap().from_text(tok)
+        bitmap = Bitmap.from_text(tok)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
-                   windows)
+                   bitmap)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.salt)
@@ -104,6 +108,6 @@ class NSEC3(dns.rdata.Rdata):
         (algorithm, flags, iterations) = parser.get_struct('!BBH')
         salt = parser.get_counted_bytes()
         next = parser.get_counted_bytes()
-        windows = Bitmap().from_wire_parser(parser)
+        bitmap = Bitmap.from_wire_parser(parser)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
-                   windows)
+                   bitmap)

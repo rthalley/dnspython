@@ -667,73 +667,73 @@ class UtilTestCase(unittest.TestCase):
             g.from_wire_parser(None)
 
     def test_Bitmap(self):
-        b = dns.rdtypes.util.Bitmap([])
+        b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer('A MX')
-        windows = b.from_text(tok)
+        windows = b.from_text(tok).windows
         ba = bytearray()
         ba.append(0x40)  # bit 1, for A
         ba.append(0x01)  # bit 15, for MX
-        self.assertEqual(windows, [(0, ba)])
+        self.assertEqual(windows, [(0, bytes(ba))])
 
     def test_Bitmap_with_duplicate_types(self):
-        b = dns.rdtypes.util.Bitmap([])
+        b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer('A MX A A MX')
-        windows = b.from_text(tok)
+        windows = b.from_text(tok).windows
         ba = bytearray()
         ba.append(0x40)  # bit 1, for A
         ba.append(0x01)  # bit 15, for MX
-        self.assertEqual(windows, [(0, ba)])
+        self.assertEqual(windows, [(0, bytes(ba))])
 
     def test_Bitmap_with_out_of_order_types(self):
-        b = dns.rdtypes.util.Bitmap([])
+        b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer('MX A')
-        windows = b.from_text(tok)
+        windows = b.from_text(tok).windows
         ba = bytearray()
         ba.append(0x40)  # bit 1, for A
         ba.append(0x01)  # bit 15, for MX
-        self.assertEqual(windows, [(0, ba)])
+        self.assertEqual(windows, [(0, bytes(ba))])
 
     def test_Bitmap_zero_padding_works(self):
-        b = dns.rdtypes.util.Bitmap([])
+        b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer('SRV')
-        windows = b.from_text(tok)
+        windows = b.from_text(tok).windows
         ba = bytearray()
         ba.append(0)
         ba.append(0)
         ba.append(0)
         ba.append(0)
         ba.append(0x40)  # bit 33, for SRV
-        self.assertEqual(windows, [(0, ba)])
+        self.assertEqual(windows, [(0, bytes(ba))])
 
     def test_Bitmap_has_type_0_set(self):
-        b = dns.rdtypes.util.Bitmap([])
+        b = dns.rdtypes.util.Bitmap
         with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('NONE A MX')
             b.from_text(tok)
 
     def test_Bitmap_empty_window_not_written(self):
-        b = dns.rdtypes.util.Bitmap([])
+        b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer('URI CAA')  # types 256 and 257
-        windows = b.from_text(tok)
+        windows = b.from_text(tok).windows
         ba = bytearray()
         ba.append(0xc0)  # bits 0 and 1 in window 1
-        self.assertEqual(windows, [(1, ba)])
+        self.assertEqual(windows, [(1, bytes(ba))])
 
     def test_Bitmap_ok_parse(self):
         parser = dns.wire.Parser(b'\x00\x01\x40')
         b = dns.rdtypes.util.Bitmap([])
-        windows = b.from_wire_parser(parser)
+        windows = b.from_wire_parser(parser).windows
         self.assertEqual(windows, [(0, b'@')])
 
     def test_Bitmap_0_length_window_parse(self):
         parser = dns.wire.Parser(b'\x00\x00')
-        with self.assertRaises(dns.exception.FormError):
+        with self.assertRaises(ValueError):
             b = dns.rdtypes.util.Bitmap([])
             b.from_wire_parser(parser)
 
     def test_Bitmap_too_long_parse(self):
         parser = dns.wire.Parser(b'\x00\x21' + b'\x01' * 33)
-        with self.assertRaises(dns.exception.FormError):
+        with self.assertRaises(ValueError):
             b = dns.rdtypes.util.Bitmap([])
             b.from_wire_parser(parser)
 

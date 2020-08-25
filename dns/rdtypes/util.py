@@ -99,7 +99,22 @@ class Bitmap:
     type_name = ""
 
     def __init__(self, windows=None):
+        last_window = -1
         self.windows = windows
+        for (window, bitmap) in self.windows:
+            if not isinstance(window, int):
+                raise ValueError(f"bad {self.type_name} window type")
+            if not isinstance(window, int):
+                raise ValueError(f"bad {self.type_name} window type")
+            if window <= last_window:
+                raise ValueError(f"bad {self.type_name} window order")
+            if window > 256:
+                raise ValueError(f"bad {self.type_name} window number")
+            last_window = window
+            if not isinstance(bitmap, bytes):
+                raise ValueError(f"bad {self.type_name} octets type")
+            if len(bitmap) == 0 or len(bitmap) > 32:
+                raise ValueError(f"bad {self.type_name} octets")
 
     def to_text(self):
         text = ""
@@ -113,12 +128,13 @@ class Bitmap:
             text += (' ' + ' '.join(bits))
         return text
 
-    def from_text(self, tok):
+    @classmethod
+    def from_text(cls, tok):
         rdtypes = []
         for token in tok.get_remaining():
             rdtype = dns.rdatatype.from_text(token.unescape().value)
             if rdtype == 0:
-                raise dns.exception.SyntaxError(f"{self.type_name} with bit 0")
+                raise dns.exception.SyntaxError(f"{cls.type_name} with bit 0")
             rdtypes.append(rdtype)
         rdtypes.sort()
         window = 0
@@ -133,7 +149,7 @@ class Bitmap:
             new_window = rdtype // 256
             if new_window != window:
                 if octets != 0:
-                    windows.append((window, bitmap[0:octets]))
+                    windows.append((window, bytes(bitmap[0:octets])))
                 bitmap = bytearray(b'\0' * 32)
                 window = new_window
             offset = rdtype % 256
@@ -142,24 +158,19 @@ class Bitmap:
             octets = byte + 1
             bitmap[byte] = bitmap[byte] | (0x80 >> bit)
         if octets != 0:
-            windows.append((window, bitmap[0:octets]))
-        return windows
+            windows.append((window, bytes(bitmap[0:octets])))
+        return cls(windows)
 
     def to_wire(self, file):
         for (window, bitmap) in self.windows:
             file.write(struct.pack('!BB', window, len(bitmap)))
             file.write(bitmap)
 
-    def from_wire_parser(self, parser):
+    @classmethod
+    def from_wire_parser(cls, parser):
         windows = []
-        last_window = -1
         while parser.remaining() > 0:
             window = parser.get_uint8()
-            if window <= last_window:
-                raise dns.exception.FormError(f"bad {self.type_name} bitmap")
             bitmap = parser.get_counted_bytes()
-            if len(bitmap) == 0 or len(bitmap) > 32:
-                raise dns.exception.FormError(f"bad {self.type_name} octets")
             windows.append((window, bitmap))
-            last_window = window
-        return windows
+        return cls(windows)

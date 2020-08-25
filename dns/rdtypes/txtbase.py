@@ -48,7 +48,7 @@ class TXTBase(dns.rdata.Rdata):
         for string in strings:
             string = self._as_bytes(string, True, 255)
             encoded_strings.append(string)
-        self.strings = dns.rdata._constify(encoded_strings)
+        self.strings = tuple(encoded_strings)
 
     def to_text(self, origin=None, relativize=True, **kw):
         txt = ''

@@ -131,13 +131,13 @@ class LOC(dns.rdata.Rdata):
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
         _check_coordinate_list(latitude, -90, 90)
-        self.latitude = dns.rdata._constify(latitude)
+        self.latitude = tuple(latitude)
         if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
         _check_coordinate_list(longitude, -180, 180)
-        self.longitude = dns.rdata._constify(longitude)
+        self.longitude = tuple(longitude)
         self.altitude = float(altitude)
         self.size = float(size)
         self.horizontal_precision = float(hprec)
