@@ -104,8 +104,6 @@ class Bitmap:
         for (window, bitmap) in self.windows:
             if not isinstance(window, int):
                 raise ValueError(f"bad {self.type_name} window type")
-            if not isinstance(window, int):
-                raise ValueError(f"bad {self.type_name} window type")
             if window <= last_window:
                 raise ValueError(f"bad {self.type_name} window order")
             if window > 256:
