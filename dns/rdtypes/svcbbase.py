@@ -149,18 +149,13 @@ class Param:
     def emptiness(cls):
         return Emptiness.NEVER
 
-    def as_value(self, value):
-        # This is the "additional type checking" placeholder that actually
-        # doesn't do any additional checking.
-        return value
-
 
 @dns.immutable.immutable
 class GenericParam(Param):
     """Generic SVCB parameter
     """
     def __init__(self, value):
-        self.value = self.as_value(value)
+        self.value = dns.rdata.Rdata._as_bytes(value, True)
 
     @classmethod
     def emptiness(cls):
@@ -200,8 +195,7 @@ class MandatoryParam(Param):
             prior_k = k
             if k == ParamKey.MANDATORY:
                 raise ValueError('listed the mandatory key as mandatory')
-        keys = dns.immutable.constify(keys)
-        self.keys = self.as_value(keys)
+        self.keys = tuple(keys)
 
     @classmethod
     def from_value(cls, value):
@@ -232,11 +226,10 @@ class MandatoryParam(Param):
 class ALPNParam(Param):
     def __init__(self, ids):
         for id in ids:
+            id = dns.rdata.Rdata._as_bytes(id, True, 255)
             if len(id) == 0:
                 raise dns.exception.FormError('empty ALPN')
-            if len(id) > 255:
-                raise ValueError('ALPN id too long')
-        self.ids = self.as_value(dns.immutable.constify(ids))
+        self.ids = tuple(ids)
 
     @classmethod
     def from_value(cls, value):
@@ -292,9 +285,7 @@ class NoDefaultALPNParam(Param):
 @dns.immutable.immutable
 class PortParam(Param):
     def __init__(self, port):
-        if port < 0 or port > 65535:
-            raise ValueError('port out-of-range')
-        self.port = self.as_value(port)
+        self.port = dns.rdata.Rdata._as_uint16(port)
 
     @classmethod
     def from_value(cls, value):
@@ -319,7 +310,7 @@ class IPv4HintParam(Param):
         for address in addresses:
             # check validity
             dns.ipv4.inet_aton(address)
-        self.addresses = self.as_value(dns.immutable.constify(addresses))
+        self.addresses = tuple(addresses)
 
     @classmethod
     def from_value(cls, value):
@@ -348,7 +339,7 @@ class IPv6HintParam(Param):
         for address in addresses:
             # check validity
             dns.ipv6.inet_aton(address)
-        self.addresses = self.as_value(dns.immutable.constify(addresses))
+        self.addresses = tuple(addresses)
 
     @classmethod
     def from_value(cls, value):
@@ -374,7 +365,7 @@ class IPv6HintParam(Param):
 @dns.immutable.immutable
 class ECHConfigParam(Param):
     def __init__(self, echconfig):
-        self.echconfig = self.as_value(echconfig)
+        self.echconfig = dns.rdata.Rdata._as_bytes(echconfig, True)
 
     @classmethod
     def from_value(cls, value):
