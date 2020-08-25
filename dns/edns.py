@@ -23,6 +23,8 @@ import struct
 
 import dns.enum
 import dns.inet
+import dns.rdata
+
 
 class OptionType(dns.enum.IntEnum):
     #: NSID
@@ -60,7 +62,7 @@ class Option:
 
         *otype*, an ``int``, is the option type.
         """
-        self.otype = otype
+        self.otype = OptionType.make(otype)
 
     def to_wire(self, file=None):
         """Convert an option to wire format.
@@ -148,7 +150,7 @@ class GenericOption(Option):
 
     def __init__(self, otype, data):
         super().__init__(otype)
-        self.data = data
+        self.data = dns.rdata.Rdata._as_bytes(data, True)
 
     def to_wire(self, file=None):
         if file:
@@ -185,10 +187,16 @@ class ECSOption(Option):
             self.family = 2
             if srclen is None:
                 srclen = 56
+            address = dns.rdata.Rdata._as_ipv6_address(address)
+            srclen = dns.rdata.Rdata._as_int(srclen, 0, 128)
+            scopelen = dns.rdata.Rdata._as_int(scopelen, 0, 128)
         elif af == socket.AF_INET:
             self.family = 1
             if srclen is None:
                 srclen = 24
+            address = dns.rdata.Rdata._as_ipv4_address(address)
+            srclen = dns.rdata.Rdata._as_int(srclen, 0, 32)
+            scopelen = dns.rdata.Rdata._as_int(scopelen, 0, 32)
         else:  # pragma: no cover   (this will never happen)
             raise ValueError('Bad address family')
 
