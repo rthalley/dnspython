@@ -46,5 +46,5 @@ jobs:
 #      summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
 
   - script: |
-      codecov -f coverage.xml
+      %USERPROFILE%\.dotnet\tools\codecov -f coverage.xml
     displayName: 'Upload to codecov'
