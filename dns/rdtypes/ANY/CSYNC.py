@@ -43,7 +43,7 @@ class CSYNC(dns.rdata.Rdata):
         self.flags = self._as_uint16(flags)
         if not isinstance(windows, Bitmap):
             windows = Bitmap(windows)
-        self.windows = windows.windows
+        self.windows = tuple(windows.windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         text = Bitmap(self.windows).to_text()

@@ -40,7 +40,7 @@ class NSEC(dns.rdata.Rdata):
         self.next = self._as_name(next)
         if not isinstance(windows, Bitmap):
             windows = Bitmap(windows)
-        self.windows = windows.windows
+        self.windows = tuple(windows.windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)

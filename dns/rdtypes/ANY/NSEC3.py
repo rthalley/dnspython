@@ -60,7 +60,7 @@ class NSEC3(dns.rdata.Rdata):
         self.next = self._as_bytes(next, True, 255)
         if not isinstance(windows, Bitmap):
             windows = Bitmap(windows)
-        self.windows = windows.windows
+        self.windows = tuple(windows.windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = base64.b32encode(self.next).translate(
