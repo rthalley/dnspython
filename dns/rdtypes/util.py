@@ -18,22 +18,26 @@
 import struct
 
 import dns.exception
-import dns.name
 import dns.ipv4
 import dns.ipv6
+import dns.name
+import dns.rdata
+
 
 class Gateway:
     """A helper class for the IPSECKEY gateway and AMTRELAY relay fields"""
     name = ""
 
     def __init__(self, type, gateway=None):
-        self.type = type
+        self.type = dns.rdata.Rdata._as_uint8(type)
         self.gateway = gateway
+        self._check()
 
-    def _invalid_type(self):
-        return f"invalid {self.name} type: {self.type}"
+    @classmethod
+    def _invalid_type(cls, gateway_type):
+        return f"invalid {cls.name} type: {gateway_type}"
 
-    def check(self):
+    def _check(self):
         if self.type == 0:
             if self.gateway not in (".", None):
                 raise SyntaxError(f"invalid {self.name} for type 0")
@@ -48,7 +52,7 @@ class Gateway:
             if not isinstance(self.gateway, dns.name.Name):
                 raise SyntaxError(f"invalid {self.name}; not a name")
         else:
-            raise SyntaxError(self._invalid_type())
+            raise SyntaxError(self._invalid_type(self.type))
 
     def to_text(self, origin=None, relativize=True):
         if self.type == 0:
@@ -58,15 +62,19 @@ class Gateway:
         elif self.type == 3:
             return str(self.gateway.choose_relativity(origin, relativize))
         else:
-            raise ValueError(self._invalid_type())
+            raise ValueError(self._invalid_type(self.type))  # pragma: no cover
 
-    def from_text(self, tok, origin=None, relativize=True, relativize_to=None):
-        if self.type in (0, 1, 2):
-            return tok.get_string()
-        elif self.type == 3:
-            return tok.get_name(origin, relativize, relativize_to)
+    @classmethod
+    def from_text(cls, gateway_type, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        if gateway_type in (0, 1, 2):
+            gateway = tok.get_string()
+        elif gateway_type == 3:
+            gateway = tok.get_name(origin, relativize, relativize_to)
         else:
-            raise dns.exception.SyntaxError(self._invalid_type())
+            raise dns.exception.SyntaxError(
+                cls._invalid_type(gateway_type))  # pragma: no cover
+        return cls(gateway_type, gateway)
 
     # pylint: disable=unused-argument
     def to_wire(self, file, compress=None, origin=None, canonicalize=False):
@@ -79,20 +87,23 @@ class Gateway:
         elif self.type == 3:
             self.gateway.to_wire(file, None, origin, False)
         else:
-            raise ValueError(self._invalid_type())
+            raise ValueError(self._invalid_type(self.type))  # pragma: no cover
     # pylint: enable=unused-argument
 
-    def from_wire_parser(self, parser, origin=None):
-        if self.type == 0:
-            return None
-        elif self.type == 1:
-            return dns.ipv4.inet_ntoa(parser.get_bytes(4))
-        elif self.type == 2:
-            return dns.ipv6.inet_ntoa(parser.get_bytes(16))
-        elif self.type == 3:
-            return parser.get_name(origin)
+    @classmethod
+    def from_wire_parser(cls, gateway_type, parser, origin=None):
+        if gateway_type == 0:
+            gateway = None
+        elif gateway_type == 1:
+            gateway = dns.ipv4.inet_ntoa(parser.get_bytes(4))
+        elif gateway_type == 2:
+            gateway = dns.ipv6.inet_ntoa(parser.get_bytes(16))
+        elif gateway_type == 3:
+            gateway = parser.get_name(origin)
         else:
-            raise dns.exception.FormError(self._invalid_type())
+            raise dns.exception.FormError(cls._invalid_type(gateway_type))
+        return cls(gateway_type, gateway)
+
 
 class Bitmap:
     """A helper class for the NSEC/NSEC3/CSYNC type bitmaps"""

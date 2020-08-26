@@ -642,29 +642,18 @@ class RdataTestCase(unittest.TestCase):
 class UtilTestCase(unittest.TestCase):
 
     def test_Gateway_bad_type0(self):
-        g = dns.rdtypes.util.Gateway(0, 'bad.')
         with self.assertRaises(SyntaxError):
-            g.check()
+            dns.rdtypes.util.Gateway(0, 'bad.')
 
     def test_Gateway_bad_type3(self):
-        g = dns.rdtypes.util.Gateway(3, 'bad.')
         with self.assertRaises(SyntaxError):
-            g.check()
+            dns.rdtypes.util.Gateway(3, 'bad.')
 
     def test_Gateway_type4(self):
-        g = dns.rdtypes.util.Gateway(4)
         with self.assertRaises(SyntaxError):
-            g.check()
-        with self.assertRaises(ValueError):
-            g.to_text()
-        with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('bogus')
-            g.from_text(tok)
-        with self.assertRaises(ValueError):
-            f = io.BytesIO()
-            g.to_wire(f)
+            dns.rdtypes.util.Gateway(4)
         with self.assertRaises(dns.exception.FormError):
-            g.from_wire_parser(None)
+            dns.rdtypes.util.Gateway.from_wire_parser(4, None)
 
     def test_Bitmap(self):
         b = dns.rdtypes.util.Bitmap
