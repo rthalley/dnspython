@@ -225,11 +225,8 @@ class MandatoryParam(Param):
 @dns.immutable.immutable
 class ALPNParam(Param):
     def __init__(self, ids):
-        for id in ids:
-            id = dns.rdata.Rdata._as_bytes(id, True, 255)
-            if len(id) == 0:
-                raise dns.exception.FormError('empty ALPN')
-        self.ids = tuple(ids)
+        self.ids = dns.rdata.Rdata._as_tuple(
+            ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False))
 
     @classmethod
     def from_value(cls, value):
@@ -307,10 +304,8 @@ class PortParam(Param):
 @dns.immutable.immutable
 class IPv4HintParam(Param):
     def __init__(self, addresses):
-        for address in addresses:
-            # check validity
-            dns.ipv4.inet_aton(address)
-        self.addresses = tuple(addresses)
+        self.addresses = dns.rdata.Rdata._as_tuple(
+            addresses, dns.rdata.Rdata._as_ipv4_address)
 
     @classmethod
     def from_value(cls, value):
@@ -336,10 +331,8 @@ class IPv4HintParam(Param):
 @dns.immutable.immutable
 class IPv6HintParam(Param):
     def __init__(self, addresses):
-        for address in addresses:
-            # check validity
-            dns.ipv6.inet_aton(address)
-        self.addresses = tuple(addresses)
+        self.addresses = dns.rdata.Rdata._as_tuple(
+            addresses, dns.rdata.Rdata._as_ipv6_address)
 
     @classmethod
     def from_value(cls, value):
@@ -429,7 +422,11 @@ class SVCBBase(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.priority = self._as_uint16(priority)
         self.target = self._as_name(target)
-        self.params = dns.immutable.constify(params)
+        for k, v in params.items():
+            k = ParamKey.make(k)
+            if not isinstance(v, Param) and v is not None:
+                raise ValueError("not a Param")
+        self.params = dns.immutable.Dict(params)
         # Make sure any paramater listed as mandatory is present in the
         # record.
         mandatory = params.get(ParamKey.MANDATORY)

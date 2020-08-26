@@ -41,11 +41,9 @@ class CSYNC(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.serial = self._as_uint32(serial)
         self.flags = self._as_uint16(flags)
-        if isinstance(windows, Bitmap):
-            bitmap = windows
-        else:
-            bitmap = Bitmap(windows)
-        self.windows = tuple(bitmap.windows)
+        if not isinstance(windows, Bitmap):
+            windows = Bitmap(windows)
+        self.windows = windows.windows
 
     def to_text(self, origin=None, relativize=True, **kw):
         text = Bitmap(self.windows).to_text()

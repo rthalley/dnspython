@@ -39,7 +39,7 @@ class HIP(dns.rdata.Rdata):
         self.hit = self._as_bytes(hit, True, 255)
         self.algorithm = self._as_uint8(algorithm)
         self.key = self._as_bytes(key, True)
-        self.servers = tuple([self._as_name(s) for s in servers])
+        self.servers = self._as_tuple(servers, self._as_name)
 
     def to_text(self, origin=None, relativize=True, **kw):
         hit = binascii.hexlify(self.hit).decode()

@@ -42,13 +42,8 @@ class TXTBase(dns.rdata.Rdata):
         *strings*, a tuple of ``bytes``
         """
         super().__init__(rdclass, rdtype)
-        if isinstance(strings, (bytes, str)):
-            strings = (strings,)
-        encoded_strings = []
-        for string in strings:
-            string = self._as_bytes(string, True, 255)
-            encoded_strings.append(string)
-        self.strings = tuple(encoded_strings)
+        self.strings = self._as_tuple(strings,
+                                      lambda x: self._as_bytes(x, True, 255))
 
     def to_text(self, origin=None, relativize=True, **kw):
         txt = ''

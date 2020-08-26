@@ -38,11 +38,9 @@ class NSEC(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, next, windows):
         super().__init__(rdclass, rdtype)
         self.next = self._as_name(next)
-        if isinstance(windows, Bitmap):
-            bitmap = windows
-        else:
-            bitmap = Bitmap(windows)
-        self.windows = tuple(bitmap.windows)
+        if not isinstance(windows, Bitmap):
+            windows = Bitmap(windows)
+        self.windows = windows.windows
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)

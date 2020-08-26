@@ -65,6 +65,7 @@ def _base64ify(data, chunksize=_chunksize):
 
     return _wordbreak(base64.b64encode(data), chunksize)
 
+
 __escaped = b'"\\'
 
 def _escapify(qstring):
@@ -347,7 +348,7 @@ class Rdata:
         return dns.rdatatype.RdataType.make(value)
 
     @classmethod
-    def _as_bytes(cls, value, encode=False, max_length=None):
+    def _as_bytes(cls, value, encode=False, max_length=None, empty_ok=True):
         if encode and isinstance(value, str):
             value = value.encode()
         elif isinstance(value, bytearray):
@@ -356,6 +357,8 @@ class Rdata:
             raise ValueError('not bytes')
         if max_length is not None and len(value) > max_length:
             raise ValueError('too long')
+        if not empty_ok and len(value) == 0:
+            raise ValueError('empty bytes not allowed')
         return value
 
     @classmethod
@@ -448,6 +451,17 @@ class Rdata:
             value = dns.ttl.from_text(value)
         else:
             raise ValueError('not a TTL')
+
+    @classmethod
+    def _as_tuple(cls, value, as_value):
+        try:
+            # For user convenience, if value is a singleton of the list
+            # element type, wrap it in a tuple.
+            return (as_value(value),)
+        except Exception:
+            # Otherwise, check each element of the iterable *value*
+            # against *as_value*.
+            return tuple(as_value(v) for v in value)
 
 
 class GenericRdata(Rdata):
