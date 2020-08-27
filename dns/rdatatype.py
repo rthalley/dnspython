@@ -72,6 +72,7 @@ class RdataType(dns.enum.IntEnum):
     NSEC3 = 50
     NSEC3PARAM = 51
     TLSA = 52
+    SMIMEA = 53
     HIP = 55
     NINFO = 56
     CDS = 59
@@ -272,6 +273,7 @@ DHCID = RdataType.DHCID
 NSEC3 = RdataType.NSEC3
 NSEC3PARAM = RdataType.NSEC3PARAM
 TLSA = RdataType.TLSA
+SMIMEA = RdataType.SMIMEA
 HIP = RdataType.HIP
 NINFO = RdataType.NINFO
 CDS = RdataType.CDS

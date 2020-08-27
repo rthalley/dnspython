@@ -638,6 +638,18 @@ class RdataTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('in', 'txt', 'a' * 256)
 
+    def equal_smimea(self, a, b):
+        a = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SMIMEA, a)
+        b = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SMIMEA, b)
+        self.assertEqual(a, b)
+
+    def test_good_SMIMEA(self):
+        self.equal_smimea('3 0 1 aabbccddeeff', '3 0 01 AABBCCDDEEFF')
+
+    def test_bad_SMIMEA(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SMIMEA, '1 1 1 aGVsbG8gd29ybGQh')
+
 
 class UtilTestCase(unittest.TestCase):
 

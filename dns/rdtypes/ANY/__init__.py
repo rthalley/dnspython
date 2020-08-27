@@ -48,6 +48,7 @@ __all__ = [
     'RP',
     'RRSIG',
     'RT',
+    'SMIMEA',
     'SOA',
     'SPF',
     'SSHFP',
