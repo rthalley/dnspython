@@ -22,7 +22,7 @@ What's New in dnspython
 
 * The default EDNS payload size has changed from 1280 to 1232.
 
-* The SVCB and HTTPS RR types are now supported.
+* The SVCB, HTTPS, and SMIMEA RR types are now supported.
 
 * TSIG has been enhanced with TKEY and GSS-TSIG support.  Thanks to
   Nick Hall for writing this.
