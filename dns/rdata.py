@@ -324,11 +324,7 @@ class Rdata:
         args = (kwargs.get(key, getattr(self, key)) for key in parameters)
 
         # Create, validate, and return the new object.
-        #
-        # Note that if we make constructors do validation in the future,
-        # this validation can go away.
         rd = self.__class__(*args)
-        dns.rdata.from_text(rd.rdclass, rd.rdtype, rd.to_text())
         # The comment is not set in the constructor, so give it special
         # handling.
         rdcomment = kwargs.get('rdcomment', self.rdcomment)
