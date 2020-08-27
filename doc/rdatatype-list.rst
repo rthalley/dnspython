@@ -111,6 +111,8 @@ Rdatatypes
    :annotation: = 46
 .. py:data:: dns.rdatatype.RT
    :annotation: = 21
+.. py:data:: dns.rdatatype.SMIMEA
+   :annotation: = 53
 .. py:data:: dns.rdatatype.SIG
    :annotation: = 24
 .. py:data:: dns.rdatatype.SOA

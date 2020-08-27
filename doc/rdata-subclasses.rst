@@ -433,6 +433,25 @@ Rdata Subclass Reference
 
       A ``dns.name.Name``, the exchange name.
       
+.. autoclass:: dns.rdtypes.ANY.SMIMEA.SMIMEA
+   :members:
+
+   .. attribute:: usage
+
+      An ``int``, the certificate usage.
+
+   .. attribute:: selector
+
+      An ``int``, the selector.
+
+   .. attribute:: mtype
+
+      An ``int``, the matching type.
+
+   .. attribute:: cert
+
+      A ``bytes``, the certificate association data.
+
 .. autoclass:: dns.rdtypes.ANY.SOA.SOA
    :members:
 

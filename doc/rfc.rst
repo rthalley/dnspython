@@ -141,6 +141,8 @@ PTR
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_
 RRSIG
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
+SMIMEA
+    `RFC 8162 <https://tools.ietf.org/html/rfc8162>`_
 SOA
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_
 SPF
