@@ -1,8 +1,9 @@
-import dns.rdatatype
-from dns.rdtypes.ANY.TLSA import TLSA
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+import dns.immutable
+import dns.rdtypes.tlsabase
 
 
 @dns.immutable.immutable
-class SMIMEA(TLSA):
-    """SMIMEA record, same format as TLSA per
-    https://tools.ietf.org/html/rfc8162#section-2"""
+class SMIMEA(dns.rdtypes.tlsabase.TLSABase):
+    """SMIMEA record"""
