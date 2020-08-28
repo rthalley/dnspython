@@ -1,5 +1,5 @@
 Rdatatypes
-==========
+----------
 
 .. py:data:: dns.rdatatype.A
    :annotation: = 1
@@ -9,6 +9,8 @@ Rdatatypes
    :annotation: = 28
 .. py:data:: dns.rdatatype.AFSDB
    :annotation: = 18
+.. py:data:: dns.rdatatype.AMTRELAY
+   :annotation: = 259
 .. py:data:: dns.rdatatype.ANY
    :annotation: = 255
 .. py:data:: dns.rdatatype.APL
@@ -49,6 +51,8 @@ Rdatatypes
    :annotation: = 13
 .. py:data:: dns.rdatatype.HIP
    :annotation: = 55
+.. py:data:: dns.rdatatype.HTTPS
+   :annotation: = 65
 .. py:data:: dns.rdatatype.IPSECKEY
    :annotation: = 45
 .. py:data:: dns.rdatatype.ISDN
@@ -81,13 +85,13 @@ Rdatatypes
    :annotation: = 15
 .. py:data:: dns.rdatatype.NAPTR
    :annotation: = 35
-.. py:data:: dns.rdatatype.NONE
-   :annotation: = 0
+.. py:data:: dns.rdatatype.NINFO
+   :annotation: = 56
 .. py:data:: dns.rdatatype.NS
    :annotation: = 2
 .. py:data:: dns.rdatatype.NSAP
    :annotation: = 22
-.. py:data:: dns.rdatatype.NSAP-PTR
+.. py:data:: dns.rdatatype.NSAP_PTR
    :annotation: = 23
 .. py:data:: dns.rdatatype.NSEC
    :annotation: = 47
@@ -99,6 +103,8 @@ Rdatatypes
    :annotation: = 10
 .. py:data:: dns.rdatatype.NXT
    :annotation: = 30
+.. py:data:: dns.rdatatype.OPENPGPKEY
+   :annotation: = 61
 .. py:data:: dns.rdatatype.OPT
    :annotation: = 41
 .. py:data:: dns.rdatatype.PTR
@@ -111,10 +117,10 @@ Rdatatypes
    :annotation: = 46
 .. py:data:: dns.rdatatype.RT
    :annotation: = 21
-.. py:data:: dns.rdatatype.SMIMEA
-   :annotation: = 53
 .. py:data:: dns.rdatatype.SIG
    :annotation: = 24
+.. py:data:: dns.rdatatype.SMIMEA
+   :annotation: = 53
 .. py:data:: dns.rdatatype.SOA
    :annotation: = 6
 .. py:data:: dns.rdatatype.SPF
@@ -123,6 +129,8 @@ Rdatatypes
    :annotation: = 33
 .. py:data:: dns.rdatatype.SSHFP
    :annotation: = 44
+.. py:data:: dns.rdatatype.SVCB
+   :annotation: = 64
 .. py:data:: dns.rdatatype.TA
    :annotation: = 32768
 .. py:data:: dns.rdatatype.TKEY
@@ -133,6 +141,8 @@ Rdatatypes
    :annotation: = 250
 .. py:data:: dns.rdatatype.TXT
    :annotation: = 16
+.. py:data:: dns.rdatatype.TYPE0
+   :annotation: = 0
 .. py:data:: dns.rdatatype.UNSPEC
    :annotation: = 103
 .. py:data:: dns.rdatatype.URI
