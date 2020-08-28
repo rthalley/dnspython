@@ -54,7 +54,8 @@ except Exception:
 
 KNOWN_ANYCAST_DOH_RESOLVER_URLS = ['https://cloudflare-dns.com/dns-query',
                                    'https://dns.google/dns-query',
-                                   'https://dns11.quad9.net/dns-query']
+                                   # 'https://dns11.quad9.net/dns-query',
+                                   ]
 
 # Some tests require the internet to be available to run, so let's
 # skip those if it's not there.
