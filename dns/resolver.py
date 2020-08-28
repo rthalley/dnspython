@@ -703,7 +703,7 @@ class _Resolution:
                                 dns.rcode.to_text(rcode), response))
             return (None, False)
 
-class Resolver:
+class BaseResolver:
     """DNS stub resolver."""
 
     # We initialize in reset()
@@ -1032,6 +1032,72 @@ class Resolver:
                 qnames_to_try.append(abs_qname)
         return qnames_to_try
 
+    def use_tsig(self, keyring, keyname=None,
+                 algorithm=dns.tsig.default_algorithm):
+        """Add a TSIG signature to each query.
+
+        The parameters are passed to ``dns.message.Message.use_tsig()``;
+        see its documentation for details.
+        """
+
+        self.keyring = keyring
+        self.keyname = keyname
+        self.keyalgorithm = algorithm
+
+    def use_edns(self, edns=0, ednsflags=0,
+                 payload=dns.message.DEFAULT_EDNS_PAYLOAD):
+        """Configure EDNS behavior.
+
+        *edns*, an ``int``, is the EDNS level to use.  Specifying
+        ``None``, ``False``, or ``-1`` means "do not use EDNS", and in this case
+        the other parameters are ignored.  Specifying ``True`` is
+        equivalent to specifying 0, i.e. "use EDNS0".
+
+        *ednsflags*, an ``int``, the EDNS flag values.
+
+        *payload*, an ``int``, is the EDNS sender's payload field, which is the
+        maximum size of UDP datagram the sender can handle.  I.e. how big
+        a response to this message can be.
+        """
+
+        if edns is None or edns is False:
+            edns = -1
+        elif edns is True:
+            edns = 0
+        self.edns = edns
+        self.ednsflags = ednsflags
+        self.payload = payload
+
+    def set_flags(self, flags):
+        """Overrides the default flags with your own.
+
+        *flags*, an ``int``, the message flags to use.
+        """
+
+        self.flags = flags
+
+    @property
+    def nameservers(self):
+        return self._nameservers
+
+    @nameservers.setter
+    def nameservers(self, nameservers):
+        """
+        *nameservers*, a ``list`` of nameservers.
+
+        Raises ``ValueError`` if *nameservers* is anything other than a
+        ``list``.
+        """
+        if isinstance(nameservers, list):
+            self._nameservers = nameservers
+        else:
+            raise ValueError('nameservers must be a list'
+                             ' (not a {})'.format(type(nameservers)))
+
+
+class Resolver(BaseResolver):
+    """DNS stub resolver."""
+
     def resolve(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                 tcp=False, source=None, raise_on_no_answer=True, source_port=0,
                 lifetime=None, search=None):  # pylint: disable=arguments-differ
@@ -1197,67 +1263,6 @@ class Resolver:
 
     # pylint: enable=redefined-outer-name
 
-    def use_tsig(self, keyring, keyname=None,
-                 algorithm=dns.tsig.default_algorithm):
-        """Add a TSIG signature to each query.
-
-        The parameters are passed to ``dns.message.Message.use_tsig()``;
-        see its documentation for details.
-        """
-
-        self.keyring = keyring
-        self.keyname = keyname
-        self.keyalgorithm = algorithm
-
-    def use_edns(self, edns=0, ednsflags=0,
-                 payload=dns.message.DEFAULT_EDNS_PAYLOAD):
-        """Configure EDNS behavior.
-
-        *edns*, an ``int``, is the EDNS level to use.  Specifying
-        ``None``, ``False``, or ``-1`` means "do not use EDNS", and in this case
-        the other parameters are ignored.  Specifying ``True`` is
-        equivalent to specifying 0, i.e. "use EDNS0".
-
-        *ednsflags*, an ``int``, the EDNS flag values.
-
-        *payload*, an ``int``, is the EDNS sender's payload field, which is the
-        maximum size of UDP datagram the sender can handle.  I.e. how big
-        a response to this message can be.
-        """
-
-        if edns is None or edns is False:
-            edns = -1
-        elif edns is True:
-            edns = 0
-        self.edns = edns
-        self.ednsflags = ednsflags
-        self.payload = payload
-
-    def set_flags(self, flags):
-        """Overrides the default flags with your own.
-
-        *flags*, an ``int``, the message flags to use.
-        """
-
-        self.flags = flags
-
-    @property
-    def nameservers(self):
-        return self._nameservers
-
-    @nameservers.setter
-    def nameservers(self, nameservers):
-        """
-        *nameservers*, a ``list`` of nameservers.
-
-        Raises ``ValueError`` if *nameservers* is anything other than a
-        ``list``.
-        """
-        if isinstance(nameservers, list):
-            self._nameservers = nameservers
-        else:
-            raise ValueError('nameservers must be a list'
-                             ' (not a {})'.format(type(nameservers)))
 
 #: The default resolver.
 default_resolver = None
