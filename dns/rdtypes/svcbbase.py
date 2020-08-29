@@ -534,3 +534,10 @@ class SVCBBase(dns.rdata.Rdata):
                 value = pcls.from_wire_parser(parser, origin)
             params[key] = value
         return cls(rdclass, rdtype, priority, target, params)
+
+    def _processing_priority(self):
+        return self.priority
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.priority_processing_order(iterable)

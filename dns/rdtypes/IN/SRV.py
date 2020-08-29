@@ -63,3 +63,13 @@ class SRV(dns.rdata.Rdata):
         (priority, weight, port) = parser.get_struct('!HHH')
         target = parser.get_name(origin)
         return cls(rdclass, rdtype, priority, weight, port, target)
+
+    def _processing_priority(self):
+        return self.priority
+
+    def _processing_weight(self):
+        return self.weight
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.weighted_processing_order(iterable, True)

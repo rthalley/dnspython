@@ -23,6 +23,7 @@ import dns.exception
 import dns.immutable
 import dns.rdata
 import dns.name
+import dns.rdtypes.util
 
 
 @dns.immutable.immutable
@@ -58,6 +59,13 @@ class MXBase(dns.rdata.Rdata):
         preference = parser.get_uint16()
         exchange = parser.get_name(origin)
         return cls(rdclass, rdtype, preference, exchange)
+
+    def _processing_priority(self):
+        return self.preference
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.priority_processing_order(iterable)
 
 
 @dns.immutable.immutable

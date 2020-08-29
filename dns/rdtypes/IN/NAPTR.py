@@ -89,3 +89,10 @@ class NAPTR(dns.rdata.Rdata):
         replacement = parser.get_name(origin)
         return cls(rdclass, rdtype, order, preference, strings[0], strings[1],
                    strings[2], replacement)
+
+    def _processing_priority(self):
+        return (self.order, self.preference)
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.priority_processing_order(iterable)

@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import random
 import struct
 
 import dns.exception
@@ -183,3 +184,63 @@ class Bitmap:
             bitmap = parser.get_counted_bytes()
             windows.append((window, bitmap))
         return cls(windows)
+
+
+def _priority_table(items):
+    by_priority = {}
+    for rdata in items:
+        key = rdata._processing_priority()
+        rdatas = by_priority.get(key)
+        if rdatas is None:
+            rdatas = []
+            by_priority[key] = rdatas
+        rdatas.append(rdata)
+    return by_priority
+
+def priority_processing_order(iterable):
+    items = list(iterable)
+    if len(items) == 1:
+        return [items[0]]
+    by_priority = _priority_table(items)
+    ordered = []
+    for k in sorted(by_priority.keys()):
+        rdatas = by_priority[k]
+        random.shuffle(rdatas)
+        ordered.extend(rdatas)
+    return ordered
+
+def _processing_weight(rdata, adjust_zero_weight):
+    weight = rdata._processing_weight()
+    if weight == 0 and adjust_zero_weight:
+        return 0.1
+    else:
+        return weight
+
+def weighted_processing_order(iterable, adjust_zero_weight=False):
+    items = list(iterable)
+    if len(items) == 1:
+        return [items[0]]
+    by_priority = _priority_table(items)
+    ordered = []
+    for k in sorted(by_priority.keys()):
+        weights_vary = False
+        weights = []
+        rdatas = by_priority[k]
+        for rdata in rdatas:
+            weight = _processing_weight(rdata, adjust_zero_weight)
+            if len(weights) > 0 and weight != weights[-1]:
+                weights_vary = True
+            weights.append(weight)
+        if weights_vary:
+            while len(rdatas) > 1:
+                items = random.choices(rdatas, weights)
+                rdata = items[0]
+                ordered.append(rdata)
+                rdatas.remove(rdata)
+                weight = _processing_weight(rdata, adjust_zero_weight)
+                weights.remove(weight)
+            ordered.append(rdatas[0])
+        else:
+            random.shuffle(rdatas)
+            ordered.extend(rdatas)
+    return ordered
