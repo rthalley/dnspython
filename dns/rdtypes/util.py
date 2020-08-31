@@ -240,6 +240,11 @@ def weighted_processing_order(iterable, adjust_zero_weight=False):
                 weight = _processing_weight(rdata, adjust_zero_weight)
                 weights.remove(weight)
             ordered.append(rdatas[0])
+        elif weights[0] == 0:
+            # All the weights are 0!  (This can't happen with SRV, but
+            # can with URI.  It's not clear from the URI RFC what you do here
+            # as it doesn't discuss weight.
+            return []
         else:
             random.shuffle(rdatas)
             ordered.extend(rdatas)
