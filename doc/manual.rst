@@ -15,3 +15,4 @@ Dnspython Manual
    async
    exceptions
    utilities
+   typing
