@@ -444,7 +444,7 @@ class Rdata:
         if isinstance(value, int):
             return cls._as_int(value, 0, dns.ttl.MAX_TTL)
         elif isinstance(value, str):
-            value = dns.ttl.from_text(value)
+            return dns.ttl.from_text(value)
         else:
             raise ValueError('not a TTL')
 
