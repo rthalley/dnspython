@@ -91,8 +91,6 @@ class WritableVersion(Version):
         if name in self.nodes:
             del self.nodes[name]
             self.changed.add(name)
-            return True
-        return False
 
     def put_rdataset(self, name, rdataset):
         node = self._maybe_cow(name)
@@ -100,12 +98,9 @@ class WritableVersion(Version):
 
     def delete_rdataset(self, name, rdtype, covers):
         node = self._maybe_cow(name)
-        if not node.get_rdataset(self.zone.rdclass, rdtype, covers):
-            return False
         node.delete_rdataset(self.zone.rdclass, rdtype, covers)
         if len(node) == 0:
             del self.nodes[name]
-        return True
 
 
 @dns.immutable.immutable
