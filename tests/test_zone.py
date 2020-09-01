@@ -820,11 +820,57 @@ class VersionedZoneTestCase(unittest.TestCase):
         with self.assertRaises(dns.versioned.UseTransaction):
             z.replace_rdataset('not_there', None)
 
+    def testImmutableNodes(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        node = z.find_node('@')
+        with self.assertRaises(TypeError):
+            node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.RP,
+                               create=True)
+        with self.assertRaises(TypeError):
+            node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.RP,
+                               create=True)
+        with self.assertRaises(TypeError):
+            node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
+        with self.assertRaises(TypeError):
+            node.replace_rdataset(None)
+
     def testSelectDefaultPruningPolicy(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True,
                                zone_factory=dns.versioned.Zone)
         z.set_pruning_policy(None)
         self.assertEqual(z._pruning_policy, z._default_pruning_policy)
+
+    def testSetAlternatePruningPolicyInConstructor(self):
+        def never_prune(version):
+            return False
+        z = dns.versioned.Zone('example', pruning_policy=never_prune)
+        self.assertEqual(z._pruning_policy, never_prune)
+
+    def testCannotSpecifyBothSerialAndVersionIdToReader(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        with self.assertRaises(ValueError):
+            z.reader(1, 1)
+
+    def testUnknownVersion(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        with self.assertRaises(KeyError):
+            z.reader(99999)
+
+    def testUnknownSerial(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        with self.assertRaises(KeyError):
+            z.reader(serial=99999)
+
+    def testNoRelativizeReader(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=False,
+                               zone_factory=dns.versioned.Zone)
+        with z.reader(serial=1) as txn:
+            rds = txn.get('example.', 'soa')
+            self.assertEqual(rds[0].serial, 1)
 
 if __name__ == '__main__':
     unittest.main()
