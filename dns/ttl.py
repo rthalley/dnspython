@@ -73,3 +73,12 @@ def from_text(text):
     if total < 0 or total > MAX_TTL:
         raise BadTTL("TTL should be between 0 and 2^31 - 1 (inclusive)")
     return total
+
+
+def make(value):
+    if isinstance(value, int):
+        return value
+    elif isinstance(value, str):
+        return dns.ttl.from_text(value)
+    else:
+        raise ValueError('cannot convert value to TTL')

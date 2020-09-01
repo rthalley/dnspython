@@ -35,6 +35,7 @@ from dns.rdtypes.ANY.GPOS import GPOS
 import dns.rdtypes.ANY.RRSIG
 import dns.rdtypes.util
 import dns.tokenizer
+import dns.ttl
 import dns.wire
 
 import tests.stxt_module
@@ -742,6 +743,17 @@ class UtilTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX,
                                 r'\# 4 000aC000')
+
+    def test_rdataset_ttl_conversion(self):
+        rds1 = dns.rdataset.from_text('in', 'a', 300, '10.0.0.1')
+        self.assertEqual(rds1.ttl, 300)
+        rds2 = dns.rdataset.from_text('in', 'a', '5m', '10.0.0.1')
+        self.assertEqual(rds2.ttl, 300)
+        with self.assertRaises(ValueError):
+            dns.rdataset.from_text('in', 'a', 1.6, '10.0.0.1')
+        with self.assertRaises(dns.ttl.BadTTL):
+            dns.rdataset.from_text('in', 'a', '10.0.0.1', '10.0.0.2')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -80,9 +80,9 @@ class Rdataset(dns.set.Set):
         TTL or the specified TTL.  If the set contains no rdatas, set the TTL
         to the specified TTL.
 
-        *ttl*, an ``int``.
+        *ttl*, an ``int`` or ``str``.
         """
-
+        ttl = dns.ttl.make(ttl)
         if len(self) == 0:
             self.ttl = ttl
         elif ttl < self.ttl:
