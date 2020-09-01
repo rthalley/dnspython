@@ -32,6 +32,7 @@ import dns.rdataset
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
+import dns.versioned
 import dns.zone
 import dns.node
 
@@ -800,6 +801,30 @@ class ZoneTestCase(unittest.TestCase):
         self.assertEqual(rds, rrs)
         self.assertTrue(rds is not rrs)
         self.assertFalse(isinstance(rds, dns.rrset.RRset))
+
+
+class VersionedZoneTestCase(unittest.TestCase):
+    def testUseTransaction(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        with self.assertRaises(dns.versioned.UseTransaction):
+            z.find_node('not_there', True)
+        with self.assertRaises(dns.versioned.UseTransaction):
+            z.delete_node('not_there')
+        with self.assertRaises(dns.versioned.UseTransaction):
+            z.find_rdataset('not_there', 'a', create=True)
+        with self.assertRaises(dns.versioned.UseTransaction):
+            z.get_rdataset('not_there', 'a', create=True)
+        with self.assertRaises(dns.versioned.UseTransaction):
+            z.delete_rdataset('not_there', 'a')
+        with self.assertRaises(dns.versioned.UseTransaction):
+            z.replace_rdataset('not_there', None)
+
+    def testSelectDefaultPruningPolicy(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        z.set_pruning_policy(None)
+        self.assertEqual(z._pruning_policy, z._default_pruning_policy)
 
 if __name__ == '__main__':
     unittest.main()
