@@ -540,3 +540,32 @@ class LowLevelWaitTests(unittest.TestCase):
         finally:
             l.close()
             r.close()
+
+
+class MiscTests(unittest.TestCase):
+    def test_matches_destination(self):
+        self.assertTrue(dns.query._matches_destination(socket.AF_INET,
+                                                       ('10.0.0.1', 1234),
+                                                       ('10.0.0.1', 1234),
+                                                       True))
+        self.assertTrue(dns.query._matches_destination(socket.AF_INET6,
+                                                       ('1::2', 1234),
+                                                       ('0001::2', 1234),
+                                                       True))
+        self.assertTrue(dns.query._matches_destination(socket.AF_INET,
+                                                       ('10.0.0.1', 1234),
+                                                       None,
+                                                       True))
+        self.assertFalse(dns.query._matches_destination(socket.AF_INET,
+                                                        ('10.0.0.1', 1234),
+                                                        ('10.0.0.2', 1234),
+                                                        True))
+        self.assertFalse(dns.query._matches_destination(socket.AF_INET,
+                                                        ('10.0.0.1', 1234),
+                                                        ('10.0.0.1', 1235),
+                                                        True))
+        with self.assertRaises(dns.query.UnexpectedSource):
+            dns.query._matches_destination(socket.AF_INET,
+                                           ('10.0.0.1', 1234),
+                                           ('10.0.0.1', 1235),
+                                           False)
