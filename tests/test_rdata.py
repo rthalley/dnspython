@@ -755,5 +755,78 @@ class UtilTestCase(unittest.TestCase):
             dns.rdataset.from_text('in', 'a', '10.0.0.1', '10.0.0.2')
 
 
+Rdata = dns.rdata.Rdata
+
+
+class RdataConvertersTestCase(unittest.TestCase):
+    def test_as_name(self):
+        n = dns.name.from_text('hi')
+        self.assertEqual(Rdata._as_name(n), n)
+        self.assertEqual(Rdata._as_name('hi'), n)
+        with self.assertRaises(ValueError):
+            Rdata._as_name(100)
+
+    def test_as_uint8(self):
+        self.assertEqual(Rdata._as_uint8(0), 0)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint8('hi')
+        with self.assertRaises(ValueError):
+            Rdata._as_uint8(-1)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint8(256)
+
+    def test_as_uint16(self):
+        self.assertEqual(Rdata._as_uint16(0), 0)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint16('hi')
+        with self.assertRaises(ValueError):
+            Rdata._as_uint16(-1)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint16(65536)
+
+    def test_as_uint32(self):
+        self.assertEqual(Rdata._as_uint32(0), 0)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint32('hi')
+        with self.assertRaises(ValueError):
+            Rdata._as_uint32(-1)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint32(2 ** 32)
+
+    def test_as_uint48(self):
+        self.assertEqual(Rdata._as_uint48(0), 0)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint48('hi')
+        with self.assertRaises(ValueError):
+            Rdata._as_uint48(-1)
+        with self.assertRaises(ValueError):
+            Rdata._as_uint48(2 ** 48)
+
+    def test_as_int(self):
+        self.assertEqual(Rdata._as_int(0, 0, 10), 0)
+        with self.assertRaises(ValueError):
+            Rdata._as_int('hi', 0, 10)
+        with self.assertRaises(ValueError):
+            Rdata._as_int(-1, 0, 10)
+        with self.assertRaises(ValueError):
+            Rdata._as_int(11, 0, 10)
+
+    def test_as_bool(self):
+        self.assertEqual(Rdata._as_bool(True), True)
+        self.assertEqual(Rdata._as_bool(False), False)
+        with self.assertRaises(ValueError):
+            Rdata._as_bool('hi')
+
+    def test_as_ttl(self):
+        self.assertEqual(Rdata._as_ttl(300), 300)
+        self.assertEqual(Rdata._as_ttl('5m'), 300)
+        self.assertEqual(Rdata._as_ttl(dns.ttl.MAX_TTL), dns.ttl.MAX_TTL)
+        with self.assertRaises(dns.ttl.BadTTL):
+            Rdata._as_ttl('hi')
+        with self.assertRaises(ValueError):
+            Rdata._as_ttl(1.9)
+        with self.assertRaises(ValueError):
+            Rdata._as_ttl(dns.ttl.MAX_TTL + 1)
+
 if __name__ == '__main__':
     unittest.main()
