@@ -351,7 +351,8 @@ class Message:
                     return rrset
             else:
                 for rrset in section:
-                    if rrset.match(name, rdclass, rdtype, covers, deleting):
+                    if rrset.full_match(name, rdclass, rdtype, covers,
+                                        deleting):
                         return rrset
         if not create:
             raise KeyError
