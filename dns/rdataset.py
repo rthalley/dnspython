@@ -196,6 +196,9 @@ class Rdataset(dns.set.Set):
         *relativize*, a ``bool``.  If ``True``, names will be relativized
         to *origin*.
 
+        *override_rdclass*, a ``dns.rdataclass.RdataClass`` or ``None``.
+        If not ``None``, use this class instead of the Rdataset's class.
+
         *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
         which have them.  The default is ``False``.
         """
