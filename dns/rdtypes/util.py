@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import collections
 import random
 import struct
 
@@ -187,20 +188,16 @@ class Bitmap:
 
 
 def _priority_table(items):
-    by_priority = {}
+    by_priority = collections.defaultdict(list)
     for rdata in items:
         key = rdata._processing_priority()
-        rdatas = by_priority.get(key)
-        if rdatas is None:
-            rdatas = []
-            by_priority[key] = rdatas
-        rdatas.append(rdata)
+        by_priority[rdata._processing_priority()].append(rdata)
     return by_priority
 
 def priority_processing_order(iterable):
     items = list(iterable)
     if len(items) == 1:
-        return [items[0]]
+        return items
     by_priority = _priority_table(items)
     ordered = []
     for k in sorted(by_priority.keys()):
@@ -219,7 +216,7 @@ def _processing_weight(rdata, adjust_zero_weight):
 def weighted_processing_order(iterable, adjust_zero_weight=False):
     items = list(iterable)
     if len(items) == 1:
-        return [items[0]]
+        return items
     by_priority = _priority_table(items)
     ordered = []
     for k in sorted(by_priority.keys()):
