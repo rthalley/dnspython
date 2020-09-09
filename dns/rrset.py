@@ -76,22 +76,37 @@ class RRset(dns.rdataset.Rdataset):
             return False
         return super().__eq__(other)
 
-    # pylint: disable=arguments-differ
+    def match(self, *args, **kwargs):
+        """Does this rrset match the specified attributes?
 
-    def match(self, name, rdclass, rdtype, covers,
-              deleting=None):
-        """Returns ``True`` if this rrset matches the specified class, type,
-        covers, and deletion state.
+        Behaves as :py:func:`full_match()` if the first argument is a
+        ``dns.name.Name``, and as :py:func:`dns.rdataset.Rdataset.match()`
+        otherwise.
+
+        (This behavior fixes a design mistake where the signature of this
+        method became incompatible with that of its superclass.  The fix
+        makes RRsets matchable as Rdatasets while preserving backwards
+        compatibility.)
         """
+        if isinstance(args[0], dns.name.Name):
+            return self.full_match(*args, **kwargs)
+        else:
+            return super().match(*args, **kwargs)
 
+    def full_match(self, name, rdclass, rdtype, covers,
+                    deleting=None):
+        """Returns ``True`` if this rrset matches the specified name, class,
+        type, covers, and deletion state.
+        """
         if not super().match(rdclass, rdtype, covers):
             return False
         if self.name != name or self.deleting != deleting:
             return False
         return True
 
-    def to_text(self, origin=None, relativize=True,
-                **kw):
+    # pylint: disable=arguments-differ
+
+    def to_text(self, origin=None, relativize=True, **kw):
         """Convert the RRset into DNS zone file format.
 
         See ``dns.name.Name.choose_relativity`` for more information

@@ -79,42 +79,54 @@ class RRsetTestCase(unittest.TestCase):
         self.assertFalse(r1 is r2)
         self.assertTrue(r1 == r2)
 
-    def testMatch1(self):
+    def testFullMatch1(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        self.assertTrue(r1.full_match(r1.name, dns.rdataclass.IN,
+                                      dns.rdatatype.A, dns.rdatatype.NONE))
+
+    def testFullMatch2(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        r1.deleting = dns.rdataclass.NONE
+        self.assertTrue(r1.full_match(r1.name, dns.rdataclass.IN,
+                                      dns.rdatatype.A, dns.rdatatype.NONE,
+                                      dns.rdataclass.NONE))
+
+    def testNoFullMatch1(self):
+        n = dns.name.from_text('bar', None)
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        self.assertFalse(r1.full_match(n, dns.rdataclass.IN,
+                                       dns.rdatatype.A, dns.rdatatype.NONE,
+                                       dns.rdataclass.ANY))
+
+    def testNoFullMatch2(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        r1.deleting = dns.rdataclass.NONE
+        self.assertFalse(r1.full_match(r1.name, dns.rdataclass.IN,
+                                       dns.rdatatype.A, dns.rdatatype.NONE,
+                                       dns.rdataclass.ANY))
+
+    def testNoFullMatch3(self):
+        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
+                                      ['10.0.0.1', '10.0.0.2'])
+        self.assertFalse(r1.full_match(r1.name, dns.rdataclass.IN,
+                                       dns.rdatatype.MX, dns.rdatatype.NONE,
+                                       dns.rdataclass.ANY))
+
+    def testMatchCompatibilityWithFullMatch(self):
         r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
                                       ['10.0.0.1', '10.0.0.2'])
         self.assertTrue(r1.match(r1.name, dns.rdataclass.IN,
                                  dns.rdatatype.A, dns.rdatatype.NONE))
 
-    def testMatch2(self):
+    def testMatchCompatibilityWithRdatasetMatch(self):
         r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
                                       ['10.0.0.1', '10.0.0.2'])
-        r1.deleting = dns.rdataclass.NONE
-        self.assertTrue(r1.match(r1.name, dns.rdataclass.IN,
-                                 dns.rdatatype.A, dns.rdatatype.NONE,
-                                 dns.rdataclass.NONE))
-
-    def testNoMatch1(self):
-        n = dns.name.from_text('bar', None)
-        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
-                                      ['10.0.0.1', '10.0.0.2'])
-        self.assertFalse(r1.match(n, dns.rdataclass.IN,
-                                  dns.rdatatype.A, dns.rdatatype.NONE,
-                                  dns.rdataclass.ANY))
-
-    def testNoMatch2(self):
-        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
-                                      ['10.0.0.1', '10.0.0.2'])
-        r1.deleting = dns.rdataclass.NONE
-        self.assertFalse(r1.match(r1.name, dns.rdataclass.IN,
-                                  dns.rdatatype.A, dns.rdatatype.NONE,
-                                  dns.rdataclass.ANY))
-
-    def testNoMatch3(self):
-        r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
-                                      ['10.0.0.1', '10.0.0.2'])
-        self.assertFalse(r1.match(r1.name, dns.rdataclass.IN,
-                                  dns.rdatatype.MX, dns.rdatatype.NONE,
-                                  dns.rdataclass.ANY))
+        self.assertTrue(r1.match(dns.rdataclass.IN, dns.rdatatype.A,
+                                 dns.rdatatype.NONE))
 
     def testToRdataset(self):
         r1 = dns.rrset.from_text_list('foo', 30, 'in', 'a',
