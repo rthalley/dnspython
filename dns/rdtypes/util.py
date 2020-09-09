@@ -190,7 +190,6 @@ class Bitmap:
 def _priority_table(items):
     by_priority = collections.defaultdict(list)
     for rdata in items:
-        key = rdata._processing_priority()
         by_priority[rdata._processing_priority()].append(rdata)
     return by_priority
 
@@ -206,43 +205,27 @@ def priority_processing_order(iterable):
         ordered.extend(rdatas)
     return ordered
 
-def _processing_weight(rdata, adjust_zero_weight):
-    weight = rdata._processing_weight()
-    if weight == 0 and adjust_zero_weight:
-        return 0.1
-    else:
-        return weight
+_no_weight = 0.1
 
-def weighted_processing_order(iterable, adjust_zero_weight=False):
+def weighted_processing_order(iterable):
     items = list(iterable)
     if len(items) == 1:
         return items
     by_priority = _priority_table(items)
     ordered = []
     for k in sorted(by_priority.keys()):
-        weights_vary = False
-        weights = []
         rdatas = by_priority[k]
-        for rdata in rdatas:
-            weight = _processing_weight(rdata, adjust_zero_weight)
-            if len(weights) > 0 and weight != weights[-1]:
-                weights_vary = True
-            weights.append(weight)
-        if weights_vary:
-            while len(rdatas) > 1:
-                items = random.choices(rdatas, weights)
-                rdata = items[0]
-                ordered.append(rdata)
-                rdatas.remove(rdata)
-                weight = _processing_weight(rdata, adjust_zero_weight)
-                weights.remove(weight)
-            ordered.append(rdatas[0])
-        elif weights[0] == 0:
-            # All the weights are 0!  (This can't happen with SRV, but
-            # can with URI.  It's not clear from the URI RFC what you do here
-            # as it doesn't discuss weight.
-            return []
-        else:
-            random.shuffle(rdatas)
-            ordered.extend(rdatas)
+        total = sum(rdata._processing_weight() or _no_weight
+                    for rdata in rdatas)
+        while len(rdatas) > 1:
+            r = random.uniform(0, total)
+            for (n, rdata) in enumerate(rdatas):
+                weight = rdata._processing_weight() or _no_weight
+                if weight > r:
+                    break
+                r -= weight
+            total -= weight
+            ordered.append(rdata)
+            del rdatas[n]
+        ordered.append(rdatas[0])
     return ordered

@@ -76,4 +76,4 @@ class URI(dns.rdata.Rdata):
 
     @classmethod
     def _processing_order(cls, iterable):
-        return dns.rdtypes.util.weighted_processing_order(iterable, False)
+        return dns.rdtypes.util.weighted_processing_order(iterable)

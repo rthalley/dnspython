@@ -102,12 +102,3 @@ def test_processing_all_zero_weight_srv():
             assert rds[j] in po
         seen.add(tuple(po))
     assert len(seen) == 6
-
-
-def test_processing_all_zero_weight_uri():
-    rds = dns.rdataset.from_text('in', 'uri', 300,
-                                 '10 0 "ftp://ftp1.example.com/public"',
-                                 '10 0 "ftp://ftp2.example.com/public"',
-                                 '10 0 "ftp://ftp3.example.com/public"')
-    po = rds.processing_order()
-    assert len(po) == 0
