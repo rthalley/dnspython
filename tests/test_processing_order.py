@@ -102,3 +102,31 @@ def test_processing_all_zero_weight_srv():
             assert rds[j] in po
         seen.add(tuple(po))
     assert len(seen) == 6
+
+
+def test_processing_order_uri():
+    # We're testing here just to provide coverage for URI methods; the
+    # testing of the weighting algorithm is done above in tests with
+    # SRV.
+    rds = dns.rdataset.from_text('in', 'uri', 300,
+                                 '1 1 "ftp://ftp1.example.com/public"',
+                                 '2 2 "ftp://ftp2.example.com/public"',
+                                 '3 3 "ftp://ftp3.example.com/public"')
+    po = rds.processing_order()
+    assert len(po) == 3
+    for i in range(3):
+        assert po[i] == rds[i]
+
+
+def test_processing_order_svcb():
+    # We're testing here just to provide coverage for SVCB methods; the
+    # testing of the priority algorithm is done above in tests with
+    # MX and NAPTR.
+    rds = dns.rdataset.from_text('in', 'svcb', 300,
+                                 "1 . mandatory=alpn alpn=h2",
+                                 "2 . mandatory=alpn alpn=h2",
+                                 "3 . mandatory=alpn alpn=h2")
+    po = rds.processing_order()
+    assert len(po) == 3
+    for i in range(3):
+        assert po[i] == rds[i]
