@@ -67,3 +67,13 @@ class URI(dns.rdata.Rdata):
         if len(target) == 0:
             raise dns.exception.FormError('URI target may not be empty')
         return cls(rdclass, rdtype, priority, weight, target)
+
+    def _processing_priority(self):
+        return self.priority
+
+    def _processing_weight(self):
+        return self.weight
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.weighted_processing_order(iterable)

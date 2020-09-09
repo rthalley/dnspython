@@ -63,3 +63,10 @@ class PX(dns.rdata.Rdata):
         map822 = parser.get_name(origin)
         mapx400 = parser.get_name(origin)
         return cls(rdclass, rdtype, preference, map822, mapx400)
+
+    def _processing_priority(self):
+        return self.preference
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.priority_processing_order(iterable)

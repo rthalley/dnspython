@@ -15,6 +15,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import collections
+import random
 import struct
 
 import dns.exception
@@ -183,3 +185,47 @@ class Bitmap:
             bitmap = parser.get_counted_bytes()
             windows.append((window, bitmap))
         return cls(windows)
+
+
+def _priority_table(items):
+    by_priority = collections.defaultdict(list)
+    for rdata in items:
+        by_priority[rdata._processing_priority()].append(rdata)
+    return by_priority
+
+def priority_processing_order(iterable):
+    items = list(iterable)
+    if len(items) == 1:
+        return items
+    by_priority = _priority_table(items)
+    ordered = []
+    for k in sorted(by_priority.keys()):
+        rdatas = by_priority[k]
+        random.shuffle(rdatas)
+        ordered.extend(rdatas)
+    return ordered
+
+_no_weight = 0.1
+
+def weighted_processing_order(iterable):
+    items = list(iterable)
+    if len(items) == 1:
+        return items
+    by_priority = _priority_table(items)
+    ordered = []
+    for k in sorted(by_priority.keys()):
+        rdatas = by_priority[k]
+        total = sum(rdata._processing_weight() or _no_weight
+                    for rdata in rdatas)
+        while len(rdatas) > 1:
+            r = random.uniform(0, total)
+            for (n, rdata) in enumerate(rdatas):
+                weight = rdata._processing_weight() or _no_weight
+                if weight > r:
+                    break
+                r -= weight
+            total -= weight
+            ordered.append(rdata)
+            del rdatas[n]
+        ordered.append(rdatas[0])
+    return ordered

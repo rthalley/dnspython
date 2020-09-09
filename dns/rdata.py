@@ -23,6 +23,7 @@ import binascii
 import io
 import inspect
 import itertools
+import random
 
 import dns.wire
 import dns.exception
@@ -458,6 +459,14 @@ class Rdata:
             # Otherwise, check each element of the iterable *value*
             # against *as_value*.
             return tuple(as_value(v) for v in value)
+
+    # Processing order
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        items = list(iterable)
+        random.shuffle(items)
+        return items
 
 
 class GenericRdata(Rdata):

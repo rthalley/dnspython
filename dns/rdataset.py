@@ -309,6 +309,20 @@ class Rdataset(dns.set.Set):
             return True
         return False
 
+    def processing_order(self):
+        """Return rdatas in a valid processing order according to the type's
+        specification.  For example, MX records are in preference order from
+        lowest to highest preferences, with items of the same perference
+        shuffled.
+
+        For types that do not define a processing order, the rdatas are
+        simply shuffled.
+        """
+        if len(self) == 0:
+            return []
+        else:
+            return self[0]._processing_order(iter(self))
+
 
 @dns.immutable.immutable
 class ImmutableRdataset(Rdataset):
