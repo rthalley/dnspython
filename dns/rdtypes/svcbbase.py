@@ -497,7 +497,7 @@ class SVCBBase(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack("!H", self.priority))
-        self.target.to_wire(file, compress, origin, canonicalize)
+        self.target.to_wire(file, None, origin, canonicalize)
         for key in sorted(self.params):
             file.write(struct.pack("!H", key))
             value = self.params[key]

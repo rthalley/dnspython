@@ -1,9 +1,11 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import io
 import unittest
 
 import dns.rdata
 import dns.rdtypes.svcbbase
+import dns.rrset
 
 class SVCBTestCase(unittest.TestCase):
     def check_valid_inputs(self, inputs):
@@ -310,3 +312,15 @@ class SVCBTestCase(unittest.TestCase):
             alpn.ids = 'foo'
         with self.assertRaises(TypeError):
             del alpn.ids
+
+    def test_alias_not_compressed(self):
+        rrs = dns.rrset.from_text('elsewhere.', 300, 'in', 'svcb',
+                                  '0 elsewhere.')
+        output = io.BytesIO()
+        compress = {}
+        rrs.to_wire(output, compress)
+        wire = output.getvalue()
+        # Just one of these assertions is enough, but we do both to show
+        # the bug we're checking is fixed.
+        assert not wire.endswith(b'\xc0\x00')
+        assert wire.endswith(b'\x09elsewhere\x00')
