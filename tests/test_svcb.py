@@ -315,7 +315,7 @@ class SVCBTestCase(unittest.TestCase):
 
     def test_alias_not_compressed(self):
         rrs = dns.rrset.from_text('elsewhere.', 300, 'in', 'svcb',
-                                  '0 elsewhere.')
+                                  '0 elseWhere.')
         output = io.BytesIO()
         compress = {}
         rrs.to_wire(output, compress)
@@ -323,4 +323,4 @@ class SVCBTestCase(unittest.TestCase):
         # Just one of these assertions is enough, but we do both to show
         # the bug we're checking is fixed.
         assert not wire.endswith(b'\xc0\x00')
-        assert wire.endswith(b'\x09elsewhere\x00')
+        assert wire.endswith(b'\x09elseWhere\x00')
