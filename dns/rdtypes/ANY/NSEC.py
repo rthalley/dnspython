@@ -55,6 +55,8 @@ class NSEC(dns.rdata.Rdata):
         return cls(rdclass, rdtype, next, windows)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        # Note that NSEC downcasing, originally mandated by RFC 4034
+        # section 6.2 was removed by RFC 6840 section 5.1.
         self.next.to_wire(file, None, origin, False)
         Bitmap(self.windows).to_wire(file)
 
