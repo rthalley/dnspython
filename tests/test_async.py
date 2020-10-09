@@ -248,7 +248,7 @@ class AsyncTests(unittest.TestCase):
             qname = dns.name.from_text('dns.google.')
             async def run():
                 q = dns.message.make_query(qname, dns.rdatatype.A)
-                return await dns.asyncquery.udp(q, address)
+                return await dns.asyncquery.udp(q, address, timeout=2)
             response = self.async_run(run)
             rrs = response.get_rrset(response.answer, qname,
                                      dns.rdataclass.IN, dns.rdatatype.A)
@@ -265,7 +265,8 @@ class AsyncTests(unittest.TestCase):
                         dns.inet.af_for_address(address),
                         socket.SOCK_DGRAM) as s:
                     q = dns.message.make_query(qname, dns.rdatatype.A)
-                    return await dns.asyncquery.udp(q, address, sock=s)
+                    return await dns.asyncquery.udp(q, address, sock=s,
+                                                    timeout=2)
             response = self.async_run(run)
             rrs = response.get_rrset(response.answer, qname,
                                      dns.rdataclass.IN, dns.rdatatype.A)
@@ -279,7 +280,7 @@ class AsyncTests(unittest.TestCase):
             qname = dns.name.from_text('dns.google.')
             async def run():
                 q = dns.message.make_query(qname, dns.rdatatype.A)
-                return await dns.asyncquery.tcp(q, address)
+                return await dns.asyncquery.tcp(q, address, timeout=2)
             response = self.async_run(run)
             rrs = response.get_rrset(response.answer, qname,
                                      dns.rdataclass.IN, dns.rdatatype.A)
@@ -296,11 +297,12 @@ class AsyncTests(unittest.TestCase):
                         dns.inet.af_for_address(address),
                         socket.SOCK_STREAM, 0,
                         None,
-                        (address, 53)) as s:
+                        (address, 53), 2) as s:
                     # for basic coverage
                     await s.getsockname()
                     q = dns.message.make_query(qname, dns.rdatatype.A)
-                    return await dns.asyncquery.tcp(q, address, sock=s)
+                    return await dns.asyncquery.tcp(q, address, sock=s,
+                                                    timeout=2)
             response = self.async_run(run)
             rrs = response.get_rrset(response.answer, qname,
                                      dns.rdataclass.IN, dns.rdatatype.A)
@@ -315,7 +317,7 @@ class AsyncTests(unittest.TestCase):
             qname = dns.name.from_text('dns.google.')
             async def run():
                 q = dns.message.make_query(qname, dns.rdatatype.A)
-                return await dns.asyncquery.tls(q, address)
+                return await dns.asyncquery.tls(q, address, timeout=2)
             response = self.async_run(run)
             rrs = response.get_rrset(response.answer, qname,
                                      dns.rdataclass.IN, dns.rdatatype.A)
@@ -335,12 +337,13 @@ class AsyncTests(unittest.TestCase):
                         dns.inet.af_for_address(address),
                         socket.SOCK_STREAM, 0,
                         None,
-                        (address, 853), None,
+                        (address, 853), 2,
                         ssl_context, None) as s:
                     # for basic coverage
                     await s.getsockname()
                     q = dns.message.make_query(qname, dns.rdatatype.A)
-                    return await dns.asyncquery.tls(q, '8.8.8.8', sock=s)
+                    return await dns.asyncquery.tls(q, '8.8.8.8', sock=s,
+                                                    timeout=2)
             response = self.async_run(run)
             rrs = response.get_rrset(response.answer, qname,
                                      dns.rdataclass.IN, dns.rdatatype.A)
@@ -354,7 +357,8 @@ class AsyncTests(unittest.TestCase):
             qname = dns.name.from_text('.')
             async def run():
                 q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
-                return await dns.asyncquery.udp_with_fallback(q, address)
+                return await dns.asyncquery.udp_with_fallback(q, address,
+                                                              timeout=2)
             (_, tcp) = self.async_run(run)
             self.assertTrue(tcp)
 
@@ -363,7 +367,8 @@ class AsyncTests(unittest.TestCase):
             qname = dns.name.from_text('dns.google.')
             async def run():
                 q = dns.message.make_query(qname, dns.rdatatype.A)
-                return await dns.asyncquery.udp_with_fallback(q, address)
+                return await dns.asyncquery.udp_with_fallback(q, address,
+                                                              timeout=2)
             (_, tcp) = self.async_run(run)
             self.assertFalse(tcp)
 
