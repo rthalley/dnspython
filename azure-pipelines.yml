@@ -22,6 +22,7 @@ jobs:
 
   - script: |
       python -m pip install --upgrade pip
+      python -m pip install setuptools wheel
       pip install -e .[dnssec,idna,doh,trio,curio]
     displayName: 'Install python dependencies'
 
