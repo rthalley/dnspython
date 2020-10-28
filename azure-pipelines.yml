@@ -12,13 +12,17 @@ jobs:
     vmImage: 'vs2017-win2016'
   strategy:
     matrix:
-      Python37:
-        python.version: '3.7'
+      Python38:
+        python.version: '3.8'
   steps:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '$(python.version)'
     displayName: 'Use Python $(python.version)'
+
+  - script: |
+      pip install --upgrade pip wheel
+    displayName: 'Install pip and wheel'
 
   - script: |
       pip install -e .[dnssec,idna,doh,trio,curio]
