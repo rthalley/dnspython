@@ -20,9 +20,9 @@ jobs:
       versionSpec: '$(python.version)'
     displayName: 'Use Python $(python.version)'
 
-  - script: |
-      python -m pip install --upgrade pip wheel setuptools
-    displayName: 'Install pip and wheel'
+#  - script: |
+#      python -m pip install --upgrade pip wheel setuptools
+#    displayName: 'Install pip and wheel'
 
   - script: |
       python -m pip install -e .[dnssec,idna,doh,trio,curio]
