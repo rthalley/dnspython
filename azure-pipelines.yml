@@ -25,7 +25,8 @@ jobs:
 #    displayName: 'Install pip and wheel'
 
   - script: |
-      python -m pip install -e .[dnssec,idna,doh,trio,curio]
+      python -m pip install requests requests-toolbelt idna cryptography
+      python -m pip install trio sniffio curio
     displayName: 'Install python dependencies'
 
   - script: |
