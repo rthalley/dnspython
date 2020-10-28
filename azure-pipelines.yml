@@ -21,7 +21,7 @@ jobs:
     displayName: 'Use Python $(python.version)'
 
   - script: |
-      pip install --upgrade pip wheel
+      pip install --upgrade pip wheel setuptools
     displayName: 'Install pip and wheel'
 
   - script: |
