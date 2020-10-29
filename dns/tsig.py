@@ -336,3 +336,8 @@ class Key:
                 self.name == other.name and
                 self.secret == other.secret and
                 self.algorithm == other.algorithm)
+
+    def __repr__(self):
+        return f"<DNS key name='{self.name}', " + \
+               f"algorithm='{self.algorithm}', " + \
+               f"secret='{base64.b64encode(self.secret).decode()}'>"
