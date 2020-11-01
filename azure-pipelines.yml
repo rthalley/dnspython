@@ -25,17 +25,25 @@ jobs:
 #    displayName: 'Install pip and wheel'
 
   - script: |
-      python -m pip install requests requests-toolbelt idna cryptography
-      python -m pip install trio sniffio curio
+      (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python -
+    displayName: 'Install Poetry
+
+  - script: |
+     %USERPROFILE%\.poetry\bin\poetry install -E dnssec -E doh -E idna -E trio -E curio
     displayName: 'Install python dependencies'
+
+#  - script: |
+#      python -m pip install requests requests-toolbelt idna cryptography
+#      python -m pip install trio sniffio curio
+#    displayName: 'Install python dependencies'
 
   - script: |
       dotnet tool install --global Codecov.Tool
     displayName: 'Install Codecov.Tool'
 
   - script: |
-      python -m pip install pytest pytest-cov pytest-azurepipelines
-      pytest --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+      %USERPROFILE%\.poetry\bin\poetry run python -m pip install pytest-azurepipelines
+      %USERPROFILE%\.poetry\bin\poetry run pytest --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
     displayName: 'pytest'
 
   - task: PublishTestResults@2
