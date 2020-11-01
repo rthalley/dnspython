@@ -24,7 +24,7 @@ jobs:
 #      python -m pip install --upgrade pip wheel setuptools
 #    displayName: 'Install pip and wheel'
 
-  - script:
+  - powershell:
       (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python -
     displayName: 'Install Poetry'
 
