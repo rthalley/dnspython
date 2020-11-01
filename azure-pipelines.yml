@@ -24,12 +24,12 @@ jobs:
 #      python -m pip install --upgrade pip wheel setuptools
 #    displayName: 'Install pip and wheel'
 
-  - script: |
+  - script:
       (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python -
-    displayName: 'Install Poetry
+    displayName: 'Install Poetry'
 
   - script: |
-     %USERPROFILE%\.poetry\bin\poetry install -E dnssec -E doh -E idna -E trio -E curio
+      %USERPROFILE%\.poetry\bin\poetry install -E dnssec -E doh -E idna -E trio -E curio
     displayName: 'Install python dependencies'
 
 #  - script: |
