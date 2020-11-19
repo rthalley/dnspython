@@ -207,6 +207,7 @@ class OverrideSystemResolverUsingFakeResolverTestCase(unittest.TestCase):
             socket.gethostbyaddr('bogus')
 
 
+@unittest.skipIf(not _network_available, "Internet not reachable")
 class OverrideSystemResolverUsingDefaultResolverTestCase(unittest.TestCase):
 
     def setUp(self):
