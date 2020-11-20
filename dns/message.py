@@ -726,9 +726,14 @@ class Message:
 
 
 class QueryMessage(Message):
-    def resolve_chaining(self):
-        """Follow the CNAME chain in the response to determine the answer
-        RRset.
+    def follow_chain(self, qclass=None, qname=None, qtype=None):
+        """Follow the CNAME chain in the response until answer is found.
+
+        *qclass*, *qname*, and *qtype* can define alternative starting point
+        in the answer section. Default is question[0].
+
+        Raises ``dns.exception.FormError`` if the question was not specified
+        and question count is not 1.
 
         Raises ``dns.message.NotQueryResponse`` if the message is not
         a response.
@@ -738,35 +743,41 @@ class QueryMessage(Message):
         Raises ``dns.message.AnswerForNXDOMAIN`` if the rcode is NXDOMAIN
         but an answer was found.
 
-        Raises ``dns.exception.FormError`` if the question count is not 1.
-
-        Returns a tuple (dns.name.Name, int, rrset) where the name is the
-        canonical name, the int is the minimized TTL, and rrset is their
-        answer RRset, which may be ``None`` if the chain was dangling or
-        the response is an NXDOMAIN.
-
+        Returns a tuple ([answer], [authority], int, string) where
+        the answer list contains whole chain of CNAMEs and final RR set,
+        the authority list contains delegation pointed to by answer chain
+        or SOA RR if relevant to NODATA/NXDOMAIN answer,
+        the int is the minimized TTL from the whole chain,
+        and result is string 'found' if answer chain ends with desired RRset,
+        'nodata' if RRset is missing, 'delegation' if chain encountered a delegation,
+        or 'nxdomain' if the final chain transition lead to a non-existent name.
         """
         if self.flags & dns.flags.QR == 0:
             raise NotQueryResponse
-        if len(self.question) != 1:
-            raise dns.exception.FormError
-        question = self.question[0]
-        qname = question.name
+        if qclass is None or qname is None or qtype is None:
+            if len(self.question) != 1:
+                raise dns.exception.FormError
+            q = self.question[0]
+            qclass = q.rdclass
+            qname = q.name
+            qtype = q.rdtype
         min_ttl = dns.ttl.MAX_TTL
-        rrset = None
+        answ_rrsets = []
+        auth_rrsets = []
         count = 0
         while count < MAX_CHAIN:
             try:
-                rrset = self.find_rrset(self.answer, qname, question.rdclass,
-                                        question.rdtype)
+                rrset = self.find_rrset(self.answer, qname, qclass, qtype)
+                answ_rrsets.append(rrset)
                 min_ttl = min(min_ttl, rrset.ttl)
                 break
             except KeyError:
-                if question.rdtype != dns.rdatatype.CNAME:
+                if qtype != dns.rdatatype.CNAME:
                     try:
                         crrset = self.find_rrset(self.answer, qname,
-                                                 question.rdclass,
+                                                 qclass,
                                                  dns.rdatatype.CNAME)
+                        answ_rrsets.append(crrset)
                         min_ttl = min(min_ttl, crrset.ttl)
                         for rd in crrset:
                             qname = rd.target
@@ -778,26 +789,65 @@ class QueryMessage(Message):
                         break
         if count >= MAX_CHAIN:
             raise ChainTooLong
-        if self.rcode() == dns.rcode.NXDOMAIN and rrset is not None:
-            raise AnswerForNXDOMAIN
-        if rrset is None:
+        result = None
+        if answ_rrsets and answ_rrsets[-1].rdtype == qtype:
+            result = 'found'  # a positive answer
+        else:
+            result = 'nodata'
+        if self.rcode() == dns.rcode.NXDOMAIN:
+            if result == 'found':
+                raise AnswerForNXDOMAIN
+            else:
+                result = 'nxdomain'
+        # continue chase in Authority section (including dangling CNAMEs)
+        if not answ_rrsets or answ_rrsets[-1].rdtype != qtype:
             # Further minimize the TTL with NCACHE.
             auname = qname
             while True:
                 # Look for an SOA RR whose owner name is a superdomain
                 # of qname.
-                try:
-                    srrset = self.find_rrset(self.authority, auname,
-                                             question.rdclass,
-                                             dns.rdatatype.SOA)
+                srrset = self.get_rrset(self.authority, auname, qclass,
+                                        dns.rdatatype.SOA)
+                if srrset:
+                    auth_rrsets.append(srrset)
                     min_ttl = min(min_ttl, srrset.ttl, srrset[0].minimum)
                     break
-                except KeyError:
-                    try:
-                        auname = auname.parent()
-                    except dns.name.NoParent:
-                        break
-        return (qname, min_ttl, rrset)
+                # ... or a delegation
+                nrrset = self.get_rrset(self.authority, auname, qclass,
+                                        dns.rdatatype.NS)
+                if nrrset:
+                    auth_rrsets.append(nrrset)
+                    min_ttl = min(min_ttl, nrrset.ttl)
+                    result = 'delegation'  # chain leading to a different zone
+                    break
+                try:
+                    auname = auname.parent()
+                except dns.name.NoParent:
+                    break
+        return (answ_rrsets, auth_rrsets, min_ttl, result)
+
+    def resolve_chaining(self):
+        """Follow the CNAME chain in the response to determine the answer
+        RRset.
+
+        Returns a tuple (dns.name.Name, int, rrset) where the name is the
+        canonical name, the int is the minimized TTL, and rrset is their
+        answer RRset, which may be ``None`` if the chain was dangling or
+        the response is an NXDOMAIN.
+
+        """
+        answ, auth, min_ttl, result = self.follow_chain()
+        rrset = None
+        if answ:
+            if answ[-1].rdtype == dns.rdatatype.CNAME:
+                # dangling CNAME
+                cname = answ[-1][0].target
+            else:
+                cname = answ[-1].name
+                rrset = answ[-1]
+        else:
+            cname = self.question[0].name
+        return (cname, min_ttl, rrset)
 
     def canonical_name(self):
         """Return the canonical name of the first name in the question

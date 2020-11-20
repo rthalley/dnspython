@@ -16,8 +16,9 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import unittest
 import binascii
+import random
+import unittest
 
 import dns.exception
 import dns.flags
@@ -107,6 +108,91 @@ flags QR AA RD
 Königsgäßchen. IN NS
 ;ANSWER
 Königsgäßchen. 3600 IN NS Königsgäßchen.
+"""
+
+answer_deleg_text = """id 21628
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+deleg1.test. IN NS
+;ANSWER
+deleg1.test. 88888 IN CNAME deleg2.deleg1.test.
+deleg2.deleg1.test. 8888 IN CNAME deleg3.test.
+deleg3.test. 888 IN CNAME deleg4.test.
+deleg4.test. 888 IN CNAME deleg5.test.
+deleg5.test. 888 IN CNAME deleg6.test.
+deleg6.test. 888 IN CNAME deleg7.test.
+deleg7.test. 8 IN CNAME deleg8.test.
+deleg8.test. 888 IN CNAME deleg9.test.
+deleg9.test. 888 IN CNAME deleg10.test.
+deleg10.test. 88 IN CNAME target.deleg.test.
+;AUTHORITY
+deleg.test. 3600 IN NS ns1.deleg.test.
+deleg.test. 3600 IN NS ns2.deleg.test.
+;ADDITIONAL
+ns1.deleg.test.		878	IN	A	127.0.0.1
+"""
+
+answer_noerror_text = """id 4107
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+txt1.test. IN TXT
+;ANSWER
+txt1.test. 1 IN CNAME txt2.txt1.test.
+txt2.txt1.test. 2 IN CNAME txt3.txt2.txt1.test.
+txt3.txt2.txt1.test. 3 IN CNAME txt4.txt3.txt2.txt1.test.
+txt4.txt3.txt2.txt1.test. 4 IN CNAME txt5.test.
+txt5.test. 5 IN CNAME txt6.test.
+txt6.test. 6 IN CNAME txt7.test.
+txt7.test. 7 IN CNAME txt8.test.
+txt8.test. 8 IN CNAME txt9.txt8.test.
+txt9.txt8.test. 9 IN CNAME txt10.txt9.txt8.test.
+txt10.txt9.txt8.test. 0 IN TXT "TXT is the only type here"
+;AUTHORITY
+test.			878	IN	NS	ns1.test.
+test.			878	IN	NS	ns2.test.
+;ADDITIONAL
+ns1.test.		878	IN	A	127.0.0.1
+"""
+
+answer_nodata_text = """id 49397
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+txt1.test. IN A
+;ANSWER
+txt1.test.		1	IN	CNAME	txt2.txt1.test.
+txt2.txt1.test.		2	IN	CNAME	txt3.txt2.txt1.test.
+txt3.txt2.txt1.test.	3	IN	CNAME	txt4.txt3.txt2.txt1.test.
+txt4.txt3.txt2.txt1.test. 3	IN	CNAME	txt5.dname.test.
+dname.test.		10	IN	DNAME	test.
+txt5.dname.test.	10	IN	CNAME	txt5.test.
+txt5.test.		5	IN	CNAME	txt6.test.
+txt6.test.		6	IN	CNAME	txt7.test.
+txt7.test.		7	IN	CNAME	txt8.test.
+txt8.test.		8	IN	CNAME	txt9.txt8.test.
+txt9.txt8.test.		9	IN	CNAME	txt10.txt9.txt8.test.
+;AUTHORITY
+test.			878	IN	SOA	. . 1573663168 900 300 604800 900
+;ADDITIONAL
+"""
+
+answer_nxdomain_text = """id 14672
+opcode QUERY
+rcode NXDOMAIN
+flags QR AA RD
+;QUESTION
+nonexistent.test. IN A
+;ANSWER
+nonexistent.test. 600 IN CNAME really-nonexistent.test.
+really-nonexistent.test. 300 IN CNAME really-really-nonexistent.test.
+;AUTHORITY
+test. 200 IN SOA . . 1573663168 900 300 604800 100
+;ADDITIONAL
 """
 
 class MessageTestCase(unittest.TestCase):
@@ -549,6 +635,65 @@ class MessageTestCase(unittest.TestCase):
                      force_unique=True)
         with self.assertRaises(dns.exception.FormError):
             r.resolve_chaining()
+
+    def test_deleg_resolve_chaining(self):
+        r = dns.message.from_text(answer_deleg_text)
+        q = r.question[0]
+        answ_exp = r.answer[:]
+        random.shuffle(r.answer)
+        answ, auth, mttl, result = r.follow_chain(q.rdclass, q.name, q.rdtype)
+        self.assertEqual(answ, answ_exp)
+        self.assertEqual(auth, r.authority)
+        self.assertEqual(mttl, 8)
+        self.assertEqual(result, 'delegation')
+
+    def test_noerror_resolve_chaining(self):
+        r = dns.message.from_text(answer_noerror_text)
+        q = r.question[0]
+        answ_exp = r.answer[:]
+        random.shuffle(r.answer)
+        answ, auth, mttl, result = r.follow_chain(q.rdclass, q.name, q.rdtype)
+        self.assertEqual(answ, answ_exp)
+        self.assertEqual(auth, [])
+        self.assertEqual(mttl, 0)
+        self.assertEqual(result, 'found')
+
+    def test_noerror2_resolve_chaining(self):
+        r = dns.message.from_text(answer_text)
+        random.shuffle(r.answer)
+        q = r.question[0]
+        answ, auth, mttl, result = r.follow_chain(q.rdclass, q.name, q.rdtype)
+        self.assertEqual(answ, r.answer)
+        # extra records nobody asked for are not present
+        self.assertEqual(auth, [])
+        self.assertEqual(mttl, 3600)
+        self.assertEqual(result, 'found')
+
+    def test_nodata_resolve_chaining(self):
+        r = dns.message.from_text(answer_nodata_text)
+        q = r.question[0]
+        # skip DNAME and keep synthetised CNAMEs
+        answ_exp = list(rrset for rrset in r.answer if rrset.rdtype == dns.rdatatype.CNAME)
+        random.shuffle(r.answer)
+        answ, auth, mttl, result = r.follow_chain(q.rdclass, q.name, q.rdtype)
+        self.assertEqual(answ, answ_exp)
+        self.assertEqual(auth, r.authority)
+        self.assertEqual(mttl, 1)  # minimal CNAME TTL
+        self.assertEqual(result, 'nodata')
+
+    def test_nxdomain_resolve_chaining(self):
+        r = dns.message.from_text(answer_nxdomain_text)
+        q = r.question[0]
+        answ_exp = r.answer[:]
+        random.shuffle(r.answer)
+        answ, auth, mttl, result = r.follow_chain(q.rdclass, q.name, q.rdtype)
+        self.assertEqual(answ, answ_exp)
+        # SOA must be present
+        self.assertEqual(auth, r.authority)
+        self.assertEqual(mttl, 100)  # SOA minimum
+        self.assertEqual(result, 'nxdomain')
+
+
 
     def test_bad_text_questions(self):
         with self.assertRaises(dns.exception.SyntaxError):
