@@ -280,7 +280,6 @@ class AddressesEqualTestCase(unittest.TestCase):
 
 
 axfr_zone = '''
-$ORIGIN example.
 $TTL 300
 @ SOA ns1 root 1 7200 900 1209600 86400
 @ NS ns1
@@ -292,7 +291,7 @@ ns2 A 10.0.0.1
 class AXFRNanoNameserver(Server):
 
     def handle(self, request):
-        self.zone = dns.zone.from_text(axfr_zone, origin='example')
+        self.zone = dns.zone.from_text(axfr_zone, origin=self.origin)
         self.origin = self.zone.origin
         items = []
         soa = self.zone.find_rrset(dns.name.empty, dns.rdatatype.SOA)
@@ -385,7 +384,7 @@ class XfrTests(unittest.TestCase):
 
     def test_axfr(self):
         expected = dns.zone.from_text(axfr_zone, origin='example')
-        with AXFRNanoNameserver() as ns:
+        with AXFRNanoNameserver(origin='example') as ns:
             xfr = dns.query.xfr(ns.tcp_address[0], 'example',
                                 port=ns.tcp_address[1])
             zone = dns.zone.from_xfr(xfr)
@@ -393,8 +392,17 @@ class XfrTests(unittest.TestCase):
 
     def test_axfr_tsig(self):
         expected = dns.zone.from_text(axfr_zone, origin='example')
-        with AXFRNanoNameserver(keyring=keyring) as ns:
+        with AXFRNanoNameserver(origin='example', keyring=keyring) as ns:
             xfr = dns.query.xfr(ns.tcp_address[0], 'example',
+                                port=ns.tcp_address[1],
+                                keyring=keyring, keyname='name')
+            zone = dns.zone.from_xfr(xfr)
+            self.assertEqual(zone, expected)
+
+    def test_axfr_root_tsig(self):
+        expected = dns.zone.from_text(axfr_zone, origin='.')
+        with AXFRNanoNameserver(origin='.', keyring=keyring) as ns:
+            xfr = dns.query.xfr(ns.tcp_address[0], '.',
                                 port=ns.tcp_address[1],
                                 keyring=keyring, keyname='name')
             zone = dns.zone.from_xfr(xfr)
@@ -402,7 +410,7 @@ class XfrTests(unittest.TestCase):
 
     def test_axfr_udp(self):
         def bad():
-            with AXFRNanoNameserver() as ns:
+            with AXFRNanoNameserver(origin='example') as ns:
                 xfr = dns.query.xfr(ns.udp_address[0], 'example',
                                     port=ns.udp_address[1], use_udp=True)
                 l = list(xfr)
