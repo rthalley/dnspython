@@ -110,7 +110,7 @@ class TSIG(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        algorithm = parser.get_name(origin)
+        algorithm = parser.get_name()
         time_signed = parser.get_uint48()
         fudge = parser.get_uint16()
         mac = parser.get_counted_bytes(2)
