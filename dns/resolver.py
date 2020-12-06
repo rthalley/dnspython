@@ -724,10 +724,17 @@ class BaseResolver:
 
         self.reset()
         if configure:
-            if sys.platform == 'win32':
-                self.read_registry()
-            elif filename:
+            if filename != '/etc/resolv.conf':
                 self.read_resolv_conf(filename)
+            elif sys.platform == 'win32':
+                self.read_registry()  # pragma: no cover
+            else:
+                self.read_resolv_conf('/etc/resolv.conf')            
+        else:            
+            if sys.platform == 'win32':                
+                self.read_registry()  # pragma: no cover
+            else:
+                self.read_resolv_conf('/etc/resolv.conf')
 
     def reset(self):
         """Reset all resolver configuration to the defaults."""
