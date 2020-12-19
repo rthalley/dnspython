@@ -67,11 +67,11 @@ class TSIG(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         algorithm = self.algorithm.choose_relativity(origin, relativize)
         error = dns.rcode.to_text(self.error, True)
-        text = f"{algorithm} {self.time_signed} {self.fudge} " + \
-               f"{len(self.mac)} {dns.rdata._base64ify(self.mac, 0)} " + \
-               f"{self.original_id} {error} {len(self.other)}"
+        text = "{} {} {} ".format(algorithm, self.time_signed, self.fudge) + \
+               "{} {} ".format(len(self.mac), dns.rdata._base64ify(self.mac, 0)) + \
+               "{} {} {}".format(self.original_id, error, len(self.other))
         if self.other:
-            text += f" {dns.rdata._base64ify(self.other, 0)}"
+            text += " " + dns.rdata._base64ify(self.other, 0)
         return text
 
     @classmethod

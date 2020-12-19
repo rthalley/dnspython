@@ -167,4 +167,4 @@ def low_level_address_tuple(high_tuple, af=None):
             ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
             return tup
     else:
-        raise NotImplementedError(f'unknown address family {af}')
+        raise NotImplementedError("unknown address family {}".format(af))

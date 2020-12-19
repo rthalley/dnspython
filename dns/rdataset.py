@@ -229,7 +229,7 @@ class Rdataset(dns.set.Set):
                 extra = ''
                 if want_comments:
                     if rd.rdcomment:
-                        extra = f' ;{rd.rdcomment}'
+                        extra = ' ;' + rd.rdcomment
                 s.write('%s%s%d %s %s %s%s\n' %
                         (ntext, pad, self.ttl, dns.rdataclass.to_text(rdclass),
                          dns.rdatatype.to_text(self.rdtype),

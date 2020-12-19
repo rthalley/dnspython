@@ -8,7 +8,7 @@ class Serial:
         self.bits = bits
 
     def __repr__(self):
-        return f'dns.serial.Serial({self.value}, {self.bits})'
+        return 'dns.serial.Serial({}, {})'.format(self.value, self.bits)
 
     def __eq__(self, other):
         if isinstance(other, int):

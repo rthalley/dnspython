@@ -167,8 +167,8 @@ def _matches_destination(af, from_address, destination, ignore_unexpected):
         return True
     elif ignore_unexpected:
         return False
-    raise UnexpectedSource(f'got a response from {from_address} instead of '
-                           f'{destination}')
+    raise UnexpectedSource('got a response from ' + from_address + ' instead of ' +
+                           destination)
 
 
 def _destination_and_source(where, port, source, source_port,

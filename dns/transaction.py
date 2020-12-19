@@ -277,7 +277,7 @@ class Transaction:
 
     def _raise_if_not_empty(self, method, args):
         if len(args) != 0:
-            raise TypeError(f'extra parameters to {method}')
+            raise TypeError('extra parameters to ' + method)
 
     def _rdataset_from_args(self, method, deleting, args):
         try:
@@ -293,21 +293,21 @@ class Transaction:
                     if isinstance(arg, int):
                         ttl = arg
                         if ttl > dns.ttl.MAX_TTL:
-                            raise ValueError(f'{method}: TTL value too big')
+                            raise ValueError(method + ': TTL value too big')
                     else:
-                        raise TypeError(f'{method}: expected a TTL')
+                        raise TypeError(method + ': expected a TTL')
                     arg = args.popleft()
                 if isinstance(arg, dns.rdata.Rdata):
                     rdataset = dns.rdataset.from_rdata(ttl, arg)
                 else:
-                    raise TypeError(f'{method}: expected an Rdata')
+                    raise TypeError(method + ': expected an Rdata')
             return rdataset
         except IndexError:
             if deleting:
                 return None
             else:
                 # reraise
-                raise TypeError(f'{method}: expected more arguments')
+                raise TypeError(method + ': expected more arguments')
 
     def _add(self, replace, args):
         try:
@@ -329,14 +329,14 @@ class Transaction:
                 # same and can't be stored in nodes, so convert.
                 rdataset = rrset.to_rdataset()
             else:
-                raise TypeError(f'{method} requires a name or RRset ' +
+                raise TypeError(method + ' requires a name or RRset ' +
                                 'as the first argument')
             if rdataset.rdclass != self.manager.get_class():
-                raise ValueError(f'{method} has objects of wrong RdataClass')
+                raise ValueError(method + ' has objects of wrong RdataClass')
             if rdataset.rdtype == dns.rdatatype.SOA:
                 (_, _, origin) = self.manager.origin_information()
                 if name != origin:
-                    raise ValueError(f'{method} has non-origin SOA')
+                    raise ValueError(method + ' has non-origin SOA')
             self._raise_if_not_empty(method, args)
             if not replace:
                 existing = self._get_rdataset(name, rdataset.rdtype,
@@ -351,7 +351,7 @@ class Transaction:
                     rdataset = existing.union(rdataset)
             self._put_rdataset(name, rdataset)
         except IndexError:
-            raise TypeError(f'not enough parameters to {method}')
+            raise TypeError('not enough parameters to ' + method)
 
     def _delete(self, exact, args):
         try:
@@ -377,7 +377,7 @@ class Transaction:
                     existing = self._get_rdataset(name, rdtype, covers)
                     if existing is None:
                         if exact:
-                            raise DeleteNotExact(f'{method}: missing rdataset')
+                            raise DeleteNotExact(method + ': missing rdataset')
                     else:
                         self._delete_rdataset(name, rdtype, covers)
                     return
@@ -387,12 +387,12 @@ class Transaction:
                 rdataset = arg  # rrsets are also rdatasets
                 name = rdataset.name
             else:
-                raise TypeError(f'{method} requires a name or RRset ' +
+                raise TypeError(method + ' requires a name or RRset ' +
                                 'as the first argument')
             self._raise_if_not_empty(method, args)
             if rdataset:
                 if rdataset.rdclass != self.manager.get_class():
-                    raise ValueError(f'{method} has objects of wrong '
+                    raise ValueError(method + ' has objects of wrong '
                                      'RdataClass')
                 existing = self._get_rdataset(name, rdataset.rdtype,
                                               rdataset.covers)
@@ -400,7 +400,7 @@ class Transaction:
                     if exact:
                         intersection = existing.intersection(rdataset)
                         if intersection != rdataset:
-                            raise DeleteNotExact(f'{method}: missing rdatas')
+                            raise DeleteNotExact(method + ': missing rdatas')
                     rdataset = existing.difference(rdataset)
                     if len(rdataset) == 0:
                         self._delete_rdataset(name, rdataset.rdtype,
@@ -408,13 +408,13 @@ class Transaction:
                     else:
                         self._put_rdataset(name, rdataset)
                 elif exact:
-                    raise DeleteNotExact(f'{method}: missing rdataset')
+                    raise DeleteNotExact(method + ': missing rdataset')
             else:
                 if exact and not self._name_exists(name):
-                    raise DeleteNotExact(f'{method}: name not known')
+                    raise DeleteNotExact(method + ': name not known')
                 self._delete_name(name)
         except IndexError:
-            raise TypeError(f'not enough parameters to {method}')
+            raise TypeError('not enough parameters to ' + method)
 
     def _check_ended(self):
         if self._ended:

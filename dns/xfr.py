@@ -288,7 +288,7 @@ def make_query(txn_manager, serial=0,
                                request_payload, options)
     if serial is not None:
         rrset = dns.rrset.from_text(zone_origin, 0, 'IN', 'SOA',
-                                    f'. . {serial} 0 0 0 0')
+                                    '. . ' + serial + ' 0 0 0 0')
         q.authority.append(rrset)
     if keyring is not None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)

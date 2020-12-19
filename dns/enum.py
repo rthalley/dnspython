@@ -23,7 +23,7 @@ class IntEnum(enum.IntEnum):
         max = cls._maximum()
         if value < 0 or value > max:
             name = cls._short_name()
-            raise ValueError(f"{name} must be between >= 0 and <= {max}")
+            raise ValueError("{} must be between >= 0 and <= {}".format(name, max))
 
     @classmethod
     def from_text(cls, text):
@@ -48,7 +48,7 @@ class IntEnum(enum.IntEnum):
         try:
             return cls(value).name
         except ValueError:
-            return f"{cls._prefix()}{value}"
+            return cls._prefix() + value
 
     @classmethod
     def make(cls, value):

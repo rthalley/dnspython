@@ -172,8 +172,8 @@ class HMACTSig:
         try:
             hashinfo = self._hashes[algorithm]
         except KeyError:
-            raise NotImplementedError(f"TSIG algorithm {algorithm} " +
-                                      "is not supported")
+            raise NotImplementedError("TSIG algorithm {} " +
+                                      "is not supported".format(algorithm))
 
         # create the HMAC context
         if isinstance(hashinfo, tuple):
@@ -184,7 +184,7 @@ class HMACTSig:
             self.size = None
         self.name = self.hmac_context.name
         if self.size:
-            self.name += f'-{self.size}'
+            self.name += '-' + str(self.size)
 
     def update(self, data):
         return self.hmac_context.update(data)
@@ -338,6 +338,6 @@ class Key:
                 self.algorithm == other.algorithm)
 
     def __repr__(self):
-        return f"<DNS key name='{self.name}', " + \
-               f"algorithm='{self.algorithm}', " + \
-               f"secret='{base64.b64encode(self.secret).decode()}'>"
+        return "<DNS key name='{}', " \
+               "algorithm='{}', " \
+               "secret='{}'>".format(self.name, self.algorithm, base64.b64encode(self.secret).decode())
