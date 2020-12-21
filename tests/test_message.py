@@ -559,10 +559,11 @@ www.example. IN CNAME
 example. 300 IN SOA . . 1 2 3 4 5
 ''')
         # passing is actuall not going into an infinite loop in this call
-        (qname, min_ttl, rrset) = r.resolve_chaining()
-        self.assertEqual(qname, dns.name.from_text('www.example.'))
-        self.assertEqual(min_ttl, 5)
-        self.assertIsNone(rrset)
+        result = r.resolve_chaining()
+        self.assertEqual(result.canonical_name,
+                         dns.name.from_text('www.example.'))
+        self.assertEqual(result.minimum_ttl, 5)
+        self.assertIsNone(result.rrset)
 
     def test_bad_text_questions(self):
         with self.assertRaises(dns.exception.SyntaxError):

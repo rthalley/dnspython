@@ -725,6 +725,31 @@ class Message:
         return (rdclass, rdtype, None, False)
 
 
+class ChainingResult:
+    """The result of a call to dns.message.QueryMessage.resolve_chaining().
+
+    The ``rrset`` attribute is the answer RRSet, or ``None`` if it doesn't
+    exist.
+
+    The ``canonical_name`` attribute is the canonical name after all
+    chaining has been applied (this is the name as ``rrset.name`` in cases
+    where rrset is not ``None``).
+
+    The ``minimum_ttl`` attribute is the minimum TTL, i.e. the TTL to
+    use if caching the data.  It is the smallest of all the CNAME TTLs
+    and either the answer TTL if it exists or the SOA TTL and SOA
+    minimum values for negative answers.
+
+    The ``cnames`` attribute is a list of all the CNAME RRSets followed to
+    get to the canonical name.
+    """
+    def __init__(self, canonical_name, rrset, minimum_ttl, cnames):
+        self.canonical_name = canonical_name
+        self.rrset = rrset
+        self.minimum_ttl = minimum_ttl
+        self.cnames = cnames
+
+
 class QueryMessage(Message):
     def resolve_chaining(self):
         """Follow the CNAME chain in the response to determine the answer
@@ -740,11 +765,7 @@ class QueryMessage(Message):
 
         Raises ``dns.exception.FormError`` if the question count is not 1.
 
-        Returns a tuple (dns.name.Name, int, rrset) where the name is the
-        canonical name, the int is the minimized TTL, and rrset is their
-        answer RRset, which may be ``None`` if the chain was dangling or
-        the response is an NXDOMAIN.
-
+        Returns a ChainingResult object.
         """
         if self.flags & dns.flags.QR == 0:
             raise NotQueryResponse
@@ -755,6 +776,7 @@ class QueryMessage(Message):
         min_ttl = dns.ttl.MAX_TTL
         rrset = None
         count = 0
+        cnames = []
         while count < MAX_CHAIN:
             try:
                 rrset = self.find_rrset(self.answer, qname, question.rdclass,
@@ -767,6 +789,7 @@ class QueryMessage(Message):
                         crrset = self.find_rrset(self.answer, qname,
                                                  question.rdclass,
                                                  dns.rdatatype.CNAME)
+                        cnames.append(crrset)
                         min_ttl = min(min_ttl, crrset.ttl)
                         for rd in crrset:
                             qname = rd.target
@@ -800,7 +823,7 @@ class QueryMessage(Message):
                         auname = auname.parent()
                     except dns.name.NoParent:
                         break
-        return (qname, min_ttl, rrset)
+        return ChainingResult(qname, rrset, min_ttl, cnames)
 
     def canonical_name(self):
         """Return the canonical name of the first name in the question
@@ -816,7 +839,7 @@ class QueryMessage(Message):
 
         Raises ``dns.exception.FormError`` if the question count is not 1.
         """
-        return self.resolve_chaining()[0]
+        return self.resolve_chaining().canonical_name
 
 
 def _maybe_import_update():
