@@ -550,6 +550,20 @@ class MessageTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.FormError):
             r.resolve_chaining()
 
+    def test_resolve_chaining_no_infinite_loop(self):
+        r = dns.message.from_text('''id 1
+flags QR
+;QUESTION
+www.example. IN CNAME
+;AUTHORITY
+example. 300 IN SOA . . 1 2 3 4 5
+''')
+        # passing is actuall not going into an infinite loop in this call
+        (qname, min_ttl, rrset) = r.resolve_chaining()
+        self.assertEqual(qname, dns.name.from_text('www.example.'))
+        self.assertEqual(min_ttl, 5)
+        self.assertIsNone(rrset)
+
     def test_bad_text_questions(self):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.message.from_text('''id 1

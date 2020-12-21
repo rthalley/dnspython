@@ -776,6 +776,9 @@ class QueryMessage(Message):
                     except KeyError:
                         # Exit the chaining loop
                         break
+                else:
+                    # Exit the chaining loop
+                    break
         if count >= MAX_CHAIN:
             raise ChainTooLong
         if self.rcode() == dns.rcode.NXDOMAIN and rrset is not None:
