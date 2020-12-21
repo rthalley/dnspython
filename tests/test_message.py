@@ -563,7 +563,7 @@ example. 300 IN SOA . . 1 2 3 4 5
         self.assertEqual(result.canonical_name,
                          dns.name.from_text('www.example.'))
         self.assertEqual(result.minimum_ttl, 5)
-        self.assertIsNone(result.rrset)
+        self.assertIsNone(result.answer)
 
     def test_bad_text_questions(self):
         with self.assertRaises(dns.exception.SyntaxError):

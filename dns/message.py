@@ -728,7 +728,7 @@ class Message:
 class ChainingResult:
     """The result of a call to dns.message.QueryMessage.resolve_chaining().
 
-    The ``rrset`` attribute is the answer RRSet, or ``None`` if it doesn't
+    The ``answer`` attribute is the answer RRSet, or ``None`` if it doesn't
     exist.
 
     The ``canonical_name`` attribute is the canonical name after all
@@ -743,9 +743,9 @@ class ChainingResult:
     The ``cnames`` attribute is a list of all the CNAME RRSets followed to
     get to the canonical name.
     """
-    def __init__(self, canonical_name, rrset, minimum_ttl, cnames):
+    def __init__(self, canonical_name, answer, minimum_ttl, cnames):
         self.canonical_name = canonical_name
-        self.rrset = rrset
+        self.answer = answer
         self.minimum_ttl = minimum_ttl
         self.cnames = cnames
 
@@ -774,14 +774,14 @@ class QueryMessage(Message):
         question = self.question[0]
         qname = question.name
         min_ttl = dns.ttl.MAX_TTL
-        rrset = None
+        answer = None
         count = 0
         cnames = []
         while count < MAX_CHAIN:
             try:
-                rrset = self.find_rrset(self.answer, qname, question.rdclass,
-                                        question.rdtype)
-                min_ttl = min(min_ttl, rrset.ttl)
+                answer = self.find_rrset(self.answer, qname, question.rdclass,
+                                         question.rdtype)
+                min_ttl = min(min_ttl, answer.ttl)
                 break
             except KeyError:
                 if question.rdtype != dns.rdatatype.CNAME:
@@ -804,9 +804,9 @@ class QueryMessage(Message):
                     break
         if count >= MAX_CHAIN:
             raise ChainTooLong
-        if self.rcode() == dns.rcode.NXDOMAIN and rrset is not None:
+        if self.rcode() == dns.rcode.NXDOMAIN and answer is not None:
             raise AnswerForNXDOMAIN
-        if rrset is None:
+        if answer is None:
             # Further minimize the TTL with NCACHE.
             auname = qname
             while True:
@@ -823,7 +823,7 @@ class QueryMessage(Message):
                         auname = auname.parent()
                     except dns.name.NoParent:
                         break
-        return ChainingResult(qname, rrset, min_ttl, cnames)
+        return ChainingResult(qname, answer, min_ttl, cnames)
 
     def canonical_name(self):
         """Return the canonical name of the first name in the question

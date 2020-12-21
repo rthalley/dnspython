@@ -212,9 +212,9 @@ class Answer:
         self.port = port
         self.chaining_result = response.resolve_chaining()
         # Copy some attributes out of chaining_result for backwards
-        # compatibilty and convenience.
+        # compatibility and convenience.
         self.canonical_name = self.chaining_result.canonical_name
-        self.rrset = self.chaining_result.rrset
+        self.rrset = self.chaining_result.answer
         self.expiration = time.time() + self.chaining_result.minimum_ttl
 
     def __getattr__(self, attr):  # pragma: no cover
