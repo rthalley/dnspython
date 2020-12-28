@@ -4,7 +4,7 @@ The dns.zone.Zone Class
 -----------------------
 
 The ``Zone`` class provides a non-thread-safe implementation of a DNS zone,
-as well as a lightweight transation mechanism that allows it to be atomically
+as well as a lightweight translation mechanism that allows it to be atomically
 updated.  For more complicated transactional needs, or for concurrency, please
 use the :py:class:`dns.versioned.Zone` class (described below).
 
