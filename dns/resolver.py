@@ -210,8 +210,12 @@ class Answer:
         self.response = response
         self.nameserver = nameserver
         self.port = port
-        (self.canonical_name, min_ttl, self.rrset) = response.resolve_chaining()
-        self.expiration = time.time() + min_ttl
+        self.chaining_result = response.resolve_chaining()
+        # Copy some attributes out of chaining_result for backwards
+        # compatibility and convenience.
+        self.canonical_name = self.chaining_result.canonical_name
+        self.rrset = self.chaining_result.answer
+        self.expiration = time.time() + self.chaining_result.minimum_ttl
 
     def __getattr__(self, attr):  # pragma: no cover
         if attr == 'name':
