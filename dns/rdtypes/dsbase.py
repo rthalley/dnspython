@@ -40,10 +40,13 @@ class DSBase(dns.rdata.Rdata):
         self.digest = self._as_bytes(digest)
 
     def to_text(self, origin=None, relativize=True, **kw):
+        kw = kw.copy()
+        chunksize = kw.pop('chunksize', 128)
         return '%d %d %d %s' % (self.key_tag, self.algorithm,
                                 self.digest_type,
                                 dns.rdata._hexify(self.digest,
-                                                  chunksize=128))
+                                                  chunksize=chunksize,
+                                                  **kw))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
