@@ -672,7 +672,7 @@ class Message:
 
         Returns an ``int``.
         """
-        return dns.rcode.from_flags(self.flags, self.ednsflags)
+        return dns.rcode.from_flags(int(self.flags), int(self.ednsflags))
 
     def set_rcode(self, rcode):
         """Set the rcode.
@@ -690,7 +690,7 @@ class Message:
 
         Returns an ``int``.
         """
-        return dns.opcode.from_flags(self.flags)
+        return dns.opcode.from_flags(int(self.flags))
 
     def set_opcode(self, opcode):
         """Set the opcode.
