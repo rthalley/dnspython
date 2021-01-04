@@ -676,6 +676,11 @@ flags QR
             IN SOA
 ''')
 
+    def test_from_wire_makes_Flag(self):
+        m = dns.message.from_wire(goodwire)
+        self.assertIsInstance(m.flags, dns.flags.Flag)
+        self.assertEqual(m.flags, dns.flags.Flag.RD)
+
 
 if __name__ == '__main__':
     unittest.main()

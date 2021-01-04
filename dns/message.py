@@ -990,7 +990,7 @@ class _WireReader:
             self.parser.get_struct('!HHHHHH')
         factory = _message_factory_from_opcode(dns.opcode.from_flags(flags))
         self.message = factory(id=id)
-        self.message.flags = flags
+        self.message.flags = dns.flags.Flag(flags)
         self.initialize_message(self.message)
         self.one_rr_per_rrset = \
             self.message._get_one_rr_per_rrset(self.one_rr_per_rrset)
