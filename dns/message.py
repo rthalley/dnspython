@@ -186,10 +186,8 @@ class Message:
 
         s = io.StringIO()
         s.write('id %d\n' % self.id)
-        s.write('opcode %s\n' %
-                dns.opcode.to_text(dns.opcode.from_flags(self.flags)))
-        rc = dns.rcode.from_flags(self.flags, self.ednsflags)
-        s.write('rcode %s\n' % dns.rcode.to_text(rc))
+        s.write('opcode %s\n' % dns.opcode.to_text(self.opcode()))
+        s.write('rcode %s\n' % dns.rcode.to_text(self.rcode()))
         s.write('flags %s\n' % dns.flags.to_text(self.flags))
         if self.edns >= 0:
             s.write('edns %s\n' % self.edns)
