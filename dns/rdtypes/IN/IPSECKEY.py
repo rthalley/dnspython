@@ -50,7 +50,7 @@ class IPSECKEY(dns.rdata.Rdata):
                                                                    relativize)
         return '%d %d %d %s %s' % (self.precedence, self.gateway_type,
                                    self.algorithm, gateway,
-                                   dns.rdata._base64ify(self.key))
+                                   dns.rdata._base64ify(self.key, **kw))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,

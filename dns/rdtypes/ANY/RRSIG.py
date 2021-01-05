@@ -87,7 +87,7 @@ class RRSIG(dns.rdata.Rdata):
             posixtime_to_sigtime(self.inception),
             self.key_tag,
             self.signer.choose_relativity(origin, relativize),
-            dns.rdata._base64ify(self.signature)
+            dns.rdata._base64ify(self.signature, **kw)
         )
 
     @classmethod

@@ -51,7 +51,7 @@ def _wordbreak(data, chunksize=_chunksize):
                       in range(0, len(data), chunksize)]).decode()
 
 
-def _hexify(data, chunksize=_chunksize):
+def _hexify(data, chunksize=_chunksize, **kw):
     """Convert a binary string into its hex encoding, broken up into chunks
     of chunksize characters separated by a space.
     """
@@ -59,7 +59,7 @@ def _hexify(data, chunksize=_chunksize):
     return _wordbreak(binascii.hexlify(data), chunksize)
 
 
-def _base64ify(data, chunksize=_chunksize):
+def _base64ify(data, chunksize=_chunksize, **kw):
     """Convert a binary string into its base64 encoding, broken up into chunks
     of chunksize characters separated by a space.
     """
@@ -484,7 +484,7 @@ class GenericRdata(Rdata):
         object.__setattr__(self, 'data', data)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return r'\# %d ' % len(self.data) + _hexify(self.data)
+        return r'\# %d ' % len(self.data) + _hexify(self.data, **kw)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
