@@ -3,7 +3,7 @@
 What's New in dnspython
 =======================
 
-2.1.0rc1
+2.1.0
 ----------------------
 
 * End-of-line comments are now associated with rdata when read from text.

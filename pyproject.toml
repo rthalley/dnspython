@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dnspython"
-version = "2.1.0rc1"
+version = "2.1.0"
 description = "DNS toolkit"
 authors = ["Bob Halley <halley@dnspython.org>"]
 license = "ISC"
