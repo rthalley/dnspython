@@ -29,7 +29,7 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 2.1.0.
+This is the development version of dnspython 2.2.0.
 Please read
 [What's New](https://dnspython.readthedocs.io/en/stable/whatsnew.html) for
 information about the changes in this release.
