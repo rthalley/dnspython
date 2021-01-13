@@ -19,6 +19,7 @@
 
 __all__ = [
     'AFSDB',
+    'AMTRELAY',
     'AVC',
     'CAA',
     'CDNSKEY',
@@ -38,6 +39,7 @@ __all__ = [
     'ISDN',
     'LOC',
     'MX',
+    'NINFO',
     'NS',
     'NSEC',
     'NSEC3',
