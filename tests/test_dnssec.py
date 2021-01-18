@@ -497,5 +497,35 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
             with self.assertRaises(dns.dnssec.UnsupportedAlgorithm):
                 ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
 
+    def testInvalidDigestType(self):  # type: () -> None
+        digest_type_errors = {
+            0: 'digest type 0 is reserved',
+            5: 'unknown digest type',
+        }
+        for digest_type, msg in digest_type_errors.items():
+            with self.assertRaises(dns.exception.SyntaxError) as cm:
+                dns.rdata.from_text(dns.rdataclass.IN,
+                                    dns.rdatatype.DS,
+                                    f'18673 3 {digest_type} 71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7')
+            self.assertEqual(msg, str(cm.exception))
+
+    def testInvalidDigestLength(self):  # type: () -> None
+        test_records = []
+        for rdata in [example_ds_sha1, example_ds_sha256, example_ds_sha384]:
+            flags, digest = rdata.to_text().rsplit(' ', 1)
+
+            # Make sure the construction is working
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS, f'{flags} {digest}')
+
+            test_records.append(f'{flags} {digest[:len(digest)//2]}')  # too short digest
+            test_records.append(f'{flags} {digest*2}')  # too long digest
+
+        for record in test_records:
+            with self.assertRaises(dns.exception.SyntaxError) as cm:
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS, record)
+
+            self.assertEqual('digest length inconsistent with digest type', str(cm.exception))
+
+
 if __name__ == '__main__':
     unittest.main()
