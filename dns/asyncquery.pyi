@@ -1,6 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Dict, Optional
+from typing import Optional
 
 try:
     from ssl import SSLContext

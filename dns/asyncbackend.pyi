@@ -1,7 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 from types import TracebackType
-from typing import Any, Dict, Optional, Type
+from typing import Any, Optional, Type
 
 try:
     from ssl import SSLContext
