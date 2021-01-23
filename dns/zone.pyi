@@ -1,55 +1,66 @@
-from typing import Generator, Optional, Union, Tuple, Iterable, Callable, Any, Iterator, TextIO, BinaryIO, Dict
-from . import rdata, zone, rdataclass, name, rdataclass, message, rdatatype, exception, node, rdataset, rrset, rdatatype
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-class BadZone(exception.DNSException): ...
+from typing import Any, Callable, BinaryIO, Dict, Generator, Iterable, Iterator, Optional, TextIO, Tuple, Union
+
+from dns.exception import DNSException
+from dns.message import Message
+from dns.name import Name
+from dns.node import Node
+from dns.rdata import Rdata
+from dns.rdataclass import IN
+from dns.rdataset import Rdataset
+from dns.rdatatype import ANY, NONE
+from dns.rrset import RRset
+
+class BadZone(DNSException): ...
 class NoSOA(BadZone): ...
 class NoNS(BadZone): ...
 class UnknownOrigin(BadZone): ...
 
 class Zone:
-    def __getitem__(self, key : str) -> node.Node:
+    def __getitem__(self, key : str) -> Node:
         ...
-    def __init__(self, origin : Union[str,name.Name], rdclass : int = rdataclass.IN, relativize : bool = True) -> None:
-        self.nodes : Dict[str,node.Node]
+    def __init__(self, origin : Union[str,Name], rdclass : int = IN, relativize : bool = True) -> None:
+        self.nodes : Dict[str,Node]
         self.origin = origin
-    def values(self):
-        return self.nodes.values()
-    def iterate_rdatas(self, rdtype : Union[int,str] = rdatatype.ANY, covers : Union[int,str] = None) -> Iterable[Tuple[name.Name, int, rdata.Rdata]]:
+    def values(self) -> Iterable[Node]:
+        ...
+    def iterate_rdatas(self, rdtype : Union[int,str] = ANY, covers : Union[int,str,None] = None) -> Iterable[Tuple[Name, int, Rdata]]:
         ...
     def __iter__(self) -> Iterator[str]:
         ...
-    def get_node(self, name : Union[name.Name,str], create=False) -> Optional[node.Node]:
+    def get_node(self, name : Union[Name,str], create: bool = False) -> Optional[Node]:
         ...
-    def find_rrset(self, name : Union[str,name.Name], rdtype : Union[int,str], covers=rdatatype.NONE) -> rrset.RRset:
+    def find_rrset(self, name : Union[str,Name], rdtype : Union[int,str], covers: Union[str, int] = NONE) -> RRset:
         ...
-    def find_rdataset(self, name : Union[str,name.Name], rdtype : Union[str,int], covers=rdatatype.NONE,
-                      create=False) -> rdataset.Rdataset:
+    def find_rdataset(self, name : Union[str,Name], rdtype : Union[str,int], covers: Union[str, int] = NONE,
+                      create: bool = False) -> Rdataset:
         ...
-    def get_rdataset(self, name : Union[str,name.Name], rdtype : Union[str,int], covers=rdatatype.NONE, create=False) -> Optional[rdataset.Rdataset]:
+    def get_rdataset(self, name : Union[str,Name], rdtype : Union[str,int], covers: Union[str, int] = NONE, create: bool = False) -> Optional[Rdataset]:
         ...
-    def get_rrset(self, name : Union[str,name.Name], rdtype : Union[str,int], covers=rdatatype.NONE) -> Optional[rrset.RRset]:
+    def get_rrset(self, name : Union[str,Name], rdtype : Union[str,int], covers: Union[str, int] = NONE) -> Optional[RRset]:
         ...
-    def replace_rdataset(self, name : Union[str,name.Name], replacement : rdataset.Rdataset) -> None:
+    def replace_rdataset(self, name : Union[str,Name], replacement : Rdataset) -> None:
         ...
-    def delete_rdataset(self, name : Union[str,name.Name], rdtype : Union[str,int], covers=rdatatype.NONE) -> None:
+    def delete_rdataset(self, name : Union[str,Name], rdtype : Union[str,int], covers: Union[str, int] = NONE) -> None:
         ...
-    def iterate_rdatasets(self, rdtype : Union[str,int] =rdatatype.ANY,
-                          covers : Union[str,int] =rdatatype.NONE):
+    def iterate_rdatasets(self, rdtype : Union[str,int] = ANY,
+                          covers : Union[str,int] = NONE) -> Iterator[Tuple[Name, Rdataset]]:
         ...
-    def to_file(self, f : Union[TextIO, BinaryIO, str], sorted=True, relativize=True, nl : Optional[bytes] = None):
+    def to_file(self, f : Union[TextIO, BinaryIO, str], sorted: bool = True, relativize: bool = True, nl : Optional[bytes] = None) -> None:
         ...
-    def to_text(self, sorted=True, relativize=True, nl : Optional[str] = None) -> str:
+    def to_text(self, sorted: bool = True, relativize: bool = True, nl : Optional[bytes] = None) -> bytes:
         ...
 
-def from_xfr(xfr : Generator[Any,Any,message.Message], zone_factory : Callable[..., zone.Zone] = zone.Zone, relativize=True, check_origin=True):
+def from_xfr(xfr : Generator[Any,Any,Message], zone_factory : Callable[..., Zone] = Zone, relativize: bool = True, check_origin: bool = True) -> Zone:
     ...
 
-def from_text(text : str, origin : Optional[Union[str,name.Name]] = None, rdclass : int = rdataclass.IN,
-              relativize=True, zone_factory : Callable[...,zone.Zone] = zone.Zone, filename : Optional[str] = None,
-              allow_include=False, check_origin=True) -> zone.Zone:
+def from_text(text : str, origin : Optional[Union[str,Name]] = None, rdclass : int = IN,
+              relativize: bool = True, zone_factory : Callable[...,Zone] = Zone, filename : Optional[str] = None,
+              allow_include: bool = False, check_origin: bool = True) -> Zone:
     ...
 
-def from_file(f, origin : Optional[Union[str,name.Name]] = None, rdclass=rdataclass.IN,
-              relativize=True, zone_factory : Callable[..., zone.Zone] = Zone, filename : Optional[str] = None,
-              allow_include=True, check_origin=True) -> zone.Zone:
+def from_file(f: Any, origin : Optional[Union[str,Name]] = None, rdclass: int = IN,
+              relativize: bool = True, zone_factory : Callable[..., Zone] = Zone, filename : Optional[str] = None,
+              allow_include: bool = True, check_origin: bool = True) -> Zone:
     ...

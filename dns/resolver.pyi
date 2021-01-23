@@ -1,61 +1,69 @@
-from typing import Union, Optional, List, Any, Dict
-from . import exception, rdataclass, name, rdatatype
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-import socket
-_gethostbyname = socket.gethostbyname
+from socket import gethostbyname as _gethostbyname
+from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
 
-class NXDOMAIN(exception.DNSException): ...
-class YXDOMAIN(exception.DNSException): ...
-class NoAnswer(exception.DNSException): ...
-class NoNameservers(exception.DNSException): ...
-class NotAbsolute(exception.DNSException): ...
-class NoRootSOA(exception.DNSException): ...
-class NoMetaqueries(exception.DNSException): ...
-class NoResolverConfiguration(exception.DNSException): ...
-Timeout = exception.Timeout
+from dns.exception import DNSException, Timeout
+from dns.message import Message
+from dns.name import Name
+from dns.rdataclass import IN
+from dns.rdatatype import A
+
+class NXDOMAIN(DNSException): ...
+class YXDOMAIN(DNSException): ...
+class NoAnswer(DNSException): ...
+class NoNameservers(DNSException): ...
+class NotAbsolute(DNSException): ...
+class NoRootSOA(DNSException): ...
+class NoMetaqueries(DNSException): ...
+class NoResolverConfiguration(DNSException): ...
+
+default_resolver: Optional[Resolver]
+
+def get_default_resolver() -> Resolver: ...
 
 def resolve(qname : str, rdtype : Union[int,str] = 0,
             rdclass : Union[int,str] = 0,
-            tcp=False, source=None, raise_on_no_answer=True,
-            source_port=0, lifetime : Optional[float]=None,
-            search : Optional[bool]=None):
+            tcp : bool = False, source : Any = None, raise_on_no_answer: bool = True,
+            source_port : int = 0, lifetime : Optional[float]=None,
+            search : Optional[bool]=None) -> Answer:
     ...
 def query(qname : str, rdtype : Union[int,str] = 0,
           rdclass : Union[int,str] = 0,
-          tcp=False, source=None, raise_on_no_answer=True,
-          source_port=0, lifetime : Optional[float]=None):
+            tcp : bool = False, source : Any = None, raise_on_no_answer: bool = True,
+            source_port : int = 0, lifetime : Optional[float]=None) -> Answer:
     ...
-def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Optional[Dict]):
+def resolve_address(ipaddr: str, *args: Any, **kwargs: Any) -> Answer:
     ...
 class LRUCache:
-    def __init__(self, max_size=1000):
+    def __init__(self, max_size: int = 1000) -> None:
         ...
-    def get(self, key):
+    def get(self, key: Tuple[Name, int, int]) -> Optional[Answer]:
         ...
-    def put(self, key, val):
+    def put(self, key: Tuple[Name, int, int], val: Answer) -> None:
         ...
-class Answer:
-    def __init__(self, qname, rdtype, rdclass, response,
-                 raise_on_no_answer=True):
+class Answer(Iterable[Any]):
+    def __init__(self, qname: str, rdtype: Union[int,str], rdclass: Union[int,str], response: Message,
+                 raise_on_no_answer: bool = True) -> None:
         ...
-def zone_for_name(name, rdclass : int = rdataclass.IN, tcp=False,
-                  resolver : Optional[Resolver] = None):
+    def __iter__(self) -> Iterator[Any]:
+        ...
+def zone_for_name(name: str, rdclass : int = IN, tcp: bool = False, resolver : Optional[Resolver] = None) -> Name:
     ...
 
 class Resolver:
-    def __init__(self, filename : Optional[str] = '/etc/resolv.conf',
-                 configure : Optional[bool] = True):
+    def __init__(self, filename: str = ..., configure: bool = True) -> None:
         self.nameservers : List[str]
-    def resolve(self, qname : str, rdtype : Union[int,str] = rdatatype.A,
-                rdclass : Union[int,str] = rdataclass.IN,
+    def resolve(self, qname : str, rdtype : Union[int,str] = A,
+                rdclass : Union[int,str] = IN,
                 tcp : bool = False, source : Optional[str] = None,
-                raise_on_no_answer=True, source_port : int = 0,
+                raise_on_no_answer : bool = True, source_port : int = 0,
                 lifetime : Optional[float]=None,
-                search : Optional[bool]=None):
+                search : Optional[bool]=None) -> Answer:
         ...
-    def query(self, qname : str, rdtype : Union[int,str] = rdatatype.A,
-              rdclass : Union[int,str] = rdataclass.IN,
+    def query(self, qname : str, rdtype : Union[int,str] = A,
+              rdclass : Union[int,str] = IN,
               tcp : bool = False, source : Optional[str] = None,
-              raise_on_no_answer=True, source_port : int = 0,
-              lifetime : Optional[float]=None):
+              raise_on_no_answer : bool = True, source_port : int = 0,
+              lifetime : Optional[float]=None) -> Answer:
         ...

@@ -1,26 +1,31 @@
-from typing import Union, Optional, List, Any, Dict
-from . import exception, rdataclass, name, rdatatype, asyncbackend
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+from typing import Any, List, Optional, Union
+
+from dns.asyncbackend import Backend
+from dns.rdatatype import A
+from dns.rdataclass import IN
+from dns.resolver import Answer
 
 async def resolve(qname : str, rdtype : Union[int,str] = 0,
                   rdclass : Union[int,str] = 0,
-                  tcp=False, source=None, raise_on_no_answer=True,
-                  source_port=0, lifetime : Optional[float]=None,
+                  tcp : bool = False, source : Any = None, raise_on_no_answer : bool = True,
+                  source_port : int = 0, lifetime : Optional[float]=None,
                   search : Optional[bool]=None,
-                  backend : Optional[asyncbackend.Backend]=None):
+                  backend : Optional[Backend]=None) -> Answer:
     ...
-async def resolve_address(self, ipaddr: str,
-                          *args: Any, **kwargs: Optional[Dict]):
+async def resolve_address(ipaddr: str, *args: Any, **kwargs: Any) -> Answer:
     ...
 
 class Resolver:
-    def __init__(self, filename : Optional[str] = '/etc/resolv.conf',
-                 configure : Optional[bool] = True):
+    def __init__(self, filename : Optional[str] = ...,
+                 configure : Optional[bool] = True) -> None:
         self.nameservers : List[str]
-    async def resolve(self, qname : str, rdtype : Union[int,str] = rdatatype.A,
-                      rdclass : Union[int,str] = rdataclass.IN,
+    async def resolve(self, qname : str, rdtype : Union[int,str] = A,
+                      rdclass : Union[int,str] = IN,
                       tcp : bool = False, source : Optional[str] = None,
-                      raise_on_no_answer=True, source_port : int = 0,
+                      raise_on_no_answer : bool = True, source_port : int = 0,
                       lifetime : Optional[float]=None,
                       search : Optional[bool]=None,
-                      backend : Optional[asyncbackend.Backend]=None):
+                      backend : Optional[Backend]=None) -> Answer:
         ...

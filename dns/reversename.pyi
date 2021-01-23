@@ -1,6 +1,9 @@
-from . import name
-def from_address(text : str) -> name.Name:
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+from dns.name import Name
+
+def from_address(text : str) -> Name:
     ...
 
-def to_address(name : name.Name) -> str:
+def to_address(name : Name) -> str:
     ...

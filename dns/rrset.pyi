@@ -1,10 +1,15 @@
-from typing import List, Optional
-from . import rdataset, rdatatype
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-class RRset(rdataset.Rdataset):
-    def __init__(self, name, rdclass : int , rdtype : int, covers=rdatatype.NONE,
-                 deleting : Optional[int] =None) -> None:
+from typing import Optional
+
+from dns.rdataset import Rdataset
+from dns.rdatatype import NONE
+
+class RRset(Rdataset):
+    def __init__(self, name: str, rdclass : int , rdtype : int, covers: int = NONE,
+                 deleting : Optional[int] = None) -> None:
         self.name = name
         self.deleting = deleting
-def from_text(name : str, ttl : int, rdclass : str, rdtype : str, *text_rdatas : str):
+
+def from_text(name : str, ttl : int, rdclass : str, rdtype : str, *text_rdatas : str) -> RRset:
     ...

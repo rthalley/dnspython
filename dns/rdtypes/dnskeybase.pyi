@@ -1,4 +1,10 @@
-from typing import Set, Any
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+from typing import Any, BinaryIO, Dict, Optional, Set
+
+from dns.name import Name
+from dns.tokenizer import Tokenizer
+from dns.rdata import Rdata
 
 SEP : int
 REVOKE : int
@@ -7,31 +13,28 @@ ZONE : int
 def flags_to_text_set(flags : int) -> Set[str]:
     ...
 
-def flags_from_text_set(texts_set) -> int:
+def flags_from_text_set(texts_set: Set[str]) -> int:
     ...
 
-from .. import rdata
-
-class DNSKEYBase(rdata.Rdata):
-    def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
+class DNSKEYBase(Rdata):
+    def __init__(self, rdclass: int, rdtype: int, flags: int, protocol: int, algorithm: int, key: str) -> None:
         self.flags : int
         self.protocol : int
         self.key : str
         self.algorithm : int
 
-    def to_text(self, origin : Any = None, relativize=True, **kw : Any):
+    def to_text(self, origin: Optional[Name] = None, relativize: bool = True, **kw : Any) -> str:
         ...
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(cls, rdclass: int, rdtype: int, tok: Tokenizer, origin: Optional[Name] = None, relativize: bool = True) -> DNSKEYBase:
         ...
 
-    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+    def to_wire(self, file : Optional[BinaryIO], compress : Optional[Dict[Name,int]], origin : Optional[Name], canonicalize : Optional[bool]) -> Optional[bytes]:
         ...
 
     @classmethod
-    def from_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire(cls, rdclass: int, rdtype: int, wire: bytes, current: int, rdlen: int, origin: Optional[Name] = None) -> DNSKEYBase:
         ...
 
     def flags_to_text_set(self) -> Set[str]:
