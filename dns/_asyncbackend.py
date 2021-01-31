@@ -27,6 +27,12 @@ class Socket:  # pragma: no cover
     async def close(self):
         pass
 
+    async def getpeername(self):
+        raise NotImplementedError
+
+    async def getsockname(self):
+        raise NotImplementedError
+
     async def __aenter__(self):
         return self
 
@@ -36,18 +42,18 @@ class Socket:  # pragma: no cover
 
 class DatagramSocket(Socket):  # pragma: no cover
     async def sendto(self, what, destination, timeout):
-        pass
+        raise NotImplementedError
 
     async def recvfrom(self, size, timeout):
-        pass
+        raise NotImplementedError
 
 
 class StreamSocket(Socket):  # pragma: no cover
     async def sendall(self, what, destination, timeout):
-        pass
+        raise NotImplementedError
 
     async def recv(self, size, timeout):
-        pass
+        raise NotImplementedError
 
 
 class Backend:    # pragma: no cover
