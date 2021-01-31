@@ -49,7 +49,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         return self.socket.getsockname()
 
 
-class StreamSocket(dns._asyncbackend.DatagramSocket):
+class StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, family, stream, tls=False):
         self.family = family
         self.stream = stream

@@ -79,7 +79,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         return self.transport.get_extra_info('sockname')
 
 
-class StreamSocket(dns._asyncbackend.DatagramSocket):
+class StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, af, reader, writer):
         self.family = af
         self.reader = reader
