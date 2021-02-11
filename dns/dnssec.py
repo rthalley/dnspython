@@ -485,14 +485,15 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
     if rrname != rrsigname:
         raise ValidationFailure("owner names do not match")
 
+    reasons = []
     for rrsig in rrsigrdataset:
         try:
             _validate_rrsig(rrset, rrsig, keys, origin, now)
             return
-        except (ValidationFailure, UnsupportedAlgorithm):
-            raise
-        except Exception as e:
-            raise ValidationFailure("no RRSIGs validated")
+        except (ValidationFailure, UnsupportedAlgorithm) as e:
+            reasons.append(str(e))
+            pass
+    raise ValidationFailure("no RRSIGs validated, " + ", ".join(reasons))
 
 
 class NSEC3Hash(dns.enum.IntEnum):
