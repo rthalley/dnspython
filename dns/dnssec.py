@@ -490,8 +490,9 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
             _validate_rrsig(rrset, rrsig, keys, origin, now)
             return
         except (ValidationFailure, UnsupportedAlgorithm):
-            pass
-    raise ValidationFailure("no RRSIGs validated")
+            raise
+        except Exception as e:
+            raise ValidationFailure("no RRSIGs validated")
 
 
 class NSEC3Hash(dns.enum.IntEnum):
