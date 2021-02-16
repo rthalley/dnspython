@@ -872,5 +872,15 @@ class VersionedZoneTestCase(unittest.TestCase):
             rds = txn.get('example.', 'soa')
             self.assertEqual(rds[0].serial, 1)
 
+    def testNameInZoneWithStr(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=False)
+        self.assertTrue('ns1.example.' in z)
+        self.assertTrue('bar.foo.example.' in z)
+
+    def testNameInZoneWhereNameIsNotValid(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=False)
+        with self.assertRaises(KeyError):
+            self.assertTrue(1 in z)
+
 if __name__ == '__main__':
     unittest.main()

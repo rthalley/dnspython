@@ -162,8 +162,9 @@ class Zone(dns.transaction.TransactionManager):
         key = self._validate_name(key)
         return self.nodes.get(key)
 
-    def __contains__(self, other):
-        return other in self.nodes
+    def __contains__(self, key):
+        key = self._validate_name(key)
+        return key in self.nodes
 
     def find_node(self, name, create=False):
         """Find a node in the zone, possibly creating it.
