@@ -20,12 +20,11 @@
 import sys
 from setuptools import setup
 
-version = '2.2.0'
 
 try:
-    sys.argv.remove("--cython-compile")
+   sys.argv.remove("--cython-compile")
 except ValueError:
-    compile_cython = False
+   compile_cython = False
 else:
     compile_cython = True
     from Cython.Build import cythonize
@@ -33,51 +32,6 @@ else:
                             language_level='3')
 
 kwargs = {
-    'name' : 'dnspython',
-    'version' : version,
-    'description' : 'DNS toolkit',
-    'long_description' : \
-    """dnspython is a DNS toolkit for Python. It supports almost all
-record types. It can be used for queries, zone transfers, and dynamic
-updates.  It supports TSIG authenticated messages and EDNS0.
-
-dnspython provides both high and low level access to DNS. The high
-level classes perform queries for data of a given name, type, and
-class, and return an answer set.  The low level classes allow
-direct manipulation of DNS zones, messages, names, and records.""",
-    'author' : 'Bob Halley',
-    'author_email' : 'halley@dnspython.org',
-    'license' : 'ISC',
-    'url' : 'http://www.dnspython.org',
-    'packages' : ['dns', 'dns.rdtypes', 'dns.rdtypes.IN', 'dns.rdtypes.ANY',
-                  'dns.rdtypes.CH'],
-    'package_data' : {'dns': ['py.typed']},
-    'classifiers' : [
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: ISC License (ISCL)",
-        "Operating System :: POSIX",
-        "Operating System :: Microsoft :: Windows",
-        "Programming Language :: Python",
-        "Topic :: Internet :: Name Service (DNS)",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        ],
-    'python_requires': '>=3.6',
-    'test_suite': 'tests',
-    'provides': ['dns'],
-    'extras_require': {
-        'DOH': ['requests', 'requests-toolbelt'],
-        'IDNA': ['idna>=2.1'],
-        'DNSSEC': ['cryptography>=2.6'],
-        'trio': ['trio>=0.14.0', 'sniffio>=1.1'],
-        'curio': ['curio>=1.2', 'sniffio>=1.1'],
-        },
     'ext_modules': ext_modules if compile_cython else None,
     'zip_safe': False if compile_cython else None,
     }
