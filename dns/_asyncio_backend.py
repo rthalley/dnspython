@@ -118,7 +118,7 @@ class Backend(dns._asyncbackend.Backend):
         if socktype == socket.SOCK_DGRAM:
             transport, protocol = await loop.create_datagram_endpoint(
                 _DatagramProtocol, source, family=af,
-                proto=proto)
+                proto=proto, remote_addr=destination)
             return DatagramSocket(af, transport, protocol)
         elif socktype == socket.SOCK_STREAM:
             (r, w) = await _maybe_wait_for(
