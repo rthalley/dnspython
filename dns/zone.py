@@ -18,8 +18,10 @@
 """DNS Zones."""
 
 import contextlib
+import hashlib
 import io
 import os
+import struct
 
 import dns.exception
 import dns.name
@@ -28,6 +30,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rdata
 import dns.rdtypes.ANY.SOA
+import dns.rdtypes.ANY.ZONEMD
 import dns.rrset
 import dns.tokenizer
 import dns.transaction
@@ -54,6 +57,33 @@ class NoNS(BadZone):
 class UnknownOrigin(BadZone):
 
     """The DNS zone's origin is unknown."""
+
+
+class DigestScheme(dns.enum.IntEnum):
+    """ZONEMD Scheme"""
+
+    SIMPLE = 1
+
+    @classmethod
+    def _maximum(cls):
+        return 255
+
+
+class DigestHashAlgorithm(dns.enum.IntEnum):
+    """ZONEMD Hash Algorithm"""
+
+    SHA384 = 1
+    SHA512 = 2
+
+    @classmethod
+    def _maximum(cls):
+        return 255
+
+
+_digest_hashers = {
+    DigestHashAlgorithm.SHA384: hashlib.sha384,
+    DigestHashAlgorithm.SHA512 : hashlib.sha512
+}
 
 
 class Zone(dns.transaction.TransactionManager):
@@ -642,6 +672,53 @@ class Zone(dns.transaction.TransactionManager):
             raise NoSOA
         if self.get_rdataset(name, dns.rdatatype.NS) is None:
             raise NoNS
+
+    def _compute_digest(self, hash_algorithm, scheme=DigestScheme.SIMPLE):
+        hashinfo = _digest_hashers.get(hash_algorithm)
+        if not hashinfo:
+            raise ValueError("unknown digest hash algorithm")
+        if scheme != DigestScheme.SIMPLE:
+            raise ValueError("unknown digest scheme")
+
+        hasher = hashinfo()
+        for (name, node) in sorted(self.items()):
+            rrnamebuf = name.to_digestable(self.origin)
+            for rdataset in sorted(node,
+                                   key=lambda rds: (rds.rdtype, rds.covers)):
+                if name in (self.origin, dns.name.empty) and \
+                   dns.rdatatype.ZONEMD in (rdataset.rdtype, rdataset.covers):
+                    continue
+                rrfixed = struct.pack('!HHI', rdataset.rdtype,
+                                      rdataset.rdclass, rdataset.ttl)
+                for rr in sorted(rdataset):
+                    rrdata = rr.to_digestable(self.origin)
+                    rrlen = struct.pack('!H', len(rrdata))
+                    hasher.update(rrnamebuf + rrfixed + rrlen + rrdata)
+        return hasher.digest()
+
+    def compute_digest(self, hash_algorithm, scheme=DigestScheme.SIMPLE):
+        digest = self._compute_digest(hash_algorithm, scheme)
+        return dns.rdtypes.ANY.ZONEMD.ZONEMD(self.rdclass,
+                                             dns.rdatatype.ZONEMD,
+                                             serial, scheme, hash_algorithm,
+                                             digest)
+
+    def verify_digest(self, zonemd=None):
+        if zonemd:
+            digests = [zonemd]
+        else:
+            digests = self.get_rdataset(self.origin, dns.rdatatype.ZONEMD)
+            if digests is None:
+                raise ValueError("no ZONEMD records found")
+        for digest in digests:
+            try:
+                computed = self._compute_digest(digest.hash_algorithm,
+                                                digest.scheme)
+                if computed == digest.digest:
+                    return
+            except Exception as e:
+                pass
+        raise ValueError("no digests verified")
 
     # TransactionManager methods
 

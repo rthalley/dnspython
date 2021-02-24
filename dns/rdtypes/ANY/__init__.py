@@ -60,4 +60,5 @@ __all__ = [
     'TXT',
     'URI',
     'X25',
+    'ZONEMD',
 ]
