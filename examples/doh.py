@@ -3,7 +3,7 @@
 # This is an example of sending DNS queries over HTTPS (DoH) with dnspython.
 # Requires use of the requests module's Session object.
 #
-# See https://2.python-requests.org//en/latest/user/advanced/#session-objects
+# See https://2.python-requests.org/en/latest/user/advanced/#session-objects
 # for more details about Session objects
 import requests
 
