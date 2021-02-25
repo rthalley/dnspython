@@ -142,7 +142,12 @@ async def udp(q, where, timeout=None, port=53, source=None, source_port=0,
             if not backend:
                 backend = dns.asyncbackend.get_default_backend()
             stuple = _source_tuple(af, source, source_port)
-            s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple)
+            if backend.datagram_connection_required():
+                dtuple = (where, port)
+            else:
+                dtuple = None
+            s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple,
+                                          dtuple)
         await send_udp(s, wire, destination, expiration)
         (r, received_time, _) = await receive_udp(s, destination, expiration,
                                                   ignore_unexpected,
