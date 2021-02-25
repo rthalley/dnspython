@@ -110,6 +110,14 @@ class ZoneDigestTestCase(unittest.TestCase):
         self.assertEqual(zonemd[0],
                          zone.compute_digest(zonemd[0].hash_algorithm))
 
+    def test_zonemd_simple_absolute(self):
+        zone = dns.zone.from_text(self.simple_example, origin='example',
+                                  relativize=False)
+        zone.verify_digest()
+        zonemd = self._get_zonemd(zone)
+        self.assertEqual(zonemd[0],
+                         zone.compute_digest(zonemd[0].hash_algorithm))
+
     def test_zonemd_complex(self):
         zone = dns.zone.from_text(self.complex_example, origin='example')
         zone.verify_digest()
