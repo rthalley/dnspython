@@ -100,23 +100,33 @@ class ZoneDigestTestCase(unittest.TestCase):
         NS2.EXAMPLE.  3600   IN  AAAA    2001:db8::63
     ''')
 
+    def _get_zonemd(self, zone):
+        return zone.get_rdataset(zone.origin, 'ZONEMD')
+
     def test_zonemd_simple(self):
         zone = dns.zone.from_text(self.simple_example, origin='example')
         zone.verify_digest()
+        zonemd = self._get_zonemd(zone)
+        self.assertEqual(zonemd[0],
+                         zone.compute_digest(zonemd[0].hash_algorithm))
 
     def test_zonemd_complex(self):
         zone = dns.zone.from_text(self.complex_example, origin='example')
         zone.verify_digest()
+        zonemd = self._get_zonemd(zone)
+        self.assertEqual(zonemd[0],
+                         zone.compute_digest(zonemd[0].hash_algorithm))
 
     def test_zonemd_multiple_digests(self):
         zone = dns.zone.from_text(self.multiple_digests_example,
                                   origin='example')
         zone.verify_digest()
 
-        zonemd = zone.get_rdataset(zone.origin, 'ZONEMD')
+        zonemd = self._get_zonemd(zone)
         for rr in zonemd:
             if rr.scheme == 1 and rr.hash_algorithm in (1, 2):
                 zone.verify_digest(rr)
+                self.assertEqual(rr, zone.compute_digest(rr.hash_algorithm))
             else:
                 with self.assertRaises(ValueError):
                     zone.verify_digest(rr)
@@ -145,3 +155,10 @@ class ZoneDigestTestCase(unittest.TestCase):
             dns.rdata.from_text('IN', 'ZONEMD', '100 1 2 ' + self.sha384_hash)
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('IN', 'ZONEMD', '100 2 1 ' + self.sha512_hash)
+
+    def test_zonemd_parse_rdata_reserved(self):
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('IN', 'ZONEMD', '100 0 1 ' + self.sha384_hash)
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text('IN', 'ZONEMD', '100 1 0 ' + self.sha384_hash)
+

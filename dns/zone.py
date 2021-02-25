@@ -680,12 +680,16 @@ class Zone(dns.transaction.TransactionManager):
         if scheme != DigestScheme.SIMPLE:
             raise ValueError("unknown digest scheme")
 
+        if self.relativize:
+            origin_name = dns.name.empty
+        else:
+            origin_name = self.origin
         hasher = hashinfo()
         for (name, node) in sorted(self.items()):
             rrnamebuf = name.to_digestable(self.origin)
             for rdataset in sorted(node,
                                    key=lambda rds: (rds.rdtype, rds.covers)):
-                if name in (self.origin, dns.name.empty) and \
+                if name == origin_name and \
                    dns.rdatatype.ZONEMD in (rdataset.rdtype, rdataset.covers):
                     continue
                 rrfixed = struct.pack('!HHI', rdataset.rdtype,
@@ -697,6 +701,11 @@ class Zone(dns.transaction.TransactionManager):
         return hasher.digest()
 
     def compute_digest(self, hash_algorithm, scheme=DigestScheme.SIMPLE):
+        if self.relativize:
+            origin_name = dns.name.empty
+        else:
+            origin_name = self.origin
+        serial = self.get_rdataset(origin_name, dns.rdatatype.SOA)[0].serial
         digest = self._compute_digest(hash_algorithm, scheme)
         return dns.rdtypes.ANY.ZONEMD.ZONEMD(self.rdclass,
                                              dns.rdatatype.ZONEMD,
