@@ -236,6 +236,10 @@ amtrelay04              AMTRELAY  10 0 2 2001:db8::15
 amtrelay05              AMTRELAY 128 1 3 amtrelays.example.com.
 csync0			CSYNC 12345 0 A MX RRSIG NSEC TYPE1234
 avc01			AVC "app-name:WOLFGANG|app-class:OAM|business=yes"
+zonemd01                ZONEMD 2018031900 1 1 62e6cf51b02e54b9 b5f967d547ce4313 6792901f9f88e637 493daaf401c92c27 9dd10f0edb1c56f8 080211f8480ee306
+zonemd02                ZONEMD 2018031900 1 2 08cfa1115c7b948c 4163a901270395ea 226a930cd2cbcf2f a9a5e6eb85f37c8a 4e114d884e66f176 eab121cb02db7d65 2e0cc4827e7a3204 f166b47e5613fd27
+zonemd03                ZONEMD 2018031900 1 240 e2d523f654b9422a 96c5a8f44607bbee
+zonemd04                ZONEMD 2018031900 241 1 e1846540e33a9e41 89792d18d5d131f6 05fc283e aaaaaaaa aaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa
 svcb01                  SVCB (
 100 foo.com. mandatory="alpn,port" alpn="h2,h3" no-default-alpn port="12345"
 echconfig="abcd" ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4 key12345="foo"
