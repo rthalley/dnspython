@@ -59,6 +59,26 @@ class UnknownOrigin(BadZone):
     """The DNS zone's origin is unknown."""
 
 
+class UnsupportedDigestScheme(dns.exception.DNSException):
+
+    """The zone digest's scheme is unsupported."""
+
+
+class UnsupportedDigestHashAlgorithm(dns.exception.DNSException):
+
+    """The zone digest's origin is unsupported."""
+
+
+class NoDigest(dns.exception.DNSException):
+
+    """The DNS zone has no ZONEMD RRset at its origin."""
+
+
+class DigestVerificationFailure(dns.exception.DNSException):
+
+    """The ZONEMD digest failed to verify."""
+
+
 class DigestScheme(dns.enum.IntEnum):
     """ZONEMD Scheme"""
 
@@ -676,9 +696,9 @@ class Zone(dns.transaction.TransactionManager):
     def _compute_digest(self, hash_algorithm, scheme=DigestScheme.SIMPLE):
         hashinfo = _digest_hashers.get(hash_algorithm)
         if not hashinfo:
-            raise ValueError("unknown digest hash algorithm")
+            raise UnsupportedDigestHashAlgorithm
         if scheme != DigestScheme.SIMPLE:
-            raise ValueError("unknown digest scheme")
+            raise UnsupportedDigestScheme
 
         if self.relativize:
             origin_name = dns.name.empty
@@ -718,7 +738,7 @@ class Zone(dns.transaction.TransactionManager):
         else:
             digests = self.get_rdataset(self.origin, dns.rdatatype.ZONEMD)
             if digests is None:
-                raise ValueError("no ZONEMD records found")
+                raise NoDigest
         for digest in digests:
             try:
                 computed = self._compute_digest(digest.hash_algorithm,
@@ -727,7 +747,7 @@ class Zone(dns.transaction.TransactionManager):
                     return
             except Exception as e:
                 pass
-        raise ValueError("no digests verified")
+        raise DigestVerificationFailure
 
     # TransactionManager methods
 

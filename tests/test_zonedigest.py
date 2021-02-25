@@ -136,8 +136,14 @@ class ZoneDigestTestCase(unittest.TestCase):
                 zone.verify_digest(rr)
                 self.assertEqual(rr, zone.compute_digest(rr.hash_algorithm))
             else:
-                with self.assertRaises(ValueError):
+                with self.assertRaises(dns.zone.DigestVerificationFailure):
                     zone.verify_digest(rr)
+
+    def test_zonemd_no_digest(self):
+        zone = dns.zone.from_text(self.simple_example, origin='example')
+        zone.delete_rdataset(dns.name.empty, 'ZONEMD')
+        with self.assertRaises(dns.zone.NoDigest):
+            zone.verify_digest()
 
     sha384_hash = 'ab' * 48
     sha512_hash = 'ab' * 64
@@ -150,12 +156,12 @@ class ZoneDigestTestCase(unittest.TestCase):
 
     def test_zonemd_unknown_scheme(self):
         zone = dns.zone.from_text(self.simple_example, origin='example')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(dns.zone.UnsupportedDigestScheme):
             zone.compute_digest(dns.zone.DigestHashAlgorithm.SHA384, 2)
 
     def test_zonemd_unknown_hash_algorithm(self):
         zone = dns.zone.from_text(self.simple_example, origin='example')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(dns.zone.UnsupportedDigestHashAlgorithm):
             zone.compute_digest(5)
 
     def test_zonemd_invalid_digest_length(self):
