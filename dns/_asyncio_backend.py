@@ -4,10 +4,13 @@
 
 import socket
 import asyncio
+import sys
 
 import dns._asyncbackend
 import dns.exception
 
+
+_is_win32 = sys.platform == 'win32'
 
 def _get_running_loop():
     try:
@@ -114,11 +117,16 @@ class Backend(dns._asyncbackend.Backend):
     async def make_socket(self, af, socktype, proto=0,
                           source=None, destination=None, timeout=None,
                           ssl_context=None, server_hostname=None):
+        if destination is None and socktype == socket.SOCK_DGRAM and \
+           _is_win32:
+            raise NotImplementedError('destinationless datagram sockets '
+                                      'are not supported by asyncio '
+                                      'on Windows')
         loop = _get_running_loop()
         if socktype == socket.SOCK_DGRAM:
             transport, protocol = await loop.create_datagram_endpoint(
                 _DatagramProtocol, source, family=af,
-                proto=proto)
+                proto=proto, remote_addr=destination)
             return DatagramSocket(af, transport, protocol)
         elif socktype == socket.SOCK_STREAM:
             (r, w) = await _maybe_wait_for(
@@ -136,3 +144,7 @@ class Backend(dns._asyncbackend.Backend):
 
     async def sleep(self, interval):
         await asyncio.sleep(interval)
+
+    def datagram_connection_required(self):
+        return _is_win32
+        

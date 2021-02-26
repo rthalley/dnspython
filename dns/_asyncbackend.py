@@ -64,3 +64,6 @@ class Backend:    # pragma: no cover
                           source=None, destination=None, timeout=None,
                           ssl_context=None, server_hostname=None):
         raise NotImplementedError
+
+    def datagram_connection_required(self):
+        return False
