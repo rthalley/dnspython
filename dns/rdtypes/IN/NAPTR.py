@@ -21,6 +21,7 @@ import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
+import dns.rdtypes.util
 
 
 def _write_string(file, s):
