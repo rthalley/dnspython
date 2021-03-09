@@ -12,6 +12,7 @@ import dns.ipv4
 import dns.ipv6
 import dns.name
 import dns.rdata
+import dns.rdtypes.util
 import dns.tokenizer
 import dns.wire
 
