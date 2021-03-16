@@ -96,7 +96,7 @@ class RdataType(dns.enum.IntEnum):
     URI = 256
     CAA = 257
     AVC = 258
-    AMTRELAY = 259
+    AMTRELAY = 260
     TA = 32768
     DLV = 32769
 
