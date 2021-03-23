@@ -42,7 +42,7 @@ Core RFCs
     Negative Caching.
 
 `RFC 2845 <https://tools.ietf.org/html/rfc2845>`_
-    Transaction Sigatures (TSIG)
+    Transaction Signatures (TSIG)
 
 `RFC 3007 <https://tools.ietf.org/html/rfc3007>`_
     Dynamic Updates
