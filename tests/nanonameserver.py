@@ -160,9 +160,9 @@ class Server(threading.Thread):
         finally:
             raise EOFError
 
-    def handle(self, message, peer, connection_type):
+    def handle(self, request):
         #
-        # Handle message 'message'.  Override this method to change
+        # Handle request 'request'.  Override this method to change
         # how the server behaves.
         #
         # The return value is either a dns.message.Message, a bytes,
