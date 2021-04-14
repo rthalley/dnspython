@@ -16,3 +16,4 @@ poetry.lock
 htmlcov
 coverage.xml
 .dir-locals.el
+.vscode/

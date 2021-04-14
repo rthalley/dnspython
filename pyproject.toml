@@ -27,6 +27,7 @@ sphinx = "^3.0.0"
 coverage = "^5.1"
 twine = "^3.1.1"
 wheel = "^0.35.0"
+pylint = "^2.7.4"
 
 [tool.poetry.extras]
 doh = ['requests', 'requests-toolbelt']

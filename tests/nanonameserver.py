@@ -173,12 +173,9 @@ class Server(threading.Thread):
         # returned, then the output code will run for each returned
         # item.
         #
-        try:
-            r = dns.message.make_response(message)
-            r.set_rcode(dns.rcode.REFUSED)
-            return r
-        except Exception:
-            return None
+        r = dns.message.make_response(request.message)
+        r.set_rcode(dns.rcode.REFUSED)
+        return r
 
     def maybe_listify(self, thing):
         if isinstance(thing, list):
