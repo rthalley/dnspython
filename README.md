@@ -3,7 +3,6 @@
 [![Build Status](https://travis-ci.org/rthalley/dnspython.svg?branch=master)](https://travis-ci.org/rthalley/dnspython)
 [![Documentation Status](https://readthedocs.org/projects/dnspython/badge/?version=latest)](https://dnspython.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/dnspython.svg)](https://badge.fury.io/py/dnspython)
-[![Coverage](https://codecov.io/github/rthalley/dnspython/coverage.svg?branch=master)](https://codecov.io/gh/rthalley/dnspython)
 [![License: ISC](https://img.shields.io/badge/License-ISC-brightgreen.svg)](https://opensource.org/licenses/ISC)
 
 ## INTRODUCTION

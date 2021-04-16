@@ -12,5 +12,3 @@ install:
  - ~/.poetry/bin/poetry install -E dnssec -E doh -E idna -E trio -E curio
 script:
  - ~/.poetry/bin/poetry run pytest --cov=. --cov-report=xml:coverage.xml
-after_success:
- - bash <(curl -s https://codecov.io/bash)
