@@ -338,6 +338,9 @@ class Key:
                 self.algorithm == other.algorithm)
 
     def __repr__(self):
-        return f"<DNS key name='{self.name}', " + \
-               f"algorithm='{self.algorithm}', " + \
-               f"secret='{base64.b64encode(self.secret).decode()}'>"
+        r = f"<DNS key name='{self.name}', " + \
+            f"algorithm='{self.algorithm}'"
+        if self.algorithm != GSS_TSIG:
+            r += f", secret='{base64.b64encode(self.secret).decode()}'"
+        r += ">"
+        return r

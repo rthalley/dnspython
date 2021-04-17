@@ -273,3 +273,17 @@ class TSIGTestCase(unittest.TestCase):
 
     def test_text_hmac_sha512_256(self):
         self._test_text_format(dns.tsig.HMAC_SHA512_256)
+
+    def test_non_gss_key_repr(self):
+        key = dns.tsig.Key('foo', b'0123456789abcdef' * 2,
+                           algorithm=dns.tsig.HMAC_SHA256)
+        self.assertEqual(repr(key),
+                         "<DNS key name='foo.', algorithm='hmac-sha256.', " +
+                         "secret=" +
+                         "'MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY='>")
+
+    def test_gss_key_repr(self):
+        key = dns.tsig.Key('foo', None,
+                           algorithm=dns.tsig.GSS_TSIG)
+        self.assertEqual(repr(key),
+                         "<DNS key name='foo.', algorithm='gss-tsig.'>")
