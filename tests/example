@@ -242,7 +242,7 @@ zonemd03                ZONEMD 2018031900 1 240 e2d523f654b9422a 96c5a8f44607bbe
 zonemd04                ZONEMD 2018031900 241 1 e1846540e33a9e41 89792d18d5d131f6 05fc283e aaaaaaaa aaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa
 svcb01                  SVCB (
 100 foo.com. mandatory="alpn,port" alpn="h2,h3" no-default-alpn port="12345"
-echconfig="abcd" ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4 key12345="foo"
+ech="abcd" ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4 key12345="foo"
 )
 https01                 HTTPS 0 svc
-https02                 HTTPS 1 . port=8002 echconfig="abcd"
+https02                 HTTPS 1 . port=8002 ech="abcd"

@@ -32,7 +32,7 @@ class ParamKey(dns.enum.IntEnum):
     NO_DEFAULT_ALPN = 2
     PORT = 3
     IPV4HINT = 4
-    ECHCONFIG = 5
+    ECH = 5
     IPV6HINT = 6
 
     @classmethod
@@ -91,22 +91,15 @@ def _escapify(qstring):
             text += '\\%03d' % c
     return text
 
-def _unescape(value, list_mode=False):
+def _unescape(value):
     if value == '':
         return value
-    items = []
     unescaped = b''
     l = len(value)
     i = 0
     while i < l:
         c = value[i]
         i += 1
-        if c == ',' and list_mode:
-            if len(unescaped) == 0:
-                raise ValueError('list item cannot be empty')
-            items.append(unescaped)
-            unescaped = b''
-            continue
         if c == '\\':
             if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
                 raise dns.exception.UnexpectedEnd
@@ -126,20 +119,33 @@ def _unescape(value, list_mode=False):
                 codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                 if codepoint > 255:
                     raise dns.exception.SyntaxError
-                c = chr(codepoint)
+                unescaped += b'%c' % (codepoint)
+                continue
         unescaped += c.encode()
-    if len(unescaped) > 0:
-        items.append(unescaped)
-    else:
-        # This can't happen outside of list_mode because that would
-        # require the value parameter to the function to be empty, but
-        # we special case that at the beginning.
-        assert list_mode
-        raise ValueError('trailing comma')
-    if list_mode:
-        return items
-    else:
-        return items[0]
+    return unescaped
+
+
+def _split(value):
+    l = len(value)
+    i = 0
+    items = []
+    unescaped = b''
+    while i < l:
+        c = value[i]
+        i += 1
+        if c == ord('\\'):
+            if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
+                raise dns.exception.UnexpectedEnd
+            c = value[i]
+            i += 1
+            unescaped += b'%c' % (c)
+        elif c == ord(','):
+            items.append(unescaped)
+            unescaped = b''
+        else:
+            unescaped += b'%c' % (c)
+    items.append(unescaped)
+    return items
 
 
 @dns.immutable.immutable
@@ -170,7 +176,7 @@ class GenericParam(Param):
             return cls(_unescape(value))
 
     def to_text(self):
-        return '"' + _escapify(self.value) + '"'
+        return '"' + dns.rdata._escapify(self.value) + '"'
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
@@ -231,10 +237,11 @@ class ALPNParam(Param):
 
     @classmethod
     def from_value(cls, value):
-        return cls(_unescape(value, True))
+        return cls(_split(_unescape(value)))
 
     def to_text(self):
-        return '"' + ','.join([_escapify(id) for id in self.ids]) + '"'
+        value = ','.join([_escapify(id) for id in self.ids])
+        return '"' + dns.rdata._escapify(value.encode()) + '"'
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
@@ -357,19 +364,19 @@ class IPv6HintParam(Param):
 
 
 @dns.immutable.immutable
-class ECHConfigParam(Param):
-    def __init__(self, echconfig):
-        self.echconfig = dns.rdata.Rdata._as_bytes(echconfig, True)
+class ECHParam(Param):
+    def __init__(self, ech):
+        self.ech = dns.rdata.Rdata._as_bytes(ech, True)
 
     @classmethod
     def from_value(cls, value):
         if '\\' in value:
-            raise ValueError('escape in ECHConfig value')
+            raise ValueError('escape in ECH value')
         value = base64.b64decode(value.encode())
         return cls(value)
 
     def to_text(self):
-        b64 = base64.b64encode(self.echconfig).decode('ascii')
+        b64 = base64.b64encode(self.ech).decode('ascii')
         return f'"{b64}"'
 
     @classmethod
@@ -378,7 +385,7 @@ class ECHConfigParam(Param):
         return cls(value)
 
     def to_wire(self, file, origin=None):  # pylint: disable=W0613
-        file.write(self.echconfig)
+        file.write(self.ech)
 
 
 _class_for_key = {
@@ -387,7 +394,7 @@ _class_for_key = {
     ParamKey.NO_DEFAULT_ALPN: NoDefaultALPNParam,
     ParamKey.PORT: PortParam,
     ParamKey.IPV4HINT: IPv4HintParam,
-    ParamKey.ECHCONFIG: ECHConfigParam,
+    ParamKey.ECH: ECHParam,
     ParamKey.IPV6HINT: IPv6HintParam,
 }
 
@@ -436,8 +443,12 @@ class SVCBBase(dns.rdata.Rdata):
                 # Note we have to say "not in" as we have None as a value
                 # so a get() and a not None test would be wrong.
                 if key not in params:
-                    raise ValueError(f'key {key} declared mandatory but not'
+                    raise ValueError(f'key {key} declared mandatory but not '
                                      'present')
+        # The no-default-alpn parameter requires the alpn parameter.
+        if ParamKey.NO_DEFAULT_ALPN in params:
+            if ParamKey.ALPN not in params:
+                raise ValueError(f'no-default-alpn present, but alpn missing')
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)

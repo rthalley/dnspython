@@ -6,6 +6,9 @@ import unittest
 import dns.rdata
 import dns.rdtypes.svcbbase
 import dns.rrset
+from dns.tokenizer import Tokenizer
+
+from tests.util import here
 
 class SVCBTestCase(unittest.TestCase):
     def check_valid_inputs(self, inputs):
@@ -17,7 +20,7 @@ class SVCBTestCase(unittest.TestCase):
 
     def check_invalid_inputs(self, inputs):
         for text in inputs:
-            with self.assertRaises(dns.exception.SyntaxError):
+            with self.assertRaises((dns.exception.SyntaxError, ValueError)):
                 dns.rdata.from_text('IN', 'SVCB', text)
 
     def test_svcb_general_invalid(self):
@@ -83,14 +86,18 @@ class SVCBTestCase(unittest.TestCase):
             "1 . alpn=h\\050,h3",
             "1 . alpn=\"h\\050,h3\"",
             "1 . alpn=\\h2,h3",
+            "1 . alpn=\"h2\\,h3\"",
+            "1 . alpn=h2\\,h3",
+            "1 . alpn=h2\\044h3",
             "1 . key1=\\002h2\\002h3",
         )
         self.check_valid_inputs(valid_inputs_two_items)
 
         valid_inputs_one_item = (
-            "1 . alpn=\"h2\\,h3\"",
-            "1 . alpn=h2\\,h3",
-            "1 . alpn=h2\\044h3",
+            "1 . alpn=\"h2\\\\,h3\"",
+            "1 . alpn=h2\\\\,h3",
+            "1 . alpn=h2\\092\\044h3",
+            "1 . key1=\\005h2,h3",
         )
         self.check_valid_inputs(valid_inputs_one_item)
 
@@ -115,18 +122,22 @@ class SVCBTestCase(unittest.TestCase):
 
     def test_svcb_no_default_alpn(self):
         valid_inputs = (
-            "1 . no-default-alpn",
-            "1 . no-default-alpn=\"\"",
-            "1 . key2",
-            "1 . key2=\"\"",
+            "1 . alpn=\"h2\" no-default-alpn",
+            "1 . alpn=\"h2\" no-default-alpn=\"\"",
+            "1 . alpn=\"h2\" key2",
+            "1 . alpn=\"h2\" key2=\"\"",
         )
         self.check_valid_inputs(valid_inputs)
 
         invalid_inputs = (
-            "1 . no-default-alpn=foo",
-            "1 . no-default-alpn=",
-            "1 . key2=foo",
-            "1 . key2=",
+            "1 . no-default-alpn",
+            "1 . no-default-alpn=\"\"",
+            "1 . key2",
+            "1 . key2=\"\"",
+            "1 . alpn=h2 no-default-alpn=foo",
+            "1 . alpn=h2 no-default-alpn=",
+            "1 . alpn=h2 key2=foo",
+            "1 . alpn=h2 key2=",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -171,20 +182,20 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_invalid_inputs(invalid_inputs)
 
-    def test_svcb_echconfig(self):
+    def test_svcb_ech(self):
         valid_inputs = (
-            "1 . echconfig=\"Zm9vMA==\"",
-            "1 . echconfig=Zm9vMA==",
+            "1 . ech=\"Zm9vMA==\"",
+            "1 . ech=Zm9vMA==",
             "1 . key5=foo0",
             "1 . key5=\\102\\111\\111\\048",
         )
         self.check_valid_inputs(valid_inputs)
 
         invalid_inputs = (
-            "1 . echconfig",
-            "1 . echconfig=",
-            "1 . echconfig=Zm9vMA",
-            "1 . echconfig=\\090m9vMA==",
+            "1 . ech",
+            "1 . ech=",
+            "1 . ech=Zm9vMA",
+            "1 . ech=\\090m9vMA==",
             "1 . key5",
             "1 . key5=",
         )
@@ -251,7 +262,7 @@ class SVCBTestCase(unittest.TestCase):
 
         everything = \
             "100 foo.com. mandatory=\"alpn,port\" alpn=\"h2,h3\" " \
-            "             no-default-alpn port=\"12345\" echconfig=\"abcd\" " \
+            "             no-default-alpn port=\"12345\" ech=\"abcd\" " \
             "             ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4" \
             "             key12345=\"foo\""
         rr = dns.rdata.from_text('IN', 'SVCB', everything)
@@ -262,16 +273,18 @@ class SVCBTestCase(unittest.TestCase):
             # As above, but the keys are out of order.
             "\\# 24 0001 00 0000000400010003 000300020101 00010003026832",
             # As above, but the mandatory keys don't match
-            "\\# 24 0001 00 0000000400010002 000300020101 00010003026832",
-            "\\# 24 0001 00 0000000400010004 000300020101 00010003026832",
+            "\\# 24 0001 00 0000000400010002 00010003026832 000300020101",
+            "\\# 24 0001 00 0000000400010004 00010003026832 000300020101",
             # Alias form shouldn't have parameters.
             "\\# 08 0000 000300020101",
+            # no-default-alpn requires alpn
+            "\\# 07 0001 00 00020000",
         )
         self.check_invalid_inputs(invalid_inputs)
 
     def test_misc_escape(self):
         rdata = dns.rdata.from_text('in', 'svcb', '1 . alpn=\\010\\010')
-        expected = '1 . alpn="\\010\\010"'
+        expected = '1 . alpn="\\\\010\\\\010"'
         self.assertEqual(rdata.to_text(), expected)
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('in', 'svcb', '1 . alpn=\\0')
@@ -285,6 +298,56 @@ class SVCBTestCase(unittest.TestCase):
         gp = dns.rdtypes.svcbbase.GenericParam.from_value('\\001\\002')
         expected = '"\\001\\002"'
         self.assertEqual(gp.to_text(), expected)
+
+    def test_svcb_spec_test_vectors(self):
+        text_file = here("svcb_test_vectors.text")
+        text_tokenizer = Tokenizer(open(text_file), filename=text_file)
+        generic_file = here("svcb_test_vectors.generic")
+        generic_tokenizer = Tokenizer(open(generic_file), filename=generic_file)
+
+        while True:
+            while True:
+                text_token = text_tokenizer.get()
+                if text_token.is_eol():
+                    continue
+                break
+            while True:
+                generic_token = generic_tokenizer.get()
+                if generic_token.is_eol():
+                    continue
+                break
+            self.assertEqual(text_token.ttype, generic_token.ttype)
+            if text_token.is_eof():
+                break
+            self.assertTrue(text_token.is_identifier)
+            text_tokenizer.unget(text_token)
+            generic_tokenizer.unget(generic_token)
+            text_rdata = dns.rdata.from_text('IN', 'SVCB', text_tokenizer)
+            generic_rdata = dns.rdata.from_text('IN', 'SVCB', generic_tokenizer)
+            self.assertEqual(text_rdata, generic_rdata)
+
+    def test_svcb_spec_failure_cases(self):
+        failure_cases = (
+            # This example has multiple instances of the same SvcParamKey
+            "1 foo.example.com. key123=abc key123=def",
+            # In the next examples the SvcParamKeys are missing their values.
+            "1 foo.example.com. mandatory",
+            "1 foo.example.com. alpn",
+            "1 foo.example.com. port",
+            "1 foo.example.com. ipv4hint",
+            "1 foo.example.com. ipv6hint",
+            # The "no-default-alpn" SvcParamKey value MUST be empty (Section 6.1).
+            "1 foo.example.com. no-default-alpn=abc",
+            # In this record a mandatory SvcParam is missing (Section 7).
+            "1 foo.example.com. mandatory=key123",
+            # The "mandatory" SvcParamKey MUST not be included in mandatory list
+            # (Section 7).
+            "1 foo.example.com. mandatory=mandatory",
+            # Here there are multiple instances of the same SvcParamKey in the
+            # mandatory list (Section 7).
+            "1 foo.example.com. mandatory=key123,key123 key123=abc",
+        )
+        self.check_invalid_inputs(failure_cases);
 
     def test_alias_mode(self):
         rd = dns.rdata.from_text('in', 'svcb', '0 .')
