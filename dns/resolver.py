@@ -663,7 +663,9 @@ class _Resolution:
             try:
                 answer = Answer(self.qname, self.rdtype, self.rdclass, response,
                                 self.nameserver, self.port)
-            except Exception:
+            except Exception as e:
+                self.errors.append((self.nameserver, self.tcp_attempt,
+                                   self.port, e, response))
                 # The nameserver is no good, take it out of the mix.
                 self.nameservers.remove(self.nameserver)
                 return (None, False)
@@ -679,7 +681,9 @@ class _Resolution:
             try:
                 answer = Answer(self.qname, dns.rdatatype.ANY,
                                 dns.rdataclass.IN, response)
-            except Exception:
+            except Exception as e:
+                self.errors.append((self.nameserver, self.tcp_attempt,
+                                   self.port, e, response))
                 # The nameserver is no good, take it out of the mix.
                 self.nameservers.remove(self.nameserver)
                 return (None, False)
