@@ -71,7 +71,8 @@ class Resolver(dns.resolver.BaseResolver):
                 (nameserver, port, tcp, backoff) = resolution.next_nameserver()
                 if backoff:
                     await backend.sleep(backoff)
-                timeout = self._compute_timeout(start, lifetime)
+                timeout = self._compute_timeout(start, lifetime,
+                                                resolution.errors)
                 try:
                     if dns.inet.is_address(nameserver):
                         if tcp:

@@ -132,11 +132,34 @@ class NXDOMAIN(dns.exception.DNSException):
 class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
 
-# The definition of the Timeout exception has moved from here to the
-# dns.exception module.  We keep dns.resolver.Timeout defined for
-# backwards compatibility.
 
-Timeout = dns.exception.Timeout
+def _errors_to_text(errors):
+    """Turn a resolution errors trace into a list of text."""
+    texts = []
+    for err in errors:
+        # pylint: disable=bad-continuation
+        texts.append('Server {} {} port {} answered {}'.format(err[0],
+                     'TCP' if err[1] else 'UDP', err[2], err[3]))
+    return texts
+
+
+class LifetimeTimeout(dns.exception.Timeout):
+    """The resolution lifetime expired."""
+
+    msg = "The resolution lifetime expired."
+    fmt = "%s after {timeout} seconds: {errors}" % msg[:-1]
+    supp_kwargs = {'timeout', 'errors'}
+
+    def _fmt_kwargs(self, **kwargs):
+        srv_msgs = _errors_to_text(kwargs['errors'])
+        return super()._fmt_kwargs(timeout=kwargs['timeout'],
+                                   errors='; '.join(srv_msgs))
+
+
+# We added more detail to resolution timeouts, but they are still
+# subclasses of dns.exception.Timeout for backwards compatibility.  We also
+# keep dns.resolver.Timeout defined for backwards compatibility.
+Timeout = LifetimeTimeout
 
 
 class NoAnswer(dns.exception.DNSException):
@@ -163,11 +186,7 @@ class NoNameservers(dns.exception.DNSException):
     supp_kwargs = {'request', 'errors'}
 
     def _fmt_kwargs(self, **kwargs):
-        srv_msgs = []
-        for err in kwargs['errors']:
-            # pylint: disable=bad-continuation
-            srv_msgs.append('Server {} {} port {} answered {}'.format(err[0],
-                            'TCP' if err[1] else 'UDP', err[2], err[3]))
+        srv_msgs = _errors_to_text(kwargs['errors'])
         return super()._fmt_kwargs(query=kwargs['request'].question,
                                    errors='; '.join(srv_msgs))
 
@@ -984,21 +1003,23 @@ class BaseResolver:
         except Exception:  # pragma: no cover
             return False
 
-    def _compute_timeout(self, start, lifetime=None):
+    def _compute_timeout(self, start, lifetime=None, errors=None):
         lifetime = self.lifetime if lifetime is None else lifetime
         now = time.time()
         duration = now - start
+        if errors is None:
+            errors = []
         if duration < 0:
             if duration < -1:
                 # Time going backwards is bad.  Just give up.
-                raise Timeout(timeout=duration)
+                raise LifetimeTimeout(timeout=duration, errors=errors)
             else:
                 # Time went backwards, but only a little.  This can
                 # happen, e.g. under vmware with older linux kernels.
                 # Pretend it didn't happen.
                 now = start
         if duration >= lifetime:
-            raise Timeout(timeout=duration)
+            raise LifetimeTimeout(timeout=duration, errors=errors)
         return min(lifetime - duration, self.timeout)
 
     def _get_qnames_to_try(self, qname, search):
@@ -1141,7 +1162,7 @@ class Resolver(BaseResolver):
         which causes the value of the resolver's
         ``use_search_by_default`` attribute to be used.
 
-        Raises ``dns.exception.Timeout`` if no answers could be found
+        Raises ``dns.resolver.LifetimeTimeout`` if no answers could be found
         in the specified lifetime.
 
         Raises ``dns.resolver.NXDOMAIN`` if the query name does not exist.
@@ -1177,7 +1198,8 @@ class Resolver(BaseResolver):
                 (nameserver, port, tcp, backoff) = resolution.next_nameserver()
                 if backoff:
                     time.sleep(backoff)
-                timeout = self._compute_timeout(start, lifetime)
+                timeout = self._compute_timeout(start, lifetime,
+                                                resolution.errors)
                 try:
                     if dns.inet.is_address(nameserver):
                         if tcp:
