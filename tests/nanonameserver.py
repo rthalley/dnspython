@@ -237,7 +237,7 @@ class Server(threading.Thread):
                 out = thing.to_wire(self.origin, multi=multi, tsig_ctx=tsig_ctx)
                 tsig_ctx = thing.tsig_ctx
                 yield out
-            else:
+            elif thing is not None:
                 yield thing
 
     async def serve_udp(self):

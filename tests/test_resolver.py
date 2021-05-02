@@ -22,6 +22,8 @@ import socket
 import time
 import unittest
 
+import pytest
+
 import dns.e164
 import dns.message
 import dns.name
@@ -943,3 +945,62 @@ class ZoneForNameNoParentTest(unittest.TestCase):
             res.nameservers = [na.udp_address[0]]
             with self.assertRaises(dns.resolver.NoRootSOA):
                 dns.resolver.zone_for_name('www.foo.bar.', resolver=res)
+
+
+class DroppingNanoNameserver(Server):
+
+    def handle(self, request):
+        return None
+
+
+class FormErrNanoNameserver(Server):
+
+    def handle(self, request):
+        r = dns.message.make_response(request.message)
+        r.set_rcode(dns.rcode.FORMERR)
+        return r
+
+
+# we use pytest for these so we can have a "slow" mark later if we want to
+# (right now it's still fast enough we don't really need it)
+
+@pytest.mark.skipif(not (_network_available and _nanonameserver_available),
+                    reason="Internet and NanoAuth required")
+def testResolverTimeout():
+    with DroppingNanoNameserver() as na:
+        res = dns.resolver.Resolver(configure=False)
+        res.port = na.udp_address[1]
+        res.nameservers = [na.udp_address[0]]
+        res.timeout = 0.2
+        try:
+            lifetime = 1.0
+            a = res.resolve('www.dnspython.org', lifetime=lifetime)
+            assert False  # should never happen
+        except dns.resolver.LifetimeTimeout as e:
+            assert e.kwargs['timeout'] >= lifetime
+            # The length of errors can vary based on how slow things are,
+            # but it ought to be > 1, so we assert that.
+            errors = e.kwargs['errors']
+            assert len(errors) > 1
+            for error in errors:
+                assert error[0] == na.udp_address[0]  # address
+                assert not error[1]  # not TCP
+                assert error[2] == na.udp_address[1]  # port
+                assert isinstance(error[3], dns.exception.Timeout)  # exception
+
+def testResolverNoNameservers():
+    with FormErrNanoNameserver() as na:
+        res = dns.resolver.Resolver(configure=False)
+        res.port = na.udp_address[1]
+        res.nameservers = [na.udp_address[0]]
+        try:
+            a = res.resolve('www.dnspython.org')
+            assert False  # should never happen
+        except dns.resolver.NoNameservers as e:
+            errors = e.kwargs['errors']
+            assert len(errors) == 1
+            for error in errors:
+                assert error[0] == na.udp_address[0]  # address
+                assert not error[1]  # not TCP
+                assert error[2] == na.udp_address[1]  # port
+                assert error[3] == 'FORMERR'
