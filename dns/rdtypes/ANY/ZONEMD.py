@@ -1,6 +1,5 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-import hashlib
 import struct
 import binascii
 

@@ -225,7 +225,7 @@ def weighted_processing_order(iterable):
                     break
                 r -= weight
             total -= weight
-            ordered.append(rdata)
-            del rdatas[n]
+            ordered.append(rdata)  # pylint: disable=undefined-loop-variable
+            del rdatas[n]  # pylint: disable=undefined-loop-variable
         ordered.append(rdatas[0])
     return ordered

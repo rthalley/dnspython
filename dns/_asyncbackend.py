@@ -49,7 +49,7 @@ class DatagramSocket(Socket):  # pragma: no cover
 
 
 class StreamSocket(Socket):  # pragma: no cover
-    async def sendall(self, what, destination, timeout):
+    async def sendall(self, what, timeout):
         raise NotImplementedError
 
     async def recv(self, size, timeout):

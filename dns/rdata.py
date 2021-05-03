@@ -51,6 +51,8 @@ def _wordbreak(data, chunksize=_chunksize):
                       in range(0, len(data), chunksize)]).decode()
 
 
+# pylint: disable=unused-argument
+
 def _hexify(data, chunksize=_chunksize, **kw):
     """Convert a binary string into its hex encoding, broken up into chunks
     of chunksize characters separated by a space.
@@ -66,6 +68,7 @@ def _base64ify(data, chunksize=_chunksize, **kw):
 
     return _wordbreak(base64.b64encode(data), chunksize)
 
+# pylint: enable=unused-argument
 
 __escaped = b'"\\'
 

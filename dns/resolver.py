@@ -137,7 +137,6 @@ def _errors_to_text(errors):
     """Turn a resolution errors trace into a list of text."""
     texts = []
     for err in errors:
-        # pylint: disable=bad-continuation
         texts.append('Server {} {} port {} answered {}'.format(err[0],
                      'TCP' if err[1] else 'UDP', err[2], err[3]))
     return texts

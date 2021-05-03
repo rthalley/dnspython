@@ -745,7 +745,7 @@ class Zone(dns.transaction.TransactionManager):
                                                 digest.scheme)
                 if computed == digest.digest:
                     return
-            except Exception as e:
+            except Exception:
                 pass
         raise DigestVerificationFailure
 

@@ -92,8 +92,8 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
         self.writer.write(what)
         return await _maybe_wait_for(self.writer.drain(), timeout)
 
-    async def recv(self, count, timeout):
-        return await _maybe_wait_for(self.reader.read(count),
+    async def recv(self, size, timeout):
+        return await _maybe_wait_for(self.reader.read(size),
                                      timeout)
 
     async def close(self):
@@ -147,4 +147,3 @@ class Backend(dns._asyncbackend.Backend):
 
     def datagram_connection_required(self):
         return _is_win32
-        

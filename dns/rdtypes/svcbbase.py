@@ -448,7 +448,7 @@ class SVCBBase(dns.rdata.Rdata):
         # The no-default-alpn parameter requires the alpn parameter.
         if ParamKey.NO_DEFAULT_ALPN in params:
             if ParamKey.ALPN not in params:
-                raise ValueError(f'no-default-alpn present, but alpn missing')
+                raise ValueError('no-default-alpn present, but alpn missing')
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
