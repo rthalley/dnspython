@@ -22,9 +22,13 @@ import dns.ipv4
 import dns.immutable
 import dns.rdata
 
-_proto_tcp = socket.getprotobyname('tcp')
-_proto_udp = socket.getprotobyname('udp')
-
+try:
+    _proto_tcp = socket.getprotobyname('tcp')
+    _proto_udp = socket.getprotobyname('udp')
+except OSError:
+    # Fall back to defaults in case /etc/protocols is unavailable.
+    _proto_tcp = 6
+    _proto_udp = 17
 
 @dns.immutable.immutable
 class WKS(dns.rdata.Rdata):
