@@ -3,10 +3,17 @@
 What's New in dnspython
 =======================
 
-2.2.0
+2.2.0 (in development)
 ----------------------
 
-Nothing yet!
+* SVCB and HTTPS records have been updated to track the evolving draft
+  standard.
+
+* The ZONEMD type has been added.
+
+* The resolver now returns a LifetimeTimeout exception which includes
+  an error trace like the NoNameservers exception.  This class is a subclass of
+  dns.exception.Timeout for backwards compatibility.
 
 2.1.0
 ----------------------
