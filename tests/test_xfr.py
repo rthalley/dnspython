@@ -593,6 +593,21 @@ def test_make_query_bad_serial():
     with pytest.raises(ValueError):
         dns.xfr.make_query(z, serial=4294967296)
 
+def test_extract_serial_from_query():
+    z = dns.versioned.Zone('example.')
+    (q, s) = dns.xfr.make_query(z)
+    xs = dns.xfr.extract_serial_from_query(q)
+    assert s is None
+    assert s == xs
+    (q, s) = dns.xfr.make_query(z, serial=10)
+    print(q)
+    xs = dns.xfr.extract_serial_from_query(q)
+    assert s == 10
+    assert s == xs
+    q = dns.message.make_query('example', 'a')
+    with pytest.raises(ValueError):
+        dns.xfr.extract_serial_from_query(q)
+
 
 class XFRNanoNameserver(Server):
 

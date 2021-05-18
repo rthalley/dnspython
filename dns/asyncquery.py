@@ -356,8 +356,7 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
 
 async def inbound_xfr(where, txn_manager, query=None,
                       port=53, timeout=None, lifetime=None, source=None,
-                      source_port=0, udp_mode=UDPMode.NEVER, serial=0,
-                      backend=None):
+                      source_port=0, udp_mode=UDPMode.NEVER, backend=None):
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
@@ -369,6 +368,8 @@ async def inbound_xfr(where, txn_manager, query=None,
     """
     if query is None:
         (query, serial) = dns.xfr.make_query(txn_manager)
+    else:
+        serial = dns.xfr.extract_serial_from_query(query)
     rdtype = query.question[0].rdtype
     is_ixfr = rdtype == dns.rdatatype.IXFR
     origin = txn_manager.from_wire_origin()

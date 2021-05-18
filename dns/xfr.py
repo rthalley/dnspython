@@ -295,3 +295,22 @@ def make_query(txn_manager, serial=0,
     if keyring is not None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
     return (q, serial)
+
+def extract_serial_from_query(query):
+    """Extract the SOA serial number from query if it is an IXFR and return
+    it, otherwise return None.
+
+    *query* is a dns.message.QueryMessage that is an IXFR or AXFR request.
+
+    Raises if the query is not an IXFR or AXFR, or if an IXFR doesn't have
+    an appropriate SOA RRset in the authority section."""
+
+    question = query.question[0]
+    if question.rdtype == dns.rdatatype.AXFR:
+        return None
+    elif question.rdtype != dns.rdatatype.IXFR:
+        raise ValueError("query is not an AXFR or IXFR")
+    print(question.name, question.rdclass)
+    soa = query.find_rrset(query.authority, question.name, question.rdclass,
+                           dns.rdatatype.SOA)
+    return soa[0].serial
