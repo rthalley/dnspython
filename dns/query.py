@@ -997,7 +997,7 @@ class UDPMode(enum.IntEnum):
 
 def inbound_xfr(where, txn_manager, query=None,
                 port=53, timeout=None, lifetime=None, source=None,
-                source_port=0, udp_mode=UDPMode.NEVER):
+                source_port=0, udp_mode=UDPMode.NEVER, serial=0):
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
