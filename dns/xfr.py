@@ -283,13 +283,13 @@ def make_query(txn_manager, serial=0,
         rdtype = dns.rdatatype.IXFR
     else:
         raise ValueError('serial out-of-range')
-    q = dns.message.make_query(zone_origin, rdtype, txn_manager.get_class(),
+    rdclass = txn_manager.get_class()
+    q = dns.message.make_query(zone_origin, rdtype, rdclass,
                                use_edns, False, ednsflags, payload,
                                request_payload, options)
     if serial is not None:
-        rdata = dns.rdata.from_text('IN', 'SOA',
-                                    f'. . {serial} 0 0 0 0')
-        rrset = q.find_rrset(q.authority, zone_origin, txn_manager.get_class(),
+        rdata = dns.rdata.from_text(rdclass, 'SOA', f'. . {serial} 0 0 0 0')
+        rrset = q.find_rrset(q.authority, zone_origin, rdclass,
                              dns.rdatatype.SOA, create=True)
         rrset.add(rdata, 0)
     if keyring is not None:
