@@ -125,8 +125,6 @@ class Inbound:
                 elif dns.serial.Serial(self.soa_rdataset[0].serial) < \
                      self.serial:
                     # It went backwards!
-                    print(dns.serial.Serial(self.soa_rdataset[0].serial),
-                          self.serial)
                     raise SerialWentBackwards
                 else:
                     if self.is_udp and len(message.answer[answer_index:]) == 0:
@@ -310,7 +308,6 @@ def extract_serial_from_query(query):
         return None
     elif question.rdtype != dns.rdatatype.IXFR:
         raise ValueError("query is not an AXFR or IXFR")
-    print(question.name, question.rdclass)
     soa = query.find_rrset(query.authority, question.name, question.rdclass,
                            dns.rdatatype.SOA)
     return soa[0].serial
