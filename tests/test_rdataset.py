@@ -117,7 +117,6 @@ class RdatasetTestCase(unittest.TestCase):
                                      '2143 foo Ym9ndXM=')
         # Using startswith as I don't care about the repr of the rdata,
         # just the covers
-        print(repr(rds))
         self.assertTrue(repr(rds).startswith(
             '<DNS IN RRSIG(NSEC) rdataset:'))
 

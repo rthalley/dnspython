@@ -322,7 +322,7 @@ def test_explicit_rollback_and_commit(zone):
         with zone.writer() as txn:
             txn.rollback()
             for rdataset in txn:
-                print(rdataset)
+                pass
 
 def test_zone_changed(zone):
     # Read-only is not changed!
@@ -417,7 +417,6 @@ def test_write_after_rollback(zone):
 
 def test_zone_get_deleted(zone):
     with zone.writer() as txn:
-        print(zone.to_text())
         ns1 = dns.name.from_text('ns1', None)
         assert txn.get(ns1, dns.rdatatype.A) is not None
         txn.delete(ns1)
@@ -471,9 +470,9 @@ class ExpectedException(Exception):
     pass
 
 def test_zone_rollback(zone):
+    a99 = dns.name.from_text('a99.example.')
     try:
         with zone.writer() as txn:
-            a99 = dns.name.from_text('a99.example.')
             rds = dns.rdataset.from_text('in', 'a', 300, '10.0.0.99')
             txn.add(a99, rds)
             assert txn.name_exists(a99)

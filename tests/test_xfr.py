@@ -600,7 +600,6 @@ def test_extract_serial_from_query():
     assert s is None
     assert s == xs
     (q, s) = dns.xfr.make_query(z, serial=10)
-    print(q)
     xs = dns.xfr.extract_serial_from_query(q)
     assert s == 10
     assert s == xs

@@ -80,14 +80,12 @@ def test_processing_order_empty():
 def test_processing_singleton_priority():
     rds = dns.rdataset.from_text('in', 'mx', 300, '10 a')
     po = rds.processing_order()
-    print(po)
     assert po == [rds[0]]
 
 
 def test_processing_singleton_weighted():
     rds = dns.rdataset.from_text('in', 'srv', 300, '1 10 1234 a')
     po = rds.processing_order()
-    print(po)
     assert po == [rds[0]]
 
 
