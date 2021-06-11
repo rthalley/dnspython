@@ -52,6 +52,18 @@ except ImportError:
     class Server(object):
         pass
 
+# Look for systemd-resolved, as it does dangling CNAME responses incorrectly.
+#
+# Currently we simply check if the nameserver is 127.0.0.53.
+_systemd_resolved_present = False
+try:
+    _resolver = dns.resolver.Resolver()
+    if _resolver.nameservers == ['127.0.0.53']:
+        _systemd_resolved_present = True
+except Exception:
+    pass
+
+
 resolv_conf = u"""
     /t/t
 # comment 1
@@ -682,6 +694,7 @@ class LiveResolverTests(unittest.TestCase):
         cname = dns.name.from_text('dmfrjf4ips8xa.cloudfront.net')
         self.assertEqual(dns.resolver.canonical_name(name), cname)
 
+    @unittest.skipIf(_systemd_resolved_present, "systemd-resolved in use")
     def testCanonicalNameDangling(self):
         name = dns.name.from_text('dangling-cname.dnspython.org')
         cname = dns.name.from_text('dangling-target.dnspython.org')

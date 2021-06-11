@@ -49,6 +49,17 @@ except socket.gaierror:
     _network_available = False
 
 
+# Look for systemd-resolved, as it does dangling CNAME responses incorrectly.
+#
+# Currently we simply check if the nameserver is 127.0.0.53.
+_systemd_resolved_present = False
+try:
+    _resolver = dns.resolver.Resolver()
+    if _resolver.nameservers == ['127.0.0.53']:
+        _systemd_resolved_present = True
+except Exception:
+    pass
+
 # Probe for IPv4 and IPv6
 query_addresses = []
 for (af, address) in ((socket.AF_INET, '8.8.8.8'),
@@ -197,6 +208,7 @@ class AsyncTests(unittest.TestCase):
             return await dns.asyncresolver.canonical_name(name)
         self.assertEqual(self.async_run(run), cname)
 
+    @unittest.skipIf(_systemd_resolved_present, "systemd-resolved in use")
     def testCanonicalNameDangling(self):
         name = dns.name.from_text('dangling-cname.dnspython.org')
         cname = dns.name.from_text('dangling-target.dnspython.org')
