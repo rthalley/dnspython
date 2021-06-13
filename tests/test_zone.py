@@ -332,6 +332,34 @@ class ZoneTestCase(unittest.TestCase):
                 os.unlink(here('example3.out'))
         self.assertTrue(ok)
 
+    def testToFileTextualWithOrigin(self):
+        z = dns.zone.from_file(here('example'), 'example')
+        try:
+            f = open(here('example4-textual.out'), 'w')
+            z.to_file(f, want_origin=True)
+            f.close()
+            ok = compare_files('testToFileTextualWithOrigin',
+                               here('example4-textual.out'),
+                               here('example4.good'))
+        finally:
+            if not _keep_output:
+                os.unlink(here('example4-textual.out'))
+        self.assertTrue(ok)
+
+    def testToFileBinaryWithOrigin(self):
+        z = dns.zone.from_file(here('example'), 'example')
+        try:
+            f = open(here('example4-binary.out'), 'wb')
+            z.to_file(f, want_origin=True)
+            f.close()
+            ok = compare_files('testToFileBinaryWithOrigin',
+                               here('example4-binary.out'),
+                               here('example4.good'))
+        finally:
+            if not _keep_output:
+                os.unlink(here('example4-binary.out'))
+        self.assertTrue(ok)
+
     def testFromText(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         f = StringIO()

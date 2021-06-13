@@ -584,7 +584,7 @@ class Zone(dns.transaction.TransactionManager):
                         yield (name, rds.ttl, rdata)
 
     def to_file(self, f, sorted=True, relativize=True, nl=None,
-                want_comments=False):
+                want_comments=False, want_origin=False):
         """Write a zone to a file.
 
         *f*, a file or `str`.  If *f* is a string, it is treated
@@ -606,6 +606,10 @@ class Zone(dns.transaction.TransactionManager):
         *want_comments*, a ``bool``.  If ``True``, emit end-of-line comments
         as part of writing the file.  If ``False``, the default, do not
         emit them.
+
+        *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
+        the start of the file.  If ``False``, the default, do not emit
+        one.
         """
 
         with contextlib.ExitStack() as stack:
@@ -628,6 +632,16 @@ class Zone(dns.transaction.TransactionManager):
                 nl_b = nl
                 nl = nl.decode()
 
+            if want_origin:
+                l = '$ORIGIN ' + self.origin.to_text()
+                l_b = l.encode(file_enc)
+                try:
+                    f.write(l_b)
+                    f.write(nl_b)
+                except TypeError:  # textual mode
+                    f.write(l)
+                    f.write(nl)
+
             if sorted:
                 names = list(self.keys())
                 names.sort()
@@ -647,7 +661,7 @@ class Zone(dns.transaction.TransactionManager):
                     f.write(nl)
 
     def to_text(self, sorted=True, relativize=True, nl=None,
-                want_comments=False):
+                want_comments=False, want_origin=False):
         """Return a zone's text as though it were written to a file.
 
         *sorted*, a ``bool``.  If True, the default, then the file
@@ -667,10 +681,15 @@ class Zone(dns.transaction.TransactionManager):
         as part of writing the file.  If ``False``, the default, do not
         emit them.
 
+        *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
+        the start of the output.  If ``False``, the default, do not emit
+        one.
+
         Returns a ``str``.
         """
         temp_buffer = io.StringIO()
-        self.to_file(temp_buffer, sorted, relativize, nl, want_comments)
+        self.to_file(temp_buffer, sorted, relativize, nl, want_comments,
+                     want_origin)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
         return return_value
