@@ -1001,6 +1001,8 @@ def testResolverTimeout():
                 assert error[2] == na.udp_address[1]  # port
                 assert isinstance(error[3], dns.exception.Timeout)  # exception
 
+@pytest.mark.skipif(not (_network_available and _nanonameserver_available),
+                    reason="Internet and NanoAuth required")
 def testResolverNoNameservers():
     with FormErrNanoNameserver() as na:
         res = dns.resolver.Resolver(configure=False)
