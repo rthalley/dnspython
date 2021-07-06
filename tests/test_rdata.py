@@ -33,6 +33,7 @@ from dns.rdtypes.ANY.OPT import OPT
 from dns.rdtypes.ANY.LOC import LOC
 from dns.rdtypes.ANY.GPOS import GPOS
 import dns.rdtypes.ANY.RRSIG
+import dns.rdtypes.IN.APL
 import dns.rdtypes.util
 import dns.tokenizer
 import dns.ttl
@@ -650,6 +651,13 @@ class RdataTestCase(unittest.TestCase):
     def test_bad_SMIMEA(self):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SMIMEA, '1 1 1 aGVsbG8gd29ybGQh')
+
+    def test_bad_APLItem_address_length(self):
+        with self.assertRaises(ValueError):
+            # 9999 is used in as an "unknown" address family.  In the unlikely
+            # event it is ever defined, we should switch the test to another
+            # value.
+            dns.rdtypes.IN.APL.APLItem(9999, False, b'0xff' * 128, 255)
 
     def test_DNSKEY_chunking(self):
         inputs = (  # each with chunking as given by dig, unusual chunking, and no chunking

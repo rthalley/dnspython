@@ -43,7 +43,7 @@ class APLItem:
             self.address = dns.rdata.Rdata._as_ipv6_address(address)
             self.prefix = dns.rdata.Rdata._as_int(prefix, 0, 128)
         else:
-            self.address = dns.rdata.Rdata._as_bytes(address)
+            self.address = dns.rdata.Rdata._as_bytes(address, max_length=127)
             self.prefix = dns.rdata.Rdata._as_uint8(prefix)
 
     def __str__(self):
