@@ -269,6 +269,16 @@ def test_basic_axfr():
     ez = dns.zone.from_text(base, 'example.')
     assert z == ez
 
+def test_basic_axfr_unversioned():
+    z = dns.zone.Zone('example.')
+    m = dns.message.from_text(axfr, origin=z.origin,
+                              one_rr_per_rrset=True)
+    with dns.xfr.Inbound(z, dns.rdatatype.AXFR) as xfr:
+        done = xfr.process_message(m)
+        assert done
+    ez = dns.zone.from_text(base, 'example.')
+    assert z == ez
+
 def test_basic_axfr_two_parts():
     z = dns.versioned.Zone('example.')
     m1 = dns.message.from_text(axfr1, origin=z.origin,
@@ -294,6 +304,16 @@ def test_axfr_unexpected_origin():
 def test_basic_ixfr():
     z = dns.zone.from_text(base, 'example.',
                            zone_factory=dns.versioned.Zone)
+    m = dns.message.from_text(ixfr, origin=z.origin,
+                              one_rr_per_rrset=True)
+    with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=1) as xfr:
+        done = xfr.process_message(m)
+        assert done
+    ez = dns.zone.from_text(ixfr_expected, 'example.')
+    assert z == ez
+
+def test_basic_ixfr_unversioned():
+    z = dns.zone.from_text(base, 'example.')
     m = dns.message.from_text(ixfr, origin=z.origin,
                               one_rr_per_rrset=True)
     with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=1) as xfr:
