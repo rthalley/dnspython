@@ -198,7 +198,7 @@ class MandatoryParam(Param):
         prior_k = None
         for k in keys:
             if k == prior_k:
-                raise ValueError(f'duplicate key {k}')
+                raise ValueError(f'duplicate key {k:d}')
             prior_k = k
             if k == ParamKey.MANDATORY:
                 raise ValueError('listed the mandatory key as mandatory')
@@ -402,7 +402,7 @@ _class_for_key = {
 def _validate_and_define(params, key, value):
     (key, force_generic) = _validate_key(_unescape(key))
     if key in params:
-        raise SyntaxError(f'duplicate key "{key}"')
+        raise SyntaxError(f'duplicate key "{key:d}"')
     cls = _class_for_key.get(key, GenericParam)
     emptiness = cls.emptiness()
     if value is None:
@@ -443,7 +443,7 @@ class SVCBBase(dns.rdata.Rdata):
                 # Note we have to say "not in" as we have None as a value
                 # so a get() and a not None test would be wrong.
                 if key not in params:
-                    raise ValueError(f'key {key} declared mandatory but not '
+                    raise ValueError(f'key {key:d} declared mandatory but not '
                                      'present')
         # The no-default-alpn parameter requires the alpn parameter.
         if ParamKey.NO_DEFAULT_ALPN in params:

@@ -687,7 +687,7 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
 class RdatatypeExists(dns.exception.DNSException):
     """DNS rdatatype already exists."""
     supp_kwargs = {'rdclass', 'rdtype'}
-    fmt = "The rdata type with class {rdclass} and rdtype {rdtype} " + \
+    fmt = "The rdata type with class {rdclass:d} and rdtype {rdtype:d} " + \
         "already exists."
 
 
