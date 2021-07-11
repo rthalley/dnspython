@@ -947,9 +947,41 @@ class AlwaysType3NXDOMAINNanoNameserver(Server):
         response.flags |= dns.flags.RA
         return response
 
+
+class AlwaysNXDOMAINNanoNameserver(Server):
+
+    def handle(self, request):
+        response = dns.message.make_response(request.message)
+        response.set_rcode(dns.rcode.NXDOMAIN)
+        response.flags |= dns.flags.RA
+        origin = dns.name.from_text('example.')
+        soa_rrset = response.find_rrset(response.authority, origin,
+                                        dns.rdataclass.IN, dns.rdatatype.SOA,
+                                        create=True)
+        rdata = dns.rdata.from_text('IN', 'SOA',
+                                    'ns.example. root.example. 1 2 3 4 5')
+        soa_rrset.add(rdata)
+        soa_rrset.update_ttl(300)
+        return response
+
+class AlwaysNoErrorNoDataNanoNameserver(Server):
+
+    def handle(self, request):
+        response = dns.message.make_response(request.message)
+        response.set_rcode(dns.rcode.NOERROR)
+        response.flags |= dns.flags.RA
+        origin = dns.name.from_text('example.')
+        soa_rrset = response.find_rrset(response.authority, origin,
+                                        dns.rdataclass.IN, dns.rdatatype.SOA,
+                                        create=True)
+        rdata = dns.rdata.from_text('IN', 'SOA',
+                                    'ns.example. root.example. 1 2 3 4 5')
+        soa_rrset.add(rdata)
+        soa_rrset.update_ttl(300)
+        return response
 @unittest.skipIf(not (_network_available and _nanonameserver_available),
                  "Internet and NanoAuth required")
-class ZoneForNameNoParentTest(unittest.TestCase):
+class ZoneForNameTests(unittest.TestCase):
 
     def testNoRootSOA(self):
         with AlwaysType3NXDOMAINNanoNameserver() as na:
@@ -959,6 +991,25 @@ class ZoneForNameNoParentTest(unittest.TestCase):
             with self.assertRaises(dns.resolver.NoRootSOA):
                 dns.resolver.zone_for_name('www.foo.bar.', resolver=res)
 
+    def testHelpfulNXDOMAIN(self):
+        with AlwaysNXDOMAINNanoNameserver() as na:
+            res = dns.resolver.Resolver(configure=False)
+            res.port = na.udp_address[1]
+            res.nameservers = [na.udp_address[0]]
+            expected = dns.name.from_text('example.')
+            name = dns.resolver.zone_for_name('1.2.3.4.5.6.7.8.9.10.example.',
+                                              resolver=res)
+            self.assertEqual(name, expected)
+
+    def testHelpfulNoErrorNoData(self):
+        with AlwaysNoErrorNoDataNanoNameserver() as na:
+            res = dns.resolver.Resolver(configure=False)
+            res.port = na.udp_address[1]
+            res.nameservers = [na.udp_address[0]]
+            expected = dns.name.from_text('example.')
+            name = dns.resolver.zone_for_name('1.2.3.4.5.6.7.8.9.10.example.',
+                                              resolver=res)
+            self.assertEqual(name, expected)
 
 class DroppingNanoNameserver(Server):
 
@@ -1019,3 +1070,25 @@ def testResolverNoNameservers():
                 assert not error[1]  # not TCP
                 assert error[2] == na.udp_address[1]  # port
                 assert error[3] == 'FORMERR'
+
+
+class SlowAlwaysType3NXDOMAINNanoNameserver(Server):
+
+    def handle(self, request):
+        response = dns.message.make_response(request.message)
+        response.set_rcode(dns.rcode.NXDOMAIN)
+        response.flags |= dns.flags.RA
+        time.sleep(0.2)
+        return response
+
+
+@pytest.mark.skipif(not (_network_available and _nanonameserver_available),
+                    reason="Internet and NanoAuth required")
+def testZoneForNameLifetimeTimeout():
+    with SlowAlwaysType3NXDOMAINNanoNameserver() as na:
+        res = dns.resolver.Resolver(configure=False)
+        res.port = na.udp_address[1]
+        res.nameservers = [na.udp_address[0]]
+        with pytest.raises(dns.resolver.LifetimeTimeout):
+            dns.resolver.zone_for_name('1.2.3.4.5.6.7.8.9.10.example.',
+                resolver=res, lifetime=1.0)

@@ -170,6 +170,9 @@ class NoAnswer(dns.exception.DNSException):
     def _fmt_kwargs(self, **kwargs):
         return super()._fmt_kwargs(query=kwargs['response'].question)
 
+    def response(self):
+        return self.kwargs['response']
+
 
 class NoNameservers(dns.exception.DNSException):
     """All nameservers failed to answer the query.
@@ -1368,7 +1371,8 @@ def canonical_name(name):
     return get_default_resolver().canonical_name(name)
 
 
-def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
+def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None,
+                  lifetime=None):
     """Find the name of the zone which contains the specified name.
 
     *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
@@ -1378,11 +1382,18 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
     *tcp*, a ``bool``.  If ``True``, use TCP to make the query.
 
     *resolver*, a ``dns.resolver.Resolver`` or ``None``, the resolver to use.
-    If ``None``, the default resolver is used.
+    If ``None``, the default, then the default resolver is used.
+
+    *lifetime*, a ``float``, the total time to allow for the queries needed
+    to determine the zone.  If ``None``, the default, then only the individual
+    query limits of the resolver apply.
 
     Raises ``dns.resolver.NoRootSOA`` if there is no SOA RR at the DNS
     root.  (This is only likely to happen if you're using non-default
     root servers in your network and they are misconfigured.)
+
+    Raises ``dns.resolver.LifetimeTimeout`` if the answer could not be
+    found in the alotted lifetime.
 
     Returns a ``dns.name.Name``.
     """
@@ -1393,14 +1404,44 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
         resolver = get_default_resolver()
     if not name.is_absolute():
         raise NotAbsolute(name)
+    start = time.time()
+    if lifetime is not None:
+        expiration = start + lifetime
+    else:
+        expiration = None
     while 1:
         try:
-            answer = resolver.resolve(name, dns.rdatatype.SOA, rdclass, tcp)
+            if expiration:
+                rlifetime = expiration - time.time()
+                if rlifetime <= 0:
+                    rlifetime = 0
+            else:
+                rlifetime = None
+            answer = resolver.resolve(name, dns.rdatatype.SOA, rdclass, tcp,
+                                      lifetime=rlifetime)
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher
-        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-            pass
+        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer) as e:
+            if isinstance(e, dns.resolver.NXDOMAIN):
+                response = e.responses().get(name)
+            else:
+                response = e.response()
+            if response:
+                for rrs in response.authority:
+                    if rrs.rdtype == dns.rdatatype.SOA and \
+                       rrs.rdclass == rdclass:
+                       (nr, _, _) = rrs.name.fullcompare(name)
+                       if nr == dns.name.NAMERELN_SUPERDOMAIN:
+                           # We're doing a proper superdomain check as
+                           # if the name were equal we ought to have gotten
+                           # it in the answer section!  We are ignoring the
+                           # possibility that the authority is insane and
+                           # is including multiple SOA RRs for different
+                           # authorities.
+                           return rrs.name
+            # we couldn't extract anything useful from the response (e.g. it's
+            # a type 3 NXDOMAIN)
         try:
             name = name.parent()
         except dns.name.NoParent:
