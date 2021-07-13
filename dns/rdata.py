@@ -39,34 +39,34 @@ import dns.ttl
 _chunksize = 32
 
 
-def _wordbreak(data, chunksize=_chunksize):
+def _wordbreak(data, chunksize=_chunksize, separator=b' '):
     """Break a binary string into chunks of chunksize characters separated by
     a space.
     """
 
     if not chunksize:
         return data.decode()
-    return b' '.join([data[i:i + chunksize]
-                      for i
-                      in range(0, len(data), chunksize)]).decode()
+    return separator.join([data[i:i + chunksize]
+                           for i
+                           in range(0, len(data), chunksize)]).decode()
 
 
 # pylint: disable=unused-argument
 
-def _hexify(data, chunksize=_chunksize, **kw):
+def _hexify(data, chunksize=_chunksize, separator=b' ', **kw):
     """Convert a binary string into its hex encoding, broken up into chunks
-    of chunksize characters separated by a space.
+    of chunksize characters separated by a separator.
     """
 
-    return _wordbreak(binascii.hexlify(data), chunksize)
+    return _wordbreak(binascii.hexlify(data), chunksize, separator)
 
 
-def _base64ify(data, chunksize=_chunksize, **kw):
+def _base64ify(data, chunksize=_chunksize, separator=b' ', **kw):
     """Convert a binary string into its base64 encoding, broken up into chunks
-    of chunksize characters separated by a space.
+    of chunksize characters separated by a separator.
     """
 
-    return _wordbreak(base64.b64encode(data), chunksize)
+    return _wordbreak(base64.b64encode(data), chunksize, separator)
 
 # pylint: enable=unused-argument
 
