@@ -40,7 +40,7 @@ class EUIBase(dns.rdata.Rdata):
                                           % (self.byte_len * 8, self.byte_len))
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return dns.rdata._hexify(self.eui, chunksize=2, **kw).replace(' ', '-')
+        return dns.rdata._hexify(self.eui, chunksize=2, separator=b'-', **kw)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,

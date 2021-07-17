@@ -194,6 +194,20 @@ hip02			HIP 2 200100107B1A74DF365639CC39F1D578 AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH
 hip03			HIP 2 200100107B1A74DF365639CC39F1D578 AwEAAbdxyhNuSutc5EMzxTs9LBPCIkOFH8cIvM4p9+LrV4e19WzK00+CI6zBCQTdtWsuxKbWIy87UOoJTwkUs7lBu+Upr1gsNrut79ryra+bSRGQb1slImA8YVJyuIDsj7kwzG7jnERNqnWxZ48AWkskmdHaVDP4BcelrTI3rMXdXF5D rvs1.example.com.  rvs2.example.com.
 cds01			CDS	12345 3 1 123456789abcdef67890123456789abcdef67890
 cdnskey01		CDNSKEY	256 3 8 ( AwEAAbmiLgh411Pz3v3XCSBrvYf52A/Gv55ItN1NbOLH Cqt3Ec3p+VB/kQ87VjjMrycanZFnZT4l9uCFuYh21Ccy xVpcxExbM0UuhX5rJoDyeFSXoQlkHrB01osPl5Vri5Ym KtcmqGxZ9An0VSunohkyiX1SrNRZSdQnk9/pIHDe/c8D )
+nid01                   NID 10 0014:4fff:ff20:ee64
+nid02                   NID 20 0015:5fff:ff21:ee65
+nid03                   NID 10 0016:6fff:ff22:ee66
+l3201                   L32 10 10.1.2.0
+l3202                   L32 20 10.1.4.0
+l3203                   L32 10 10.1.8.0
+l6401                   L64 10 2001:0DB8:1140:1000
+l6402                   L64 20 2001:0DB8:2140:2000
+l6403                   L64 10 2001:0DB8:4140:4000
+lp01                    LP 10 l64-subnet1.example.com.
+lp02                    LP 10 l64-subnet2.example.com.
+lp03                    LP 20 l32-subnet1.example.com.
+eui48                   EUI48 00-00-5e-00-53-2a
+eui64                   EUI64 00-00-5e-ef-10-00-00-2a
 uri01			URI 10 1 "ftp://ftp1.example.com/public"
 uri02			URI 10 1 "http://www.example.com/path"
 caa01			CAA 0 issue "ca.example.net"
