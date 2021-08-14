@@ -124,6 +124,10 @@ class Message:
         self.flags = 0
         self.sections = [[], [], [], []]
         self.opt = None
+        self.qcount = 0
+        self.ancount = 0
+        self.aucount = 0
+        self.adcount = 0
         self.request_payload = 0
         self.keyring = None
         self.tsig = None
@@ -993,6 +997,10 @@ class _WireReader:
         self.one_rr_per_rrset = \
             self.message._get_one_rr_per_rrset(self.one_rr_per_rrset)
         self._get_question(MessageSection.QUESTION, qcount)
+        self.message.qcount = qcount
+        self.message.ancount = ancount
+        self.message.aucount = aucount
+        self.message.adcount = adcount
         if self.question_only:
             return self.message
         self._get_section(MessageSection.ANSWER, ancount)
