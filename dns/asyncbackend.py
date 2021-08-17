@@ -21,7 +21,7 @@ class AsyncLibraryNotFoundError(dns.exception.DNSException):
 
 
 def get_backend(name):
-    """Get the specified asychronous backend.
+    """Get the specified asynchronous backend.
 
     *name*, a ``str``, the name of the backend.  Currently the "trio",
     "curio", and "asyncio" backends are available.
