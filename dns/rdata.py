@@ -444,11 +444,11 @@ class Rdata:
             raise ValueError('not a boolean')
 
     @classmethod
-    def _as_ttl(cls, value):
+    def _as_ttl(cls, value, max_value=dns.ttl.MAX_TTL):
         if isinstance(value, int):
-            return cls._as_int(value, 0, dns.ttl.MAX_TTL)
+            return cls._as_int(value, 0, max_value)
         elif isinstance(value, str):
-            return dns.ttl.from_text(value)
+            return dns.ttl.from_text(value, max_value=max_value)
         else:
             raise ValueError('not a TTL')
 
