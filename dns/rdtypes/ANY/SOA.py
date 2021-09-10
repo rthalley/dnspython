@@ -57,10 +57,10 @@ class SOA(dns.rdata.Rdata):
         mname = tok.get_name(origin, relativize, relativize_to)
         rname = tok.get_name(origin, relativize, relativize_to)
         serial = tok.get_uint32()
-        refresh = tok.get_uint32()
-        retry = tok.get_uint32()
-        expire = tok.get_uint32()
-        minimum = tok.get_uint32()
+        refresh = tok.get_ttl(max_value=2**32-1)
+        retry = tok.get_ttl(max_value=2**32-1)
+        expire = tok.get_ttl(max_value=2**32-1)
+        minimum = tok.get_ttl(max_value=2**32-1)
         return cls(rdclass, rdtype, mname, rname, serial, refresh, retry,
                    expire, minimum)
 
