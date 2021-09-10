@@ -39,10 +39,10 @@ class SOA(dns.rdata.Rdata):
         self.mname = self._as_name(mname)
         self.rname = self._as_name(rname)
         self.serial = self._as_uint32(serial)
-        self.refresh = self._as_ttl(refresh)
-        self.retry = self._as_ttl(retry)
-        self.expire = self._as_ttl(expire)
-        self.minimum = self._as_ttl(minimum)
+        self.refresh = self._as_uint32(refresh)
+        self.retry = self._as_uint32(retry)
+        self.expire = self._as_uint32(expire)
+        self.minimum = self._as_uint32(minimum)
 
     def to_text(self, origin=None, relativize=True, **kw):
         mname = self.mname.choose_relativity(origin, relativize)
@@ -57,10 +57,10 @@ class SOA(dns.rdata.Rdata):
         mname = tok.get_name(origin, relativize, relativize_to)
         rname = tok.get_name(origin, relativize, relativize_to)
         serial = tok.get_uint32()
-        refresh = tok.get_ttl()
-        retry = tok.get_ttl()
-        expire = tok.get_ttl()
-        minimum = tok.get_ttl()
+        refresh = tok.get_uint32()
+        retry = tok.get_uint32()
+        expire = tok.get_uint32()
+        minimum = tok.get_uint32()
         return cls(rdclass, rdtype, mname, rname, serial, refresh, retry,
                    expire, minimum)
 
