@@ -660,7 +660,7 @@ class Tokenizer:
     def get_eol(self):
         return self.get_eol_as_token().value
 
-    def get_ttl(self):
+    def get_ttl(self, max_value=dns.ttl.MAX_TTL):
         """Read the next token and interpret it as a DNS TTL.
 
         Raises dns.exception.SyntaxError or dns.ttl.BadTTL if not an
@@ -672,4 +672,4 @@ class Tokenizer:
         token = self.get().unescape()
         if not token.is_identifier():
             raise dns.exception.SyntaxError('expecting an identifier')
-        return dns.ttl.from_text(token.value)
+        return dns.ttl.from_text(token.value, max_value=max_value)
