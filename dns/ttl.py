@@ -25,12 +25,13 @@ class BadTTL(dns.exception.SyntaxError):
     """DNS TTL value is not well-formed."""
 
 
-def from_text(text):
+def from_text(text, max_value=MAX_TTL):
     """Convert the text form of a TTL to an integer.
 
     The BIND 8 units syntax for TTLs (e.g. '1w6d4h3m10s') is supported.
 
     *text*, a ``str``, the textual TTL.
+    *max_value*, a ``int`` limiting the maximum value to parse SOA values
 
     Raises ``dns.ttl.BadTTL`` if the TTL is not well-formed.
 
@@ -70,8 +71,8 @@ def from_text(text):
                 need_digit = True
         if not current == 0:
             raise BadTTL("trailing integer")
-    if total < 0 or total > MAX_TTL:
-        raise BadTTL("TTL should be between 0 and 2^31 - 1 (inclusive)")
+    if total < 0 or total > max_value:
+        raise BadTTL("TTL should be between 0 and %d (inclusive)" % max_value)
     return total
 
 
