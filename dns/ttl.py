@@ -71,7 +71,7 @@ def from_text(text):
         if not current == 0:
             raise BadTTL("trailing integer")
     if total < 0 or total > MAX_TTL:
-        raise BadTTL("TTL should be between 0 and 2**132 - 1 (inclusive)")
+        raise BadTTL("TTL should be between 0 and 2**32 - 1 (inclusive)")
     return total
 
 
