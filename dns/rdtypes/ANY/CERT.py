@@ -70,7 +70,7 @@ class CERT(dns.rdata.Rdata):
 
     """CERT record"""
 
-    # see RFC 2538
+    # see RFC 4398
 
     __slots__ = ['certificate_type', 'key_tag', 'algorithm', 'certificate']
 
