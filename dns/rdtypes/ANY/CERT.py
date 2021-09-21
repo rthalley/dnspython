@@ -28,6 +28,11 @@ _ctype_by_value = {
     1: 'PKIX',
     2: 'SPKI',
     3: 'PGP',
+    4: 'IPKIX',
+    5: 'ISPKI',
+    6: 'IPGP',
+    7: 'ACPKIX',
+    8: 'IACPKIX',
     253: 'URI',
     254: 'OID',
 }
@@ -36,6 +41,11 @@ _ctype_by_name = {
     'PKIX': 1,
     'SPKI': 2,
     'PGP': 3,
+    'IPKIX': 4,
+    'ISPKI': 5,
+    'IPGP': 6,
+    'ACPKIX': 7,
+    'IACPKIX': 8,
     'URI': 253,
     'OID': 254,
 }
