@@ -888,7 +888,6 @@ class _WireReader:
         self.keyring = keyring
         self.multi = multi
         self.continue_on_error = continue_on_error
-        self.last_good = 0
         self.errors = []
 
     def _get_question(self, section_number, qcount):
@@ -905,7 +904,6 @@ class _WireReader:
                                               rdtype)
             self.message.find_rrset(section, qname, rdclass, rdtype,
                                     create=True, force_unique=True)
-            self.last_good = self.parser.current
 
     def _get_section(self, section_number, count):
         """Read the next I{count} records from the wire data and add them to
@@ -935,13 +933,13 @@ class _WireReader:
                     self.message._parse_rr_header(section_number,
                                                   name, rdclass, rdtype)
             try:
+                rdata_start = self.parser.current
                 if empty:
                     if rdlen > 0:
                         raise dns.exception.FormError
                     rd = None
                     covers = dns.rdatatype.NONE
                 else:
-                    self.last_good = self.parser.current
                     with self.parser.restrict_to(rdlen):
                         rd = dns.rdata.from_wire_parser(rdclass, rdtype,
                                                         self.parser,
@@ -989,17 +987,18 @@ class _WireReader:
                         rrset.add(rd, ttl)
             except Exception as e:
                 if self.continue_on_error:
-                    self.errors.append((self.last_good, str(e), e))
+                    self.errors.append((self.parser.current, str(e), e))
                     try:
-                        self.parser.seek(self.last_good + rdlen)
+                        self.parser.seek(rdata_start + rdlen)
                     except dns.exception.FormError:
                         # seek was past the end
                         self.parser.seek(self.parser.end)
-                        if i != count - 1:
-                            senum = MessageSection(section_number)
-                            self.errors.append((self.end, 'not enough RRs in '
-                                                f'section {senum}',
-                                                None))
+                    if self.parser.current == self.parser.end and \
+                        i != count - 1:
+                        senum = MessageSection(section_number)
+                        self.errors.append((self.parser.end, 'not enough RRs in '
+                                            f'section {senum:d}',
+                                            None))
                         return
                 else:
                     raise
