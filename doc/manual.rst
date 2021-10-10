@@ -16,3 +16,4 @@ Dnspython Manual
    exceptions
    utilities
    typing
+   threads
