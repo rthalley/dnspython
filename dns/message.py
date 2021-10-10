@@ -236,8 +236,7 @@ class Message:
         return not self.__eq__(other)
 
     def is_response(self, other):
-        """Is *other*, also a ``dns.message.Message``, a response to this
-        message?
+        """Is *other* a response this message?
 
         Returns a ``bool``.
         """

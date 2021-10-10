@@ -733,10 +733,11 @@ class Zone(dns.transaction.TransactionManager):
                     continue
                 rrfixed = struct.pack('!HHI', rdataset.rdtype,
                                       rdataset.rdclass, rdataset.ttl)
-                for rr in sorted(rdataset):
-                    rrdata = rr.to_digestable(self.origin)
-                    rrlen = struct.pack('!H', len(rrdata))
-                    hasher.update(rrnamebuf + rrfixed + rrlen + rrdata)
+                rdatas = [rdata.to_digestable(self.origin)
+                          for rdata in rdataset]
+                for rdata in sorted(rdatas):
+                    rrlen = struct.pack('!H', len(rdata))
+                    hasher.update(rrnamebuf + rrfixed + rrlen + rdata)
         return hasher.digest()
 
     def compute_digest(self, hash_algorithm, scheme=DigestScheme.SIMPLE):

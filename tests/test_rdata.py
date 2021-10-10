@@ -696,6 +696,52 @@ class RdataTestCase(unittest.TestCase):
                     rr = dns.rdata.from_text('IN', 'DNSKEY', input_variation)
                     new_text = rr.to_text(chunksize=chunksize)
                     self.assertEqual(output, new_text)
+                    
+    def test_relative_vs_absolute_compare(self):
+        r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, 'www.')
+        r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, 'www')
+        self.assertFalse(r1 == r2)
+        self.assertTrue(r1 != r2)
+        def bad1():
+            r1 < r2
+        def bad2():
+            r1 <= r2
+        def bad3():
+            r1 > r2
+        def bad4():
+            r1 >= r2
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad1)
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad2)
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad3)
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad4)
+
+    def test_absolute_vs_absolute_compare(self):
+        r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, 'www.')
+        r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, 'xxx.')
+        self.assertFalse(r1 == r2)
+        self.assertTrue(r1 != r2)
+        self.assertTrue(r1 < r2)
+        self.assertTrue(r1 <= r2)
+        self.assertFalse(r1 > r2)
+        self.assertFalse(r1 >= r2)
+
+    def test_relative_vs_relative_compare(self):
+        r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, 'www')
+        r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, 'xxx')
+        self.assertFalse(r1 == r2)
+        self.assertTrue(r1 != r2)
+        def bad1():
+            r1 < r2
+        def bad2():
+            r1 <= r2
+        def bad3():
+            r1 > r2
+        def bad4():
+            r1 >= r2
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad1)
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad2)
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad3)
+        self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad4)
 
 
 class UtilTestCase(unittest.TestCase):

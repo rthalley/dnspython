@@ -39,6 +39,14 @@ import dns.ttl
 _chunksize = 32
 
 
+class NoRelativeRdataOrdering(dns.exception.DNSException):
+    """An attempt was made to do an ordered comparison of one or more
+    rdata with relative names.  The only reliable way of sorting rdata
+    is to use non-relativized rdata.
+
+    """
+
+
 def _wordbreak(data, chunksize=_chunksize, separator=b' '):
     """Break a binary string into chunks of chunksize characters separated by
     a space.
@@ -234,10 +242,12 @@ class Rdata:
 
         Return < 0 if self < other in the DNSSEC ordering, 0 if self
         == other, and > 0 if self > other.
-
         """
-        our = self.to_digestable(dns.name.root)
-        their = other.to_digestable(dns.name.root)
+        try:
+            our = self.to_digestable()
+            their = other.to_digestable()
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            raise NoRelativeRdataOrdering
         if our == their:
             return 0
         elif our > their:
@@ -250,14 +260,28 @@ class Rdata:
             return False
         if self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return False
-        return self._cmp(other) == 0
+        our_relative = False
+        their_relative = False
+        try:
+            our = self.to_digestable()
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            our = self.to_digestable(dns.name.root)
+            our_relative = True
+        try:
+            their = other.to_digestable()
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            their = other.to_digestable(dns.name.root)
+            their_relative = True
+        if our_relative != their_relative:
+            return False
+        return our == their
 
     def __ne__(self, other):
         if not isinstance(other, Rdata):
             return True
         if self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return True
-        return self._cmp(other) != 0
+        return not self.__eq__(other)
 
     def __lt__(self, other):
         if not isinstance(other, Rdata) or \
