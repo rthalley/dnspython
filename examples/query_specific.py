@@ -11,6 +11,10 @@ import dns.query
 
 qname = dns.name.from_text('amazon.com')
 q = dns.message.make_query(qname, dns.rdatatype.NS)
+# To include EDNS0 options, you need to include two options
+#    in the call to dns.message.make_query. For example, to add NSID:
+#    use_edns=0,
+#    options=[dns.edns.GenericOption(dns.edns.OptionType.NSID, b'')]
 print('The query is:')
 print(q)
 print('')
