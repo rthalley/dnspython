@@ -1400,7 +1400,9 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     is class IN.
 
     *use_edns*, an ``int``, ``bool`` or ``None``.  The EDNS level to use; the
-    default is None (no EDNS).
+    default is ``None``.  If ``None``, EDNS will be enabled only if other
+    parameters (*ednsflags*, *payload*, *request_payload*, or *options*) are
+    set.
     See the description of dns.message.Message.use_edns() for the possible
     values for use_edns and their meanings.
 
