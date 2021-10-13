@@ -548,7 +548,7 @@ def udp_with_fallback(q, where, timeout=None, port=53, source=None,
     if a socket is provided, it must be a nonblocking datagram socket,
     and the *source* and *source_port* are ignored for the UDP query.
 
-    *tcp_sock*, a ``socket.socket``, or ``None``, the socket to use for the
+    *tcp_sock*, a ``socket.socket``, or ``None``, the connected socket to use for the
     TCP query.  If ``None``, the default, a socket is created.  Note that
     if a socket is provided, it must be a nonblocking connected stream
     socket, and *where*, *source* and *source_port* are ignored for the TCP
@@ -702,7 +702,7 @@ def tcp(q, where, timeout=None, port=53, source=None, source_port=0,
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
 
-    *sock*, a ``socket.socket``, or ``None``, the socket to use for the
+    *sock*, a ``socket.socket``, or ``None``, the connected socket to use for the
     query.  If ``None``, the default, a socket is created.  Note that
     if a socket is provided, it must be a nonblocking connected stream
     socket, and *where*, *port*, *source* and *source_port* are ignored.
