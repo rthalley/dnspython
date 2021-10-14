@@ -38,6 +38,14 @@ import dns.ttl
 
 _chunksize = 32
 
+# We currently allow comparisons for rdata with relative names for backwards
+# compatibility, but in the future we will not, as these kinds of comparisons
+# can lead to subtle bugs if code is not carefully written.
+#
+# This switch allows the future behavior to be turned on so code can be
+# tested with it.
+_allow_relative_comparisons = True
+
 
 class NoRelativeRdataOrdering(dns.exception.DNSException):
     """An attempt was made to do an ordered comparison of one or more
@@ -240,13 +248,39 @@ class Rdata:
         """Compare an rdata with another rdata of the same rdtype and
         rdclass.
 
-        Return < 0 if self < other in the DNSSEC ordering, 0 if self
-        == other, and > 0 if self > other.
+        For rdata with only absolute names:
+            Return < 0 if self < other in the DNSSEC ordering, 0 if self
+            == other, and > 0 if self > other.
+        For rdata with at least one relative names:
+            The rdata sorts before any rdata with only absolute names.
+            When compared with another relative rdata, all names are
+            made absolute as if they were relative to the root, as the
+            proper origin is not available.  While this creates a stable
+            ordering, it is NOT guaranteed to be the DNSSEC ordering.
+            In the future, all ordering comparisons for rdata with
+            relative names will be disallowed.
         """
         try:
             our = self.to_digestable()
-            their = other.to_digestable()
+            our_relative = False
         except dns.name.NeedAbsoluteNameOrOrigin:
+            our = self.to_digestable(dns.name.root)
+            our_relative = True
+        try:
+            their = other.to_digestable()
+            their_relative = False
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            their = other.to_digestable(dns.name.root)
+            their_relative = True
+        if _allow_relative_comparisons:
+            if our_relative != their_relative:
+                # For the purpose of comparison, all rdata with at least one
+                # relative name is less than an rdata with only absolute names.
+                if our_relative:
+                    return -1
+                else:
+                    return 1
+        else:
             raise NoRelativeRdataOrdering
         if our == their:
             return 0
