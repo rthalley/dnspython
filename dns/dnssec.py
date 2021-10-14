@@ -404,13 +404,13 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
     rrnamebuf = rrname.to_digestable()
     rrfixed = struct.pack('!HHI', rdataset.rdtype, rdataset.rdclass,
                           rrsig.original_ttl)
-    for rr in sorted(rdataset):
+    rdatas = [rdata.to_digestable(origin) for rdata in rdataset]
+    for rdata in sorted(rdatas):
         data += rrnamebuf
         data += rrfixed
-        rrdata = rr.to_digestable(origin)
-        rrlen = struct.pack('!H', len(rrdata))
+        rrlen = struct.pack('!H', len(rdata))
         data += rrlen
-        data += rrdata
+        data += rdata
 
     chosen_hash = _make_hash(rrsig.algorithm)
 
