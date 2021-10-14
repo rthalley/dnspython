@@ -264,13 +264,15 @@ class Rdata:
             our = self.to_digestable()
             our_relative = False
         except dns.name.NeedAbsoluteNameOrOrigin:
-            our = self.to_digestable(dns.name.root)
+            if _allow_relative_comparisons:
+                our = self.to_digestable(dns.name.root)
             our_relative = True
         try:
             their = other.to_digestable()
             their_relative = False
         except dns.name.NeedAbsoluteNameOrOrigin:
-            their = other.to_digestable(dns.name.root)
+            if _allow_relative_comparisons:
+                their = other.to_digestable(dns.name.root)
             their_relative = True
         if _allow_relative_comparisons:
             if our_relative != their_relative:
@@ -280,7 +282,7 @@ class Rdata:
                     return -1
                 else:
                     return 1
-        else:
+        elif our_relative or their_relative:
             raise NoRelativeRdataOrdering
         if our == their:
             return 0
