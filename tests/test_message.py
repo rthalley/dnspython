@@ -437,6 +437,10 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(q.payload, 4096)
         self.assertEqual(q.options, ())
 
+    def test_setting_id(self):
+        q = dns.message.make_query('www.dnspython.org.', 'a', id=12345)
+        self.assertEqual(q.id, 12345)
+
     def test_generic_message_class(self):
         q1 = dns.message.Message(id=1)
         q1.set_opcode(dns.opcode.NOTIFY)
