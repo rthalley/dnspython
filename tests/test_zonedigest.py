@@ -176,3 +176,18 @@ class ZoneDigestTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('IN', 'ZONEMD', '100 1 0 ' + self.sha384_hash)
 
+    sorting_zone = textwrap.dedent('''
+    @  86400  IN  SOA     ns1 admin 2018031900 (
+                                     1800 900 604800 86400 )
+              86400  IN  NS      ns1
+              86400  IN  NS      ns2
+              86400  IN  RP      n1.example. a.
+              86400  IN  RP      n1. b.
+    ''')
+    
+    def test_relative_zone_sorting(self):
+        z1 = dns.zone.from_text(self.sorting_zone, 'example.', relativize=True)
+        z2 = dns.zone.from_text(self.sorting_zone, 'example.', relativize=False)
+        zmd1 = z1.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
+        zmd2 = z2.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
+        self.assertEqual(zmd1, zmd2)
