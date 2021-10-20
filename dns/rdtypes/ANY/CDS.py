@@ -23,3 +23,8 @@ import dns.immutable
 class CDS(dns.rdtypes.dsbase.DSBase):
 
     """CDS record"""
+
+    _digest_length_by_type = {
+        **dns.rdtypes.dsbase.DSBase._digest_length_by_type,
+        0: 1,  # delete, RFC 8078 Sec. 4 (including Errata ID 5049)
+    }
