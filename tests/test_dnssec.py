@@ -499,13 +499,14 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
 
     def testInvalidDigestType(self):  # type: () -> None
         digest_type_errors = {
-            0: 'digest type 0 is reserved',
-            5: 'unknown digest type',
+            (dns.rdatatype.DS, 0): 'digest type 0 is reserved',
+            (dns.rdatatype.DS, 5): 'unknown digest type',
+            (dns.rdatatype.CDS, 5): 'unknown digest type',
         }
-        for digest_type, msg in digest_type_errors.items():
+        for (rdtype, digest_type), msg in digest_type_errors.items():
             with self.assertRaises(dns.exception.SyntaxError) as cm:
                 dns.rdata.from_text(dns.rdataclass.IN,
-                                    dns.rdatatype.DS,
+                                    rdtype,
                                     f'18673 3 {digest_type} 71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7')
             self.assertEqual(msg, str(cm.exception))
 
@@ -525,6 +526,20 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS, record)
 
             self.assertEqual('digest length inconsistent with digest type', str(cm.exception))
+
+    def testInvalidDigestLengthCDS0(self):  # type: () -> None
+        # Make sure the construction is working
+        dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, f'0 0 0 00')
+
+        test_records = {
+            'digest length inconsistent with digest type': ['0 0 0', '0 0 0 0000'],
+            'Odd-length string': ['0 0 0 0', '0 0 0 000'],
+        }
+        for msg, records in test_records.items():
+            for record in records:
+                with self.assertRaises(dns.exception.SyntaxError) as cm:
+                    dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, record)
+                self.assertEqual(msg, str(cm.exception))
 
 
 if __name__ == '__main__':
