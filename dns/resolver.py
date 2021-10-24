@@ -1120,6 +1120,14 @@ class BaseResolver:
         ``list``.
         """
         if isinstance(nameservers, list):
+            for nameserver in nameservers:
+                if not dns.inet.is_address(nameserver):
+                    try:
+                        if urlparse(nameserver).scheme != 'https':
+                            raise NotImplementedError
+                    except Exception:
+                        raise ValueError(f'nameserver {nameserver} is not an '
+                                         'IP address or valid https URL')
             self._nameservers = nameservers
         else:
             raise ValueError('nameservers must be a list'
@@ -1219,9 +1227,6 @@ class Resolver(BaseResolver):
                                                      source_port=source_port,
                                                      raise_on_truncation=True)
                     else:
-                        protocol = urlparse(nameserver).scheme
-                        if protocol != 'https':
-                            raise NotImplementedError
                         response = dns.query.https(request, nameserver,
                                                    timeout=timeout)
                 except Exception as ex:

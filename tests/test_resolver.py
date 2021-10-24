@@ -700,6 +700,16 @@ class LiveResolverTests(unittest.TestCase):
         cname = dns.name.from_text('dangling-target.dnspython.org')
         self.assertEqual(dns.resolver.canonical_name(name), cname)
 
+    def testNameserverSetting(self):
+        res = dns.resolver.Resolver(configure=False)
+        ns = ['1.2.3.4', '::1', 'https://ns.example']
+        res.nameservers = ns[:]
+        self.assertEqual(res.nameservers, ns)
+        for ns in ['999.999.999.999', 'ns.example.', 'bogus://ns.example']:
+            with self.assertRaises(ValueError):
+                res.nameservers = [ns]
+
+
 class PollingMonkeyPatchMixin(object):
     def setUp(self):
         self.__native_selector_class = dns.query._selector_class

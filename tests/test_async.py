@@ -216,14 +216,6 @@ class AsyncTests(unittest.TestCase):
             return await dns.asyncresolver.canonical_name(name)
         self.assertEqual(self.async_run(run), cname)
 
-    def testResolverBadScheme(self):
-        res = dns.asyncresolver.Resolver(configure=False)
-        res.nameservers = ['bogus://dns.google/dns-query']
-        async def run():
-            answer = await res.resolve('dns.google', 'A')
-        def bad():
-            self.async_run(run)
-        self.assertRaises(dns.resolver.NoNameservers, bad)
 
     def testZoneForName1(self):
         async def run():

@@ -139,12 +139,6 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
         self.assertTrue('8.8.8.8' in seen)
         self.assertTrue('8.8.4.4' in seen)
 
-    def test_resolver_bad_scheme(self):
-        res = dns.resolver.Resolver(configure=False)
-        res.nameservers = ['bogus://dns.google/dns-query']
-        def bad():
-            answer = res.resolve('dns.google', 'A')
-        self.assertRaises(dns.resolver.NoNameservers, bad)
 
 if __name__ == '__main__':
     unittest.main()
