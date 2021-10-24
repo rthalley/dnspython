@@ -707,9 +707,12 @@ www.dnspython.org. 300 IN AAAA ::1
         bad_wire = bad_wire.replace(b'\x00\x00\x00\x05', b'\xff' * 4)
         m = dns.message.from_wire(bad_wire, continue_on_error=True)
         self.assertEqual(len(m.errors), 3)
-        self.assertEqual(m.errors[0][:2], (69, 'value too large'))
-        self.assertEqual(m.errors[1][:2], (97, 'IPv6 addresses are 16 bytes long'))
-        self.assertEqual(m.errors[2][:2], (97, 'not enough RRs in section 1'))
+        print(m.errors)
+        self.assertEqual(str(m.errors[0].exception), 'value too large')
+        self.assertEqual(str(m.errors[1].exception),
+                         'IPv6 addresses are 16 bytes long')
+        self.assertEqual(str(m.errors[2].exception),
+                         'DNS message is malformed.')
         expected_message = dns.message.from_text(
 """id 1234
 opcode QUERY
