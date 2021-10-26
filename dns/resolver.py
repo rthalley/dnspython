@@ -807,7 +807,7 @@ class BaseResolver:
                     f = stack.enter_context(open(f))
                 except OSError:
                     # /etc/resolv.conf doesn't exist, can't be read, etc.
-                    raise NoResolverConfiguration
+                    raise NoResolverConfiguration(f'cannot open {f}')
 
             for l in f:
                 if len(l) == 0 or l[0] == '#' or l[0] == ';':
@@ -848,7 +848,7 @@ class BaseResolver:
                             except (ValueError, IndexError):
                                 pass
         if len(self.nameservers) == 0:
-            raise NoResolverConfiguration
+            raise NoResolverConfiguration('no nameservers')
 
     def _determine_split_char(self, entry):
         #
