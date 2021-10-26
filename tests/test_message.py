@@ -562,7 +562,7 @@ www.example. IN CNAME
 ;AUTHORITY
 example. 300 IN SOA . . 1 2 3 4 5
 ''')
-        # passing is actuall not going into an infinite loop in this call
+        # passing is not going into an infinite loop in this call
         result = r.resolve_chaining()
         self.assertEqual(result.canonical_name,
                          dns.name.from_text('www.example.'))
@@ -684,6 +684,46 @@ flags QR
         m = dns.message.from_wire(goodwire)
         self.assertIsInstance(m.flags, dns.flags.Flag)
         self.assertEqual(m.flags, dns.flags.Flag.RD)
+        
+    def test_continue_on_error(self):
+        good_message = dns.message.from_text(
+"""id 1234
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+www.dnspython.org. IN SOA
+;ANSWER
+www.dnspython.org. 300 IN SOA . . 1 2 3 4 5
+www.dnspython.org. 300 IN A 1.2.3.4
+www.dnspython.org. 300 IN AAAA ::1
+""")
+        wire = good_message.to_wire()
+        # change ANCOUNT to 255
+        bad_wire = wire[:6] + b'\x00\xff' + wire[8:]
+        # change AAAA into rdata with rdlen 0
+        bad_wire = bad_wire[:-18] + b'\x00' * 2
+        # change SOA MINIMUM field to 0xffffffff (too large)
+        bad_wire = bad_wire.replace(b'\x00\x00\x00\x05', b'\xff' * 4)
+        m = dns.message.from_wire(bad_wire, continue_on_error=True)
+        self.assertEqual(len(m.errors), 3)
+        print(m.errors)
+        self.assertEqual(str(m.errors[0].exception), 'value too large')
+        self.assertEqual(str(m.errors[1].exception),
+                         'IPv6 addresses are 16 bytes long')
+        self.assertEqual(str(m.errors[2].exception),
+                         'DNS message is malformed.')
+        expected_message = dns.message.from_text(
+"""id 1234
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+www.dnspython.org. IN SOA
+;ANSWER
+www.dnspython.org. 300 IN A 1.2.3.4
+""")
+        self.assertEqual(m, expected_message)
 
 
 if __name__ == '__main__':
