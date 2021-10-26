@@ -69,6 +69,11 @@ pocov:
 	poetry run coverage html --include 'dns*'
 	poetry run coverage report --include 'dns*'
 
-pokit:
+oldpokit:
 	po run python setup.py sdist --formats=zip bdist_wheel
 
+pokit:
+	po build
+
+findjunk:
+	find dns -type f | egrep -v '.*\.py' | egrep -v 'py\.typed'

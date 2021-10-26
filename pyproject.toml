@@ -7,6 +7,25 @@ license = "ISC"
 packages = [
     {include = "dns"}
 ]
+include = [
+    { path="LICENSE", format="sdist" },
+    { path="README.md", format="sdist" },
+    { path="examples/*.txt", format="sdist" },
+    { path="examples/*.py", format="sdist" },
+    { path="tests/*.txt", format="sdist" },
+    { path="tests/*.py", format="sdist" },
+    { path="tests/*.good", format="sdist" },
+    { path="tests/example", format="sdist" },
+    { path="tests/query", format="sdist" },
+    { path="tests/*.pickle", format="sdist" },
+    { path="tests/*.text", format="sdist" },
+    { path="tests/*.generic", format="sdist" },
+    { path="util/**", format="sdist" },
+]
+exclude = [
+    "**/.DS_Store",
+    "**/__pycache__/**",
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"
