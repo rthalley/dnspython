@@ -21,6 +21,7 @@ include = [
     { path="tests/*.text", format="sdist" },
     { path="tests/*.generic", format="sdist" },
     { path="util/**", format="sdist" },
+    { path="setup.cfg", format="sdist" },
 ]
 exclude = [
     "**/.DS_Store",
