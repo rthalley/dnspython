@@ -1425,7 +1425,7 @@ def from_file(f, idna_codec=None, one_rr_per_rrset=False):
 def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
                want_dnssec=False, ednsflags=None, payload=None,
                request_payload=None, options=None, idna_codec=None,
-               id=None):
+               id=None, flags=dns.flags.RD):
     """Make a query message.
 
     The query name, type, and class may all be specified either
@@ -1470,6 +1470,9 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     *id*, an ``int`` or ``None``, the desired query id.  The default is
     ``None``, which generates a random query id.
 
+    *flags*, an ``int``, the desired query flags.  The default is
+    ``dns.flags.RD``.
+
     Returns a ``dns.message.QueryMessage``
     """
 
@@ -1478,7 +1481,7 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     m = QueryMessage(id=id)
-    m.flags |= dns.flags.RD
+    m.flags = dns.flags.Flag(flags)
     m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
                  force_unique=True)
     # only pass keywords on to use_edns if they have been set to a
