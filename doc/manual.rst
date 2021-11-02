@@ -17,3 +17,4 @@ Dnspython Manual
    utilities
    typing
    threads
+   examples
