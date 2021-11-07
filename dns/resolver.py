@@ -875,6 +875,11 @@ class BaseResolver:
                 self.nameservers.append(ns)
 
     def _config_win32_domain(self, domain):  # pragma: no cover
+        # Sometimes DHCP servers add a '.' prefix to the default domain, and
+        # Windows just stores such values in the registry (see #687).
+        # Check for this and fix it.
+        if domain.startswith('.'):
+            domain = domain[1:]
         # we call str() on domain to convert it from unicode to ascii
         self.domain = dns.name.from_text(str(domain))
 
