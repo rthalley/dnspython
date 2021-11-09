@@ -886,15 +886,13 @@ class ResolverMiscTestCase(unittest.TestCase):
         # not raising is the test
         res._compute_timeout(now + 0.5)
 
-    def test_configure_win32_domain(self):
-        # This is a win32-related test but it works on all platforms so we
-        # test it that way to make coverage analysis easier.
-        n = dns.name.from_text('home.')
-        res = dns.resolver.Resolver(configure=False)
-        res._config_win32_domain('home')
-        self.assertEqual(res.domain, n)
-        res._config_win32_domain('.home')
-        self.assertEqual(res.domain, n)
+    if sys.platform == 'win32':
+        def test_configure_win32_domain(self):
+            # This is a win32-related test but it works on all platforms so we
+            # test it that way to make coverage analysis easier.
+            n = dns.name.from_text('home.')
+            self.assertEqual(n, dns.win32util._config_domain('home'))
+            self.assertEqual(n, dns.win32util._config_domain('.home'))
 
 
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
