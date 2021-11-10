@@ -42,9 +42,17 @@ try:
     import requests
     from requests_toolbelt.adapters.source import SourceAddressAdapter
     from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
-    have_doh = True
+    _have_requests = True
 except ImportError:  # pragma: no cover
-    have_doh = False
+    _have_requests = False
+
+try:
+    import httpx
+    _have_httpx = True
+except ImportError:  # pragma: no cover
+    _have_httpx = False
+
+have_doh = _have_requests or _have_httpx
 
 try:
     import ssl
@@ -277,10 +285,13 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
     if not have_doh:
         raise NoDOH  # pragma: no cover
 
+    _httpx_ok = True
+
     wire = q.to_wire()
     (af, _, source) = _destination_and_source(where, port, source, source_port,
                                               False)
     transport_adapter = None
+    transport = None
     headers = {
         "accept": "application/dns-message"
     }
@@ -290,19 +301,47 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
         elif af == socket.AF_INET6:
             url = 'https://[{}]:{}{}'.format(where, port, path)
     elif bootstrap_address is not None:
+        _httpx_ok = False
         split_url = urllib.parse.urlsplit(where)
         headers['Host'] = split_url.hostname
         url = where.replace(split_url.hostname, bootstrap_address)
-        transport_adapter = HostHeaderSSLAdapter()
+        if _have_requests:
+            transport_adapter = HostHeaderSSLAdapter()
     else:
         url = where
     if source is not None:
         # set source port and source address
-        transport_adapter = SourceAddressAdapter(source)
+        if _have_httpx:
+            if source_port == 0:
+                transport = httpx.HTTPTransport(local_address=source[0])
+            else:
+                _httpx_ok = False
+        if _have_requests:
+            transport_adapter = SourceAddressAdapter(source)
+
+    if not _httpx_ok and not _have_requests:
+        raise NoDOH('Cannot use httpx for this operation, and '
+                    'requests is not available.')
 
     with contextlib.ExitStack() as stack:
+        if session:
+            if _have_httpx:
+                _is_httpx = isinstance(session, httpx.Client)
+            else:
+                _is_httpx = False
+            if _is_httpx and not _httpx_ok:
+                # we can't use this session
+                session = None
         if not session:
-            session = stack.enter_context(requests.sessions.Session())
+            if _have_httpx and _httpx_ok:
+                _is_httpx = True
+                session = stack.enter_context(httpx.Client(http1=True,
+                                                           http2=True,
+                                                           verify=verify,
+                                                           transport=transport))
+            else:
+                _is_httpx = False
+                session = stack.enter_context(requests.sessions.Session())
 
         if transport_adapter:
             session.mount(url, transport_adapter)
@@ -314,13 +353,23 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
                 "content-type": "application/dns-message",
                 "content-length": str(len(wire))
             })
-            response = session.post(url, headers=headers, data=wire,
-                                    timeout=timeout, verify=verify)
+            if _is_httpx:
+                response = session.post(url, headers=headers, content=wire,
+                                        timeout=timeout)
+            else:
+                response = session.post(url, headers=headers, data=wire,
+                                        timeout=timeout, verify=verify)
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
-            response = session.get(url, headers=headers,
-                                   timeout=timeout, verify=verify,
-                                   params={"dns": wire})
+            if _is_httpx:
+                wire = wire.decode()  # httpx does a repr() if we give it bytes
+                response = session.get(url, headers=headers,
+                                       timeout=timeout,
+                                       params={"dns": wire})
+            else:
+                response = session.get(url, headers=headers,
+                                       timeout=timeout, verify=verify,
+                                       params={"dns": wire})
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes

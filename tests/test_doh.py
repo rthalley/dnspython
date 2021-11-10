@@ -23,9 +23,12 @@ import dns.query
 import dns.rdatatype
 import dns.resolver
 
-if dns.query.have_doh:
+if dns.query._have_requests:
     import requests
     from requests.exceptions import SSLError
+
+if dns.query._have_httpx:
+    import httpx
 
 # Probe for IPv4 and IPv6
 resolver_v4_addresses = []
@@ -66,9 +69,10 @@ try:
 except socket.gaierror:
     _network_available = False
 
-@unittest.skipUnless(dns.query.have_doh and _network_available,
+
+@unittest.skipUnless(dns.query._have_requests and _network_available,
                      "Python requests cannot be imported; no DNS over HTTPS (DOH)")
-class DNSOverHTTPSTestCase(unittest.TestCase):
+class DNSOverHTTPSTestCaseRequests(unittest.TestCase):
     def setUp(self):
         self.session = requests.sessions.Session()
 
@@ -118,6 +122,80 @@ class DNSOverHTTPSTestCase(unittest.TestCase):
             # make sure CleanBrowsing's IP address will fail TLS certificate
             # check
             with self.assertRaises(SSLError):
+                dns.query.https(q, invalid_tls_url, session=self.session,
+                                timeout=4)
+            # use host header
+            r = dns.query.https(q, valid_tls_url, session=self.session,
+                                bootstrap_address=ip, timeout=4)
+            self.assertTrue(q.is_response(r))
+
+    def test_new_session(self):
+        nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
+        q = dns.message.make_query('example.com.', dns.rdatatype.A)
+        r = dns.query.https(q, nameserver_url, timeout=4)
+        self.assertTrue(q.is_response(r))
+
+    def test_resolver(self):
+        res = dns.resolver.Resolver(configure=False)
+        res.nameservers = ['https://dns.google/dns-query']
+        answer = res.resolve('dns.google', 'A')
+        seen = set([rdata.address for rdata in answer])
+        self.assertTrue('8.8.8.8' in seen)
+        self.assertTrue('8.8.4.4' in seen)
+
+
+@unittest.skipUnless(dns.query._have_httpx and _network_available,
+                     "Python httpx cannot be imported; no DNS over HTTPS (DOH)")
+class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
+    def setUp(self):
+        self.session = httpx.Client(http1=True, http2=True, verify=True)
+
+    def tearDown(self):
+        self.session.close()
+
+    def test_get_request(self):
+        nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
+        q = dns.message.make_query('example.com.', dns.rdatatype.A)
+        r = dns.query.https(q, nameserver_url, session=self.session, post=False,
+                            timeout=4)
+        self.assertTrue(q.is_response(r))
+
+    def test_post_request(self):
+        nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
+        q = dns.message.make_query('example.com.', dns.rdatatype.A)
+        r = dns.query.https(q, nameserver_url, session=self.session, post=True,
+                            timeout=4)
+        self.assertTrue(q.is_response(r))
+
+    def test_build_url_from_ip(self):
+        self.assertTrue(resolver_v4_addresses or resolver_v6_addresses)
+        if resolver_v4_addresses:
+            nameserver_ip = random.choice(resolver_v4_addresses)
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            # For some reason Google's DNS over HTTPS fails when you POST to
+            # https://8.8.8.8/dns-query
+            # So we're just going to do GET requests here
+            r = dns.query.https(q, nameserver_ip, session=self.session,
+                                post=False, timeout=4)
+
+            self.assertTrue(q.is_response(r))
+        if resolver_v6_addresses:
+            nameserver_ip = random.choice(resolver_v6_addresses)
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            r = dns.query.https(q, nameserver_ip, session=self.session,
+                                post=False, timeout=4)
+            self.assertTrue(q.is_response(r))
+
+    def test_bootstrap_address(self):
+        # We test this to see if v4 is available
+        if resolver_v4_addresses:
+            ip = '185.228.168.168'
+            invalid_tls_url = 'https://{}/doh/family-filter/'.format(ip)
+            valid_tls_url = 'https://doh.cleanbrowsing.org/doh/family-filter/'
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            # make sure CleanBrowsing's IP address will fail TLS certificate
+            # check
+            with self.assertRaises(httpx.ConnectError):
                 dns.query.https(q, invalid_tls_url, session=self.session,
                                 timeout=4)
             # use host header
