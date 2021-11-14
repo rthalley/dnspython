@@ -513,6 +513,15 @@ class Rdata:
             raise ValueError('not a TTL')
 
     @classmethod
+    def _as_interval(cls, value):
+        if isinstance(value, int):
+            return cls._as_int(value, 0, dns.ttl.MAX_INTERVAL)
+        elif isinstance(value, str):
+            return dns.ttl.interval_from_text(value)
+        else:
+            raise ValueError('not a valid interval')
+
+    @classmethod
     def _as_tuple(cls, value, as_value):
         try:
             # For user convenience, if value is a singleton of the list

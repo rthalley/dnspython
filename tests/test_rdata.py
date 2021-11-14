@@ -696,7 +696,7 @@ class RdataTestCase(unittest.TestCase):
                     rr = dns.rdata.from_text('IN', 'DNSKEY', input_variation)
                     new_text = rr.to_text(chunksize=chunksize)
                     self.assertEqual(output, new_text)
-                    
+
     def test_relative_vs_absolute_compare_unstrict(self):
         try:
             saved = dns.rdata._allow_relative_comparisons
@@ -888,6 +888,20 @@ class UtilTestCase(unittest.TestCase):
             dns.rdataset.from_text('in', 'a', 1.6, '10.0.0.1')
         with self.assertRaises(dns.ttl.BadTTL):
             dns.rdataset.from_text('in', 'a', '10.0.0.1', '10.0.0.2')
+
+    def test_soa_interval_conversion(self):
+        rd = dns.rdata.from_text('in', 'soa', '. . 1 4294967295 3 4 5')
+        self.assertEqual(rd.refresh, 4294967295)
+        with self.assertRaises(dns.exception.SyntaxError):
+            rd = dns.rdata.from_text('in', 'soa', '. . 1 4294967296 3 4 5')
+        rd = dns.rdata.from_text('in', 'soa', '. . 1 2 4294967295 4 5')
+        self.assertEqual(rd.retry, 4294967295)
+        with self.assertRaises(dns.exception.SyntaxError):
+            rd = dns.rdata.from_text('in', 'soa', '. . 1 2 4294967296 4 5')
+        rd = dns.rdata.from_text('in', 'soa', '. . 1 2 3 4294967295 5')
+        self.assertEqual(rd.expire, 4294967295)
+        with self.assertRaises(dns.exception.SyntaxError):
+            rd = dns.rdata.from_text('in', 'soa', '. . 1 2 3 4294967296 5')
 
 
 Rdata = dns.rdata.Rdata

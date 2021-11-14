@@ -673,3 +673,17 @@ class Tokenizer:
         if not token.is_identifier():
             raise dns.exception.SyntaxError('expecting an identifier')
         return dns.ttl.from_text(token.value)
+
+    def get_interval(self):
+        """Read the next token and interpret it as a DNS time interval.
+
+        Raises dns.exception.SyntaxError or ValueError if not an
+        identifier or badly formed.
+
+        Returns an int.
+        """
+
+        token = self.get().unescape()
+        if not token.is_identifier():
+            raise dns.exception.SyntaxError('expecting an identifier')
+        return dns.ttl.interval_from_text(token.value)

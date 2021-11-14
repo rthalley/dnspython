@@ -19,20 +19,22 @@
 
 import dns.exception
 
+MAX_INTERVAL = 4294967295
 MAX_TTL = 2147483647
 
 class BadTTL(dns.exception.SyntaxError):
     """DNS TTL value is not well-formed."""
 
 
-def from_text(text):
-    """Convert the text form of a TTL to an integer.
+def interval_from_text(text, maximum=MAX_INTERVAL, description='interval',
+                       exception=ValueError):
+    """Convert the text form of a time interval to an integer.
 
-    The BIND 8 units syntax for TTLs (e.g. '1w6d4h3m10s') is supported.
+    The BIND 8 units syntax for intervals (e.g. '1w6d4h3m10s') is supported.
 
-    *text*, a ``str``, the textual TTL.
+    *text*, a ``str``, the textual interval.
 
-    Raises ``dns.ttl.BadTTL`` if the TTL is not well-formed.
+    Raises *exception* if the interval is not well-formed.
 
     Returns an ``int``.
     """
@@ -40,7 +42,7 @@ def from_text(text):
     if text.isdigit():
         total = int(text)
     elif len(text) == 0:
-        raise BadTTL
+        raise exception('empty string')
     else:
         total = 0
         current = 0
@@ -65,20 +67,30 @@ def from_text(text):
                 elif c == 's':
                     total += current
                 else:
-                    raise BadTTL("unknown unit '%s'" % c)
+                    raise exception("unknown unit '%s'" % c)
                 current = 0
                 need_digit = True
         if not current == 0:
-            raise BadTTL("trailing integer")
-    if total < 0 or total > MAX_TTL:
-        raise BadTTL("TTL should be between 0 and 2^31 - 1 (inclusive)")
+            raise exception("trailing integer")
+    if total < 0 or total > maximum:
+        raise exception(f'{description} should be between 0 and {maximum} '
+                        '(inclusive)')
     return total
 
+def from_text(text):
+    return interval_from_text(text, MAX_TTL, 'TTL', BadTTL)
 
-def make(value):
+def make_interval(value, maximum=MAX_INTERVAL, description='interval',
+                  exception=ValueError):
     if isinstance(value, int):
+        if value < 0 or value > maximum:
+            raise exception(f'{description} should be between 0 and {maximum} '
+                            '(inclusive)')
         return value
     elif isinstance(value, str):
-        return dns.ttl.from_text(value)
+        return interval_from_text(value, maximum, description, exception)
     else:
-        raise ValueError('cannot convert value to TTL')
+        raise ValueError(f'cannot convert value to {description}')
+
+def make(value):
+    return make_interval(value, MAX_TTL, 'TTL', BadTTL)
