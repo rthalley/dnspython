@@ -80,17 +80,12 @@ def interval_from_text(text, maximum=MAX_INTERVAL, description='interval',
 def from_text(text):
     return interval_from_text(text, MAX_TTL, 'TTL', BadTTL)
 
-def make_interval(value, maximum=MAX_INTERVAL, description='interval',
-                  exception=ValueError):
+def make(value):
     if isinstance(value, int):
-        if value < 0 or value > maximum:
-            raise exception(f'{description} should be between 0 and {maximum} '
-                            '(inclusive)')
+        # Note we do NOT bounds check here as OPT RRs can have invalid TTLs.
+        # XXXRTH Perhaps we should have a "enforce bounds" parameter?
         return value
     elif isinstance(value, str):
-        return interval_from_text(value, maximum, description, exception)
+        return from_text(value)
     else:
-        raise ValueError(f'cannot convert value to {description}')
-
-def make(value):
-    return make_interval(value, MAX_TTL, 'TTL', BadTTL)
+        raise ValueError(f'cannot convert value to a TTL')
