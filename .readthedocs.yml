@@ -8,9 +8,9 @@ formats: []
 python:
   version: 3.6
   install:
+    - requirements: doc/requirements.txt
     - method: pip
       path: .
-      requirements: doc/requirements.txt
       extra_requirements:
         - dnssec
         - idna
