@@ -888,8 +888,6 @@ class ResolverMiscTestCase(unittest.TestCase):
 
     if sys.platform == 'win32':
         def test_configure_win32_domain(self):
-            # This is a win32-related test but it works on all platforms so we
-            # test it that way to make coverage analysis easier.
             n = dns.name.from_text('home.')
             self.assertEqual(n, dns.win32util._config_domain('home'))
             self.assertEqual(n, dns.win32util._config_domain('.home'))
