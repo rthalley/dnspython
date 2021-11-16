@@ -328,7 +328,10 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
             transport_adapter = SourceAddressAdapter(source)
 
     if session:
-        _is_httpx = isinstance(session, httpx.Client)
+        if _have_httpx:
+            _is_httpx = isinstance(session, httpx.Client)
+        else:
+            _is_httpx = False
         if _is_httpx and not _httpx_ok:
             raise NoDOH('Session is httpx, but httpx cannot be used for '
                         'the requested operation.')
