@@ -209,7 +209,7 @@ def test_bad_parameters(db):
         with pytest.raises(ValueError):
             foo = dns.name.from_text('foo', None)
             rdata = dns.rdata.from_text('in', 'a', '10.0.0.3')
-            txn.add(foo, 0x80000000, rdata)
+            txn.add(foo, 0x100000000, rdata)
         with pytest.raises(TypeError):
             txn.add(foo)
         with pytest.raises(TypeError):

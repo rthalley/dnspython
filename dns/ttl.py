@@ -19,7 +19,13 @@
 
 import dns.exception
 
-MAX_TTL = 2147483647
+# Technically TTLs are supposed to be between 0 and 2**31 - 1, with values
+# greater than that interpreted as 0, but we do not impose this policy here
+# as values > 2**31 - 1 occur in real world data.
+#
+# We leave it to applications to impose tighter bounds if desired.
+MAX_TTL = 2**32 - 1
+
 
 class BadTTL(dns.exception.SyntaxError):
     """DNS TTL value is not well-formed."""
@@ -71,7 +77,7 @@ def from_text(text):
         if not current == 0:
             raise BadTTL("trailing integer")
     if total < 0 or total > MAX_TTL:
-        raise BadTTL("TTL should be between 0 and 2^31 - 1 (inclusive)")
+        raise BadTTL("TTL should be between 0 and 2**32 - 1 (inclusive)")
     return total
 
 
