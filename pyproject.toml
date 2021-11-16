@@ -50,7 +50,7 @@ wheel = "^0.35.0"
 pylint = "^2.7.4"
 
 [tool.poetry.extras]
-doh = ['requests', 'requests-toolbelt']
+doh = ['httpx[http2]', 'requests', 'requests-toolbelt']
 idna = ['idna']
 dnssec = ['cryptography']
 trio = ['trio']

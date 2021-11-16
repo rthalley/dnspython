@@ -46,11 +46,19 @@ try:
 except ImportError:  # pragma: no cover
     _have_requests = False
 
+_have_httpx = False
+_have_http2 = False
 try:
     import httpx
     _have_httpx = True
+    try:
+        # See if http2 support is available.
+        with httpx.Client(http2=True):
+            _have_http2 = True
+    except Exception:
+        pass
 except ImportError:  # pragma: no cover
-    _have_httpx = False
+    pass
 
 have_doh = _have_requests or _have_httpx
 
@@ -283,9 +291,9 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
     """
 
     if not have_doh:
-        raise NoDOH  # pragma: no cover
+        raise NoDOH('Neither httpx nor requests is available.')  # pragma: no cover
 
-    _httpx_ok = True
+    _httpx_ok = _have_httpx
 
     wire = q.to_wire()
     (af, _, source) = _destination_and_source(where, port, source, source_port,
@@ -319,28 +327,26 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
         if _have_requests:
             transport_adapter = SourceAddressAdapter(source)
 
+    if session:
+        _is_httpx = isinstance(session, httpx.Client)
+        if _is_httpx and not _httpx_ok:
+            raise NoDOH('Session is httpx, but httpx cannot be used for '
+                        'the requested operation.')
+    else:
+        _is_httpx = _httpx_ok
+
     if not _httpx_ok and not _have_requests:
         raise NoDOH('Cannot use httpx for this operation, and '
                     'requests is not available.')
 
     with contextlib.ExitStack() as stack:
-        if session:
-            if _have_httpx:
-                _is_httpx = isinstance(session, httpx.Client)
-            else:
-                _is_httpx = False
-            if _is_httpx and not _httpx_ok:
-                # we can't use this session
-                session = None
         if not session:
-            if _have_httpx and _httpx_ok:
-                _is_httpx = True
+            if _is_httpx:
                 session = stack.enter_context(httpx.Client(http1=True,
-                                                           http2=True,
+                                                           http2=_have_http2,
                                                            verify=verify,
                                                            transport=transport))
             else:
-                _is_httpx = False
                 session = stack.enter_context(requests.sessions.Session())
 
         if transport_adapter:
