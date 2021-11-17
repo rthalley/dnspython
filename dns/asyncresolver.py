@@ -87,8 +87,9 @@ class Resolver(dns.resolver.BaseResolver):
                                                   raise_on_truncation=True,
                                                   backend=backend)
                     else:
-                        # We don't do DoH yet.
-                        raise NotImplementedError
+                        response = await dns.asyncquery.https(request,
+                                                              nameserver,
+                                                              timeout=timeout)
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
                     continue
