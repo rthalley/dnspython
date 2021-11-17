@@ -43,8 +43,7 @@ import dns.reversename
 import dns.tsig
 
 if sys.platform == 'win32':
-    # pylint: disable=import-error
-    import winreg
+    import dns.win32util
 
 class NXDOMAIN(dns.exception.DNSException):
     """The DNS query name does not exist."""
@@ -850,165 +849,16 @@ class BaseResolver:
         if len(self.nameservers) == 0:
             raise NoResolverConfiguration('no nameservers')
 
-    def _determine_split_char(self, entry):
-        #
-        # The windows registry irritatingly changes the list element
-        # delimiter in between ' ' and ',' (and vice-versa) in various
-        # versions of windows.
-        #
-        if entry.find(' ') >= 0:  # pragma: no cover
-            split_char = ' '
-        elif entry.find(',') >= 0:  # pragma: no cover
-            split_char = ','
-        else:
-            # probably a singleton; treat as a space-separated list.
-            split_char = ' '
-        return split_char
-
-    def _config_win32_nameservers(self, nameservers):
-        # we call str() on nameservers to convert it from unicode to ascii
-        nameservers = str(nameservers)
-        split_char = self._determine_split_char(nameservers)
-        ns_list = nameservers.split(split_char)
-        for ns in ns_list:
-            if ns not in self.nameservers:
-                self.nameservers.append(ns)
-
-    def _config_win32_domain(self, domain):  # pragma: no cover
-        # Sometimes DHCP servers add a '.' prefix to the default domain, and
-        # Windows just stores such values in the registry (see #687).
-        # Check for this and fix it.
-        if domain.startswith('.'):
-            domain = domain[1:]
-        # we call str() on domain to convert it from unicode to ascii
-        self.domain = dns.name.from_text(str(domain))
-
-    def _config_win32_search(self, search):  # pragma: no cover
-        # we call str() on search to convert it from unicode to ascii
-        search = str(search)
-        split_char = self._determine_split_char(search)
-        search_list = search.split(split_char)
-        for s in search_list:
-            if s not in self.search:
-                self.search.append(dns.name.from_text(s))
-
-    def _config_win32_fromkey(self, key, always_try_domain):
-        # pylint: disable=undefined-variable
-        # (disabled for WindowsError)
-        try:
-            servers, _ = winreg.QueryValueEx(key, 'NameServer')
-        except WindowsError:  # pragma: no cover
-            servers = None
-        if servers:
-            self._config_win32_nameservers(servers)
-        if servers or always_try_domain:
-            try:
-                dom, _ = winreg.QueryValueEx(key, 'Domain')
-                if dom:
-                    self._config_win32_domain(dom)  # pragma: no cover
-            except WindowsError:  # pragma: no cover
-                pass
-        else:
-            try:
-                servers, _ = winreg.QueryValueEx(key, 'DhcpNameServer')
-            except WindowsError:  # pragma: no cover
-                servers = None
-            if servers:
-                self._config_win32_nameservers(servers)
-                try:
-                    dom, _ = winreg.QueryValueEx(key, 'DhcpDomain')
-                    if dom:
-                        self._config_win32_domain(dom)
-                except WindowsError:  # pragma: no cover
-                    pass
-        try:
-            search, _ = winreg.QueryValueEx(key, 'SearchList')
-        except WindowsError:  # pragma: no cover
-            search = None
-        if search:  # pragma: no cover
-            self._config_win32_search(search)
-
     def read_registry(self):
         """Extract resolver configuration from the Windows registry."""
-
-        lm = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
         try:
-            tcp_params = winreg.OpenKey(lm,
-                                        r'SYSTEM\CurrentControlSet'
-                                        r'\Services\Tcpip\Parameters')
-            try:
-                self._config_win32_fromkey(tcp_params, True)
-            finally:
-                tcp_params.Close()
-            interfaces = winreg.OpenKey(lm,
-                                        r'SYSTEM\CurrentControlSet'
-                                        r'\Services\Tcpip\Parameters'
-                                        r'\Interfaces')
-            try:
-                i = 0
-                while True:
-                    try:
-                        guid = winreg.EnumKey(interfaces, i)
-                        i += 1
-                        # XXXRTH why do we get this key and then not use it?
-                        key = winreg.OpenKey(interfaces, guid)
-                        if not self._win32_is_nic_enabled(lm, guid, key):
-                            continue
-                        try:
-                            self._config_win32_fromkey(key, False)
-                        finally:
-                            key.Close()
-                    except EnvironmentError:  # pragma: no cover
-                        break
-            finally:
-                interfaces.Close()
-        finally:
-            lm.Close()
-
-    def _win32_is_nic_enabled(self, lm, guid, _):
-        # Look in the Windows Registry to determine whether the network
-        # interface corresponding to the given guid is enabled.
-        #
-        # (Code contributed by Paul Marks, thanks!)
-        #
-        try:
-            # This hard-coded location seems to be consistent, at least
-            # from Windows 2000 through Vista.
-            connection_key = winreg.OpenKey(
-                lm,
-                r'SYSTEM\CurrentControlSet\Control\Network'
-                r'\{4D36E972-E325-11CE-BFC1-08002BE10318}'
-                r'\%s\Connection' % guid)
-
-            try:
-                # The PnpInstanceID points to a key inside Enum
-                (pnp_id, ttype) = winreg.QueryValueEx(
-                    connection_key, 'PnpInstanceID')
-
-                if ttype != winreg.REG_SZ:
-                    raise ValueError  # pragma: no cover
-
-                device_key = winreg.OpenKey(
-                    lm, r'SYSTEM\CurrentControlSet\Enum\%s' % pnp_id)
-
-                try:
-                    # Get ConfigFlags for this device
-                    (flags, ttype) = winreg.QueryValueEx(
-                        device_key, 'ConfigFlags')
-
-                    if ttype != winreg.REG_DWORD:
-                        raise ValueError  # pragma: no cover
-
-                    # Based on experimentation, bit 0x1 indicates that the
-                    # device is disabled.
-                    return not flags & 0x1
-
-                finally:
-                    device_key.Close()
-            finally:
-                connection_key.Close()
-        except Exception:  # pragma: no cover
-            return False
+            info = dns.win32util.get_dns_info()
+            if info.domain is not None:
+                self.domain = info.domain
+            self.nameservers = info.nameservers
+            self.search = info.search
+        except AttributeError:
+            raise NotImplementedError
 
     def _compute_timeout(self, start, lifetime=None, errors=None):
         lifetime = self.lifetime if lifetime is None else lifetime
