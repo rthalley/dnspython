@@ -274,8 +274,8 @@ def https(q, where, timeout=None, port=443, source=None, source_port=0,
     *ignore_trailing*, a ``bool``. If ``True``, ignore trailing
     junk at end of the received message.
 
-    *session*, a ``requests.session.Session``.  If provided, the session to use
-    to send the queries.
+    *session*, an ``httpx.Client`` or ``requests.session.Session``.  If
+    provided, the client/session to use to send the queries.
 
     *path*, a ``str``. If *where* is an IP address, then *path* will be used to
     construct the URL to send the DNS query to.
