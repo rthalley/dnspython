@@ -147,8 +147,6 @@ class Reader:
         # Type
         if self.force_rdtype is not None:
             rdtype = self.force_rdtype
-            # we need to unget the token we got, as there is always one
-            # outstanding at this point
         else:
             token = self._get_identifier()
             try:
