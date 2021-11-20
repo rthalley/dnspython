@@ -15,7 +15,24 @@ What's New in dnspython
   an error trace like the NoNameservers exception.  This class is a subclass of
   dns.exception.Timeout for backwards compatibility.
 
+* DNS-over-HTTPS will try to use HTTP/2 if the httpx and h2 packages
+  are installed.
+
 * DNS-over-HTTPS is now supported for asynchronous queries and resolutions.
+
+* ``dns.zonefile.read_rrsets()`` has been added, which allows rrsets in zonefile
+  format, or a restrition of it, to be read.  This function is useful for
+  applications that want to read DNS data in text format, but do not want to
+  use a Zone.
+
+* On Windows systems, if the WMI module is available, the resolver will retrieve
+  the nameserver from WMI instead of trying to figure it out by reading the
+  registry.  This may lead to more accurate results in some cases.
+
+* The CERT rdatatype now supports certificate types IPKIX, ISPKI, IPGP,
+  ACPKIX, and IACPKIX.
+
+* The CDS rdatatype now allows digest type 0.
 
 2.1.0
 ----------------------
