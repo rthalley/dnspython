@@ -1,4 +1,4 @@
-.. _zonefile
+.. _zonefile:
 
 The RRSet Reader
 ----------------
