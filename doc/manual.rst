@@ -11,6 +11,7 @@ Dnspython Manual
    query
    resolver
    zone
+   zonefile
    dnssec
    async
    exceptions

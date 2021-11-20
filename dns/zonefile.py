@@ -42,21 +42,35 @@ class Reader:
 
     """Read a DNS zone file into a transaction."""
 
-    def __init__(self, tok, rdclass, txn, allow_include=False):
+    def __init__(self, tok, rdclass, txn, allow_include=False,
+                 allow_directives=True, force_name=None,
+                 force_ttl=None, force_rdclass=None, force_rdtype=None,
+                 default_ttl=None):
         self.tok = tok
         (self.zone_origin, self.relativize, _) = \
             txn.manager.origin_information()
         self.current_origin = self.zone_origin
         self.last_ttl = 0
         self.last_ttl_known = False
-        self.default_ttl = 0
-        self.default_ttl_known = False
+        if force_ttl is not None:
+            default_ttl = force_ttl
+        if default_ttl is None:
+            self.default_ttl = 0
+            self.default_ttl_known = False
+        else:
+            self.default_ttl = default_ttl
+            self.default_ttl_known = True
         self.last_name = self.current_origin
         self.zone_rdclass = rdclass
         self.txn = txn
         self.saved_state = []
         self.current_file = None
         self.allow_include = allow_include
+        self.allow_directives = allow_directives
+        self.force_name = force_name
+        self.force_ttl = force_ttl
+        self.force_rdclass = force_rdclass
+        self.force_rdtype = force_rdtype
 
     def _eat_line(self):
         while 1:
@@ -64,63 +78,83 @@ class Reader:
             if token.is_eol_or_eof():
                 break
 
-    def _rr_line(self):
-        """Process one line from a DNS zone file."""
-        # Name
-        if self.current_origin is None:
-            raise UnknownOrigin
-        token = self.tok.get(want_leading=True)
-        if not token.is_whitespace():
-            self.last_name = self.tok.as_name(token, self.current_origin)
-        else:
-            token = self.tok.get()
-            if token.is_eol_or_eof():
-                # treat leading WS followed by EOL/EOF as if they were EOL/EOF.
-                return
-            self.tok.unget(token)
-        name = self.last_name
-        if not name.is_subdomain(self.zone_origin):
-            self._eat_line()
-            return
-        if self.relativize:
-            name = name.relativize(self.zone_origin)
+    def _get_identifier(self):
         token = self.tok.get()
         if not token.is_identifier():
             raise dns.exception.SyntaxError
+        return token
+
+    def _rr_line(self):
+        """Process one line from a DNS zone file."""
+        token = None
+        # Name
+        if self.force_name is not None:
+            name = self.force_name
+        else:
+            if self.current_origin is None:
+                raise UnknownOrigin
+            token = self.tok.get(want_leading=True)
+            if not token.is_whitespace():
+                self.last_name = self.tok.as_name(token, self.current_origin)
+            else:
+                token = self.tok.get()
+                if token.is_eol_or_eof():
+                    # treat leading WS followed by EOL/EOF as if they were EOL/EOF.
+                    return
+                self.tok.unget(token)
+            name = self.last_name
+            if not name.is_subdomain(self.zone_origin):
+                self._eat_line()
+                return
+            if self.relativize:
+                name = name.relativize(self.zone_origin)
 
         # TTL
-        ttl = None
-        try:
-            ttl = dns.ttl.from_text(token.value)
+        if self.force_ttl is not None:
+            ttl = self.force_ttl
             self.last_ttl = ttl
             self.last_ttl_known = True
-            token = self.tok.get()
-            if not token.is_identifier():
-                raise dns.exception.SyntaxError
-        except dns.ttl.BadTTL:
-            if self.default_ttl_known:
-                ttl = self.default_ttl
-            elif self.last_ttl_known:
-                ttl = self.last_ttl
+        else:
+            token = self._get_identifier()
+            ttl = None
+            try:
+                ttl = dns.ttl.from_text(token.value)
+                self.last_ttl = ttl
+                self.last_ttl_known = True
+                token = None
+            except dns.ttl.BadTTL:
+                if self.default_ttl_known:
+                    ttl = self.default_ttl
+                elif self.last_ttl_known:
+                    ttl = self.last_ttl
+                self.tok.unget(token)
 
         # Class
-        try:
-            rdclass = dns.rdataclass.from_text(token.value)
-            token = self.tok.get()
-            if not token.is_identifier():
-                raise dns.exception.SyntaxError
-        except dns.exception.SyntaxError:
-            raise
-        except Exception:
-            rdclass = self.zone_rdclass
-        if rdclass != self.zone_rdclass:
-            raise dns.exception.SyntaxError("RR class is not zone's class")
+        if self.force_rdclass is not None:
+            rdclass = self.force_rdclass
+        else:
+            token = self._get_identifier()
+            try:
+                rdclass = dns.rdataclass.from_text(token.value)
+            except dns.exception.SyntaxError:
+                raise
+            except Exception:
+                rdclass = self.zone_rdclass
+                self.tok.unget(token)
+            if rdclass != self.zone_rdclass:
+                raise dns.exception.SyntaxError("RR class is not zone's class")
+
         # Type
-        try:
-            rdtype = dns.rdatatype.from_text(token.value)
-        except Exception:
-            raise dns.exception.SyntaxError(
-                "unknown rdatatype '%s'" % token.value)
+        if self.force_rdtype is not None:
+            rdtype = self.force_rdtype
+        else:
+            token = self._get_identifier()
+            try:
+                rdtype = dns.rdatatype.from_text(token.value)
+            except Exception:
+                raise dns.exception.SyntaxError(
+                    "unknown rdatatype '%s'" % token.value)
+
         try:
             rd = dns.rdata.from_text(rdclass, rdtype, self.tok,
                                      self.current_origin, self.relativize,
@@ -341,7 +375,7 @@ class Reader:
                 elif token.is_comment():
                     self.tok.get_eol()
                     continue
-                elif token.value[0] == '$':
+                elif token.value[0] == '$' and self.allow_directives:
                     c = token.value.upper()
                     if c == '$TTL':
                         token = self.tok.get()
@@ -399,3 +433,158 @@ class Reader:
                 "%s:%d: %s" % (filename, line_number, detail))
             tb = sys.exc_info()[2]
             raise ex.with_traceback(tb) from None
+
+
+class RRsetsReaderTransaction(dns.transaction.Transaction):
+
+    def __init__(self, manager, replacement, read_only):
+        assert not read_only
+        super().__init__(manager, replacement, read_only)
+        self.rdatasets = {}
+
+    def _get_rdataset(self, name, rdtype, covers):
+        return self.rdatasets.get((name, rdtype, covers))
+
+    def _put_rdataset(self, name, rdataset):
+        self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+
+    def _delete_name(self, name):
+        # First remove any changes involving the name
+        remove = []
+        for key in self.rdatasets:
+            if key[0] == name:
+                remove.append(key)
+        if len(remove) > 0:
+            for key in remove:
+                del self.rdatasets[key]
+
+    def _delete_rdataset(self, name, rdtype, covers):
+        try:
+            del self.rdatasets[(name, rdtype, covers)]
+        except KeyError:
+            pass
+
+    def _name_exists(self, name):
+        for (n, _, _) in self.rdatasets:
+            if n == name:
+                return True
+        return False
+
+    def _changed(self):
+        return len(self.rdatasets) > 0
+
+    def _end_transaction(self, commit):
+        if commit and self._changed():
+            rrsets = []
+            for (name, _, _), rdataset in self.rdatasets.items():
+                rrset = dns.rrset.RRset(name, rdataset.rdclass, rdataset.rdtype,
+                                        rdataset.covers)
+                rrset.update(rdataset)
+                rrsets.append(rrset)
+            self.manager.set_rrsets(rrsets)
+
+    def _set_origin(self, origin):
+        pass
+
+
+class RRSetsReaderManager(dns.transaction.TransactionManager):
+    def __init__(self, origin=dns.name.root, relativize=False,
+                 rdclass=dns.rdataclass.IN):
+        self.origin = origin
+        self.relativize = relativize
+        self.rdclass = rdclass
+        self.rrsets = []
+
+    def writer(self, replacement=False):
+        assert replacement == True
+        return RRsetsReaderTransaction(self, True, False)
+
+    def get_class(self):
+        return self.rdclass
+
+    def origin_information(self):
+        if self.relativize:
+            effective = dns.name.empty
+        else:
+            effective = self.origin
+        return (self.origin, self.relativize, effective)
+
+    def set_rrsets(self, rrsets):
+        self.rrsets = rrsets
+
+
+def read_rrsets(text, name=None, ttl=None, rdclass=dns.rdataclass.IN,
+                default_rdclass=dns.rdataclass.IN,
+                rdtype=None, default_ttl=None, idna_codec=None,
+                origin=dns.name.root, relativize=False):
+    """Read one or more rrsets from the specified text, possibly subject
+    to restrictions.
+
+    *text*, a file object or a string, is the input to process.
+
+    *name*, a string, ``dns.name.Name``, or ``None``, is the owner name of
+    the rrset.  If not ``None``, then the owner name is "forced", and the
+    input must not specify an owner name.  If ``None``, then any owner names
+    are allowed and must be present in the input.
+
+    *ttl*, an ``int``, string, or None.  If not ``None``, the the TTL is
+    forced to be the specified value and the input must not specify a TTL.
+    If ``None``, then a TTL may be specified in the input.  If it is not
+    specified, then the *default_ttl* will be used.
+
+    *rdclass*, a ``dns.rdataclass.RdataClass``, string, or ``None``.  If
+    not ``None``, then the class is forced to the specified value, and the
+    input must not specify a class.  If ``None``, then the input may specify
+    a class that matches *default_rdclass*.  Note that it is not possible to
+    return rrsets with differing classes; specifying ``None`` for the class
+    simply allows the user to optionally type a class as that may be convenient
+    when cutting and pasting.
+
+    *default_rdclass*, a ``dns.rdataclass.RdataClass`` or string.  The class
+    of the returned rrsets.
+
+    *rdtype*, a ``dns.rdatatype.RdataType``, string, or ``None``.  If not
+    ``None``, then the type is forced to the specified value, and the
+    input must not specify a type.  If ``None``, then a type must be present
+    for each RR.
+
+    *default_ttl*, an ``int``, string, or ``None``.  If not ``None``, then if
+    the TTL is not forced and is not specified, then this value will be used.
+    if ``None``, then if the TTL is not forced an error will occur if the TTL
+    is not specified.
+
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    is used.  Note that codecs only apply to the owner name; dnspython does
+    not do IDNA for names in rdata, as there is no IDNA zonefile format.
+
+    *origin*, a string, ``dns.name.Name``, or ``None``, is the origin for any
+    relative names in the input, and also the origin to relativize to if
+    *relativize* is ``True``.
+
+    *relativize*, a bool.  If ``True``, names are relativized to the *origin*;
+    if ``False`` then any relative names in the input are made absolute by
+    appending the *origin*.
+    """
+    if isinstance(origin, str):
+        origin = dns.name.from_text(origin, dns.name.root, idna_codec)
+    if isinstance(name, str):
+        name = dns.name.from_text(name, origin, idna_codec)
+    if isinstance(ttl, str):
+        ttl = dns.ttl.from_text(ttl)
+    if isinstance(default_ttl, str):
+        default_ttl = dns.ttl.from_text(default_ttl)
+    if rdclass is not None:
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    default_rdclass = dns.rdataclass.RdataClass.make(default_rdclass)
+    if rdtype is not None:
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+    manager = RRSetsReaderManager(origin, relativize, default_rdclass)
+    with manager.writer(True) as txn:
+        tok = dns.tokenizer.Tokenizer(text, '<input>', idna_codec=idna_codec)
+        reader = Reader(tok, default_rdclass, txn, allow_directives=False,
+                        force_name=name, force_ttl=ttl, force_rdclass=rdclass,
+                        force_rdtype=rdtype, default_ttl=default_ttl)
+        reader.read()
+    return manager.rrsets
+
