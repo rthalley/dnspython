@@ -9,8 +9,10 @@ processing their responses.  If you want "stub resolver" behavior, then
 you should use the higher level ``dns.asyncresolver`` module; see
 :ref:`async_resolver`.
 
-There is currently no support for DNS-over-HTTPS using asynchronous
-I/O but we hope to offer this in the future.
+For UDP and TCP, the module provides a single "do everything" query
+function, and also provides the send and receive halves of this function
+individually for situations where more sophisticated I/O handling is
+being used by the application.
 
 UDP
 ---
@@ -31,6 +33,12 @@ TLS
 ---
 
 .. autofunction:: dns.asyncquery.tls
+
+HTTPS
+-----
+
+.. autofunction:: dns.asyncquery.https
+
 
 Zone Transfers
 --------------
