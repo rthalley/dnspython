@@ -360,14 +360,14 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
 
 async def https(q, where, timeout=None, port=443, source=None, source_port=0,
                 one_rr_per_rrset=False, ignore_trailing=False, client=None,
-                path='/dns-query', post=True, verify=True, backend=None):
+                path='/dns-query', post=True, verify=True):
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
     *client*, a ``httpx.AsyncClient``.  If provided, the client to use for
     the query.
 
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
+    Unlike the other dnspython async functions, a backend cannot be provided
+    in this function because httpx always auto-detects the async backend.
 
     See :py:func:`dns.query.https()` for the documentation of the other
     parameters, exceptions, and return type of this method.
