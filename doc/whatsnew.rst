@@ -15,6 +15,8 @@ What's New in dnspython
   an error trace like the NoNameservers exception.  This class is a subclass of
   dns.exception.Timeout for backwards compatibility.
 
+* DNS-over-HTTPS is now supported for asynchronous queries and resolutions.
+
 2.1.0
 ----------------------
 
