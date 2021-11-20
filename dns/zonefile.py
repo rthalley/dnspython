@@ -517,6 +517,55 @@ def read_rrsets(text, name=None, ttl=None, rdclass=dns.rdataclass.IN,
                 default_rdclass=dns.rdataclass.IN,
                 rdtype=None, default_ttl=None, idna_codec=None,
                 origin=dns.name.root, relativize=False):
+    """Read one or more rrsets from the specified text, possibly subject
+    to restrictions.
+
+    *text*, a file object or a string, is the input to process.
+
+    *name*, a string, ``dns.name.Name``, or ``None``, is the owner name of
+    the rrset.  If not ``None``, then the owner name is "forced", and the
+    input must not specify an owner name.  If ``None``, then any owner names
+    are allowed and must be present in the input.
+
+    *ttl*, an ``int``, string, or None.  If not ``None``, the the TTL is
+    forced to be the specified value and the input must not specify a TTL.
+    If ``None``, then a TTL may be specified in the input.  If it is not
+    specified, then the *default_ttl* will be used.
+
+    *rdclass*, a ``dns.rdataclass.RdataClass``, string, or ``None``.  If
+    not ``None``, then the class is forced to the specified value, and the
+    input must not specify a class.  If ``None``, then the input may specify
+    a class that matches *default_rdclass*.  Note that it is not possible to
+    return rrsets with differing classes; specifying ``None`` for the class
+    simply allows the user to optionally type a class as that may be convenient
+    when cutting and pasting.
+
+    *default_rdclass*, a ``dns.rdataclass.RdataClass`` or string.  The class
+    of the returned rrsets.
+
+    *rdtype*, a ``dns.rdatatype.RdataType``, string, or ``None``.  If not
+    ``None``, then the type is forced to the specified value, and the
+    input must not specify a type.  If ``None``, then a type must be present
+    for each RR.
+
+    *default_ttl*, an ``int``, string, or ``None``.  If not ``None``, then if
+    the TTL is not forced and is not specified, then this value will be used.
+    if ``None``, then if the TTL is not forced an error will occur if the TTL
+    is not specified.
+
+    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    is used.  Note that codecs only apply to the owner name; dnspython does
+    not do IDNA for names in rdata, as there is no IDNA zonefile format.
+
+    *origin*, a string, ``dns.name.Name``, or ``None``, is the origin for any
+    relative names in the input, and also the origin to relativize to if
+    *relativize* is ``True``.
+
+    *relativize*, a bool.  If ``True``, names are relativized to the *origin*;
+    if ``False`` then any relative names in the input are made absolute by
+    appending the *origin*.
+    """
     if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root, idna_codec)
     if isinstance(name, str):
