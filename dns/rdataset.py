@@ -41,6 +41,20 @@ class IncompatibleTypes(dns.exception.DNSException):
     """An attempt was made to add DNS RR data of an incompatible type."""
 
 
+_ok_for_cname = {
+    (dns.rdatatype.CNAME, dns.rdatatype.NONE),
+    (dns.rdatatype.RRSIG, dns.rdatatype.CNAME),
+    (dns.rdatatype.NSEC, dns.rdatatype.NONE),
+    (dns.rdatatype.RRSIG, dns.rdatatype.NSEC),
+    (dns.rdatatype.NSEC3, dns.rdatatype.NONE),
+    (dns.rdatatype.RRSIG, dns.rdatatype.NSEC3),
+}
+
+_delete_for_other_data = {
+    (dns.rdatatype.CNAME, dns.rdatatype.NONE),
+    (dns.rdatatype.RRSIG, dns.rdatatype.CNAME),
+}
+
 class Rdataset(dns.set.Set):
 
     """A DNS rdataset."""
@@ -322,6 +336,15 @@ class Rdataset(dns.set.Set):
             return []
         else:
             return self[0]._processing_order(iter(self))
+
+    def ok_for_cname(self):
+        """Is this rdataset compatible with a CNAME node?"""
+        return (self.rdtype, self.covers) in _ok_for_cname
+
+    def ok_for_other_data(self):
+        """Is this rdataset compatible with an 'other data' (i.e. not CNAME)
+        node?"""
+        return (self.rdtype, self.covers) not in _delete_for_other_data
 
 
 @dns.immutable.immutable

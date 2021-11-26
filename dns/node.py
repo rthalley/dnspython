@@ -78,6 +78,26 @@ class Node:
     def __iter__(self):
         return iter(self.rdatasets)
 
+    def _append_rdataset(self, rdataset):
+        """Append rdataset to the node with special handling for CNAME and
+        other data conditions.
+
+        Specifically, if the rdataset being appended is a CNAME, then
+        all rdatasets other than NSEC, NSEC3, and their covering RRSIGs
+        are deleted.  If the rdataset being appended is NOT a CNAME, then
+        CNAME and RRSIG(CNAME) are deleted.
+        """
+        # Make having just one rdataset at the node fast.
+        if len(self.rdatasets) > 0:
+            if rdataset.rdtype == dns.rdatatype.CNAME:
+                self.rdatasets = [rds for rds in self.rdatasets
+                                  if rds.ok_for_cname()]
+            else:
+                self.rdatasets = [rds for rds in self.rdatasets
+                                  if rds.ok_for_other_data()]
+        self.rdatasets.append(rdataset)
+
+
     def find_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
                       create=False):
         """Find an rdataset matching the specified properties in the
@@ -111,7 +131,7 @@ class Node:
         if not create:
             raise KeyError
         rds = dns.rdataset.Rdataset(rdclass, rdtype, covers)
-        self.rdatasets.append(rds)
+        self._append_rdataset(rds)
         return rds
 
     def get_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
@@ -186,4 +206,4 @@ class Node:
             replacement = replacement.to_rdataset()
         self.delete_rdataset(replacement.rdclass, replacement.rdtype,
                              replacement.covers)
-        self.rdatasets.append(replacement)
+        self._append_rdataset(replacement)
