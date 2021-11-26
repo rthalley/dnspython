@@ -145,7 +145,7 @@ Königsgäßchen 300 NS Königsgäßchen
 misc_cases_input = """
 $ORIGIN example.
 $TTL 300
-      
+
 @ soa foo bar 1 2 3 4 5
 @ ns ns1
 @ ns ns2
@@ -500,6 +500,15 @@ class ZoneTestCase(unittest.TestCase):
             node = z['@']
             node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.LOC)
         self.assertRaises(KeyError, bad)
+
+    def testNodeFindRdataset3(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True)
+        node = z['@']
+        rds = node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.RRSIG,
+                                 dns.rdatatype.A, create=True)
+        self.assertEqual(rds.rdclass, dns.rdataclass.IN)
+        self.assertEqual(rds.rdtype, dns.rdatatype.RRSIG)
+        self.assertEqual(rds.covers, dns.rdatatype.A)
 
     def testNodeGetRdataset1(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)

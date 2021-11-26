@@ -110,7 +110,7 @@ class Node:
                 return rds
         if not create:
             raise KeyError
-        rds = dns.rdataset.Rdataset(rdclass, rdtype)
+        rds = dns.rdataset.Rdataset(rdclass, rdtype, covers)
         self.rdatasets.append(rds)
         return rds
 
