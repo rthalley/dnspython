@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import asyncio
+import random
 import socket
 import sys
 import time
@@ -26,13 +27,14 @@ import dns.asyncquery
 import dns.asyncresolver
 import dns.message
 import dns.name
+import dns.query
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
 
 
 # Some tests require TLS so skip those if it's not there.
-from dns.query import ssl
+ssl = dns.query.ssl
 try:
     ssl.create_default_context()
     _ssl_available = True
@@ -72,6 +74,11 @@ for (af, address) in ((socket.AF_INET, '8.8.8.8'),
         query_addresses.append(address)
     except Exception:
         pass
+
+KNOWN_ANYCAST_DOH_RESOLVER_URLS = ['https://cloudflare-dns.com/dns-query',
+                                   'https://dns.google/dns-query',
+                                   # 'https://dns11.quad9.net/dns-query',
+                                   ]
 
 
 class AsyncDetectionTests(unittest.TestCase):
@@ -420,6 +427,56 @@ class AsyncTests(unittest.TestCase):
         def run():
             self.async_run(arun)
         self.assertRaises(dns.exception.Timeout, run)
+
+    def testDOHGetRequest(self):
+        if self.backend.name() == 'curio':
+            self.skipTest('anyio dropped curio support')
+        async def run():
+            nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            r = await dns.asyncquery.https(q, nameserver_url, post=False,
+                                           timeout=4)
+            self.assertTrue(q.is_response(r))
+        self.async_run(run)
+
+    def testDOHGetRequestHttp1(self):
+        if self.backend.name() == 'curio':
+            self.skipTest('anyio dropped curio support')
+        async def run():
+            saved_have_http2 = dns.query._have_http2
+            try:
+                dns.query._have_http2 = False
+                nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
+                q = dns.message.make_query('example.com.', dns.rdatatype.A)
+                r = await dns.asyncquery.https(q, nameserver_url, post=False,
+                                               timeout=4)
+                self.assertTrue(q.is_response(r))
+            finally:
+                dns.query._have_http2 = saved_have_http2
+        self.async_run(run)
+
+    def testDOHPostRequest(self):
+        if self.backend.name() == 'curio':
+            self.skipTest('anyio dropped curio support')
+        async def run():
+            nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
+            q = dns.message.make_query('example.com.', dns.rdatatype.A)
+            r = await dns.asyncquery.https(q, nameserver_url, post=True,
+                                           timeout=4)
+            self.assertTrue(q.is_response(r))
+        self.async_run(run)
+
+    def test_resolver_doh(self):
+        if self.backend.name() == 'curio':
+            self.skipTest('anyio dropped curio support')
+        async def run():
+            res = dns.asyncresolver.Resolver(configure=False)
+            res.nameservers = ['https://dns.google/dns-query']
+            answer = await res.resolve('dns.google', 'A', backend=self.backend)
+            seen = set([rdata.address for rdata in answer])
+            self.assertTrue('8.8.8.8' in seen)
+            self.assertTrue('8.8.4.4' in seen)
+        self.async_run(run)
 
     def testSleep(self):
         async def run():
