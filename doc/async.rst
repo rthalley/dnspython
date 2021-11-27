@@ -14,6 +14,9 @@ Dnspython attempts to detect which library is in use by using the
 explicitly select a "backend" library, or to pass a backend to
 a particular call, allowing for use in mixed library situations.
 
+Note that Curio is not supported for DNS-over-HTTPS, due to a
+lack of support in the anyio library used by httpx.
+
 .. toctree::
 
    async-query
