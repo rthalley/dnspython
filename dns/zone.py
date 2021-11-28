@@ -790,104 +790,73 @@ class Zone(dns.transaction.TransactionManager):
 
 class Transaction(dns.transaction.Transaction):
 
-    _deleted_rdataset = dns.rdataset.Rdataset(dns.rdataclass.ANY,
-                                              dns.rdatatype.ANY)
-
     def __init__(self, zone, replacement, read_only):
         super().__init__(zone, replacement, read_only)
-        self.rdatasets = {}
+        self.nodes = {}
+        if not self.replacement:
+            self.nodes.update(self.zone.nodes)
+        self.nodes_changed = False
 
     @property
     def zone(self):
         return self.manager
 
     def _get_rdataset(self, name, rdtype, covers):
-        rdataset = self.rdatasets.get((name, rdtype, covers))
-        if rdataset is self._deleted_rdataset:
+        name = self.zone._validate_name(name)
+        node = self.nodes.get(name)
+        if node is None:
             return None
-        elif rdataset is None and not self.replacement:
-            rdataset = self.zone.get_rdataset(name, rdtype, covers)
-        return rdataset
+        return node.get_rdataset(self.zone.rdclass, rdtype, covers)
 
     def _put_rdataset(self, name, rdataset):
         assert not self.read_only
-        self.zone._validate_name(name)
-        self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+        name = self.zone._validate_name(name)
+        node = self.nodes.get(name)
+        if node is None:
+            node = self.zone.node_factory()
+            self.nodes[name] = node
+        node.replace_rdataset(rdataset)
+        self.nodes_changed = True
 
     def _delete_name(self, name):
         assert not self.read_only
-        # First remove any changes involving the name
-        remove = []
-        for key in self.rdatasets:
-            if key[0] == name:
-                remove.append(key)
-        if len(remove) > 0:
-            for key in remove:
-                del self.rdatasets[key]
-        # Next add deletion records for any rdatasets matching the
-        # name in the zone
-        node = self.zone.get_node(name)
-        if node is not None:
-            for rdataset in node.rdatasets:
-                self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = \
-                    self._deleted_rdataset
+        if name in self.nodes:
+            del self.nodes[name]
+            self.nodes_changed = True
 
     def _delete_rdataset(self, name, rdtype, covers):
         assert not self.read_only
-        try:
-            del self.rdatasets[(name, rdtype, covers)]
-        except KeyError:
-            pass
-        rdataset = self.zone.get_rdataset(name, rdtype, covers)
-        if rdataset is not None:
-            self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = \
-                self._deleted_rdataset
+        name = self.zone._validate_name(name)
+        node = self.nodes.get(name)
+        if node is not None:
+            pre_len = len(node)
+            node.delete_rdataset(self.zone.rdclass, rdtype, covers)
+            post_len = len(node)
+            if post_len < pre_len:
+                self.nodes_changed = True
+                if post_len == 0:
+                    del self.nodes[name]
 
     def _name_exists(self, name):
-        for key, rdataset in self.rdatasets.items():
-            if key[0] == name:
-                if rdataset != self._deleted_rdataset:
-                    return True
-                else:
-                    return None
-        self.zone._validate_name(name)
-        if self.zone.get_node(name):
-            return True
-        return False
+        name = self.zone._validate_name(name)
+        node = self.nodes.get(name)
+        return node is not None
 
     def _changed(self):
-        if self.read_only:
-            return False
-        else:
-            return len(self.rdatasets) > 0
+        return self.nodes_changed
 
     def _end_transaction(self, commit):
         if commit and self._changed():
-            if self.replacement:
-                self.zone.nodes = {}
-            for (name, rdtype, covers), rdataset in \
-                self.rdatasets.items():
-                if rdataset is self._deleted_rdataset:
-                    self.zone.delete_rdataset(name, rdtype, covers)
-                else:
-                    self.zone.replace_rdataset(name, rdataset)
+            self.zone.nodes = self.nodes
 
     def _set_origin(self, origin):
         if self.zone.origin is None:
             self.zone.origin = origin
 
     def _iterate_rdatasets(self):
-        # Expensive but simple!  Use a versioned zone for efficient txn
-        # iteration.
-        if self.replacement:
-            rdatasets = self.rdatasets
-        else:
-            rdatasets = {}
-            for (name, rdataset) in self.zone.iterate_rdatasets():
-                rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset
-            rdatasets.update(self.rdatasets)
-        for (name, _, _), rdataset in rdatasets.items():
-            yield (name, rdataset)
+        for (name, node) in self.nodes.items():
+            for rdataset in node.rdatasets:
+                yield (name, rdataset)
 
 
 def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
