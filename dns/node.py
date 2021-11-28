@@ -26,7 +26,20 @@ import dns.renderer
 
 class Node:
 
-    """A Node is a set of rdatasets."""
+    """A Node is a set of rdatasets.
+
+    A node is either a CNAME node or an "other data" node.  A CNAME
+    node contains only CNAME, RRSIG(CNAME), NSEC, RRSIG(NSEC), NSEC3,
+    or RRSIG(NSEC3) rdatasets.  An "other data" node contains any
+    rdataset other than a CNAME or RRSIG(CNAME) rdataset.  When
+    changes are made to a node, the CNAME or "other data" state is
+    always consistent with the update, i.e. the most recent change
+    wins.  For example, if you have a node which contains a CNAME
+    rdataset, and then add an MX rdataset to it, then the CNAME
+    rdataset will be deleted.  Likewise if you have a node containing
+    an MX rdataset and add a CNAME rdataset, the MX rdataset will be
+    deleted.
+    """
 
     __slots__ = ['rdatasets']
 
