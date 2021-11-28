@@ -805,7 +805,7 @@ class Transaction(dns.transaction.Transaction):
         rdataset = self.rdatasets.get((name, rdtype, covers))
         if rdataset is self._deleted_rdataset:
             return None
-        elif rdataset is None:
+        elif rdataset is None and not self.replacement:
             rdataset = self.zone.get_rdataset(name, rdtype, covers)
         return rdataset
 
@@ -863,6 +863,8 @@ class Transaction(dns.transaction.Transaction):
 
     def _end_transaction(self, commit):
         if commit and self._changed():
+            if self.replacement:
+                self.zone.nodes = {}
             for (name, rdtype, covers), rdataset in \
                 self.rdatasets.items():
                 if rdataset is self._deleted_rdataset:
@@ -877,10 +879,13 @@ class Transaction(dns.transaction.Transaction):
     def _iterate_rdatasets(self):
         # Expensive but simple!  Use a versioned zone for efficient txn
         # iteration.
-        rdatasets = {}
-        for (name, rdataset) in self.zone.iterate_rdatasets():
-            rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset
-        rdatasets.update(self.rdatasets)
+        if self.replacement:
+            rdatasets = self.rdatasets
+        else:
+            rdatasets = {}
+            for (name, rdataset) in self.zone.iterate_rdatasets():
+                rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+            rdatasets.update(self.rdatasets)
         for (name, _, _), rdataset in rdatasets.items():
             yield (name, rdataset)
 

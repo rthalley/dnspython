@@ -497,6 +497,35 @@ def test_zone_iteration(zone):
             actual[(name, rdataset.rdtype, rdataset.covers)] = rdataset
     assert actual == expected
 
+def test_iteration_in_replacement_txn(zone):
+    rds = dns.rdataset.from_text('in', 'a', 300, '1.2.3.4', '5.6.7.8')
+    expected = {}
+    expected[(dns.name.empty, rds.rdtype, rds.covers)] = rds
+    with zone.writer(True) as txn:
+        txn.replace(dns.name.empty, rds)
+        actual = {}
+        for (name, rdataset) in txn:
+            actual[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+    assert actual == expected
+
+def test_replacement_commit(zone):
+    rds = dns.rdataset.from_text('in', 'a', 300, '1.2.3.4', '5.6.7.8')
+    expected = {}
+    expected[(dns.name.empty, rds.rdtype, rds.covers)] = rds
+    with zone.writer(True) as txn:
+        txn.replace(dns.name.empty, rds)
+    with zone.reader() as txn:
+        actual = {}
+        for (name, rdataset) in txn:
+            actual[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+    assert actual == expected
+
+def test_replacement_get(zone):
+    with zone.writer(True) as txn:
+        rds = txn.get(dns.name.empty, 'soa')
+        assert rds is None
+
+
 @pytest.fixture
 def vzone():
     return dns.zone.from_text(example_text, zone_factory=dns.versioned.Zone)
