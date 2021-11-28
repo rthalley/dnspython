@@ -34,6 +34,16 @@ What's New in dnspython
 
 * The CDS rdatatype now allows digest type 0.
 
+* Dnspython zones now enforces that a node is either a CNAME node or
+  an "other data" node.  A CNAME node contains only CNAME,
+  RRSIG(CNAME), NSEC, RRSIG(NSEC), NSEC3, or RRSIG(NSEC3) rdatasets.
+  An "other data" node contains any rdataset other than a CNAME or
+  RRSIG(CNAME) rdataset.  The enforcement is "last update wins".  For
+  example, if you have a node which contains a CNAME rdataset, and
+  then add an MX rdataset to it, then the CNAME rdataset will be deleted.
+  Likewise if you have a node containing an MX rdataset and add a
+  CNAME rdataset, the MX rdataset will be deleted.
+
 2.1.0
 ----------------------
 
