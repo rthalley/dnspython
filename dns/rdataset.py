@@ -48,11 +48,6 @@ _ok_for_cname = {
     dns.rdatatype.KEY,    # RFC 4035 section 2.5, RFC 3007
 }
 
-_delete_for_other_data = {
-    (dns.rdatatype.CNAME, dns.rdatatype.NONE),
-    (dns.rdatatype.RRSIG, dns.rdatatype.CNAME),
-}
-
 
 class Rdataset(dns.set.Set):
 
@@ -342,10 +337,21 @@ class Rdataset(dns.set.Set):
                (self.rdtype == dns.rdatatype.RRSIG and
                 self.covers in _ok_for_cname)
 
+    def implies_cname(self):
+        """Does this rdataset imply a node is a CNAME node?
+
+        If the rdataset's type is CNAME or RRSIG(CNAME) then it implies a
+        node is a CNAME node, and ``True`` is returned.  Otherwise it implies
+        the node is an an "other data" node, and ``False`` is returned.
+        """
+        return self.rdtype == dns.rdatatype.CNAME or \
+            (self.rdtype == dns.rdatatype.RRSIG and
+            self.covers == dns.rdatatype.CNAME)
+
     def ok_for_other_data(self):
         """Is this rdataset compatible with an 'other data' (i.e. not CNAME)
         node?"""
-        return (self.rdtype, self.covers) not in _delete_for_other_data
+        return not self.implies_cname()
 
 
 @dns.immutable.immutable

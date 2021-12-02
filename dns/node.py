@@ -226,3 +226,15 @@ class Node:
         self.delete_rdataset(replacement.rdclass, replacement.rdtype,
                              replacement.covers)
         self._append_rdataset(replacement)
+
+    def is_cname(self):
+        """Is this a CNAME node?
+
+        If the node has a CNAME or an RRSIG(CNAME) it is considered a CNAME
+        node for CNAME-and-other-data purposes, and ``True`` is returned.
+        Otherwise the node is an "other data" node, and ``False`` is returned.
+        """
+        for rdataset in self.rdatasets:
+            if rdataset.implies_cname():
+                return True
+        return False

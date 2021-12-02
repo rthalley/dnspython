@@ -1024,6 +1024,12 @@ class Transaction(dns.transaction.Transaction):
             for rdataset in node:
                 yield (name, rdataset)
 
+    def _get_rdatasets(self, name):
+        node = self.version.get_node(name)
+        if node is None:
+            return []
+        return node.rdatasets
+
 
 def from_text(text, origin=None, rdclass=dns.rdataclass.IN,
               relativize=True, zone_factory=Zone, filename=None,
