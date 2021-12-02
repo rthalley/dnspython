@@ -42,18 +42,17 @@ class IncompatibleTypes(dns.exception.DNSException):
 
 
 _ok_for_cname = {
-    (dns.rdatatype.CNAME, dns.rdatatype.NONE),
-    (dns.rdatatype.RRSIG, dns.rdatatype.CNAME),
-    (dns.rdatatype.NSEC, dns.rdatatype.NONE),
-    (dns.rdatatype.RRSIG, dns.rdatatype.NSEC),
-    (dns.rdatatype.NSEC3, dns.rdatatype.NONE),
-    (dns.rdatatype.RRSIG, dns.rdatatype.NSEC3),
+    dns.rdatatype.CNAME,
+    dns.rdatatype.NSEC,   # RFC 4035 section 2.5
+    dns.rdatatype.NSEC3,  # This is not likely to happen, but not impossible!
+    dns.rdatatype.KEY,    # RFC 4035 section 2.5, RFC 3007
 }
 
 _delete_for_other_data = {
     (dns.rdatatype.CNAME, dns.rdatatype.NONE),
     (dns.rdatatype.RRSIG, dns.rdatatype.CNAME),
 }
+
 
 class Rdataset(dns.set.Set):
 
@@ -339,7 +338,9 @@ class Rdataset(dns.set.Set):
 
     def ok_for_cname(self):
         """Is this rdataset compatible with a CNAME node?"""
-        return (self.rdtype, self.covers) in _ok_for_cname
+        return self.rdtype in _ok_for_cname or \
+               (self.rdtype == dns.rdatatype.RRSIG and
+                self.covers in _ok_for_cname)
 
     def ok_for_other_data(self):
         """Is this rdataset compatible with an 'other data' (i.e. not CNAME)

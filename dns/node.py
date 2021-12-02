@@ -102,7 +102,13 @@ class Node:
         """
         # Make having just one rdataset at the node fast.
         if len(self.rdatasets) > 0:
-            if rdataset.rdtype == dns.rdatatype.CNAME:
+            # We don't want adding RRSIG(CNAME) to delete CNAMEs,
+            # so we treat it as expressing "CNAME intent" for classifying
+            # the node as a CNAME node, even if we haven't added the CNAME
+            # yet.
+            if rdataset.rdtype == dns.rdatatype.CNAME or \
+               (rdataset.rdtype == dns.rdatatype.RRSIG and
+                rdataset.covers == dns.rdatatype.CNAME):
                 self.rdatasets = [rds for rds in self.rdatasets
                                   if rds.ok_for_cname()]
             else:
