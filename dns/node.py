@@ -290,7 +290,7 @@ class Node:
         return False
 
 
-dns.immutable.immutable
+@dns.immutable.immutable
 class ImmutableNode(Node):
     def __init__(self, node):
         super().__init__()
