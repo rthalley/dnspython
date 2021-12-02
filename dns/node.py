@@ -29,7 +29,7 @@ class Node:
     """A Node is a set of rdatasets.
 
     A node is either a CNAME node or an "other data" node.  A CNAME
-    node contains only CNAME, RRSIG(CNAME), NSEC, RRSIG(NSEC), NSEC3,
+    node contains only CNAME, KEY, RRSIG(CNAME), NSEC, RRSIG(NSEC), NSEC3,
     or RRSIG(NSEC3) rdatasets.  An "other data" node contains any
     rdataset other than a CNAME or RRSIG(CNAME) rdataset.  When
     changes are made to a node, the CNAME or "other data" state is

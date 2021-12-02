@@ -117,7 +117,7 @@ class Transaction:
         """Return the rdatasets at *name*, if any.
 
         The returned rdatasets are immutable.
-        An empty tuple is returned if the name doesn't exist.
+        An empty list is returned if the name doesn't exist.
         """
         return [_ensure_immutable(rds) for rds in self._get_rdatasets(name)]
 
@@ -301,7 +301,7 @@ class Transaction:
         """Call *check* before deleting an rdataset.
 
         The function is called with the transaction, the name, the rdatatype,
-        covered rdatatype.
+        and the covered rdatatype.
 
         The check function may safely make non-mutating transaction method
         calls, but behavior is undefined if mutating transaction methods are
