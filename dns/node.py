@@ -228,7 +228,4 @@ class Node:
         node for CNAME-and-other-data purposes, and ``True`` is returned.
         Otherwise the node is an "other data" node, and ``False`` is returned.
         """
-        for rdataset in self.rdatasets:
-            if rdataset.implies_cname():
-                return True
-        return False
+        return any(rdataset.implies_cname() for rdataset in self.rdatasets)
