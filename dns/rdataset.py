@@ -41,14 +41,6 @@ class IncompatibleTypes(dns.exception.DNSException):
     """An attempt was made to add DNS RR data of an incompatible type."""
 
 
-_ok_for_cname = {
-    dns.rdatatype.CNAME,
-    dns.rdatatype.NSEC,   # RFC 4035 section 2.5
-    dns.rdatatype.NSEC3,  # This is not likely to happen, but not impossible!
-    dns.rdatatype.KEY,    # RFC 4035 section 2.5, RFC 3007
-}
-
-
 class Rdataset(dns.set.Set):
 
     """A DNS rdataset."""
@@ -330,36 +322,6 @@ class Rdataset(dns.set.Set):
             return []
         else:
             return self[0]._processing_order(iter(self))
-
-    def ok_for_cname(self):
-        """Is this rdataset compatible with a CNAME node?"""
-        return self.rdtype in _ok_for_cname or \
-               (self.rdtype == dns.rdatatype.RRSIG and
-                self.covers in _ok_for_cname)
-
-    def implies_cname(self):
-        """Does this rdataset imply a node is a CNAME node?
-
-        If the rdataset's type is CNAME or RRSIG(CNAME) then it implies a
-        node is a CNAME node, and ``True`` is returned.  Otherwise it implies
-        the node is an an "other data" node, and ``False`` is returned.
-        """
-        return self.rdtype == dns.rdatatype.CNAME or \
-            (self.rdtype == dns.rdatatype.RRSIG and
-            self.covers == dns.rdatatype.CNAME)
-
-    def ok_for_other_data(self):
-        """Is this rdataset compatible with an 'other data' (i.e. not CNAME)
-        node?"""
-        return not self.implies_cname()
-
-    def implies_other_data(self):
-        """Does this rdataset imply a node is an other data node?
-
-        Note that implies_other_data() is not simply "not implies_cname()" as
-        some types, e.g. NSEC and RRSIG(NSEC) are neutral.
-        """
-        return not self.ok_for_cname()
 
 
 @dns.immutable.immutable

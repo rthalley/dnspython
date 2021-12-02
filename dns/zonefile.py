@@ -43,19 +43,22 @@ class CNAMEAndOtherData(dns.exception.DNSException):
 
 
 def _check_cname_and_other_data(txn, name, rdataset):
-    rdatasets = txn.get_rdatasets(name)
-    if any(rds.implies_cname() for rds in rdatasets):
-        # This is a CNAME node.
-        if not rdataset.ok_for_cname():
-            raise CNAMEAndOtherData('rdataset not ok for CNAME node')
-    elif any(rds.implies_other_data() for rds in rdatasets):
-        # This is an other data node
-        if not rdataset.ok_for_other_data():
-            raise CNAMEAndOtherData('rdataset is a CNAME but node '
-                                    'has other data')
-    # Otherwise the node consists of neutral types that can be
-    # present at either a CNAME or an other data node, e.g. NSEC or
-    # RRSIG(NSEC)
+    rdataset_kind = dns.node.NodeKind.classify_rdataset(rdataset)
+    node = txn.get_node(name)
+    if node is not None:
+        node_kind = node.classify()
+    else:
+        node_kind = dns.node.NodeKind.NEUTRAL
+    if node_kind == dns.node.NodeKind.CNAME and \
+       rdataset_kind == dns.node.NodeKind.REGULAR:
+        raise CNAMEAndOtherData('rdataset type is not compatible with a '
+                                'CNAME node')
+    elif node_kind == dns.node.NodeKind.REGULAR and \
+       rdataset_kind == dns.node.NodeKind.CNAME:
+        raise CNAMEAndOtherData('CNAME rdataset is not compatible with a '
+                                'regular data node')
+    # Otherwise at least one of the node and the rdataset is neutral, so
+    # adding the rdataset is ok
 
 
 class Reader:
@@ -466,12 +469,16 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
     def _get_rdataset(self, name, rdtype, covers):
         return self.rdatasets.get((name, rdtype, covers))
 
-    def _get_rdatasets(self, name):
+    def _get_node(self, name):
         rdatasets = []
         for (rdataset_name, _, _), rdataset in self.rdatasets.items():
             if name == rdataset_name:
                 rdatasets.append(rdataset)
-        return rdatasets
+        if len(rdatasets) == 0:
+            return None
+        node = dns.node.Node()
+        node.rdatasets = rdatasets
+        return node
 
     def _put_rdataset(self, name, rdataset):
         self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset

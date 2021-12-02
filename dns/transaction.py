@@ -79,10 +79,15 @@ class AlreadyEnded(dns.exception.DNSException):
     """Tried to use an already-ended transaction."""
 
 
-def _ensure_immutable(rdataset):
+def _ensure_immutable_rdataset(rdataset):
     if rdataset is None or isinstance(rdataset, dns.rdataset.ImmutableRdataset):
         return rdataset
     return dns.rdataset.ImmutableRdataset(rdataset)
+
+def _ensure_immutable_node(node):
+    if node is None or node.is_immutable():
+        return node
+    return dns.node.ImmutableNode(node)
 
 
 class Transaction:
@@ -111,15 +116,14 @@ class Transaction:
             name = dns.name.from_text(name, None)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
         rdataset = self._get_rdataset(name, rdtype, covers)
-        return _ensure_immutable(rdataset)
+        return _ensure_immutable_rdataset(rdataset)
 
-    def get_rdatasets(self, name):
-        """Return the rdatasets at *name*, if any.
+    def get_node(self, name):
+        """Return the node at *name*, if any.
 
-        The returned rdatasets are immutable.
-        An empty list is returned if the name doesn't exist.
+        Returns an immutable node or ``None``.
         """
-        return [_ensure_immutable(rds) for rds in self._get_rdatasets(name)]
+        return _ensure_immutable_node(self._get_node(name))
 
     def _check_read_only(self):
         if self.read_only:
@@ -575,9 +579,9 @@ class Transaction:
         """
         raise NotImplementedError  # pragma: no cover
 
-    def _get_rdatasets(self, name):
-        """Return the rdatasets at *name*, if any.
+    def _get_node(self, name):
+        """Return the node at *name*, if any.
 
-        An empty list is returned if the name doesn't exist.
+        Returns a node or ``None``.
         """
         raise NotImplementedError  # pragma: no cover
