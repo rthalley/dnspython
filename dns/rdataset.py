@@ -353,6 +353,14 @@ class Rdataset(dns.set.Set):
         node?"""
         return not self.implies_cname()
 
+    def implies_other_data(self):
+        """Does this rdataset imply a node is an other data node?
+
+        Note that implies_other_data() is not simply "not implies_cname()" as
+        some types, e.g. NSEC and RRSIG(NSEC) are neutral.
+        """
+        return not self.ok_for_cname()
+
 
 @dns.immutable.immutable
 class ImmutableRdataset(Rdataset):

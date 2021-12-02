@@ -224,9 +224,22 @@ web a 10.0.0.4
     nsec @ A RRSIG
     rrsig A 1 3 3600 20200101000000 20030101000000 2143 foo MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
     rrsig NSEC 1 3 3600 20200101000000 20030101000000 2143 foo MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
-    rrsig CNAME 1 3 3600 20200101000000 20030101000000 2143 foo MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
 """
 
+example_cname_and_other_data = """$TTL 3600
+$ORIGIN example.
+@ soa foo bar (1 2 3 4 5)
+@ ns ns1
+@ ns ns2
+ns1 a 10.0.0.1
+ns2 a 10.0.0.2
+www a 10.0.0.3
+web a 10.0.0.4
+    cname www
+    nsec @ A RRSIG
+    rrsig A 1 3 3600 20200101000000 20030101000000 2143 foo MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
+    rrsig NSEC 1 3 3600 20200101000000 20030101000000 2143 foo MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
+"""
 
 _keep_output = True
 
@@ -904,7 +917,7 @@ class ZoneTestCase(unittest.TestCase):
         rds = dns.rdataset.from_text('in', 'cname', 300, 'www')
         z.replace_rdataset('web', rds)
         n = z.find_node('web')
-        self.assertEqual(len(n.rdatasets), 4)
+        self.assertEqual(len(n.rdatasets), 3)
         self.assertEqual(n.find_rdataset(dns.rdataclass.IN,
                                          dns.rdatatype.CNAME),
                          rds)
@@ -913,9 +926,11 @@ class ZoneTestCase(unittest.TestCase):
         self.assertIsNotNone(n.get_rdataset(dns.rdataclass.IN,
                                             dns.rdatatype.RRSIG,
                                             dns.rdatatype.NSEC))
-        self.assertIsNotNone(n.get_rdataset(dns.rdataclass.IN,
-                                            dns.rdatatype.RRSIG,
-                                            dns.rdatatype.CNAME))
+
+    def testCnameAndOtherDataInZonefile(self):
+        with self.assertRaises(dns.zonefile.CNAMEAndOtherData):
+            dns.zone.from_text(example_cname_and_other_data, 'example.',
+                               relativize=True)
 
     def testNameInZoneWithStr(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=False)
@@ -1030,7 +1045,7 @@ class VersionedZoneTestCase(unittest.TestCase):
         with z.writer() as txn:
             txn.replace('web', rds)
         n = z.find_node('web')
-        self.assertEqual(len(n.rdatasets), 4)
+        self.assertEqual(len(n.rdatasets), 3)
         self.assertEqual(n.find_rdataset(dns.rdataclass.IN,
                                          dns.rdatatype.CNAME),
                          rds)
@@ -1039,9 +1054,6 @@ class VersionedZoneTestCase(unittest.TestCase):
         self.assertIsNotNone(n.get_rdataset(dns.rdataclass.IN,
                                             dns.rdatatype.RRSIG,
                                             dns.rdatatype.NSEC))
-        self.assertIsNotNone(n.get_rdataset(dns.rdataclass.IN,
-                                            dns.rdatatype.RRSIG,
-                                            dns.rdatatype.CNAME))
 
 
 if __name__ == '__main__':
