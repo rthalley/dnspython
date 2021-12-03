@@ -79,6 +79,17 @@ class AlreadyEnded(dns.exception.DNSException):
     """Tried to use an already-ended transaction."""
 
 
+def _ensure_immutable_rdataset(rdataset):
+    if rdataset is None or isinstance(rdataset, dns.rdataset.ImmutableRdataset):
+        return rdataset
+    return dns.rdataset.ImmutableRdataset(rdataset)
+
+def _ensure_immutable_node(node):
+    if node is None or node.is_immutable():
+        return node
+    return dns.node.ImmutableNode(node)
+
+
 class Transaction:
 
     def __init__(self, manager, replacement=False, read_only=False):
@@ -86,6 +97,9 @@ class Transaction:
         self.replacement = replacement
         self.read_only = read_only
         self._ended = False
+        self._check_put_rdataset = []
+        self._check_delete_rdataset = []
+        self._check_delete_name = []
 
     #
     # This is the high level API
@@ -102,10 +116,14 @@ class Transaction:
             name = dns.name.from_text(name, None)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
         rdataset = self._get_rdataset(name, rdtype, covers)
-        if rdataset is not None and \
-           not isinstance(rdataset, dns.rdataset.ImmutableRdataset):
-            rdataset = dns.rdataset.ImmutableRdataset(rdataset)
-        return rdataset
+        return _ensure_immutable_rdataset(rdataset)
+
+    def get_node(self, name):
+        """Return the node at *name*, if any.
+
+        Returns an immutable node or ``None``.
+        """
+        return _ensure_immutable_node(self._get_node(name))
 
     def _check_read_only(self):
         if self.read_only:
@@ -271,6 +289,43 @@ class Transaction:
         """
         self._end(False)
 
+    def check_put_rdataset(self, check):
+        """Call *check* before putting (storing) an rdataset.
+
+        The function is called with the transaction, the name, and the rdataset.
+
+        The check function may safely make non-mutating transaction method
+        calls, but behavior is undefined if mutating transaction methods are
+        called.  The check function should raise an exception if it objects to
+        the put, and otherwise should return ``None``.
+        """
+        self._check_put_rdataset.append(check)
+
+    def check_delete_rdataset(self, check):
+        """Call *check* before deleting an rdataset.
+
+        The function is called with the transaction, the name, the rdatatype,
+        and the covered rdatatype.
+
+        The check function may safely make non-mutating transaction method
+        calls, but behavior is undefined if mutating transaction methods are
+        called.  The check function should raise an exception if it objects to
+        the put, and otherwise should return ``None``.
+        """
+        self._check_delete_rdataset.append(check)
+
+    def check_delete_name(self, check):
+        """Call *check* before putting (storing) an rdataset.
+
+        The function is called with the transaction and the name.
+
+        The check function may safely make non-mutating transaction method
+        calls, but behavior is undefined if mutating transaction methods are
+        called.  The check function should raise an exception if it objects to
+        the put, and otherwise should return ``None``.
+        """
+        self._check_delete_name.append(check)
+
     #
     # Helper methods
     #
@@ -349,7 +404,7 @@ class Transaction:
                         trds.update(existing)
                         existing = trds
                     rdataset = existing.union(rdataset)
-            self._put_rdataset(name, rdataset)
+            self._checked_put_rdataset(name, rdataset)
         except IndexError:
             raise TypeError(f'not enough parameters to {method}')
 
@@ -403,16 +458,16 @@ class Transaction:
                             raise DeleteNotExact(f'{method}: missing rdatas')
                     rdataset = existing.difference(rdataset)
                     if len(rdataset) == 0:
-                        self._delete_rdataset(name, rdataset.rdtype,
-                                              rdataset.covers)
+                        self._checked_delete_rdataset(name, rdataset.rdtype,
+                                                      rdataset.covers)
                     else:
-                        self._put_rdataset(name, rdataset)
+                        self._checked_put_rdataset(name, rdataset)
                 elif exact:
                     raise DeleteNotExact(f'{method}: missing rdataset')
             else:
                 if exact and not self._name_exists(name):
                     raise DeleteNotExact(f'{method}: name not known')
-                self._delete_name(name)
+                self._checked_delete_name(name)
         except IndexError:
             raise TypeError(f'not enough parameters to {method}')
 
@@ -428,6 +483,21 @@ class Transaction:
             self._end_transaction(commit)
         finally:
             self._ended = True
+
+    def _checked_put_rdataset(self, name, rdataset):
+        for check in self._check_put_rdataset:
+            check(self, name, rdataset)
+        self._put_rdataset(name, rdataset)
+
+    def _checked_delete_rdataset(self, name, rdtype, covers):
+        for check in self._check_delete_rdataset:
+            check(self, name, rdtype, covers)
+        self._delete_rdataset(name, rdtype, covers)
+
+    def _checked_delete_name(self, name):
+        for check in self._check_delete_name:
+            check(self, name)
+        self._delete_name(name)
 
     #
     # Transactions are context managers.
@@ -462,7 +532,7 @@ class Transaction:
     def _delete_name(self, name):
         """Delete all data associated with *name*.
 
-        It is not an error if the rdataset does not exist.
+        It is not an error if the name does not exist.
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -506,7 +576,12 @@ class Transaction:
 
     def _iterate_rdatasets(self):
         """Return an iterator that yields (name, rdataset) tuples.
+        """
+        raise NotImplementedError  # pragma: no cover
 
-        Not all Transaction subclasses implement this.
+    def _get_node(self, name):
+        """Return the node at *name*, if any.
+
+        Returns a node or ``None``.
         """
         raise NotImplementedError  # pragma: no cover

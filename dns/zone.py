@@ -854,6 +854,9 @@ class ImmutableVersionedNode(VersionedNode):
     def replace_rdataset(self, replacement):
         raise TypeError("immutable")
 
+    def is_immutable(self):
+        return True
+
 
 class Version:
     def __init__(self, zone, id, nodes=None, origin=None):
@@ -1023,6 +1026,9 @@ class Transaction(dns.transaction.Transaction):
         for (name, node) in self.version.items():
             for rdataset in node:
                 yield (name, rdataset)
+
+    def _get_node(self, name):
+        return self.version.get_node(name)
 
 
 def from_text(text, origin=None, rdclass=dns.rdataclass.IN,

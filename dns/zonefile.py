@@ -38,6 +38,29 @@ class UnknownOrigin(dns.exception.DNSException):
     """Unknown origin"""
 
 
+class CNAMEAndOtherData(dns.exception.DNSException):
+    """A node has a CNAME and other data"""
+
+
+def _check_cname_and_other_data(txn, name, rdataset):
+    rdataset_kind = dns.node.NodeKind.classify_rdataset(rdataset)
+    node = txn.get_node(name)
+    if node is None:
+        # empty nodes are neutral.
+        return
+    node_kind = node.classify()
+    if node_kind == dns.node.NodeKind.CNAME and \
+       rdataset_kind == dns.node.NodeKind.REGULAR:
+        raise CNAMEAndOtherData('rdataset type is not compatible with a '
+                                'CNAME node')
+    elif node_kind == dns.node.NodeKind.REGULAR and \
+       rdataset_kind == dns.node.NodeKind.CNAME:
+        raise CNAMEAndOtherData('CNAME rdataset is not compatible with a '
+                                'regular data node')
+    # Otherwise at least one of the node and the rdataset is neutral, so
+    # adding the rdataset is ok
+
+
 class Reader:
 
     """Read a DNS zone file into a transaction."""
@@ -71,6 +94,7 @@ class Reader:
         self.force_ttl = force_ttl
         self.force_rdclass = force_rdclass
         self.force_rdtype = force_rdtype
+        self.txn.check_put_rdataset(_check_cname_and_other_data)
 
     def _eat_line(self):
         while 1:
@@ -444,6 +468,17 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
 
     def _get_rdataset(self, name, rdtype, covers):
         return self.rdatasets.get((name, rdtype, covers))
+
+    def _get_node(self, name):
+        rdatasets = []
+        for (rdataset_name, _, _), rdataset in self.rdatasets.items():
+            if name == rdataset_name:
+                rdatasets.append(rdataset)
+        if len(rdatasets) == 0:
+            return None
+        node = dns.node.Node()
+        node.rdatasets = rdatasets
+        return node
 
     def _put_rdataset(self, name, rdataset):
         self.rdatasets[(name, rdataset.rdtype, rdataset.covers)] = rdataset
