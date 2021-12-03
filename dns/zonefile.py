@@ -45,10 +45,10 @@ class CNAMEAndOtherData(dns.exception.DNSException):
 def _check_cname_and_other_data(txn, name, rdataset):
     rdataset_kind = dns.node.NodeKind.classify_rdataset(rdataset)
     node = txn.get_node(name)
-    if node is not None:
-        node_kind = node.classify()
-    else:
-        node_kind = dns.node.NodeKind.NEUTRAL
+    if node is None:
+        # empty nodes are neutral.
+        return
+    node_kind = node.classify()
     if node_kind == dns.node.NodeKind.CNAME and \
        rdataset_kind == dns.node.NodeKind.REGULAR:
         raise CNAMEAndOtherData('rdataset type is not compatible with a '

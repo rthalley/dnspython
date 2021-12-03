@@ -69,8 +69,8 @@ class Node:
     """A Node is a set of rdatasets.
 
     A node is either a CNAME node or an "other data" node.  A CNAME
-    node contains only CNAME, KEY, RRSIG(CNAME), NSEC, RRSIG(NSEC), NSEC3,
-    or RRSIG(NSEC3) rdatasets.  An "other data" node contains any
+    node contains only CNAME, KEY, NSEC, and NSEC3 rdatasets along with their
+    covering RRSIG rdatasets.  An "other data" node contains any
     rdataset other than a CNAME or RRSIG(CNAME) rdataset.  When
     changes are made to a node, the CNAME or "other data" state is
     always consistent with the update, i.e. the most recent change
@@ -138,7 +138,7 @@ class Node:
         Specifically, if the rdataset being appended has ``NodeKind.CNAME``,
         then all rdatasets other than KEY, NSEC, NSEC3, and their covering
         RRSIGs are deleted.  If the rdataset being appended has
-        ``NodeKind.REGUALAR`` then CNAME and RRSIG(CNAME) are deleted.
+        ``NodeKind.REGULAR`` then CNAME and RRSIG(CNAME) are deleted.
         """
         # Make having just one rdataset at the node fast.
         if len(self.rdatasets) > 0:
