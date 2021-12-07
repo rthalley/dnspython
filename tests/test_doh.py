@@ -17,6 +17,11 @@
 import unittest
 import random
 import socket
+try:
+    import ssl
+    _have_ssl = True
+except Exception:
+    _have_ssl = False
 
 import dns.message
 import dns.query
@@ -144,7 +149,7 @@ class DNSOverHTTPSTestCaseRequests(unittest.TestCase):
         self.assertTrue('8.8.4.4' in seen)
 
 
-@unittest.skipUnless(dns.query._have_httpx and _network_available,
+@unittest.skipUnless(dns.query._have_httpx and _network_available and _have_ssl,
                      "Python httpx cannot be imported; no DNS over HTTPS (DOH)")
 class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
     def setUp(self):
@@ -206,8 +211,9 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
             valid_tls_url = 'https://doh.cleanbrowsing.org/doh/family-filter/'
             q = dns.message.make_query('example.com.', dns.rdatatype.A)
             # make sure CleanBrowsing's IP address will fail TLS certificate
-            # check
-            with self.assertRaises(httpx.ConnectError):
+            # check.  On 3.6 we get ssl.CertificateError instead of
+            # httpx.ConnectError.
+            with self.assertRaises((httpx.ConnectError, ssl.CertificateError)):
                 dns.query.https(q, invalid_tls_url, session=self.session,
                                 timeout=4)
             # We can't do the Host header and SNI magic with httpx, but
