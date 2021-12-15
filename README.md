@@ -42,21 +42,30 @@ information about the changes in this release.
   `sudo python setup.py install`
 * To install the latest from the master branch, run `pip install git+https://github.com/rthalley/dnspython.git`
 
-If you want to use DNS-over-HTTPS, you must run
+Dnspython's default installation does not depend on any modules other than
+those in the Python standard library.  To use some features, additional modules
+must be installed.  For convenience, pip options are defined for the
+requirements.
+
+If you want to use DNS-over-HTTPS, run
 `pip install dnspython[doh]`.
 
-If you want to use DNSSEC functionality, you must run
+If you want to use DNSSEC functionality, run
 `pip install dnspython[dnssec]`.
 
 If you want to use internationalized domain names (IDNA)
 functionality, you must run
 `pip install dnspython[idna]`
 
-If you want to use the Trio asynchronous I/O package, you must run
+If you want to use the Trio asynchronous I/O package, run
 `pip install dnspython[trio]`.
 
-If you want to use the Curio asynchronous I/O package, you must run
+If you want to use the Curio asynchronous I/O package, run
 `pip install dnspython[curio]`.
+
+If you want to use WMI on Windows to determine the active DNS settings
+instead of the default registry scanning method, run
+`pip install dnspython[wmi]`.
 
 Note that you can install any combination of the above, e.g.:
 `pip install dnspython[doh,dnssec,idna]`

@@ -39,6 +39,7 @@ cryptography = {version=">=2.6,<37.0", optional=true}
 trio = {version=">=0.14,<0.20", optional=true}
 curio = {version="^1.2", optional=true}
 sniffio = {version="^1.1", optional=true}
+wmi = {version="^1.5.1", optional=true}
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"
@@ -57,6 +58,7 @@ idna = ['idna']
 dnssec = ['cryptography']
 trio = ['trio']
 curio = ['curio', 'sniffio']
+wmi = ['wmi']
 
 [build-system]
 requires = ["poetry-core"]
