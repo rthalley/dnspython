@@ -135,9 +135,9 @@ def inet_aton(text, ignore_scope=False):
     m = _v4_ending.match(text)
     if m is not None:
         b = dns.ipv4.inet_aton(m.group(2))
-        text = (u"{}:{:02x}{:02x}:{:02x}{:02x}".format(m.group(1).decode(),
-                                                       b[0], b[1], b[2],
-                                                       b[3])).encode()
+        text = ("{}:{:02x}{:02x}:{:02x}{:02x}".format(m.group(1).decode(),
+                                                      b[0], b[1], b[2],
+                                                      b[3])).encode()
     #
     # Try to turn '::<whatever>' into ':<whatever>'; if no match try to
     # turn '<whatever>::' into '<whatever>:'

@@ -531,7 +531,7 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
         self.rrsets = []
 
     def writer(self, replacement=False):
-        assert replacement == True
+        assert replacement is True
         return RRsetsReaderTransaction(self, True, False)
 
     def get_class(self):
@@ -622,4 +622,3 @@ def read_rrsets(text, name=None, ttl=None, rdclass=dns.rdataclass.IN,
                         force_rdtype=rdtype, default_ttl=default_ttl)
         reader.read()
     return manager.rrsets
-

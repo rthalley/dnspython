@@ -30,6 +30,8 @@ disable=
     redefined-builtin,
     too-many-lines,
     raise-missing-from,   # we should start doing this, but too noisy for now
+    consider-using-f-string,
+    unspecified-encoding,
 
 [REPORTS]
 

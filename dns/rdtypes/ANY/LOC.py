@@ -55,7 +55,7 @@ def _float_to_tuple(what):
         what *= -1
     else:
         sign = 1
-    what = round(what * 3600000)  # pylint: disable=round-builtin
+    what = round(what * 3600000)
     degrees = int(what // 3600000)
     what -= degrees * 3600000
     minutes = int(what // 60000)

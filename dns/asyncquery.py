@@ -21,7 +21,6 @@ import base64
 import socket
 import struct
 import time
-import urllib
 
 import dns.asyncbackend
 import dns.exception
@@ -33,7 +32,7 @@ import dns.rdataclass
 import dns.rdatatype
 
 from dns.query import _compute_times, _matches_destination, BadResponse, ssl, \
-    UDPMode, have_doh, _have_httpx, _have_http2, NoDOH
+    UDPMode, _have_httpx, _have_http2, NoDOH
 
 if _have_httpx:
     import httpx

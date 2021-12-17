@@ -47,8 +47,7 @@ class WKS(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
-        for i in range(0, len(self.bitmap)):
-            byte = self.bitmap[i]
+        for i, byte in enumerate(self.bitmap):
             for j in range(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))

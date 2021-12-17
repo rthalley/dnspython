@@ -1286,20 +1286,20 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None,
             if isinstance(e, dns.resolver.NXDOMAIN):
                 response = e.responses().get(name)
             else:
-                response = e.response()
+                response = e.response()  # pylint: disable=no-value-for-parameter
             if response:
                 for rrs in response.authority:
                     if rrs.rdtype == dns.rdatatype.SOA and \
-                       rrs.rdclass == rdclass:
-                       (nr, _, _) = rrs.name.fullcompare(name)
-                       if nr == dns.name.NAMERELN_SUPERDOMAIN:
-                           # We're doing a proper superdomain check as
-                           # if the name were equal we ought to have gotten
-                           # it in the answer section!  We are ignoring the
-                           # possibility that the authority is insane and
-                           # is including multiple SOA RRs for different
-                           # authorities.
-                           return rrs.name
+                        rrs.rdclass == rdclass:
+                        (nr, _, _) = rrs.name.fullcompare(name)
+                        if nr == dns.name.NAMERELN_SUPERDOMAIN:
+                            # We're doing a proper superdomain check as
+                            # if the name were equal we ought to have gotten
+                            # it in the answer section!  We are ignoring the
+                            # possibility that the authority is insane and
+                            # is including multiple SOA RRs for different
+                            # authorities.
+                            return rrs.name
             # we couldn't extract anything useful from the response (e.g. it's
             # a type 3 NXDOMAIN)
         try:

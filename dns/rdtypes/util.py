@@ -234,7 +234,7 @@ def parse_formatted_hex(formatted, num_chunks, chunk_size, separator):
     if len(formatted) != num_chunks * (chunk_size + 1) - 1:
         raise ValueError('invalid formatted hex string')
     value = b''
-    for n in range(num_chunks):
+    for _ in range(num_chunks):
         chunk = formatted[0:chunk_size]
         value += int(chunk, 16).to_bytes(chunk_size // 2, 'big')
         formatted = formatted[chunk_size:]

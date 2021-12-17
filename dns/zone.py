@@ -201,13 +201,13 @@ class Zone(dns.transaction.TransactionManager):
         return self.nodes.__iter__()
 
     def keys(self):
-        return self.nodes.keys()  # pylint: disable=dict-keys-not-iterating
+        return self.nodes.keys()
 
     def values(self):
-        return self.nodes.values()  # pylint: disable=dict-values-not-iterating
+        return self.nodes.values()
 
     def items(self):
-        return self.nodes.items()  # pylint: disable=dict-items-not-iterating
+        return self.nodes.items()
 
     def get(self, key):
         key = self._validate_name(key)
@@ -799,7 +799,7 @@ class Zone(dns.transaction.TransactionManager):
     def _end_write(self, txn):
         pass
 
-    def _commit_version(self, txn, version, origin):
+    def _commit_version(self, _, version, origin):
         self.nodes = version.nodes
         if self.origin is None:
             self.origin = origin
@@ -888,7 +888,7 @@ class Version:
         return node.get_rdataset(self.zone.rdclass, rdtype, covers)
 
     def items(self):
-        return self.nodes.items()  # pylint: disable=dict-items-not-iterating
+        return self.nodes.items()
 
 
 class WritableVersion(Version):
