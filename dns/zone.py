@@ -103,7 +103,7 @@ class DigestHashAlgorithm(dns.enum.IntEnum):
 
 _digest_hashers = {
     DigestHashAlgorithm.SHA384: hashlib.sha384,
-    DigestHashAlgorithm.SHA512 : hashlib.sha512
+    DigestHashAlgorithm.SHA512: hashlib.sha512,
 }
 
 

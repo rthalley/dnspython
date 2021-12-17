@@ -375,8 +375,6 @@ async def https(q, where, timeout=None, port=443, source=None, source_port=0,
     if not _have_httpx:
         raise NoDOH('httpx is not available.')  # pragma: no cover
 
-    _httpx_ok = True
-
     wire = q.to_wire()
     try:
         af = dns.inet.af_for_address(where)

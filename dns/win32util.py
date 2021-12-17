@@ -16,7 +16,7 @@ if sys.platform == 'win32':
         import pythoncom
         import wmi
         _have_wmi = True
-    except Exception as e:
+    except Exception:
         _have_wmi = False
 
     def _config_domain(domain):
