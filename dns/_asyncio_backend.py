@@ -28,7 +28,7 @@ class _DatagramProtocol:
         self.transport = transport
 
     def datagram_received(self, data, addr):
-        if self.recvfrom:
+        if self.recvfrom and not self.recvfrom.done():
             self.recvfrom.set_result((data, addr))
             self.recvfrom = None
 
