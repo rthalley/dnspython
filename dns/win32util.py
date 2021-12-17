@@ -24,7 +24,7 @@ if sys.platform == 'win32':
         # Windows just stores such values in the registry (see #687).
         # Check for this and fix it.
         if domain.startswith('.'):
-             domain = domain[1:]
+            domain = domain[1:]
         return dns.name.from_text(domain)
 
     class DnsInfo:
@@ -59,16 +59,9 @@ if sys.platform == 'win32':
                 self.start()
                 self.join()
                 return self.info
-                
-
-        def get_dns_info_from_wmi():
-            getter = _WMIGetter()
-            return getter.get()
     else:
         class _WMIGetter:
             pass
-        def get(self):
-            return None
 
 
     class _RegistryGetter:
@@ -104,7 +97,7 @@ if sys.platform == 'win32':
                 s = dns.name.from_text(s)
                 if s not in self.info.search:
                     self.info.search.append(s)
-                
+
         def _config_fromkey(self, key, always_try_domain):
             try:
                 servers, _ = winreg.QueryValueEx(key, 'NameServer')
@@ -231,11 +224,6 @@ if sys.platform == 'win32':
                 lm.Close()
             return self.info
 
-    def get_dns_info_from_registry():
-        """Extract resolver configuration from the Windows registry."""
-        getter = _RegistryGetter()
-        return getter.get()
-
     if _have_wmi and _prefer_wmi:
         _getter_class = _WMIGetter
     else:
@@ -245,4 +233,3 @@ if sys.platform == 'win32':
         """Extract resolver configuration."""
         getter = _getter_class()
         return getter.get()
-
