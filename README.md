@@ -78,5 +78,5 @@ later only support Python 3.6 and later.
 Documentation has moved to
 [dnspython.readthedocs.io](https://dnspython.readthedocs.io).
 
-The ChangeLog has been discontinued.  Please see the git history for detailed
-change information.
+The ChangeLog has been discontinued.  Please see the github project page
+and git history for detailed change information.
