@@ -24,9 +24,9 @@ MINOR = 2
 #: MICRO
 MICRO = 0
 #: RELEASELEVEL
-RELEASELEVEL = 0x00
+RELEASELEVEL = 0x0c
 #: SERIAL
-SERIAL = 0
+SERIAL = 1
 
 if RELEASELEVEL == 0x0f:  # pragma: no cover
     #: version

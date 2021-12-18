@@ -3,8 +3,8 @@
 What's New in dnspython
 =======================
 
-2.2.0 (in development)
-----------------------
+2.2.0
+-----
 
 * SVCB and HTTPS records have been updated to track the evolving draft
   standard.
@@ -43,6 +43,9 @@ What's New in dnspython
   then add an MX rdataset to it, then the CNAME rdataset will be deleted.
   Likewise if you have a node containing an MX rdataset and add a
   CNAME rdataset, the MX rdataset will be deleted.
+
+See the `2.2 project <https://github.com/rthalley/dnspython/projects/4>`_ on
+github or the git change log for more details.
 
 2.1.0
 ----------------------
