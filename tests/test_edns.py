@@ -134,6 +134,42 @@ class OptionTestCase(unittest.TestCase):
             opt = dns.edns.option_from_wire(dns.edns.ECS,
                                             b'\x00\xff\x18\x00\x01\x02\x03',
                                             0, 7)
+    def testEDEOption(self):
+        opt = dns.edns.EDEOption(3)
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b'\x00\x03')
+        self.assertEqual(str(opt), 'EDE 3')
+        # with text
+        opt = dns.edns.EDEOption(16, 'test')
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b'\x00\x10test')
+
+    def testEDEOption_invalid(self):
+        with self.assertRaises(ValueError):
+            opt = dns.edns.EDEOption(-1)
+        with self.assertRaises(ValueError):
+            opt = dns.edns.EDEOption(65536)
+        with self.assertRaises(ValueError):
+            opt = dns.edns.EDEOption(0, 0)
+
+    def testEDEOption_from_wire(self):
+        data = b'\x00\01'
+        self.assertEqual(
+            dns.edns.option_from_wire(dns.edns.EDE, data, 0, 2),
+            dns.edns.EDEOption(1))
+        data = b'\x00\01test'
+        self.assertEqual(
+            dns.edns.option_from_wire(dns.edns.EDE, data, 0, 6),
+            dns.edns.EDEOption(1, 'test'))
+        # utf-8 text MAY be null-terminated
+        data = b'\x00\01test\x00'
+        self.assertEqual(
+            dns.edns.option_from_wire(dns.edns.EDE, data, 0, 7),
+            dns.edns.EDEOption(1, 'test'))
 
     def test_basic_relations(self):
         o1 = dns.edns.ECSOption.from_text('1.2.3.0/24/0')
