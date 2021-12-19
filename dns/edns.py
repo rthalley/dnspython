@@ -302,20 +302,52 @@ class ECSOption(Option):
         return cls(addr, src, scope)
 
 
+class EDECode(dns.enum.IntEnum):
+    OTHER = 0
+    UNSUPPORTED_DNSKEY_ALGORITHM = 1
+    UNSUPPORTED_DS_DIGEST_TYPE = 2
+    STALE_ANSWER = 3
+    FORGED_ANSWER = 4
+    DNSSEC_INDETERMINATE = 5
+    DNSSEC_BOGUS = 6
+    SIGNATURE_EXPIRED = 7
+    SIGNATURE_NOT_YET_VALID = 8
+    DNSKEY_MISSING = 9
+    RRSIGS_MISSING = 10
+    NO_ZONE_KEY_BIT_SET = 11
+    NSEC_MISSING = 12
+    CACHED_ERROR = 13
+    NOT_READY = 14
+    BLOCKED = 15
+    CENSORED = 16
+    FILTERED = 17
+    PROHIBITED = 18
+    STALE_NXDOMAIN_ANSWER = 19
+    NOT_AUTHORITATIVE = 20
+    NOT_SUPPORTED = 21
+    NO_REACHABLE_AUTHORITY = 22
+    NETWORK_ERROR = 23
+    INVALID_DATA = 24
+
+    @classmethod
+    def _maximum(cls):
+        return 65535
+
+
 class EDEOption(Option):
     """Extended DNS Error (EDE, RFC8914)"""
 
     def __init__(self, code, text=None):
-        """*code*, an ``int``, the info code of the extended error.
+        """*code*, a ``dns.edns.EDECode`` or ``str``, the info code of the
+        extended error.
 
-        *text*, a ``str``, optional field containing additional textual
-        information.
+        *text*, a ``str`` or ``None``, specifying additional information about
+        the error.
         """
 
         super().__init__(OptionType.EDE)
 
-        if code < 0 or code > 65535:
-            raise ValueError('code must be uint16')
+        self.code = EDECode.make(code)
         if text is not None and not isinstance(text, str):
             raise ValueError('text must be string or None')
 
@@ -323,9 +355,9 @@ class EDEOption(Option):
         self.text = text
 
     def to_text(self):
-        output = "EDE {}".format(self.code)
+        output = f'EDE {self.code}'
         if self.text is not None:
-            output += ': {}'.format(self.text)
+            output += f': {self.text}'
         return output
 
     def to_wire(self, file=None):

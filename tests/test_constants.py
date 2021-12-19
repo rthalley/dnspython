@@ -35,4 +35,5 @@ class ConstantsTestCase(unittest.TestCase):
         tests.util.check_enum_exports(dns.rdatatype, self.assertEqual)
 
     def test_edns_constants(self):
-        tests.util.check_enum_exports(dns.edns, self.assertEqual)
+        tests.util.check_enum_exports(dns.edns, self.assertEqual,
+                                      only={dns.edns.OptionType})

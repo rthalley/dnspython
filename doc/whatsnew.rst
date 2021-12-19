@@ -44,6 +44,8 @@ What's New in dnspython
   Likewise if you have a node containing an MX rdataset and add a
   CNAME rdataset, the MX rdataset will be deleted.
 
+* Extended DNS Errors, as specified in RFC 8914, are now supported.
+
 2.1.0
 ----------------------
 
