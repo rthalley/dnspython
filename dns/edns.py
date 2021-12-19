@@ -47,6 +47,8 @@ class OptionType(dns.enum.IntEnum):
     PADDING = 12
     #: CHAIN
     CHAIN = 13
+    #: EDE (extended-dns-error)
+    EDE = 15
 
     @classmethod
     def _maximum(cls):
@@ -300,9 +302,62 @@ class ECSOption(Option):
         return cls(addr, src, scope)
 
 
+class EDEOption(Option):
+    """Extended DNS Error (EDE, RFC8914)"""
+
+    def __init__(self, code, text=None):
+        """*code*, an ``int``, the info code of the extended error.
+
+        *text*, a ``str``, optional field containing additional textual
+        information.
+        """
+
+        super().__init__(OptionType.EDE)
+
+        if code < 0 or code > 65535:
+            raise ValueError('code must be uint16')
+        if text is not None and not isinstance(text, str):
+            raise ValueError('text must be string or None')
+
+        self.code = code
+        self.text = text
+
+    def to_text(self):
+        output = "EDE {}".format(self.code)
+        if self.text is not None:
+            output += ': {}'.format(self.text)
+        return output
+
+    def to_wire(self, file=None):
+        value = struct.pack('!H', self.code)
+        if self.text is not None:
+            value += self.text.encode('utf8')
+
+        if file:
+            file.write(value)
+        else:
+            return value
+
+    @classmethod
+    def from_wire_parser(cls, otype, parser):
+        code = parser.get_uint16()
+        text = parser.get_remaining()
+
+        if text:
+            if text[-1] == 0:  # text MAY be null-terminated
+                text = text[:-1]
+            text = text.decode('utf8')
+        else:
+            text = None
+
+        return cls(code, text)
+
+
 _type_to_class = {
-    OptionType.ECS: ECSOption
+    OptionType.ECS: ECSOption,
+    OptionType.EDE: EDEOption,
 }
+
 
 def get_option_class(otype):
     """Return the class for the specified option type.
@@ -372,5 +427,6 @@ COOKIE = OptionType.COOKIE
 KEEPALIVE = OptionType.KEEPALIVE
 PADDING = OptionType.PADDING
 CHAIN = OptionType.CHAIN
+EDE = OptionType.EDE
 
 ### END generated OptionType constants
