@@ -3,8 +3,13 @@
 What's New in dnspython
 =======================
 
-2.2.0 (in development)
+2.2.3 (in development)
 ----------------------
+
+* Nothing yet!
+
+2.2.0
+-----
 
 * SVCB and HTTPS records have been updated to track the evolving draft
   standard.
