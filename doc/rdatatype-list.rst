@@ -10,7 +10,7 @@ Rdatatypes
 .. py:data:: dns.rdatatype.AFSDB
    :annotation: = 18
 .. py:data:: dns.rdatatype.AMTRELAY
-   :annotation: = 259
+   :annotation: = 260
 .. py:data:: dns.rdatatype.ANY
    :annotation: = 255
 .. py:data:: dns.rdatatype.APL
@@ -63,8 +63,14 @@ Rdatatypes
    :annotation: = 25
 .. py:data:: dns.rdatatype.KX
    :annotation: = 36
+.. py:data:: dns.rdatatype.L32
+   :annotation: = 105
+.. py:data:: dns.rdatatype.L64
+   :annotation: = 106
 .. py:data:: dns.rdatatype.LOC
    :annotation: = 29
+.. py:data:: dns.rdatatype.LP
+   :annotation: = 107
 .. py:data:: dns.rdatatype.MAILA
    :annotation: = 254
 .. py:data:: dns.rdatatype.MAILB
@@ -85,6 +91,8 @@ Rdatatypes
    :annotation: = 15
 .. py:data:: dns.rdatatype.NAPTR
    :annotation: = 35
+.. py:data:: dns.rdatatype.NID
+   :annotation: = 104
 .. py:data:: dns.rdatatype.NINFO
    :annotation: = 56
 .. py:data:: dns.rdatatype.NS
@@ -151,3 +159,5 @@ Rdatatypes
    :annotation: = 11
 .. py:data:: dns.rdatatype.X25
    :annotation: = 19
+.. py:data:: dns.rdatatype.ZONEMD
+   :annotation: = 63
