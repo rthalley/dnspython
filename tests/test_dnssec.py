@@ -497,18 +497,19 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
             with self.assertRaises(dns.dnssec.UnsupportedAlgorithm):
                 ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
 
-    def testInvalidDigestType(self):  # type: () -> None
-        digest_type_errors = {
-            (dns.rdatatype.DS, 0): 'digest type 0 is reserved',
-            (dns.rdatatype.DS, 5): 'unknown digest type',
-            (dns.rdatatype.CDS, 5): 'unknown digest type',
-        }
-        for (rdtype, digest_type), msg in digest_type_errors.items():
-            with self.assertRaises(dns.exception.SyntaxError) as cm:
-                dns.rdata.from_text(dns.rdataclass.IN,
-                                    rdtype,
-                                    f'18673 3 {digest_type} 71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7')
-            self.assertEqual(msg, str(cm.exception))
+    def testReservedDigestType(self):  # type: () -> None
+        with self.assertRaises(dns.exception.SyntaxError) as cm:
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS,
+                                f'18673 3 0 71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7')
+        self.assertEqual('digest type 0 is reserved', str(cm.exception))
+
+    def testUnknownDigestType(self):  # type: () -> None
+        digest_types = [dns.rdatatype.DS, dns.rdatatype.CDS]
+        for rdtype in digest_types:
+            rd = dns.rdata.from_text(dns.rdataclass.IN, rdtype,
+                                     f'18673 3 5 71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7')
+            self.assertEqual(rd.digest_type, 5)
+            self.assertEqual(rd.digest, bytes.fromhex('71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7'))
 
     def testInvalidDigestLength(self):  # type: () -> None
         test_records = []
