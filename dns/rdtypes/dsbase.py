@@ -46,14 +46,12 @@ class DSBase(dns.rdata.Rdata):
         self.algorithm = dns.dnssec.Algorithm.make(algorithm)
         self.digest_type = self._as_uint8(digest_type)
         self.digest = self._as_bytes(digest)
-
         try:
             if len(self.digest) != self._digest_length_by_type[self.digest_type]:
                 raise ValueError('digest length inconsistent with digest type')
         except KeyError:
             if self.digest_type == 0:  # reserved, RFC 3658 Sec. 2.4
                 raise ValueError('digest type 0 is reserved')
-            raise ValueError('unknown digest type')
 
     def to_text(self, origin=None, relativize=True, **kw):
         kw = kw.copy()
