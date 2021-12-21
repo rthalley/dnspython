@@ -428,6 +428,7 @@ class AsyncTests(unittest.TestCase):
             self.async_run(arun)
         self.assertRaises(dns.exception.Timeout, run)
 
+    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testDOHGetRequest(self):
         if self.backend.name() == 'curio':
             self.skipTest('anyio dropped curio support')
@@ -439,6 +440,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue(q.is_response(r))
         self.async_run(run)
 
+    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testDOHGetRequestHttp1(self):
         if self.backend.name() == 'curio':
             self.skipTest('anyio dropped curio support')
@@ -455,6 +457,7 @@ class AsyncTests(unittest.TestCase):
                 dns.query._have_http2 = saved_have_http2
         self.async_run(run)
 
+    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testDOHPostRequest(self):
         if self.backend.name() == 'curio':
             self.skipTest('anyio dropped curio support')
@@ -466,7 +469,8 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue(q.is_response(r))
         self.async_run(run)
 
-    def test_resolver_doh(self):
+    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
+    def testResolverDOH(self):
         if self.backend.name() == 'curio':
             self.skipTest('anyio dropped curio support')
         async def run():
