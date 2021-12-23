@@ -3,7 +3,7 @@
 What's New in dnspython
 =======================
 
-2.2.3 (in development)
+2.3.0 (in development)
 ----------------------
 
 * Nothing yet!
