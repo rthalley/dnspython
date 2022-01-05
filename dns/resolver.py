@@ -607,7 +607,8 @@ class _Resolution:
                 request.use_tsig(self.resolver.keyring, self.resolver.keyname,
                                  algorithm=self.resolver.keyalgorithm)
             request.use_edns(self.resolver.edns, self.resolver.ednsflags,
-                             self.resolver.payload)
+                             self.resolver.payload,
+                             options=self.resolver.ednsoptions)
             if self.resolver.flags is not None:
                 request.flags = self.resolver.flags
 
@@ -776,6 +777,7 @@ class BaseResolver:
         self.keyalgorithm = dns.tsig.default_algorithm
         self.edns = -1
         self.ednsflags = 0
+        self.ednsoptions = None
         self.payload = 0
         self.cache = None
         self.flags = None
@@ -931,7 +933,7 @@ class BaseResolver:
         self.keyalgorithm = algorithm
 
     def use_edns(self, edns=0, ednsflags=0,
-                 payload=dns.message.DEFAULT_EDNS_PAYLOAD):
+                 payload=dns.message.DEFAULT_EDNS_PAYLOAD, options=None):
         """Configure EDNS behavior.
 
         *edns*, an ``int``, is the EDNS level to use.  Specifying
@@ -944,6 +946,9 @@ class BaseResolver:
         *payload*, an ``int``, is the EDNS sender's payload field, which is the
         maximum size of UDP datagram the sender can handle.  I.e. how big
         a response to this message can be.
+
+        *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS
+        options.
         """
 
         if edns is None or edns is False:
@@ -953,6 +958,7 @@ class BaseResolver:
         self.edns = edns
         self.ednsflags = ednsflags
         self.payload = payload
+        self.ednsoptions = options
 
     def set_flags(self, flags):
         """Overrides the default flags with your own.
