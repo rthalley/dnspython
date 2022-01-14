@@ -21,8 +21,8 @@ import sys
 import socket
 import time
 import unittest
-
 import pytest
+from unittest.mock import patch
 
 import dns.e164
 import dns.message
@@ -646,6 +646,14 @@ class LiveResolverTests(unittest.TestCase):
         answer = dns.resolver.resolve_address('8.8.8.8')
         dnsgoogle = dns.name.from_text('dns.google.')
         self.assertEqual(answer[0].target, dnsgoogle)
+
+    @patch.object(dns.message.Message, 'use_edns')
+    def testResolveEdnsOptions(self, message_use_edns_mock):
+        resolver = dns.resolver.Resolver()
+        options = [dns.edns.ECSOption('1.1.1.1')]
+        resolver.use_edns(True, options=options)
+        resolver.resolve('dns.google.', 'A')
+        assert {'options': options} in message_use_edns_mock.call_args
 
     def testResolveNodataException(self):
         def bad():
