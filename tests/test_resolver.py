@@ -653,7 +653,7 @@ class LiveResolverTests(unittest.TestCase):
         options = [dns.edns.ECSOption('1.1.1.1')]
         resolver.use_edns(True, options=options)
         resolver.resolve('dns.google.', 'A')
-        assert message_use_edns_mock.call_args.kwargs == {'options': options}
+        assert {'options': options} in message_use_edns_mock.call_args
 
     def testResolveNodataException(self):
         def bad():
