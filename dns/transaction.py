@@ -389,7 +389,9 @@ class Transaction:
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f'{method} has objects of wrong RdataClass')
             if rdataset.rdtype == dns.rdatatype.SOA:
-                (_, _, origin) = self.manager.origin_information()
+                (_, relativize, origin) = self.manager.origin_information()
+                if not relativize:
+                    origin = self.version.origin
                 if name != origin:
                     raise ValueError(f'{method} has non-origin SOA')
             self._raise_if_not_empty(method, args)

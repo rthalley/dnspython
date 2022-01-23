@@ -58,6 +58,14 @@ ns1 3600 IN A 10.0.0.1
 ns2 3600 IN A 10.0.0.2
 """
 
+example_norel_text_output = """example. 3600 IN SOA foo.example. bar.example. 1 2 3 4 5
+example. 3600 IN NS ns1.example.
+example. 3600 IN NS ns2.example.
+bar.foo.example. 300 IN MX 0 blaz.foo.example.
+ns1.example. 3600 IN A 10.0.0.1
+ns2.example. 3600 IN A 10.0.0.2
+"""
+
 something_quite_similar = """@ 3600 IN SOA foo bar 1 2 3 4 5
 @ 3600 IN NS ns1
 @ 3600 IN NS ns2
@@ -173,6 +181,13 @@ $ORIGIN example.
 @ soa foo bar 1 2 3 4 5
 @ 300 ns ns1
 @ 300 ns ns2
+"""
+
+origin_sets_input_norel = """
+$ORIGIN example.
+example. soa foo.example. bar.example. 1 2 3 4 5
+example. 300 ns ns1.example.
+example. 300 ns ns2.example.
 """
 
 example_comments_text = """$TTL 3600
@@ -418,6 +433,16 @@ class ZoneTestCase(unittest.TestCase):
             f.write(z[n].to_text(n))
             f.write('\n')
         self.assertEqual(f.getvalue(), example_text_output)
+
+    def testFromTextNoOrigin(self):
+        z = dns.zone.from_text(example_text, relativize=False)
+        f = StringIO()
+        names = list(z.nodes.keys())
+        names.sort()
+        for n in names:
+            f.write(z[n].to_text(n))
+            f.write('\n')
+        self.assertEqual(f.getvalue(), example_norel_text_output)
 
     def testTorture1(self):
         #
@@ -849,6 +874,10 @@ class ZoneTestCase(unittest.TestCase):
 
     def testDollarOriginSetsZoneOriginIfUnknown(self):
         z = dns.zone.from_text(origin_sets_input)
+        self.assertEqual(z.origin, dns.name.from_text('example'))
+
+    def testDollarOriginSetsZoneOriginIfUnknownRelative(self):
+        z = dns.zone.from_text(origin_sets_input_norel, relativize=False)
         self.assertEqual(z.origin, dns.name.from_text('example'))
 
     def testValidateNameRelativizesNameInZone(self):

@@ -870,7 +870,7 @@ class Version:
 
     def _validate_name(self, name):
         if name.is_absolute():
-            if not name.is_subdomain(self.zone.origin):
+            if self.zone.origin and not name.is_subdomain(self.zone.origin):
                 raise KeyError("name is not a subdomain of the zone origin")
             if self.zone.relativize:
                 # XXXRTH should it be an error if self.origin is still None?
