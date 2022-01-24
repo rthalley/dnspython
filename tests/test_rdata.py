@@ -539,6 +539,9 @@ class RdataTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text('in', 'type45678', '\\# 6 000a03666f6f00')
 
+    def test_empty_generic(self):
+        dns.rdata.from_text('in', 'type45678', r'\# 0')
+
     def test_covered_repr(self):
         text = 'NSEC 1 3 3600 20190101000000 20030101000000 ' + \
             '2143 foo Ym9ndXM='

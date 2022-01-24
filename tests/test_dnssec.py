@@ -533,7 +533,8 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
         dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, f'0 0 0 00')
 
         test_records = {
-            'digest length inconsistent with digest type': ['0 0 0', '0 0 0 0000'],
+            'expecting another identifier': ['0 0 0', '0 0 0 '],
+            'digest length inconsistent with digest type': ['0 0 0 0000'],
             'Odd-length string': ['0 0 0 0', '0 0 0 000'],
         }
         for msg, records in test_records.items():
