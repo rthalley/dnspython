@@ -71,6 +71,11 @@ class Set:
 
         self.items.pop(item, None)
 
+    def pop(self):
+        """Remove an arbitrary item from the set."""
+        (k, v) = self.items.popitem()
+        return k
+
     def _clone(self):
         """Make a (shallow) copy of the set.
 
@@ -305,5 +310,13 @@ class Set:
             raise ValueError('other must be a Set instance')
         for item in other.items:
             if item not in self.items:
+                return False
+        return True
+
+    def isdisjoint(self, other):
+        if not isinstance(other, Set):
+            raise ValueError('other must be a Set instance')
+        for item in other.items:
+            if item in self.items:
                 return False
         return True
