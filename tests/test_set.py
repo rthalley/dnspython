@@ -109,6 +109,30 @@ class SetTestCase(unittest.TestCase):
         e = S([])
         self.assertEqual(s1 - s2, e)
 
+    def testSymmetricDifference1(self):
+        s1 = S([1, 2, 3])
+        s2 = S([5, 4])
+        e = S([1, 2, 3, 4, 5])
+        self.assertEqual(s1 ^ s2, e)
+
+    def testSymmetricDifference2(self):
+        s1 = S([1, 2, 3])
+        s2 = S([])
+        e = S([1, 2, 3])
+        self.assertEqual(s1 ^ s2, e)
+
+    def testSymmetricDifference3(self):
+        s1 = S([1, 2, 3])
+        s2 = S([3, 2])
+        e = S([1])
+        self.assertEqual(s1 ^ s2, e)
+
+    def testSymmetricDifference4(self):
+        s1 = S([1, 2, 3])
+        s2 = S([3, 2, 1])
+        e = S([])
+        self.assertEqual(s1 ^ s2, e)
+
     def testSubset1(self):
         s1 = S([1, 2, 3])
         s2 = S([3, 2, 1])

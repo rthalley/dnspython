@@ -145,6 +145,18 @@ class Set:
             for item in other.items:
                 self.discard(item)
 
+    def symmetric_difference_update(self, other):
+        """Update the set, retaining only elements unique to both sets."""
+
+        if not isinstance(other, Set):
+            raise ValueError('other must be a Set instance')
+        if self is other:
+            self.items.clear()
+        else:
+            overlap = self.intersection(other)
+            self.union_update(other)
+            self.difference_update(overlap)
+
     def union(self, other):
         """Return a new set which is the union of ``self`` and ``other``.
 
@@ -177,6 +189,18 @@ class Set:
         obj.difference_update(other)
         return obj
 
+    def symmetric_difference(self, other):
+        """Return a new set which (``self`` - ``other``) | (``other``
+        - ``self), ie: the items in either ``self`` or ``other`` which
+        are not contained in their intersection.
+
+        Returns the same Set type as this set.
+        """
+
+        obj = self._clone()
+        obj.symmetric_difference_update(other)
+        return obj
+
     def __or__(self, other):
         return self.union(other)
 
@@ -188,6 +212,9 @@ class Set:
 
     def __sub__(self, other):
         return self.difference(other)
+
+    def __xor__(self, other):
+        return self.symmetric_difference(other)
 
     def __ior__(self, other):
         self.union_update(other)
@@ -203,6 +230,10 @@ class Set:
 
     def __isub__(self, other):
         self.difference_update(other)
+        return self
+
+    def __ixor__(self, other):
+        self.symmetric_difference_update(other)
         return self
 
     def update(self, other):

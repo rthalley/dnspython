@@ -386,6 +386,9 @@ class ImmutableRdataset(Rdataset):
     def difference(self, other):
         return ImmutableRdataset(super().difference(other))
 
+    def symmetric_difference(self, other):
+        return ImmutableRdataset(super().symmetric_difference(other))
+
 
 def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None,
                    origin=None, relativize=True, relativize_to=None):
