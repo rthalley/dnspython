@@ -322,7 +322,7 @@ Rdata Subclass Reference
 
       An ``int``, the flags.
 
-   .. attribute:: interations:
+   .. attribute:: iterations:
 
       An ``int``, the number of iterations.
 
@@ -349,7 +349,7 @@ Rdata Subclass Reference
 
       An ``int``, the flags.
 
-   .. attribute:: interations:
+   .. attribute:: iterations:
 
       An ``int``, the number of iterations.
 
@@ -535,7 +535,7 @@ Rdata Subclass Reference
 .. autoclass:: dns.rdtypes.ANY.URI.URI
    :members:
 
-   .. attribute:: priorty
+   .. attribute:: priority
 
       An ``int``, the priority.
 

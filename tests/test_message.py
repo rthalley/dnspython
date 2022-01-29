@@ -468,7 +468,7 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(te.message(), q)
 
     def test_bad_opt(self):
-        # Not in addtional
+        # Not in additional
         q = dns.message.Message(id=1)
         opt = dns.rdtypes.ANY.OPT.OPT(1200, dns.rdatatype.OPT, ())
         rrs = dns.rrset.from_rdata(dns.name.root, 0, opt)
@@ -494,7 +494,7 @@ class MessageTestCase(unittest.TestCase):
 
     def test_bad_tsig(self):
         keyname = dns.name.from_text('key.')
-        # Not in addtional
+        # Not in additional
         q = dns.message.Message(id=1)
         tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
                                          dns.tsig.HMAC_SHA256, 0, 300, b'1234',

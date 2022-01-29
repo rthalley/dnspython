@@ -325,7 +325,7 @@ class TokenizerTestCase(unittest.TestCase):
 
     def testBadConcatenateRemaining(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('a b "not an identifer" c')
+            tok = dns.tokenizer.Tokenizer('a b "not an identifier" c')
             tok.concatenate_remaining_identifiers()
 
     def testStdinFilename(self):

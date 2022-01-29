@@ -16,7 +16,7 @@ list because there are many DNSSEC related RFCs and it's helpful to group
 them together.  It's not a statement that DNSSEC isn't part of the "Core"
 of the DNS.
 
-The IANA `DNS Parameters <http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml>`_ registry is the offical reference site for all DNS
+The IANA `DNS Parameters <http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml>`_ registry is the official reference site for all DNS
 constants.
 
 

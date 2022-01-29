@@ -5,7 +5,7 @@ Message EDNS Options
 
 EDNS allows for larger messages and also provides an extension
 mechanism for the protocol.  EDNS *options* are typed data, and are
-treated much like Rdata.  For example, if dnsython encouters the EDNS
+treated much like Rdata.  For example, if dnsython encounters the EDNS
 ``ECS`` option code when parsing a DNS wire format message, it
 will create a ``dns.edns.ECSOption`` object to represent it.
 
