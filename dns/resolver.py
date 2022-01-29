@@ -1107,7 +1107,7 @@ class Resolver(BaseResolver):
         """Query nameservers to find the answer to the question.
 
         This method calls resolve() with ``search=True``, and is
-        provided for backwards compatbility with prior versions of
+        provided for backwards compatibility with prior versions of
         dnspython.  See the documentation for the resolve() method for
         further details.
         """
@@ -1206,7 +1206,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
     """Query nameservers to find the answer to the question.
 
     This method calls resolve() with ``search=True``, and is
-    provided for backwards compatbility with prior versions of
+    provided for backwards compatibility with prior versions of
     dnspython.  See the documentation for the resolve() method for
     further details.
     """
@@ -1259,7 +1259,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None,
     root servers in your network and they are misconfigured.)
 
     Raises ``dns.resolver.LifetimeTimeout`` if the answer could not be
-    found in the alotted lifetime.
+    found in the allotted lifetime.
 
     Returns a ``dns.name.Name``.
     """

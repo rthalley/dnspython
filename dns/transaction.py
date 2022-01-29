@@ -560,7 +560,7 @@ class Transaction:
         *commit*, a bool.  If ``True``, commit the transaction, otherwise
         roll it back.
 
-        If committing adn the commit fails, then roll back and raise an
+        If committing and the commit fails, then roll back and raise an
         exception.
         """
         raise NotImplementedError  # pragma: no cover

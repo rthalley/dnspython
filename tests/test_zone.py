@@ -801,7 +801,7 @@ class ZoneTestCase(unittest.TestCase):
         self.assertEqual(rrs[0].target, n2008)
 
     def testZoneMiscCases(self):
-        # test that leading whitespace folllowed by EOL is treated like
+        # test that leading whitespace followed by EOL is treated like
         # a blank line, and that out-of-zone names are dropped.
         z1 = dns.zone.from_text(misc_cases_input, 'example.')
         z2 = dns.zone.from_text(misc_cases_expected, 'example.')
