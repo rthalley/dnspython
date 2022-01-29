@@ -29,7 +29,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: port
 
-      An ``int``, the default DNS port to send to if not overriden by
+      An ``int``, the default DNS port to send to if not overridden by
       *nameserver_ports*.  The default value is 53.
 
    .. attribute:: nameserver_ports

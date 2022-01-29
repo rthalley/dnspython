@@ -215,7 +215,7 @@ class Server(threading.Thread):
             except Exception:
                 # We could try to make a response from only the header
                 # if dnspython had a header_only option to
-                # from_wire(), or if we truncated wire outselves, but
+                # from_wire(), or if we truncated wire ourselves, but
                 # for now we just drop.
                 return
         try:
