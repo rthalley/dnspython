@@ -125,7 +125,7 @@ class TooBig(DNSException):
 class Timeout(DNSException):
     """The DNS operation timed out."""
     supp_kwargs = {'timeout'}
-    fmt = "The DNS operation timed out after {timeout:.1f} seconds"
+    fmt = "The DNS operation timed out after {timeout:.3f} seconds"
 
 
 class ExceptionWrapper:
