@@ -145,7 +145,7 @@ class LifetimeTimeout(dns.exception.Timeout):
     """The resolution lifetime expired."""
 
     msg = "The resolution lifetime expired."
-    fmt = "%s after {timeout} seconds: {errors}" % msg[:-1]
+    fmt = "%s after {timeout:.3f} seconds: {errors}" % msg[:-1]
     supp_kwargs = {'timeout', 'errors'}
 
     def _fmt_kwargs(self, **kwargs):
