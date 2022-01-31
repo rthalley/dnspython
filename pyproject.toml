@@ -27,6 +27,13 @@ exclude = [
     "**/.DS_Store",
     "**/__pycache__/**",
 ]
+readme = "README.md"
+homepage = "https://www.dnspython.org"
+repository = "https://github.com/rthalley/dnspython.git"
+documentation = "https://dnspython.readthedocs.io/en/stable/"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/rthalley/dnspython/issues"
 
 [tool.poetry.dependencies]
 python = "^3.6"
