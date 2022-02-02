@@ -1018,7 +1018,7 @@ class Resolver(BaseResolver):
         *source_port*, an ``int``, the port from which to send the message.
 
         *lifetime*, a ``float``, how many seconds a query should run
-         before timing out.
+        before timing out.
 
         *search*, a ``bool`` or ``None``, determines whether the
         search list configured in the system's resolver configuration
