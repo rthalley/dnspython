@@ -32,12 +32,12 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def sendto(self, what, destination, timeout):
         with _maybe_timeout(timeout):
             return await self.socket.sendto(what, destination)
-        raise dns.exception.Timeout(timeout=timeout)  # pragma: no cover
+        raise dns.exception.Timeout(timeout=timeout)  # pragma: no cover  lgtm[py/unreachable-statement]
 
     async def recvfrom(self, size, timeout):
         with _maybe_timeout(timeout):
             return await self.socket.recvfrom(size)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):
         self.socket.close()
@@ -58,12 +58,12 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
     async def sendall(self, what, timeout):
         with _maybe_timeout(timeout):
             return await self.stream.send_all(what)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def recv(self, size, timeout):
         with _maybe_timeout(timeout):
             return await self.stream.receive_some(size)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):
         await self.stream.aclose()

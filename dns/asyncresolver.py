@@ -23,7 +23,7 @@ import dns.asyncbackend
 import dns.asyncquery
 import dns.exception
 import dns.query
-import dns.resolver
+import dns.resolver  # lgtm[py/import-and-import-from]
 
 # import some resolver symbols for brevity
 from dns.resolver import NXDOMAIN, NoAnswer, NotAbsolute, NoRootSOA

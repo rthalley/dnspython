@@ -330,7 +330,8 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     (begin_time, expiration) = _compute_times(timeout)
     if not sock:
         if ssl_context is None:
-            ssl_context = ssl.create_default_context()
+            # See the comment about ssl.create_default_context() in query.py
+            ssl_context = ssl.create_default_context()  # lgtm[py/insecure-protocol]
             if server_hostname is None:
                 ssl_context.check_hostname = False
         else:

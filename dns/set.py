@@ -44,7 +44,9 @@ class Set:
         self.items = odict()
         if items is not None:
             for item in items:
-                self.add(item)
+                # This is safe for how we use set, but if other code
+                # subclasses it could be a legitimate issue.
+                self.add(item)  # lgtm[py/init-calls-subclass]
 
     def __repr__(self):
         return "dns.set.Set(%s)" % repr(list(self.items.keys()))
@@ -73,7 +75,7 @@ class Set:
 
     def pop(self):
         """Remove an arbitrary item from the set."""
-        (k, v) = self.items.popitem()
+        (k, _) = self.items.popitem()
         return k
 
     def _clone(self):

@@ -30,7 +30,7 @@ ImmutableVersion = dns.zone.ImmutableVersion
 Transaction = dns.zone.Transaction
 
 
-class Zone(dns.zone.Zone):
+class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
 
     __slots__ = ['_versions', '_versions_lock', '_write_txn',
                  '_write_waiters', '_write_event', '_pruning_policy',

@@ -816,7 +816,7 @@ class Zone(dns.transaction.TransactionManager):
 
 # A node with a version id.
 
-class VersionedNode(dns.node.Node):
+class VersionedNode(dns.node.Node):  # lgtm[py/missing-equals]
     __slots__ = ['id']
 
     def __init__(self):

@@ -39,7 +39,7 @@ class UpdateSection(dns.enum.IntEnum):
         return 3
 
 
-class UpdateMessage(dns.message.Message):
+class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
 
     _section_enum = UpdateSection
 

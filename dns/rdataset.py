@@ -325,7 +325,7 @@ class Rdataset(dns.set.Set):
 
 
 @dns.immutable.immutable
-class ImmutableRdataset(Rdataset):
+class ImmutableRdataset(Rdataset):  # lgtm[py/missing-equals]
 
     """An immutable DNS rdataset."""
 

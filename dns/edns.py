@@ -142,7 +142,7 @@ class Option:
         return self.to_text()
 
 
-class GenericOption(Option):
+class GenericOption(Option):  # lgtm[py/missing-equals]
 
     """Generic Option Class
 
@@ -168,7 +168,7 @@ class GenericOption(Option):
         return cls(otype, parser.get_remaining())
 
 
-class ECSOption(Option):
+class ECSOption(Option):  # lgtm[py/missing-equals]
     """EDNS Client Subnet (ECS, RFC7871)"""
 
     def __init__(self, address, srclen=None, scopelen=0):
@@ -334,7 +334,7 @@ class EDECode(dns.enum.IntEnum):
         return 65535
 
 
-class EDEOption(Option):
+class EDEOption(Option):  # lgtm[py/missing-equals]
     """Extended DNS Error (EDE, RFC8914)"""
 
     def __init__(self, code, text=None):

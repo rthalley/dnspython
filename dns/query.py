@@ -858,7 +858,13 @@ def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     (af, destination, source) = _destination_and_source(where, port,
                                                         source, source_port)
     if ssl_context is None and not sock:
-        ssl_context = ssl.create_default_context()
+        # LGTM complains about this because the default might permit TLS < 1.2
+        # for compatibility, but the python documentation says that explicit
+        # versioning is deprecated. and that as of python 3.6 it will negotiate
+        # the highest version possible.  While we can set a minimum version,
+        # this isn't great either as we might set it lower than a future
+        # python version would.
+        ssl_context = ssl.create_default_context()  # lgtm[py/insecure-protocol]
         if server_hostname is None:
             ssl_context.check_hostname = False
 

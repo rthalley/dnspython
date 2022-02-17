@@ -18,4 +18,4 @@ ignore =
        # Lines ending with binary operators are OK
        W504,
 
-max-line-length = 80
+max-line-length = 120

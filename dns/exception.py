@@ -51,7 +51,8 @@ class DNSException(Exception):
     def __init__(self, *args, **kwargs):
         self._check_params(*args, **kwargs)
         if kwargs:
-            self.kwargs = self._check_kwargs(**kwargs)
+            # This call to a virtual method from __init__ is ok in our usage
+            self.kwargs = self._check_kwargs(**kwargs)  # lgtm[py/init-calls-subclass]
             self.msg = str(self)
         else:
             self.kwargs = dict()  # defined but empty for old mode exceptions

@@ -15,7 +15,7 @@ else:
 
 
 @immutable
-class Dict(collections.abc.Mapping):
+class Dict(collections.abc.Mapping):  # lgtm[py/missing-equals]
     def __init__(self, dictionary, no_copy=False):
         """Make an immutable dictionary from the specified dictionary.
 
