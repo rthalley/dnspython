@@ -151,6 +151,10 @@ class QueryTests(unittest.TestCase):
                 base_s.settimeout(2)
                 base_s.connect(ll)
                 ctx = ssl.create_default_context()
+                if sys.version_info >= (3, 7):
+                    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+                else:
+                    ctx.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
                 with ctx.wrap_socket(base_s, server_hostname='dns.google') as s:  # lgtm[py/insecure-protocol]
                     s.setblocking(0)
                     qname = dns.name.from_text('dns.google.')
