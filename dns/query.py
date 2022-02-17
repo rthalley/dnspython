@@ -17,6 +17,7 @@
 
 """Talk to a DNS server."""
 
+import base64
 import contextlib
 import enum
 import errno
@@ -24,8 +25,8 @@ import os
 import selectors
 import socket
 import struct
+import sys
 import time
-import base64
 import urllib.parse
 
 import dns.exception
@@ -860,11 +861,13 @@ def tls(q, where, timeout=None, port=853, source=None, source_port=0,
     if ssl_context is None and not sock:
         # LGTM complains about this because the default might permit TLS < 1.2
         # for compatibility, but the python documentation says that explicit
-        # versioning is deprecated. and that as of python 3.6 it will negotiate
-        # the highest version possible.  While we can set a minimum version,
-        # this isn't great either as we might set it lower than a future
-        # python version would.
+        # versioning is deprecated, and that as of python 3.6 it will negotiate
+        # the highest version possible.  We also set a minimum version when we
+        # can, even though this might require a future dnspython release if that
+        # version becomes deprecated.
         ssl_context = ssl.create_default_context()  # lgtm[py/insecure-protocol]
+        if sys.version_info >= (3, 7):
+            ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
         if server_hostname is None:
             ssl_context.check_hostname = False
 

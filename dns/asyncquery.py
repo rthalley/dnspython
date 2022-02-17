@@ -20,6 +20,7 @@
 import base64
 import socket
 import struct
+import sys
 import time
 
 import dns.asyncbackend
@@ -332,6 +333,8 @@ async def tls(q, where, timeout=None, port=853, source=None, source_port=0,
         if ssl_context is None:
             # See the comment about ssl.create_default_context() in query.py
             ssl_context = ssl.create_default_context()  # lgtm[py/insecure-protocol]
+            if sys.version_info >= (3, 7):
+                ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
             if server_hostname is None:
                 ssl_context.check_hostname = False
         else:
