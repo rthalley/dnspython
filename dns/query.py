@@ -239,7 +239,8 @@ def _make_socket(af, type, source, ssl_context=None, server_hostname=None):
         if source is not None:
             s.bind(source)
         if ssl_context:
-            return ssl_context.wrap_socket(s, do_handshake_on_connect=False,
+            # LGTM gets a false positive here, as our default context is OK
+            return ssl_context.wrap_socket(s, do_handshake_on_connect=False,  # lgtm[py/insecure-protocol]
                                            server_hostname=server_hostname)
         else:
             return s
