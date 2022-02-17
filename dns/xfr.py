@@ -110,7 +110,6 @@ class Inbound:
                 raise dns.exception.FormError("No answer or RRset not "
                                               "for zone origin")
             rrset = message.answer[0]
-            name = rrset.name
             rdataset = rrset
             if rdataset.rdtype != dns.rdatatype.SOA:
                 raise dns.exception.FormError("first RRset is not an SOA")

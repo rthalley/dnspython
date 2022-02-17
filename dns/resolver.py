@@ -876,7 +876,7 @@ class BaseResolver:
                 # Time went backwards, but only a little.  This can
                 # happen, e.g. under vmware with older linux kernels.
                 # Pretend it didn't happen.
-                now = start
+                duration = 0
         if duration >= lifetime:
             raise LifetimeTimeout(timeout=duration, errors=errors)
         return min(lifetime - duration, self.timeout)
@@ -1378,7 +1378,10 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
             v6 = _resolver.resolve(host, dns.rdatatype.AAAA,
                                    raise_on_no_answer=False)
             # Note that setting host ensures we query the same name
-            # for A as we did for AAAA.
+            # for A as we did for AAAA.  (This is just in case search lists
+            # are active by default in the resolver configuration and
+            # we might be talking to a server that says NXDOMAIN when it
+            # wants to say NOERROR no data.
             host = v6.qname
             canonical_name = v6.canonical_name.to_text(True)
             if v6.rrset is not None:
@@ -1387,7 +1390,6 @@ def _getaddrinfo(host=None, service=None, family=socket.AF_UNSPEC, socktype=0,
         if family == socket.AF_INET or family == socket.AF_UNSPEC:
             v4 = _resolver.resolve(host, dns.rdatatype.A,
                                    raise_on_no_answer=False)
-            host = v4.qname
             canonical_name = v4.canonical_name.to_text(True)
             if v4.rrset is not None:
                 for rdata in v4.rrset:

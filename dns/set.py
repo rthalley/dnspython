@@ -117,7 +117,7 @@ class Set:
 
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
-        if self is other:
+        if self is other:  # lgtm[py/comparison-using-is]
             return
         for item in other.items:
             self.add(item)
@@ -129,7 +129,7 @@ class Set:
 
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
-        if self is other:
+        if self is other:  # lgtm[py/comparison-using-is]
             return
         # we make a copy of the list so that we can remove items from
         # the list without breaking the iterator.
@@ -144,7 +144,7 @@ class Set:
 
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
-        if self is other:
+        if self is other:  # lgtm[py/comparison-using-is]
             self.items.clear()
         else:
             for item in other.items:
@@ -155,7 +155,7 @@ class Set:
 
         if not isinstance(other, Set):
             raise ValueError('other must be a Set instance')
-        if self is other:
+        if self is other:  # lgtm[py/comparison-using-is]
             self.items.clear()
         else:
             overlap = self.intersection(other)

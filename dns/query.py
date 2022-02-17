@@ -76,7 +76,8 @@ except ImportError:  # pragma: no cover
         class SSLSocket:
             pass
 
-        def create_default_context(self, *args, **kwargs):
+        @classmethod
+        def create_default_context(cls, *args, **kwargs):
             raise Exception('no ssl support')
 
 # Function used to create a socket.  Can be overridden if needed in special

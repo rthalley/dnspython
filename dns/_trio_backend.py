@@ -103,7 +103,6 @@ class Backend(dns._asyncbackend.Backend):
             return DatagramSocket(s)
         elif socktype == socket.SOCK_STREAM:
             stream = trio.SocketStream(s)
-            s = None
             tls = False
             if ssl_context:
                 tls = True
