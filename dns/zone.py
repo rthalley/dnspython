@@ -716,7 +716,7 @@ class Zone(dns.transaction.TransactionManager):
     def get_soa(self):
         """Get the zone SOA RR.
 
-        Raises ``KeyError`` if there is no SOA record.
+        Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
 
         Returns a ``dns.node.Node``.
         """
@@ -726,7 +726,7 @@ class Zone(dns.transaction.TransactionManager):
             origin_name = self.origin
         soa = self.get_rdataset(origin_name, dns.rdatatype.SOA)
         if soa is None:
-            raise KeyError
+            raise NoSOA
         return soa[0]
 
     def _compute_digest(self, hash_algorithm, scheme=DigestScheme.SIMPLE):

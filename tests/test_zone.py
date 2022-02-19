@@ -1071,7 +1071,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testGetSoaEmptyZone(self):
         z = dns.zone.Zone('example.')
-        with self.assertRaises(KeyError):
+        with self.assertRaises(dns.zone.NoSOA):
             soa = z.get_soa()
 
 
