@@ -1062,6 +1062,18 @@ class VersionedZoneTestCase(unittest.TestCase):
                                             dns.rdatatype.RRSIG,
                                             dns.rdatatype.NSEC))
 
+    def testGetSoa(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        soa = z.get_soa()
+        self.assertTrue(soa.rdtype, dns.rdatatype.SOA)
+        self.assertEqual(soa.serial, 1)
+
+    def testGetSoaEmptyZone(self):
+        z = dns.zone.Zone('example.')
+        with self.assertRaises(KeyError):
+            soa = z.get_soa()
+
 
 if __name__ == '__main__':
     unittest.main()
