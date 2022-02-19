@@ -762,7 +762,7 @@ class Zone(dns.transaction.TransactionManager):
             origin_name = dns.name.empty
         else:
             origin_name = self.origin
-        serial = self.get_rdataset(origin_name, dns.rdatatype.SOA)[0].serial
+        serial = self.get_soa().serial
         digest = self._compute_digest(hash_algorithm, scheme)
         return dns.rdtypes.ANY.ZONEMD.ZONEMD(self.rdclass,
                                              dns.rdatatype.ZONEMD,
