@@ -42,4 +42,10 @@ jobs:
         poetry install -E dnssec -E doh -E idna -E trio -E curio
     - name: Test with pytest
       run: |
-        poetry run pytest --cov=. --cov-report=xml:coverage.xml
+        poetry run pytest --cov=dns --cov-branch --cov-report=xml:coverage.xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        files: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
