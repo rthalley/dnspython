@@ -356,16 +356,20 @@ class ImmutableRdataset(Rdataset):  # lgtm[py/missing-equals]
     def __delitem__(self, i):
         raise TypeError('immutable')
 
-    def __ior__(self, other):
+    # lgtm complains about these not raising ArithmeticError, but there is
+    # precedent for overrides of these methods in other classes to raise
+    # TypeError, and it seems like the better exception.
+
+    def __ior__(self, other):  # lgtm[py/unexpected-raise-in-special-method]
         raise TypeError('immutable')
 
-    def __iand__(self, other):
+    def __iand__(self, other):  # lgtm[py/unexpected-raise-in-special-method]
         raise TypeError('immutable')
 
-    def __iadd__(self, other):
+    def __iadd__(self, other):  # lgtm[py/unexpected-raise-in-special-method]
         raise TypeError('immutable')
 
-    def __isub__(self, other):
+    def __isub__(self, other):  # lgtm[py/unexpected-raise-in-special-method]
         raise TypeError('immutable')
 
     def clear(self):
