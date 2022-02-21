@@ -713,7 +713,7 @@ class Zone(dns.transaction.TransactionManager):
         if self.get_rdataset(name, dns.rdatatype.NS) is None:
             raise NoNS
 
-    def get_soa(self):
+    def get_soa(self, txn=None):
         """Get the zone SOA RR.
 
         Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
@@ -724,7 +724,10 @@ class Zone(dns.transaction.TransactionManager):
             origin_name = dns.name.empty
         else:
             origin_name = self.origin
-        soa = self.get_rdataset(origin_name, dns.rdatatype.SOA)
+        if txn:
+            soa = txn.get(origin_name, dns.rdatatype.SOA)
+        else:
+            soa = self.get_rdataset(origin_name, dns.rdatatype.SOA)
         if soa is None:
             raise NoSOA
         return soa[0]

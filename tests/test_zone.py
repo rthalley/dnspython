@@ -1069,6 +1069,15 @@ class VersionedZoneTestCase(unittest.TestCase):
         self.assertTrue(soa.rdtype, dns.rdatatype.SOA)
         self.assertEqual(soa.serial, 1)
 
+    def testGetSoaTxn(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        with z.reader(serial=1) as txn:
+            soa = z.get_soa(txn)
+            self.assertTrue(soa.rdtype, dns.rdatatype.SOA)
+            self.assertEqual(soa.serial, 1)
+
+
     def testGetSoaEmptyZone(self):
         z = dns.zone.Zone('example.')
         with self.assertRaises(dns.zone.NoSOA):
