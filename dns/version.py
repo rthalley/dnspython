@@ -28,14 +28,14 @@ RELEASELEVEL = 0x00
 #: SERIAL
 SERIAL = 0
 
-if RELEASELEVEL == 0x0f:  # pragma: no cover
+if RELEASELEVEL == 0x0f:  # pragma: no cover  lgtm[py/unreachable-statement]
     #: version
     version = '%d.%d.%d' % (MAJOR, MINOR, MICRO)  # lgtm[py/unreachable-statement]
 elif RELEASELEVEL == 0x00:  # pragma: no cover  lgtm[py/unreachable-statement]
     version = '%d.%d.%ddev%d' % (MAJOR, MINOR, MICRO, SERIAL)  # lgtm[py/unreachable-statement]
-elif RELEASELEVEL == 0x0c:  # pragma: no cover
+elif RELEASELEVEL == 0x0c:  # pragma: no cover  lgtm[py/unreachable-statement]
     version = '%d.%d.%drc%d' % (MAJOR, MINOR, MICRO, SERIAL)  # lgtm[py/unreachable-statement]
-else:  # pragma: no cover
+else:  # pragma: no cover  lgtm[py/unreachable-statement]
     version = '%d.%d.%d%x%d' % (MAJOR, MINOR, MICRO, RELEASELEVEL, SERIAL)  # lgtm[py/unreachable-statement]
 
 #: hexversion
