@@ -713,6 +713,25 @@ class Zone(dns.transaction.TransactionManager):
         if self.get_rdataset(name, dns.rdatatype.NS) is None:
             raise NoNS
 
+    def get_soa(self, txn=None):
+        """Get the zone SOA RR.
+
+        Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
+
+        Returns a ``dns.node.Node``.
+        """
+        if self.relativize:
+            origin_name = dns.name.empty
+        else:
+            origin_name = self.origin
+        if txn:
+            soa = txn.get(origin_name, dns.rdatatype.SOA)
+        else:
+            soa = self.get_rdataset(origin_name, dns.rdatatype.SOA)
+        if soa is None:
+            raise NoSOA
+        return soa[0]
+
     def _compute_digest(self, hash_algorithm, scheme=DigestScheme.SIMPLE):
         hashinfo = _digest_hashers.get(hash_algorithm)
         if not hashinfo:
@@ -746,7 +765,7 @@ class Zone(dns.transaction.TransactionManager):
             origin_name = dns.name.empty
         else:
             origin_name = self.origin
-        serial = self.get_rdataset(origin_name, dns.rdatatype.SOA)[0].serial
+        serial = self.get_soa().serial
         digest = self._compute_digest(hash_algorithm, scheme)
         return dns.rdtypes.ANY.ZONEMD.ZONEMD(self.rdclass,
                                              dns.rdatatype.ZONEMD,
