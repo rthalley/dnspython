@@ -26,8 +26,8 @@ _lltuple = dns.inet.low_level_address_tuple
 
 class DatagramSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, socket):
+        super().__init__(socket.family)
         self.socket = socket
-        self.family = socket.family
 
     async def sendto(self, what, destination, timeout):
         async with _maybe_timeout(timeout):

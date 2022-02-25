@@ -20,7 +20,7 @@ import calendar
 import struct
 import time
 
-import dns.dnssec
+import dns.dnssectypes
 import dns.immutable
 import dns.exception
 import dns.rdata
@@ -65,7 +65,7 @@ class RRSIG(dns.rdata.Rdata):
                  signature):
         super().__init__(rdclass, rdtype)
         self.type_covered = self._as_rdatatype(type_covered)
-        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
         self.labels = self._as_uint8(labels)
         self.original_ttl = self._as_ttl(original_ttl)
         self.expiration = self._as_uint32(expiration)
@@ -94,7 +94,7 @@ class RRSIG(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         type_covered = dns.rdatatype.from_text(tok.get_string())
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = dns.dnssectypes.Algorithm.from_text(tok.get_string())
         labels = tok.get_int()
         original_ttl = tok.get_ttl()
         expiration = sigtime_to_posixtime(tok.get_string())

@@ -1,9 +1,12 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+from typing import Callable, List, Optional, Tuple, Union
+
 import collections
 
 import dns.exception
 import dns.name
+import dns.node
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
@@ -13,11 +16,11 @@ import dns.ttl
 
 
 class TransactionManager:
-    def reader(self):
+    def reader(self) -> 'Transaction':
         """Begin a read-only transaction."""
         raise NotImplementedError  # pragma: no cover
 
-    def writer(self, replacement=False):
+    def writer(self, replacement=False) -> 'Transaction':
         """Begin a writable transaction.
 
         *replacement*, a ``bool``.  If `True`, the content of the
@@ -27,7 +30,7 @@ class TransactionManager:
         """
         raise NotImplementedError  # pragma: no cover
 
-    def origin_information(self):
+    def origin_information(self) -> Tuple[Optional[dns.name.Name], bool, Optional[dns.name.Name]]:
         """Returns a tuple
 
             (absolute_origin, relativize, effective_origin)
@@ -52,12 +55,12 @@ class TransactionManager:
         """
         raise NotImplementedError  # pragma: no cover
 
-    def get_class(self):
+    def get_class(self) -> dns.rdataclass.RdataClass:
         """The class of the transaction manager.
         """
         raise NotImplementedError  # pragma: no cover
 
-    def from_wire_origin(self):
+    def from_wire_origin(self) -> Optional[dns.name.Name]:
         """Origin to use in from_wire() calls.
         """
         (absolute_origin, relativize, _) = self.origin_information()
@@ -90,22 +93,33 @@ def _ensure_immutable_node(node):
     return dns.node.ImmutableNode(node)
 
 
+CheckPutRdatasetType = Callable[['Transaction', dns.name.Name, dns.rdataset.Rdataset], None]
+CheckDeleteRdatasetType = Callable[['Transaction', dns.name.Name,
+                                    dns.rdatatype.RdataType, dns.rdatatype.RdataType], None]
+CheckDeleteNameType = Callable[['Transaction', dns.name.Name], None]
+
+
 class Transaction:
 
-    def __init__(self, manager, replacement=False, read_only=False):
+    def __init__(self, manager: TransactionManager, replacement=False, read_only=False):
         self.manager = manager
         self.replacement = replacement
         self.read_only = read_only
         self._ended = False
-        self._check_put_rdataset = []
-        self._check_delete_rdataset = []
-        self._check_delete_name = []
+        self._check_put_rdataset: List[CheckPutRdatasetType]= []
+        self._check_delete_rdataset: List[CheckDeleteRdatasetType] = []
+        self._check_delete_name: List[CheckDeleteNameType] = []
 
     #
     # This is the high level API
     #
+    # Note that we currently use non-immutable types in the return type signature to avoid
+    # covariance problems, e.g. if the caller has a List[Rdataset], mypy will be unhappy if we
+    # return an ImmutableRdataset.
 
-    def get(self, name, rdtype, covers=dns.rdatatype.NONE):
+    def get(self, name: Optional[Union[dns.name.Name,str]],
+            rdtype: Union[dns.rdatatype.RdataType, str],
+            covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE) -> dns.rdataset.Rdataset:
         """Return the rdataset associated with *name*, *rdtype*, and *covers*,
         or `None` if not found.
 
@@ -115,10 +129,11 @@ class Transaction:
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
         rdataset = self._get_rdataset(name, rdtype, covers)
         return _ensure_immutable_rdataset(rdataset)
 
-    def get_node(self, name):
+    def get_node(self, name) -> dns.node.Node:
         """Return the node at *name*, if any.
 
         Returns an immutable node or ``None``.
@@ -210,7 +225,7 @@ class Transaction:
         self._check_read_only()
         return self._delete(True, args)
 
-    def name_exists(self, name):
+    def name_exists(self, name: Union[dns.name.Name, str]) -> bool:
         """Does the specified name exist?"""
         self._check_ended()
         if isinstance(name, str):
@@ -253,7 +268,7 @@ class Transaction:
         self._check_ended()
         return self._iterate_rdatasets()
 
-    def changed(self):
+    def changed(self) -> bool:
         """Has this transaction changed anything?
 
         For read-only transactions, the result is always `False`.
@@ -289,7 +304,7 @@ class Transaction:
         """
         self._end(False)
 
-    def check_put_rdataset(self, check):
+    def check_put_rdataset(self, check: CheckPutRdatasetType):
         """Call *check* before putting (storing) an rdataset.
 
         The function is called with the transaction, the name, and the rdataset.
@@ -301,7 +316,7 @@ class Transaction:
         """
         self._check_put_rdataset.append(check)
 
-    def check_delete_rdataset(self, check):
+    def check_delete_rdataset(self, check: CheckDeleteRdatasetType):
         """Call *check* before deleting an rdataset.
 
         The function is called with the transaction, the name, the rdatatype,
@@ -314,7 +329,7 @@ class Transaction:
         """
         self._check_delete_rdataset.append(check)
 
-    def check_delete_name(self, check):
+    def check_delete_name(self, check: CheckDeleteNameType):
         """Call *check* before putting (storing) an rdataset.
 
         The function is called with the transaction and the name.

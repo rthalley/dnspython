@@ -20,7 +20,7 @@ import base64
 
 import dns.exception
 import dns.immutable
-import dns.dnssec
+import dns.dnssectypes
 import dns.rdata
 import dns.tokenizer
 
@@ -85,7 +85,7 @@ class CERT(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)
         return "%s %d %s %s" % (certificate_type, self.key_tag,
-                                dns.dnssec.algorithm_to_text(self.algorithm),
+                                dns.dnssectypes.Algorithm.to_text(self.algorithm),
                                 dns.rdata._base64ify(self.certificate, **kw))
 
     @classmethod
@@ -93,7 +93,7 @@ class CERT(dns.rdata.Rdata):
                   relativize_to=None):
         certificate_type = _ctype_from_text(tok.get_string())
         key_tag = tok.get_uint16()
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = dns.dnssectypes.Algorithm.from_text(tok.get_string())
         b64 = tok.concatenate_remaining_identifiers().encode()
         certificate = base64.b64decode(b64)
         return cls(rdclass, rdtype, certificate_type, key_tag,

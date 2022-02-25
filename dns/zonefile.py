@@ -17,6 +17,8 @@
 
 """DNS Zones."""
 
+from typing import Any, List, Optional, Tuple, Union
+
 import re
 import sys
 
@@ -61,14 +63,27 @@ def _check_cname_and_other_data(txn, name, rdataset):
     # adding the rdataset is ok
 
 
+SavedStateType = Tuple[dns.tokenizer.Tokenizer,
+                       Optional[dns.name.Name],   # current_origin
+                       Optional[dns.name.Name],   # last_name
+                       Optional[str],             # current_file
+                       int,                       # last_ttl
+                       bool,                      # last_ttl_known
+                       int,                       # default_ttl
+                       bool]                      # default_ttl_known
+
+
 class Reader:
 
     """Read a DNS zone file into a transaction."""
 
-    def __init__(self, tok, rdclass, txn, allow_include=False,
-                 allow_directives=True, force_name=None,
-                 force_ttl=None, force_rdclass=None, force_rdtype=None,
-                 default_ttl=None):
+    def __init__(self, tok: dns.tokenizer.Tokenizer, rdclass: dns.rdataclass.RdataClass,
+                 txn: dns.transaction.Transaction, allow_include=False,
+                 allow_directives=True, force_name: Optional[dns.name.Name]=None,
+                 force_ttl: Optional[int]=None,
+                 force_rdclass: Optional[dns.rdataclass.RdataClass]=None,
+                 force_rdtype: Optional[dns.rdatatype.RdataType]=None,
+                 default_ttl: Optional[int]=None):
         self.tok = tok
         (self.zone_origin, self.relativize, _) = \
             txn.manager.origin_information()
@@ -86,7 +101,7 @@ class Reader:
         self.last_name = self.current_origin
         self.zone_rdclass = rdclass
         self.txn = txn
-        self.saved_state = []
+        self.saved_state: List[SavedStateType] = []
         self.current_file = None
         self.allow_include = allow_include
         self.allow_directives = allow_directives
@@ -548,10 +563,16 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
         self.rrsets = rrsets
 
 
-def read_rrsets(text, name=None, ttl=None, rdclass=dns.rdataclass.IN,
-                default_rdclass=dns.rdataclass.IN,
-                rdtype=None, default_ttl=None, idna_codec=None,
-                origin=dns.name.root, relativize=False):
+def read_rrsets(text: Any,
+                name: Optional[Union[dns.name.Name, str]]=None,
+                ttl: Optional[int]=None,
+                rdclass: Optional[Union[dns.rdataclass.RdataClass, str]]=dns.rdataclass.IN,
+                default_rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+                rdtype: Optional[Union[dns.rdatatype.RdataType, str]]=None,
+                default_ttl: Optional[Union[int, str]]=None,
+                idna_codec: Optional[dns.name.IDNACodec]=None,
+                origin: Optional[Union[dns.name.Name, str]]=dns.name.root,
+                relativize=False) -> List[dns.rrset.RRset]:
     """Read one or more rrsets from the specified text, possibly subject
     to restrictions.
 
@@ -610,15 +631,19 @@ def read_rrsets(text, name=None, ttl=None, rdclass=dns.rdataclass.IN,
     if isinstance(default_ttl, str):
         default_ttl = dns.ttl.from_text(default_ttl)
     if rdclass is not None:
-        rdclass = dns.rdataclass.RdataClass.make(rdclass)
-    default_rdclass = dns.rdataclass.RdataClass.make(default_rdclass)
+        the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    else:
+        the_rdclass = None
+    the_default_rdclass = dns.rdataclass.RdataClass.make(default_rdclass)
     if rdtype is not None:
-        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+    else:
+        the_rdtype = None
     manager = RRSetsReaderManager(origin, relativize, default_rdclass)
     with manager.writer(True) as txn:
         tok = dns.tokenizer.Tokenizer(text, '<input>', idna_codec=idna_codec)
-        reader = Reader(tok, default_rdclass, txn, allow_directives=False,
-                        force_name=name, force_ttl=ttl, force_rdclass=rdclass,
-                        force_rdtype=rdtype, default_ttl=default_ttl)
+        reader = Reader(tok, the_default_rdclass, txn, allow_directives=False,
+                        force_name=name, force_ttl=ttl, force_rdclass=the_rdclass,
+                        force_rdtype=the_rdtype, default_ttl=default_ttl)
         reader.read()
     return manager.rrsets

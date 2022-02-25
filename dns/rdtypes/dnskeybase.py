@@ -21,7 +21,7 @@ import struct
 
 import dns.exception
 import dns.immutable
-import dns.dnssec
+import dns.dnssectypes
 import dns.rdata
 
 # wildcard import
@@ -44,7 +44,7 @@ class DNSKEYBase(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.flags = self._as_uint16(flags)
         self.protocol = self._as_uint8(protocol)
-        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
         self.key = self._as_bytes(key)
 
     def to_text(self, origin=None, relativize=True, **kw):

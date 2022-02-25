@@ -17,12 +17,17 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
+from typing import List, Optional, Union
+
 import enum
 import io
 
 import dns.immutable
+import dns.name
+import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
+import dns.rrset
 import dns.renderer
 
 
@@ -51,7 +56,7 @@ class NodeKind(enum.Enum):
     CNAME = 2
 
     @classmethod
-    def classify(cls, rdtype, covers):
+    def classify(cls, rdtype: dns.rdatatype.RdataType, covers: dns.rdatatype.RdataType) -> 'NodeKind':
         if _matches_type_or_its_signature(_cname_types, rdtype, covers):
             return NodeKind.CNAME
         elif _matches_type_or_its_signature(_neutral_types, rdtype, covers):
@@ -60,7 +65,7 @@ class NodeKind(enum.Enum):
             return NodeKind.REGULAR
 
     @classmethod
-    def classify_rdataset(cls, rdataset):
+    def classify_rdataset(cls, rdataset: dns.rdataset.Rdataset) -> 'NodeKind':
         return cls.classify(rdataset.rdtype, rdataset.covers)
 
 
@@ -85,15 +90,15 @@ class Node:
 
     def __init__(self):
         # the set of rdatasets, represented as a list.
-        self.rdatasets = []
+        self.rdatasets: List[dns.rdataset.Rdataset] = []
 
-    def to_text(self, name, **kw):
+    def to_text(self, name: dns.name.Name, **kw) -> str:
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
         to this method are passed on to the rdataset's to_text() method.
 
-        *name*, a ``dns.name.Name`` or ``str``, the owner name of the
+        *name*, a ``dns.name.Name``, the owner name of the
         rdatasets.
 
         Returns a ``str``.
@@ -155,16 +160,19 @@ class Node:
             # edit self.rdatasets.
         self.rdatasets.append(rdataset)
 
-    def find_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
-                      create=False):
+    def find_rdataset(self,
+                      rdclass: dns.rdataclass.RdataClass,
+                      rdtype: dns.rdatatype.RdataType,
+                      covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
+                      create=False) -> dns.rdataset.Rdataset:
         """Find an rdataset matching the specified properties in the
         current node.
 
-        *rdclass*, an ``int``, the class of the rdataset.
+        *rdclass*, a ``dns.rdataclass.RdataClass``, the class of the rdataset.
 
-        *rdtype*, an ``int``, the type of the rdataset.
+        *rdtype*, a ``dns.rdatatype.RdataType``, the type of the rdataset.
 
-        *covers*, an ``int`` or ``None``, the covered type.
+        *covers*, a ``dns.rdatatype.RdataType``, the covered type.
         Usually this value is ``dns.rdatatype.NONE``, but if the
         rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
         then the covers value will be the rdata type the SIG/RRSIG
@@ -191,8 +199,11 @@ class Node:
         self._append_rdataset(rds)
         return rds
 
-    def get_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
-                     create=False):
+    def get_rdataset(self,
+                     rdclass: dns.rdataclass.RdataClass,
+                     rdtype: dns.rdatatype.RdataType,
+                     covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
+                     create=False) -> Optional[dns.rdataset.Rdataset]:
         """Get an rdataset matching the specified properties in the
         current node.
 
@@ -223,7 +234,10 @@ class Node:
             rds = None
         return rds
 
-    def delete_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE):
+    def delete_rdataset(self,
+                        rdclass: dns.rdataclass.RdataClass,
+                        rdtype: dns.rdatatype.RdataType,
+                        covers: dns.rdatatype.RdataType=dns.rdatatype.NONE):
         """Delete the rdataset matching the specified properties in the
         current node.
 
@@ -240,7 +254,7 @@ class Node:
         if rds is not None:
             self.rdatasets.remove(rds)
 
-    def replace_rdataset(self, replacement):
+    def replace_rdataset(self, replacement: dns.rdataset.Rdataset):
         """Replace an rdataset.
 
         It is not an error if there is no rdataset matching *replacement*.
@@ -265,7 +279,7 @@ class Node:
                              replacement.covers)
         self._append_rdataset(replacement)
 
-    def classify(self):
+    def classify(self) -> NodeKind:
         """Classify a node.
 
         A node which contains a CNAME or RRSIG(CNAME) is a
@@ -286,7 +300,7 @@ class Node:
                 return kind
         return NodeKind.NEUTRAL
 
-    def is_immutable(self):
+    def is_immutable(self) -> bool:
         return False
 
 
@@ -316,5 +330,5 @@ class ImmutableNode(Node):
     def replace_rdataset(self, replacement):
         raise TypeError("immutable")
 
-    def is_immutable(self):
+    def is_immutable(self) -> bool:
         return True

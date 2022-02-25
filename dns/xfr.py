@@ -15,12 +15,17 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from typing import Any, List, Optional, Tuple
+
 import dns.exception
 import dns.message
 import dns.name
 import dns.rcode
 import dns.serial
+import dns.rdataset
 import dns.rdatatype
+import dns.transaction
+import dns.tsig
 import dns.zone
 
 
@@ -46,8 +51,8 @@ class Inbound:
     State machine for zone transfers.
     """
 
-    def __init__(self, txn_manager, rdtype=dns.rdatatype.AXFR,
-                 serial=None, is_udp=False):
+    def __init__(self, txn_manager: dns.transaction.TransactionManager, rdtype=dns.rdatatype.AXFR,
+                 serial: Optional[int]=None, is_udp=False):
         """Initialize an inbound zone transfer.
 
         *txn_manager* is a :py:class:`dns.transaction.TransactionManager`.
@@ -61,7 +66,7 @@ class Inbound:
         XFR.
         """
         self.txn_manager = txn_manager
-        self.txn = None
+        self.txn: Optional[dns.transaction.Transaction] = None
         self.rdtype = rdtype
         if rdtype == dns.rdatatype.IXFR:
             if serial is None:
@@ -71,12 +76,12 @@ class Inbound:
         self.serial = serial
         self.is_udp = is_udp
         (_, _, self.origin) = txn_manager.origin_information()
-        self.soa_rdataset = None
+        self.soa_rdataset: Optional[dns.rdataset.Rdataset] = None
         self.done = False
         self.expecting_SOA = False
         self.delete_mode = False
 
-    def process_message(self, message):
+    def process_message(self, message: dns.message.Message) -> bool:
         """Process one message in the transfer.
 
         The message should have the same relativization as was specified when
@@ -146,6 +151,7 @@ class Inbound:
             rdataset = rrset
             if self.done:
                 raise dns.exception.FormError("answers after final SOA")
+            assert self.txn is not None  # for mypy
             if rdataset.rdtype == dns.rdatatype.SOA and \
                name == self.origin:
                 #
@@ -238,11 +244,11 @@ class Inbound:
         return False
 
 
-def make_query(txn_manager, serial=0,
-               use_edns=None, ednsflags=None, payload=None,
-               request_payload=None, options=None,
-               keyring=None, keyname=None,
-               keyalgorithm=dns.tsig.default_algorithm):
+def make_query(txn_manager: dns.transaction.TransactionManager, serial: Optional[int]=0,
+               use_edns=None, ednsflags: Optional[int]=None, payload: Optional[int]=None,
+               request_payload: Optional[int]=None, options: Optional[List[dns.edns.Option]]=None,
+               keyring: Any=None, keyname: Optional[dns.name.Name]=None,
+               keyalgorithm=dns.tsig.default_algorithm) -> Tuple[dns.message.QueryMessage, Optional[int]]:
     """Make an AXFR or IXFR query.
 
     *txn_manager* is a ``dns.transaction.TransactionManager``, typically a
@@ -263,6 +269,8 @@ def make_query(txn_manager, serial=0,
     Returns a `(query, serial)` tuple.
     """
     (zone_origin, _, origin) = txn_manager.origin_information()
+    if zone_origin is None:
+        raise ValueError('no zone origin')
     if serial is None:
         rdtype = dns.rdatatype.AXFR
     elif not isinstance(serial, int):
@@ -293,15 +301,17 @@ def make_query(txn_manager, serial=0,
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
     return (q, serial)
 
-def extract_serial_from_query(query):
+def extract_serial_from_query(query: dns.message.Message) -> Optional[int]:
     """Extract the SOA serial number from query if it is an IXFR and return
     it, otherwise return None.
 
     *query* is a dns.message.QueryMessage that is an IXFR or AXFR request.
 
     Raises if the query is not an IXFR or AXFR, or if an IXFR doesn't have
-    an appropriate SOA RRset in the authority section."""
-
+    an appropriate SOA RRset in the authority section.
+    """
+    if not isinstance(query, dns.message.QueryMessage):
+        raise ValueError('query not a QueryMessage')
     question = query.question[0]
     if question.rdtype == dns.rdatatype.AXFR:
         return None

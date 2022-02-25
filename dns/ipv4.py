@@ -17,11 +17,13 @@
 
 """IPv4 helper functions."""
 
+from typing import Union
+
 import struct
 
 import dns.exception
 
-def inet_ntoa(address):
+def inet_ntoa(address: bytes) -> str:
     """Convert an IPv4 address in binary form to text form.
 
     *address*, a ``bytes``, the IPv4 address in binary form.
@@ -34,17 +36,19 @@ def inet_ntoa(address):
     return ('%u.%u.%u.%u' % (address[0], address[1],
                              address[2], address[3]))
 
-def inet_aton(text):
+def inet_aton(text: Union[str, bytes]) -> bytes:
     """Convert an IPv4 address in text form to binary form.
 
-    *text*, a ``str``, the IPv4 address in textual form.
+    *text*, a ``str`` or ``bytes``, the IPv4 address in textual form.
 
     Returns a ``bytes``.
     """
 
     if not isinstance(text, bytes):
-        text = text.encode()
-    parts = text.split(b'.')
+        btext = text.encode()
+    else:
+        btext = text
+    parts = btext.split(b'.')
     if len(parts) != 4:
         raise dns.exception.SyntaxError
     for part in parts:

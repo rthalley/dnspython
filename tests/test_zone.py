@@ -499,6 +499,13 @@ class ZoneTestCase(unittest.TestCase):
         rds = z.get_rdataset('@', 'loc')
         self.assertTrue(rds is None)
 
+    def testGetRdatasetWithRelativeNameFromAbsoluteZone(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=False)
+        rds = z.get_rdataset(dns.name.empty, 'soa')
+        self.assertIsNotNone(rds)
+        exrds = dns.rdataset.from_text('IN', 'SOA', 300, 'foo.example. bar.example. 1 2 3 4 5')
+        self.assertEqual(rds, exrds)
+
     def testGetRRset1(self):
         z = dns.zone.from_text(example_text, 'example.', relativize=True)
         rrs = z.get_rrset('@', 'soa')
@@ -1076,7 +1083,6 @@ class VersionedZoneTestCase(unittest.TestCase):
             soa = z.get_soa(txn)
             self.assertTrue(soa.rdtype, dns.rdatatype.SOA)
             self.assertEqual(soa.serial, 1)
-
 
     def testGetSoaEmptyZone(self):
         z = dns.zone.Zone('example.')

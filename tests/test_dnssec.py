@@ -15,6 +15,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from typing import Any
+
 import unittest
 
 import dns.dnssec
@@ -22,6 +24,8 @@ import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdtypes.ANY.CDS
+import dns.rdtypes.ANY.DS
 import dns.rrset
 
 # pylint: disable=line-too-long
@@ -472,6 +476,7 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
         self.assertEqual(good_ds, good_ds_mnemonic)
 
     def testMakeExampleSHA1DS(self):  # type: () -> None
+        algorithm: Any
         for algorithm in ('SHA1', 'sha1', dns.dnssec.DSDigest.SHA1):
             ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
             self.assertEqual(ds, example_ds_sha1)
@@ -479,11 +484,13 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
             self.assertEqual(ds, example_ds_sha1)
 
     def testMakeExampleSHA256DS(self):  # type: () -> None
+        algorithm: Any
         for algorithm in ('SHA256', 'sha256', dns.dnssec.DSDigest.SHA256):
             ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
             self.assertEqual(ds, example_ds_sha256)
 
     def testMakeExampleSHA384DS(self):  # type: () -> None
+        algorithm: Any
         for algorithm in ('SHA384', 'sha384', dns.dnssec.DSDigest.SHA384):
             ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
             self.assertEqual(ds, example_ds_sha384)
@@ -493,6 +500,7 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
         self.assertEqual(ds, good_ds)
 
     def testInvalidAlgorithm(self):  # type: () -> None
+        algorithm: Any
         for algorithm in (10, 'shax'):
             with self.assertRaises(dns.dnssec.UnsupportedAlgorithm):
                 ds = dns.dnssec.make_ds(abs_example, example_sep_key, algorithm)
@@ -508,6 +516,7 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
         for rdtype in digest_types:
             rd = dns.rdata.from_text(dns.rdataclass.IN, rdtype,
                                      f'18673 3 5 71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7')
+            assert isinstance(rd, dns.rdtypes.ANY.DS.DS) or isinstance(rd, dns.rdtypes.ANY.CDS.CDS)
             self.assertEqual(rd.digest_type, 5)
             self.assertEqual(rd.digest, bytes.fromhex('71b71d4f3e11bbd71b4eff12cde69f7f9215bbe7'))
 

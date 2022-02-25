@@ -1,6 +1,7 @@
 
 import dns.rdata
 import dns.rdataset
+import dns.rdtypes.IN.SRV
 
 
 def test_processing_order_shuffle():
@@ -42,6 +43,7 @@ def test_processing_order_priority_weighted():
         for j in range(3):
             assert rds[j] in po
         assert rds[0] == po[0]
+        assert isinstance(po[1], dns.rdtypes.IN.SRV.SRV)
         if po[1].weight == 90:
             weight_90_count += 1
         else:
