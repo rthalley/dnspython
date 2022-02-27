@@ -39,3 +39,4 @@ future behavior to be tested with existing code.
 
 .. autoclass:: dns.rdata.Rdata
    :members:
+   :inherited-members:
