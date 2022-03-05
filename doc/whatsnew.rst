@@ -6,7 +6,12 @@ What's New in dnspython
 2.3.0 (in development)
 ----------------------
 
-* Nothing yet!
+* Python 3.7 or newer is required.
+
+* Type annotations are now integrated with the source code and cover
+  far more of the library.
+
+* The get_soa() method has been added to dns.zone.Zone.
 
 2.2.0
 -----

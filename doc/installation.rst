@@ -6,7 +6,7 @@ Installation
 Requirements
 ------------
 
-Python 3.6 or later.
+Python 3.7 or newer.
 
 Installation
 ------------
@@ -28,7 +28,7 @@ On a UNIX-like system, you then run::
 while on a Windows system you would run::
 
         python setup.py install
-        
+
 Finally, you have the option of cloning the dnspython source from github
 and building it::
 
