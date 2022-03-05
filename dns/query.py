@@ -892,10 +892,7 @@ def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         # can, even though this might require a future dnspython release if that
         # version becomes deprecated.
         ssl_context = ssl.create_default_context()  # lgtm[py/insecure-protocol]
-        if sys.version_info >= (3, 7):
-            ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        else:
-            ssl_context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
         if server_hostname is None:
             ssl_context.check_hostname = False
 

@@ -3,16 +3,7 @@
 import unittest
 
 import dns.immutable
-import dns._immutable_attr
-
-try:
-    import dns._immutable_ctx as immutable_ctx
-    _have_contextvars = True
-except ImportError:
-    _have_contextvars = False
-
-    class immutable_ctx:
-        pass
+import dns._immutable_ctx
 
 
 class ImmutableTestCase(unittest.TestCase):
@@ -52,7 +43,7 @@ class ImmutableTestCase(unittest.TestCase):
 
 class DecoratorTestCase(unittest.TestCase):
 
-    immutable_module = dns._immutable_attr
+    immutable_module = dns._immutable_ctx
 
     def make_classes(self):
         class A:
@@ -152,9 +143,3 @@ class DecoratorTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             B(a, 20)
         self.assertEqual(a.a, 10)
-
-
-@unittest.skipIf(not _have_contextvars, "contextvars not available")
-class CtxDecoratorTestCase(DecoratorTestCase):
-
-    immutable_module = immutable_ctx

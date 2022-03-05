@@ -676,15 +676,7 @@ def test_asyncio_inbound_xfr():
     dns.asyncbackend.set_default_backend('asyncio')
     async def run():
         await async_inbound_xfr()
-    try:
-        runner = asyncio.run
-    except AttributeError:
-        # this is only needed for 3.6
-        def old_runner(awaitable):
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(awaitable)
-        runner = old_runner
-    runner(run())
+    asyncio.run(run())
 
 #
 # We don't need to do this as it's all generic code, but

@@ -3,15 +3,7 @@
 import collections.abc
 import sys
 
-# pylint: disable=unused-import
-if sys.version_info >= (3, 7):
-    odict = dict
-    from dns._immutable_ctx import immutable
-else:
-    # pragma: no cover
-    from collections import OrderedDict as odict
-    from dns._immutable_attr import immutable  # noqa
-# pylint: enable=unused-import
+from dns._immutable_ctx import immutable
 
 
 @immutable
@@ -23,10 +15,10 @@ class Dict(collections.abc.Mapping):  # lgtm[py/missing-equals]
         of copied.  Only set this if you are sure there will be no external
         references to the dictionary.
         """
-        if no_copy and isinstance(dictionary, odict):
+        if no_copy and isinstance(dictionary, dict):
             self._odict = dictionary
         else:
-            self._odict = odict(dictionary)
+            self._odict = dict(dictionary)
         self._hash = None
 
     def __getitem__(self, key):
@@ -63,7 +55,7 @@ def constify(o):
     if isinstance(o, list):
         return tuple(constify(elt) for elt in o)
     if isinstance(o, dict):
-        cdict = odict()
+        cdict = dict()
         for k, v in o.items():
             cdict[k] = constify(v)
         return Dict(cdict, True)

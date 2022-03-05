@@ -211,9 +211,8 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
             valid_tls_url = 'https://doh.cleanbrowsing.org/doh/family-filter/'
             q = dns.message.make_query('example.com.', dns.rdatatype.A)
             # make sure CleanBrowsing's IP address will fail TLS certificate
-            # check.  On 3.6 we get ssl.CertificateError instead of
-            # httpx.ConnectError.
-            with self.assertRaises((httpx.ConnectError, ssl.CertificateError)):
+            # check.
+            with self.assertRaises(httpx.ConnectError):
                 dns.query.https(q, invalid_tls_url, session=self.session,
                                 timeout=4)
             # We can't do the Host header and SNI magic with httpx, but

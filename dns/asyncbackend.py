@@ -72,12 +72,6 @@ def sniff() -> str:
             return 'asyncio'
         except RuntimeError:
             raise AsyncLibraryNotFoundError('no async library detected')
-        except AttributeError:  # pragma: no cover
-            # we have to check current_task on 3.6; we ignore for mypy
-            # purposes at it is otherwise unhappy on >= 3.7
-            if not asyncio.Task.current_task():  # type: ignore
-                raise AsyncLibraryNotFoundError('no async library detected')
-            return 'asyncio'
 
 
 def get_default_backend() -> Backend:

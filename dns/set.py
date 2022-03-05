@@ -18,10 +18,6 @@
 import itertools
 import sys
 
-if sys.version_info >= (3, 7):
-    odict = dict
-else:
-    from collections import OrderedDict as odict  # pragma: no cover
 
 class Set:
 
@@ -41,7 +37,7 @@ class Set:
         *items*, an iterable or ``None``, the initial set of items.
         """
 
-        self.items = odict()
+        self.items = dict()
         if items is not None:
             for item in items:
                 # This is safe for how we use set, but if other code
@@ -96,7 +92,7 @@ class Set:
         else:
             cls = self.__class__
         obj = cls.__new__(cls)
-        obj.items = odict()
+        obj.items = dict()
         obj.items.update(self.items)
         return obj
 
@@ -259,13 +255,7 @@ class Set:
         self.items.clear()
 
     def __eq__(self, other):
-        if odict == dict:
-            return self.items == other.items
-        else:
-            # We don't want an ordered comparison.
-            if len(self.items) != len(other.items):
-                return False
-            return all(elt in other.items for elt in self.items)
+        return self.items == other.items
 
     def __ne__(self, other):
         return not self.__eq__(other)

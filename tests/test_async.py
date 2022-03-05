@@ -85,15 +85,7 @@ class AsyncDetectionTests(unittest.TestCase):
     sniff_result = 'asyncio'
 
     def async_run(self, afunc):
-        try:
-            runner = asyncio.run
-        except AttributeError:
-            # this is only needed for 3.6
-            def old_runner(awaitable):
-                loop = asyncio.get_event_loop()
-                return loop.run_until_complete(awaitable)
-            runner = old_runner
-        return runner(afunc())
+        return asyncio.run(afunc())
 
     def test_sniff(self):
         dns.asyncbackend._default_backend = None
@@ -177,15 +169,7 @@ class AsyncTests(unittest.TestCase):
         self.backend = dns.asyncbackend.set_default_backend('asyncio')
 
     def async_run(self, afunc):
-        try:
-            runner = asyncio.run
-        except AttributeError:
-            # this is only needed for 3.6
-            def old_runner(awaitable):
-                loop = asyncio.get_event_loop()
-                return loop.run_until_complete(awaitable)
-            runner = old_runner
-        return runner(afunc())
+        return asyncio.run(afunc())
 
     def testResolve(self):
         async def run():
