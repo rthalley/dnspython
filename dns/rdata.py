@@ -17,6 +17,8 @@
 
 """DNS rdata."""
 
+from typing import Any, Dict, Optional, Tuple, Union
+
 from importlib import import_module
 import base64
 import binascii
@@ -137,7 +139,7 @@ class Rdata:
 
         self.rdclass = self._as_rdataclass(rdclass)
         self.rdtype = self._as_rdatatype(rdtype)
-        self.rdcomment = None
+        self.rdcomment: Optional[str] = None
 
     def _get_all_slots(self):
         return itertools.chain.from_iterable(getattr(cls, '__slots__', [])
@@ -165,7 +167,7 @@ class Rdata:
             # it if needed.
             object.__setattr__(self, 'rdcomment', None)
 
-    def covers(self):
+    def covers(self) -> dns.rdatatype.RdataType:
         """Return the type a Rdata covers.
 
         DNS SIG/RRSIG rdatas apply to a specific type; this type is
@@ -174,12 +176,12 @@ class Rdata:
         creating rdatasets, allowing the rdataset to contain only RRSIGs
         of a particular type, e.g. RRSIG(NS).
 
-        Returns an ``int``.
+        Returns a ``dns.rdatatype.RdataType``.
         """
 
         return dns.rdatatype.NONE
 
-    def extended_rdatatype(self):
+    def extended_rdatatype(self) -> int:
         """Return a 32-bit type value, the least significant 16 bits of
         which are the ordinary DNS type, and the upper 16 bits of which are
         the "covered" type, if any.
@@ -189,7 +191,7 @@ class Rdata:
 
         return self.covers() << 16 | self.rdtype
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize=True, **kw):
         """Convert an rdata to text format.
 
         Returns a ``str``.
@@ -197,11 +199,12 @@ class Rdata:
 
         raise NotImplementedError  # pragma: no cover
 
-    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+    def _to_wire(self, file, compress: Optional[dns.name.CompressType]=None,
+                 origin: Optional[dns.name.Name]=None, canonicalize=False):
         raise NotImplementedError  # pragma: no cover
 
     def to_wire(self, file=None, compress=None, origin=None,
-                canonicalize=False):
+                canonicalize=False) -> bytes:
         """Convert an rdata to wire format.
 
         Returns a ``bytes`` or ``None``.
@@ -214,7 +217,7 @@ class Rdata:
             self._to_wire(f, compress, origin, canonicalize)
             return f.getvalue()
 
-    def to_generic(self, origin=None):
+    def to_generic(self, origin: Optional[dns.name.Name]=None) -> 'dns.rdata.GenericRdata':
         """Creates a dns.rdata.GenericRdata equivalent of this rdata.
 
         Returns a ``dns.rdata.GenericRdata``.
@@ -222,7 +225,7 @@ class Rdata:
         return dns.rdata.GenericRdata(self.rdclass, self.rdtype,
                                       self.to_wire(origin=origin))
 
-    def to_digestable(self, origin=None):
+    def to_digestable(self, origin: Optional[dns.name.Name]=None) -> bytes:
         """Convert rdata to a format suitable for digesting in hashes.  This
         is also the DNSSEC canonical form.
 
@@ -348,12 +351,16 @@ class Rdata:
         return hash(self.to_digestable(dns.name.root))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(cls, rdclass: dns.rdataclass.RdataClass,
+                  rdtype: dns.rdatatype.RdataType,
+                  tok: dns.tokenizer.Tokenizer, origin: Optional[dns.name.Name]=None, relativize=True,
+                  relativize_to: Optional[dns.name.Name]=None):
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls, rdclass: dns.rdataclass.RdataClass,
+                         rdtype: dns.rdatatype.RdataType,
+                         parser: dns.wire.Parser, origin: Optional[dns.name.Name]=None):
         raise NotImplementedError  # pragma: no cover
 
     def replace(self, **kwargs):
@@ -408,18 +415,20 @@ class Rdata:
         return dns.rdatatype.RdataType.make(value)
 
     @classmethod
-    def _as_bytes(cls, value, encode=False, max_length=None, empty_ok=True):
+    def _as_bytes(cls, value, encode=False, max_length=None, empty_ok=True) -> bytes:
         if encode and isinstance(value, str):
-            value = value.encode()
+            bvalue = value.encode()
         elif isinstance(value, bytearray):
-            value = bytes(value)
-        elif not isinstance(value, bytes):
+            bvalue = bytes(value)
+        elif isinstance(value, bytes):
+            bvalue = value
+        else:
             raise ValueError('not bytes')
-        if max_length is not None and len(value) > max_length:
+        if max_length is not None and len(bvalue) > max_length:
             raise ValueError('too long')
-        if not empty_ok and len(value) == 0:
+        if not empty_ok and len(bvalue) == 0:
             raise ValueError('empty bytes not allowed')
-        return value
+        return bvalue
 
     @classmethod
     def _as_name(cls, value):
@@ -571,7 +580,7 @@ class GenericRdata(Rdata):
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         return cls(rdclass, rdtype, parser.get_remaining())
 
-_rdata_classes = {}
+_rdata_classes: Dict[Tuple[dns.rdataclass.RdataClass, dns.rdatatype.RdataType], Any] = {}
 _module_prefix = 'dns.rdtypes'
 
 def get_rdata_class(rdclass, rdtype):
@@ -602,8 +611,12 @@ def get_rdata_class(rdclass, rdtype):
     return cls
 
 
-def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
-              relativize_to=None, idna_codec=None):
+def from_text(rdclass: Union[dns.rdataclass.RdataClass, str],
+              rdtype: Union[dns.rdatatype.RdataType, str],
+              tok: Union[dns.tokenizer.Tokenizer, str],
+              origin: Optional[dns.name.Name]=None,
+              relativize=True, relativize_to: Optional[dns.name.Name]=None,
+              idna_codec: Optional[dns.name.IDNACodec]=None) -> Rdata:
     """Build an rdata object from text format.
 
     This function attempts to dynamically load a class which
@@ -617,9 +630,9 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
     If *tok* is a ``str``, then a tokenizer is created and the string
     is used as its input.
 
-    *rdclass*, an ``int``, the rdataclass.
+    *rdclass*, a ``dns.rdataclass.RdataClass`` or ``str``, the rdataclass.
 
-    *rdtype*, an ``int``, the rdatatype.
+    *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdatatype.
 
     *tok*, a ``dns.tokenizer.Tokenizer`` or a ``str``.
 
@@ -681,7 +694,9 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
         return rdata
 
 
-def from_wire_parser(rdclass, rdtype, parser, origin=None):
+def from_wire_parser(rdclass: Union[dns.rdataclass.RdataClass, str],
+                     rdtype: Union[dns.rdatatype.RdataType, str],
+                     parser: dns.wire.Parser, origin: Optional[dns.name.Name]=None) -> Rdata:
     """Build an rdata object from wire format
 
     This function attempts to dynamically load a class which
@@ -692,9 +707,9 @@ def from_wire_parser(rdclass, rdtype, parser, origin=None):
     Once a class is chosen, its from_wire() class method is called
     with the parameters to this function.
 
-    *rdclass*, an ``int``, the rdataclass.
+    *rdclass*, a ``dns.rdataclass.RdataClass`` or ``str``, the rdataclass.
 
-    *rdtype*, an ``int``, the rdatatype.
+    *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdatatype.
 
     *parser*, a ``dns.wire.Parser``, the parser, which should be
     restricted to the rdata length.
@@ -712,7 +727,10 @@ def from_wire_parser(rdclass, rdtype, parser, origin=None):
         return cls.from_wire_parser(rdclass, rdtype, parser, origin)
 
 
-def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
+def from_wire(rdclass: Union[dns.rdataclass.RdataClass, str],
+              rdtype: Union[dns.rdatatype.RdataType, str],
+              wire: bytes, current: int, rdlen: int,
+              origin: Optional[dns.name.Name]=None) -> Rdata:
     """Build an rdata object from wire format
 
     This function attempts to dynamically load a class which

@@ -18,7 +18,6 @@
 import base64
 import struct
 
-import dns.dnssec
 import dns.immutable
 import dns.exception
 import dns.rdata

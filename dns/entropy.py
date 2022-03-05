@@ -15,6 +15,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from typing import Any, Optional
+
 import os
 import hashlib
 import random
@@ -34,7 +36,7 @@ class EntropyPool:
 
     def __init__(self, seed=None):
         self.pool_index = 0
-        self.digest = None
+        self.digest: Optional[bytearray] = None
         self.next_byte = 0
         self.lock = _threading.Lock()
         self.hash = hashlib.sha1()
@@ -76,7 +78,7 @@ class EntropyPool:
             seed = bytearray(seed)
             self._stir(seed)
 
-    def random_8(self):
+    def random_8(self) -> int:
         with self.lock:
             self._maybe_seed()
             if self.digest is None or self.next_byte == self.hash_len:
@@ -88,13 +90,13 @@ class EntropyPool:
             self.next_byte += 1
         return value
 
-    def random_16(self):
+    def random_16(self) -> int:
         return self.random_8() * 256 + self.random_8()
 
-    def random_32(self):
+    def random_32(self) -> int:
         return self.random_16() * 65536 + self.random_16()
 
-    def random_between(self, first, last):
+    def random_between(self, first: int, last: int) -> int:
         size = last - first + 1
         if size > 4294967296:
             raise ValueError('too big')
@@ -111,18 +113,19 @@ class EntropyPool:
 
 pool = EntropyPool()
 
+system_random: Optional[Any]
 try:
     system_random = random.SystemRandom()
 except Exception:  # pragma: no cover
     system_random = None
 
-def random_16():
+def random_16() -> int:
     if system_random is not None:
         return system_random.randrange(0, 65536)
     else:
         return pool.random_16()
 
-def between(first, last):
+def between(first: int, last: int) -> int:
     if system_random is not None:
         return system_random.randrange(first, last + 1)
     else:

@@ -1,5 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+from typing import Dict
+
 import dns.exception
 
 # pylint: disable=unused-import
@@ -10,7 +12,7 @@ from dns._asyncbackend import Socket, DatagramSocket, StreamSocket, Backend  # n
 
 _default_backend = None
 
-_backends = {}
+_backends: Dict[str, Backend] = {}
 
 # Allow sniffio import to be disabled for testing purposes
 _no_sniffio = False
@@ -19,7 +21,7 @@ class AsyncLibraryNotFoundError(dns.exception.DNSException):
     pass
 
 
-def get_backend(name):
+def get_backend(name: str) -> Backend:
     """Get the specified asynchronous backend.
 
     *name*, a ``str``, the name of the backend.  Currently the "trio",
@@ -46,7 +48,7 @@ def get_backend(name):
     return backend
 
 
-def sniff():
+def sniff() -> str:
     """Attempt to determine the in-use asynchronous I/O library by using
     the ``sniffio`` module if it is available.
 
@@ -71,13 +73,14 @@ def sniff():
         except RuntimeError:
             raise AsyncLibraryNotFoundError('no async library detected')
         except AttributeError:  # pragma: no cover
-            # we have to check current_task on 3.6
-            if not asyncio.Task.current_task():
+            # we have to check current_task on 3.6; we ignore for mypy
+            # purposes at it is otherwise unhappy on >= 3.7
+            if not asyncio.Task.current_task():  # type: ignore
                 raise AsyncLibraryNotFoundError('no async library detected')
             return 'asyncio'
 
 
-def get_default_backend():
+def get_default_backend() -> Backend:
     """Get the default backend, initializing it if necessary.
     """
     if _default_backend:
@@ -86,7 +89,7 @@ def get_default_backend():
     return set_default_backend(sniff())
 
 
-def set_default_backend(name):
+def set_default_backend(name: str):
     """Set the default backend.
 
     It's not normally necessary to call this method, as

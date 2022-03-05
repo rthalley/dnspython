@@ -21,6 +21,10 @@ Dnspython modules may also define their own exceptions, which will
 always be subclasses of ``DNSException``.
 """
 
+
+from typing import Dict, Optional, Set
+
+
 class DNSException(Exception):
     """Abstract base class shared by all dnspython exceptions.
 
@@ -44,9 +48,9 @@ class DNSException(Exception):
     and ``fmt`` class variables to get nice parametrized messages.
     """
 
-    msg = None  # non-parametrized message
-    supp_kwargs = set()  # accepted parameters for _fmt_kwargs (sanity check)
-    fmt = None  # message parametrized with results from _fmt_kwargs
+    msg: Optional[str] = None  # non-parametrized message
+    supp_kwargs: Set[str] = set()  # accepted parameters for _fmt_kwargs (sanity check)
+    fmt: Optional[str] = None  # message parametrized with results from _fmt_kwargs
 
     def __init__(self, *args, **kwargs):
         self._check_params(*args, **kwargs)
@@ -127,6 +131,10 @@ class Timeout(DNSException):
     """The DNS operation timed out."""
     supp_kwargs = {'timeout'}
     fmt = "The DNS operation timed out after {timeout:.3f} seconds"
+
+    # We do this as otherwise mypy complains about unexpected keyword argument idna_exception
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class ExceptionWrapper:

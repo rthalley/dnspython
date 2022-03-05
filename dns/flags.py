@@ -17,6 +17,8 @@
 
 """DNS Message Flags."""
 
+from typing import Any
+
 import enum
 
 # Standard DNS flags
@@ -45,7 +47,7 @@ class EDNSFlag(enum.IntFlag):
     DO = 0x8000
 
 
-def _from_text(text, enum_class):
+def _from_text(text: str, enum_class: Any) -> int:
     flags = 0
     tokens = text.split()
     for t in tokens:
@@ -53,7 +55,7 @@ def _from_text(text, enum_class):
     return flags
 
 
-def _to_text(flags, enum_class):
+def _to_text(flags: int, enum_class: Any) -> str:
     text_flags = []
     for k, v in enum_class.__members__.items():
         if flags & v != 0:
@@ -61,7 +63,7 @@ def _to_text(flags, enum_class):
     return ' '.join(text_flags)
 
 
-def from_text(text):
+def from_text(text: str) -> int:
     """Convert a space-separated list of flag text values into a flags
     value.
 
@@ -71,7 +73,7 @@ def from_text(text):
     return _from_text(text, Flag)
 
 
-def to_text(flags):
+def to_text(flags: int) -> str:
     """Convert a flags value into a space-separated list of flag text
     values.
 
@@ -81,7 +83,7 @@ def to_text(flags):
     return _to_text(flags, Flag)
 
 
-def edns_from_text(text):
+def edns_from_text(text: str) -> int:
     """Convert a space-separated list of EDNS flag text values into a EDNS
     flags value.
 
@@ -91,7 +93,7 @@ def edns_from_text(text):
     return _from_text(text, EDNSFlag)
 
 
-def edns_to_text(flags):
+def edns_to_text(flags: int) -> str:
     """Convert an EDNS flags value into a space-separated list of EDNS flag
     text values.
 

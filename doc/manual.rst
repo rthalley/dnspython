@@ -16,6 +16,5 @@ Dnspython Manual
    async
    exceptions
    utilities
-   typing
    threads
    examples

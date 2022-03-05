@@ -17,11 +17,14 @@
 
 """Asynchronous DNS stub resolver."""
 
+from typing import Optional, Union
+
 import time
 
 import dns.asyncbackend
 import dns.asyncquery
 import dns.exception
+import dns.name
 import dns.query
 import dns.resolver  # lgtm[py/import-and-import-from]
 
@@ -37,11 +40,13 @@ _tcp = dns.asyncquery.tcp
 class Resolver(dns.resolver.BaseResolver):
     """Asynchronous DNS stub resolver."""
 
-    async def resolve(self, qname, rdtype=dns.rdatatype.A,
+    async def resolve(self, qname: Union[dns.name.Name, str],
+                      rdtype=dns.rdatatype.A,
                       rdclass=dns.rdataclass.IN,
-                      tcp=False, source=None, raise_on_no_answer=True,
-                      source_port=0, lifetime=None, search=None,
-                      backend=None):
+                      tcp=False, source: Optional[str]=None,
+                      raise_on_no_answer=True, source_port=0,
+                      lifetime: Optional[float]=None, search: Optional[bool]=None,
+                      backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
         """Query nameservers asynchronously to find the answer to the question.
 
         *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
@@ -66,6 +71,7 @@ class Resolver(dns.resolver.BaseResolver):
             if answer is not None:
                 # cache hit!
                 return answer
+            assert request is not None  # needed for type checking
             done = False
             while not done:
                 (nameserver, port, tcp, backoff) = resolution.next_nameserver()
@@ -101,7 +107,7 @@ class Resolver(dns.resolver.BaseResolver):
                 if answer is not None:
                     return answer
 
-    async def resolve_address(self, ipaddr, *args, **kwargs):
+    async def resolve_address(self, ipaddr: str, *args, **kwargs) -> dns.resolver.Answer:
         """Use an asynchronous resolver to run a reverse query for PTR
         records.
 
@@ -116,15 +122,19 @@ class Resolver(dns.resolver.BaseResolver):
         function.
 
         """
-
+        # We make a modified kwargs for type checking happiness, as otherwise
+        # we get a legit warning about possibly having rdtype and rdclass
+        # in the kwargs more than once.
+        modified_kwargs = {}
+        modified_kwargs.update(kwargs)
+        modified_kwargs['rdtype'] = dns.rdatatype.PTR
+        modified_kwargs['rdclass'] = dns.rdataclass.IN
         return await self.resolve(dns.reversename.from_address(ipaddr),
-                                  rdtype=dns.rdatatype.PTR,
-                                  rdclass=dns.rdataclass.IN,
-                                  *args, **kwargs)
+                                  *args, **modified_kwargs)
 
     # pylint: disable=redefined-outer-name
 
-    async def canonical_name(self, name):
+    async def canonical_name(self, name: Union[dns.name.Name, str]) -> dns.name.Name:
         """Determine the canonical name of *name*.
 
         The canonical name is the name the resolver uses for queries
@@ -149,10 +159,11 @@ class Resolver(dns.resolver.BaseResolver):
 default_resolver = None
 
 
-def get_default_resolver():
+def get_default_resolver() -> Resolver:
     """Get the default asynchronous resolver, initializing it if necessary."""
     if default_resolver is None:
         reset_default_resolver()
+    assert default_resolver is not None
     return default_resolver
 
 
@@ -167,9 +178,13 @@ def reset_default_resolver():
     default_resolver = Resolver()
 
 
-async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-                  tcp=False, source=None, raise_on_no_answer=True,
-                  source_port=0, lifetime=None, search=None, backend=None):
+async def resolve(qname: Union[dns.name.Name, str],
+                  rdtype=dns.rdatatype.A,
+                  rdclass=dns.rdataclass.IN,
+                  tcp=False, source: Optional[str]=None,
+                  raise_on_no_answer=True, source_port=0,
+                  lifetime: Optional[float]=None, search: Optional[bool]=None,
+                  backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
     """Query nameservers asynchronously to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -185,7 +200,7 @@ async def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                                                 backend)
 
 
-async def resolve_address(ipaddr, *args, **kwargs):
+async def resolve_address(ipaddr: str, *args, **kwargs) -> dns.resolver.Answer:
     """Use a resolver to run a reverse query for PTR records.
 
     See :py:func:`dns.asyncresolver.Resolver.resolve_address` for more
@@ -194,7 +209,7 @@ async def resolve_address(ipaddr, *args, **kwargs):
 
     return await get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
 
-async def canonical_name(name):
+async def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
     """Determine the canonical name of *name*.
 
     See :py:func:`dns.resolver.Resolver.canonical_name` for more
@@ -203,8 +218,9 @@ async def canonical_name(name):
 
     return await get_default_resolver().canonical_name(name)
 
-async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
-                        resolver=None, backend=None):
+async def zone_for_name(name: Union[dns.name.Name, str], rdclass=dns.rdataclass.IN,
+                        tcp=False, resolver: Optional[Resolver]=None,
+                        backend: Optional[dns.asyncbackend.Backend]=None) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 
     See :py:func:`dns.resolver.Resolver.zone_for_name` for more
@@ -221,6 +237,7 @@ async def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False,
         try:
             answer = await resolver.resolve(name, dns.rdatatype.SOA, rdclass,
                                             tcp, backend=backend)
+            assert answer.rrset is not None
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher

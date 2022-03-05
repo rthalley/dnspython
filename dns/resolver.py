@@ -16,6 +16,9 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS stub resolver."""
+
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 from urllib.parse import urlparse
 import contextlib
 import socket
@@ -51,6 +54,10 @@ class NXDOMAIN(dns.exception.DNSException):
     fmt = None  # we have our own __str__ implementation
 
     # pylint: disable=arguments-differ
+
+    # We do this as otherwise mypy complains about unexpected keyword argument idna_exception
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def _check_kwargs(self, qnames,
                       responses=None):
@@ -132,7 +139,10 @@ class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
 
 
-def _errors_to_text(errors):
+ErrorTuple = Tuple[str, bool, int, Exception, dns.message.Message]
+
+
+def _errors_to_text(errors: List[ErrorTuple]) -> List[str]:
     """Turn a resolution errors trace into a list of text."""
     texts = []
     for err in errors:
@@ -147,6 +157,10 @@ class LifetimeTimeout(dns.exception.Timeout):
     msg = "The resolution lifetime expired."
     fmt = "%s after {timeout:.3f} seconds: {errors}" % msg[:-1]
     supp_kwargs = {'timeout', 'errors'}
+
+    # We do this as otherwise mypy complains about unexpected keyword argument idna_exception
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def _fmt_kwargs(self, **kwargs):
         srv_msgs = _errors_to_text(kwargs['errors'])
@@ -165,6 +179,10 @@ class NoAnswer(dns.exception.DNSException):
     fmt = 'The DNS response does not contain an answer ' + \
           'to the question: {query}'
     supp_kwargs = {'response'}
+
+    # We do this as otherwise mypy complains about unexpected keyword argument idna_exception
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def _fmt_kwargs(self, **kwargs):
         return super()._fmt_kwargs(query=kwargs['response'].question)
@@ -185,6 +203,10 @@ class NoNameservers(dns.exception.DNSException):
     msg = "All nameservers failed to answer the query."
     fmt = "%s {query}: {errors}" % msg[:-1]
     supp_kwargs = {'request', 'errors'}
+
+    # We do this as otherwise mypy complains about unexpected keyword argument idna_exception
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def _fmt_kwargs(self, **kwargs):
         srv_msgs = _errors_to_text(kwargs['errors'])
@@ -222,8 +244,9 @@ class Answer:
     RRset's name might not be the query name.
     """
 
-    def __init__(self, qname, rdtype, rdclass, response, nameserver=None,
-                 port=None):
+    def __init__(self, qname: dns.name.Name, rdtype: dns.rdatatype.RdataType,
+                 rdclass: dns.rdataclass.RdataClass, response: dns.message.QueryMessage,
+                 nameserver: Optional[str]=None, port: Optional[int]=None):
         self.qname = qname
         self.rdtype = rdtype
         self.rdclass = rdclass
@@ -280,7 +303,7 @@ class CacheStatistics:
         self.hits = 0
         self.misses = 0
 
-    def clone(self):
+    def clone(self) -> 'CacheStatistics':
         return CacheStatistics(self.hits, self.misses)
 
 
@@ -304,7 +327,7 @@ class CacheBase:
         with self.lock:
             return self.statistics.misses
 
-    def get_statistics_snapshot(self):
+    def get_statistics_snapshot(self) -> CacheStatistics:
         """Return a consistent snapshot of all the statistics.
 
         If running with multiple threads, it's better to take a
@@ -313,6 +336,9 @@ class CacheBase:
         """
         with self.lock:
             return self.statistics.clone()
+
+
+CacheKey = Tuple[dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass]
 
 
 class Cache(CacheBase):
@@ -342,12 +368,12 @@ class Cache(CacheBase):
             now = time.time()
             self.next_cleaning = now + self.cleaning_interval
 
-    def get(self, key):
+    def get(self, key: CacheKey) -> Optional[Answer]:
         """Get the answer associated with *key*.
 
         Returns None if no answer is cached for the key.
 
-        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        *key*, a ``(dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass)`` tuple whose values are the
         query name, rdtype, and rdclass respectively.
 
         Returns a ``dns.resolver.Answer`` or ``None``.
@@ -362,10 +388,10 @@ class Cache(CacheBase):
             self.statistics.hits += 1
             return v
 
-    def put(self, key, value):
+    def put(self, key: CacheKey, value: Answer):
         """Associate key and value in the cache.
 
-        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        *key*, a ``(dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass)`` tuple whose values are the
         query name, rdtype, and rdclass respectively.
 
         *value*, a ``dns.resolver.Answer``, the answer.
@@ -375,13 +401,13 @@ class Cache(CacheBase):
             self._maybe_clean()
             self.data[key] = value
 
-    def flush(self, key=None):
+    def flush(self, key: Optional[CacheKey]=None):
         """Flush the cache.
 
         If *key* is not ``None``, only that item is flushed.  Otherwise
         the entire cache is flushed.
 
-        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        *key*, a ``(dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass)`` tuple whose values are the
         query name, rdtype, and rdclass respectively.
         """
 
@@ -442,12 +468,12 @@ class LRUCache(CacheBase):
             max_size = 1
         self.max_size = max_size
 
-    def get(self, key):
+    def get(self, key: CacheKey) -> Optional[Answer]:
         """Get the answer associated with *key*.
 
         Returns None if no answer is cached for the key.
 
-        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        *key*, a ``(dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass)`` tuple whose values are the
         query name, rdtype, and rdclass respectively.
 
         Returns a ``dns.resolver.Answer`` or ``None``.
@@ -470,7 +496,7 @@ class LRUCache(CacheBase):
             node.hits += 1
             return node.value
 
-    def get_hits_for_key(self, key):
+    def get_hits_for_key(self, key: CacheKey) -> int:
         """Return the number of cache hits associated with the specified key."""
         with self.lock:
             node = self.data.get(key)
@@ -479,10 +505,10 @@ class LRUCache(CacheBase):
             else:
                 return node.hits
 
-    def put(self, key, value):
+    def put(self, key: CacheKey, value: Answer):
         """Associate key and value in the cache.
 
-        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        *key*, a ``(dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass)`` tuple whose values are the
         query name, rdtype, and rdclass respectively.
 
         *value*, a ``dns.resolver.Answer``, the answer.
@@ -501,13 +527,13 @@ class LRUCache(CacheBase):
             node.link_after(self.sentinel)
             self.data[key] = node
 
-    def flush(self, key=None):
+    def flush(self, key: Optional[CacheKey]=None):
         """Flush the cache.
 
         If *key* is not ``None``, only that item is flushed.  Otherwise
         the entire cache is flushed.
 
-        *key*, a ``(dns.name.Name, int, int)`` tuple whose values are the
+        *key*, a ``(dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass)`` tuple whose values are the
         query name, rdtype, and rdclass respectively.
         """
 
@@ -537,8 +563,10 @@ class _Resolution:
     resolver data structures directly.
     """
 
-    def __init__(self, resolver, qname, rdtype, rdclass, tcp,
-                 raise_on_no_answer, search):
+    def __init__(self, resolver: 'BaseResolver', qname: Union[dns.name.Name, str],
+                 rdtype: Union[dns.rdatatype.RdataType, str],
+                 rdclass: Union[dns.rdataclass.RdataClass, str],
+                 tcp: bool, raise_on_no_answer: bool, search: Optional[bool]):
         if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
@@ -554,21 +582,20 @@ class _Resolution:
         self.rdclass = rdclass
         self.tcp = tcp
         self.raise_on_no_answer = raise_on_no_answer
-        self.nxdomain_responses = {}
-        #
+        self.nxdomain_responses: Dict[dns.name.Name, Answer] = {}
         # Initialize other things to help analysis tools
         self.qname = dns.name.empty
-        self.nameservers = []
-        self.current_nameservers = []
-        self.errors = []
-        self.nameserver = None
+        self.nameservers: List[str] = []
+        self.current_nameservers: List[str] = []
+        self.errors: List[ErrorTuple] = []
+        self.nameserver: Optional[str] = None
         self.port = 0
         self.tcp_attempt = False
         self.retry_with_tcp = False
-        self.request = None
-        self.backoff = 0
+        self.request: Optional[dns.message.QueryMessage] = None
+        self.backoff = 0.0
 
-    def next_request(self):
+    def next_request(self) -> Tuple[Optional[dns.message.QueryMessage], Optional[Answer]]:
         """Get the next request to send, and check the cache.
 
         Returns a (request, answer) tuple.  At most one of request or
@@ -732,6 +759,7 @@ class _Resolution:
                                 dns.rcode.to_text(rcode), response))
             return (None, False)
 
+
 class BaseResolver:
     """DNS stub resolver."""
 
@@ -765,10 +793,10 @@ class BaseResolver:
             dns.name.Name(dns.name.from_text(socket.gethostname())[1:])
         if len(self.domain) == 0:
             self.domain = dns.name.root
-        self.nameservers = []
-        self.nameserver_ports = {}
+        self.nameservers: List[str] = []
+        self.nameserver_ports: Dict[str, int] = {}
         self.port = 53
-        self.search = []
+        self.search: List[dns.name.Name] = []
         self.use_search_by_default = False
         self.timeout = 2.0
         self.lifetime = 5.0
@@ -777,13 +805,13 @@ class BaseResolver:
         self.keyalgorithm = dns.tsig.default_algorithm
         self.edns = -1
         self.ednsflags = 0
-        self.ednsoptions = None
+        self.ednsoptions: Optional[List[dns.edns.Option]] = None
         self.payload = 0
         self.cache = None
         self.flags = None
         self.retry_servfail = False
         self.rotate = False
-        self.ndots = None
+        self.ndots: Optional[int] = None
 
     def read_resolv_conf(self, f):
         """Process *f* as a file in the /etc/resolv.conf format.  If f is
@@ -862,7 +890,8 @@ class BaseResolver:
         except AttributeError:
             raise NotImplementedError
 
-    def _compute_timeout(self, start, lifetime=None, errors=None):
+    def _compute_timeout(self, start: float, lifetime: Optional[float]=None,
+                         errors: Optional[List[ErrorTuple]]=None) -> float:
         lifetime = self.lifetime if lifetime is None else lifetime
         now = time.time()
         duration = now - start
@@ -881,7 +910,7 @@ class BaseResolver:
             raise LifetimeTimeout(timeout=duration, errors=errors)
         return min(lifetime - duration, self.timeout)
 
-    def _get_qnames_to_try(self, qname, search):
+    def _get_qnames_to_try(self, qname: dns.name.Name, search: Optional[bool]) -> List[dns.name.Name]:
         # This is a separate method so we can unit test the search
         # rules without requiring the Internet.
         if search is None:
@@ -960,7 +989,7 @@ class BaseResolver:
         self.payload = payload
         self.ednsoptions = options
 
-    def set_flags(self, flags):
+    def set_flags(self, flags: int):
         """Overrides the default flags with your own.
 
         *flags*, an ``int``, the message flags to use.
@@ -969,11 +998,11 @@ class BaseResolver:
         self.flags = flags
 
     @property
-    def nameservers(self):
+    def nameservers(self) -> List[str]:
         return self._nameservers
 
     @nameservers.setter
-    def nameservers(self, nameservers):
+    def nameservers(self, nameservers: List[str]):
         """
         *nameservers*, a ``list`` of nameservers.
 
@@ -998,9 +1027,11 @@ class BaseResolver:
 class Resolver(BaseResolver):
     """DNS stub resolver."""
 
-    def resolve(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-                tcp=False, source=None, raise_on_no_answer=True, source_port=0,
-                lifetime=None, search=None):  # pylint: disable=arguments-differ
+    def resolve(self, qname: Union[dns.name.Name, str],
+                rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+                rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+                tcp=False, source: Optional[str]=None, raise_on_no_answer=True, source_port=0,
+                lifetime: Optional[float]=None, search: Optional[bool]=None) -> Answer: # pylint: disable=arguments-differ
         """Query nameservers to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
@@ -1064,6 +1095,7 @@ class Resolver(BaseResolver):
             if answer is not None:
                 # cache hit!
                 return answer
+            assert request is not None  # needed for type checking
             done = False
             while not done:
                 (nameserver, port, tcp, backoff) = resolution.next_nameserver()
@@ -1101,9 +1133,11 @@ class Resolver(BaseResolver):
                 if answer is not None:
                     return answer
 
-    def query(self, qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-              tcp=False, source=None, raise_on_no_answer=True, source_port=0,
-              lifetime=None):  # pragma: no cover
+    def query(self, qname: Union[dns.name.Name, str],
+              rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+              rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+              tcp=False, source: Optional[str]=None, raise_on_no_answer=True, source_port=0,
+              lifetime: Optional[float]=None) -> Answer:  # pragma: no cover
         """Query nameservers to find the answer to the question.
 
         This method calls resolve() with ``search=True``, and is
@@ -1117,7 +1151,7 @@ class Resolver(BaseResolver):
                             raise_on_no_answer, source_port, lifetime,
                             True)
 
-    def resolve_address(self, ipaddr, *args, **kwargs):
+    def resolve_address(self, ipaddr: str, *args, **kwargs) -> Answer:
         """Use a resolver to run a reverse query for PTR records.
 
         This utilizes the resolve() method to perform a PTR lookup on the
@@ -1130,15 +1164,19 @@ class Resolver(BaseResolver):
         except for rdtype and rdclass are also supported by this
         function.
         """
-
+        # We make a modified kwargs for type checking happiness, as otherwise
+        # we get a legit warning about possibly having rdtype and rdclass
+        # in the kwargs more than once.
+        modified_kwargs = {}
+        modified_kwargs.update(kwargs)
+        modified_kwargs['rdtype'] = dns.rdatatype.PTR
+        modified_kwargs['rdclass'] = dns.rdataclass.IN
         return self.resolve(dns.reversename.from_address(ipaddr),
-                            rdtype=dns.rdatatype.PTR,
-                            rdclass=dns.rdataclass.IN,
-                            *args, **kwargs)
+                            *args, **modified_kwargs)
 
     # pylint: disable=redefined-outer-name
 
-    def canonical_name(self, name):
+    def canonical_name(self, name: Union[dns.name.Name, str]) -> dns.name.Name:
         """Determine the canonical name of *name*.
 
         The canonical name is the name the resolver uses for queries
@@ -1163,13 +1201,14 @@ class Resolver(BaseResolver):
 
 
 #: The default resolver.
-default_resolver = None
+default_resolver: Optional[Resolver] = None
 
 
-def get_default_resolver():
+def get_default_resolver() -> Resolver:
     """Get the default resolver, initializing it if necessary."""
     if default_resolver is None:
         reset_default_resolver()
+    assert default_resolver is not None
     return default_resolver
 
 
@@ -1184,9 +1223,12 @@ def reset_default_resolver():
     default_resolver = Resolver()
 
 
-def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-            tcp=False, source=None, raise_on_no_answer=True,
-            source_port=0, lifetime=None, search=None):
+def resolve(qname: Union[dns.name.Name, str],
+            rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+            rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+            tcp=False, source: Optional[str]=None, raise_on_no_answer=True, source_port=0,
+            lifetime: Optional[float]=None, search: Optional[bool]=None) -> Answer:  # pragma: no cover
+
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -1200,9 +1242,11 @@ def resolve(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                                           raise_on_no_answer, source_port,
                                           lifetime, search)
 
-def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
-          tcp=False, source=None, raise_on_no_answer=True,
-          source_port=0, lifetime=None):  # pragma: no cover
+def query(qname: Union[dns.name.Name, str],
+          rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+          rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+          tcp=False, source: Optional[str]=None, raise_on_no_answer=True, source_port=0,
+          lifetime: Optional[float]=None) -> Answer:  # pragma: no cover
     """Query nameservers to find the answer to the question.
 
     This method calls resolve() with ``search=True``, and is
@@ -1217,7 +1261,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
                    True)
 
 
-def resolve_address(ipaddr, *args, **kwargs):
+def resolve_address(ipaddr: str, *args, **kwargs) -> Answer:
     """Use a resolver to run a reverse query for PTR records.
 
     See ``dns.resolver.Resolver.resolve_address`` for more information on the
@@ -1227,7 +1271,7 @@ def resolve_address(ipaddr, *args, **kwargs):
     return get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
 
 
-def canonical_name(name):
+def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
     """Determine the canonical name of *name*.
 
     See ``dns.resolver.Resolver.canonical_name`` for more information on the
@@ -1237,8 +1281,9 @@ def canonical_name(name):
     return get_default_resolver().canonical_name(name)
 
 
-def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None,
-                  lifetime=None):
+def zone_for_name(name: Union[dns.name.Name, str], rdclass=dns.rdataclass.IN,
+                  tcp=False, resolver: Optional[Resolver]=None,
+                  lifetime: Optional[float]=None) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 
     *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
@@ -1285,6 +1330,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None,
                 rlifetime = None
             answer = resolver.resolve(name, dns.rdatatype.SOA, rdclass, tcp,
                                       lifetime=rlifetime)
+            assert answer.rrset is not None
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher
@@ -1544,7 +1590,7 @@ def _gethostbyaddr(ip):
     return (canonical, aliases, addresses)
 
 
-def override_system_resolver(resolver=None):
+def override_system_resolver(resolver: Optional[Resolver]=None):
     """Override the system resolver routines in the socket module with
     versions which use dnspython's resolver.
 

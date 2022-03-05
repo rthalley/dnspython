@@ -6,7 +6,7 @@ import binascii
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
-import dns.zone
+import dns.zonetypes
 
 
 @dns.immutable.immutable
@@ -21,8 +21,8 @@ class ZONEMD(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, serial, scheme, hash_algorithm, digest):
         super().__init__(rdclass, rdtype)
         self.serial = self._as_uint32(serial)
-        self.scheme = dns.zone.DigestScheme.make(scheme)
-        self.hash_algorithm = dns.zone.DigestHashAlgorithm.make(hash_algorithm)
+        self.scheme = dns.zonetypes.DigestScheme.make(scheme)
+        self.hash_algorithm = dns.zonetypes.DigestHashAlgorithm.make(hash_algorithm)
         self.digest = self._as_bytes(digest)
 
         if self.scheme == 0:  # reserved, RFC 8976 Sec. 5.2
@@ -30,7 +30,7 @@ class ZONEMD(dns.rdata.Rdata):
         if self.hash_algorithm == 0:  # reserved, RFC 8976 Sec. 5.3
             raise ValueError('hash_algorithm 0 is reserved')
 
-        hasher = dns.zone._digest_hashers.get(self.hash_algorithm)
+        hasher = dns.zonetypes._digest_hashers.get(self.hash_algorithm)
         if hasher and hasher().digest_size != len(self.digest):
             raise ValueError('digest length inconsistent with hash algorithm')
 

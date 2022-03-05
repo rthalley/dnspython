@@ -18,7 +18,7 @@
 import struct
 import binascii
 
-import dns.dnssec
+import dns.dnssectypes
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
@@ -43,7 +43,7 @@ class DSBase(dns.rdata.Rdata):
                  digest):
         super().__init__(rdclass, rdtype)
         self.key_tag = self._as_uint16(key_tag)
-        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
         self.digest_type = self._as_uint8(digest_type)
         self.digest = self._as_bytes(digest)
         try:

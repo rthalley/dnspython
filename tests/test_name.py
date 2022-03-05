@@ -89,7 +89,7 @@ class NameTestCase(unittest.TestCase):
             try:
                 dns.name.from_text(t)
             except Exception:
-                self.fail("good test '%s' raised an exception" % t)
+                self.fail("good test '%r' raised an exception" % t)
         for t in bad:
             caught = False
             try:
@@ -97,7 +97,7 @@ class NameTestCase(unittest.TestCase):
             except Exception:
                 caught = True
             if not caught:
-                self.fail("bad test '%s' did not raise an exception" % t)
+                self.fail("bad test '%r' did not raise an exception" % t)
 
     def testImmutable1(self):
         def bad():
@@ -106,7 +106,7 @@ class NameTestCase(unittest.TestCase):
 
     def testImmutable2(self):
         def bad():
-            self.origin.labels[0] = 'foo'
+            self.origin.labels[0] = 'foo'  # type: ignore
         self.assertRaises(TypeError, bad)
 
     def testAbs1(self):
@@ -879,7 +879,7 @@ class NameTestCase(unittest.TestCase):
 
     def testReverseIPv6(self):
         e = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa.')
-        n = dns.reversename.from_address(b'::1')
+        n = dns.reversename.from_address('::1')
         self.assertEqual(e, n)
 
     def testReverseIPv6MappedIpv4(self):
@@ -906,7 +906,7 @@ class NameTestCase(unittest.TestCase):
     def testReverseIPv6AlternateOrigin(self):
         e = dns.name.from_text('1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.foo.bar.')
         origin = dns.name.from_text('foo.bar')
-        n = dns.reversename.from_address(b'::1', v6_origin=origin)
+        n = dns.reversename.from_address('::1', v6_origin=origin)
         self.assertEqual(e, n)
 
     def testForwardIPv4(self):
@@ -980,12 +980,12 @@ class NameTestCase(unittest.TestCase):
 
     def testFromUnicodeNotString(self):
         def bad():
-            dns.name.from_unicode(b'123')
+            dns.name.from_unicode(b'123')  # type: ignore
         self.assertRaises(ValueError, bad)
 
     def testFromUnicodeBadOrigin(self):
         def bad():
-            dns.name.from_unicode('example', 123)
+            dns.name.from_unicode('example', 123)  # type: ignore
         self.assertRaises(ValueError, bad)
 
     def testFromUnicodeEmptyLabel(self):
@@ -998,17 +998,17 @@ class NameTestCase(unittest.TestCase):
 
     def testFromTextNotString(self):
         def bad():
-            dns.name.from_text(123)
+            dns.name.from_text(123)  # type: ignore
         self.assertRaises(ValueError, bad)
 
     def testFromTextBadOrigin(self):
         def bad():
-            dns.name.from_text('example', 123)
+            dns.name.from_text('example', 123)  # type: ignore
         self.assertRaises(ValueError, bad)
 
     def testFromWireNotBytes(self):
         def bad():
-            dns.name.from_wire(123, 0)
+            dns.name.from_wire(123, 0)  # type: ignore
         self.assertRaises(ValueError, bad)
 
     def testBadPunycode(self):
@@ -1035,7 +1035,7 @@ class NameTestCase(unittest.TestCase):
             c.encode('Königsgäßchen')
         with self.assertRaises(dns.name.NoIDNA2008):
             c = dns.name.IDNA2008Codec(strict_decode=True)
-            c.decode('xn--eckwd4c7c.xn--zckzah.')
+            c.decode(b'xn--eckwd4c7c.xn--zckzah.')
         dns.name.have_idna_2008 = True
 
     @unittest.skipUnless(dns.name.have_idna_2008,

@@ -17,6 +17,8 @@
 
 """DNS Rdata Types."""
 
+from typing import Dict
+
 import dns.enum
 import dns.exception
 
@@ -120,8 +122,8 @@ class RdataType(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRdatatype
 
-_registered_by_text = {}
-_registered_by_value = {}
+_registered_by_text: Dict[str, RdataType] = {}
+_registered_by_value: Dict[RdataType, str] = {}
 
 _metatypes = {RdataType.OPT}
 

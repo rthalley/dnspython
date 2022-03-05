@@ -56,7 +56,10 @@ potestlf:
 	poetry run pytest --lf
 
 potype:
-	poetry run python -m mypy examples tests dns/*.py
+	poetry run python -m mypy dns/*.py
+
+potypetests:
+	poetry run python -m mypy --check-untyped-defs examples tests
 
 polint:
 	poetry run pylint dns

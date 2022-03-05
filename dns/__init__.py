@@ -22,6 +22,7 @@ __all__ = [
     'asyncquery',
     'asyncresolver',
     'dnssec',
+    'dnssectypes',
     'e164',
     'edns',
     'entropy',
@@ -60,6 +61,7 @@ __all__ = [
     'wire',
     'xfr',
     'zone',
+    'zonetypes',
     'zonefile',
 ]
 

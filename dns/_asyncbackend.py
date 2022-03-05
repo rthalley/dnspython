@@ -41,6 +41,9 @@ class Socket:  # pragma: no cover
 
 
 class DatagramSocket(Socket):  # pragma: no cover
+    def __init__(self, family: int):
+        self.family = family
+
     async def sendto(self, what, destination, timeout):
         raise NotImplementedError
 
@@ -67,3 +70,6 @@ class Backend:    # pragma: no cover
 
     def datagram_connection_required(self):
         return False
+
+    async def sleep(self, interval):
+        raise NotImplementedError

@@ -17,6 +17,8 @@
 
 """DNS E.164 helpers."""
 
+from typing import Iterable, Optional, Union
+
 import dns.exception
 import dns.name
 import dns.resolver
@@ -25,7 +27,7 @@ import dns.resolver
 public_enum_domain = dns.name.from_text('e164.arpa.')
 
 
-def from_e164(text, origin=public_enum_domain):
+def from_e164(text: str, origin: Optional[dns.name.Name]=public_enum_domain) -> dns.name.Name:
     """Convert an E.164 number in textual form into a Name object whose
     value is the ENUM domain name for that number.
 
@@ -45,7 +47,8 @@ def from_e164(text, origin=public_enum_domain):
     return dns.name.from_text('.'.join(parts), origin=origin)
 
 
-def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
+def to_e164(name: dns.name.Name, origin: Optional[dns.name.Name]=public_enum_domain,
+            want_plus_prefix=True) -> str:
     """Convert an ENUM domain name into an E.164 number.
 
     Note that dnspython does not have any information about preferred
@@ -77,7 +80,8 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     return text.decode()
 
 
-def query(number, domains, resolver=None):
+def query(number: str, domains: Iterable[Union[dns.name.Name, str]],
+          resolver: Optional[dns.resolver.Resolver]=None) -> dns.resolver.Answer:
     """Look for NAPTR RRs for the specified number in the specified domains.
 
     e.g. lookup('16505551212', ['e164.dnspython.org.', 'e164.arpa.'])
