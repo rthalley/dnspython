@@ -75,7 +75,7 @@ Note that you can install any combination of the above, e.g.:
 ### Notices
 
 Python 2.x support ended with the release of 1.16.0.  Dnspython 2.0.0 through
-2.2.x supprot support Python 3.6 and later.  As of dnspython 2.3.0, the minimum
+2.2.x support Python 3.6 and later.  As of dnspython 2.3.0, the minimum
 supported Python version will be 3.7.  We plan to align future support with the
 lifetime of the Python 3 versions.
 
