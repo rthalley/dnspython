@@ -5,9 +5,11 @@ name: Python 2.2 build
 
 on:
   push:
-    branches: [ "2.2" ]
-  pull_request:
-    branches: [ "2.2" ]
+    branches:
+      - '2.2'
+    paths:
+      - '**.py'
+  workflow_dispatch:
 
 jobs:
   build:
