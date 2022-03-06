@@ -1026,6 +1026,13 @@ class VersionedZoneTestCase(unittest.TestCase):
             rds = txn.get('example.', 'soa')
             self.assertEqual(rds[0].serial, 1)
 
+    def testNoRelativizeReaderAbsoluteGet(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=False,
+                               zone_factory=dns.versioned.Zone)
+        with z.reader(serial=1) as txn:
+            rds = txn.get(dns.name.empty, 'soa')
+            self.assertEqual(rds[0].serial, 1)
+
     def testCnameAndOtherDataAddOther(self):
         z = dns.zone.from_text(example_cname, 'example.', relativize=True,
                                zone_factory=dns.versioned.Zone)
