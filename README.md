@@ -44,8 +44,7 @@ information about the changes in this release.
 
 Dnspython's default installation does not depend on any modules other than
 those in the Python standard library.  To use some features, additional modules
-must be installed.  For convenience, pip options are defined for the
-requirements.
+must be installed.  For convenience, pip options are defined for the requirements.
 
 If you want to use DNS-over-HTTPS, run
 `pip install dnspython[doh]`.
