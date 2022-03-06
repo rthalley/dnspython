@@ -16,7 +16,6 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import itertools
-import sys
 
 
 class Set:

@@ -17,7 +17,7 @@
 
 """DNS stub resolver."""
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from urllib.parse import urlparse
 import contextlib

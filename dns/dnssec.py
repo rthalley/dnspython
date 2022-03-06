@@ -24,7 +24,7 @@ import struct
 import time
 import base64
 
-from dns.dnssectypes import *
+from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
 
 import dns.exception
 import dns.name

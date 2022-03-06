@@ -18,7 +18,7 @@
 """DNS Names.
 """
 
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple, Union
 
 import copy
 import struct

@@ -22,7 +22,6 @@ from typing import Any, Dict, Optional, Tuple, Union
 import base64
 import socket
 import struct
-import sys
 import time
 
 import dns.asyncbackend

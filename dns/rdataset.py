@@ -17,7 +17,7 @@
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
 
-from typing import Any, cast, Collection, Dict, List, Optional, Union
+from typing import Any, cast, Collection, List, Optional, Union
 
 import io
 import random

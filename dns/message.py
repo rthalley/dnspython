@@ -1449,7 +1449,7 @@ def from_file(f, idna_codec=None, one_rr_per_rrset=False) -> Message:
         if isinstance(f, str):
             f = stack.enter_context(open(f))
         return from_text(f, idna_codec, one_rr_per_rrset)
-    assert False  # for mypy
+    assert False  # for mypy  lgtm[py/unreachable-statement]
 
 
 def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,

@@ -22,7 +22,7 @@ always be subclasses of ``DNSException``.
 """
 
 
-from typing import Dict, Optional, Set
+from typing import Optional, Set
 
 
 class DNSException(Exception):

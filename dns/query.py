@@ -27,7 +27,6 @@ import os
 import selectors
 import socket
 import struct
-import sys
 import time
 import urllib.parse
 
@@ -586,7 +585,7 @@ def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert False  # help mypy figure out we can't get here
+    assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
 def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=53,
                       source: Optional[str]=None, source_port=0,
@@ -812,7 +811,7 @@ def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert False  # help mypy figure out we can't get here
+    assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
 
 def _tls_handshake(s, expiration):
@@ -907,7 +906,7 @@ def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert False  # help mypy figure out we can't get here
+    assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
 def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
         timeout=None, port=53, keyring=None, keyname=None, relativize=True,

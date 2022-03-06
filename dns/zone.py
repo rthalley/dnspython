@@ -20,7 +20,6 @@
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
 
 import contextlib
-import hashlib
 import io
 import os
 import struct
@@ -1198,7 +1197,7 @@ def from_file(f: Any, origin: Optional[Union[dns.name.Name, str]]=None,
             f = stack.enter_context(open(f))
         return from_text(f, origin, rdclass, relativize, zone_factory,
                          filename, allow_include, check_origin)
-    assert False  # make mypy happy
+    assert False  # make mypy happy  lgtm[py/unreachable-statement]
 
 
 def from_xfr(xfr, zone_factory=Zone, relativize=True, check_origin=True):

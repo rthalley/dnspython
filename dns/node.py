@@ -17,7 +17,7 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import enum
 import io

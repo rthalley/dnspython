@@ -17,7 +17,7 @@
 
 """A place to store TSIG keys."""
 
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 import base64
 
