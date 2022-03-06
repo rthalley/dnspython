@@ -24,3 +24,6 @@ The dns.name.Name Class and Predefined Names
 .. data:: dns.name.empty
 
    The empty name, i.e. ``dns.name.Name([])``.
+
+.. autoclass:: dns.name.NameRelation
+   :members:
