@@ -183,6 +183,11 @@ class Zone(dns.transaction.TransactionManager):
                     "name parameter must be a subdomain of the zone origin")
             if self.relativize:
                 name = name.relativize(self.origin)
+        elif not self.relativize:
+            # We have a relative name in a non-relative zone, so derelativize.
+            if self.origin is None:
+                raise KeyError('no zone origin is defined')
+            name = name.derelativize(self.origin)
         return name
 
     def __getitem__(self, key):
@@ -879,6 +884,11 @@ class Version:
                 raise KeyError("name is not a subdomain of the zone origin")
             if self.zone.relativize:
                 name = name.relativize(self.origin)
+        elif not self.zone.relativize:
+            # We have a relative name in a non-relative zone, so derelativize.
+            if self.origin is None:
+                raise KeyError('no zone origin is defined')
+            name = name.derelativize(self.origin)
         return name
 
     def get_node(self, name):
