@@ -9,6 +9,7 @@ on:
       - '2.2'
     paths:
       - '**.py'
+  workflow_dispatch:
 
 jobs:
   build:
