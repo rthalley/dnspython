@@ -13,6 +13,8 @@ What's New in dnspython
 
 * The get_soa() method has been added to dns.zone.Zone.
 
+* The minimum TLS version is now 1.2.
+
 2.2.0
 -----
 
