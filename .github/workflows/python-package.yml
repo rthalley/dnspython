@@ -5,9 +5,13 @@ name: Python build
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+    paths:
+      - '**.py'
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
   build:
