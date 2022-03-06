@@ -28,7 +28,7 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 2.2.0.
+This is dnspython 2.2.1
 Please read
 [What's New](https://dnspython.readthedocs.io/en/stable/whatsnew.html) for
 information about the changes in this release.
@@ -72,8 +72,10 @@ Note that you can install any combination of the above, e.g.:
 
 ### Notices
 
-Python 2.x support ended with the release of 1.16.0.  dnspython 2.0.0 and
-later only support Python 3.6 and later.
+Python 2.x support ended with the release of 1.16.0.  Dnspython 2.0.0 through
+2.2.x support Python 3.6 and later.  As of dnspython 2.3.0, the minimum
+supported Python version will be 3.7.  We plan to align future support with the
+lifetime of the Python 3 versions.
 
 Documentation has moved to
 [dnspython.readthedocs.io](https://dnspython.readthedocs.io).
