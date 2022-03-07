@@ -15,6 +15,33 @@ What's New in dnspython
 
 * The minimum TLS version is now 1.2.
 
+2.2.1
+-----
+
+This release has no new features, but fixes the following issues:
+
+* dns.zone.from_text failed if relativize was False and an origin was
+  specified in the parameters.
+
+* A number of types permitted an empty "rest of the rdata".
+
+* L32, L64, LP, and NID were missing from dns/rdtypes/ANY/__init__.py
+
+* The type definition for dns.resolver.resolve_address() was incorrect.
+
+* dns/win32util.py erroneously had the executable bit set.
+
+* The type definition for a number of asynchronous query routines was
+  missing the default of None for the backend parameter.
+
+* dns/tsigkeyring.py didn't import dns.tsig.
+
+* A number of rdata types that have a "rest of the line" behavior for
+  the last field of the rdata erroneously permitted an empty string.
+
+* Timeout intervals are no longer reported with absurd precision in
+  exception text.
+
 2.2.0
 -----
 
