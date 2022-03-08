@@ -22,7 +22,7 @@ always be subclasses of ``DNSException``.
 """
 
 
-from typing import Optional, Set
+from typing import Any, Dict, Optional, Set
 
 
 class DNSException(Exception):
@@ -89,7 +89,7 @@ class DNSException(Exception):
         Resulting dictionary has to have keys necessary for str.format call
         on fmt class variable.
         """
-        fmtargs = {}
+        fmtargs: Dict[str, Any] = {}
         for kw, data in kwargs.items():
             if isinstance(data, (list, set)):
                 # convert list of <someobj> to list of str(<someobj>)

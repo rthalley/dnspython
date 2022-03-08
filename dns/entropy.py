@@ -71,7 +71,7 @@ class EntropyPool:
                     with open('/dev/urandom', 'rb', 0) as r:
                         seed = r.read(16)
                 except Exception:
-                    seed = str(time.time())
+                    seed = str(time.time()).encode()
             self.seeded = True
             self.seed_pid = os.getpid()
             self.digest = None

@@ -73,7 +73,7 @@ class Set:
         (k, _) = self.items.popitem()
         return k
 
-    def _clone(self):
+    def _clone(self) -> 'Set':
         """Make a (shallow) copy of the set.
 
         There is a 'clone protocol' that subclasses of this class
@@ -87,7 +87,7 @@ class Set:
         """
 
         if hasattr(self, '_clone_class'):
-            cls = self._clone_class
+            cls = self._clone_class   # type: ignore
         else:
             cls = self.__class__
         obj = cls.__new__(cls)

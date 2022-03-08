@@ -932,7 +932,7 @@ class _WireReader:
         """Read the next *qcount* records from the wire data and add them to
         the question section.
         """
-
+        assert self.message is not None
         section = self.message.sections[section_number]
         for _ in range(qcount):
             qname = self.parser.get_name(self.message.origin)
@@ -953,7 +953,7 @@ class _WireReader:
         section_number: the section of the message to which to add records
         count: the number of records to read
         """
-
+        assert self.message is not None
         section = self.message.sections[section_number]
         force_unique = self.one_rr_per_rrset
         for i in range(count):

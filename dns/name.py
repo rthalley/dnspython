@@ -223,7 +223,7 @@ class IDNA2008Codec(IDNACodec):
     """IDNA 2008 encoder/decoder.
     """
 
-    def __init__(self, uts_46=False, transitional=False,
+    def __init__(self, uts_46: bool=False, transitional=False,
                  allow_pure_ascii=False, strict_decode=False):
         """Initialize the IDNA 2008 encoder/decoder.
 
