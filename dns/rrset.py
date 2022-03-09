@@ -17,7 +17,7 @@
 
 """DNS RRsets (an RRset is a named rdataset)"""
 
-from typing import cast, Collection, Optional, Union
+from typing import Any, cast, Collection, Optional, Union
 
 import dns.name
 import dns.rdataset
@@ -110,7 +110,7 @@ class RRset(dns.rdataset.Rdataset):
 
     # pylint: disable=arguments-differ
 
-    def to_text(self, origin: Optional[dns.name.Name]=None, relativize=True, **kw) -> str:  # type: ignore
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True, **kw) -> str:  # type: ignore
         """Convert the RRset into DNS zone file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
@@ -130,7 +130,7 @@ class RRset(dns.rdataset.Rdataset):
         return super().to_text(self.name, origin, relativize,
                                self.deleting, **kw)
 
-    def to_wire(self, file, compress: Optional[dns.name.CompressType]=None,  # type: ignore
+    def to_wire(self, file: Any, compress: Optional[dns.name.CompressType]=None,  # type: ignore
                 origin: Optional[dns.name.Name]=None, **kw) -> int:
         """Convert the RRset to wire format.
 
@@ -158,7 +158,7 @@ def from_text_list(name: Union[dns.name.Name, str], ttl: int,
                    rdtype: Union[dns.rdatatype.RdataType, str],
                    text_rdatas: Collection[str],
                    idna_codec: Optional[dns.name.IDNACodec]=None,
-                   origin: Optional[dns.name.Name]=None, relativize=True,
+                   origin: Optional[dns.name.Name]=None, relativize: bool=True,
                    relativize_to: Optional[dns.name.Name]=None) -> RRset:
     """Create an RRset with the specified name, TTL, class, and type, and with
     the specified list of rdatas in text format.
@@ -205,7 +205,7 @@ def from_text(name: Union[dns.name.Name, str], ttl: int,
                           cast(Collection[str], text_rdatas))
 
 
-def from_rdata_list(name: Union[dns.name.Name, str], ttl:int,
+def from_rdata_list(name: Union[dns.name.Name, str], ttl: int,
                     rdatas: Collection[dns.rdata.Rdata],
                     idna_codec: Optional[dns.name.IDNACodec]=None) -> RRset:
     """Create an RRset with the specified name and TTL, and with

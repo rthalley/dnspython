@@ -17,7 +17,7 @@
 
 """Tokenize DNS zone file format"""
 
-from typing import Optional, List, Tuple
+from typing import Any, Optional, List, Tuple, Union
 
 import io
 import sys
@@ -50,7 +50,8 @@ class Token:
     has_escape: Does the token value contain escapes?
     """
 
-    def __init__(self, ttype: int, value='', has_escape=False, comment: Optional[str]=None):
+    def __init__(self, ttype: int, value: Any='', has_escape: bool=False,
+                 comment: Optional[str]=None):
         """Initialize a token instance."""
 
         self.ttype = ttype
@@ -225,7 +226,7 @@ class Tokenizer:
     encoder/decoder is used.
     """
 
-    def __init__(self, f=sys.stdin, filename: Optional[str]=None,
+    def __init__(self, f: Any=sys.stdin, filename: Optional[str]=None,
                  idna_codec: Optional[dns.name.IDNACodec]=None):
         """Initialize a tokenizer instance.
 
@@ -297,7 +298,7 @@ class Tokenizer:
 
         return (self.filename, self.line_number)
 
-    def _unget_char(self, c):
+    def _unget_char(self, c: str) -> None:
         """Unget a character.
 
         The unget buffer for characters is only one character large; it is
@@ -313,7 +314,7 @@ class Tokenizer:
             raise UngetBufferFull  # pragma: no cover
         self.ungotten_char = c
 
-    def skip_whitespace(self):
+    def skip_whitespace(self) -> int:
         """Consume input until a non-whitespace character is encountered.
 
         The non-whitespace character is then ungotten, and the number of
@@ -333,7 +334,7 @@ class Tokenizer:
                     return skipped
             skipped += 1
 
-    def get(self, want_leading=False, want_comment=False) -> Token:
+    def get(self, want_leading: bool=False, want_comment: bool=False) -> Token:
         """Get the next token.
 
         want_leading: If True, return a WHITESPACE token if the
@@ -477,7 +478,7 @@ class Tokenizer:
 
     # Helpers
 
-    def get_int(self, base=10):
+    def get_int(self, base: int=10) -> int:
         """Read the next token and interpret it as an unsigned integer.
 
         Raises dns.exception.SyntaxError if not an unsigned integer.
@@ -507,7 +508,7 @@ class Tokenizer:
                 '%d is not an unsigned 8-bit integer' % value)
         return value
 
-    def get_uint16(self, base=10) -> int:
+    def get_uint16(self, base: int=10) -> int:
         """Read the next token and interpret it as a 16-bit unsigned
         integer.
 
@@ -526,7 +527,7 @@ class Tokenizer:
                     '%d is not an unsigned 16-bit integer' % value)
         return value
 
-    def get_uint32(self, base=10) -> int:
+    def get_uint32(self, base: int=10) -> int:
         """Read the next token and interpret it as a 32-bit unsigned
         integer.
 
@@ -541,7 +542,7 @@ class Tokenizer:
                 '%d is not an unsigned 32-bit integer' % value)
         return value
 
-    def get_uint48(self, base=10) -> int:
+    def get_uint48(self, base: int=10) -> int:
         """Read the next token and interpret it as a 48-bit unsigned
         integer.
 
@@ -556,7 +557,7 @@ class Tokenizer:
                 '%d is not an unsigned 48-bit integer' % value)
         return value
 
-    def get_string(self, max_length=None) -> str:
+    def get_string(self, max_length: Optional[int]=None) -> str:
         """Read the next token and interpret it as a string.
 
         Raises dns.exception.SyntaxError if not a string.
@@ -586,7 +587,7 @@ class Tokenizer:
             raise dns.exception.SyntaxError('expecting an identifier')
         return token.value
 
-    def get_remaining(self, max_tokens=None) -> List[Token]:
+    def get_remaining(self, max_tokens: Optional[int]=None) -> List[Token]:
         """Return the remaining tokens on the line, until an EOL or EOF is seen.
 
         max_tokens: If not None, stop after this number of tokens.
@@ -605,7 +606,7 @@ class Tokenizer:
                 break
         return tokens
 
-    def concatenate_remaining_identifiers(self, allow_empty=False) -> str:
+    def concatenate_remaining_identifiers(self, allow_empty: bool=False) -> str:
         """Read the remaining tokens on the line, which should be identifiers.
 
         Raises dns.exception.SyntaxError if there are no remaining tokens,
@@ -631,7 +632,7 @@ class Tokenizer:
         return s
 
     def as_name(self, token: Token, origin: Optional[dns.name.Name]=None,
-                relativize=False, relativize_to: Optional[dns.name.Name]=None) -> dns.name.Name:
+                relativize: bool=False, relativize_to: Optional[dns.name.Name]=None) -> dns.name.Name:
         """Try to interpret the token as a DNS name.
 
         Raises dns.exception.SyntaxError if not a name.
@@ -643,7 +644,7 @@ class Tokenizer:
         name = dns.name.from_text(token.value, origin, self.idna_codec)
         return name.choose_relativity(relativize_to or origin, relativize)
 
-    def get_name(self, origin: Optional[dns.name.Name]=None, relativize=False,
+    def get_name(self, origin: Optional[dns.name.Name]=None, relativize: bool=False,
                  relativize_to: Optional[dns.name.Name]=None) -> dns.name.Name:
         """Read the next token and interpret it as a DNS name.
 

@@ -26,6 +26,8 @@ import dns.asyncquery
 import dns.exception
 import dns.name
 import dns.query
+import dns.rdataclass
+import dns.rdatatype
 import dns.resolver  # lgtm[py/import-and-import-from]
 
 # import some resolver symbols for brevity
@@ -41,10 +43,10 @@ class Resolver(dns.resolver.BaseResolver):
     """Asynchronous DNS stub resolver."""
 
     async def resolve(self, qname: Union[dns.name.Name, str],
-                      rdtype=dns.rdatatype.A,
-                      rdclass=dns.rdataclass.IN,
-                      tcp=False, source: Optional[str]=None,
-                      raise_on_no_answer=True, source_port=0,
+                      rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+                      rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+                      tcp: bool=False, source: Optional[str]=None,
+                      raise_on_no_answer: bool=True, source_port: int=0,
                       lifetime: Optional[float]=None, search: Optional[bool]=None,
                       backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
         """Query nameservers asynchronously to find the answer to the question.
@@ -167,7 +169,7 @@ def get_default_resolver() -> Resolver:
     return default_resolver
 
 
-def reset_default_resolver():
+def reset_default_resolver() -> None:
     """Re-initialize default asynchronous resolver.
 
     Note that the resolver configuration (i.e. /etc/resolv.conf on UNIX
@@ -179,10 +181,10 @@ def reset_default_resolver():
 
 
 async def resolve(qname: Union[dns.name.Name, str],
-                  rdtype=dns.rdatatype.A,
-                  rdclass=dns.rdataclass.IN,
-                  tcp=False, source: Optional[str]=None,
-                  raise_on_no_answer=True, source_port=0,
+                  rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+                  rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+                  tcp: bool=False, source: Optional[str]=None,
+                  raise_on_no_answer: bool=True, source_port: int=0,
                   lifetime: Optional[float]=None, search: Optional[bool]=None,
                   backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
     """Query nameservers asynchronously to find the answer to the question.
@@ -218,8 +220,9 @@ async def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
 
     return await get_default_resolver().canonical_name(name)
 
-async def zone_for_name(name: Union[dns.name.Name, str], rdclass=dns.rdataclass.IN,
-                        tcp=False, resolver: Optional[Resolver]=None,
+async def zone_for_name(name: Union[dns.name.Name, str],
+                        rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN,
+                        tcp: bool=False, resolver: Optional[Resolver]=None,
                         backend: Optional[dns.asyncbackend.Backend]=None) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 

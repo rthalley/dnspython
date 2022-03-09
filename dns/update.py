@@ -17,13 +17,14 @@
 
 """DNS Dynamic Update Support"""
 
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 import dns.message
 import dns.name
 import dns.opcode
 import dns.rdata
 import dns.rdataclass
+import dns.rdatatype
 import dns.rdataset
 import dns.tsig
 
@@ -48,7 +49,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
     def __init__(self, zone: Optional[Union[dns.name.Name, str]]=None,
                  rdclass=dns.rdataclass.IN,
                  keyring: Optional[Any]=None, keyname: Optional[dns.name.Name]=None,
-                 keyalgorithm=dns.tsig.default_algorithm,
+                 keyalgorithm: Union[dns.name.Name, str]=dns.tsig.default_algorithm,
                  id: Optional[int]=None):
         """Initialize a new DNS Update object.
 
@@ -79,7 +80,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
             self.use_tsig(keyring, keyname, algorithm=keyalgorithm)
 
     @property
-    def zone(self):
+    def zone(self) -> List[dns.rrset.RRset]:
         """The zone section."""
         return self.sections[0]
 
@@ -88,7 +89,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         self.sections[0] = v
 
     @property
-    def prerequisite(self):
+    def prerequisite(self) -> List[dns.rrset.RRset]:
         """The prerequisite section."""
         return self.sections[1]
 
@@ -97,7 +98,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         self.sections[1] = v
 
     @property
-    def update(self):
+    def update(self) -> List[dns.rrset.RRset]:
         """The update section."""
         return self.sections[2]
 
@@ -156,7 +157,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                                              self.origin)
                     self._add_rr(name, ttl, rd, section=section)
 
-    def add(self, name: Union[dns.name.Name, str], *args):
+    def add(self, name: Union[dns.name.Name, str], *args) -> None:
         """Add records.
 
         The first argument is always a name.  The other
@@ -171,7 +172,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
 
         self._add(False, self.update, name, *args)
 
-    def delete(self, name: Union[dns.name.Name, str], *args):
+    def delete(self, name: Union[dns.name.Name, str], *args) -> None:
         """Delete records.
 
         The first argument is always a name.  The other
@@ -215,7 +216,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                                                  self.origin)
                         self._add_rr(name, 0, rd, dns.rdataclass.NONE)
 
-    def replace(self, name: Union[dns.name.Name, str], *args):
+    def replace(self, name: Union[dns.name.Name, str], *args) -> None:
         """Replace records.
 
         The first argument is always a name.  The other
@@ -233,7 +234,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
 
         self._add(True, self.update, name, *args)
 
-    def present(self, name: Union[dns.name.Name, str], *args):
+    def present(self, name: Union[dns.name.Name, str], *args) -> None:
         """Require that an owner name (and optionally an rdata type,
         or specific rdataset) exists as a prerequisite to the
         execution of the update.
@@ -272,7 +273,8 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                             dns.rdatatype.NONE, None,
                             True, True)
 
-    def absent(self, name: Union[dns.name.Name, str], rdtype=None):
+    def absent(self, name: Union[dns.name.Name, str],
+               rdtype: Union[dns.rdatatype.RdataType, str]=None) -> None:
         """Require that an owner name (and optionally an rdata type) does
         not exist as a prerequisite to the execution of the update."""
 
@@ -284,9 +286,9 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                             dns.rdatatype.NONE, None,
                             True, True)
         else:
-            rdtype = dns.rdatatype.RdataType.make(rdtype)
+            the_rdtype = dns.rdatatype.RdataType.make(rdtype)
             self.find_rrset(self.prerequisite, name,
-                            dns.rdataclass.NONE, rdtype,
+                            dns.rdataclass.NONE, the_rdtype,
                             dns.rdatatype.NONE, None,
                             True, True)
 

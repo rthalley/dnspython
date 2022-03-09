@@ -9,7 +9,7 @@ import dns.exception
 import dns.name
 
 class Parser:
-    def __init__(self, wire: bytes, current=0):
+    def __init__(self, wire: bytes, current: int=0):
         self.wire = wire
         self.current = 0
         self.end = len(self.wire)
@@ -17,10 +17,10 @@ class Parser:
             self.seek(current)
         self.furthest = current
 
-    def remaining(self):
+    def remaining(self) -> int:
         return self.end - self.current
 
-    def get_bytes(self, size=int) -> bytes:
+    def get_bytes(self, size: int) -> bytes:
         assert size >= 0
         if size > self.remaining():
             raise dns.exception.FormError
@@ -29,7 +29,7 @@ class Parser:
         self.furthest = max(self.furthest, self.current)
         return output
 
-    def get_counted_bytes(self, length_size=1) -> bytes:
+    def get_counted_bytes(self, length_size: int=1) -> bytes:
         length = int.from_bytes(self.get_bytes(length_size), 'big')
         return self.get_bytes(length)
 
@@ -57,7 +57,7 @@ class Parser:
             name = name.relativize(origin)
         return name
 
-    def seek(self, where: int):
+    def seek(self, where: int) -> None:
         # Note that seeking to the end is OK!  (If you try to read
         # after such a seek, you'll get an exception as expected.)
         if where < 0 or where > self.end:

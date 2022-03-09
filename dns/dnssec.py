@@ -221,7 +221,7 @@ def _bytes_to_long(b: bytes) -> int:
     return int.from_bytes(b, 'big')
 
 
-def _validate_signature(sig: bytes, data: bytes, key: DNSKEY, chosen_hash: Any):
+def _validate_signature(sig: bytes, data: bytes, key: DNSKEY, chosen_hash: Any) -> None:
     keyptr: bytes
     if _is_rsa(key.algorithm):
         # we ignore because mypy is confused and thinks key.key is a str for unknown reasons.
@@ -304,7 +304,7 @@ def _validate_signature(sig: bytes, data: bytes, key: DNSKEY, chosen_hash: Any):
 def _validate_rrsig(rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
                     rrsig: RRSIG,
                     keys: Dict[dns.name.Name, Union[dns.node.Node, dns.rdataset.Rdataset]],
-                    origin: Optional[dns.name.Name]=None, now: Optional[float]=None):
+                    origin: Optional[dns.name.Name]=None, now: Optional[float]=None) -> None:
     """Validate an RRset against a single signature rdata, throwing an
     exception if validation is not successful.
 
@@ -416,7 +416,7 @@ def _validate_rrsig(rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdata
 def _validate(rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
               rrsigset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
               keys: Dict[dns.name.Name, Union[dns.node.Node, dns.rdataset.Rdataset]],
-              origin: Optional[dns.name.Name]=None, now: Optional[float]=None):
+              origin: Optional[dns.name.Name]=None, now: Optional[float]=None) -> None:
     """Validate an RRset against a signature RRset, throwing an exception
     if none of the signatures validate.
 
@@ -476,7 +476,8 @@ def _validate(rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rd
     raise ValidationFailure("no RRSIGs validated")
 
 
-def nsec3_hash(domain, salt, iterations, algorithm):
+def nsec3_hash(domain: Union[dns.name.Name, str], salt: Optional[Union[str, bytes]],
+               iterations: int, algorithm: Union[int, str]) -> str:
     """
     Calculate the NSEC3 hash, according to
     https://tools.ietf.org/html/rfc5155#section-5
@@ -507,7 +508,6 @@ def nsec3_hash(domain, salt, iterations, algorithm):
     if algorithm != NSEC3Hash.SHA1:
         raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
 
-    salt_encoded = salt
     if salt is None:
         salt_encoded = b''
     elif isinstance(salt, str):
@@ -515,10 +515,13 @@ def nsec3_hash(domain, salt, iterations, algorithm):
             salt_encoded = bytes.fromhex(salt)
         else:
             raise ValueError("Invalid salt length")
+    else:
+        salt_encoded = salt
 
     if not isinstance(domain, dns.name.Name):
         domain = dns.name.from_text(domain)
     domain_encoded = domain.canonicalize().to_wire()
+    assert domain_encoded is not None
 
     digest = hashlib.sha1(domain_encoded + salt_encoded).digest()
     for _ in range(iterations):

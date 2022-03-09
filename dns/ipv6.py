@@ -98,7 +98,7 @@ _v4_ending = re.compile(br'(.*):(\d+\.\d+\.\d+\.\d+)$')
 _colon_colon_start = re.compile(br'::.*')
 _colon_colon_end = re.compile(br'.*::$')
 
-def inet_aton(text: Union[str, bytes], ignore_scope=False) -> bytes:
+def inet_aton(text: Union[str, bytes], ignore_scope: bool=False) -> bytes:
     """Convert an IPv6 address in text form to binary form.
 
     *text*, a ``str``, the IPv6 address in textual form.
@@ -190,7 +190,7 @@ def inet_aton(text: Union[str, bytes], ignore_scope=False) -> bytes:
 
 _mapped_prefix = b'\x00' * 10 + b'\xff\xff'
 
-def is_mapped(address):
+def is_mapped(address: bytes) -> bool:
     """Is the specified address a mapped IPv4 address?
 
     *address*, a ``bytes`` is an IPv6 address in binary form.

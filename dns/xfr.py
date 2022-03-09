@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import dns.exception
 import dns.message
@@ -51,8 +51,9 @@ class Inbound:
     State machine for zone transfers.
     """
 
-    def __init__(self, txn_manager: dns.transaction.TransactionManager, rdtype=dns.rdatatype.AXFR,
-                 serial: Optional[int]=None, is_udp=False):
+    def __init__(self, txn_manager: dns.transaction.TransactionManager,
+                 rdtype: dns.rdatatype.RdataType=dns.rdatatype.AXFR,
+                 serial: Optional[int]=None, is_udp: bool=False):
         """Initialize an inbound zone transfer.
 
         *txn_manager* is a :py:class:`dns.transaction.TransactionManager`.
@@ -245,10 +246,11 @@ class Inbound:
 
 
 def make_query(txn_manager: dns.transaction.TransactionManager, serial: Optional[int]=0,
-               use_edns=None, ednsflags: Optional[int]=None, payload: Optional[int]=None,
+               use_edns: Optional[Union[int, bool]]=None, ednsflags: Optional[int]=None, payload: Optional[int]=None,
                request_payload: Optional[int]=None, options: Optional[List[dns.edns.Option]]=None,
                keyring: Any=None, keyname: Optional[dns.name.Name]=None,
-               keyalgorithm=dns.tsig.default_algorithm) -> Tuple[dns.message.QueryMessage, Optional[int]]:
+               keyalgorithm: Union[dns.name.Name, str]=dns.tsig.default_algorithm) \
+                   -> Tuple[dns.message.QueryMessage, Optional[int]]:
     """Make an AXFR or IXFR query.
 
     *txn_manager* is a ``dns.transaction.TransactionManager``, typically a

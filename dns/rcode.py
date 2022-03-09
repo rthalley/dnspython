@@ -17,6 +17,8 @@
 
 """DNS Result Codes."""
 
+from typing import Tuple
+
 import dns.enum
 import dns.exception
 
@@ -77,20 +79,20 @@ class UnknownRcode(dns.exception.DNSException):
     """A DNS rcode is unknown."""
 
 
-def from_text(text):
+def from_text(text: str) -> Rcode:
     """Convert text into an rcode.
 
     *text*, a ``str``, the textual rcode or an integer in textual form.
 
     Raises ``dns.rcode.UnknownRcode`` if the rcode mnemonic is unknown.
 
-    Returns an ``int``.
+    Returns a ``dns.rcode.Rcode``.
     """
 
     return Rcode.from_text(text)
 
 
-def from_flags(flags, ednsflags):
+def from_flags(flags: int, ednsflags: int) -> Rcode:
     """Return the rcode value encoded by flags and ednsflags.
 
     *flags*, an ``int``, the DNS flags field.
@@ -99,17 +101,17 @@ def from_flags(flags, ednsflags):
 
     Raises ``ValueError`` if rcode is < 0 or > 4095
 
-    Returns an ``int``.
+    Returns a ``dns.rcode.Rcode``.
     """
 
     value = (flags & 0x000f) | ((ednsflags >> 20) & 0xff0)
-    return value
+    return Rcode.make(value)
 
 
-def to_flags(value):
+def to_flags(value: Rcode) -> Tuple[int, int]:
     """Return a (flags, ednsflags) tuple which encodes the rcode.
 
-    *value*, an ``int``, the rcode.
+    *value*, a ``dns.rcode.Rcode``, the rcode.
 
     Raises ``ValueError`` if rcode is < 0 or > 4095.
 
@@ -123,10 +125,10 @@ def to_flags(value):
     return (v, ev)
 
 
-def to_text(value, tsig=False):
+def to_text(value: Rcode, tsig: bool=False) -> str:
     """Convert rcode into text.
 
-    *value*, an ``int``, the rcode.
+    *value*, a ``dns.rcode.Rcode``, the rcode.
 
     Raises ``ValueError`` if rcode is < 0 or > 4095.
 

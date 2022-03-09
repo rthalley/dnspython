@@ -3,7 +3,7 @@
 """Serial Number Arthimetic from RFC 1982"""
 
 class Serial:
-    def __init__(self, value:int , bits=32):
+    def __init__(self, value: int, bits: int=32):
         self.value = value % 2 ** bits
         self.bits = bits
 

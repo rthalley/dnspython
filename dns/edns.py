@@ -228,7 +228,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
                                            self.scopelen)
 
     @staticmethod
-    def from_text(text) -> Option:
+    def from_text(text: str) -> Option:
         """Convert a string into a `dns.edns.ECSOption`
 
         *text*, a `str`, the text form of the option.
@@ -264,25 +264,25 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             raise ValueError('could not parse ECS from "{}"'.format(text))
         n_slashes = ecs_text.count('/')
         if n_slashes == 1:
-            address, srclen = ecs_text.split('/')
-            scope = 0
+            address, tsrclen = ecs_text.split('/')
+            tscope = '0'
         elif n_slashes == 2:
-            address, srclen, scope = ecs_text.split('/')
+            address, tsrclen, tscope = ecs_text.split('/')
         else:
             raise ValueError('could not parse ECS from "{}"'.format(text))
         try:
-            scope = int(scope)
+            scope = int(tscope)
         except ValueError:
             raise ValueError('invalid scope ' +
-                             '"{}": scope must be an integer'.format(scope))
+                             '"{}": scope must be an integer'.format(tscope))
         try:
-            srclen = int(srclen)
+            srclen = int(tsrclen)
         except ValueError:
             raise ValueError('invalid srclen ' +
-                             '"{}": srclen must be an integer'.format(srclen))
+                             '"{}": srclen must be an integer'.format(tsrclen))
         return ECSOption(address, srclen, scope)
 
-    def to_wire(self, file=None) -> Optional[bytes]:
+    def to_wire(self, file: Optional[Any]=None) -> Optional[bytes]:
         value = (struct.pack('!HBB', self.family, self.srclen, self.scopelen) +
                  self.addrdata)
         if file:
@@ -442,7 +442,7 @@ def option_from_wire(otype: Union[OptionType, str], wire: bytes, current: int, o
     with parser.restrict_to(olen):
         return option_from_wire_parser(otype, parser)
 
-def register_type(implementation: Any, otype: OptionType):
+def register_type(implementation: Any, otype: OptionType) -> None:
     """Register the implementation of an option type.
 
     *implementation*, a ``class``, is a subclass of ``dns.edns.Option``.

@@ -27,8 +27,8 @@ ipv4_reverse_domain = dns.name.from_text('in-addr.arpa.')
 ipv6_reverse_domain = dns.name.from_text('ip6.arpa.')
 
 
-def from_address(text: str, v4_origin=ipv4_reverse_domain,
-                 v6_origin=ipv6_reverse_domain) -> dns.name.Name:
+def from_address(text: str, v4_origin: dns.name.Name=ipv4_reverse_domain,
+                 v6_origin: dns.name.Name=ipv6_reverse_domain) -> dns.name.Name:
     """Convert an IPv4 or IPv6 address in textual form into a Name object whose
     value is the reverse-map domain name of the address.
 
@@ -63,8 +63,8 @@ def from_address(text: str, v4_origin=ipv4_reverse_domain,
     return dns.name.from_text('.'.join(reversed(parts)), origin=origin)
 
 
-def to_address(name: dns.name.Name, v4_origin=ipv4_reverse_domain,
-               v6_origin=ipv6_reverse_domain) -> str:
+def to_address(name: dns.name.Name, v4_origin: dns.name.Name=ipv4_reverse_domain,
+               v6_origin: dns.name.Name=ipv6_reverse_domain) -> str:
     """Convert a reverse map domain name into textual address form.
 
     *name*, a ``dns.name.Name``, an IPv4 or IPv6 address in reverse-map name
