@@ -98,7 +98,7 @@ async def send_udp(sock: dns.asyncbackend.DatagramSocket,
 async def receive_udp(sock: dns.asyncbackend.DatagramSocket,
                       destination: Optional[Any]=None, expiration: Optional[float]=None,
                       ignore_unexpected: bool=False, one_rr_per_rrset: bool=False,
-                      keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac=b'',
+                      keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac: Optional[bytes]=b'',
                       ignore_trailing: bool=False, raise_on_truncation: bool=False) -> Any:
     """Read a DNS message from a UDP socket.
 
@@ -254,7 +254,8 @@ async def _read_exactly(sock, count, expiration):
 async def receive_tcp(sock: dns.asyncbackend.StreamSocket,
                       expiration: Optional[float]=None, one_rr_per_rrset: bool=False,
                       keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None,
-                      request_mac=b'', ignore_trailing: bool=False) -> Tuple[dns.message.Message, float]:
+                      request_mac: Optional[bytes]=b'',
+                      ignore_trailing: bool=False) -> Tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``dns.asyncbackend.StreamSocket``.
