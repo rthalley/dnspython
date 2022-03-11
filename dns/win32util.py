@@ -2,6 +2,8 @@ import sys
 
 if sys.platform == 'win32':
 
+    from typing import Any
+
     import dns.name
 
     _prefer_wmi = True
@@ -60,7 +62,7 @@ if sys.platform == 'win32':
                 self.join()
                 return self.info
     else:
-        class _WMIGetter:
+        class _WMIGetter:  # type: ignore
             pass
 
 
@@ -224,6 +226,7 @@ if sys.platform == 'win32':
                 lm.Close()
             return self.info
 
+    _getter_class: Any
     if _have_wmi and _prefer_wmi:
         _getter_class = _WMIGetter
     else:
