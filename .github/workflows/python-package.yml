@@ -42,6 +42,9 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install poetry
         poetry install -E dnssec -E doh -E idna -E trio -E curio
+    - name: Typecheck
+      run: |
+        poetry run python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
     - name: Test with pytest
       run: |
         poetry run pytest --cov=dns --cov-branch --cov-report=xml:coverage.xml

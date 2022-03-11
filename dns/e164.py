@@ -48,7 +48,7 @@ def from_e164(text: str, origin: Optional[dns.name.Name]=public_enum_domain) -> 
 
 
 def to_e164(name: dns.name.Name, origin: Optional[dns.name.Name]=public_enum_domain,
-            want_plus_prefix=True) -> str:
+            want_plus_prefix: bool=True) -> str:
     """Convert an ENUM domain name into an E.164 number.
 
     Note that dnspython does not have any information about preferred

@@ -83,7 +83,7 @@ def get_default_backend() -> Backend:
     return set_default_backend(sniff())
 
 
-def set_default_backend(name: str):
+def set_default_backend(name: str) -> Backend:
     """Set the default backend.
 
     It's not normally necessary to call this method, as

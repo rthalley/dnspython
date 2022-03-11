@@ -17,7 +17,7 @@
 
 """Asynchronous DNS stub resolver."""
 
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import time
 
@@ -26,6 +26,8 @@ import dns.asyncquery
 import dns.exception
 import dns.name
 import dns.query
+import dns.rdataclass
+import dns.rdatatype
 import dns.resolver  # lgtm[py/import-and-import-from]
 
 # import some resolver symbols for brevity
@@ -41,10 +43,10 @@ class Resolver(dns.resolver.BaseResolver):
     """Asynchronous DNS stub resolver."""
 
     async def resolve(self, qname: Union[dns.name.Name, str],
-                      rdtype=dns.rdatatype.A,
-                      rdclass=dns.rdataclass.IN,
-                      tcp=False, source: Optional[str]=None,
-                      raise_on_no_answer=True, source_port=0,
+                      rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+                      rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+                      tcp: bool=False, source: Optional[str]=None,
+                      raise_on_no_answer: bool=True, source_port: int=0,
                       lifetime: Optional[float]=None, search: Optional[bool]=None,
                       backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
         """Query nameservers asynchronously to find the answer to the question.
@@ -107,7 +109,7 @@ class Resolver(dns.resolver.BaseResolver):
                 if answer is not None:
                     return answer
 
-    async def resolve_address(self, ipaddr: str, *args, **kwargs) -> dns.resolver.Answer:
+    async def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> dns.resolver.Answer:
         """Use an asynchronous resolver to run a reverse query for PTR
         records.
 
@@ -125,7 +127,7 @@ class Resolver(dns.resolver.BaseResolver):
         # We make a modified kwargs for type checking happiness, as otherwise
         # we get a legit warning about possibly having rdtype and rdclass
         # in the kwargs more than once.
-        modified_kwargs = {}
+        modified_kwargs: Dict[str, Any] = {}
         modified_kwargs.update(kwargs)
         modified_kwargs['rdtype'] = dns.rdatatype.PTR
         modified_kwargs['rdclass'] = dns.rdataclass.IN
@@ -167,7 +169,7 @@ def get_default_resolver() -> Resolver:
     return default_resolver
 
 
-def reset_default_resolver():
+def reset_default_resolver() -> None:
     """Re-initialize default asynchronous resolver.
 
     Note that the resolver configuration (i.e. /etc/resolv.conf on UNIX
@@ -179,10 +181,10 @@ def reset_default_resolver():
 
 
 async def resolve(qname: Union[dns.name.Name, str],
-                  rdtype=dns.rdatatype.A,
-                  rdclass=dns.rdataclass.IN,
-                  tcp=False, source: Optional[str]=None,
-                  raise_on_no_answer=True, source_port=0,
+                  rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
+                  rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+                  tcp: bool=False, source: Optional[str]=None,
+                  raise_on_no_answer: bool=True, source_port: int=0,
                   lifetime: Optional[float]=None, search: Optional[bool]=None,
                   backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
     """Query nameservers asynchronously to find the answer to the question.
@@ -200,7 +202,7 @@ async def resolve(qname: Union[dns.name.Name, str],
                                                 backend)
 
 
-async def resolve_address(ipaddr: str, *args, **kwargs) -> dns.resolver.Answer:
+async def resolve_address(ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> dns.resolver.Answer:
     """Use a resolver to run a reverse query for PTR records.
 
     See :py:func:`dns.asyncresolver.Resolver.resolve_address` for more
@@ -218,8 +220,9 @@ async def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
 
     return await get_default_resolver().canonical_name(name)
 
-async def zone_for_name(name: Union[dns.name.Name, str], rdclass=dns.rdataclass.IN,
-                        tcp=False, resolver: Optional[Resolver]=None,
+async def zone_for_name(name: Union[dns.name.Name, str],
+                        rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN,
+                        tcp: bool=False, resolver: Optional[Resolver]=None,
                         backend: Optional[dns.asyncbackend.Backend]=None) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 

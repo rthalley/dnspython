@@ -100,7 +100,7 @@ class Zone(dns.transaction.TransactionManager):
     __slots__ = ['rdclass', 'origin', 'nodes', 'relativize']
 
     def __init__(self, origin: Optional[Union[dns.name.Name, str]],
-                 rdclass=dns.rdataclass.IN, relativize=True):
+                 rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN, relativize: bool=True):
         """Initialize a zone object.
 
         *origin* is the origin of the zone.  It may be a ``dns.name.Name``,
@@ -204,7 +204,7 @@ class Zone(dns.transaction.TransactionManager):
         key = self._validate_name(key)
         return key in self.nodes
 
-    def find_node(self, name: Union[dns.name.Name, str], create=False):
+    def find_node(self, name: Union[dns.name.Name, str], create: bool=False) -> dns.node.Node:
         """Find a node in the zone, possibly creating it.
 
         *name*: the name of the node to find.
@@ -230,7 +230,7 @@ class Zone(dns.transaction.TransactionManager):
             self.nodes[name] = node
         return node
 
-    def get_node(self, name: Union[dns.name.Name, str], create=False):
+    def get_node(self, name: Union[dns.name.Name, str], create: bool=False) -> Optional[dns.node.Node]:
         """Get a node in the zone, possibly creating it.
 
         This method is like ``find_node()``, except it returns None instead
@@ -257,7 +257,7 @@ class Zone(dns.transaction.TransactionManager):
             node = None
         return node
 
-    def delete_node(self, name: Union[dns.name.Name, str]):
+    def delete_node(self, name: Union[dns.name.Name, str]) -> None:
         """Delete the specified node if it exists.
 
         *name*: the name of the node to find.
@@ -275,7 +275,7 @@ class Zone(dns.transaction.TransactionManager):
     def find_rdataset(self, name: Union[dns.name.Name, str],
                       rdtype: Union[dns.rdatatype.RdataType, str],
                       covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE,
-                      create=False) -> dns.rdataset.Rdataset:
+                      create: bool=False) -> dns.rdataset.Rdataset:
         """Look for an rdataset with the specified name and type in the zone,
         and return an rdataset encapsulating it.
 
@@ -310,14 +310,16 @@ class Zone(dns.transaction.TransactionManager):
         Returns a ``dns.rdataset.Rdataset``.
         """
 
-        name = self._validate_name(name)
-        rdtype = dns.rdatatype.RdataType.make(rdtype)
-        covers = dns.rdatatype.RdataType.make(covers)
-        node = self.find_node(name, create)
-        return node.find_rdataset(self.rdclass, rdtype, covers, create)
+        the_name = self._validate_name(name)
+        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+        the_covers = dns.rdatatype.RdataType.make(covers)
+        node = self.find_node(the_name, create)
+        return node.find_rdataset(self.rdclass, the_rdtype, the_covers, create)
 
-    def get_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
-                     create=False) -> Optional[dns.rdataset.Rdataset]:
+    def get_rdataset(self, name: Union[dns.name.Name, str],
+                     rdtype: Union[dns.rdatatype.RdataType, str],
+                     covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE,
+                     create: bool=False) -> Optional[dns.rdataset.Rdataset]:
         """Look for an rdataset with the specified name and type in the zone.
 
         This method is like ``find_rdataset()``, except it returns None instead
@@ -361,7 +363,7 @@ class Zone(dns.transaction.TransactionManager):
 
     def delete_rdataset(self, name: Union[dns.name.Name, str],
                         rdtype: Union[dns.rdatatype.RdataType, str],
-                        covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE):
+                        covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE) -> None:
         """Delete the rdataset matching *rdtype* and *covers*, if it
         exists at the node specified by *name*.
 
@@ -389,17 +391,17 @@ class Zone(dns.transaction.TransactionManager):
         RRSIG rdataset.
         """
 
-        name = self._validate_name(name)
-        rdtype = dns.rdatatype.RdataType.make(rdtype)
-        covers = dns.rdatatype.RdataType.make(covers)
-        node = self.get_node(name)
+        the_name = self._validate_name(name)
+        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+        the_covers = dns.rdatatype.RdataType.make(covers)
+        node = self.get_node(the_name)
         if node is not None:
-            node.delete_rdataset(self.rdclass, rdtype, covers)
+            node.delete_rdataset(self.rdclass, the_rdtype, the_covers)
             if len(node) == 0:
-                self.delete_node(name)
+                self.delete_node(the_name)
 
     def replace_rdataset(self, name: Union[dns.name.Name, str],
-                         replacement: dns.rdataset.Rdataset):
+                         replacement: dns.rdataset.Rdataset) -> None:
         """Replace an rdataset at name.
 
         It is not an error if there is no rdataset matching I{replacement}.
@@ -518,8 +520,9 @@ class Zone(dns.transaction.TransactionManager):
             rrset = None
         return rrset
 
-    def iterate_rdatasets(self, rdtype=dns.rdatatype.ANY,
-                          covers=dns.rdatatype.NONE) -> Iterator[Tuple[dns.name.Name, dns.rdataset.Rdataset]]:
+    def iterate_rdatasets(self, rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.ANY,
+                          covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE) \
+                              -> Iterator[Tuple[dns.name.Name, dns.rdataset.Rdataset]]:
         """Return a generator which yields (name, rdataset) tuples for
         all rdatasets in the zone which have the specified *rdtype*
         and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
@@ -546,8 +549,9 @@ class Zone(dns.transaction.TransactionManager):
                    (rds.rdtype == rdtype and rds.covers == covers):
                     yield (name, rds)
 
-    def iterate_rdatas(self, rdtype=dns.rdatatype.ANY,
-                       covers=dns.rdatatype.NONE) -> Iterator[Tuple[dns.name.Name, int, dns.rdata.Rdata]]:
+    def iterate_rdatas(self, rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.ANY,
+                       covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE) \
+                           -> Iterator[Tuple[dns.name.Name, int, dns.rdata.Rdata]]:
         """Return a generator which yields (name, ttl, rdata) tuples for
         all rdatas in the zone which have the specified *rdtype*
         and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
@@ -575,8 +579,8 @@ class Zone(dns.transaction.TransactionManager):
                     for rdata in rds:
                         yield (name, rds.ttl, rdata)
 
-    def to_file(self, f: Any, sorted=True, relativize=True, nl: Optional[str]=None,
-                want_comments=False, want_origin=False):
+    def to_file(self, f: Any, sorted: bool=True, relativize: bool=True, nl: Optional[str]=None,
+                want_comments: bool=False, want_origin: bool=False) -> None:
         """Write a zone to a file.
 
         *f*, a file or `str`.  If *f* is a string, it is treated
@@ -653,8 +657,8 @@ class Zone(dns.transaction.TransactionManager):
                     f.write(l)
                     f.write(nl)
 
-    def to_text(self, sorted=True, relativize=True, nl: Optional[str]=None,
-                want_comments=False, want_origin=False):
+    def to_text(self, sorted: bool=True, relativize: bool=True, nl: Optional[str]=None,
+                want_comments: bool=False, want_origin: bool=False) -> str:
         """Return a zone's text as though it were written to a file.
 
         *sorted*, a ``bool``.  If True, the default, then the file
@@ -687,7 +691,7 @@ class Zone(dns.transaction.TransactionManager):
         temp_buffer.close()
         return return_value
 
-    def check_origin(self):
+    def check_origin(self) -> None:
         """Do some simple checking of the zone's origin.
 
         Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
@@ -699,6 +703,7 @@ class Zone(dns.transaction.TransactionManager):
         if self.relativize:
             name = dns.name.empty
         else:
+            assert self.origin is not None
             name = self.origin
         if self.get_rdataset(name, dns.rdatatype.SOA) is None:
             raise NoSOA
@@ -729,7 +734,7 @@ class Zone(dns.transaction.TransactionManager):
             raise NoSOA
         return soa[0]
 
-    def _compute_digest(self, hash_algorithm: DigestHashAlgorithm, scheme=DigestScheme.SIMPLE) -> bytes:
+    def _compute_digest(self, hash_algorithm: DigestHashAlgorithm, scheme: DigestScheme=DigestScheme.SIMPLE) -> bytes:
         hashinfo = _digest_hashers.get(hash_algorithm)
         if not hashinfo:
             raise UnsupportedDigestHashAlgorithm
@@ -758,7 +763,8 @@ class Zone(dns.transaction.TransactionManager):
                     hasher.update(rrnamebuf + rrfixed + rrlen + rdata)
         return hasher.digest()
 
-    def compute_digest(self, hash_algorithm: DigestHashAlgorithm, scheme=DigestScheme.SIMPLE) -> dns.rdtypes.ANY.ZONEMD.ZONEMD:
+    def compute_digest(self, hash_algorithm: DigestHashAlgorithm,
+                       scheme: DigestScheme=DigestScheme.SIMPLE) -> dns.rdtypes.ANY.ZONEMD.ZONEMD:
         serial = self.get_soa().serial
         digest = self._compute_digest(hash_algorithm, scheme)
         return dns.rdtypes.ANY.ZONEMD.ZONEMD(self.rdclass,
@@ -766,11 +772,12 @@ class Zone(dns.transaction.TransactionManager):
                                              serial, scheme, hash_algorithm,
                                              digest)
 
-    def verify_digest(self, zonemd: Optional[dns.rdtypes.ANY.ZONEMD.ZONEMD]=None):
+    def verify_digest(self, zonemd: Optional[dns.rdtypes.ANY.ZONEMD.ZONEMD]=None) -> None:
         digests: Union[dns.rdataset.Rdataset, List[dns.rdtypes.ANY.ZONEMD.ZONEMD]]
         if zonemd:
             digests = [zonemd]
         else:
+            assert self.origin is not None
             rds = self.get_rdataset(self.origin, dns.rdatatype.ZONEMD)
             if rds is None:
                 raise NoDigest
@@ -791,7 +798,7 @@ class Zone(dns.transaction.TransactionManager):
         return Transaction(self, False,
                            Version(self, 1, self.nodes, self.origin))
 
-    def writer(self, replacement=False) -> 'Transaction':
+    def writer(self, replacement: bool=False) -> 'Transaction':
         txn = Transaction(self, replacement)
         txn._setup_version()
         return txn
@@ -852,25 +859,28 @@ class ImmutableVersionedNode(VersionedNode):
             [dns.rdataset.ImmutableRdataset(rds) for rds in node.rdatasets]
         )
 
-    def find_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
-                      create=False):
+    def find_rdataset(self, rdclass: dns.rdataclass.RdataClass, rdtype: dns.rdatatype.RdataType,
+                      covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
+                      create: bool=False) -> dns.rdataset.Rdataset:
         if create:
             raise TypeError("immutable")
         return super().find_rdataset(rdclass, rdtype, covers, False)
 
-    def get_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
-                     create=False):
+    def get_rdataset(self, rdclass: dns.rdataclass.RdataClass, rdtype: dns.rdatatype.RdataType,
+                     covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
+                     create: bool=False) -> Optional[dns.rdataset.Rdataset]:
         if create:
             raise TypeError("immutable")
         return super().get_rdataset(rdclass, rdtype, covers, False)
 
-    def delete_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE):
+    def delete_rdataset(self, rdclass: dns.rdataclass.RdataClass, rdtype: dns.rdatatype.RdataType,
+                        covers: dns.rdatatype.RdataType=dns.rdatatype.NONE) -> None:
         raise TypeError("immutable")
 
-    def replace_rdataset(self, replacement):
+    def replace_rdataset(self, replacement: dns.rdataset.Rdataset) -> None:
         raise TypeError("immutable")
 
-    def is_immutable(self):
+    def is_immutable(self) -> bool:
         return True
 
 
@@ -886,7 +896,7 @@ class Version:
             self.nodes = {}
         self.origin = origin
 
-    def _validate_name(self, name: dns.name.Name):
+    def _validate_name(self, name: dns.name.Name) -> dns.name.Name:
         if name.is_absolute():
             if self.origin is None:
                 # This should probably never happen as other code (e.g.
@@ -920,7 +930,7 @@ class Version:
 
 
 class WritableVersion(Version):
-    def __init__(self, zone: Zone, replacement=False):
+    def __init__(self, zone: Zone, replacement: bool=False):
         # The zone._versions_lock must be held by our caller in a versioned
         # zone.
         id = zone._get_next_version_id()
@@ -936,7 +946,7 @@ class WritableVersion(Version):
         self.origin = zone.origin
         self.changed: Set[dns.name.Name] = set()
 
-    def _maybe_cow(self, name: dns.name.Name):
+    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
         name = self._validate_name(name)
         node = self.nodes.get(name)
         if node is None or name not in self.changed:
@@ -958,18 +968,18 @@ class WritableVersion(Version):
         else:
             return node
 
-    def delete_node(self, name: dns.name.Name):
+    def delete_node(self, name: dns.name.Name) -> None:
         name = self._validate_name(name)
         if name in self.nodes:
             del self.nodes[name]
             self.changed.add(name)
 
-    def put_rdataset(self, name: dns.name.Name, rdataset: dns.rdataset.Rdataset):
+    def put_rdataset(self, name: dns.name.Name, rdataset: dns.rdataset.Rdataset) -> None:
         node = self._maybe_cow(name)
         node.replace_rdataset(rdataset)
 
     def delete_rdataset(self, name: dns.name.Name, rdtype:dns.rdatatype.RdataType,
-                        covers: dns.rdatatype.RdataType):
+                        covers: dns.rdatatype.RdataType) -> None:
         node = self._maybe_cow(name)
         node.delete_rdataset(self.zone.rdclass, rdtype, covers)
         if len(node) == 0:
@@ -1077,9 +1087,9 @@ class Transaction(dns.transaction.Transaction):
 
 
 def from_text(text: str, origin: Optional[Union[dns.name.Name, str]]=None,
-              rdclass=dns.rdataclass.IN,
-              relativize=True, zone_factory=Zone, filename: Optional[str]=None,
-              allow_include=False, check_origin=True,
+              rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN,
+              relativize: bool=True, zone_factory: Any=Zone, filename: Optional[str]=None,
+              allow_include: bool=False, check_origin: bool=True,
               idna_codec: Optional[dns.name.IDNACodec]=None) -> Zone:
     """Build a zone object from a zone file format string.
 
@@ -1145,9 +1155,9 @@ def from_text(text: str, origin: Optional[Union[dns.name.Name, str]]=None,
 
 
 def from_file(f: Any, origin: Optional[Union[dns.name.Name, str]]=None,
-              rdclass=dns.rdataclass.IN,
-              relativize=True, zone_factory=Zone, filename: Optional[str]=None,
-              allow_include=True, check_origin=True) -> Zone:
+              rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN,
+              relativize: bool=True, zone_factory: Any=Zone, filename: Optional[str]=None,
+              allow_include: bool=True, check_origin: bool=True) -> Zone:
     """Read a zone file and build a zone object.
 
     *f*, a file or ``str``.  If *f* is a string, it is treated
@@ -1200,7 +1210,7 @@ def from_file(f: Any, origin: Optional[Union[dns.name.Name, str]]=None,
     assert False  # make mypy happy  lgtm[py/unreachable-statement]
 
 
-def from_xfr(xfr, zone_factory=Zone, relativize=True, check_origin=True):
+def from_xfr(xfr: Any, zone_factory: Any=Zone, relativize: bool=True, check_origin: bool=True) -> Zone:
     """Convert the output of a zone transfer generator into a zone object.
 
     *xfr*, a generator of ``dns.message.Message`` objects, typically
@@ -1220,6 +1230,8 @@ def from_xfr(xfr, zone_factory=Zone, relativize=True, check_origin=True):
     Raises ``dns.zone.NoNS`` if there is no NS RRset.
 
     Raises ``KeyError`` if there is no origin node.
+
+    Raises ``ValueError`` if no messages are yielded by the generator.
 
     Returns a subclass of ``dns.zone.Zone``.
     """
@@ -1243,6 +1255,8 @@ def from_xfr(xfr, zone_factory=Zone, relativize=True, check_origin=True):
             zrds.update_ttl(rrset.ttl)
             for rd in rrset:
                 zrds.add(rd)
+    if z is None:
+        raise ValueError('empty transfer')
     if check_origin:
         z.check_origin()
     return z

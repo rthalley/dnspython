@@ -17,7 +17,7 @@
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
 
-from typing import Any, cast, Collection, List, Optional, Union
+from typing import Any, cast, Collection, Dict, Iterable, List, Optional, Union
 
 import io
 import random
@@ -53,7 +53,7 @@ class Rdataset(dns.set.Set):
 
     def __init__(self, rdclass: dns.rdataclass.RdataClass,
                  rdtype: dns.rdatatype.RdataType,
-                 covers=dns.rdatatype.NONE, ttl=0):
+                 covers: dns.rdatatype.RdataType=dns.rdatatype.NONE, ttl: int=0):
         """Create a new rdataset of the specified class and type.
 
         *rdclass*, a ``dns.rdataclass.RdataClass``, the rdataclass.
@@ -79,7 +79,7 @@ class Rdataset(dns.set.Set):
         obj.ttl = self.ttl
         return obj
 
-    def update_ttl(self, ttl: int):
+    def update_ttl(self, ttl: int) -> None:
         """Perform TTL minimization.
 
         Set the TTL of the rdataset to be the lesser of the set's current
@@ -94,7 +94,7 @@ class Rdataset(dns.set.Set):
         elif ttl < self.ttl:
             self.ttl = ttl
 
-    def add(self, rd, ttl: Optional[int]=None):  # pylint: disable=arguments-differ
+    def add(self, rd: dns.rdata.Rdata, ttl: Optional[int]=None) -> None:  # pylint: disable=arguments-differ
         """Add the specified rdata to the rdataset.
 
         If the optional *ttl* parameter is supplied, then
@@ -184,9 +184,9 @@ class Rdataset(dns.set.Set):
 
     def to_text(self, name: Optional[dns.name.Name]=None,
                 origin: Optional[dns.name.Name]=None,
-                relativize=True,
+                relativize: bool=True,
                 override_rdclass: Optional[dns.rdataclass.RdataClass]=None,
-                want_comments=False, **kw) -> str:
+                want_comments: bool=False, **kw: Dict[str, Any]) -> str:
         """Convert the rdataset into DNS zone file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
@@ -254,7 +254,7 @@ class Rdataset(dns.set.Set):
                 compress: Optional[dns.name.CompressType]=None,
                 origin: Optional[dns.name.Name]=None,
                 override_rdclass: Optional[dns.rdataclass.RdataClass]=None,
-                want_shuffle=True) -> int:
+                want_shuffle: bool=True) -> int:
         """Convert the rdataset to wire format.
 
         *name*, a ``dns.name.Name`` is the owner name to use.
@@ -414,7 +414,7 @@ def from_text_list(rdclass: Union[dns.rdataclass.RdataClass, str],
                    ttl: int, text_rdatas: Collection[str],
                    idna_codec: Optional[dns.name.IDNACodec]=None,
                    origin: Optional[dns.name.Name]=None,
-                   relativize=True, relativize_to: Optional[dns.name.Name]=None) -> Rdataset:
+                   relativize: bool=True, relativize_to: Optional[dns.name.Name]=None) -> Rdataset:
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified list of rdatas in text format.
 
@@ -446,7 +446,7 @@ def from_text_list(rdclass: Union[dns.rdataclass.RdataClass, str],
 
 def from_text(rdclass: Union[dns.rdataclass.RdataClass, str],
               rdtype: Union[dns.rdatatype.RdataType, str],
-              ttl: int, *text_rdatas) -> Rdataset:
+              ttl: int, *text_rdatas: Any) -> Rdataset:
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified rdatas in text format.
 
@@ -475,7 +475,7 @@ def from_rdata_list(ttl: int, rdatas: Collection[dns.rdata.Rdata]) -> Rdataset:
     return r
 
 
-def from_rdata(ttl: int, *rdatas) -> Rdataset:
+def from_rdata(ttl: int, *rdatas: Any) -> Rdataset:
     """Create an rdataset with the specified TTL, and with
     the specified rdata objects.
 

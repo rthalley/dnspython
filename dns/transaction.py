@@ -1,6 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import collections
 
@@ -20,7 +20,7 @@ class TransactionManager:
         """Begin a read-only transaction."""
         raise NotImplementedError  # pragma: no cover
 
-    def writer(self, replacement=False) -> 'Transaction':
+    def writer(self, replacement: bool=False) -> 'Transaction':
         """Begin a writable transaction.
 
         *replacement*, a ``bool``.  If `True`, the content of the
@@ -101,7 +101,7 @@ CheckDeleteNameType = Callable[['Transaction', dns.name.Name], None]
 
 class Transaction:
 
-    def __init__(self, manager: TransactionManager, replacement=False, read_only=False):
+    def __init__(self, manager: TransactionManager, replacement: bool=False, read_only: bool=False):
         self.manager = manager
         self.replacement = replacement
         self.read_only = read_only
@@ -133,18 +133,18 @@ class Transaction:
         rdataset = self._get_rdataset(name, rdtype, covers)
         return _ensure_immutable_rdataset(rdataset)
 
-    def get_node(self, name) -> dns.node.Node:
+    def get_node(self, name: dns.name.Name) -> Optional[dns.node.Node]:
         """Return the node at *name*, if any.
 
         Returns an immutable node or ``None``.
         """
         return _ensure_immutable_node(self._get_node(name))
 
-    def _check_read_only(self):
+    def _check_read_only(self) -> None:
         if self.read_only:
             raise ReadOnly
 
-    def add(self, *args):
+    def add(self, *args: Any) -> None:
         """Add records.
 
         The arguments may be:
@@ -157,9 +157,9 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._add(False, args)
+        self._add(False, args)
 
-    def replace(self, *args):
+    def replace(self, *args: Any) -> None:
         """Replace the existing rdataset at the name with the specified
         rdataset, or add the specified rdataset if there was no existing
         rdataset.
@@ -178,9 +178,9 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._add(True, args)
+        self._add(True, args)
 
-    def delete(self, *args):
+    def delete(self, *args: Any) -> None:
         """Delete records.
 
         It is not an error if some of the records are not in the existing
@@ -200,9 +200,9 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._delete(False, args)
+        self._delete(False, args)
 
-    def delete_exact(self, *args):
+    def delete_exact(self, *args: Any) -> None:
         """Delete records.
 
         The arguments may be:
@@ -223,7 +223,7 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._delete(True, args)
+        self._delete(True, args)
 
     def name_exists(self, name: Union[dns.name.Name, str]) -> bool:
         """Does the specified name exist?"""
@@ -232,7 +232,7 @@ class Transaction:
             name = dns.name.from_text(name, None)
         return self._name_exists(name)
 
-    def update_serial(self, value=1, relative=True, name=dns.name.empty):
+    def update_serial(self, value: int=1, relative: bool=True, name: dns.name.Name=dns.name.empty) -> None:
         """Update the serial number.
 
         *value*, an `int`, is an increment if *relative* is `True`, or the
@@ -279,7 +279,7 @@ class Transaction:
         self._check_ended()
         return self._changed()
 
-    def commit(self):
+    def commit(self) -> None:
         """Commit the transaction.
 
         Normally transactions are used as context managers and commit
@@ -292,7 +292,7 @@ class Transaction:
         """
         self._end(True)
 
-    def rollback(self):
+    def rollback(self) -> None:
         """Rollback the transaction.
 
         Normally transactions are used as context managers and commit
@@ -304,7 +304,7 @@ class Transaction:
         """
         self._end(False)
 
-    def check_put_rdataset(self, check: CheckPutRdatasetType):
+    def check_put_rdataset(self, check: CheckPutRdatasetType) -> None:
         """Call *check* before putting (storing) an rdataset.
 
         The function is called with the transaction, the name, and the rdataset.
@@ -316,7 +316,7 @@ class Transaction:
         """
         self._check_put_rdataset.append(check)
 
-    def check_delete_rdataset(self, check: CheckDeleteRdatasetType):
+    def check_delete_rdataset(self, check: CheckDeleteRdatasetType) -> None:
         """Call *check* before deleting an rdataset.
 
         The function is called with the transaction, the name, the rdatatype,
@@ -329,7 +329,7 @@ class Transaction:
         """
         self._check_delete_rdataset.append(check)
 
-    def check_delete_name(self, check: CheckDeleteNameType):
+    def check_delete_name(self, check: CheckDeleteNameType) -> None:
         """Call *check* before putting (storing) an rdataset.
 
         The function is called with the transaction and the name.

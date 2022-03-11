@@ -1,5 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+from typing import Any
+
 import collections.abc
 
 from dns._immutable_ctx import immutable
@@ -7,7 +9,7 @@ from dns._immutable_ctx import immutable
 
 @immutable
 class Dict(collections.abc.Mapping):  # lgtm[py/missing-equals]
-    def __init__(self, dictionary, no_copy=False):
+    def __init__(self, dictionary: Any, no_copy: bool=False):
         """Make an immutable dictionary from the specified dictionary.
 
         If *no_copy* is `True`, then *dictionary* will be wrapped instead
@@ -39,7 +41,7 @@ class Dict(collections.abc.Mapping):  # lgtm[py/missing-equals]
         return iter(self._odict)
 
 
-def constify(o):
+def constify(o: Any) -> Any:
     """
     Convert mutable types to immutable types.
     """

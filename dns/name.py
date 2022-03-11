@@ -18,7 +18,7 @@
 """DNS Names.
 """
 
-from typing import Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import copy
 import struct
@@ -186,7 +186,7 @@ class IDNACodec:
 class IDNA2003Codec(IDNACodec):
     """IDNA 2003 encoder/decoder."""
 
-    def __init__(self, strict_decode=False):
+    def __init__(self, strict_decode: bool=False):
         """Initialize the IDNA 2003 encoder/decoder.
 
         *strict_decode* is a ``bool``. If `True`, then IDNA2003 checking
@@ -223,8 +223,8 @@ class IDNA2008Codec(IDNACodec):
     """IDNA 2008 encoder/decoder.
     """
 
-    def __init__(self, uts_46: bool=False, transitional=False,
-                 allow_pure_ascii=False, strict_decode=False):
+    def __init__(self, uts_46: bool=False, transitional: bool=False,
+                 allow_pure_ascii: bool=False, strict_decode: bool=False):
         """Initialize the IDNA 2008 encoder/decoder.
 
         *uts_46* is a ``bool``.  If True, apply Unicode IDNA
@@ -297,7 +297,7 @@ IDNA_2008_Strict = IDNA2008Codec(False, False, False, True)
 IDNA_2008_Transitional = IDNA2008Codec(True, True, False, False)
 IDNA_2008 = IDNA_2008_Practical
 
-def _validate_labels(labels: Tuple[bytes, ...]):
+def _validate_labels(labels: Tuple[bytes, ...]) -> None:
     """Check for empty labels in the middle of a label sequence,
     labels that are too long, and for too many labels.
 
@@ -555,7 +555,7 @@ class Name:
     def __str__(self):
         return self.to_text(False)
 
-    def to_text(self, omit_final_dot=False) -> str:
+    def to_text(self, omit_final_dot: bool=False) -> str:
         """Convert name to DNS text format.
 
         *omit_final_dot* is a ``bool``.  If True, don't emit the final
@@ -576,7 +576,7 @@ class Name:
         s = '.'.join(map(_escapify, l))
         return s
 
-    def to_unicode(self, omit_final_dot=False, idna_codec: Optional[IDNACodec]=None) -> str:
+    def to_unicode(self, omit_final_dot: bool=False, idna_codec: Optional[IDNACodec]=None) -> str:
         """Convert name to Unicode text format.
 
         IDN ACE labels are converted to Unicode.
@@ -627,8 +627,8 @@ class Name:
         assert digest is not None
         return digest
 
-    def to_wire(self, file=None, compress: Optional[CompressType]=None,
-                origin: Optional['Name']=None, canonicalize=False) -> Optional[bytes]:
+    def to_wire(self, file: Optional[Any]=None, compress: Optional[CompressType]=None,
+                origin: Optional['Name']=None, canonicalize: bool=False) -> Optional[bytes]:
         """Convert name to wire format, possibly compressing it.
 
         *file* is the file where the name is emitted (typically an
@@ -794,7 +794,7 @@ class Name:
         else:
             return self
 
-    def choose_relativity(self, origin: Optional['Name']=None, relativize=True) -> 'Name':
+    def choose_relativity(self, origin: Optional['Name']=None, relativize: bool=True) -> 'Name':
         """Return a name with the relativity desired by the caller.
 
         If *origin* is ``None``, then the name is returned.

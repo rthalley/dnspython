@@ -191,7 +191,7 @@ class Rdata:
 
         return self.covers() << 16 | self.rdtype
 
-    def to_text(self, origin: Optional[dns.name.Name]=None, relativize=True, **kw):
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True, **kw: Dict[str, Any]) -> str:
         """Convert an rdata to text format.
 
         Returns a ``str``.
@@ -199,12 +199,12 @@ class Rdata:
 
         raise NotImplementedError  # pragma: no cover
 
-    def _to_wire(self, file, compress: Optional[dns.name.CompressType]=None,
-                 origin: Optional[dns.name.Name]=None, canonicalize=False):
+    def _to_wire(self, file: Optional[Any], compress: Optional[dns.name.CompressType]=None,
+                 origin: Optional[dns.name.Name]=None, canonicalize: bool=False) -> bytes:
         raise NotImplementedError  # pragma: no cover
 
-    def to_wire(self, file=None, compress=None, origin=None,
-                canonicalize=False) -> bytes:
+    def to_wire(self, file: Optional[Any]=None, compress: Optional[dns.name.CompressType]=None,
+                origin: Optional[dns.name.Name]=None, canonicalize: bool=False) -> bytes:
         """Convert an rdata to wire format.
 
         Returns a ``bytes`` or ``None``.
@@ -353,17 +353,17 @@ class Rdata:
     @classmethod
     def from_text(cls, rdclass: dns.rdataclass.RdataClass,
                   rdtype: dns.rdatatype.RdataType,
-                  tok: dns.tokenizer.Tokenizer, origin: Optional[dns.name.Name]=None, relativize=True,
-                  relativize_to: Optional[dns.name.Name]=None):
+                  tok: dns.tokenizer.Tokenizer, origin: Optional[dns.name.Name]=None, relativize: bool=True,
+                  relativize_to: Optional[dns.name.Name]=None) -> 'Rdata':
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
     def from_wire_parser(cls, rdclass: dns.rdataclass.RdataClass,
                          rdtype: dns.rdatatype.RdataType,
-                         parser: dns.wire.Parser, origin: Optional[dns.name.Name]=None):
+                         parser: dns.wire.Parser, origin: Optional[dns.name.Name]=None) -> 'Rdata':
         raise NotImplementedError  # pragma: no cover
 
-    def replace(self, **kwargs):
+    def replace(self, **kwargs: Dict[str, Any]) -> 'Rdata':
         """
         Create a new Rdata instance based on the instance replace was
         invoked on. It is possible to pass different parameters to
@@ -376,7 +376,7 @@ class Rdata:
         """
 
         # Get the constructor parameters.
-        parameters = inspect.signature(self.__init__).parameters
+        parameters = inspect.signature(self.__init__).parameters  # type: ignore
 
         # Ensure that all of the arguments correspond to valid fields.
         # Don't allow rdclass or rdtype to be changed, though.
@@ -415,7 +415,8 @@ class Rdata:
         return dns.rdatatype.RdataType.make(value)
 
     @classmethod
-    def _as_bytes(cls, value, encode=False, max_length=None, empty_ok=True) -> bytes:
+    def _as_bytes(cls, value: Any, encode: bool=False, max_length: Optional[int]=None,
+                  empty_ok: bool=True) -> bytes:
         if encode and isinstance(value, str):
             bvalue = value.encode()
         elif isinstance(value, bytearray):
@@ -540,7 +541,7 @@ class Rdata:
         random.shuffle(items)
         return items
 
-
+@dns.immutable.immutable
 class GenericRdata(Rdata):
 
     """Generic Rdata Class
@@ -553,9 +554,9 @@ class GenericRdata(Rdata):
 
     def __init__(self, rdclass, rdtype, data):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'data', data)
+        self.data = data
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True, **kw: Dict[str, Any]) -> str:
         return r'\# %d ' % len(self.data) + _hexify(self.data, **kw)
 
     @classmethod
@@ -615,7 +616,7 @@ def from_text(rdclass: Union[dns.rdataclass.RdataClass, str],
               rdtype: Union[dns.rdatatype.RdataType, str],
               tok: Union[dns.tokenizer.Tokenizer, str],
               origin: Optional[dns.name.Name]=None,
-              relativize=True, relativize_to: Optional[dns.name.Name]=None,
+              relativize: bool=True, relativize_to: Optional[dns.name.Name]=None,
               idna_codec: Optional[dns.name.IDNACodec]=None) -> Rdata:
     """Build an rdata object from text format.
 
@@ -769,8 +770,8 @@ class RdatatypeExists(dns.exception.DNSException):
         "already exists."
 
 
-def register_type(implementation, rdtype, rdtype_text, is_singleton=False,
-                  rdclass=dns.rdataclass.IN):
+def register_type(implementation: Any, rdtype: int, rdtype_text: str, is_singleton: bool=False,
+                  rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN) -> None:
     """Dynamically register a module to handle an rdatatype.
 
     *implementation*, a module implementing the type in the usual dnspython
@@ -787,14 +788,15 @@ def register_type(implementation, rdtype, rdtype_text, is_singleton=False,
     it applies to all classes.
     """
 
-    existing_cls = get_rdata_class(rdclass, rdtype)
-    if existing_cls != GenericRdata or dns.rdatatype.is_metatype(rdtype):
-        raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
+    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+    existing_cls = get_rdata_class(rdclass, the_rdtype)
+    if existing_cls != GenericRdata or dns.rdatatype.is_metatype(the_rdtype):
+        raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
     try:
-        if dns.rdatatype.RdataType(rdtype).name != rdtype_text:
-            raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
+        if dns.rdatatype.RdataType(the_rdtype).name != rdtype_text:
+            raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
     except ValueError:
         pass
-    _rdata_classes[(rdclass, rdtype)] = getattr(implementation,
-                                                rdtype_text.replace('-', '_'))
-    dns.rdatatype.register_type(rdtype, rdtype_text, is_singleton)
+    _rdata_classes[(rdclass, the_rdtype)] = getattr(implementation,
+                                                    rdtype_text.replace('-', '_'))
+    dns.rdatatype.register_type(the_rdtype, rdtype_text, is_singleton)

@@ -97,9 +97,9 @@ async def send_udp(sock: dns.asyncbackend.DatagramSocket,
 
 async def receive_udp(sock: dns.asyncbackend.DatagramSocket,
                       destination: Optional[Any]=None, expiration: Optional[float]=None,
-                      ignore_unexpected=False, one_rr_per_rrset=False,
-                      keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac=b'',
-                      ignore_trailing=False, raise_on_truncation=False) -> Any:
+                      ignore_unexpected: bool=False, one_rr_per_rrset: bool=False,
+                      keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac: Optional[bytes]=b'',
+                      ignore_trailing: bool=False, raise_on_truncation: bool=False) -> Any:
     """Read a DNS message from a UDP socket.
 
     *sock*, a ``dns.asyncbackend.DatagramSocket``.
@@ -121,10 +121,10 @@ async def receive_udp(sock: dns.asyncbackend.DatagramSocket,
                               raise_on_truncation=raise_on_truncation)
     return (r, received_time, from_address)
 
-async def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=53,
-              source: Optional[str]=None, source_port=0,
-              ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False,
-              raise_on_truncation=False, sock: Optional[dns.asyncbackend.DatagramSocket]=None,
+async def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
+              source: Optional[str]=None, source_port: int=0,
+              ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
+              raise_on_truncation: bool=False, sock: Optional[dns.asyncbackend.DatagramSocket]=None,
               backend: Optional[dns.asyncbackend.Backend]=None) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
 
@@ -174,9 +174,9 @@ async def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         if not sock and s:
             await s.close()
 
-async def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=53,
-                            source: Optional[str]=None, source_port=0,
-                            ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False,
+async def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
+                            source: Optional[str]=None, source_port: int=0,
+                            ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
                             udp_sock: Optional[dns.asyncbackend.DatagramSocket]=None,
                             tcp_sock: Optional[dns.asyncbackend.StreamSocket]=None,
                             backend: Optional[dns.asyncbackend.Backend]=None) -> Tuple[dns.message.Message, bool]:
@@ -252,9 +252,10 @@ async def _read_exactly(sock, count, expiration):
 
 
 async def receive_tcp(sock: dns.asyncbackend.StreamSocket,
-                      expiration: Optional[float]=None, one_rr_per_rrset=False,
+                      expiration: Optional[float]=None, one_rr_per_rrset: bool=False,
                       keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None,
-                      request_mac=b'', ignore_trailing=False) -> Tuple[dns.message.Message, float]:
+                      request_mac: Optional[bytes]=b'',
+                      ignore_trailing: bool=False) -> Tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``dns.asyncbackend.StreamSocket``.
@@ -273,9 +274,9 @@ async def receive_tcp(sock: dns.asyncbackend.StreamSocket,
     return (r, received_time)
 
 
-async def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=53,
-              source: Optional[str]=None, source_port=0,
-              one_rr_per_rrset=False, ignore_trailing=False,
+async def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
+              source: Optional[str]=None, source_port: int=0,
+              one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
               sock: Optional[dns.asyncbackend.StreamSocket]=None,
               backend: Optional[dns.asyncbackend.Backend]=None) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
@@ -328,8 +329,8 @@ async def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None,
             await s.close()
 
 async def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-              port=853, source: Optional[str]=None, source_port=0,
-              one_rr_per_rrset=False, ignore_trailing=False,
+              port: int=853, source: Optional[str]=None, source_port: int=0,
+              one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
               sock: Optional[dns.asyncbackend.StreamSocket]=None,
               backend: Optional[dns.asyncbackend.Backend]=None,
               ssl_context: Optional[ssl.SSLContext]=None,
@@ -383,10 +384,10 @@ async def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
             await s.close()
 
 async def https(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-                port=443, source: Optional[str]=None, source_port=0,
-                one_rr_per_rrset=False, ignore_trailing=False,
+                port: int=443, source: Optional[str]=None, source_port: int=0,
+                one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
                 client: Optional[httpx.AsyncClient]=None,
-                path='/dns-query', post=True, verify=True):
+                path: str='/dns-query', post: bool=True, verify: bool=True) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
     *client*, a ``httpx.AsyncClient``.  If provided, the client to use for
@@ -466,9 +467,9 @@ async def https(q: dns.message.Message, where: str, timeout: Optional[float]=Non
 
 async def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
                       query: Optional[dns.message.Message]=None,
-                      port=53, timeout: Optional[float]=None, lifetime: Optional[float]=None,
-                      source: Optional[str]=None, source_port=0, udp_mode=UDPMode.NEVER,
-                      backend: Optional[dns.asyncbackend.Backend]=None):
+                      port: int=53, timeout: Optional[float]=None, lifetime: Optional[float]=None,
+                      source: Optional[str]=None, source_port: int=0, udp_mode: UDPMode=UDPMode.NEVER,
+                      backend: Optional[dns.asyncbackend.Backend]=None) -> None:
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 

@@ -34,7 +34,7 @@ class EntropyPool:
     # leaving this code doesn't hurt anything as the library code
     # is used if present.
 
-    def __init__(self, seed=None):
+    def __init__(self, seed: Optional[bytes]=None):
         self.pool_index = 0
         self.digest: Optional[bytearray] = None
         self.next_byte = 0
@@ -43,14 +43,14 @@ class EntropyPool:
         self.hash_len = 20
         self.pool = bytearray(b'\0' * self.hash_len)
         if seed is not None:
-            self._stir(bytearray(seed))
+            self._stir(seed)
             self.seeded = True
             self.seed_pid = os.getpid()
         else:
             self.seeded = False
             self.seed_pid = 0
 
-    def _stir(self, entropy):
+    def _stir(self, entropy: bytes) -> None:
         for c in entropy:
             if self.pool_index == self.hash_len:
                 self.pool_index = 0
@@ -58,11 +58,11 @@ class EntropyPool:
             self.pool[self.pool_index] ^= b
             self.pool_index += 1
 
-    def stir(self, entropy):
+    def stir(self, entropy: bytes) -> None:
         with self.lock:
             self._stir(entropy)
 
-    def _maybe_seed(self):
+    def _maybe_seed(self) -> None:
         if not self.seeded or self.seed_pid != os.getpid():
             try:
                 seed = os.urandom(16)

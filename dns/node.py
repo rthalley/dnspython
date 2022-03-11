@@ -17,7 +17,7 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import enum
 import io
@@ -92,7 +92,7 @@ class Node:
         # the set of rdatasets, represented as a list.
         self.rdatasets: List[dns.rdataset.Rdataset] = []
 
-    def to_text(self, name: dns.name.Name, **kw) -> str:
+    def to_text(self, name: dns.name.Name, **kw: Dict[str, Any]) -> str:
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
@@ -108,7 +108,7 @@ class Node:
         s = io.StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                s.write(rds.to_text(name, **kw))
+                s.write(rds.to_text(name, **kw))  # type: ignore[arg-type]
                 s.write('\n')
         return s.getvalue()[:-1]
 
@@ -164,7 +164,7 @@ class Node:
                       rdclass: dns.rdataclass.RdataClass,
                       rdtype: dns.rdatatype.RdataType,
                       covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
-                      create=False) -> dns.rdataset.Rdataset:
+                      create: bool=False) -> dns.rdataset.Rdataset:
         """Find an rdataset matching the specified properties in the
         current node.
 
@@ -203,7 +203,7 @@ class Node:
                      rdclass: dns.rdataclass.RdataClass,
                      rdtype: dns.rdatatype.RdataType,
                      covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
-                     create=False) -> Optional[dns.rdataset.Rdataset]:
+                     create: bool=False) -> Optional[dns.rdataset.Rdataset]:
         """Get an rdataset matching the specified properties in the
         current node.
 
@@ -237,7 +237,7 @@ class Node:
     def delete_rdataset(self,
                         rdclass: dns.rdataclass.RdataClass,
                         rdtype: dns.rdatatype.RdataType,
-                        covers: dns.rdatatype.RdataType=dns.rdatatype.NONE):
+                        covers: dns.rdatatype.RdataType=dns.rdatatype.NONE) -> None:
         """Delete the rdataset matching the specified properties in the
         current node.
 
@@ -254,7 +254,7 @@ class Node:
         if rds is not None:
             self.rdatasets.remove(rds)
 
-    def replace_rdataset(self, replacement: dns.rdataset.Rdataset):
+    def replace_rdataset(self, replacement: dns.rdataset.Rdataset) -> None:
         """Replace an rdataset.
 
         It is not an error if there is no rdataset matching *replacement*.
@@ -312,22 +312,31 @@ class ImmutableNode(Node):
             [dns.rdataset.ImmutableRdataset(rds) for rds in node.rdatasets]
         )
 
-    def find_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
-                      create=False):
+    def find_rdataset(self,
+                      rdclass: dns.rdataclass.RdataClass,
+                      rdtype: dns.rdatatype.RdataType,
+                      covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
+                      create: bool=False) -> dns.rdataset.Rdataset:
         if create:
             raise TypeError("immutable")
         return super().find_rdataset(rdclass, rdtype, covers, False)
 
-    def get_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE,
-                     create=False):
+    def get_rdataset(self,
+                     rdclass: dns.rdataclass.RdataClass,
+                     rdtype: dns.rdatatype.RdataType,
+                     covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
+                     create: bool=False) -> Optional[dns.rdataset.Rdataset]:
         if create:
             raise TypeError("immutable")
         return super().get_rdataset(rdclass, rdtype, covers, False)
 
-    def delete_rdataset(self, rdclass, rdtype, covers=dns.rdatatype.NONE):
+    def delete_rdataset(self,
+                        rdclass: dns.rdataclass.RdataClass,
+                        rdtype: dns.rdatatype.RdataType,
+                        covers: dns.rdatatype.RdataType=dns.rdatatype.NONE) -> None:
         raise TypeError("immutable")
 
-    def replace_rdataset(self, replacement):
+    def replace_rdataset(self, replacement: dns.rdataset.Rdataset) -> None:
         raise TypeError("immutable")
 
     def is_immutable(self) -> bool:

@@ -13,7 +13,9 @@ except ImportError:  # pragma: no cover
 import dns.exception
 import dns.immutable
 import dns.name
+import dns.node
 import dns.rdataclass
+import dns.rdataset
 import dns.rdatatype
 import dns.rdtypes.ANY.SOA
 import dns.zone
@@ -40,7 +42,8 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
 
     node_factory = Node
 
-    def __init__(self, origin: Optional[Union[dns.name.Name, str]], rdclass=dns.rdataclass.IN, relativize=True,
+    def __init__(self, origin: Optional[Union[dns.name.Name, str]],
+                 rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN, relativize: bool=True,
                  pruning_policy: Optional[Callable[['Zone', Version], Optional[bool]]]=None):
         """Initialize a versioned zone object.
 
@@ -106,7 +109,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
             self._readers.add(txn)
             return txn
 
-    def writer(self, replacement=False) -> Transaction:
+    def writer(self, replacement: bool=False) -> Transaction:
         event = None
         while True:
             with self._version_lock:
@@ -181,7 +184,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
               self._pruning_policy(self, self._versions[0]):
             self._versions.popleft()
 
-    def set_max_versions(self, max_versions: Optional[int]):
+    def set_max_versions(self, max_versions: Optional[int]) -> None:
         """Set a pruning policy that retains up to the specified number
         of versions
         """
@@ -195,7 +198,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
                 return len(zone._versions) > max_versions
         self.set_pruning_policy(policy)
 
-    def set_pruning_policy(self, policy: Optional[Callable[['Zone', Version], Optional[bool]]]):
+    def set_pruning_policy(self, policy: Optional[Callable[['Zone', Version], Optional[bool]]]) -> None:
         """Set the pruning policy for the zone.
 
         The *policy* function takes a `Version` and returns `True` if
@@ -248,30 +251,39 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
             id = 1
         return id
 
-    def find_node(self, name, create=False):
+    def find_node(self, name: Union[dns.name.Name, str], create: bool=False) -> dns.node.Node:
         if create:
             raise UseTransaction
         return super().find_node(name)
 
-    def delete_node(self, name):
+    def delete_node(self, name: Union[dns.name.Name, str]) -> None:
         raise UseTransaction
 
-    def find_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
-                      create=False):
+    def find_rdataset(self, name: Union[dns.name.Name, str],
+                      rdtype: Union[dns.rdatatype.RdataType, str],
+                      covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE,
+                      create: bool=False) -> dns.rdataset.Rdataset:
         if create:
             raise UseTransaction
         rdataset = super().find_rdataset(name, rdtype, covers)
         return dns.rdataset.ImmutableRdataset(rdataset)
 
-    def get_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE,
-                     create=False):
+    def get_rdataset(self, name: Union[dns.name.Name, str],
+                     rdtype: Union[dns.rdatatype.RdataType, str],
+                     covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE,
+                     create: bool=False) -> Optional[dns.rdataset.Rdataset]:
         if create:
             raise UseTransaction
         rdataset = super().get_rdataset(name, rdtype, covers)
-        return dns.rdataset.ImmutableRdataset(rdataset)
+        if rdataset is not None:
+            return dns.rdataset.ImmutableRdataset(rdataset)
+        else:
+            return None
 
-    def delete_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE):
+    def delete_rdataset(self, name: Union[dns.name.Name, str],
+                        rdtype: Union[dns.rdatatype.RdataType, str],
+                        covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE) -> None:
         raise UseTransaction
 
-    def replace_rdataset(self, name, replacement):
+    def replace_rdataset(self, name: Union[dns.name.Name, str], replacement: dns.rdataset.Rdataset) -> None:
         raise UseTransaction

@@ -258,10 +258,10 @@ def _make_socket(af, type, source, ssl_context=None, server_hostname=None):
         raise
 
 def https(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-          port=443, source: Optional[str]=None, source_port=0,
-          one_rr_per_rrset=False, ignore_trailing=False,
-          session: Optional[Any]=None, path='/dns-query', post=True,
-          bootstrap_address: Optional[str]=None, verify=True) -> dns.message.Message:
+          port: int=443, source: Optional[str]=None, source_port: int=0,
+          one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
+          session: Optional[Any]=None, path: str='/dns-query', post: bool=True,
+          bootstrap_address: Optional[str]=None, verify: bool=True) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
     *q*, a ``dns.message.Message``, the query to send.
@@ -465,9 +465,9 @@ def send_udp(sock: Any, what: Union[dns.message.Message, bytes], destination: An
 
 
 def receive_udp(sock: Any, destination: Optional[Any]=None, expiration: Optional[float]=None,
-                ignore_unexpected=False, one_rr_per_rrset=False,
-                keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac=b'',
-                ignore_trailing=False, raise_on_truncation=False) -> Any:
+                ignore_unexpected: bool=False, one_rr_per_rrset: bool=False,
+                keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac: Optional[bytes]=b'',
+                ignore_trailing: bool=False, raise_on_truncation: bool=False) -> Any:
     """Read a DNS message from a UDP socket.
 
     *sock*, a ``socket``.
@@ -489,7 +489,7 @@ def receive_udp(sock: Any, destination: Optional[Any]=None, expiration: Optional
 
     *keyring*, a ``dict``, the keyring to use for TSIG.
 
-    *request_mac*, a ``bytes``, the MAC of the request (for TSIG).
+    *request_mac*, a ``bytes`` or ``None``, the MAC of the request (for TSIG).
 
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
@@ -525,10 +525,10 @@ def receive_udp(sock: Any, destination: Optional[Any]=None, expiration: Optional
     else:
         return (r, received_time, from_address)
 
-def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=53,
-        source: Optional[str]=None, source_port=0,
-        ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False,
-        raise_on_truncation=False, sock: Optional[Any]=None) -> dns.message.Message:
+def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
+        source: Optional[str]=None, source_port: int=0,
+        ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
+        raise_on_truncation: bool=False, sock: Optional[Any]=None) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -587,9 +587,9 @@ def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=
         return r
     assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
-def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=53,
-                      source: Optional[str]=None, source_port=0,
-                      ignore_unexpected=False, one_rr_per_rrset=False, ignore_trailing=False,
+def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
+                      source: Optional[str]=None, source_port: int=0,
+                      ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
                       udp_sock: Optional[Any]=None,
                       tcp_sock: Optional[Any]=None) -> Tuple[dns.message.Message, bool]:
     """Return the response to the query, trying UDP first and falling back
@@ -709,9 +709,10 @@ def send_tcp(sock: Any, what: Union[dns.message.Message, bytes],
     _net_write(sock, tcpmsg, expiration)
     return (len(tcpmsg), sent_time)
 
-def receive_tcp(sock: Any, expiration: Optional[float]=None, one_rr_per_rrset=False,
-                keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac=b'',
-                ignore_trailing=False) -> Tuple[dns.message.Message, float]:
+def receive_tcp(sock: Any, expiration: Optional[float]=None, one_rr_per_rrset: bool=False,
+                keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None,
+                request_mac: Optional[bytes]=b'',
+                ignore_trailing: bool=False) -> Tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``socket``.
@@ -725,7 +726,7 @@ def receive_tcp(sock: Any, expiration: Optional[float]=None, one_rr_per_rrset=Fa
 
     *keyring*, a ``dict``, the keyring to use for TSIG.
 
-    *request_mac*, a ``bytes``, the MAC of the request (for TSIG).
+    *request_mac*, a ``bytes`` or ``None``, the MAC of the request (for TSIG).
 
     *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
     junk at end of the received message.
@@ -757,9 +758,10 @@ def _connect(s, address, expiration):
         raise OSError(err, os.strerror(err))
 
 
-def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port=53,
-        source: Optional[str]=None, source_port=0,
-        one_rr_per_rrset=False, ignore_trailing=False, sock: Optional[Any]=None) -> dns.message.Message:
+def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
+        source: Optional[str]=None, source_port: int=0,
+        one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
+        sock: Optional[Any]=None) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -826,8 +828,8 @@ def _tls_handshake(s, expiration):
 
 
 def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-        port=853, source: Optional[str]=None, source_port=0,
-        one_rr_per_rrset=False, ignore_trailing=False, sock: Optional[ssl.SSLSocket]=None,
+        port: int=853, source: Optional[str]=None, source_port: int=0,
+        one_rr_per_rrset: bool=False, ignore_trailing: bool=False, sock: Optional[ssl.SSLSocket]=None,
         ssl_context: Optional[ssl.SSLContext]=None,
         server_hostname: Optional[str]=None) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
@@ -908,10 +910,15 @@ def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         return r
     assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
-def xfr(where, zone, rdtype=dns.rdatatype.AXFR, rdclass=dns.rdataclass.IN,
-        timeout=None, port=53, keyring=None, keyname=None, relativize=True,
-        lifetime=None, source=None, source_port=0, serial=0,
-        use_udp=False, keyalgorithm=dns.tsig.default_algorithm):
+def xfr(where: str, zone: Union[dns.name.Name, str],
+        rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.AXFR,
+        rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+        timeout: Optional[float]=None, port: int=53,
+        keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None,
+        keyname: Optional[Union[dns.name.Name, str]]=None, relativize: bool=True,
+        lifetime: Optional[float]=None, source: Optional[str]=None, source_port: int=0,
+        serial: int=0, use_udp: bool=False,
+        keyalgorithm: Union[dns.name.Name, str]=dns.tsig.default_algorithm) -> Any:
     """Return a generator for the responses to a zone transfer.
 
     *where*, a ``str`` containing an IPv4 or IPv6 address,  where
@@ -1089,8 +1096,8 @@ class UDPMode(enum.IntEnum):
 
 def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
                 query: Optional[dns.message.Message]=None,
-                port=53, timeout: Optional[float]=None, lifetime: Optional[float]=None,
-                source: Optional[str]=None, source_port=0, udp_mode=UDPMode.NEVER):
+                port: int=53, timeout: Optional[float]=None, lifetime: Optional[float]=None,
+                source: Optional[str]=None, source_port: int=0, udp_mode: UDPMode=UDPMode.NEVER) -> None:
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 

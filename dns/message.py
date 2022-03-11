@@ -195,8 +195,8 @@ class Message:
     def __str__(self):
         return self.to_text()
 
-    def to_text(self, origin: Optional[dns.name.Name]=None, relativize=True,
-                **kw):
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True,
+                **kw: Dict[str, Any]) -> str:
         """Convert the message to text.
 
         The *origin*, *relativize*, and any other keyword
@@ -325,10 +325,10 @@ class Message:
                    name: dns.name.Name,
                    rdclass: dns.rdataclass.RdataClass,
                    rdtype: dns.rdatatype.RdataType,
-                   covers = dns.rdatatype.NONE,
+                   covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
                    deleting: Optional[dns.rdataclass.RdataClass]=None,
-                   create=False,
-                   force_unique=False) -> dns.rrset.RRset:
+                   create: bool=False,
+                   force_unique: bool=False) -> dns.rrset.RRset:
         """Find the RRset with the given attributes in the specified section.
 
         *section*, an ``int`` section number, or one of the section
@@ -394,10 +394,10 @@ class Message:
                   name: dns.name.Name,
                   rdclass: dns.rdataclass.RdataClass,
                   rdtype: dns.rdatatype.RdataType,
-                  covers = dns.rdatatype.NONE,
+                  covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
                   deleting: Optional[dns.rdataclass.RdataClass]=None,
-                  create=False,
-                  force_unique=False) -> Optional[dns.rrset.RRset]:
+                  create: bool=False,
+                  force_unique: bool=False) -> Optional[dns.rrset.RRset]:
         """Get the RRset with the given attributes in the specified section.
 
         If the RRset is not found, None is returned.
@@ -439,8 +439,8 @@ class Message:
             rrset = None
         return rrset
 
-    def to_wire(self, origin: Optional[dns.name.Name]=None, max_size=0,
-                multi=False, tsig_ctx: Optional[Any]=None, **kw) -> bytes:
+    def to_wire(self, origin: Optional[dns.name.Name]=None, max_size: int=0,
+                multi: bool=False, tsig_ctx: Optional[Any]=None, **kw: Dict[str, Any]) -> bytes:
         """Return a string containing the message in DNS compressed wire
         format.
 
@@ -513,9 +513,10 @@ class Message:
                                          original_id, error, other)
         return dns.rrset.from_rdata(keyname, 0, tsig)
 
-    def use_tsig(self, keyring: Any, keyname: Optional[dns.name.Name]=None,
-                 fudge=300, original_id: Optional[int]=None, tsig_error=0,
-                 other_data=b'', algorithm=dns.tsig.default_algorithm):
+    def use_tsig(self, keyring: Any, keyname: Optional[Union[dns.name.Name, str]]=None,
+                 fudge: int=300, original_id: Optional[int]=None, tsig_error: int=0,
+                 other_data: bytes=b'',
+                 algorithm: Union[dns.name.Name, str]=dns.tsig.default_algorithm) -> None:
         """When sending, a TSIG signature using the specified key
         should be added.
 
@@ -549,7 +550,7 @@ class Message:
 
         *other_data*, a ``bytes``, the TSIG other data.
 
-        *algorithm*, a ``dns.name.Name``, the TSIG algorithm to use.  This is
+        *algorithm*, a ``dns.name.Name`` or ``str``, the TSIG algorithm to use.  This is
         only used if *keyring* is a ``dict``, and the key entry is a ``bytes``.
         """
 
@@ -610,9 +611,9 @@ class Message:
                                       options or ())
         return dns.rrset.from_rdata(dns.name.root, int(flags), opt)
 
-    def use_edns(self, edns=0, ednsflags=0, payload=DEFAULT_EDNS_PAYLOAD,
+    def use_edns(self, edns: Optional[Union[int, bool]]=0, ednsflags: int=0, payload: int=DEFAULT_EDNS_PAYLOAD,
                  request_payload: Optional[int]=None,
-                 options: Optional[List[dns.edns.Option]]=None):
+                 options: Optional[List[dns.edns.Option]]=None) -> None:
         """Configure EDNS behavior.
 
         *edns*, an ``int``, is the EDNS level to use.  Specifying
@@ -687,7 +688,7 @@ class Message:
         else:
             return ()
 
-    def want_dnssec(self, wanted=True):
+    def want_dnssec(self, wanted: bool=True) -> None:
         """Enable or disable 'DNSSEC desired' flag in requests.
 
         *wanted*, a ``bool``.  If ``True``, then DNSSEC data is
@@ -708,7 +709,7 @@ class Message:
         """
         return dns.rcode.from_flags(int(self.flags), int(self.ednsflags))
 
-    def set_rcode(self, rcode: dns.rcode.Rcode):
+    def set_rcode(self, rcode: dns.rcode.Rcode) -> None:
         """Set the rcode.
 
         *rcode*, a ``dns.rcode.Rcode``, is the rcode to set.
@@ -726,7 +727,7 @@ class Message:
         """
         return dns.opcode.from_flags(int(self.flags))
 
-    def set_opcode(self, opcode: dns.opcode.Opcode):
+    def set_opcode(self, opcode: dns.opcode.Opcode) -> None:
         """Set the opcode.
 
         *opcode*, a ``dns.opcode.Opcode``, is the opcode to set.
@@ -1067,17 +1068,18 @@ class _WireReader:
         return self.message
 
 
-def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
-              tsig_ctx=None, multi=False,
-              question_only=False, one_rr_per_rrset=False,
-              ignore_trailing=False, raise_on_truncation=False,
-              continue_on_error=False) -> Message:
+def from_wire(wire: bytes, keyring: Optional[Any]=None, request_mac: Optional[bytes]=b'',
+              xfr: bool=False, origin: Optional[dns.name.Name]=None,
+              tsig_ctx: Optional[Union[dns.tsig.HMACTSig, dns.tsig.GSSTSig]]=None,
+              multi: bool=False, question_only: bool=False, one_rr_per_rrset: bool=False,
+              ignore_trailing: bool=False, raise_on_truncation: bool=False,
+              continue_on_error: bool=False) -> Message:
     """Convert a DNS wire format message into a message object.
 
     *keyring*, a ``dns.tsig.Key`` or ``dict``, the key or keyring to use if the
     message is signed.
 
-    *request_mac*, a ``bytes``.  If the message is a response to a TSIG-signed
+    *request_mac*, a ``bytes`` or ``None``.  If the message is a response to a TSIG-signed
     request, *request_mac* should be set to the MAC of that request.
 
     *xfr*, a ``bool``, should be set to ``True`` if this message is part of a
@@ -1129,6 +1131,10 @@ def from_wire(wire, keyring=None, request_mac=b'', xfr=False, origin=None,
 
     Returns a ``dns.message.Message``.
     """
+
+    # We permit None for request_mac solely for backwards compatibility
+    if request_mac is None:
+        request_mac = b''
 
     def initialize_message(message):
         message.request_mac = request_mac
@@ -1382,8 +1388,9 @@ class _TextReader:
         return self.message
 
 
-def from_text(text, idna_codec=None, one_rr_per_rrset=False,
-              origin=None, relativize=True, relativize_to=None) -> Message:
+def from_text(text: str, idna_codec: Optional[dns.name.IDNACodec]=None,
+              one_rr_per_rrset: bool=False, origin: Optional[dns.name.Name]=None,
+              relativize: bool=True, relativize_to: Optional[dns.name.Name]=None) -> Message:
     """Convert the text format message into a message object.
 
     The reader stops after reading the first blank line in the input to
@@ -1423,7 +1430,7 @@ def from_text(text, idna_codec=None, one_rr_per_rrset=False,
     return reader.read()
 
 
-def from_file(f, idna_codec=None, one_rr_per_rrset=False) -> Message:
+def from_file(f: Any, idna_codec: Optional[dns.name.IDNACodec]=None, one_rr_per_rrset: bool=False) -> Message:
     """Read the next text format message from the specified file.
 
     Message blocks are separated by a single blank line.
@@ -1452,8 +1459,11 @@ def from_file(f, idna_codec=None, one_rr_per_rrset=False) -> Message:
     assert False  # for mypy  lgtm[py/unreachable-statement]
 
 
-def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
-               want_dnssec=False, ednsflags: Optional[int]=None, payload: Optional[int]=None,
+def make_query(qname: Union[dns.name.Name, str],
+               rdtype: Union[dns.rdatatype.RdataType, str],
+               rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
+               use_edns: Optional[Union[int, bool]]=None,
+               want_dnssec: bool=False, ednsflags: Optional[int]=None, payload: Optional[int]=None,
                request_payload: Optional[int]=None, options: Optional[List[dns.edns.Option]]=None,
                idna_codec: Optional[dns.name.IDNACodec]=None, id: Optional[int]=None,
                flags: int=dns.flags.RD) -> QueryMessage:
@@ -1509,11 +1519,11 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
 
     if isinstance(qname, str):
         qname = dns.name.from_text(qname, idna_codec=idna_codec)
-    rdtype = dns.rdatatype.RdataType.make(rdtype)
-    rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+    the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
     m = QueryMessage(id=id)
     m.flags = dns.flags.Flag(flags)
-    m.find_rrset(m.question, qname, rdclass, rdtype, create=True,
+    m.find_rrset(m.question, qname, the_rdclass, the_rdtype, create=True,
                  force_unique=True)
     # only pass keywords on to use_edns if they have been set to a
     # non-None value.  Setting a field will turn EDNS on if it hasn't
@@ -1535,8 +1545,8 @@ def make_query(qname, rdtype, rdclass=dns.rdataclass.IN, use_edns=None,
     return m
 
 
-def make_response(query, recursion_available=False, our_payload=8192,
-                  fudge=300, tsig_error=0) -> Message:
+def make_response(query: Message, recursion_available: bool=False, our_payload: int=8192,
+                  fudge: int=300, tsig_error: int=0) -> Message:
     """Make a message which is a response for the specified query.
     The message returned is really a response skeleton; it has all
     of the infrastructure required of a response, but none of the

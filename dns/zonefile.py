@@ -66,7 +66,7 @@ def _check_cname_and_other_data(txn, name, rdataset):
 SavedStateType = Tuple[dns.tokenizer.Tokenizer,
                        Optional[dns.name.Name],   # current_origin
                        Optional[dns.name.Name],   # last_name
-                       Optional[str],             # current_file
+                       Optional[Any],             # current_file
                        int,                       # last_ttl
                        bool,                      # last_ttl_known
                        int,                       # default_ttl
@@ -78,8 +78,8 @@ class Reader:
     """Read a DNS zone file into a transaction."""
 
     def __init__(self, tok: dns.tokenizer.Tokenizer, rdclass: dns.rdataclass.RdataClass,
-                 txn: dns.transaction.Transaction, allow_include=False,
-                 allow_directives=True, force_name: Optional[dns.name.Name]=None,
+                 txn: dns.transaction.Transaction, allow_include: bool=False,
+                 allow_directives: bool=True, force_name: Optional[dns.name.Name]=None,
                  force_ttl: Optional[int]=None,
                  force_rdclass: Optional[dns.rdataclass.RdataClass]=None,
                  force_rdtype: Optional[dns.rdatatype.RdataType]=None,
@@ -102,7 +102,7 @@ class Reader:
         self.zone_rdclass = rdclass
         self.txn = txn
         self.saved_state: List[SavedStateType] = []
-        self.current_file = None
+        self.current_file: Optional[Any] = None
         self.allow_include = allow_include
         self.allow_directives = allow_directives
         self.force_name = force_name
@@ -385,7 +385,7 @@ class Reader:
 
             self.txn.add(name, ttl, rd)
 
-    def read(self):
+    def read(self) -> None:
         """Read a DNS zone file and build a zone object.
 
         @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
@@ -433,11 +433,9 @@ class Reader:
                         token = self.tok.get()
                         filename = token.value
                         token = self.tok.get()
+                        new_origin: Optional[dns.name.Name]
                         if token.is_identifier():
-                            new_origin =\
-                                dns.name.from_text(token.value,
-                                                   self.current_origin,
-                                                   self.tok.idna_codec)
+                            new_origin = dns.name.from_text(token.value, self.current_origin, self.tok.idna_codec)
                             self.tok.get_eol()
                         elif not token.is_eol_or_eof():
                             raise dns.exception.SyntaxError(
@@ -572,7 +570,7 @@ def read_rrsets(text: Any,
                 default_ttl: Optional[Union[int, str]]=None,
                 idna_codec: Optional[dns.name.IDNACodec]=None,
                 origin: Optional[Union[dns.name.Name, str]]=dns.name.root,
-                relativize=False) -> List[dns.rrset.RRset]:
+                relativize: bool=False) -> List[dns.rrset.RRset]:
     """Read one or more rrsets from the specified text, possibly subject
     to restrictions.
 
