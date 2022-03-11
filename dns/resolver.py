@@ -771,6 +771,26 @@ class BaseResolver:
     #
     # pylint: disable=attribute-defined-outside-init
 
+    domain: dns.name.Name
+    nameserver_ports: Dict[str, int]
+    port: int
+    search: List[dns.name.Name]
+    use_search_by_default: bool
+    timeout: float
+    lifetime: float
+    keyring: Optional[Any]
+    keyname: Optional[Union[dns.name.Name, str]]
+    keyalgorithm: Union[dns.name.Name, str]
+    edns: int
+    ednsflags: int
+    ednsoptions: Optional[List[dns.edns.Option]]
+    payload: int
+    cache: Any
+    flags: Optional[int]
+    retry_servfail: bool
+    rotate: bool
+    ndots: Optional[int]
+
     def __init__(self, filename: str='/etc/resolv.conf', configure: bool=True):
         """*filename*, a ``str`` or file object, specifying a file
         in standard /etc/resolv.conf format.  This parameter is meaningful
@@ -793,14 +813,13 @@ class BaseResolver:
     def reset(self):
         """Reset all resolver configuration to the defaults."""
 
-        self.domain = \
-            dns.name.Name(dns.name.from_text(socket.gethostname())[1:])
+        self.domain = dns.name.Name(dns.name.from_text(socket.gethostname())[1:])
         if len(self.domain) == 0:
             self.domain = dns.name.root
-        self.nameservers: List[str] = []
-        self.nameserver_ports: Dict[str, int] = {}
+        self.nameservers = []
+        self.nameserver_ports = {}
         self.port = 53
-        self.search: List[dns.name.Name] = []
+        self.search = []
         self.use_search_by_default = False
         self.timeout = 2.0
         self.lifetime = 5.0
@@ -809,13 +828,13 @@ class BaseResolver:
         self.keyalgorithm = dns.tsig.default_algorithm
         self.edns = -1
         self.ednsflags = 0
-        self.ednsoptions: Optional[List[dns.edns.Option]] = None
+        self.ednsoptions = None
         self.payload = 0
         self.cache = None
         self.flags = None
         self.retry_servfail = False
         self.rotate = False
-        self.ndots: Optional[int] = None
+        self.ndots = None
 
     def read_resolv_conf(self, f: Any) -> None:
         """Process *f* as a file in the /etc/resolv.conf format.  If f is
@@ -1032,11 +1051,19 @@ class BaseResolver:
 class Resolver(BaseResolver):
     """DNS stub resolver."""
 
-    def resolve(self, qname: Union[dns.name.Name, str],
-                rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
-                rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
-                tcp: bool=False, source: Optional[str]=None, raise_on_no_answer: bool=True, source_port: int=0,
-                lifetime: Optional[float]=None, search: Optional[bool]=None) -> Answer: # pylint: disable=arguments-differ
+    def resolve(
+        self,
+        qname: Union[dns.name.Name, str],
+        rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
+        rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+        tcp: bool = False,
+        source: Optional[str] = None,
+        raise_on_no_answer: bool = True,
+        source_port: int = 0,
+        lifetime: Optional[float] = None,
+        search: Optional[bool] = None,
+    ) -> Answer:  # pylint: disable=arguments-differ
+        pass
         """Query nameservers to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
@@ -1321,12 +1348,14 @@ def zone_for_name(name: Union[dns.name.Name, str], rdclass: dns.rdataclass.Rdata
     if not name.is_absolute():
         raise NotAbsolute(name)
     start = time.time()
+    expiration: Optional[float]
     if lifetime is not None:
         expiration = start + lifetime
     else:
         expiration = None
     while 1:
         try:
+            rlifetime: Optional[float]
             if expiration:
                 rlifetime = expiration - time.time()
                 if rlifetime <= 0:
@@ -1346,8 +1375,7 @@ def zone_for_name(name: Union[dns.name.Name, str], rdclass: dns.rdataclass.Rdata
                 response = e.response()  # pylint: disable=no-value-for-parameter
             if response:
                 for rrs in response.authority:
-                    if rrs.rdtype == dns.rdatatype.SOA and \
-                        rrs.rdclass == rdclass:
+                    if rrs.rdtype == dns.rdatatype.SOA and rrs.rdclass == rdclass:
                         (nr, _, _) = rrs.name.fullcompare(name)
                         if nr == dns.name.NAMERELN_SUPERDOMAIN:
                             # We're doing a proper superdomain check as
