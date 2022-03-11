@@ -1,6 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Optional, Tuple
+from typing import Iterator, Optional, Tuple
 
 import contextlib
 import struct
@@ -65,7 +65,7 @@ class Parser:
         self.current = where
 
     @contextlib.contextmanager
-    def restrict_to(self, size: int):
+    def restrict_to(self, size: int) -> Iterator:
         assert size >= 0
         if size > self.remaining():
             raise dns.exception.FormError
@@ -82,7 +82,7 @@ class Parser:
             self.end = saved_end
 
     @contextlib.contextmanager
-    def restore_furthest(self):
+    def restore_furthest(self) -> Iterator:
         try:
             yield None
         finally:

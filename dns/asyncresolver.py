@@ -17,7 +17,7 @@
 
 """Asynchronous DNS stub resolver."""
 
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import time
 
@@ -109,7 +109,7 @@ class Resolver(dns.resolver.BaseResolver):
                 if answer is not None:
                     return answer
 
-    async def resolve_address(self, ipaddr: str, *args, **kwargs) -> dns.resolver.Answer:
+    async def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> dns.resolver.Answer:
         """Use an asynchronous resolver to run a reverse query for PTR
         records.
 
@@ -127,7 +127,7 @@ class Resolver(dns.resolver.BaseResolver):
         # We make a modified kwargs for type checking happiness, as otherwise
         # we get a legit warning about possibly having rdtype and rdclass
         # in the kwargs more than once.
-        modified_kwargs = {}
+        modified_kwargs: Dict[str, Any] = {}
         modified_kwargs.update(kwargs)
         modified_kwargs['rdtype'] = dns.rdatatype.PTR
         modified_kwargs['rdclass'] = dns.rdataclass.IN
@@ -202,7 +202,7 @@ async def resolve(qname: Union[dns.name.Name, str],
                                                 backend)
 
 
-async def resolve_address(ipaddr: str, *args, **kwargs) -> dns.resolver.Answer:
+async def resolve_address(ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> dns.resolver.Answer:
     """Use a resolver to run a reverse query for PTR records.
 
     See :py:func:`dns.asyncresolver.Resolver.resolve_address` for more

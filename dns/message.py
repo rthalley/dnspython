@@ -196,7 +196,7 @@ class Message:
         return self.to_text()
 
     def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True,
-                **kw) -> str:
+                **kw: Dict[str, Any]) -> str:
         """Convert the message to text.
 
         The *origin*, *relativize*, and any other keyword
@@ -325,7 +325,7 @@ class Message:
                    name: dns.name.Name,
                    rdclass: dns.rdataclass.RdataClass,
                    rdtype: dns.rdatatype.RdataType,
-                   covers = dns.rdatatype.NONE,
+                   covers: dns.rdatatype.RdataType=dns.rdatatype.NONE,
                    deleting: Optional[dns.rdataclass.RdataClass]=None,
                    create: bool=False,
                    force_unique: bool=False) -> dns.rrset.RRset:
@@ -440,7 +440,7 @@ class Message:
         return rrset
 
     def to_wire(self, origin: Optional[dns.name.Name]=None, max_size: int=0,
-                multi: bool=False, tsig_ctx: Optional[Any]=None, **kw) -> bytes:
+                multi: bool=False, tsig_ctx: Optional[Any]=None, **kw: Dict[str, Any]) -> bytes:
         """Return a string containing the message in DNS compressed wire
         format.
 
@@ -1068,7 +1068,7 @@ class _WireReader:
         return self.message
 
 
-def from_wire(wire, keyring: Optional[Any]=None, request_mac: Optional[bytes]=b'',
+def from_wire(wire: bytes, keyring: Optional[Any]=None, request_mac: Optional[bytes]=b'',
               xfr: bool=False, origin: Optional[dns.name.Name]=None,
               tsig_ctx: Optional[Union[dns.tsig.HMACTSig, dns.tsig.GSSTSig]]=None,
               multi: bool=False, question_only: bool=False, one_rr_per_rrset: bool=False,
@@ -1388,7 +1388,7 @@ class _TextReader:
         return self.message
 
 
-def from_text(text, idna_codec: Optional[dns.name.IDNACodec]=None,
+def from_text(text: str, idna_codec: Optional[dns.name.IDNACodec]=None,
               one_rr_per_rrset: bool=False, origin: Optional[dns.name.Name]=None,
               relativize: bool=True, relativize_to: Optional[dns.name.Name]=None) -> Message:
     """Convert the text format message into a message object.
@@ -1430,7 +1430,7 @@ def from_text(text, idna_codec: Optional[dns.name.IDNACodec]=None,
     return reader.read()
 
 
-def from_file(f, idna_codec: Optional[dns.name.IDNACodec]=None, one_rr_per_rrset: bool=False) -> Message:
+def from_file(f: Any, idna_codec: Optional[dns.name.IDNACodec]=None, one_rr_per_rrset: bool=False) -> Message:
     """Read the next text format message from the specified file.
 
     Message blocks are separated by a single blank line.
@@ -1545,8 +1545,8 @@ def make_query(qname: Union[dns.name.Name, str],
     return m
 
 
-def make_response(query, recursion_available=False, our_payload=8192,
-                  fudge=300, tsig_error=0) -> Message:
+def make_response(query: Message, recursion_available: bool=False, our_payload: int=8192,
+                  fudge: int=300, tsig_error: int=0) -> Message:
     """Make a message which is a response for the specified query.
     The message returned is really a response skeleton; it has all
     of the infrastructure required of a response, but none of the

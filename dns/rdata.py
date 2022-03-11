@@ -191,7 +191,7 @@ class Rdata:
 
         return self.covers() << 16 | self.rdtype
 
-    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True, **kw):
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True, **kw: Dict[str, Any]) -> str:
         """Convert an rdata to text format.
 
         Returns a ``str``.
@@ -354,7 +354,7 @@ class Rdata:
     def from_text(cls, rdclass: dns.rdataclass.RdataClass,
                   rdtype: dns.rdatatype.RdataType,
                   tok: dns.tokenizer.Tokenizer, origin: Optional[dns.name.Name]=None, relativize: bool=True,
-                  relativize_to: Optional[dns.name.Name]=None):
+                  relativize_to: Optional[dns.name.Name]=None) -> 'Rdata':
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
@@ -363,7 +363,7 @@ class Rdata:
                          parser: dns.wire.Parser, origin: Optional[dns.name.Name]=None) -> 'Rdata':
         raise NotImplementedError  # pragma: no cover
 
-    def replace(self, **kwargs) -> 'Rdata':
+    def replace(self, **kwargs: Dict[str, Any]) -> 'Rdata':
         """
         Create a new Rdata instance based on the instance replace was
         invoked on. It is possible to pass different parameters to
@@ -415,7 +415,8 @@ class Rdata:
         return dns.rdatatype.RdataType.make(value)
 
     @classmethod
-    def _as_bytes(cls, value, encode=False, max_length=None, empty_ok=True) -> bytes:
+    def _as_bytes(cls, value: Any, encode: bool=False, max_length: Optional[int]=None,
+                  empty_ok: bool=True) -> bytes:
         if encode and isinstance(value, str):
             bvalue = value.encode()
         elif isinstance(value, bytearray):
@@ -540,7 +541,7 @@ class Rdata:
         random.shuffle(items)
         return items
 
-
+@dns.immutable.immutable
 class GenericRdata(Rdata):
 
     """Generic Rdata Class
@@ -553,9 +554,9 @@ class GenericRdata(Rdata):
 
     def __init__(self, rdclass, rdtype, data):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'data', data)
+        self.data = data
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True, **kw: Dict[str, Any]) -> str:
         return r'\# %d ' % len(self.data) + _hexify(self.data, **kw)
 
     @classmethod
@@ -770,7 +771,7 @@ class RdatatypeExists(dns.exception.DNSException):
 
 
 def register_type(implementation: Any, rdtype: int, rdtype_text: str, is_singleton: bool=False,
-                  rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN):
+                  rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN) -> None:
     """Dynamically register a module to handle an rdatatype.
 
     *implementation*, a module implementing the type in the usual dnspython

@@ -468,7 +468,7 @@ async def https(q: dns.message.Message, where: str, timeout: Optional[float]=Non
 async def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
                       query: Optional[dns.message.Message]=None,
                       port: int=53, timeout: Optional[float]=None, lifetime: Optional[float]=None,
-                      source: Optional[str]=None, source_port: int=0, udp_mode=UDPMode.NEVER,
+                      source: Optional[str]=None, source_port: int=0, udp_mode: UDPMode=UDPMode.NEVER,
                       backend: Optional[dns.asyncbackend.Backend]=None) -> None:
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.

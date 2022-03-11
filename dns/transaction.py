@@ -1,6 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import collections
 
@@ -144,7 +144,7 @@ class Transaction:
         if self.read_only:
             raise ReadOnly
 
-    def add(self, *args) -> None:
+    def add(self, *args: Any) -> None:
         """Add records.
 
         The arguments may be:
@@ -159,7 +159,7 @@ class Transaction:
         self._check_read_only()
         self._add(False, args)
 
-    def replace(self, *args) -> None:
+    def replace(self, *args: Any) -> None:
         """Replace the existing rdataset at the name with the specified
         rdataset, or add the specified rdataset if there was no existing
         rdataset.
@@ -180,7 +180,7 @@ class Transaction:
         self._check_read_only()
         self._add(True, args)
 
-    def delete(self, *args) -> None:
+    def delete(self, *args: Any) -> None:
         """Delete records.
 
         It is not an error if some of the records are not in the existing
@@ -202,7 +202,7 @@ class Transaction:
         self._check_read_only()
         self._delete(False, args)
 
-    def delete_exact(self, *args) -> None:
+    def delete_exact(self, *args: Any) -> None:
         """Delete records.
 
         The arguments may be:
@@ -329,7 +329,7 @@ class Transaction:
         """
         self._check_delete_rdataset.append(check)
 
-    def check_delete_name(self, check: CheckDeleteNameType):
+    def check_delete_name(self, check: CheckDeleteNameType) -> None:
         """Call *check* before putting (storing) an rdataset.
 
         The function is called with the transaction and the name.

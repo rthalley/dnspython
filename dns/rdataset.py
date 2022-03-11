@@ -17,7 +17,7 @@
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
 
-from typing import Any, cast, Collection, List, Optional, Union
+from typing import Any, cast, Collection, Dict, Iterable, List, Optional, Union
 
 import io
 import random
@@ -53,7 +53,7 @@ class Rdataset(dns.set.Set):
 
     def __init__(self, rdclass: dns.rdataclass.RdataClass,
                  rdtype: dns.rdatatype.RdataType,
-                 covers=dns.rdatatype.NONE, ttl: int=0):
+                 covers: dns.rdatatype.RdataType=dns.rdatatype.NONE, ttl: int=0):
         """Create a new rdataset of the specified class and type.
 
         *rdclass*, a ``dns.rdataclass.RdataClass``, the rdataclass.
@@ -186,7 +186,7 @@ class Rdataset(dns.set.Set):
                 origin: Optional[dns.name.Name]=None,
                 relativize: bool=True,
                 override_rdclass: Optional[dns.rdataclass.RdataClass]=None,
-                want_comments=False, **kw) -> str:
+                want_comments: bool=False, **kw: Dict[str, Any]) -> str:
         """Convert the rdataset into DNS zone file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
@@ -446,7 +446,7 @@ def from_text_list(rdclass: Union[dns.rdataclass.RdataClass, str],
 
 def from_text(rdclass: Union[dns.rdataclass.RdataClass, str],
               rdtype: Union[dns.rdatatype.RdataType, str],
-              ttl: int, *text_rdatas) -> Rdataset:
+              ttl: int, *text_rdatas: Any) -> Rdataset:
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified rdatas in text format.
 
@@ -475,7 +475,7 @@ def from_rdata_list(ttl: int, rdatas: Collection[dns.rdata.Rdata]) -> Rdataset:
     return r
 
 
-def from_rdata(ttl: int, *rdatas) -> Rdataset:
+def from_rdata(ttl: int, *rdatas: Any) -> Rdataset:
     """Create an rdataset with the specified TTL, and with
     the specified rdata objects.
 

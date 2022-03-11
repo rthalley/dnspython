@@ -520,8 +520,9 @@ class Zone(dns.transaction.TransactionManager):
             rrset = None
         return rrset
 
-    def iterate_rdatasets(self, rdtype=dns.rdatatype.ANY,
-                          covers=dns.rdatatype.NONE) -> Iterator[Tuple[dns.name.Name, dns.rdataset.Rdataset]]:
+    def iterate_rdatasets(self, rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.ANY,
+                          covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE) \
+                              -> Iterator[Tuple[dns.name.Name, dns.rdataset.Rdataset]]:
         """Return a generator which yields (name, rdataset) tuples for
         all rdatasets in the zone which have the specified *rdtype*
         and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
@@ -548,8 +549,9 @@ class Zone(dns.transaction.TransactionManager):
                    (rds.rdtype == rdtype and rds.covers == covers):
                     yield (name, rds)
 
-    def iterate_rdatas(self, rdtype=dns.rdatatype.ANY,
-                       covers=dns.rdatatype.NONE) -> Iterator[Tuple[dns.name.Name, int, dns.rdata.Rdata]]:
+    def iterate_rdatas(self, rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.ANY,
+                       covers: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.NONE) \
+                           -> Iterator[Tuple[dns.name.Name, int, dns.rdata.Rdata]]:
         """Return a generator which yields (name, ttl, rdata) tuples for
         all rdatas in the zone which have the specified *rdtype*
         and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
@@ -578,7 +580,7 @@ class Zone(dns.transaction.TransactionManager):
                         yield (name, rds.ttl, rdata)
 
     def to_file(self, f: Any, sorted: bool=True, relativize: bool=True, nl: Optional[str]=None,
-                want_comments: bool=False, want_origin: bool=False):
+                want_comments: bool=False, want_origin: bool=False) -> None:
         """Write a zone to a file.
 
         *f*, a file or `str`.  If *f* is a string, it is treated
@@ -656,7 +658,7 @@ class Zone(dns.transaction.TransactionManager):
                     f.write(nl)
 
     def to_text(self, sorted: bool=True, relativize: bool=True, nl: Optional[str]=None,
-                want_comments: bool=False, want_origin: bool=False):
+                want_comments: bool=False, want_origin: bool=False) -> str:
         """Return a zone's text as though it were written to a file.
 
         *sorted*, a ``bool``.  If True, the default, then the file
@@ -732,7 +734,7 @@ class Zone(dns.transaction.TransactionManager):
             raise NoSOA
         return soa[0]
 
-    def _compute_digest(self, hash_algorithm: DigestHashAlgorithm, scheme=DigestScheme.SIMPLE) -> bytes:
+    def _compute_digest(self, hash_algorithm: DigestHashAlgorithm, scheme: DigestScheme=DigestScheme.SIMPLE) -> bytes:
         hashinfo = _digest_hashers.get(hash_algorithm)
         if not hashinfo:
             raise UnsupportedDigestHashAlgorithm
@@ -762,7 +764,7 @@ class Zone(dns.transaction.TransactionManager):
         return hasher.digest()
 
     def compute_digest(self, hash_algorithm: DigestHashAlgorithm,
-                       scheme=DigestScheme.SIMPLE) -> dns.rdtypes.ANY.ZONEMD.ZONEMD:
+                       scheme: DigestScheme=DigestScheme.SIMPLE) -> dns.rdtypes.ANY.ZONEMD.ZONEMD:
         serial = self.get_soa().serial
         digest = self._compute_digest(hash_algorithm, scheme)
         return dns.rdtypes.ANY.ZONEMD.ZONEMD(self.rdclass,
@@ -894,7 +896,7 @@ class Version:
             self.nodes = {}
         self.origin = origin
 
-    def _validate_name(self, name: dns.name.Name):
+    def _validate_name(self, name: dns.name.Name) -> dns.name.Name:
         if name.is_absolute():
             if self.origin is None:
                 # This should probably never happen as other code (e.g.
@@ -944,7 +946,7 @@ class WritableVersion(Version):
         self.origin = zone.origin
         self.changed: Set[dns.name.Name] = set()
 
-    def _maybe_cow(self, name: dns.name.Name):
+    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
         name = self._validate_name(name)
         node = self.nodes.get(name)
         if node is None or name not in self.changed:
@@ -1208,7 +1210,7 @@ def from_file(f: Any, origin: Optional[Union[dns.name.Name, str]]=None,
     assert False  # make mypy happy  lgtm[py/unreachable-statement]
 
 
-def from_xfr(xfr: Any, zone_factory=Zone, relativize: bool=True, check_origin: bool=True) -> Zone:
+def from_xfr(xfr: Any, zone_factory: Any=Zone, relativize: bool=True, check_origin: bool=True) -> Zone:
     """Convert the output of a zone transfer generator into a zone object.
 
     *xfr*, a generator of ``dns.message.Message`` objects, typically

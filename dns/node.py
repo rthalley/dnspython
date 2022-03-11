@@ -17,7 +17,7 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import enum
 import io
@@ -92,7 +92,7 @@ class Node:
         # the set of rdatasets, represented as a list.
         self.rdatasets: List[dns.rdataset.Rdataset] = []
 
-    def to_text(self, name: dns.name.Name, **kw) -> str:
+    def to_text(self, name: dns.name.Name, **kw: Dict[str, Any]) -> str:
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
@@ -108,7 +108,7 @@ class Node:
         s = io.StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                s.write(rds.to_text(name, **kw))
+                s.write(rds.to_text(name, **kw))  # type: ignore[arg-type]
                 s.write('\n')
         return s.getvalue()[:-1]
 
@@ -336,7 +336,7 @@ class ImmutableNode(Node):
                         covers: dns.rdatatype.RdataType=dns.rdatatype.NONE) -> None:
         raise TypeError("immutable")
 
-    def replace_rdataset(self, replacement) -> None:
+    def replace_rdataset(self, replacement: dns.rdataset.Rdataset) -> None:
         raise TypeError("immutable")
 
     def is_immutable(self) -> bool:

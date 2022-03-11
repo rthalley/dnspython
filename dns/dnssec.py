@@ -143,7 +143,8 @@ def make_ds(name: Union[dns.name.Name, str], key: dns.rdata.Rdata,
     return cast(DS, ds)
 
 
-def _find_candidate_keys(keys, rrsig: RRSIG) -> Optional[List[DNSKEY]]:
+def _find_candidate_keys(keys: Dict[dns.name.Name, Union[dns.rdataset.Rdataset, dns.node.Node]],
+                         rrsig: RRSIG) -> Optional[List[DNSKEY]]:
     value = keys.get(rrsig.signer)
     if isinstance(value, dns.node.Node):
         rdataset = value.get_rdataset(dns.rdataclass.IN, dns.rdatatype.DNSKEY)

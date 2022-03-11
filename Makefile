@@ -56,7 +56,7 @@ potestlf:
 	poetry run pytest --lf
 
 potype:
-	poetry run python -m mypy dns/*.py
+	poetry run python -m mypy --disallow-incomplete-defs dns
 
 potypetests:
 	poetry run python -m mypy --check-untyped-defs examples tests

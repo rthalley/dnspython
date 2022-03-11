@@ -1007,7 +1007,7 @@ class BaseResolver:
         return self._nameservers
 
     @nameservers.setter
-    def nameservers(self, nameservers: List[str]):
+    def nameservers(self, nameservers: List[str]) -> None:
         """
         *nameservers*, a ``list`` of nameservers.
 
@@ -1156,7 +1156,7 @@ class Resolver(BaseResolver):
                             raise_on_no_answer, source_port, lifetime,
                             True)
 
-    def resolve_address(self, ipaddr: str, *args, **kwargs) -> Answer:
+    def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> Answer:
         """Use a resolver to run a reverse query for PTR records.
 
         This utilizes the resolve() method to perform a PTR lookup on the
@@ -1172,12 +1172,12 @@ class Resolver(BaseResolver):
         # We make a modified kwargs for type checking happiness, as otherwise
         # we get a legit warning about possibly having rdtype and rdclass
         # in the kwargs more than once.
-        modified_kwargs = {}
+        modified_kwargs: Dict[str, Any] = {}
         modified_kwargs.update(kwargs)
         modified_kwargs['rdtype'] = dns.rdatatype.PTR
         modified_kwargs['rdclass'] = dns.rdataclass.IN
         return self.resolve(dns.reversename.from_address(ipaddr),
-                            *args, **modified_kwargs)
+                            *args, **modified_kwargs)  # type: ignore[arg-type]
 
     # pylint: disable=redefined-outer-name
 
@@ -1266,7 +1266,7 @@ def query(qname: Union[dns.name.Name, str],
                    True)
 
 
-def resolve_address(ipaddr: str, *args, **kwargs) -> Answer:
+def resolve_address(ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> Answer:
     """Use a resolver to run a reverse query for PTR records.
 
     See ``dns.resolver.Resolver.resolve_address`` for more information on the
@@ -1286,7 +1286,7 @@ def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
     return get_default_resolver().canonical_name(name)
 
 
-def zone_for_name(name: Union[dns.name.Name, str], rdclass=dns.rdataclass.IN,
+def zone_for_name(name: Union[dns.name.Name, str], rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN,
                   tcp: bool=False, resolver: Optional[Resolver]=None,
                   lifetime: Optional[float]=None) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
@@ -1595,7 +1595,7 @@ def _gethostbyaddr(ip):
     return (canonical, aliases, addresses)
 
 
-def override_system_resolver(resolver: Optional[Resolver]=None):
+def override_system_resolver(resolver: Optional[Resolver]=None) -> None:
     """Override the system resolver routines in the socket module with
     versions which use dnspython's resolver.
 
@@ -1621,7 +1621,7 @@ def override_system_resolver(resolver: Optional[Resolver]=None):
     socket.gethostbyaddr = _gethostbyaddr
 
 
-def restore_system_resolver():
+def restore_system_resolver() -> None:
     """Undo the effects of prior override_system_resolver()."""
 
     global _resolver

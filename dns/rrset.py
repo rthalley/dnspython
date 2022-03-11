@@ -17,7 +17,7 @@
 
 """DNS RRsets (an RRset is a named rdataset)"""
 
-from typing import Any, cast, Collection, Optional, Union
+from typing import Any, cast, Collection, Dict, Optional, Union
 
 import dns.name
 import dns.rdataset
@@ -79,7 +79,7 @@ class RRset(dns.rdataset.Rdataset):
             return False
         return super().__eq__(other)
 
-    def match(self, *args, **kwargs) -> bool:
+    def match(self, *args: Any, **kwargs: Dict[str, Any]) -> bool:  # type: ignore[override]
         """Does this rrset match the specified attributes?
 
         Behaves as :py:func:`full_match()` if the first argument is a
@@ -92,9 +92,9 @@ class RRset(dns.rdataset.Rdataset):
         compatibility.)
         """
         if isinstance(args[0], dns.name.Name):
-            return self.full_match(*args, **kwargs)
+            return self.full_match(*args, **kwargs)  # type: ignore[arg-type]
         else:
-            return super().match(*args, **kwargs)
+            return super().match(*args, **kwargs)  # type: ignore[arg-type]
 
     def full_match(self, name: dns.name.Name, rdclass: dns.rdataclass.RdataClass,
                    rdtype: dns.rdatatype.RdataType, covers: dns.rdatatype.RdataType,
@@ -194,7 +194,7 @@ def from_text_list(name: Union[dns.name.Name, str], ttl: int,
 def from_text(name: Union[dns.name.Name, str], ttl: int,
               rdclass: Union[dns.rdataclass.RdataClass, str],
               rdtype: Union[dns.rdatatype.RdataType, str],
-              *text_rdatas) -> RRset:
+              *text_rdatas: Any) -> RRset:
     """Create an RRset with the specified name, TTL, class, and type and with
     the specified rdatas in text format.
 
@@ -234,7 +234,7 @@ def from_rdata_list(name: Union[dns.name.Name, str], ttl: int,
     return r
 
 
-def from_rdata(name: Union[dns.name.Name, str], ttl:int, *rdatas) -> RRset:
+def from_rdata(name: Union[dns.name.Name, str], ttl:int, *rdatas: Any) -> RRset:
     """Create an RRset with the specified name and TTL, and with
     the specified rdata objects.
 

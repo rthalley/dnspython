@@ -17,7 +17,7 @@
 
 """TXT-like base class."""
 
-from typing import Iterable, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import struct
 
@@ -34,7 +34,9 @@ class TXTBase(dns.rdata.Rdata):
 
     __slots__ = ['strings']
 
-    def __init__(self, rdclass, rdtype, strings: Iterable[Union[bytes, str]]):
+    def __init__(self, rdclass: dns.rdataclass.RdataClass,
+                 rdtype: dns.rdatatype.RdataType,
+                 strings: Iterable[Union[bytes, str]]):
         """Initialize a TXT-like rdata.
 
         *rdclass*, an ``int`` is the rdataclass of the Rdata.
@@ -46,7 +48,7 @@ class TXTBase(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.strings: Tuple[bytes] = self._as_tuple(strings, lambda x: self._as_bytes(x, True, 255))
 
-    def to_text(self, origin: Optional[dns.name.Name]=None, relativize=True, **kw):
+    def to_text(self, origin: Optional[dns.name.Name]=None, relativize: bool=True, **kw: Dict[str, Any]) -> str:
         txt = ''
         prefix = ''
         for s in self.strings:
@@ -55,8 +57,10 @@ class TXTBase(dns.rdata.Rdata):
         return txt
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok: dns.tokenizer.Tokenizer, origin: Optional[dns.name.Name]=None,
-                  relativize=True, relativize_to: Optional[dns.name.Name]=None):
+    def from_text(cls, rdclass: dns.rdataclass.RdataClass,
+                  rdtype: dns.rdatatype.RdataType,
+                  tok: dns.tokenizer.Tokenizer, origin: Optional[dns.name.Name]=None,
+                  relativize: bool=True, relativize_to: Optional[dns.name.Name]=None) -> dns.rdata.Rdata:
         strings = []
         for token in tok.get_remaining():
             token = token.unescape_to_bytes()

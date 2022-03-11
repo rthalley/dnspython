@@ -186,7 +186,7 @@ class IDNACodec:
 class IDNA2003Codec(IDNACodec):
     """IDNA 2003 encoder/decoder."""
 
-    def __init__(self, strict_decode=False):
+    def __init__(self, strict_decode: bool=False):
         """Initialize the IDNA 2003 encoder/decoder.
 
         *strict_decode* is a ``bool``. If `True`, then IDNA2003 checking
@@ -223,8 +223,8 @@ class IDNA2008Codec(IDNACodec):
     """IDNA 2008 encoder/decoder.
     """
 
-    def __init__(self, uts_46: bool=False, transitional=False,
-                 allow_pure_ascii=False, strict_decode=False):
+    def __init__(self, uts_46: bool=False, transitional: bool=False,
+                 allow_pure_ascii: bool=False, strict_decode: bool=False):
         """Initialize the IDNA 2008 encoder/decoder.
 
         *uts_46* is a ``bool``.  If True, apply Unicode IDNA

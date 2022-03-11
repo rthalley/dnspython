@@ -444,7 +444,7 @@ class Tokenizer:
             ttype = EOF
         return Token(ttype, token, has_escape)
 
-    def unget(self, token: Token):
+    def unget(self, token: Token) -> None:
         """Unget a token.
 
         The unget buffer for tokens is only one token large; it is

@@ -212,7 +212,7 @@ def is_singleton(rdtype: RdataType) -> bool:
     return False
 
 # pylint: disable=redefined-outer-name
-def register_type(rdtype: RdataType, rdtype_text: str, is_singleton: bool=False):
+def register_type(rdtype: RdataType, rdtype_text: str, is_singleton: bool=False) -> None:
     """Dynamically register an rdatatype.
 
     *rdtype*, a ``dns.rdatatype.RdataType``, the rdatatype to register.

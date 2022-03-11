@@ -55,7 +55,7 @@ async def _maybe_wait_for(awaitable, timeout):
 
 
 class DatagramSocket(dns._asyncbackend.DatagramSocket):
-    def __init__(self, family: int, transport, protocol):
+    def __init__(self, family, transport, protocol):
         super().__init__(family)
         self.transport = transport
         self.protocol = protocol

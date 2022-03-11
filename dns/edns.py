@@ -175,7 +175,7 @@ class GenericOption(Option):  # lgtm[py/missing-equals]
 class ECSOption(Option):  # lgtm[py/missing-equals]
     """EDNS Client Subnet (ECS, RFC7871)"""
 
-    def __init__(self, address: str, srclen: Optional[int]=None, scopelen=0):
+    def __init__(self, address: str, srclen: Optional[int]=None, scopelen: int=0):
         """*address*, a ``str``, is the client address information.
 
         *srclen*, an ``int``, the source prefix length, which is the
@@ -292,7 +292,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             return value
 
     @classmethod
-    def from_wire_parser(cls, otype: Union[OptionType, str], parser: 'dns.wire.Parser'):
+    def from_wire_parser(cls, otype: Union[OptionType, str], parser: 'dns.wire.Parser') -> Option:
         family, src, scope = parser.get_struct('!HBB')
         addrlen = int(math.ceil(src / 8.0))
         prefix = parser.get_bytes(addrlen)
@@ -376,18 +376,18 @@ class EDEOption(Option):  # lgtm[py/missing-equals]
             return value
 
     @classmethod
-    def from_wire_parser(cls, otype: Union[OptionType, str], parser) -> Option:
-        code = parser.get_uint16()
+    def from_wire_parser(cls, otype: Union[OptionType, str], parser: 'dns.wire.Parser') -> Option:
+        the_code = EDECode.make(parser.get_uint16())
         text = parser.get_remaining()
 
         if text:
             if text[-1] == 0:  # text MAY be null-terminated
                 text = text[:-1]
-            text = text.decode('utf8')
+            btext = text.decode('utf8')
         else:
-            text = None
+            btext = None
 
-        return cls(code, text)
+        return cls(the_code, btext)
 
 
 _type_to_class: Dict[OptionType, Any] = {

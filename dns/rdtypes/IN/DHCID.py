@@ -19,6 +19,7 @@ import base64
 
 import dns.exception
 import dns.immutable
+import dns.rdata
 
 
 @dns.immutable.immutable
