@@ -44,6 +44,7 @@ jobs:
         poetry install -E dnssec -E doh -E idna -E trio -E curio
     - name: Typecheck
       run: |
+        poetry run python -m mypy --install-types
         poetry run python -m mypy --disallow-incomplete-defs dns
     - name: Test with pytest
       run: |
