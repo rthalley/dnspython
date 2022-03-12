@@ -1076,6 +1076,18 @@ class VersionedZoneTestCase(unittest.TestCase):
                                             dns.rdatatype.RRSIG,
                                             dns.rdatatype.NSEC))
 
+    def testGetRdataset1(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        rds = z.get_rdataset('@', 'soa')
+        exrds = dns.rdataset.from_text('IN', 'SOA', 300, 'foo bar 1 2 3 4 5')
+        self.assertEqual(rds, exrds)
+
+    def testGetRdataset2(self):
+        z = dns.zone.from_text(example_text, 'example.', relativize=True,
+                               zone_factory=dns.versioned.Zone)
+        rds = z.get_rdataset('@', 'loc')
+        self.assertTrue(rds is None)
 
 if __name__ == '__main__':
     unittest.main()

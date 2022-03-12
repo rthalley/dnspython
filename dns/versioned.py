@@ -265,7 +265,10 @@ class Zone(dns.zone.Zone):
         if create:
             raise UseTransaction
         rdataset = super().get_rdataset(name, rdtype, covers)
-        return dns.rdataset.ImmutableRdataset(rdataset)
+        if rdataset is not None:
+            return dns.rdataset.ImmutableRdataset(rdataset)
+        else:
+            return None
 
     def delete_rdataset(self, name, rdtype, covers=dns.rdatatype.NONE):
         raise UseTransaction
