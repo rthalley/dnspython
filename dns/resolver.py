@@ -1051,19 +1051,13 @@ class BaseResolver:
 class Resolver(BaseResolver):
     """DNS stub resolver."""
 
-    def resolve(
-        self,
-        qname: Union[dns.name.Name, str],
-        rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
-        rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
-        tcp: bool = False,
-        source: Optional[str] = None,
-        raise_on_no_answer: bool = True,
-        source_port: int = 0,
-        lifetime: Optional[float] = None,
-        search: Optional[bool] = None,
-    ) -> Answer:  # pylint: disable=arguments-differ
-        pass
+    def resolve(self, qname: Union[dns.name.Name, str],
+                rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
+                rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+                tcp: bool = False, source: Optional[str] = None,
+                raise_on_no_answer: bool = True, source_port: int = 0,
+                lifetime: Optional[float] = None,
+                search: Optional[bool] = None) -> Answer:  # pylint: disable=arguments-differ
         """Query nameservers to find the answer to the question.
 
         The *qname*, *rdtype*, and *rdclass* parameters may be objects
