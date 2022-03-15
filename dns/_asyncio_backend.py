@@ -10,7 +10,8 @@ import dns._asyncbackend
 import dns.exception
 
 
-_is_win32 = sys.platform == 'win32'
+_is_win32 = sys.platform == "win32"
+
 
 def _get_running_loop():
     try:
@@ -76,10 +77,10 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         self.protocol.close()
 
     async def getpeername(self):
-        return self.transport.get_extra_info('peername')
+        return self.transport.get_extra_info("peername")
 
     async def getsockname(self):
-        return self.transport.get_extra_info('sockname')
+        return self.transport.get_extra_info("sockname")
 
 
 class StreamSocket(dns._asyncbackend.StreamSocket):
@@ -93,8 +94,7 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
         return await _maybe_wait_for(self.writer.drain(), timeout)
 
     async def recv(self, size, timeout):
-        return await _maybe_wait_for(self.reader.read(size),
-                                     timeout)
+        return await _maybe_wait_for(self.reader.read(size), timeout)
 
     async def close(self):
         self.writer.close()
@@ -104,43 +104,60 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
             pass
 
     async def getpeername(self):
-        return self.writer.get_extra_info('peername')
+        return self.writer.get_extra_info("peername")
 
     async def getsockname(self):
-        return self.writer.get_extra_info('sockname')
+        return self.writer.get_extra_info("sockname")
 
 
 class Backend(dns._asyncbackend.Backend):
     def name(self):
-        return 'asyncio'
+        return "asyncio"
 
-    async def make_socket(self, af, socktype, proto=0,
-                          source=None, destination=None, timeout=None,
-                          ssl_context=None, server_hostname=None):
-        if destination is None and socktype == socket.SOCK_DGRAM and \
-           _is_win32:
-            raise NotImplementedError('destinationless datagram sockets '
-                                      'are not supported by asyncio '
-                                      'on Windows')
+    async def make_socket(
+        self,
+        af,
+        socktype,
+        proto=0,
+        source=None,
+        destination=None,
+        timeout=None,
+        ssl_context=None,
+        server_hostname=None,
+    ):
+        if destination is None and socktype == socket.SOCK_DGRAM and _is_win32:
+            raise NotImplementedError(
+                "destinationless datagram sockets "
+                "are not supported by asyncio "
+                "on Windows"
+            )
         loop = _get_running_loop()
         if socktype == socket.SOCK_DGRAM:
             transport, protocol = await loop.create_datagram_endpoint(
-                _DatagramProtocol, source, family=af,
-                proto=proto, remote_addr=destination)
+                _DatagramProtocol,
+                source,
+                family=af,
+                proto=proto,
+                remote_addr=destination,
+            )
             return DatagramSocket(af, transport, protocol)
         elif socktype == socket.SOCK_STREAM:
             (r, w) = await _maybe_wait_for(
-                asyncio.open_connection(destination[0],
-                                        destination[1],
-                                        ssl=ssl_context,
-                                        family=af,
-                                        proto=proto,
-                                        local_addr=source,
-                                        server_hostname=server_hostname),
-                timeout)
+                asyncio.open_connection(
+                    destination[0],
+                    destination[1],
+                    ssl=ssl_context,
+                    family=af,
+                    proto=proto,
+                    local_addr=source,
+                    server_hostname=server_hostname,
+                ),
+                timeout,
+            )
             return StreamSocket(af, r, w)
-        raise NotImplementedError('unsupported socket ' +
-                                  f'type {socktype}')  # pragma: no cover
+        raise NotImplementedError(
+            "unsupported socket " + f"type {socktype}"
+        )  # pragma: no cover
 
     async def sleep(self, interval):
         await asyncio.sleep(interval)

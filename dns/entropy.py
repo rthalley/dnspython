@@ -21,10 +21,11 @@ import os
 import hashlib
 import random
 import time
+
 try:
     import threading as _threading
 except ImportError:  # pragma: no cover
-    import dummy_threading as _threading    # type: ignore
+    import dummy_threading as _threading  # type: ignore
 
 
 class EntropyPool:
@@ -34,14 +35,14 @@ class EntropyPool:
     # leaving this code doesn't hurt anything as the library code
     # is used if present.
 
-    def __init__(self, seed: Optional[bytes]=None):
+    def __init__(self, seed: Optional[bytes] = None):
         self.pool_index = 0
         self.digest: Optional[bytearray] = None
         self.next_byte = 0
         self.lock = _threading.Lock()
         self.hash = hashlib.sha1()
         self.hash_len = 20
-        self.pool = bytearray(b'\0' * self.hash_len)
+        self.pool = bytearray(b"\0" * self.hash_len)
         if seed is not None:
             self._stir(seed)
             self.seeded = True
@@ -54,7 +55,7 @@ class EntropyPool:
         for c in entropy:
             if self.pool_index == self.hash_len:
                 self.pool_index = 0
-            b = c & 0xff
+            b = c & 0xFF
             self.pool[self.pool_index] ^= b
             self.pool_index += 1
 
@@ -68,7 +69,7 @@ class EntropyPool:
                 seed = os.urandom(16)
             except Exception:  # pragma: no cover
                 try:
-                    with open('/dev/urandom', 'rb', 0) as r:
+                    with open("/dev/urandom", "rb", 0) as r:
                         seed = r.read(16)
                 except Exception:
                     seed = str(time.time()).encode()
@@ -99,7 +100,7 @@ class EntropyPool:
     def random_between(self, first: int, last: int) -> int:
         size = last - first + 1
         if size > 4294967296:
-            raise ValueError('too big')
+            raise ValueError("too big")
         if size > 65536:
             rand = self.random_32
             max = 4294967295
@@ -111,6 +112,7 @@ class EntropyPool:
             max = 255
         return first + size * rand() // (max + 1)
 
+
 pool = EntropyPool()
 
 system_random: Optional[Any]
@@ -119,11 +121,13 @@ try:
 except Exception:  # pragma: no cover
     system_random = None
 
+
 def random_16() -> int:
     if system_random is not None:
         return system_random.randrange(0, 65536)
     else:
         return pool.random_16()
+
 
 def between(first: int, last: int) -> int:
     if system_random is not None:

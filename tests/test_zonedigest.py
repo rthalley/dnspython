@@ -8,10 +8,12 @@ import dns.rdata
 import dns.rrset
 import dns.zone
 
+
 class ZoneDigestTestCase(unittest.TestCase):
     # Examples from RFC 8976, fixed per errata.
 
-    simple_example = textwrap.dedent('''
+    simple_example = textwrap.dedent(
+        """
         example.      86400  IN  SOA     ns1 admin 2018031900 (
                                          1800 900 604800 86400 )
                       86400  IN  NS      ns1
@@ -25,9 +27,11 @@ class ZoneDigestTestCase(unittest.TestCase):
                                          777f98b8e730044c )
         ns1           3600   IN  A       203.0.113.63
         ns2           3600   IN  AAAA    2001:db8::63
-    ''')
+    """
+    )
 
-    complex_example = textwrap.dedent('''
+    complex_example = textwrap.dedent(
+        """
         example.      86400  IN  SOA     ns1 admin 2018031900 (
                                          1800 900 604800 86400 )
                       86400  IN  NS      ns1
@@ -62,9 +66,11 @@ class ZoneDigestTestCase(unittest.TestCase):
                                          6f77656420627574
                                          2069676e6f726564
                                          2e20616c6c6f7765 )
-    ''')
+    """
+    )
 
-    multiple_digests_example = textwrap.dedent('''
+    multiple_digests_example = textwrap.dedent(
+        """
         example.      86400  IN  SOA     ns1 admin 2018031900 (
                                          1800 900 604800 86400 )
         example.      86400  IN  NS      ns1.example.
@@ -98,36 +104,34 @@ class ZoneDigestTestCase(unittest.TestCase):
         ns1.example.  3600   IN  A       203.0.113.63
         ns2.example.  86400  IN  TXT     "This example has multiple digests"
         NS2.EXAMPLE.  3600   IN  AAAA    2001:db8::63
-    ''')
+    """
+    )
 
     def _get_zonemd(self, zone):
-        return zone.get_rdataset(zone.origin, 'ZONEMD')
+        return zone.get_rdataset(zone.origin, "ZONEMD")
 
     def test_zonemd_simple(self):
-        zone = dns.zone.from_text(self.simple_example, origin='example')
+        zone = dns.zone.from_text(self.simple_example, origin="example")
         zone.verify_digest()
         zonemd = self._get_zonemd(zone)
-        self.assertEqual(zonemd[0],
-                         zone.compute_digest(zonemd[0].hash_algorithm))
+        self.assertEqual(zonemd[0], zone.compute_digest(zonemd[0].hash_algorithm))
 
     def test_zonemd_simple_absolute(self):
-        zone = dns.zone.from_text(self.simple_example, origin='example',
-                                  relativize=False)
+        zone = dns.zone.from_text(
+            self.simple_example, origin="example", relativize=False
+        )
         zone.verify_digest()
         zonemd = self._get_zonemd(zone)
-        self.assertEqual(zonemd[0],
-                         zone.compute_digest(zonemd[0].hash_algorithm))
+        self.assertEqual(zonemd[0], zone.compute_digest(zonemd[0].hash_algorithm))
 
     def test_zonemd_complex(self):
-        zone = dns.zone.from_text(self.complex_example, origin='example')
+        zone = dns.zone.from_text(self.complex_example, origin="example")
         zone.verify_digest()
         zonemd = self._get_zonemd(zone)
-        self.assertEqual(zonemd[0],
-                         zone.compute_digest(zonemd[0].hash_algorithm))
+        self.assertEqual(zonemd[0], zone.compute_digest(zonemd[0].hash_algorithm))
 
     def test_zonemd_multiple_digests(self):
-        zone = dns.zone.from_text(self.multiple_digests_example,
-                                  origin='example')
+        zone = dns.zone.from_text(self.multiple_digests_example, origin="example")
         zone.verify_digest()
 
         zonemd = self._get_zonemd(zone)
@@ -140,54 +144,56 @@ class ZoneDigestTestCase(unittest.TestCase):
                     zone.verify_digest(rr)
 
     def test_zonemd_no_digest(self):
-        zone = dns.zone.from_text(self.simple_example, origin='example')
-        zone.delete_rdataset(dns.name.empty, 'ZONEMD')
+        zone = dns.zone.from_text(self.simple_example, origin="example")
+        zone.delete_rdataset(dns.name.empty, "ZONEMD")
         with self.assertRaises(dns.zone.NoDigest):
             zone.verify_digest()
 
-    sha384_hash = 'ab' * 48
-    sha512_hash = 'ab' * 64
+    sha384_hash = "ab" * 48
+    sha512_hash = "ab" * 64
 
     def test_zonemd_parse_rdata(self):
-        dns.rdata.from_text('IN', 'ZONEMD', '100 1 1 ' + self.sha384_hash)
-        dns.rdata.from_text('IN', 'ZONEMD', '100 1 2 ' + self.sha512_hash)
-        dns.rdata.from_text('IN', 'ZONEMD', '100 100 1 ' + self.sha384_hash)
-        dns.rdata.from_text('IN', 'ZONEMD', '100 1 100 abcd')
+        dns.rdata.from_text("IN", "ZONEMD", "100 1 1 " + self.sha384_hash)
+        dns.rdata.from_text("IN", "ZONEMD", "100 1 2 " + self.sha512_hash)
+        dns.rdata.from_text("IN", "ZONEMD", "100 100 1 " + self.sha384_hash)
+        dns.rdata.from_text("IN", "ZONEMD", "100 1 100 abcd")
 
     def test_zonemd_unknown_scheme(self):
-        zone = dns.zone.from_text(self.simple_example, origin='example')
+        zone = dns.zone.from_text(self.simple_example, origin="example")
         with self.assertRaises(dns.zone.UnsupportedDigestScheme):
             zone.compute_digest(dns.zone.DigestHashAlgorithm.SHA384, 2)
 
     def test_zonemd_unknown_hash_algorithm(self):
-        zone = dns.zone.from_text(self.simple_example, origin='example')
+        zone = dns.zone.from_text(self.simple_example, origin="example")
         with self.assertRaises(dns.zone.UnsupportedDigestHashAlgorithm):
             zone.compute_digest(5)
 
     def test_zonemd_invalid_digest_length(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.rdata.from_text('IN', 'ZONEMD', '100 1 2 ' + self.sha384_hash)
+            dns.rdata.from_text("IN", "ZONEMD", "100 1 2 " + self.sha384_hash)
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.rdata.from_text('IN', 'ZONEMD', '100 2 1 ' + self.sha512_hash)
+            dns.rdata.from_text("IN", "ZONEMD", "100 2 1 " + self.sha512_hash)
 
     def test_zonemd_parse_rdata_reserved(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.rdata.from_text('IN', 'ZONEMD', '100 0 1 ' + self.sha384_hash)
+            dns.rdata.from_text("IN", "ZONEMD", "100 0 1 " + self.sha384_hash)
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.rdata.from_text('IN', 'ZONEMD', '100 1 0 ' + self.sha384_hash)
+            dns.rdata.from_text("IN", "ZONEMD", "100 1 0 " + self.sha384_hash)
 
-    sorting_zone = textwrap.dedent('''
+    sorting_zone = textwrap.dedent(
+        """
     @  86400  IN  SOA     ns1 admin 2018031900 (
                                      1800 900 604800 86400 )
               86400  IN  NS      ns1
               86400  IN  NS      ns2
               86400  IN  RP      n1.example. a.
               86400  IN  RP      n1. b.
-    ''')
-    
+    """
+    )
+
     def test_relative_zone_sorting(self):
-        z1 = dns.zone.from_text(self.sorting_zone, 'example.', relativize=True)
-        z2 = dns.zone.from_text(self.sorting_zone, 'example.', relativize=False)
+        z1 = dns.zone.from_text(self.sorting_zone, "example.", relativize=True)
+        z2 = dns.zone.from_text(self.sorting_zone, "example.", relativize=False)
         zmd1 = z1.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
         zmd2 = z2.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
         self.assertEqual(zmd1, zmd2)

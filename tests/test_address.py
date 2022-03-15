@@ -8,6 +8,7 @@ import dns.exception
 import dns.ipv4
 import dns.ipv6
 
+
 class IPv4Tests(unittest.TestCase):
     def test_valid(self):
         valid = (
@@ -23,8 +24,7 @@ class IPv4Tests(unittest.TestCase):
             "192.0.2.128",
         )
         for s in valid:
-            self.assertEqual(dns.ipv4.inet_aton(s),
-                             socket.inet_pton(socket.AF_INET, s))
+            self.assertEqual(dns.ipv4.inet_aton(s), socket.inet_pton(socket.AF_INET, s))
 
     def test_invalid(self):
         invalid = (
@@ -74,9 +74,11 @@ class IPv4Tests(unittest.TestCase):
             "::",
         )
         for s in invalid:
-            with self.assertRaises(dns.exception.SyntaxError,
-                                   msg=f'invalid IPv4 address: "{s}"'):
+            with self.assertRaises(
+                dns.exception.SyntaxError, msg=f'invalid IPv4 address: "{s}"'
+            ):
                 dns.ipv4.inet_aton(s)
+
 
 class IPv6Tests(unittest.TestCase):
     def test_valid(self):
@@ -258,12 +260,13 @@ class IPv6Tests(unittest.TestCase):
         }
 
         for s in valid:
-            if sys.platform == 'win32' and s in win32_invalid:
+            if sys.platform == "win32" and s in win32_invalid:
                 # socket.inet_pton() on win32 rejects some valid (as
                 # far as we can tell) IPv6 addresses.  Skip them.
                 continue
-            self.assertEqual(dns.ipv6.inet_aton(s),
-                             socket.inet_pton(socket.AF_INET6, s))
+            self.assertEqual(
+                dns.ipv6.inet_aton(s), socket.inet_pton(socket.AF_INET6, s)
+            )
 
     def test_invalid(self):
         invalid = (
@@ -576,6 +579,7 @@ class IPv6Tests(unittest.TestCase):
             "':10.0.0.1",
         )
         for s in invalid:
-            with self.assertRaises(dns.exception.SyntaxError,
-                                   msg=f'invalid IPv6 address: "{s}"'):
+            with self.assertRaises(
+                dns.exception.SyntaxError, msg=f'invalid IPv6 address: "{s}"'
+            ):
                 dns.ipv6.inet_aton(s)

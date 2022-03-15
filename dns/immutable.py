@@ -9,7 +9,7 @@ from dns._immutable_ctx import immutable
 
 @immutable
 class Dict(collections.abc.Mapping):  # lgtm[py/missing-equals]
-    def __init__(self, dictionary: Any, no_copy: bool=False):
+    def __init__(self, dictionary: Any, no_copy: bool = False):
         """Make an immutable dictionary from the specified dictionary.
 
         If *no_copy* is `True`, then *dictionary* will be wrapped instead
@@ -30,7 +30,7 @@ class Dict(collections.abc.Mapping):  # lgtm[py/missing-equals]
             h = 0
             for key in sorted(self._odict.keys()):
                 h ^= hash(key)
-            object.__setattr__(self, '_hash', h)
+            object.__setattr__(self, "_hash", h)
         # this does return an int, but pylint doesn't figure that out
         return self._hash
 

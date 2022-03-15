@@ -6,26 +6,20 @@ import unittest
 import dns.tsig
 import dns.tsigkeyring
 
-text_keyring = {
-    'keyname.' : ('hmac-sha256.', 'NjHwPsMKjdN++dOfE5iAiQ==')
-}
+text_keyring = {"keyname.": ("hmac-sha256.", "NjHwPsMKjdN++dOfE5iAiQ==")}
 
-alt_text_keyring = {
-    'keyname.' : (dns.tsig.HMAC_SHA256, 'NjHwPsMKjdN++dOfE5iAiQ==')
-}
+alt_text_keyring = {"keyname.": (dns.tsig.HMAC_SHA256, "NjHwPsMKjdN++dOfE5iAiQ==")}
 
-old_text_keyring = {
-    'keyname.' : 'NjHwPsMKjdN++dOfE5iAiQ=='
-}
+old_text_keyring = {"keyname.": "NjHwPsMKjdN++dOfE5iAiQ=="}
 
-key = dns.tsig.Key('keyname.', 'NjHwPsMKjdN++dOfE5iAiQ==')
+key = dns.tsig.Key("keyname.", "NjHwPsMKjdN++dOfE5iAiQ==")
 
-rich_keyring = { key.name : key }
+rich_keyring = {key.name: key}
 
-old_rich_keyring = { key.name : key.secret }
+old_rich_keyring = {key.name: key.secret}
+
 
 class TSIGKeyRingTestCase(unittest.TestCase):
-
     def test_from_text(self):
         """text keyring -> rich keyring"""
         rkeyring = dns.tsigkeyring.from_text(text_keyring)

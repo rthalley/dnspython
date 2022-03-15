@@ -51,8 +51,10 @@ def to_text(keyring: Dict[dns.name.Name, Any]) -> Dict[str, Any]:
     @rtype: dict"""
 
     textring = {}
+
     def b64encode(secret):
         return base64.encodebytes(secret).decode().rstrip()
+
     for (name, key) in keyring.items():
         tname = name.to_text()
         if isinstance(key, bytes):

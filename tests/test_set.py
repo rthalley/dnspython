@@ -23,8 +23,8 @@ import dns.set
 # for convenience
 S = dns.set.Set
 
-class SetTestCase(unittest.TestCase):
 
+class SetTestCase(unittest.TestCase):
     def testLen1(self):
         s1 = S()
         self.assertEqual(len(s1), 0)
@@ -334,5 +334,6 @@ class SetTestCase(unittest.TestCase):
         s &= S([1, 2])
         self.assertEqual(s, S([1, 2]))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

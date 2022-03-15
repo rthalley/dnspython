@@ -56,10 +56,10 @@ class NSEC3Hash(unittest.TestCase):
             "aabbccdd",
             12,
             "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom",
-            dnssec.NSEC3Hash.SHA1
+            dnssec.NSEC3Hash.SHA1,
         ),
         ("example", "aabbccdd", 12, "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom", "SHA1"),
-        ("example", "aabbccdd", 12, "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom", "sha1")
+        ("example", "aabbccdd", 12, "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom", "sha1"),
     ]
 
     def test_hash_function(self):

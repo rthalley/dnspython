@@ -20,8 +20,10 @@
 import dns.enum
 import dns.exception
 
+
 class RdataClass(dns.enum.IntEnum):
     """DNS Rdata Class"""
+
     RESERVED0 = 0
     IN = 1
     INTERNET = IN
@@ -99,6 +101,7 @@ def is_metaclass(rdclass: RdataClass) -> bool:
     if rdclass in _metaclasses:
         return True
     return False
+
 
 ### BEGIN generated RdataClass constants
 

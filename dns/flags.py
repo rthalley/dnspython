@@ -23,6 +23,7 @@ import enum
 
 # Standard DNS flags
 
+
 class Flag(enum.IntFlag):
     #: Query Response
     QR = 0x8000
@@ -42,6 +43,7 @@ class Flag(enum.IntFlag):
 
 # EDNS flags
 
+
 class EDNSFlag(enum.IntFlag):
     #: DNSSEC answer OK
     DO = 0x8000
@@ -60,7 +62,7 @@ def _to_text(flags: int, enum_class: Any) -> str:
     for k, v in enum_class.__members__.items():
         if flags & v != 0:
             text_flags.append(k)
-    return ' '.join(text_flags)
+    return " ".join(text_flags)
 
 
 def from_text(text: str) -> int:
@@ -101,6 +103,7 @@ def edns_to_text(flags: int) -> str:
     """
 
     return _to_text(flags, EDNSFlag)
+
 
 ### BEGIN generated Flag constants
 

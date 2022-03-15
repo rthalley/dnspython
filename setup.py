@@ -22,18 +22,20 @@ from setuptools import setup
 
 
 try:
-   sys.argv.remove("--cython-compile")
+    sys.argv.remove("--cython-compile")
 except ValueError:
-   compile_cython = False
+    compile_cython = False
 else:
     compile_cython = True
     from Cython.Build import cythonize
-    ext_modules = cythonize(['dns/*.py', 'dns/rdtypes/*.py', 'dns/rdtypes/*/*.py'],
-                            language_level='3')
+
+    ext_modules = cythonize(
+        ["dns/*.py", "dns/rdtypes/*.py", "dns/rdtypes/*/*.py"], language_level="3"
+    )
 
 kwargs = {
-    'ext_modules': ext_modules if compile_cython else None,
-    'zip_safe': False if compile_cython else None,
-    }
+    "ext_modules": ext_modules if compile_cython else None,
+    "zip_safe": False if compile_cython else None,
+}
 
 setup(**kwargs)

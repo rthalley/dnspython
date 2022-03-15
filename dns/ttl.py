@@ -62,15 +62,15 @@ def from_text(text: str) -> int:
                 if need_digit:
                     raise BadTTL
                 c = c.lower()
-                if c == 'w':
+                if c == "w":
                     total += current * 604800
-                elif c == 'd':
+                elif c == "d":
                     total += current * 86400
-                elif c == 'h':
+                elif c == "h":
                     total += current * 3600
-                elif c == 'm':
+                elif c == "m":
                     total += current * 60
-                elif c == 's':
+                elif c == "s":
                     total += current
                 else:
                     raise BadTTL("unknown unit '%s'" % c)
@@ -89,4 +89,4 @@ def make(value: Union[int, str]) -> int:
     elif isinstance(value, str):
         return dns.ttl.from_text(value)
     else:
-        raise ValueError('cannot convert value to TTL')
+        raise ValueError("cannot convert value to TTL")

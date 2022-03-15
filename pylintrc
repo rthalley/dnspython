@@ -32,6 +32,7 @@ disable=
     raise-missing-from,   # we should start doing this, but too noisy for now
     consider-using-f-string,
     unspecified-encoding,
+    useless-super-delegation, # not against this, but we have to do it for mypy happiness
 
 [REPORTS]
 
@@ -49,4 +50,4 @@ reports=no
 msg-template='{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})'
 
 [FORMAT]
-max-line-length=120
+max-line-length=88

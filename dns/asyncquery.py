@@ -34,8 +34,16 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.transaction
 
-from dns.query import _compute_times, _matches_destination, BadResponse, ssl, \
-    UDPMode, _have_httpx, _have_http2, NoDOH
+from dns.query import (
+    _compute_times,
+    _matches_destination,
+    BadResponse,
+    ssl,
+    UDPMode,
+    _have_httpx,
+    _have_http2,
+    NoDOH,
+)
 
 if _have_httpx:
     import httpx
@@ -50,11 +58,11 @@ def _source_tuple(af, address, port):
     if address or port:
         if address is None:
             if af == socket.AF_INET:
-                address = '0.0.0.0'
+                address = "0.0.0.0"
             elif af == socket.AF_INET6:
-                address = '::'
+                address = "::"
             else:
-                raise NotImplementedError(f'unknown address family {af}')
+                raise NotImplementedError(f"unknown address family {af}")
         return (address, port)
     else:
         return None
@@ -69,9 +77,12 @@ def _timeout(expiration, now=None):
         return None
 
 
-async def send_udp(sock: dns.asyncbackend.DatagramSocket,
-                   what: Union[dns.message.Message, bytes], destination: Any,
-                   expiration: Optional[float]=None) -> Tuple[int, float]:
+async def send_udp(
+    sock: dns.asyncbackend.DatagramSocket,
+    what: Union[dns.message.Message, bytes],
+    destination: Any,
+    expiration: Optional[float] = None,
+) -> Tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
     *sock*, a ``dns.asyncbackend.DatagramSocket``.
@@ -95,11 +106,17 @@ async def send_udp(sock: dns.asyncbackend.DatagramSocket,
     return (n, sent_time)
 
 
-async def receive_udp(sock: dns.asyncbackend.DatagramSocket,
-                      destination: Optional[Any]=None, expiration: Optional[float]=None,
-                      ignore_unexpected: bool=False, one_rr_per_rrset: bool=False,
-                      keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac: Optional[bytes]=b'',
-                      ignore_trailing: bool=False, raise_on_truncation: bool=False) -> Any:
+async def receive_udp(
+    sock: dns.asyncbackend.DatagramSocket,
+    destination: Optional[Any] = None,
+    expiration: Optional[float] = None,
+    ignore_unexpected: bool = False,
+    one_rr_per_rrset: bool = False,
+    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
+    request_mac: Optional[bytes] = b"",
+    ignore_trailing: bool = False,
+    raise_on_truncation: bool = False,
+) -> Any:
     """Read a DNS message from a UDP socket.
 
     *sock*, a ``dns.asyncbackend.DatagramSocket``.
@@ -108,24 +125,39 @@ async def receive_udp(sock: dns.asyncbackend.DatagramSocket,
     parameters, exceptions, and return type of this method.
     """
 
-    wire = b''
+    wire = b""
     while 1:
         (wire, from_address) = await sock.recvfrom(65535, _timeout(expiration))
-        if _matches_destination(sock.family, from_address, destination,
-                                ignore_unexpected):
+        if _matches_destination(
+            sock.family, from_address, destination, ignore_unexpected
+        ):
             break
     received_time = time.time()
-    r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset,
-                              ignore_trailing=ignore_trailing,
-                              raise_on_truncation=raise_on_truncation)
+    r = dns.message.from_wire(
+        wire,
+        keyring=keyring,
+        request_mac=request_mac,
+        one_rr_per_rrset=one_rr_per_rrset,
+        ignore_trailing=ignore_trailing,
+        raise_on_truncation=raise_on_truncation,
+    )
     return (r, received_time, from_address)
 
-async def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
-              source: Optional[str]=None, source_port: int=0,
-              ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-              raise_on_truncation: bool=False, sock: Optional[dns.asyncbackend.DatagramSocket]=None,
-              backend: Optional[dns.asyncbackend.Backend]=None) -> dns.message.Message:
+
+async def udp(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 53,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    ignore_unexpected: bool = False,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    raise_on_truncation: bool = False,
+    sock: Optional[dns.asyncbackend.DatagramSocket] = None,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
 
     *sock*, a ``dns.asyncbackend.DatagramSocket``, or ``None``,
@@ -156,16 +188,20 @@ async def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None,
                 dtuple = (where, port)
             else:
                 dtuple = None
-            s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple,
-                                          dtuple)
+            s = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple, dtuple)
         assert s is not None
         await send_udp(s, wire, destination, expiration)
-        (r, received_time, _) = await receive_udp(s, destination, expiration,
-                                                  ignore_unexpected,
-                                                  one_rr_per_rrset,
-                                                  q.keyring, q.mac,
-                                                  ignore_trailing,
-                                                  raise_on_truncation)
+        (r, received_time, _) = await receive_udp(
+            s,
+            destination,
+            expiration,
+            ignore_unexpected,
+            one_rr_per_rrset,
+            q.keyring,
+            q.mac,
+            ignore_trailing,
+            raise_on_truncation,
+        )
         r.time = received_time - begin_time
         if not q.is_response(r):
             raise BadResponse
@@ -174,12 +210,21 @@ async def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         if not sock and s:
             await s.close()
 
-async def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
-                            source: Optional[str]=None, source_port: int=0,
-                            ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-                            udp_sock: Optional[dns.asyncbackend.DatagramSocket]=None,
-                            tcp_sock: Optional[dns.asyncbackend.StreamSocket]=None,
-                            backend: Optional[dns.asyncbackend.Backend]=None) -> Tuple[dns.message.Message, bool]:
+
+async def udp_with_fallback(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 53,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    ignore_unexpected: bool = False,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    udp_sock: Optional[dns.asyncbackend.DatagramSocket] = None,
+    tcp_sock: Optional[dns.asyncbackend.StreamSocket] = None,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> Tuple[dns.message.Message, bool]:
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
@@ -201,20 +246,42 @@ async def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optiona
     method.
     """
     try:
-        response = await udp(q, where, timeout, port, source, source_port,
-                             ignore_unexpected, one_rr_per_rrset,
-                             ignore_trailing, True, udp_sock, backend)
+        response = await udp(
+            q,
+            where,
+            timeout,
+            port,
+            source,
+            source_port,
+            ignore_unexpected,
+            one_rr_per_rrset,
+            ignore_trailing,
+            True,
+            udp_sock,
+            backend,
+        )
         return (response, False)
     except dns.message.Truncated:
-        response = await tcp(q, where, timeout, port, source, source_port,
-                             one_rr_per_rrset, ignore_trailing, tcp_sock,
-                             backend)
+        response = await tcp(
+            q,
+            where,
+            timeout,
+            port,
+            source,
+            source_port,
+            one_rr_per_rrset,
+            ignore_trailing,
+            tcp_sock,
+            backend,
+        )
         return (response, True)
 
 
-async def send_tcp(sock: dns.asyncbackend.StreamSocket,
-                   what: Union[dns.message.Message, bytes],
-                   expiration: Optional[float]=None) -> Tuple[int, float]:
+async def send_tcp(
+    sock: dns.asyncbackend.StreamSocket,
+    what: Union[dns.message.Message, bytes],
+    expiration: Optional[float] = None,
+) -> Tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
     *sock*, a ``dns.asyncbackend.StreamSocket``.
@@ -241,21 +308,24 @@ async def _read_exactly(sock, count, expiration):
     """Read the specified number of bytes from stream.  Keep trying until we
     either get the desired amount, or we hit EOF.
     """
-    s = b''
+    s = b""
     while count > 0:
         n = await sock.recv(count, _timeout(expiration))
-        if n == b'':
+        if n == b"":
             raise EOFError
         count = count - len(n)
         s = s + n
     return s
 
 
-async def receive_tcp(sock: dns.asyncbackend.StreamSocket,
-                      expiration: Optional[float]=None, one_rr_per_rrset: bool=False,
-                      keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None,
-                      request_mac: Optional[bytes]=b'',
-                      ignore_trailing: bool=False) -> Tuple[dns.message.Message, float]:
+async def receive_tcp(
+    sock: dns.asyncbackend.StreamSocket,
+    expiration: Optional[float] = None,
+    one_rr_per_rrset: bool = False,
+    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
+    request_mac: Optional[bytes] = b"",
+    ignore_trailing: bool = False,
+) -> Tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``dns.asyncbackend.StreamSocket``.
@@ -268,17 +338,28 @@ async def receive_tcp(sock: dns.asyncbackend.StreamSocket,
     (l,) = struct.unpack("!H", ldata)
     wire = await _read_exactly(sock, l, expiration)
     received_time = time.time()
-    r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset,
-                              ignore_trailing=ignore_trailing)
+    r = dns.message.from_wire(
+        wire,
+        keyring=keyring,
+        request_mac=request_mac,
+        one_rr_per_rrset=one_rr_per_rrset,
+        ignore_trailing=ignore_trailing,
+    )
     return (r, received_time)
 
 
-async def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
-              source: Optional[str]=None, source_port: int=0,
-              one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-              sock: Optional[dns.asyncbackend.StreamSocket]=None,
-              backend: Optional[dns.asyncbackend.Backend]=None) -> dns.message.Message:
+async def tcp(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 53,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    sock: Optional[dns.asyncbackend.StreamSocket] = None,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
 
     *sock*, a ``dns.asyncbacket.StreamSocket``, or ``None``, the
@@ -313,13 +394,14 @@ async def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None,
             dtuple = (where, port)
             if not backend:
                 backend = dns.asyncbackend.get_default_backend()
-            s = await backend.make_socket(af, socket.SOCK_STREAM, 0, stuple,
-                                          dtuple, timeout)
+            s = await backend.make_socket(
+                af, socket.SOCK_STREAM, 0, stuple, dtuple, timeout
+            )
         assert s is not None
         await send_tcp(s, wire, expiration)
-        (r, received_time) = await receive_tcp(s, expiration, one_rr_per_rrset,
-                                               q.keyring, q.mac,
-                                               ignore_trailing)
+        (r, received_time) = await receive_tcp(
+            s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
+        )
         r.time = received_time - begin_time
         if not q.is_response(r):
             raise BadResponse
@@ -328,13 +410,21 @@ async def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         if not sock and s:
             await s.close()
 
-async def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-              port: int=853, source: Optional[str]=None, source_port: int=0,
-              one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-              sock: Optional[dns.asyncbackend.StreamSocket]=None,
-              backend: Optional[dns.asyncbackend.Backend]=None,
-              ssl_context: Optional[ssl.SSLContext]=None,
-              server_hostname: Optional[str]=None) -> dns.message.Message:
+
+async def tls(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 853,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    sock: Optional[dns.asyncbackend.StreamSocket] = None,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+    ssl_context: Optional[ssl.SSLContext] = None,
+    server_hostname: Optional[str] = None,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
     *sock*, an ``asyncbackend.StreamSocket``, or ``None``, the socket
@@ -367,15 +457,32 @@ async def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         dtuple = (where, port)
         if not backend:
             backend = dns.asyncbackend.get_default_backend()
-        s = await backend.make_socket(af, socket.SOCK_STREAM, 0, stuple,
-                                      dtuple, timeout, ssl_context,
-                                      server_hostname)
+        s = await backend.make_socket(
+            af,
+            socket.SOCK_STREAM,
+            0,
+            stuple,
+            dtuple,
+            timeout,
+            ssl_context,
+            server_hostname,
+        )
     else:
         s = sock
     try:
         timeout = _timeout(expiration)
-        response = await tcp(q, where, timeout, port, source, source_port,
-                             one_rr_per_rrset, ignore_trailing, s, backend)
+        response = await tcp(
+            q,
+            where,
+            timeout,
+            port,
+            source,
+            source_port,
+            one_rr_per_rrset,
+            ignore_trailing,
+            s,
+            backend,
+        )
         end_time = time.time()
         response.time = end_time - begin_time
         return response
@@ -383,11 +490,21 @@ async def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         if not sock and s:
             await s.close()
 
-async def https(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-                port: int=443, source: Optional[str]=None, source_port: int=0,
-                one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-                client: Optional[httpx.AsyncClient]=None,
-                path: str='/dns-query', post: bool=True, verify: bool=True) -> dns.message.Message:
+
+async def https(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 443,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    client: Optional[httpx.AsyncClient] = None,
+    path: str = "/dns-query",
+    post: bool = True,
+    verify: bool = True,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
     *client*, a ``httpx.AsyncClient``.  If provided, the client to use for
@@ -401,7 +518,7 @@ async def https(q: dns.message.Message, where: str, timeout: Optional[float]=Non
     """
 
     if not _have_httpx:
-        raise NoDOH('httpx is not available.')  # pragma: no cover
+        raise NoDOH("httpx is not available.")  # pragma: no cover
 
     wire = q.to_wire()
     try:
@@ -409,14 +526,12 @@ async def https(q: dns.message.Message, where: str, timeout: Optional[float]=Non
     except ValueError:
         af = None
     transport = None
-    headers = {
-        "accept": "application/dns-message"
-    }
+    headers = {"accept": "application/dns-message"}
     if af is not None:
         if af == socket.AF_INET:
-            url = 'https://{}:{}{}'.format(where, port, path)
+            url = "https://{}:{}{}".format(where, port, path)
         elif af == socket.AF_INET6:
-            url = 'https://[{}]:{}{}'.format(where, port, path)
+            url = "https://[{}]:{}{}".format(where, port, path)
     else:
         url = where
     if source is not None:
@@ -426,24 +541,29 @@ async def https(q: dns.message.Message, where: str, timeout: Optional[float]=Non
     client_to_close = None
     try:
         if not client:
-            client = httpx.AsyncClient(http1=True, http2=_have_http2,
-                                       verify=verify, transport=transport)
+            client = httpx.AsyncClient(
+                http1=True, http2=_have_http2, verify=verify, transport=transport
+            )
             client_to_close = client
 
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples
         if post:
-            headers.update({
-                "content-type": "application/dns-message",
-                "content-length": str(len(wire))
-            })
-            response = await client.post(url, headers=headers, content=wire,
-                                         timeout=timeout)
+            headers.update(
+                {
+                    "content-type": "application/dns-message",
+                    "content-length": str(len(wire)),
+                }
+            )
+            response = await client.post(
+                url, headers=headers, content=wire, timeout=timeout
+            )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             twire = wire.decode()  # httpx does a repr() if we give it bytes
-            response = await client.get(url, headers=headers, timeout=timeout,
-                                        params={"dns": twire})
+            response = await client.get(
+                url, headers=headers, timeout=timeout, params={"dns": twire}
+            )
     finally:
         if client_to_close:
             await client_to_close.aclose()
@@ -451,25 +571,37 @@ async def https(q: dns.message.Message, where: str, timeout: Optional[float]=Non
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes
     if response.status_code < 200 or response.status_code > 299:
-        raise ValueError('{} responded with status code {}'
-                         '\nResponse body: {!r}'.format(where,
-                                                      response.status_code,
-                                                      response.content))
-    r = dns.message.from_wire(response.content,
-                              keyring=q.keyring,
-                              request_mac=q.request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset,
-                              ignore_trailing=ignore_trailing)
+        raise ValueError(
+            "{} responded with status code {}"
+            "\nResponse body: {!r}".format(
+                where, response.status_code, response.content
+            )
+        )
+    r = dns.message.from_wire(
+        response.content,
+        keyring=q.keyring,
+        request_mac=q.request_mac,
+        one_rr_per_rrset=one_rr_per_rrset,
+        ignore_trailing=ignore_trailing,
+    )
     r.time = response.elapsed.total_seconds()
     if not q.is_response(r):
         raise BadResponse
     return r
 
-async def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
-                      query: Optional[dns.message.Message]=None,
-                      port: int=53, timeout: Optional[float]=None, lifetime: Optional[float]=None,
-                      source: Optional[str]=None, source_port: int=0, udp_mode: UDPMode=UDPMode.NEVER,
-                      backend: Optional[dns.asyncbackend.Backend]=None) -> None:
+
+async def inbound_xfr(
+    where: str,
+    txn_manager: dns.transaction.TransactionManager,
+    query: Optional[dns.message.Message] = None,
+    port: int = 53,
+    timeout: Optional[float] = None,
+    lifetime: Optional[float] = None,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    udp_mode: UDPMode = UDPMode.NEVER,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> None:
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
@@ -502,42 +634,48 @@ async def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManage
             is_udp = False
         if not backend:
             backend = dns.asyncbackend.get_default_backend()
-        s = await backend.make_socket(af, sock_type, 0, stuple, dtuple,
-                                      _timeout(expiration))
+        s = await backend.make_socket(
+            af, sock_type, 0, stuple, dtuple, _timeout(expiration)
+        )
         async with s:
             if is_udp:
                 await s.sendto(wire, dtuple, _timeout(expiration))
             else:
                 tcpmsg = struct.pack("!H", len(wire)) + wire
                 await s.sendall(tcpmsg, expiration)
-            with dns.xfr.Inbound(txn_manager, rdtype, serial,
-                                 is_udp) as inbound:
+            with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
                 done = False
                 tsig_ctx = None
                 while not done:
                     (_, mexpiration) = _compute_times(timeout)
-                    if mexpiration is None or \
-                       (expiration is not None and mexpiration > expiration):
+                    if mexpiration is None or (
+                        expiration is not None and mexpiration > expiration
+                    ):
                         mexpiration = expiration
                     if is_udp:
                         destination = _lltuple((where, port), af)
                         while True:
                             timeout = _timeout(mexpiration)
-                            (rwire, from_address) = await s.recvfrom(65535,
-                                                                     timeout)
-                            if _matches_destination(af, from_address,
-                                                    destination, True):
+                            (rwire, from_address) = await s.recvfrom(65535, timeout)
+                            if _matches_destination(
+                                af, from_address, destination, True
+                            ):
                                 break
                     else:
                         ldata = await _read_exactly(s, 2, mexpiration)
                         (l,) = struct.unpack("!H", ldata)
                         rwire = await _read_exactly(s, l, mexpiration)
-                    is_ixfr = (rdtype == dns.rdatatype.IXFR)
-                    r = dns.message.from_wire(rwire, keyring=query.keyring,
-                                              request_mac=query.mac, xfr=True,
-                                              origin=origin, tsig_ctx=tsig_ctx,
-                                              multi=(not is_udp),
-                                              one_rr_per_rrset=is_ixfr)
+                    is_ixfr = rdtype == dns.rdatatype.IXFR
+                    r = dns.message.from_wire(
+                        rwire,
+                        keyring=query.keyring,
+                        request_mac=query.mac,
+                        xfr=True,
+                        origin=origin,
+                        tsig_ctx=tsig_ctx,
+                        multi=(not is_udp),
+                        one_rr_per_rrset=is_ixfr,
+                    )
                     try:
                         done = inbound.process_message(r)
                     except dns.xfr.UseTCP:

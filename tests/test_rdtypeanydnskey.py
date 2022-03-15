@@ -19,25 +19,28 @@ import unittest
 import dns.rrset
 import dns.rdtypes.ANY.DNSKEY
 
-from typing import Set # pylint: disable=unused-import
+from typing import Set  # pylint: disable=unused-import
+
 
 class RdtypeAnyDnskeyTestCase(unittest.TestCase):
-
-    def testFlagsAll(self): # type: () -> None
-        '''Test that all defined flags are recognized.'''
-        good_s = {'SEP', 'REVOKE', 'ZONE'}
+    def testFlagsAll(self):  # type: () -> None
+        """Test that all defined flags are recognized."""
+        good_s = {"SEP", "REVOKE", "ZONE"}
         good_f = 0x181
-        self.assertEqual(dns.rdtypes.ANY.DNSKEY.SEP |
-                         dns.rdtypes.ANY.DNSKEY.REVOKE |
-                         dns.rdtypes.ANY.DNSKEY.ZONE, good_f)
+        self.assertEqual(
+            dns.rdtypes.ANY.DNSKEY.SEP
+            | dns.rdtypes.ANY.DNSKEY.REVOKE
+            | dns.rdtypes.ANY.DNSKEY.ZONE,
+            good_f,
+        )
 
-    def testFlagsRRToText(self): # type: () -> None
-        '''Test that RR method returns correct flags.'''
-        rr = dns.rrset.from_text('foo', 300, 'IN', 'DNSKEY', '257 3 8 KEY=')[0]
-        self.assertEqual(dns.rdtypes.ANY.DNSKEY.ZONE |
-                         dns.rdtypes.ANY.DNSKEY.SEP,
-                         rr.flags)
+    def testFlagsRRToText(self):  # type: () -> None
+        """Test that RR method returns correct flags."""
+        rr = dns.rrset.from_text("foo", 300, "IN", "DNSKEY", "257 3 8 KEY=")[0]
+        self.assertEqual(
+            dns.rdtypes.ANY.DNSKEY.ZONE | dns.rdtypes.ANY.DNSKEY.SEP, rr.flags
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

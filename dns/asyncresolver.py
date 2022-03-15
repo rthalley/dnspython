@@ -42,13 +42,19 @@ _tcp = dns.asyncquery.tcp
 class Resolver(dns.resolver.BaseResolver):
     """Asynchronous DNS stub resolver."""
 
-    async def resolve(self, qname: Union[dns.name.Name, str],
-                      rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
-                      rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
-                      tcp: bool=False, source: Optional[str]=None,
-                      raise_on_no_answer: bool=True, source_port: int=0,
-                      lifetime: Optional[float]=None, search: Optional[bool]=None,
-                      backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
+    async def resolve(
+        self,
+        qname: Union[dns.name.Name, str],
+        rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
+        rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+        tcp: bool = False,
+        source: Optional[str] = None,
+        raise_on_no_answer: bool = True,
+        source_port: int = 0,
+        lifetime: Optional[float] = None,
+        search: Optional[bool] = None,
+        backend: Optional[dns.asyncbackend.Backend] = None,
+    ) -> dns.resolver.Answer:
         """Query nameservers asynchronously to find the answer to the question.
 
         *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
@@ -59,8 +65,9 @@ class Resolver(dns.resolver.BaseResolver):
         type of this method.
         """
 
-        resolution = dns.resolver._Resolution(self, qname, rdtype, rdclass, tcp,
-                                              raise_on_no_answer, search)
+        resolution = dns.resolver._Resolution(
+            self, qname, rdtype, rdclass, tcp, raise_on_no_answer, search
+        )
         if not backend:
             backend = dns.asyncbackend.get_default_backend()
         start = time.time()
@@ -79,25 +86,34 @@ class Resolver(dns.resolver.BaseResolver):
                 (nameserver, port, tcp, backoff) = resolution.next_nameserver()
                 if backoff:
                     await backend.sleep(backoff)
-                timeout = self._compute_timeout(start, lifetime,
-                                                resolution.errors)
+                timeout = self._compute_timeout(start, lifetime, resolution.errors)
                 try:
                     if dns.inet.is_address(nameserver):
                         if tcp:
-                            response = await _tcp(request, nameserver,
-                                                  timeout, port,
-                                                  source, source_port,
-                                                  backend=backend)
+                            response = await _tcp(
+                                request,
+                                nameserver,
+                                timeout,
+                                port,
+                                source,
+                                source_port,
+                                backend=backend,
+                            )
                         else:
-                            response = await _udp(request, nameserver,
-                                                  timeout, port,
-                                                  source, source_port,
-                                                  raise_on_truncation=True,
-                                                  backend=backend)
+                            response = await _udp(
+                                request,
+                                nameserver,
+                                timeout,
+                                port,
+                                source,
+                                source_port,
+                                raise_on_truncation=True,
+                                backend=backend,
+                            )
                     else:
-                        response = await dns.asyncquery.https(request,
-                                                              nameserver,
-                                                              timeout=timeout)
+                        response = await dns.asyncquery.https(
+                            request, nameserver, timeout=timeout
+                        )
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
                     continue
@@ -109,7 +125,9 @@ class Resolver(dns.resolver.BaseResolver):
                 if answer is not None:
                     return answer
 
-    async def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> dns.resolver.Answer:
+    async def resolve_address(
+        self, ipaddr: str, *args: Any, **kwargs: Dict[str, Any]
+    ) -> dns.resolver.Answer:
         """Use an asynchronous resolver to run a reverse query for PTR
         records.
 
@@ -129,10 +147,11 @@ class Resolver(dns.resolver.BaseResolver):
         # in the kwargs more than once.
         modified_kwargs: Dict[str, Any] = {}
         modified_kwargs.update(kwargs)
-        modified_kwargs['rdtype'] = dns.rdatatype.PTR
-        modified_kwargs['rdclass'] = dns.rdataclass.IN
-        return await self.resolve(dns.reversename.from_address(ipaddr),
-                                  *args, **modified_kwargs)
+        modified_kwargs["rdtype"] = dns.rdatatype.PTR
+        modified_kwargs["rdclass"] = dns.rdataclass.IN
+        return await self.resolve(
+            dns.reversename.from_address(ipaddr), *args, **modified_kwargs
+        )
 
     # pylint: disable=redefined-outer-name
 
@@ -180,13 +199,18 @@ def reset_default_resolver() -> None:
     default_resolver = Resolver()
 
 
-async def resolve(qname: Union[dns.name.Name, str],
-                  rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.A,
-                  rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
-                  tcp: bool=False, source: Optional[str]=None,
-                  raise_on_no_answer: bool=True, source_port: int=0,
-                  lifetime: Optional[float]=None, search: Optional[bool]=None,
-                  backend: Optional[dns.asyncbackend.Backend]=None) -> dns.resolver.Answer:
+async def resolve(
+    qname: Union[dns.name.Name, str],
+    rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
+    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+    tcp: bool = False,
+    source: Optional[str] = None,
+    raise_on_no_answer: bool = True,
+    source_port: int = 0,
+    lifetime: Optional[float] = None,
+    search: Optional[bool] = None,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> dns.resolver.Answer:
     """Query nameservers asynchronously to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -196,13 +220,23 @@ async def resolve(qname: Union[dns.name.Name, str],
     information on the parameters.
     """
 
-    return await get_default_resolver().resolve(qname, rdtype, rdclass, tcp,
-                                                source, raise_on_no_answer,
-                                                source_port, lifetime, search,
-                                                backend)
+    return await get_default_resolver().resolve(
+        qname,
+        rdtype,
+        rdclass,
+        tcp,
+        source,
+        raise_on_no_answer,
+        source_port,
+        lifetime,
+        search,
+        backend,
+    )
 
 
-async def resolve_address(ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> dns.resolver.Answer:
+async def resolve_address(
+    ipaddr: str, *args: Any, **kwargs: Dict[str, Any]
+) -> dns.resolver.Answer:
     """Use a resolver to run a reverse query for PTR records.
 
     See :py:func:`dns.asyncresolver.Resolver.resolve_address` for more
@@ -210,6 +244,7 @@ async def resolve_address(ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> 
     """
 
     return await get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
+
 
 async def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
     """Determine the canonical name of *name*.
@@ -220,10 +255,14 @@ async def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
 
     return await get_default_resolver().canonical_name(name)
 
-async def zone_for_name(name: Union[dns.name.Name, str],
-                        rdclass: dns.rdataclass.RdataClass=dns.rdataclass.IN,
-                        tcp: bool=False, resolver: Optional[Resolver]=None,
-                        backend: Optional[dns.asyncbackend.Backend]=None) -> dns.name.Name:
+
+async def zone_for_name(
+    name: Union[dns.name.Name, str],
+    rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
+    tcp: bool = False,
+    resolver: Optional[Resolver] = None,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 
     See :py:func:`dns.resolver.Resolver.zone_for_name` for more
@@ -238,8 +277,9 @@ async def zone_for_name(name: Union[dns.name.Name, str],
         raise NotAbsolute(name)
     while True:
         try:
-            answer = await resolver.resolve(name, dns.rdatatype.SOA, rdclass,
-                                            tcp, backend=backend)
+            answer = await resolver.resolve(
+                name, dns.rdatatype.SOA, rdclass, tcp, backend=backend
+            )
             assert answer.rrset is not None
             if answer.rrset.name == name:
                 return name

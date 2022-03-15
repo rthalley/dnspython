@@ -6,6 +6,7 @@
 [![License: ISC](https://img.shields.io/badge/License-ISC-brightgreen.svg)](https://opensource.org/licenses/ISC)
 [![Coverage](https://codecov.io/github/rthalley/dnspython/coverage.svg?branch=master)](https://codecov.io/github/rthalley/dnspython)
 [![LGTM Grade](https://img.shields.io/lgtm/grade/python/github/rthalley/dnspython)](https://lgtm.com/projects/g/rthalley/dnspython/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## INTRODUCTION
 

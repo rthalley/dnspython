@@ -6,7 +6,12 @@ import dns.exception
 
 # pylint: disable=unused-import
 
-from dns._asyncbackend import Socket, DatagramSocket, StreamSocket, Backend  # noqa: F401  lgtm[py/unused-import]
+from dns._asyncbackend import (
+    Socket,
+    DatagramSocket,
+    StreamSocket,
+    Backend,
+)  # noqa: F401  lgtm[py/unused-import]
 
 # pylint: enable=unused-import
 
@@ -16,6 +21,7 @@ _backends: Dict[str, Backend] = {}
 
 # Allow sniffio import to be disabled for testing purposes
 _no_sniffio = False
+
 
 class AsyncLibraryNotFoundError(dns.exception.DNSException):
     pass
@@ -33,17 +39,20 @@ def get_backend(name: str) -> Backend:
     backend = _backends.get(name)
     if backend:
         return backend
-    if name == 'trio':
+    if name == "trio":
         import dns._trio_backend
+
         backend = dns._trio_backend.Backend()
-    elif name == 'curio':
+    elif name == "curio":
         import dns._curio_backend
+
         backend = dns._curio_backend.Backend()
-    elif name == 'asyncio':
+    elif name == "asyncio":
         import dns._asyncio_backend
+
         backend = dns._asyncio_backend.Backend()
     else:
-        raise NotImplementedError(f'unimplemented async backend {name}')
+        raise NotImplementedError(f"unimplemented async backend {name}")
     _backends[name] = backend
     return backend
 
@@ -60,23 +69,25 @@ def sniff() -> str:
         if _no_sniffio:
             raise ImportError
         import sniffio
+
         try:
             return sniffio.current_async_library()
         except sniffio.AsyncLibraryNotFoundError:
-            raise AsyncLibraryNotFoundError('sniffio cannot determine ' +
-                                            'async library')
+            raise AsyncLibraryNotFoundError(
+                "sniffio cannot determine " + "async library"
+            )
     except ImportError:
         import asyncio
+
         try:
             asyncio.get_running_loop()
-            return 'asyncio'
+            return "asyncio"
         except RuntimeError:
-            raise AsyncLibraryNotFoundError('no async library detected')
+            raise AsyncLibraryNotFoundError("no async library detected")
 
 
 def get_default_backend() -> Backend:
-    """Get the default backend, initializing it if necessary.
-    """
+    """Get the default backend, initializing it if necessary."""
     if _default_backend:
         return _default_backend
 

@@ -32,7 +32,9 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def sendto(self, what, destination, timeout):
         with _maybe_timeout(timeout):
             return await self.socket.sendto(what, destination)
-        raise dns.exception.Timeout(timeout=timeout)  # pragma: no cover  lgtm[py/unreachable-statement]
+        raise dns.exception.Timeout(
+            timeout=timeout
+        )  # pragma: no cover  lgtm[py/unreachable-statement]
 
     async def recvfrom(self, size, timeout):
         with _maybe_timeout(timeout):
@@ -83,11 +85,19 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
 class Backend(dns._asyncbackend.Backend):
     def name(self):
-        return 'trio'
+        return "trio"
 
-    async def make_socket(self, af, socktype, proto=0, source=None,
-                          destination=None, timeout=None,
-                          ssl_context=None, server_hostname=None):
+    async def make_socket(
+        self,
+        af,
+        socktype,
+        proto=0,
+        source=None,
+        destination=None,
+        timeout=None,
+        ssl_context=None,
+        server_hostname=None,
+    ):
         s = trio.socket.socket(af, socktype, proto)
         stream = None
         try:
@@ -107,14 +117,16 @@ class Backend(dns._asyncbackend.Backend):
             if ssl_context:
                 tls = True
                 try:
-                    stream = trio.SSLStream(stream, ssl_context,
-                                            server_hostname=server_hostname)
+                    stream = trio.SSLStream(
+                        stream, ssl_context, server_hostname=server_hostname
+                    )
                 except Exception:  # pragma: no cover
                     await stream.aclose()
                     raise
             return StreamSocket(af, stream, tls)
-        raise NotImplementedError('unsupported socket ' +
-                                  f'type {socktype}')    # pragma: no cover
+        raise NotImplementedError(
+            "unsupported socket " + f"type {socktype}"
+        )  # pragma: no cover
 
     async def sleep(self, interval):
         await trio.sleep(interval)

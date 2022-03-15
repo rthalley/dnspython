@@ -22,8 +22,10 @@ from typing import Dict
 import dns.enum
 import dns.exception
 
+
 class RdataType(dns.enum.IntEnum):
     """DNS Rdata Type"""
+
     TYPE0 = 0
     NONE = 0
     A = 1
@@ -122,13 +124,19 @@ class RdataType(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRdatatype
 
+
 _registered_by_text: Dict[str, RdataType] = {}
 _registered_by_value: Dict[RdataType, str] = {}
 
 _metatypes = {RdataType.OPT}
 
-_singletons = {RdataType.SOA, RdataType.NXT, RdataType.DNAME,
-               RdataType.NSEC, RdataType.CNAME}
+_singletons = {
+    RdataType.SOA,
+    RdataType.NXT,
+    RdataType.DNAME,
+    RdataType.NSEC,
+    RdataType.CNAME,
+}
 
 
 class UnknownRdatatype(dns.exception.DNSException):
@@ -150,7 +158,7 @@ def from_text(text: str) -> RdataType:
     Returns a ``dns.rdatatype.RdataType``.
     """
 
-    text = text.upper().replace('-', '_')
+    text = text.upper().replace("-", "_")
     try:
         return RdataType.from_text(text)
     except UnknownRdatatype:
@@ -176,7 +184,7 @@ def to_text(value: RdataType) -> str:
         registered_text = _registered_by_value.get(value)
         if registered_text:
             text = registered_text
-    return text.replace('_', '-')
+    return text.replace("_", "-")
 
 
 def is_metatype(rdtype: RdataType) -> bool:
@@ -211,8 +219,11 @@ def is_singleton(rdtype: RdataType) -> bool:
         return True
     return False
 
+
 # pylint: disable=redefined-outer-name
-def register_type(rdtype: RdataType, rdtype_text: str, is_singleton: bool=False) -> None:
+def register_type(
+    rdtype: RdataType, rdtype_text: str, is_singleton: bool = False
+) -> None:
     """Dynamically register an rdatatype.
 
     *rdtype*, a ``dns.rdatatype.RdataType``, the rdatatype to register.
@@ -227,6 +238,7 @@ def register_type(rdtype: RdataType, rdtype_text: str, is_singleton: bool=False)
     _registered_by_value[rdtype] = rdtype_text
     if is_singleton:
         _singletons.add(rdtype)
+
 
 ### BEGIN generated RdataType constants
 

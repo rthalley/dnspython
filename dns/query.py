@@ -46,6 +46,7 @@ try:
     import requests
     from requests_toolbelt.adapters.source import SourceAddressAdapter
     from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
+
     _have_requests = True
 except ImportError:  # pragma: no cover
     _have_requests = False
@@ -54,6 +55,7 @@ _have_httpx = False
 _have_http2 = False
 try:
     import httpx
+
     _have_httpx = True
     try:
         # See if http2 support is available.
@@ -69,8 +71,8 @@ have_doh = _have_requests or _have_httpx
 try:
     import ssl
 except ImportError:  # pragma: no cover
-    class ssl:    # type: ignore
 
+    class ssl:  # type: ignore
         class WantReadException(Exception):
             pass
 
@@ -85,11 +87,13 @@ except ImportError:  # pragma: no cover
 
         @classmethod
         def create_default_context(cls, *args, **kwargs):
-            raise Exception('no ssl support')
+            raise Exception("no ssl support")
+
 
 # Function used to create a socket.  Can be overridden if needed in special
 # situations.
 socket_factory = socket.socket
+
 
 class UnexpectedSource(dns.exception.DNSException):
     """A DNS query response came from an unexpected address or port."""
@@ -151,7 +155,8 @@ def _set_selector_class(selector_class):
 
     _selector_class = selector_class
 
-if hasattr(selectors, 'PollSelector'):
+
+if hasattr(selectors, "PollSelector"):
     # Prefer poll() on platforms that support it because it has no
     # limits on the maximum value of a file descriptor (plus it will
     # be more efficient for high values).
@@ -188,18 +193,20 @@ def _matches_destination(af, from_address, destination, ignore_unexpected):
     # sent to destination.
     if not destination:
         return True
-    if _addresses_equal(af, from_address, destination) or \
-       (dns.inet.is_multicast(destination[0]) and
-        from_address[1:] == destination[1:]):
+    if _addresses_equal(af, from_address, destination) or (
+        dns.inet.is_multicast(destination[0]) and from_address[1:] == destination[1:]
+    ):
         return True
     elif ignore_unexpected:
         return False
-    raise UnexpectedSource(f'got a response from {from_address} instead of '
-                           f'{destination}')
+    raise UnexpectedSource(
+        f"got a response from {from_address} instead of " f"{destination}"
+    )
 
 
-def _destination_and_source(where, port, source, source_port,
-                            where_must_be_address=True):
+def _destination_and_source(
+    where, port, source, source_port, where_must_be_address=True
+):
     # Apply defaults and compute destination and source tuples
     # suitable for use in connect(), sendto(), or bind().
     af = None
@@ -216,8 +223,9 @@ def _destination_and_source(where, port, source, source_port,
         if af:
             # We know the destination af, so source had better agree!
             if saf != af:
-                raise ValueError('different address families for source ' +
-                                 'and destination')
+                raise ValueError(
+                    "different address families for source " + "and destination"
+                )
         else:
             # We didn't know the destination af, but we know the source,
             # so that's our af.
@@ -227,12 +235,11 @@ def _destination_and_source(where, port, source, source_port,
         # need to return a source, and we need to use the appropriate
         # wildcard address as the address.
         if af == socket.AF_INET:
-            source = '0.0.0.0'
+            source = "0.0.0.0"
         elif af == socket.AF_INET6:
-            source = '::'
+            source = "::"
         else:
-            raise ValueError('source_port specified but address family is '
-                             'unknown')
+            raise ValueError("source_port specified but address family is " "unknown")
     # Convert high-level (address, port) tuples into low-level address
     # tuples.
     if destination:
@@ -240,6 +247,7 @@ def _destination_and_source(where, port, source, source_port,
     if source:
         source = dns.inet.low_level_address_tuple((source, source_port), af)
     return (af, destination, source)
+
 
 def _make_socket(af, type, source, ssl_context=None, server_hostname=None):
     s = socket_factory(af, type)
@@ -249,19 +257,33 @@ def _make_socket(af, type, source, ssl_context=None, server_hostname=None):
             s.bind(source)
         if ssl_context:
             # LGTM gets a false positive here, as our default context is OK
-            return ssl_context.wrap_socket(s, do_handshake_on_connect=False,  # lgtm[py/insecure-protocol]
-                                           server_hostname=server_hostname)
+            return ssl_context.wrap_socket(
+                s,
+                do_handshake_on_connect=False,  # lgtm[py/insecure-protocol]
+                server_hostname=server_hostname,
+            )
         else:
             return s
     except Exception:
         s.close()
         raise
 
-def https(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-          port: int=443, source: Optional[str]=None, source_port: int=0,
-          one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-          session: Optional[Any]=None, path: str='/dns-query', post: bool=True,
-          bootstrap_address: Optional[str]=None, verify: bool=True) -> dns.message.Message:
+
+def https(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 443,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    session: Optional[Any] = None,
+    path: str = "/dns-query",
+    post: bool = True,
+    bootstrap_address: Optional[str] = None,
+    verify: bool = True,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
     *q*, a ``dns.message.Message``, the query to send.
@@ -304,29 +326,26 @@ def https(q: dns.message.Message, where: str, timeout: Optional[float]=None,
     """
 
     if not have_doh:
-        raise NoDOH('Neither httpx nor requests is available.')  # pragma: no cover
+        raise NoDOH("Neither httpx nor requests is available.")  # pragma: no cover
 
     _httpx_ok = _have_httpx
 
     wire = q.to_wire()
-    (af, _, source) = _destination_and_source(where, port, source, source_port,
-                                              False)
+    (af, _, source) = _destination_and_source(where, port, source, source_port, False)
     transport_adapter = None
     transport = None
-    headers = {
-        "accept": "application/dns-message"
-    }
+    headers = {"accept": "application/dns-message"}
     if af is not None:
         if af == socket.AF_INET:
-            url = 'https://{}:{}{}'.format(where, port, path)
+            url = "https://{}:{}{}".format(where, port, path)
         elif af == socket.AF_INET6:
-            url = 'https://[{}]:{}{}'.format(where, port, path)
+            url = "https://[{}]:{}{}".format(where, port, path)
     elif bootstrap_address is not None:
         _httpx_ok = False
         split_url = urllib.parse.urlsplit(where)
         if split_url.hostname is None:
-            raise ValueError('DoH URL has no hostname')
-        headers['Host'] = split_url.hostname
+            raise ValueError("DoH URL has no hostname")
+        headers["Host"] = split_url.hostname
         url = where.replace(split_url.hostname, bootstrap_address)
         if _have_requests:
             transport_adapter = HostHeaderSSLAdapter()
@@ -348,22 +367,29 @@ def https(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         else:
             _is_httpx = False
         if _is_httpx and not _httpx_ok:
-            raise NoDOH('Session is httpx, but httpx cannot be used for '
-                        'the requested operation.')
+            raise NoDOH(
+                "Session is httpx, but httpx cannot be used for "
+                "the requested operation."
+            )
     else:
         _is_httpx = _httpx_ok
 
     if not _httpx_ok and not _have_requests:
-        raise NoDOH('Cannot use httpx for this operation, and '
-                    'requests is not available.')
+        raise NoDOH(
+            "Cannot use httpx for this operation, and " "requests is not available."
+        )
 
     with contextlib.ExitStack() as stack:
         if not session:
             if _is_httpx:
-                session = stack.enter_context(httpx.Client(http1=True,
-                                                           http2=_have_http2,
-                                                           verify=verify,
-                                                           transport=transport))
+                session = stack.enter_context(
+                    httpx.Client(
+                        http1=True,
+                        http2=_have_http2,
+                        verify=verify,
+                        transport=transport,
+                    )
+                )
             else:
                 session = stack.enter_context(requests.sessions.Session())
 
@@ -373,44 +399,55 @@ def https(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples
         if post:
-            headers.update({
-                "content-type": "application/dns-message",
-                "content-length": str(len(wire))
-            })
+            headers.update(
+                {
+                    "content-type": "application/dns-message",
+                    "content-length": str(len(wire)),
+                }
+            )
             if _is_httpx:
-                response = session.post(url, headers=headers, content=wire,
-                                        timeout=timeout)
+                response = session.post(
+                    url, headers=headers, content=wire, timeout=timeout
+                )
             else:
-                response = session.post(url, headers=headers, data=wire,
-                                        timeout=timeout, verify=verify)
+                response = session.post(
+                    url, headers=headers, data=wire, timeout=timeout, verify=verify
+                )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             if _is_httpx:
                 twire = wire.decode()  # httpx does a repr() if we give it bytes
-                response = session.get(url, headers=headers,
-                                       timeout=timeout,
-                                       params={"dns": twire})
+                response = session.get(
+                    url, headers=headers, timeout=timeout, params={"dns": twire}
+                )
             else:
-                response = session.get(url, headers=headers,
-                                       timeout=timeout, verify=verify,
-                                       params={"dns": wire})
+                response = session.get(
+                    url,
+                    headers=headers,
+                    timeout=timeout,
+                    verify=verify,
+                    params={"dns": wire},
+                )
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes
     if response.status_code < 200 or response.status_code > 299:
-        raise ValueError('{} responded with status code {}'
-                         '\nResponse body: {}'.format(where,
-                                                      response.status_code,
-                                                      response.content))
-    r = dns.message.from_wire(response.content,
-                              keyring=q.keyring,
-                              request_mac=q.request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset,
-                              ignore_trailing=ignore_trailing)
+        raise ValueError(
+            "{} responded with status code {}"
+            "\nResponse body: {}".format(where, response.status_code, response.content)
+        )
+    r = dns.message.from_wire(
+        response.content,
+        keyring=q.keyring,
+        request_mac=q.request_mac,
+        one_rr_per_rrset=one_rr_per_rrset,
+        ignore_trailing=ignore_trailing,
+    )
     r.time = response.elapsed.total_seconds()
     if not q.is_response(r):
         raise BadResponse
     return r
+
 
 def _udp_recv(sock, max_size, expiration):
     """Reads a datagram from the socket.
@@ -439,8 +476,12 @@ def _udp_send(sock, data, destination, expiration):
             _wait_for_writable(sock, expiration)
 
 
-def send_udp(sock: Any, what: Union[dns.message.Message, bytes], destination: Any,
-             expiration: Optional[float]=None) -> Tuple[int, float]:
+def send_udp(
+    sock: Any,
+    what: Union[dns.message.Message, bytes],
+    destination: Any,
+    expiration: Optional[float] = None,
+) -> Tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
     *sock*, a ``socket``.
@@ -464,10 +505,17 @@ def send_udp(sock: Any, what: Union[dns.message.Message, bytes], destination: An
     return (n, sent_time)
 
 
-def receive_udp(sock: Any, destination: Optional[Any]=None, expiration: Optional[float]=None,
-                ignore_unexpected: bool=False, one_rr_per_rrset: bool=False,
-                keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None, request_mac: Optional[bytes]=b'',
-                ignore_trailing: bool=False, raise_on_truncation: bool=False) -> Any:
+def receive_udp(
+    sock: Any,
+    destination: Optional[Any] = None,
+    expiration: Optional[float] = None,
+    ignore_unexpected: bool = False,
+    one_rr_per_rrset: bool = False,
+    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
+    request_mac: Optional[bytes] = b"",
+    ignore_trailing: bool = False,
+    raise_on_truncation: bool = False,
+) -> Any:
     """Read a DNS message from a UDP socket.
 
     *sock*, a ``socket``.
@@ -509,26 +557,41 @@ def receive_udp(sock: Any, destination: Optional[Any]=None, expiration: Optional
     the message arrived from.
     """
 
-    wire = b''
+    wire = b""
     while True:
         (wire, from_address) = _udp_recv(sock, 65535, expiration)
-        if _matches_destination(sock.family, from_address, destination,
-                                ignore_unexpected):
+        if _matches_destination(
+            sock.family, from_address, destination, ignore_unexpected
+        ):
             break
     received_time = time.time()
-    r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset,
-                              ignore_trailing=ignore_trailing,
-                              raise_on_truncation=raise_on_truncation)
+    r = dns.message.from_wire(
+        wire,
+        keyring=keyring,
+        request_mac=request_mac,
+        one_rr_per_rrset=one_rr_per_rrset,
+        ignore_trailing=ignore_trailing,
+        raise_on_truncation=raise_on_truncation,
+    )
     if destination:
         return (r, received_time)
     else:
         return (r, received_time, from_address)
 
-def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
-        source: Optional[str]=None, source_port: int=0,
-        ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-        raise_on_truncation: bool=False, sock: Optional[Any]=None) -> dns.message.Message:
+
+def udp(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 53,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    ignore_unexpected: bool = False,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    raise_on_truncation: bool = False,
+    sock: Optional[Any] = None,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -568,8 +631,9 @@ def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port:
     """
 
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(where, port,
-                                                        source, source_port)
+    (af, destination, source) = _destination_and_source(
+        where, port, source, source_port
+    )
     (begin_time, expiration) = _compute_times(timeout)
     with contextlib.ExitStack() as stack:
         if sock:
@@ -577,21 +641,39 @@ def udp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port:
         else:
             s = stack.enter_context(_make_socket(af, socket.SOCK_DGRAM, source))
         send_udp(s, wire, destination, expiration)
-        (r, received_time) = receive_udp(s, destination, expiration,
-                                         ignore_unexpected, one_rr_per_rrset,
-                                         q.keyring, q.mac, ignore_trailing,
-                                         raise_on_truncation)
+        (r, received_time) = receive_udp(
+            s,
+            destination,
+            expiration,
+            ignore_unexpected,
+            one_rr_per_rrset,
+            q.keyring,
+            q.mac,
+            ignore_trailing,
+            raise_on_truncation,
+        )
         r.time = received_time - begin_time
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
+    assert (
+        False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
+    )
 
-def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
-                      source: Optional[str]=None, source_port: int=0,
-                      ignore_unexpected: bool=False, one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-                      udp_sock: Optional[Any]=None,
-                      tcp_sock: Optional[Any]=None) -> Tuple[dns.message.Message, bool]:
+
+def udp_with_fallback(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 53,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    ignore_unexpected: bool = False,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    udp_sock: Optional[Any] = None,
+    tcp_sock: Optional[Any] = None,
+) -> Tuple[dns.message.Message, bool]:
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
@@ -635,14 +717,34 @@ def udp_with_fallback(q: dns.message.Message, where: str, timeout: Optional[floa
     if and only if TCP was used.
     """
     try:
-        response = udp(q, where, timeout, port, source, source_port,
-                       ignore_unexpected, one_rr_per_rrset,
-                       ignore_trailing, True, udp_sock)
+        response = udp(
+            q,
+            where,
+            timeout,
+            port,
+            source,
+            source_port,
+            ignore_unexpected,
+            one_rr_per_rrset,
+            ignore_trailing,
+            True,
+            udp_sock,
+        )
         return (response, False)
     except dns.message.Truncated:
-        response = tcp(q, where, timeout, port, source, source_port,
-                       one_rr_per_rrset, ignore_trailing, tcp_sock)
+        response = tcp(
+            q,
+            where,
+            timeout,
+            port,
+            source,
+            source_port,
+            one_rr_per_rrset,
+            ignore_trailing,
+            tcp_sock,
+        )
         return (response, True)
+
 
 def _net_read(sock, count, expiration):
     """Read the specified number of bytes from sock.  Keep trying until we
@@ -650,11 +752,11 @@ def _net_read(sock, count, expiration):
     A Timeout exception will be raised if the operation is not completed
     by the expiration time.
     """
-    s = b''
+    s = b""
     while count > 0:
         try:
             n = sock.recv(count)
-            if n == b'':
+            if n == b"":
                 raise EOFError
             count -= len(n)
             s += n
@@ -681,8 +783,11 @@ def _net_write(sock, data, expiration):
             _wait_for_readable(sock, expiration)
 
 
-def send_tcp(sock: Any, what: Union[dns.message.Message, bytes],
-             expiration: Optional[float]=None) -> Tuple[int, float]:
+def send_tcp(
+    sock: Any,
+    what: Union[dns.message.Message, bytes],
+    expiration: Optional[float] = None,
+) -> Tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
     *sock*, a ``socket``.
@@ -709,10 +814,15 @@ def send_tcp(sock: Any, what: Union[dns.message.Message, bytes],
     _net_write(sock, tcpmsg, expiration)
     return (len(tcpmsg), sent_time)
 
-def receive_tcp(sock: Any, expiration: Optional[float]=None, one_rr_per_rrset: bool=False,
-                keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None,
-                request_mac: Optional[bytes]=b'',
-                ignore_trailing: bool=False) -> Tuple[dns.message.Message, float]:
+
+def receive_tcp(
+    sock: Any,
+    expiration: Optional[float] = None,
+    one_rr_per_rrset: bool = False,
+    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
+    request_mac: Optional[bytes] = b"",
+    ignore_trailing: bool = False,
+) -> Tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``socket``.
@@ -742,10 +852,15 @@ def receive_tcp(sock: Any, expiration: Optional[float]=None, one_rr_per_rrset: b
     (l,) = struct.unpack("!H", ldata)
     wire = _net_read(sock, l, expiration)
     received_time = time.time()
-    r = dns.message.from_wire(wire, keyring=keyring, request_mac=request_mac,
-                              one_rr_per_rrset=one_rr_per_rrset,
-                              ignore_trailing=ignore_trailing)
+    r = dns.message.from_wire(
+        wire,
+        keyring=keyring,
+        request_mac=request_mac,
+        one_rr_per_rrset=one_rr_per_rrset,
+        ignore_trailing=ignore_trailing,
+    )
     return (r, received_time)
+
 
 def _connect(s, address, expiration):
     err = s.connect_ex(address)
@@ -758,10 +873,17 @@ def _connect(s, address, expiration):
         raise OSError(err, os.strerror(err))
 
 
-def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port: int=53,
-        source: Optional[str]=None, source_port: int=0,
-        one_rr_per_rrset: bool=False, ignore_trailing: bool=False,
-        sock: Optional[Any]=None) -> dns.message.Message:
+def tcp(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 53,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    sock: Optional[Any] = None,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -800,20 +922,22 @@ def tcp(q: dns.message.Message, where: str, timeout: Optional[float]=None, port:
         if sock:
             s = sock
         else:
-            (af, destination, source) = _destination_and_source(where, port,
-                                                                source,
-                                                                source_port)
-            s = stack.enter_context(_make_socket(af, socket.SOCK_STREAM,
-                                                 source))
+            (af, destination, source) = _destination_and_source(
+                where, port, source, source_port
+            )
+            s = stack.enter_context(_make_socket(af, socket.SOCK_STREAM, source))
             _connect(s, destination, expiration)
         send_tcp(s, wire, expiration)
-        (r, received_time) = receive_tcp(s, expiration, one_rr_per_rrset,
-                                         q.keyring, q.mac, ignore_trailing)
+        (r, received_time) = receive_tcp(
+            s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
+        )
         r.time = received_time - begin_time
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
+    assert (
+        False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
+    )
 
 
 def _tls_handshake(s, expiration):
@@ -827,11 +951,19 @@ def _tls_handshake(s, expiration):
             _wait_for_writable(s, expiration)
 
 
-def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
-        port: int=853, source: Optional[str]=None, source_port: int=0,
-        one_rr_per_rrset: bool=False, ignore_trailing: bool=False, sock: Optional[ssl.SSLSocket]=None,
-        ssl_context: Optional[ssl.SSLContext]=None,
-        server_hostname: Optional[str]=None) -> dns.message.Message:
+def tls(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 853,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    sock: Optional[ssl.SSLSocket] = None,
+    ssl_context: Optional[ssl.SSLContext] = None,
+    server_hostname: Optional[str] = None,
+) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
     *q*, a ``dns.message.Message``, the query to send
@@ -878,13 +1010,23 @@ def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         #
         # If a socket was provided, there's no special TLS handling needed.
         #
-        return tcp(q, where, timeout, port, source, source_port,
-                   one_rr_per_rrset, ignore_trailing, sock)
+        return tcp(
+            q,
+            where,
+            timeout,
+            port,
+            source,
+            source_port,
+            one_rr_per_rrset,
+            ignore_trailing,
+            sock,
+        )
 
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
-    (af, destination, source) = _destination_and_source(where, port,
-                                                        source, source_port)
+    (af, destination, source) = _destination_and_source(
+        where, port, source, source_port
+    )
     if ssl_context is None and not sock:
         # LGTM complains about this because the default might permit TLS < 1.2
         # for compatibility, but the python documentation says that explicit
@@ -897,28 +1039,45 @@ def tls(q: dns.message.Message, where: str, timeout: Optional[float]=None,
         if server_hostname is None:
             ssl_context.check_hostname = False
 
-    with _make_socket(af, socket.SOCK_STREAM, source, ssl_context=ssl_context,
-                      server_hostname=server_hostname) as s:
+    with _make_socket(
+        af,
+        socket.SOCK_STREAM,
+        source,
+        ssl_context=ssl_context,
+        server_hostname=server_hostname,
+    ) as s:
         _connect(s, destination, expiration)
         _tls_handshake(s, expiration)
         send_tcp(s, wire, expiration)
-        (r, received_time) = receive_tcp(s, expiration, one_rr_per_rrset,
-                                         q.keyring, q.mac, ignore_trailing)
+        (r, received_time) = receive_tcp(
+            s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
+        )
         r.time = received_time - begin_time
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
+    assert (
+        False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
+    )
 
-def xfr(where: str, zone: Union[dns.name.Name, str],
-        rdtype: Union[dns.rdatatype.RdataType, str]=dns.rdatatype.AXFR,
-        rdclass: Union[dns.rdataclass.RdataClass, str]=dns.rdataclass.IN,
-        timeout: Optional[float]=None, port: int=53,
-        keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]]=None,
-        keyname: Optional[Union[dns.name.Name, str]]=None, relativize: bool=True,
-        lifetime: Optional[float]=None, source: Optional[str]=None, source_port: int=0,
-        serial: int=0, use_udp: bool=False,
-        keyalgorithm: Union[dns.name.Name, str]=dns.tsig.default_algorithm) -> Any:
+
+def xfr(
+    where: str,
+    zone: Union[dns.name.Name, str],
+    rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.AXFR,
+    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+    timeout: Optional[float] = None,
+    port: int = 53,
+    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
+    keyname: Optional[Union[dns.name.Name, str]] = None,
+    relativize: bool = True,
+    lifetime: Optional[float] = None,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    serial: int = 0,
+    use_udp: bool = False,
+    keyalgorithm: Union[dns.name.Name, str] = dns.tsig.default_algorithm,
+) -> Any:
     """Return a generator for the responses to a zone transfer.
 
     *where*, a ``str`` containing an IPv4 or IPv6 address,  where
@@ -976,16 +1135,16 @@ def xfr(where: str, zone: Union[dns.name.Name, str],
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     q = dns.message.make_query(zone, rdtype, rdclass)
     if rdtype == dns.rdatatype.IXFR:
-        rrset = dns.rrset.from_text(zone, 0, 'IN', 'SOA',
-                                    '. . %u 0 0 0 0' % serial)
+        rrset = dns.rrset.from_text(zone, 0, "IN", "SOA", ". . %u 0 0 0 0" % serial)
         q.authority.append(rrset)
     if keyring is not None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(where, port,
-                                                        source, source_port)
+    (af, destination, source) = _destination_and_source(
+        where, port, source, source_port
+    )
     if use_udp and rdtype != dns.rdatatype.IXFR:
-        raise ValueError('cannot do a UDP AXFR')
+        raise ValueError("cannot do a UDP AXFR")
     sock_type = socket.SOCK_DGRAM if use_udp else socket.SOCK_STREAM
     with _make_socket(af, sock_type, source) as s:
         (_, expiration) = _compute_times(lifetime)
@@ -1009,8 +1168,9 @@ def xfr(where: str, zone: Union[dns.name.Name, str],
         tsig_ctx = None
         while not done:
             (_, mexpiration) = _compute_times(timeout)
-            if mexpiration is None or \
-               (expiration is not None and mexpiration > expiration):
+            if mexpiration is None or (
+                expiration is not None and mexpiration > expiration
+            ):
                 mexpiration = expiration
             if use_udp:
                 (wire, _) = _udp_recv(s, 65535, mexpiration)
@@ -1018,11 +1178,17 @@ def xfr(where: str, zone: Union[dns.name.Name, str],
                 ldata = _net_read(s, 2, mexpiration)
                 (l,) = struct.unpack("!H", ldata)
                 wire = _net_read(s, l, mexpiration)
-            is_ixfr = (rdtype == dns.rdatatype.IXFR)
-            r = dns.message.from_wire(wire, keyring=q.keyring,
-                                      request_mac=q.mac, xfr=True,
-                                      origin=origin, tsig_ctx=tsig_ctx,
-                                      multi=True, one_rr_per_rrset=is_ixfr)
+            is_ixfr = rdtype == dns.rdatatype.IXFR
+            r = dns.message.from_wire(
+                wire,
+                keyring=q.keyring,
+                request_mac=q.mac,
+                xfr=True,
+                origin=origin,
+                tsig_ctx=tsig_ctx,
+                multi=True,
+                one_rr_per_rrset=is_ixfr,
+            )
             rcode = r.rcode()
             if rcode != dns.rcode.NOERROR:
                 raise TransferError(rcode)
@@ -1030,8 +1196,7 @@ def xfr(where: str, zone: Union[dns.name.Name, str],
             answer_index = 0
             if soa_rrset is None:
                 if not r.answer or r.answer[0].name != oname:
-                    raise dns.exception.FormError(
-                        "No answer or RRset not for qname")
+                    raise dns.exception.FormError("No answer or RRset not for qname")
                 rrset = r.answer[0]
                 if rrset.rdtype != dns.rdatatype.SOA:
                     raise dns.exception.FormError("first RRset is not an SOA")
@@ -1055,8 +1220,7 @@ def xfr(where: str, zone: Union[dns.name.Name, str],
                 if rrset.rdtype == dns.rdatatype.SOA and rrset.name == oname:
                     if expecting_SOA:
                         if rrset[0].serial != serial:
-                            raise dns.exception.FormError(
-                                "IXFR base serial mismatch")
+                            raise dns.exception.FormError("IXFR base serial mismatch")
                         expecting_SOA = False
                     elif rdtype == dns.rdatatype.IXFR:
                         delete_mode = not delete_mode
@@ -1065,9 +1229,10 @@ def xfr(where: str, zone: Union[dns.name.Name, str],
                     # finished. If this is an IXFR we also check that we're
                     # seeing the record in the expected part of the response.
                     #
-                    if rrset == soa_rrset and \
-                            (rdtype == dns.rdatatype.AXFR or
-                             (rdtype == dns.rdatatype.IXFR and delete_mode)):
+                    if rrset == soa_rrset and (
+                        rdtype == dns.rdatatype.AXFR
+                        or (rdtype == dns.rdatatype.IXFR and delete_mode)
+                    ):
                         done = True
                 elif expecting_SOA:
                     #
@@ -1089,15 +1254,23 @@ class UDPMode(enum.IntEnum):
     TRY_FIRST means "try to use UDP but fall back to TCP if needed"
     ONLY means "raise ``dns.xfr.UseTCP`` if trying UDP does not succeed"
     """
+
     NEVER = 0
     TRY_FIRST = 1
     ONLY = 2
 
 
-def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
-                query: Optional[dns.message.Message]=None,
-                port: int=53, timeout: Optional[float]=None, lifetime: Optional[float]=None,
-                source: Optional[str]=None, source_port: int=0, udp_mode: UDPMode=UDPMode.NEVER) -> None:
+def inbound_xfr(
+    where: str,
+    txn_manager: dns.transaction.TransactionManager,
+    query: Optional[dns.message.Message] = None,
+    port: int = 53,
+    timeout: Optional[float] = None,
+    lifetime: Optional[float] = None,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    udp_mode: UDPMode = UDPMode.NEVER,
+) -> None:
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
@@ -1142,8 +1315,9 @@ def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
     is_ixfr = rdtype == dns.rdatatype.IXFR
     origin = txn_manager.from_wire_origin()
     wire = query.to_wire()
-    (af, destination, source) = _destination_and_source(where, port,
-                                                        source, source_port)
+    (af, destination, source) = _destination_and_source(
+        where, port, source, source_port
+    )
     (_, expiration) = _compute_times(lifetime)
     retry = True
     while retry:
@@ -1161,14 +1335,14 @@ def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
             else:
                 tcpmsg = struct.pack("!H", len(wire)) + wire
                 _net_write(s, tcpmsg, expiration)
-            with dns.xfr.Inbound(txn_manager, rdtype, serial,
-                                 is_udp) as inbound:
+            with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
                 done = False
                 tsig_ctx = None
                 while not done:
                     (_, mexpiration) = _compute_times(timeout)
-                    if mexpiration is None or \
-                       (expiration is not None and mexpiration > expiration):
+                    if mexpiration is None or (
+                        expiration is not None and mexpiration > expiration
+                    ):
                         mexpiration = expiration
                     if is_udp:
                         (rwire, _) = _udp_recv(s, 65535, mexpiration)
@@ -1176,11 +1350,16 @@ def inbound_xfr(where: str, txn_manager: dns.transaction.TransactionManager,
                         ldata = _net_read(s, 2, mexpiration)
                         (l,) = struct.unpack("!H", ldata)
                         rwire = _net_read(s, l, mexpiration)
-                    r = dns.message.from_wire(rwire, keyring=query.keyring,
-                                              request_mac=query.mac, xfr=True,
-                                              origin=origin, tsig_ctx=tsig_ctx,
-                                              multi=(not is_udp),
-                                              one_rr_per_rrset=is_ixfr)
+                    r = dns.message.from_wire(
+                        rwire,
+                        keyring=query.keyring,
+                        request_mac=query.mac,
+                        xfr=True,
+                        origin=origin,
+                        tsig_ctx=tsig_ctx,
+                        multi=(not is_udp),
+                        one_rr_per_rrset=is_ixfr,
+                    )
                     try:
                         done = inbound.process_message(r)
                     except dns.xfr.UseTCP:

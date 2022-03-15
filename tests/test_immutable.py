@@ -7,17 +7,16 @@ import dns._immutable_ctx
 
 
 class ImmutableTestCase(unittest.TestCase):
-
     def test_immutable_dict_hash(self):
-        d1 = dns.immutable.Dict({'a': 1, 'b': 2})
-        d2 = dns.immutable.Dict({'b': 2, 'a': 1})
-        d3 = {'b': 2, 'a': 1}
+        d1 = dns.immutable.Dict({"a": 1, "b": 2})
+        d2 = dns.immutable.Dict({"b": 2, "a": 1})
+        d3 = {"b": 2, "a": 1}
         self.assertEqual(d1, d2)
         self.assertEqual(d2, d3)
         self.assertEqual(hash(d1), hash(d2))
 
     def test_immutable_dict_hash_cache(self):
-        d = dns.immutable.Dict({'a': 1, 'b': 2})
+        d = dns.immutable.Dict({"a": 1, "b": 2})
         self.assertEqual(d._hash, None)
         h1 = hash(d)
         self.assertEqual(d._hash, h1)
@@ -26,19 +25,17 @@ class ImmutableTestCase(unittest.TestCase):
 
     def test_constify(self):
         items = (
-            (bytearray([1, 2, 3]), b'\x01\x02\x03'),
+            (bytearray([1, 2, 3]), b"\x01\x02\x03"),
             ((1, 2, 3), (1, 2, 3)),
             ((1, [2], 3), (1, (2,), 3)),
             ([1, 2, 3], (1, 2, 3)),
-            ([1, {'a': [1, 2]}],
-             (1, dns.immutable.Dict({'a': (1, 2)}))),
-            ('hi', 'hi'),
-            (b'hi', b'hi'),
+            ([1, {"a": [1, 2]}], (1, dns.immutable.Dict({"a": (1, 2)}))),
+            ("hi", "hi"),
+            (b"hi", b"hi"),
         )
         for input, expected in items:
             self.assertEqual(dns.immutable.constify(input), expected)
-        self.assertIsInstance(dns.immutable.constify({'a': 1}),
-                              dns.immutable.Dict)
+        self.assertIsInstance(dns.immutable.constify({"a": 1}), dns.immutable.Dict)
 
 
 class DecoratorTestCase(unittest.TestCase):
@@ -55,6 +52,7 @@ class DecoratorTestCase(unittest.TestCase):
             def __init__(self, a, b):
                 super().__init__(a, akw=20)
                 self.b = b
+
         B = self.immutable_module.immutable(B)
 
         # note C is immutable by inheritance
@@ -62,19 +60,23 @@ class DecoratorTestCase(unittest.TestCase):
             def __init__(self, a, b, c):
                 super().__init__(a, b)
                 self.c = c
+
         C = self.immutable_module.immutable(C)
 
         class SA:
-            __slots__ = ('a', 'akw')
+            __slots__ = ("a", "akw")
+
             def __init__(self, a, akw=10):
                 self.a = a
                 self.akw = akw
 
         class SB(A):
-            __slots__ = ('b')
+            __slots__ = "b"
+
             def __init__(self, a, b):
                 super().__init__(a, akw=20)
                 self.b = b
+
         SB = self.immutable_module.immutable(SB)
 
         # note SC is immutable by inheritance and has no slots of its own
@@ -82,6 +84,7 @@ class DecoratorTestCase(unittest.TestCase):
             def __init__(self, a, b, c):
                 super().__init__(a, b)
                 self.c = c
+
         SC = self.immutable_module.immutable(SC)
 
         return ((A, B, C), (SA, SB, SC))
@@ -115,10 +118,11 @@ class DecoratorTestCase(unittest.TestCase):
                 self.a = a
                 self.b = a
                 del self.b
+
         A = self.immutable_module.immutable(A)
         a = A(10)
         self.assertEqual(a.a, 10)
-        self.assertFalse(hasattr(a, 'b'))
+        self.assertFalse(hasattr(a, "b"))
 
     def test_no_collateral_damage(self):
 
@@ -129,6 +133,7 @@ class DecoratorTestCase(unittest.TestCase):
         class A:
             def __init__(self, a):
                 self.a = a
+
         A = self.immutable_module.immutable(A)
 
         class B:
@@ -136,6 +141,7 @@ class DecoratorTestCase(unittest.TestCase):
                 self.b = a.a + b
                 # rudely attempt to mutate innocent immutable bystander 'a'
                 a.a = 1000
+
         B = self.immutable_module.immutable(B)
 
         a = A(10)

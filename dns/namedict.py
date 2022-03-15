@@ -62,7 +62,7 @@ class NameDict(MutableMapping):
 
     def __setitem__(self, key, value):
         if not isinstance(key, dns.name.Name):
-            raise ValueError('NameDict key must be a name')
+            raise ValueError("NameDict key must be a name")
         self.__store[key] = value
         self.__update_max_depth(key)
 

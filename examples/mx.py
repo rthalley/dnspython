@@ -2,6 +2,6 @@
 
 import dns.resolver
 
-answers = dns.resolver.resolve('nominum.com', 'MX')
+answers = dns.resolver.resolve("nominum.com", "MX")
 for rdata in answers:
-    print('Host', rdata.exchange, 'has preference', rdata.preference)
+    print("Host", rdata.exchange, "has preference", rdata.preference)

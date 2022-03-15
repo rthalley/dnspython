@@ -6,15 +6,16 @@ import dns.entropy
 
 # these tests are mostly for minimal coverage testing
 
+
 class EntropyTestCase(unittest.TestCase):
     def test_pool(self):
-        pool = dns.entropy.EntropyPool(b'seed-value')
+        pool = dns.entropy.EntropyPool(b"seed-value")
         self.assertEqual(pool.random_8(), 94)
         self.assertEqual(pool.random_16(), 61532)
         self.assertEqual(pool.random_32(), 4226376065)
         self.assertEqual(pool.random_between(10, 50), 29)
         # stir in some not-really-entropy to exercise the stir API
-        pool.stir(b'not-really-entropy')
+        pool.stir(b"not-really-entropy")
 
     def test_pool_random(self):
         pool = dns.entropy.EntropyPool()
@@ -24,8 +25,10 @@ class EntropyTestCase(unittest.TestCase):
 
     def test_pool_random_between(self):
         pool = dns.entropy.EntropyPool()
+
         def bad():
             pool.random_between(0, 4294967296)
+
         self.assertRaises(ValueError, bad)
         v = pool.random_between(50, 50 + 100000)
         self.assertTrue(v >= 50 and v <= 50 + 100000)
@@ -42,7 +45,6 @@ class EntropyTestCase(unittest.TestCase):
 
 
 class EntropyForcePoolTestCase(unittest.TestCase):
-
     def setUp(self):
         self.saved_system_random = dns.entropy.system_random
         dns.entropy.system_random = None

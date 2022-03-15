@@ -17,6 +17,7 @@
 
 import enum
 
+
 class IntEnum(enum.IntEnum):
     @classmethod
     def _check_value(cls, value):
@@ -33,8 +34,8 @@ class IntEnum(enum.IntEnum):
         except KeyError:
             pass
         prefix = cls._prefix()
-        if text.startswith(prefix) and text[len(prefix):].isdigit():
-            value = int(text[len(prefix):])
+        if text.startswith(prefix) and text[len(prefix) :].isdigit():
+            value = int(text[len(prefix) :])
             cls._check_value(value)
             try:
                 return cls(value)
@@ -83,7 +84,7 @@ class IntEnum(enum.IntEnum):
 
     @classmethod
     def _prefix(cls):
-        return ''
+        return ""
 
     @classmethod
     def _unknown_exception_class(cls):

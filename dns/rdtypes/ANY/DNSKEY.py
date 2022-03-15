@@ -19,8 +19,14 @@ import dns.rdtypes.dnskeybase  # lgtm[py/import-and-import-from]
 import dns.immutable
 
 # pylint: disable=unused-import
-from dns.rdtypes.dnskeybase import SEP, REVOKE, ZONE  # noqa: F401  lgtm[py/unused-import]
+from dns.rdtypes.dnskeybase import (
+    SEP,
+    REVOKE,
+    ZONE,
+)  # noqa: F401  lgtm[py/unused-import]
+
 # pylint: enable=unused-import
+
 
 @dns.immutable.immutable
 class DNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):

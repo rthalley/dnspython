@@ -28,7 +28,7 @@ class Set:
     ability is widely used in dnspython applications.
     """
 
-    __slots__ = ['items']
+    __slots__ = ["items"]
 
     def __init__(self, items=None):
         """Initialize the set.
@@ -47,15 +47,13 @@ class Set:
         return "dns.set.Set(%s)" % repr(list(self.items.keys()))
 
     def add(self, item):
-        """Add an item to the set.
-        """
+        """Add an item to the set."""
 
         if item not in self.items:
             self.items[item] = None
 
     def remove(self, item):
-        """Remove an item from the set.
-        """
+        """Remove an item from the set."""
 
         try:
             del self.items[item]
@@ -63,8 +61,7 @@ class Set:
             raise ValueError
 
     def discard(self, item):
-        """Remove an item from the set if present.
-        """
+        """Remove an item from the set if present."""
 
         self.items.pop(item, None)
 
@@ -73,7 +70,7 @@ class Set:
         (k, _) = self.items.popitem()
         return k
 
-    def _clone(self) -> 'Set':
+    def _clone(self) -> "Set":
         """Make a (shallow) copy of the set.
 
         There is a 'clone protocol' that subclasses of this class
@@ -86,8 +83,8 @@ class Set:
         subclasses.
         """
 
-        if hasattr(self, '_clone_class'):
-            cls = self._clone_class   # type: ignore
+        if hasattr(self, "_clone_class"):
+            cls = self._clone_class  # type: ignore
         else:
             cls = self.__class__
         obj = cls.__new__(cls)
@@ -96,14 +93,12 @@ class Set:
         return obj
 
     def __copy__(self):
-        """Make a (shallow) copy of the set.
-        """
+        """Make a (shallow) copy of the set."""
 
         return self._clone()
 
     def copy(self):
-        """Make a (shallow) copy of the set.
-        """
+        """Make a (shallow) copy of the set."""
 
         return self._clone()
 
@@ -113,7 +108,7 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         if self is other:  # lgtm[py/comparison-using-is]
             return
         for item in other.items:
@@ -125,7 +120,7 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         if self is other:  # lgtm[py/comparison-using-is]
             return
         # we make a copy of the list so that we can remove items from
@@ -140,7 +135,7 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         if self is other:  # lgtm[py/comparison-using-is]
             self.items.clear()
         else:
@@ -151,7 +146,7 @@ class Set:
         """Update the set, retaining only elements unique to both sets."""
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         if self is other:  # lgtm[py/comparison-using-is]
             self.items.clear()
         else:
@@ -285,7 +280,7 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         for item in self.items:
             if item not in other.items:
                 return False
@@ -298,7 +293,7 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         for item in other.items:
             if item not in self.items:
                 return False
@@ -306,7 +301,7 @@ class Set:
 
     def isdisjoint(self, other):
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         for item in other.items:
             if item in self.items:
                 return False

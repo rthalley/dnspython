@@ -20,6 +20,7 @@
 import dns.enum
 import dns.exception
 
+
 class Opcode(dns.enum.IntEnum):
     #: Query
     QUERY = 0
@@ -103,6 +104,7 @@ def is_update(flags: int) -> bool:
     """
 
     return from_flags(flags) == Opcode.UPDATE
+
 
 ### BEGIN generated Opcode constants
 

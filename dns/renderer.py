@@ -88,8 +88,8 @@ class Renderer:
         self.compress = {}
         self.section = QUESTION
         self.counts = [0, 0, 0, 0]
-        self.output.write(b'\x00' * 12)
-        self.mac = ''
+        self.output.write(b"\x00" * 12)
+        self.mac = ""
 
     def _rollback(self, where):
         """Truncate the output buffer at offset *where*, and remove any
@@ -160,8 +160,7 @@ class Renderer:
 
         self._set_section(section)
         with self._track_size():
-            n = rdataset.to_wire(name, self.output, self.compress, self.origin,
-                                 **kw)
+            n = rdataset.to_wire(name, self.output, self.compress, self.origin, **kw)
         self.counts[section] += n
 
     def add_edns(self, edns, ednsflags, payload, options=None):
@@ -169,12 +168,21 @@ class Renderer:
 
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
-        ednsflags |= (edns << 16)
+        ednsflags |= edns << 16
         opt = dns.message.Message._make_opt(ednsflags, payload, options)
         self.add_rrset(ADDITIONAL, opt)
 
-    def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
-                 request_mac, algorithm=dns.tsig.default_algorithm):
+    def add_tsig(
+        self,
+        keyname,
+        secret,
+        fudge,
+        id,
+        tsig_error,
+        other_data,
+        request_mac,
+        algorithm=dns.tsig.default_algorithm,
+    ):
         """Add a TSIG signature to the message."""
 
         s = self.output.getvalue()
@@ -183,15 +191,24 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
-                                              b'', id, tsig_error, other_data)
-        (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()),
-                                  request_mac)
+        tsig = dns.message.Message._make_tsig(
+            keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
+        )
+        (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
         self._write_tsig(tsig, keyname)
 
-    def add_multi_tsig(self, ctx, keyname, secret, fudge, id, tsig_error,
-                       other_data, request_mac,
-                       algorithm=dns.tsig.default_algorithm):
+    def add_multi_tsig(
+        self,
+        ctx,
+        keyname,
+        secret,
+        fudge,
+        id,
+        tsig_error,
+        other_data,
+        request_mac,
+        algorithm=dns.tsig.default_algorithm,
+    ):
         """Add a TSIG signature to the message. Unlike add_tsig(), this can be
         used for a series of consecutive DNS envelopes, e.g. for a zone
         transfer over TCP [RFC2845, 4.4].
@@ -206,10 +223,12 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
-                                              b'', id, tsig_error, other_data)
-        (tsig, ctx) = dns.tsig.sign(s, key, tsig[0], int(time.time()),
-                                    request_mac, ctx, True)
+        tsig = dns.message.Message._make_tsig(
+            keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
+        )
+        (tsig, ctx) = dns.tsig.sign(
+            s, key, tsig[0], int(time.time()), request_mac, ctx, True
+        )
         self._write_tsig(tsig, keyname)
         return ctx
 
@@ -217,17 +236,18 @@ class Renderer:
         self._set_section(ADDITIONAL)
         with self._track_size():
             keyname.to_wire(self.output, self.compress, self.origin)
-            self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
-                                          dns.rdataclass.ANY, 0, 0))
+            self.output.write(
+                struct.pack("!HHIH", dns.rdatatype.TSIG, dns.rdataclass.ANY, 0, 0)
+            )
             rdata_start = self.output.tell()
             tsig.to_wire(self.output)
 
         after = self.output.tell()
         self.output.seek(rdata_start - 2)
-        self.output.write(struct.pack('!H', after - rdata_start))
+        self.output.write(struct.pack("!H", after - rdata_start))
         self.counts[ADDITIONAL] += 1
         self.output.seek(10)
-        self.output.write(struct.pack('!H', self.counts[ADDITIONAL]))
+        self.output.write(struct.pack("!H", self.counts[ADDITIONAL]))
         self.output.seek(0, io.SEEK_END)
 
     def write_header(self):
@@ -239,9 +259,17 @@ class Renderer:
         """
 
         self.output.seek(0)
-        self.output.write(struct.pack('!HHHHHH', self.id, self.flags,
-                                      self.counts[0], self.counts[1],
-                                      self.counts[2], self.counts[3]))
+        self.output.write(
+            struct.pack(
+                "!HHHHHH",
+                self.id,
+                self.flags,
+                self.counts[0],
+                self.counts[1],
+                self.counts[2],
+                self.counts[3],
+            )
+        )
         self.output.seek(0, io.SEEK_END)
 
     def get_wire(self):

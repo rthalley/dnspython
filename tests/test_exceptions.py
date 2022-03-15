@@ -22,11 +22,10 @@ from dns.exception import DNSException
 
 class FormatedError(DNSException):
     fmt = "Custom format: {parameter}"
-    supp_kwargs = {'parameter'}
+    supp_kwargs = {"parameter"}
 
 
 class ExceptionTestCase(unittest.TestCase):
-
     def test_custom_message(self):
         msg = "this is a custom message"
         try:
@@ -42,7 +41,7 @@ class ExceptionTestCase(unittest.TestCase):
 
     def test_formatted_error(self):
         """Exceptions with explicit format has to respect it."""
-        params = {'parameter': 'value'}
+        params = {"parameter": "value"}
         try:
             raise FormatedError(**params)
         except FormatedError as ex:
@@ -59,5 +58,6 @@ class ExceptionTestCase(unittest.TestCase):
         with self.assertRaises(AssertionError):
             raise FormatedError(unsupported=2)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

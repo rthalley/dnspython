@@ -22,22 +22,22 @@ import dns.tokenizer
 
 Token = dns.tokenizer.Token
 
-class TokenizerTestCase(unittest.TestCase):
 
+class TokenizerTestCase(unittest.TestCase):
     def testStr(self):
-        tok = dns.tokenizer.Tokenizer('foo')
+        tok = dns.tokenizer.Tokenizer("foo")
         token = tok.get()
-        self.assertEqual(token, Token(dns.tokenizer.IDENTIFIER, 'foo'))
+        self.assertEqual(token, Token(dns.tokenizer.IDENTIFIER, "foo"))
 
     def testQuotedString1(self):
         tok = dns.tokenizer.Tokenizer(r'"foo"')
         token = tok.get()
-        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, 'foo'))
+        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, "foo"))
 
     def testQuotedString2(self):
         tok = dns.tokenizer.Tokenizer(r'""')
         token = tok.get()
-        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, ''))
+        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, ""))
 
     def testQuotedString3(self):
         tok = dns.tokenizer.Tokenizer(r'"\"foo\""')
@@ -47,8 +47,7 @@ class TokenizerTestCase(unittest.TestCase):
     def testQuotedString4(self):
         tok = dns.tokenizer.Tokenizer(r'"foo\010bar"')
         token = tok.get()
-        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING,
-                                      'foo\\010bar'))
+        self.assertEqual(token, Token(dns.tokenizer.QUOTED_STRING, "foo\\010bar"))
 
     def testQuotedString5(self):
         with self.assertRaises(dns.exception.UnexpectedEnd):
@@ -66,223 +65,233 @@ class TokenizerTestCase(unittest.TestCase):
             tok.get()
 
     def testEmpty1(self):
-        tok = dns.tokenizer.Tokenizer('')
+        tok = dns.tokenizer.Tokenizer("")
         token = tok.get()
         self.assertTrue(token.is_eof())
 
     def testEmpty2(self):
-        tok = dns.tokenizer.Tokenizer('')
+        tok = dns.tokenizer.Tokenizer("")
         token1 = tok.get()
         token2 = tok.get()
         self.assertTrue(token1.is_eof() and token2.is_eof())
 
     def testEOL(self):
-        tok = dns.tokenizer.Tokenizer('\n')
+        tok = dns.tokenizer.Tokenizer("\n")
         token1 = tok.get()
         token2 = tok.get()
         self.assertTrue(token1.is_eol() and token2.is_eof())
 
     def testWS1(self):
-        tok = dns.tokenizer.Tokenizer(' \n')
+        tok = dns.tokenizer.Tokenizer(" \n")
         token1 = tok.get()
         self.assertTrue(token1.is_eol())
 
     def testWS2(self):
-        tok = dns.tokenizer.Tokenizer(' \n')
+        tok = dns.tokenizer.Tokenizer(" \n")
         token1 = tok.get(want_leading=True)
         self.assertTrue(token1.is_whitespace())
 
     def testComment1(self):
-        tok = dns.tokenizer.Tokenizer(' ;foo\n')
+        tok = dns.tokenizer.Tokenizer(" ;foo\n")
         token1 = tok.get()
         self.assertTrue(token1.is_eol())
 
     def testComment2(self):
-        tok = dns.tokenizer.Tokenizer(' ;foo\n')
+        tok = dns.tokenizer.Tokenizer(" ;foo\n")
         token1 = tok.get(want_comment=True)
         token2 = tok.get()
-        self.assertEqual(token1, Token(dns.tokenizer.COMMENT, 'foo'))
+        self.assertEqual(token1, Token(dns.tokenizer.COMMENT, "foo"))
         self.assertTrue(token2.is_eol())
 
     def testComment3(self):
-        tok = dns.tokenizer.Tokenizer(' ;foo bar\n')
+        tok = dns.tokenizer.Tokenizer(" ;foo bar\n")
         token1 = tok.get(want_comment=True)
         token2 = tok.get()
-        self.assertEqual(token1, Token(dns.tokenizer.COMMENT, 'foo bar'))
+        self.assertEqual(token1, Token(dns.tokenizer.COMMENT, "foo bar"))
         self.assertTrue(token2.is_eol())
 
     def testMultiline1(self):
-        tok = dns.tokenizer.Tokenizer('( foo\n\n bar\n)')
+        tok = dns.tokenizer.Tokenizer("( foo\n\n bar\n)")
         tokens = list(iter(tok))
-        self.assertEqual(tokens, [Token(dns.tokenizer.IDENTIFIER, 'foo'),
-                                  Token(dns.tokenizer.IDENTIFIER, 'bar')])
+        self.assertEqual(
+            tokens,
+            [
+                Token(dns.tokenizer.IDENTIFIER, "foo"),
+                Token(dns.tokenizer.IDENTIFIER, "bar"),
+            ],
+        )
 
     def testMultiline2(self):
-        tok = dns.tokenizer.Tokenizer('( foo\n\n bar\n)\n')
+        tok = dns.tokenizer.Tokenizer("( foo\n\n bar\n)\n")
         tokens = list(iter(tok))
-        self.assertEqual(tokens, [Token(dns.tokenizer.IDENTIFIER, 'foo'),
-                                  Token(dns.tokenizer.IDENTIFIER, 'bar'),
-                                  Token(dns.tokenizer.EOL, '\n')])
+        self.assertEqual(
+            tokens,
+            [
+                Token(dns.tokenizer.IDENTIFIER, "foo"),
+                Token(dns.tokenizer.IDENTIFIER, "bar"),
+                Token(dns.tokenizer.EOL, "\n"),
+            ],
+        )
 
     def testMultiline3(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('foo)')
+            tok = dns.tokenizer.Tokenizer("foo)")
             list(iter(tok))
 
     def testMultiline4(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('((foo)')
+            tok = dns.tokenizer.Tokenizer("((foo)")
             list(iter(tok))
 
     def testUnget1(self):
-        tok = dns.tokenizer.Tokenizer('foo')
+        tok = dns.tokenizer.Tokenizer("foo")
         t1 = tok.get()
         tok.unget(t1)
         t2 = tok.get()
         self.assertEqual(t1, t2)
         self.assertEqual(t1.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t1.value, 'foo')
+        self.assertEqual(t1.value, "foo")
 
     def testUnget2(self):
         with self.assertRaises(dns.tokenizer.UngetBufferFull):
-            tok = dns.tokenizer.Tokenizer('foo')
+            tok = dns.tokenizer.Tokenizer("foo")
             t1 = tok.get()
             tok.unget(t1)
             tok.unget(t1)
 
     def testGetEOL1(self):
-        tok = dns.tokenizer.Tokenizer('\n')
+        tok = dns.tokenizer.Tokenizer("\n")
         t = tok.get_eol()
-        self.assertEqual(t, '\n')
+        self.assertEqual(t, "\n")
 
     def testGetEOL2(self):
-        tok = dns.tokenizer.Tokenizer('')
+        tok = dns.tokenizer.Tokenizer("")
         t = tok.get_eol()
-        self.assertEqual(t, '')
+        self.assertEqual(t, "")
 
     def testEscapedDelimiter1(self):
-        tok = dns.tokenizer.Tokenizer(r'ch\ ld')
+        tok = dns.tokenizer.Tokenizer(r"ch\ ld")
         t = tok.get()
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t.value, r'ch\ ld')
+        self.assertEqual(t.value, r"ch\ ld")
 
     def testEscapedDelimiter2(self):
-        tok = dns.tokenizer.Tokenizer(r'ch\032ld')
+        tok = dns.tokenizer.Tokenizer(r"ch\032ld")
         t = tok.get()
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t.value, r'ch\032ld')
+        self.assertEqual(t.value, r"ch\032ld")
 
     def testEscapedDelimiter3(self):
-        tok = dns.tokenizer.Tokenizer(r'ch\ild')
+        tok = dns.tokenizer.Tokenizer(r"ch\ild")
         t = tok.get()
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t.value, r'ch\ild')
+        self.assertEqual(t.value, r"ch\ild")
 
     def testEscapedDelimiter1u(self):
-        tok = dns.tokenizer.Tokenizer(r'ch\ ld')
+        tok = dns.tokenizer.Tokenizer(r"ch\ ld")
         t = tok.get().unescape()
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t.value, r'ch ld')
+        self.assertEqual(t.value, r"ch ld")
 
     def testEscapedDelimiter2u(self):
-        tok = dns.tokenizer.Tokenizer(r'ch\032ld')
+        tok = dns.tokenizer.Tokenizer(r"ch\032ld")
         t = tok.get().unescape()
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t.value, 'ch ld')
+        self.assertEqual(t.value, "ch ld")
 
     def testEscapedDelimiter3u(self):
-        tok = dns.tokenizer.Tokenizer(r'ch\ild')
+        tok = dns.tokenizer.Tokenizer(r"ch\ild")
         t = tok.get().unescape()
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t.value, r'child')
+        self.assertEqual(t.value, r"child")
 
     def testGetUInt(self):
-        tok = dns.tokenizer.Tokenizer('1234')
+        tok = dns.tokenizer.Tokenizer("1234")
         v = tok.get_int()
         self.assertEqual(v, 1234)
         with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer('"1234"')
             tok.get_int()
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('q1234')
+            tok = dns.tokenizer.Tokenizer("q1234")
             tok.get_int()
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('281474976710656')
+            tok = dns.tokenizer.Tokenizer("281474976710656")
             tok.get_uint48()
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('4294967296')
+            tok = dns.tokenizer.Tokenizer("4294967296")
             tok.get_uint32()
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('65536')
+            tok = dns.tokenizer.Tokenizer("65536")
             tok.get_uint16()
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('256')
+            tok = dns.tokenizer.Tokenizer("256")
             tok.get_uint8()
         # Even though it is badly named get_int(), it's really get_unit!
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('-1234')
+            tok = dns.tokenizer.Tokenizer("-1234")
             tok.get_int()
         # get_uint16 can do other bases too, and has a custom error
         # for base 8.
-        tok = dns.tokenizer.Tokenizer('177777')
+        tok = dns.tokenizer.Tokenizer("177777")
         self.assertEqual(tok.get_uint16(base=8), 65535)
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('200000')
+            tok = dns.tokenizer.Tokenizer("200000")
             tok.get_uint16(base=8)
 
     def testGetString(self):
-        tok = dns.tokenizer.Tokenizer('foo')
+        tok = dns.tokenizer.Tokenizer("foo")
         v = tok.get_string()
-        self.assertEqual(v, 'foo')
+        self.assertEqual(v, "foo")
         tok = dns.tokenizer.Tokenizer('"foo"')
         v = tok.get_string()
-        self.assertEqual(v, 'foo')
-        tok = dns.tokenizer.Tokenizer('abcdefghij')
+        self.assertEqual(v, "foo")
+        tok = dns.tokenizer.Tokenizer("abcdefghij")
         v = tok.get_string(max_length=10)
-        self.assertEqual(v, 'abcdefghij')
+        self.assertEqual(v, "abcdefghij")
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('abcdefghij')
+            tok = dns.tokenizer.Tokenizer("abcdefghij")
             tok.get_string(max_length=9)
-        tok = dns.tokenizer.Tokenizer('')
+        tok = dns.tokenizer.Tokenizer("")
         with self.assertRaises(dns.exception.SyntaxError):
             tok.get_string()
 
     def testMultiLineWithComment(self):
-        tok = dns.tokenizer.Tokenizer('( ; abc\n)')
+        tok = dns.tokenizer.Tokenizer("( ; abc\n)")
         tok.get_eol()
         # Nothing to assert here, as we're testing tok.get_eol() does NOT
         # raise.
 
     def testEOLAfterComment(self):
-        tok = dns.tokenizer.Tokenizer('; abc\n')
+        tok = dns.tokenizer.Tokenizer("; abc\n")
         t = tok.get()
         self.assertTrue(t.is_eol())
 
     def testEOFAfterComment(self):
-        tok = dns.tokenizer.Tokenizer('; abc')
+        tok = dns.tokenizer.Tokenizer("; abc")
         t = tok.get()
         self.assertTrue(t.is_eof())
 
     def testMultiLineWithEOFAfterComment(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('( ; abc')
+            tok = dns.tokenizer.Tokenizer("( ; abc")
             tok.get_eol()
 
     def testEscapeUnexpectedEnd(self):
         with self.assertRaises(dns.exception.UnexpectedEnd):
-            tok = dns.tokenizer.Tokenizer('\\')
+            tok = dns.tokenizer.Tokenizer("\\")
             tok.get()
 
     def testEscapeBounds(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('\\256')
+            tok = dns.tokenizer.Tokenizer("\\256")
             tok.get().unescape()
         with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer('\\256')
+            tok = dns.tokenizer.Tokenizer("\\256")
             tok.get().unescape_to_bytes()
 
     def testGetUngetRegetComment(self):
-        tok = dns.tokenizer.Tokenizer(';comment')
+        tok = dns.tokenizer.Tokenizer(";comment")
         t1 = tok.get(want_comment=True)
         tok.unget(t1)
         t2 = tok.get(want_comment=True)
@@ -314,12 +323,12 @@ class TokenizerTestCase(unittest.TestCase):
                 tok.get().unescape_to_bytes()
 
     def testTokenMisc(self):
-        t1 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, 'hi')
-        t2 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, 'hi')
-        t3 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, 'there')
+        t1 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, "hi")
+        t2 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, "hi")
+        t3 = dns.tokenizer.Token(dns.tokenizer.IDENTIFIER, "there")
         self.assertEqual(t1, t2)
-        self.assertFalse(t1 == 'hi')  # not NotEqual because we want to use ==
-        self.assertNotEqual(t1, 'hi')
+        self.assertFalse(t1 == "hi")  # not NotEqual because we want to use ==
+        self.assertNotEqual(t1, "hi")
         self.assertNotEqual(t1, t3)
         self.assertEqual(str(t1), '3 "hi"')
 
@@ -330,17 +339,17 @@ class TokenizerTestCase(unittest.TestCase):
 
     def testStdinFilename(self):
         tok = dns.tokenizer.Tokenizer()
-        self.assertEqual(tok.filename, '<stdin>')
+        self.assertEqual(tok.filename, "<stdin>")
 
     def testBytesLiteral(self):
-        tok = dns.tokenizer.Tokenizer(b'this is input')
-        self.assertEqual(tok.get().value, 'this')
-        self.assertEqual(tok.filename, '<string>')
-        tok = dns.tokenizer.Tokenizer(b'this is input', 'myfilename')
-        self.assertEqual(tok.filename, 'myfilename')
+        tok = dns.tokenizer.Tokenizer(b"this is input")
+        self.assertEqual(tok.get().value, "this")
+        self.assertEqual(tok.filename, "<string>")
+        tok = dns.tokenizer.Tokenizer(b"this is input", "myfilename")
+        self.assertEqual(tok.filename, "myfilename")
 
     def testUngetBranches(self):
-        tok = dns.tokenizer.Tokenizer(b'    this is input')
+        tok = dns.tokenizer.Tokenizer(b"    this is input")
         t = tok.get(want_leading=True)
         tok.unget(t)
         t = tok.get(want_leading=True)
@@ -348,8 +357,8 @@ class TokenizerTestCase(unittest.TestCase):
         tok.unget(t)
         t = tok.get()
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
-        self.assertEqual(t.value, 'this')
-        tok = dns.tokenizer.Tokenizer(b';    this is input\n')
+        self.assertEqual(t.value, "this")
+        tok = dns.tokenizer.Tokenizer(b";    this is input\n")
         t = tok.get(want_comment=True)
         tok.unget(t)
         t = tok.get(want_comment=True)
@@ -358,5 +367,6 @@ class TokenizerTestCase(unittest.TestCase):
         t = tok.get()
         self.assertEqual(t.ttype, dns.tokenizer.EOL)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -69,7 +69,7 @@ class Option:
         """
         self.otype = OptionType.make(otype)
 
-    def to_wire(self, file: Optional[Any]=None) -> Optional[bytes]:
+    def to_wire(self, file: Optional[Any] = None) -> Optional[bytes]:
         """Convert an option to wire format.
 
         Returns a ``bytes`` or ``None``.
@@ -78,7 +78,7 @@ class Option:
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def from_wire_parser(cls, otype: OptionType, parser: 'dns.wire.Parser') -> 'Option':
+    def from_wire_parser(cls, otype: OptionType, parser: "dns.wire.Parser") -> "Option":
         """Build an EDNS option object from wire format.
 
         *otype*, a ``dns.edns.OptionType``, is the option type.
@@ -118,26 +118,22 @@ class Option:
         return self._cmp(other) != 0
 
     def __lt__(self, other):
-        if not isinstance(other, Option) or \
-                self.otype != other.otype:
+        if not isinstance(other, Option) or self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) < 0
 
     def __le__(self, other):
-        if not isinstance(other, Option) or \
-                self.otype != other.otype:
+        if not isinstance(other, Option) or self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) <= 0
 
     def __ge__(self, other):
-        if not isinstance(other, Option) or \
-                self.otype != other.otype:
+        if not isinstance(other, Option) or self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) >= 0
 
     def __gt__(self, other):
-        if not isinstance(other, Option) or \
-                self.otype != other.otype:
+        if not isinstance(other, Option) or self.otype != other.otype:
             return NotImplemented
         return self._cmp(other) > 0
 
@@ -157,7 +153,7 @@ class GenericOption(Option):  # lgtm[py/missing-equals]
         super().__init__(otype)
         self.data = dns.rdata.Rdata._as_bytes(data, True)
 
-    def to_wire(self, file: Optional[Any]=None) -> Optional[bytes]:
+    def to_wire(self, file: Optional[Any] = None) -> Optional[bytes]:
         if file:
             file.write(self.data)
             return None
@@ -168,14 +164,16 @@ class GenericOption(Option):  # lgtm[py/missing-equals]
         return "Generic %d" % self.otype
 
     @classmethod
-    def from_wire_parser(cls, otype: Union[OptionType, str], parser: 'dns.wire.Parser') -> Option:
+    def from_wire_parser(
+        cls, otype: Union[OptionType, str], parser: "dns.wire.Parser"
+    ) -> Option:
         return cls(otype, parser.get_remaining())
 
 
 class ECSOption(Option):  # lgtm[py/missing-equals]
     """EDNS Client Subnet (ECS, RFC7871)"""
 
-    def __init__(self, address: str, srclen: Optional[int]=None, scopelen: int=0):
+    def __init__(self, address: str, srclen: Optional[int] = None, scopelen: int = 0):
         """*address*, a ``str``, is the client address information.
 
         *srclen*, an ``int``, the source prefix length, which is the
@@ -204,7 +202,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             srclen = dns.rdata.Rdata._as_int(srclen, 0, 32)
             scopelen = dns.rdata.Rdata._as_int(scopelen, 0, 32)
         else:  # pragma: no cover   (this will never happen)
-            raise ValueError('Bad address family')
+            raise ValueError("Bad address family")
 
         assert srclen is not None
         self.address = address
@@ -219,13 +217,11 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         self.addrdata = addrdata[:nbytes]
         nbits = srclen % 8
         if nbits != 0:
-            last = struct.pack('B',
-                               ord(self.addrdata[-1:]) & (0xff << (8 - nbits)))
+            last = struct.pack("B", ord(self.addrdata[-1:]) & (0xFF << (8 - nbits)))
             self.addrdata = self.addrdata[:-1] + last
 
     def to_text(self) -> str:
-        return "ECS {}/{} scope/{}".format(self.address, self.srclen,
-                                           self.scopelen)
+        return "ECS {}/{} scope/{}".format(self.address, self.srclen, self.scopelen)
 
     @staticmethod
     def from_text(text: str) -> Option:
@@ -251,7 +247,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         >>> # it understands results from `dns.edns.ECSOption.to_text()`
         >>> dns.edns.ECSOption.from_text('ECS 1.2.3.4/24/32')
         """
-        optional_prefix = 'ECS'
+        optional_prefix = "ECS"
         tokens = text.split()
         ecs_text = None
         if len(tokens) == 1:
@@ -262,29 +258,32 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             ecs_text = tokens[1]
         else:
             raise ValueError('could not parse ECS from "{}"'.format(text))
-        n_slashes = ecs_text.count('/')
+        n_slashes = ecs_text.count("/")
         if n_slashes == 1:
-            address, tsrclen = ecs_text.split('/')
-            tscope = '0'
+            address, tsrclen = ecs_text.split("/")
+            tscope = "0"
         elif n_slashes == 2:
-            address, tsrclen, tscope = ecs_text.split('/')
+            address, tsrclen, tscope = ecs_text.split("/")
         else:
             raise ValueError('could not parse ECS from "{}"'.format(text))
         try:
             scope = int(tscope)
         except ValueError:
-            raise ValueError('invalid scope ' +
-                             '"{}": scope must be an integer'.format(tscope))
+            raise ValueError(
+                "invalid scope " + '"{}": scope must be an integer'.format(tscope)
+            )
         try:
             srclen = int(tsrclen)
         except ValueError:
-            raise ValueError('invalid srclen ' +
-                             '"{}": srclen must be an integer'.format(tsrclen))
+            raise ValueError(
+                "invalid srclen " + '"{}": srclen must be an integer'.format(tsrclen)
+            )
         return ECSOption(address, srclen, scope)
 
-    def to_wire(self, file: Optional[Any]=None) -> Optional[bytes]:
-        value = (struct.pack('!HBB', self.family, self.srclen, self.scopelen) +
-                 self.addrdata)
+    def to_wire(self, file: Optional[Any] = None) -> Optional[bytes]:
+        value = (
+            struct.pack("!HBB", self.family, self.srclen, self.scopelen) + self.addrdata
+        )
         if file:
             file.write(value)
             return None
@@ -292,18 +291,20 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             return value
 
     @classmethod
-    def from_wire_parser(cls, otype: Union[OptionType, str], parser: 'dns.wire.Parser') -> Option:
-        family, src, scope = parser.get_struct('!HBB')
+    def from_wire_parser(
+        cls, otype: Union[OptionType, str], parser: "dns.wire.Parser"
+    ) -> Option:
+        family, src, scope = parser.get_struct("!HBB")
         addrlen = int(math.ceil(src / 8.0))
         prefix = parser.get_bytes(addrlen)
         if family == 1:
             pad = 4 - addrlen
-            addr = dns.ipv4.inet_ntoa(prefix + b'\x00' * pad)
+            addr = dns.ipv4.inet_ntoa(prefix + b"\x00" * pad)
         elif family == 2:
             pad = 16 - addrlen
-            addr = dns.ipv6.inet_ntoa(prefix + b'\x00' * pad)
+            addr = dns.ipv6.inet_ntoa(prefix + b"\x00" * pad)
         else:
-            raise ValueError('unsupported family')
+            raise ValueError("unsupported family")
 
         return cls(addr, src, scope)
 
@@ -343,7 +344,7 @@ class EDECode(dns.enum.IntEnum):
 class EDEOption(Option):  # lgtm[py/missing-equals]
     """Extended DNS Error (EDE, RFC8914)"""
 
-    def __init__(self, code: Union[EDECode, str], text: Optional[str]=None):
+    def __init__(self, code: Union[EDECode, str], text: Optional[str] = None):
         """*code*, a ``dns.edns.EDECode`` or ``str``, the info code of the
         extended error.
 
@@ -355,19 +356,19 @@ class EDEOption(Option):  # lgtm[py/missing-equals]
 
         self.code = EDECode.make(code)
         if text is not None and not isinstance(text, str):
-            raise ValueError('text must be string or None')
+            raise ValueError("text must be string or None")
         self.text = text
 
     def to_text(self) -> str:
-        output = f'EDE {self.code}'
+        output = f"EDE {self.code}"
         if self.text is not None:
-            output += f': {self.text}'
+            output += f": {self.text}"
         return output
 
-    def to_wire(self, file: Optional[Any]=None) -> Optional[bytes]:
-        value = struct.pack('!H', self.code)
+    def to_wire(self, file: Optional[Any] = None) -> Optional[bytes]:
+        value = struct.pack("!H", self.code)
         if self.text is not None:
-            value += self.text.encode('utf8')
+            value += self.text.encode("utf8")
 
         if file:
             file.write(value)
@@ -376,14 +377,16 @@ class EDEOption(Option):  # lgtm[py/missing-equals]
             return value
 
     @classmethod
-    def from_wire_parser(cls, otype: Union[OptionType, str], parser: 'dns.wire.Parser') -> Option:
+    def from_wire_parser(
+        cls, otype: Union[OptionType, str], parser: "dns.wire.Parser"
+    ) -> Option:
         the_code = EDECode.make(parser.get_uint16())
         text = parser.get_remaining()
 
         if text:
             if text[-1] == 0:  # text MAY be null-terminated
                 text = text[:-1]
-            btext = text.decode('utf8')
+            btext = text.decode("utf8")
         else:
             btext = None
 
@@ -409,7 +412,9 @@ def get_option_class(otype: OptionType) -> Any:
     return cls
 
 
-def option_from_wire_parser(otype: Union[OptionType, str], parser: 'dns.wire.Parser') -> Option:
+def option_from_wire_parser(
+    otype: Union[OptionType, str], parser: "dns.wire.Parser"
+) -> Option:
     """Build an EDNS option object from wire format.
 
     *otype*, an ``int``, is the option type.
@@ -424,7 +429,9 @@ def option_from_wire_parser(otype: Union[OptionType, str], parser: 'dns.wire.Par
     return cls.from_wire_parser(otype, parser)
 
 
-def option_from_wire(otype: Union[OptionType, str], wire: bytes, current: int, olen: int) -> Option:
+def option_from_wire(
+    otype: Union[OptionType, str], wire: bytes, current: int, olen: int
+) -> Option:
     """Build an EDNS option object from wire format.
 
     *otype*, an ``int``, is the option type.
@@ -442,6 +449,7 @@ def option_from_wire(otype: Union[OptionType, str], wire: bytes, current: int, o
     with parser.restrict_to(olen):
         return option_from_wire_parser(otype, parser)
 
+
 def register_type(implementation: Any, otype: OptionType) -> None:
     """Register the implementation of an option type.
 
@@ -451,6 +459,7 @@ def register_type(implementation: Any, otype: OptionType) -> None:
     """
 
     _type_to_class[otype] = implementation
+
 
 ### BEGIN generated OptionType constants
 

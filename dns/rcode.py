@@ -22,6 +22,7 @@ from typing import Tuple
 import dns.enum
 import dns.exception
 
+
 class Rcode(dns.enum.IntEnum):
     #: No error
     NOERROR = 0
@@ -104,7 +105,7 @@ def from_flags(flags: int, ednsflags: int) -> Rcode:
     Returns a ``dns.rcode.Rcode``.
     """
 
-    value = (flags & 0x000f) | ((ednsflags >> 20) & 0xff0)
+    value = (flags & 0x000F) | ((ednsflags >> 20) & 0xFF0)
     return Rcode.make(value)
 
 
@@ -119,13 +120,13 @@ def to_flags(value: Rcode) -> Tuple[int, int]:
     """
 
     if value < 0 or value > 4095:
-        raise ValueError('rcode must be >= 0 and <= 4095')
-    v = value & 0xf
-    ev = (value & 0xff0) << 20
+        raise ValueError("rcode must be >= 0 and <= 4095")
+    v = value & 0xF
+    ev = (value & 0xFF0) << 20
     return (v, ev)
 
 
-def to_text(value: Rcode, tsig: bool=False) -> str:
+def to_text(value: Rcode, tsig: bool = False) -> str:
     """Convert rcode into text.
 
     *value*, a ``dns.rcode.Rcode``, the rcode.
@@ -136,8 +137,9 @@ def to_text(value: Rcode, tsig: bool=False) -> str:
     """
 
     if tsig and value == Rcode.BADVERS:
-        return 'BADSIG'
+        return "BADSIG"
     return Rcode.to_text(value)
+
 
 ### BEGIN generated Rcode constants
 

@@ -137,7 +137,9 @@ def is_address(text: str) -> bool:
             return False
 
 
-def low_level_address_tuple(high_tuple: Tuple[str, int], af: Optional[int]=None) -> Any:
+def low_level_address_tuple(
+    high_tuple: Tuple[str, int], af: Optional[int] = None
+) -> Any:
     """Given a "high-level" address tuple, i.e.
     an (address, port) return the appropriate "low-level" address tuple
     suitable for use in socket calls.
@@ -152,13 +154,13 @@ def low_level_address_tuple(high_tuple: Tuple[str, int], af: Optional[int]=None)
     if af == AF_INET:
         return (address, port)
     elif af == AF_INET6:
-        i = address.find('%')
+        i = address.find("%")
         if i < 0:
             # no scope, shortcut!
             return (address, port, 0, 0)
         # try to avoid getaddrinfo()
         addrpart = address[:i]
-        scope = address[i + 1:]
+        scope = address[i + 1 :]
         if scope.isdigit():
             return (addrpart, port, 0, int(scope))
         try:
@@ -168,4 +170,4 @@ def low_level_address_tuple(high_tuple: Tuple[str, int], af: Optional[int]=None)
             ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
             return tup
     else:
-        raise NotImplementedError(f'unknown address family {af}')
+        raise NotImplementedError(f"unknown address family {af}")

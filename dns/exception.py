@@ -73,14 +73,15 @@ class DNSException(Exception):
 
         For sanity we do not allow to mix old and new behavior."""
         if args or kwargs:
-            assert bool(args) != bool(kwargs), \
-                'keyword arguments are mutually exclusive with positional args'
+            assert bool(args) != bool(
+                kwargs
+            ), "keyword arguments are mutually exclusive with positional args"
 
     def _check_kwargs(self, **kwargs):
         if kwargs:
-            assert set(kwargs.keys()) == self.supp_kwargs, \
-                'following set of keyword args is required: %s' % (
-                    self.supp_kwargs)
+            assert (
+                set(kwargs.keys()) == self.supp_kwargs
+            ), "following set of keyword args is required: %s" % (self.supp_kwargs)
         return kwargs
 
     def _fmt_kwargs(self, **kwargs):
@@ -129,10 +130,12 @@ class TooBig(DNSException):
 
 class Timeout(DNSException):
     """The DNS operation timed out."""
-    supp_kwargs = {'timeout'}
+
+    supp_kwargs = {"timeout"}
     fmt = "The DNS operation timed out after {timeout:.3f} seconds"
 
-    # We do this as otherwise mypy complains about unexpected keyword argument idna_exception
+    # We do this as otherwise mypy complains about unexpected keyword argument
+    # idna_exception
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -145,7 +148,6 @@ class ExceptionWrapper:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is not None and not isinstance(exc_val,
-                                                   self.exception_class):
+        if exc_type is not None and not isinstance(exc_val, self.exception_class):
             raise self.exception_class(str(exc_val)) from exc_val
         return False

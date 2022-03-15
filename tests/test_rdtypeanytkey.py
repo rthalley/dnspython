@@ -27,70 +27,94 @@ from dns.rdatatype import RdataType
 
 
 class RdtypeAnyTKeyTestCase(unittest.TestCase):
-    tkey_rdata_text = 'gss-tsig. 1594203795 1594206664 3 0 KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY OTHEROTHEROTHEROTHEROTHEROTHEROT'
-    tkey_rdata_text_no_other = 'gss-tsig. 1594203795 1594206664 3 0 KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY'
+    tkey_rdata_text = "gss-tsig. 1594203795 1594206664 3 0 KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY OTHEROTHEROTHEROTHEROTHEROTHEROT"
+    tkey_rdata_text_no_other = (
+        "gss-tsig. 1594203795 1594206664 3 0 KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY"
+    )
 
     def testTextOptionalData(self):
         # construct the rdata from text and extract the TKEY
         tkey = dns.rdata.from_text(
-            RdataClass.ANY, RdataType.TKEY,
-            RdtypeAnyTKeyTestCase.tkey_rdata_text, origin='.')
+            RdataClass.ANY,
+            RdataType.TKEY,
+            RdtypeAnyTKeyTestCase.tkey_rdata_text,
+            origin=".",
+        )
         self.assertEqual(type(tkey), dns.rdtypes.ANY.TKEY.TKEY)
 
         # go to text and compare
         tkey_out_text = tkey.to_text(relativize=False)
-        self.assertEqual(tkey_out_text,
-                         RdtypeAnyTKeyTestCase.tkey_rdata_text)
+        self.assertEqual(tkey_out_text, RdtypeAnyTKeyTestCase.tkey_rdata_text)
 
     def testTextNoOptionalData(self):
         # construct the rdata from text and extract the TKEY
         tkey = dns.rdata.from_text(
-            RdataClass.ANY, RdataType.TKEY,
-            RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other, origin='.')
+            RdataClass.ANY,
+            RdataType.TKEY,
+            RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other,
+            origin=".",
+        )
         self.assertEqual(type(tkey), dns.rdtypes.ANY.TKEY.TKEY)
 
         # go to text and compare
         tkey_out_text = tkey.to_text(relativize=False)
-        self.assertEqual(tkey_out_text,
-                         RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other)
+        self.assertEqual(tkey_out_text, RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other)
 
     def testWireOptionalData(self):
-        key = base64.b64decode('KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY')
-        other = base64.b64decode('OTHEROTHEROTHEROTHEROTHEROTHEROT')
+        key = base64.b64decode("KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY")
+        other = base64.b64decode("OTHEROTHEROTHEROTHEROTHEROTHEROT")
 
         # construct the TKEY and compare the text output
-        tkey = dns.rdtypes.ANY.TKEY.TKEY(dns.rdataclass.ANY,
-                                         dns.rdatatype.TKEY,
-                                         dns.name.from_text('gss-tsig.'),
-                                         1594203795, 1594206664,
-                                         3, 0, key, other)
-        self.assertEqual(tkey.to_text(relativize=False),
-                         RdtypeAnyTKeyTestCase.tkey_rdata_text)
+        tkey = dns.rdtypes.ANY.TKEY.TKEY(
+            dns.rdataclass.ANY,
+            dns.rdatatype.TKEY,
+            dns.name.from_text("gss-tsig."),
+            1594203795,
+            1594206664,
+            3,
+            0,
+            key,
+            other,
+        )
+        self.assertEqual(
+            tkey.to_text(relativize=False), RdtypeAnyTKeyTestCase.tkey_rdata_text
+        )
 
         # go to/from wire and compare the text output
         wire = tkey.to_wire()
-        tkey_out_wire = dns.rdata.from_wire(dns.rdataclass.ANY,
-                                            dns.rdatatype.TKEY,
-                                            wire, 0, len(wire))
-        self.assertEqual(tkey_out_wire.to_text(relativize=False),
-                         RdtypeAnyTKeyTestCase.tkey_rdata_text)
+        tkey_out_wire = dns.rdata.from_wire(
+            dns.rdataclass.ANY, dns.rdatatype.TKEY, wire, 0, len(wire)
+        )
+        self.assertEqual(
+            tkey_out_wire.to_text(relativize=False),
+            RdtypeAnyTKeyTestCase.tkey_rdata_text,
+        )
 
     def testWireNoOptionalData(self):
-        key = base64.b64decode('KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY')
+        key = base64.b64decode("KEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEYKEY")
 
         # construct the TKEY with no 'other' data and compare the text output
-        tkey = dns.rdtypes.ANY.TKEY.TKEY(dns.rdataclass.ANY,
-                                         dns.rdatatype.TKEY,
-                                         dns.name.from_text('gss-tsig.'),
-                                         1594203795, 1594206664,
-                                         3, 0, key)
-        self.assertEqual(tkey.to_text(relativize=False),
-                         RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other)
+        tkey = dns.rdtypes.ANY.TKEY.TKEY(
+            dns.rdataclass.ANY,
+            dns.rdatatype.TKEY,
+            dns.name.from_text("gss-tsig."),
+            1594203795,
+            1594206664,
+            3,
+            0,
+            key,
+        )
+        self.assertEqual(
+            tkey.to_text(relativize=False),
+            RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other,
+        )
 
         # go to/from wire and compare the text output
         wire = tkey.to_wire()
-        tkey_out_wire = dns.rdata.from_wire(dns.rdataclass.ANY,
-                                            dns.rdatatype.TKEY,
-                                            wire, 0, len(wire))
-        self.assertEqual(tkey_out_wire.to_text(relativize=False),
-                         RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other)
+        tkey_out_wire = dns.rdata.from_wire(
+            dns.rdataclass.ANY, dns.rdatatype.TKEY, wire, 0, len(wire)
+        )
+        self.assertEqual(
+            tkey_out_wire.to_text(relativize=False),
+            RdtypeAnyTKeyTestCase.tkey_rdata_text_no_other,
+        )

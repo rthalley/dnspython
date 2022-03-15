@@ -28,69 +28,72 @@ import dns.ttl
 
 
 class BugsTestCase(unittest.TestCase):
-
     def test_float_LOC(self):
-        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC,
-                                    u"30 30 0.000 N 100 30 0.000 W 10.00m 20m 2000m 20m")
+        rdata = dns.rdata.from_text(
+            dns.rdataclass.IN,
+            dns.rdatatype.LOC,
+            "30 30 0.000 N 100 30 0.000 W 10.00m 20m 2000m 20m",
+        )
         self.assertEqual(rdata.float_latitude, 30.5)
         self.assertEqual(rdata.float_longitude, -100.5)
 
     def test_SOA_BIND8_TTL(self):
-        rdata1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
-                                     u"a b 100 1s 1m 1h 1d")
-        rdata2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SOA,
-                                     u"a b 100 1 60 3600 86400")
+        rdata1 = dns.rdata.from_text(
+            dns.rdataclass.IN, dns.rdatatype.SOA, "a b 100 1s 1m 1h 1d"
+        )
+        rdata2 = dns.rdata.from_text(
+            dns.rdataclass.IN, dns.rdatatype.SOA, "a b 100 1 60 3600 86400"
+        )
         self.assertEqual(rdata1, rdata2)
 
     def test_empty_NSEC3_window(self):
-        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NSEC3,
-                                    u"1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715")
+        rdata = dns.rdata.from_text(
+            dns.rdataclass.IN,
+            dns.rdatatype.NSEC3,
+            "1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715",
+        )
         self.assertEqual(rdata.windows, ())
 
     def test_zero_size_APL(self):
-        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL,
-                                    "")
-        rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.APL,
-                                     "", 0, 0)
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL, "")
+        rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.APL, "", 0, 0)
         self.assertEqual(rdata, rdata2)
 
     def test_CAA_from_wire(self):
-        rdata = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CAA,
-                                    '0 issue "ca.example.net"')
+        rdata = dns.rdata.from_text(
+            dns.rdataclass.IN, dns.rdatatype.CAA, '0 issue "ca.example.net"'
+        )
         f = BytesIO()
         rdata.to_wire(f)
         wire = f.getvalue()
         rdlen = len(wire)
         wire += b"trailing garbage"
-        rdata2 = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.CAA,
-                                     wire, 0, rdlen)
+        rdata2 = dns.rdata.from_wire(
+            dns.rdataclass.IN, dns.rdatatype.CAA, wire, 0, rdlen
+        )
         self.assertEqual(rdata, rdata2)
 
     def test_trailing_zero_APL(self):
         in4 = "!1:127.0.0.0/1"
         rd4 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL, in4)
         out4 = rd4.to_digestable(dns.name.from_text("test"))
-        text4 = binascii.hexlify(out4).decode('ascii')
-        self.assertEqual(text4, '000101817f')
+        text4 = binascii.hexlify(out4).decode("ascii")
+        self.assertEqual(text4, "000101817f")
         in6 = "!2:::1000/1"
         rd6 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL, in6)
         out6 = rd6.to_digestable(dns.name.from_text("test"))
-        text6 = binascii.hexlify(out6).decode('ascii')
-        self.assertEqual(text6, '0002018f000000000000000000000000000010')
+        text6 = binascii.hexlify(out6).decode("ascii")
+        self.assertEqual(text6, "0002018f000000000000000000000000000010")
 
     def test_TXT_conversions(self):
-        t1 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
-                                     [b'foo'])
-        t2 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
-                                     b'foo')
-        t3 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
-                                     'foo')
-        t4 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT,
-                                     ['foo'])
+        t1 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, [b"foo"])
+        t2 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, b"foo")
+        t3 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, "foo")
+        t4 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, ["foo"])
         self.assertEqual(t1, t2)
         self.assertEqual(t1, t2)
         self.assertEqual(t1, t4)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
