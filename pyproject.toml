@@ -58,6 +58,7 @@ twine = "^3.1.1"
 wheel = "^0.35.0"
 pylint = "^2.7.4"
 mypy = ">=0.940"
+black = "^22.1.0"
 
 [tool.poetry.extras]
 doh = ['httpx', 'h2', 'requests', 'requests-toolbelt']
