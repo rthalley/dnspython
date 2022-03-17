@@ -117,9 +117,7 @@ class Inbound:
             # the origin.
             #
             if not message.answer or message.answer[0].name != self.origin:
-                raise dns.exception.FormError(
-                    "No answer or RRset not " "for zone origin"
-                )
+                raise dns.exception.FormError("No answer or RRset not for zone origin")
             rrset = message.answer[0]
             rdataset = rrset
             if rdataset.rdtype != dns.rdatatype.SOA:
@@ -183,9 +181,7 @@ class Inbound:
                         self.rdtype == dns.rdatatype.IXFR
                         and self.serial != rdataset[0].serial
                     ):
-                        raise dns.exception.FormError(
-                            "unexpected end of IXFR " "sequence"
-                        )
+                        raise dns.exception.FormError("unexpected end of IXFR sequence")
                     self.txn.replace(name, rdataset)
                     self.txn.commit()
                     self.txn = None
@@ -208,9 +204,7 @@ class Inbound:
                             self.txn.replace(name, rdataset)
                     else:
                         # We saw a non-final SOA for the origin in an AXFR.
-                        raise dns.exception.FormError(
-                            "unexpected origin SOA " "in AXFR"
-                        )
+                        raise dns.exception.FormError("unexpected origin SOA in AXFR")
                 continue
             if self.expecting_SOA:
                 #

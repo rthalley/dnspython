@@ -239,7 +239,7 @@ def _destination_and_source(
         elif af == socket.AF_INET6:
             source = "::"
         else:
-            raise ValueError("source_port specified but address family is " "unknown")
+            raise ValueError("source_port specified but address family is unknown")
     # Convert high-level (address, port) tuples into low-level address
     # tuples.
     if destination:
@@ -376,7 +376,7 @@ def https(
 
     if not _httpx_ok and not _have_requests:
         raise NoDOH(
-            "Cannot use httpx for this operation, and " "requests is not available."
+            "Cannot use httpx for this operation, and requests is not available."
         )
 
     with contextlib.ExitStack() as stack:

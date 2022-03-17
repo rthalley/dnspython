@@ -1115,7 +1115,7 @@ class BaseResolver:
             self._nameservers = nameservers
         else:
             raise ValueError(
-                "nameservers must be a list" " (not a {})".format(type(nameservers))
+                "nameservers must be a list (not a {})".format(type(nameservers))
             )
 
 

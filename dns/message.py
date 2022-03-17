@@ -1073,7 +1073,7 @@ class _WireReader:
                     self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
                 elif rdtype == dns.rdatatype.TSIG:
                     if self.keyring is None:
-                        raise UnknownTSIGKey("got signed message without " "keyring")
+                        raise UnknownTSIGKey("got signed message without keyring")
                     if isinstance(self.keyring, dict):
                         key = self.keyring.get(absolute_name)
                         if isinstance(key, bytes):

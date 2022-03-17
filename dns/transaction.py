@@ -480,7 +480,7 @@ class Transaction:
             self._raise_if_not_empty(method, args)
             if rdataset:
                 if rdataset.rdclass != self.manager.get_class():
-                    raise ValueError(f"{method} has objects of wrong " "RdataClass")
+                    raise ValueError(f"{method} has objects of wrong RdataClass")
                 existing = self._get_rdataset(name, rdataset.rdtype, rdataset.covers)
                 if existing is not None:
                     if exact:

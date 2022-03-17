@@ -450,9 +450,7 @@ class SVCBBase(dns.rdata.Rdata):
                 # Note we have to say "not in" as we have None as a value
                 # so a get() and a not None test would be wrong.
                 if key not in params:
-                    raise ValueError(
-                        f"key {key:d} declared mandatory but not " "present"
-                    )
+                    raise ValueError(f"key {key:d} declared mandatory but not present")
         # The no-default-alpn parameter requires the alpn parameter.
         if ParamKey.NO_DEFAULT_ALPN in params:
             if ParamKey.ALPN not in params:

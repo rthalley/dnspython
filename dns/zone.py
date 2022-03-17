@@ -121,9 +121,7 @@ class Zone(dns.transaction.TransactionManager):
             if isinstance(origin, str):
                 origin = dns.name.from_text(origin)
             elif not isinstance(origin, dns.name.Name):
-                raise ValueError(
-                    "origin parameter must be convertible to a " "DNS name"
-                )
+                raise ValueError("origin parameter must be convertible to a DNS name")
             if not origin.is_absolute():
                 raise ValueError("origin parameter must be an absolute name")
         self.origin = origin
