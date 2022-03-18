@@ -641,10 +641,11 @@ class Zone(dns.transaction.TransactionManager):
         one.
         """
 
-        with contextlib.ExitStack() as stack:
-            if isinstance(f, str):
-                f = stack.enter_context(open(f, "wb"))
-
+        if isinstance(f, str):
+            cm: contextlib.AbstractContextManager = open(f, "wb")
+        else:
+            cm = contextlib.nullcontext(f)
+        with cm as f:
             # must be in this way, f.encoding may contain None, or even
             # attribute may not be there
             file_enc = getattr(f, "encoding", None)
@@ -1290,11 +1291,13 @@ def from_file(
     Returns a subclass of ``dns.zone.Zone``.
     """
 
-    with contextlib.ExitStack() as stack:
-        if isinstance(f, str):
-            if filename is None:
-                filename = f
-            f = stack.enter_context(open(f))
+    if isinstance(f, str):
+        if filename is None:
+            filename = f
+        cm: contextlib.AbstractContextManager = open(f)
+    else:
+        cm = contextlib.nullcontext(f)
+    with cm as f:
         return from_text(
             f,
             origin,
