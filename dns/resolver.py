@@ -903,14 +903,15 @@ class BaseResolver:
 
         """
 
-        with contextlib.ExitStack() as stack:
-            if isinstance(f, str):
-                try:
-                    f = stack.enter_context(open(f))
-                except OSError:
-                    # /etc/resolv.conf doesn't exist, can't be read, etc.
-                    raise NoResolverConfiguration(f"cannot open {f}")
-
+        if isinstance(f, str):
+            try:
+                cm = open(f)
+            except OSError:
+                # /etc/resolv.conf doesn't exist, can't be read, etc.
+                raise NoResolverConfiguration(f"cannot open {f}")
+        else:
+            cm = contextlib.nullcontext(f)
+        with cm as f:
             for l in f:
                 if len(l) == 0 or l[0] == "#" or l[0] == ";":
                     continue

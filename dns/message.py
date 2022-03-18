@@ -1585,9 +1585,11 @@ def from_file(
     Returns a ``dns.message.Message object``
     """
 
-    with contextlib.ExitStack() as stack:
-        if isinstance(f, str):
-            f = stack.enter_context(open(f))
+    if isinstance(f, str):
+        cm = open(f)
+    else:
+        cm = contextlib.nullcontext(f)
+    with cm as f:
         return from_text(f, idna_codec, one_rr_per_rrset)
     assert False  # for mypy  lgtm[py/unreachable-statement]
 

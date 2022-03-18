@@ -379,20 +379,15 @@ def https(
             "Cannot use httpx for this operation, and requests is not available."
         )
 
-    with contextlib.ExitStack() as stack:
-        if not session:
-            if _is_httpx:
-                session = stack.enter_context(
-                    httpx.Client(
-                        http1=True,
-                        http2=_have_http2,
-                        verify=verify,
-                        transport=transport,
-                    )
-                )
-            else:
-                session = stack.enter_context(requests.sessions.Session())
-
+    if session:
+        cm = contextlib.nullcontext(session)
+    elif _is_httpx:
+        cm = httpx.Client(
+            http1=True, http2=_have_http2, verify=verify, transport=transport
+        )
+    else:
+        cm = requests.sessions.Session()
+    with cm as session:
         if transport_adapter:
             session.mount(url, transport_adapter)
 
@@ -635,11 +630,11 @@ def udp(
         where, port, source, source_port
     )
     (begin_time, expiration) = _compute_times(timeout)
-    with contextlib.ExitStack() as stack:
-        if sock:
-            s = sock
-        else:
-            s = stack.enter_context(_make_socket(af, socket.SOCK_DGRAM, source))
+    if sock:
+        cm = contextlib.nullcontext(sock)
+    else:
+        cm = _make_socket(af, socket.SOCK_DGRAM, source)
+    with cm as s:
         send_udp(s, wire, destination, expiration)
         (r, received_time) = receive_udp(
             s,
@@ -918,14 +913,15 @@ def tcp(
 
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
-    with contextlib.ExitStack() as stack:
-        if sock:
-            s = sock
-        else:
-            (af, destination, source) = _destination_and_source(
-                where, port, source, source_port
-            )
-            s = stack.enter_context(_make_socket(af, socket.SOCK_STREAM, source))
+    if sock:
+        cm = contextlib.nullcontext(sock)
+    else:
+        (af, destination, source) = _destination_and_source(
+            where, port, source, source_port
+        )
+        cm = _make_socket(af, socket.SOCK_STREAM, source)
+    with cm as s:
+        if not sock:
             _connect(s, destination, expiration)
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
