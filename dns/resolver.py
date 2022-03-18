@@ -905,7 +905,7 @@ class BaseResolver:
 
         if isinstance(f, str):
             try:
-                cm = open(f)
+                cm: contextlib.AbstractContextManager = open(f)
             except OSError:
                 # /etc/resolv.conf doesn't exist, can't be read, etc.
                 raise NoResolverConfiguration(f"cannot open {f}")

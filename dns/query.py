@@ -380,7 +380,7 @@ def https(
         )
 
     if session:
-        cm = contextlib.nullcontext(session)
+        cm: contextlib.AbstractContextManager = contextlib.nullcontext(session)
     elif _is_httpx:
         cm = httpx.Client(
             http1=True, http2=_have_http2, verify=verify, transport=transport
@@ -631,7 +631,7 @@ def udp(
     )
     (begin_time, expiration) = _compute_times(timeout)
     if sock:
-        cm = contextlib.nullcontext(sock)
+        cm: contextlib.AbstractContextManager = contextlib.nullcontext(sock)
     else:
         cm = _make_socket(af, socket.SOCK_DGRAM, source)
     with cm as s:
@@ -914,7 +914,7 @@ def tcp(
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
     if sock:
-        cm = contextlib.nullcontext(sock)
+        cm: contextlib.AbstractContextManager = contextlib.nullcontext(sock)
     else:
         (af, destination, source) = _destination_and_source(
             where, port, source, source_port

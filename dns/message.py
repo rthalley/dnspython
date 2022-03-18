@@ -1586,7 +1586,7 @@ def from_file(
     """
 
     if isinstance(f, str):
-        cm = open(f)
+        cm: contextlib.AbstractContextManager = open(f)
     else:
         cm = contextlib.nullcontext(f)
     with cm as f:
