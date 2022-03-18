@@ -5,11 +5,7 @@
 from typing import Callable, Deque, Optional, Set, Union
 
 import collections
-
-try:
-    import threading as _threading
-except ImportError:  # pragma: no cover
-    import dummy_threading as _threading  # type: ignore
+import threading
 
 import dns.exception
 import dns.immutable
@@ -73,14 +69,14 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
         """
         super().__init__(origin, rdclass, relativize)
         self._versions: Deque[Version] = collections.deque()
-        self._version_lock = _threading.Lock()
+        self._version_lock = threading.Lock()
         if pruning_policy is None:
             self._pruning_policy = self._default_pruning_policy
         else:
             self._pruning_policy = pruning_policy
         self._write_txn: Optional[Transaction] = None
-        self._write_event: Optional[_threading.Event] = None
-        self._write_waiters: Deque[_threading.Event] = collections.deque()
+        self._write_event: Optional[threading.Event] = None
+        self._write_waiters: Deque[threading.Event] = collections.deque()
         self._readers: Set[Transaction] = set()
         self._commit_version_unlocked(
             None, WritableVersion(self, replacement=True), origin
@@ -145,7 +141,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
                 # Someone else is writing already, so we will have to
                 # wait, but we want to do the actual wait outside the
                 # lock.
-                event = _threading.Event()
+                event = threading.Event()
                 self._write_waiters.append(event)
             # wait (note we gave up the lock!)
             #

@@ -23,14 +23,10 @@ from urllib.parse import urlparse
 import contextlib
 import socket
 import sys
+import threading
 import time
 import random
 import warnings
-
-try:
-    import threading as _threading
-except ImportError:  # pragma: no cover
-    import dummy_threading as _threading  # type: ignore
 
 import dns.exception
 import dns.edns
@@ -330,7 +326,7 @@ class CacheStatistics:
 
 class CacheBase:
     def __init__(self):
-        self.lock = _threading.Lock()
+        self.lock = threading.Lock()
         self.statistics = CacheStatistics()
 
     def reset_statistics(self) -> None:

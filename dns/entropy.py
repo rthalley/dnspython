@@ -20,12 +20,8 @@ from typing import Any, Optional
 import os
 import hashlib
 import random
+import threading
 import time
-
-try:
-    import threading as _threading
-except ImportError:  # pragma: no cover
-    import dummy_threading as _threading  # type: ignore
 
 
 class EntropyPool:
@@ -39,7 +35,7 @@ class EntropyPool:
         self.pool_index = 0
         self.digest: Optional[bytearray] = None
         self.next_byte = 0
-        self.lock = _threading.Lock()
+        self.lock = threading.Lock()
         self.hash = hashlib.sha1()
         self.hash_len = 20
         self.pool = bytearray(b"\0" * self.hash_len)

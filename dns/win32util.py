@@ -11,10 +11,7 @@ if sys.platform == "win32":
     import winreg
 
     try:
-        try:
-            import threading as _threading
-        except ImportError:  # pragma: no cover
-            import dummy_threading as _threading  # type: ignore
+        import threading
         import pythoncom
         import wmi
 
@@ -38,7 +35,7 @@ if sys.platform == "win32":
 
     if _have_wmi:
 
-        class _WMIGetter(_threading.Thread):
+        class _WMIGetter(threading.Thread):
             def __init__(self):
                 super().__init__()
                 self.info = DnsInfo()
