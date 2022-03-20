@@ -88,6 +88,19 @@ GSS_TSIG = dns.name.from_text("gss-tsig")
 
 default_algorithm = HMAC_SHA256
 
+mac_sizes = {
+    HMAC_SHA1: 20,
+    HMAC_SHA224: 28,
+    HMAC_SHA256: 32,
+    HMAC_SHA256_128: 16,
+    HMAC_SHA384: 48,
+    HMAC_SHA384_192: 24,
+    HMAC_SHA512: 64,
+    HMAC_SHA512_256: 32,
+    HMAC_MD5: 16,
+    GSS_TSIG: 128,  # This is what we assume to be the worst case!
+}
+
 
 class GSSTSig:
     """

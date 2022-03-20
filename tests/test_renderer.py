@@ -103,3 +103,14 @@ class RendererTestCase(unittest.TestCase):
             r.add_rdataset(dns.renderer.ANSWER, qname, rds)
 
         self.assertRaises(dns.exception.FormError, bad)
+
+    def test_reservation(self):
+        r = dns.renderer.Renderer(flags=dns.flags.QR, max_size=512)
+        r.reserve(100)
+        assert r.max_size == 412
+        r.release_reserved()
+        assert r.max_size == 512
+        with self.assertRaises(ValueError):
+            r.reserve(-1)
+        with self.assertRaises(ValueError):
+            r.reserve(513)

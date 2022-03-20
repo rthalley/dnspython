@@ -48,12 +48,16 @@ class Renderer:
         r.add_rrset(dns.renderer.ANSWER, rrset_1)
         r.add_rrset(dns.renderer.ANSWER, rrset_2)
         r.add_rrset(dns.renderer.AUTHORITY, ns_rrset)
-        r.add_edns(0, 0, 4096)
         r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_1)
         r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_2)
+        r.add_edns(0, 0, 4096)
         r.write_header()
         r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
         wire = r.get_wire()
+
+    If padding is going to be used, then the OPT record MUST be
+    written after everything else in the additional section except for
+    the TSIG (if any).
 
     output, an io.BytesIO, where rendering is written
 
@@ -90,6 +94,8 @@ class Renderer:
         self.counts = [0, 0, 0, 0]
         self.output.write(b"\x00" * 12)
         self.mac = ""
+        self.reserved = 0
+        self.was_padded = False
 
     def _rollback(self, where):
         """Truncate the output buffer at offset *where*, and remove any
@@ -163,6 +169,29 @@ class Renderer:
             n = rdataset.to_wire(name, self.output, self.compress, self.origin, **kw)
         self.counts[section] += n
 
+    def add_opt(self, opt, pad=0, opt_size=0, tsig_size=0):
+        """Add *opt* to the additional section, applying padding if desired.  The
+        padding will take the specified precomputed OPT size and TSIG size into
+        account.
+
+        Note that we don't have reliable way of knowing how big a GSS-TSIG digest
+        might be, so we we might not get an even multiple of the pad in that case."""
+        if pad:
+            ttl = opt.ttl
+            assert opt_size >= 11
+            opt_rdata = opt[0]
+            size_without_padding = self.output.tell() + opt_size + tsig_size
+            remainder = size_without_padding % pad
+            if remainder:
+                pad = b"\x00" * (pad - remainder)
+            else:
+                pad = b""
+            options = list(opt_rdata.options)
+            options.append(dns.edns.GenericOption(dns.edns.OptionType.PADDING, pad))
+            opt = dns.message.Message._make_opt(ttl, opt_rdata.rdclass, options)
+            self.was_padded = True
+        self.add_rrset(ADDITIONAL, opt)
+
     def add_edns(self, edns, ednsflags, payload, options=None):
         """Add an EDNS OPT record to the message."""
 
@@ -170,7 +199,7 @@ class Renderer:
         ednsflags &= 0xFF00FFFF
         ednsflags |= edns << 16
         opt = dns.message.Message._make_opt(ednsflags, payload, options)
-        self.add_rrset(ADDITIONAL, opt)
+        self.add_opt(opt)
 
     def add_tsig(
         self,
@@ -233,9 +262,13 @@ class Renderer:
         return ctx
 
     def _write_tsig(self, tsig, keyname):
+        if self.was_padded:
+            compress = None
+        else:
+            compress = self.compress
         self._set_section(ADDITIONAL)
         with self._track_size():
-            keyname.to_wire(self.output, self.compress, self.origin)
+            keyname.to_wire(self.output, compress, self.origin)
             self.output.write(
                 struct.pack("!HHIH", dns.rdatatype.TSIG, dns.rdataclass.ANY, 0, 0)
             )
@@ -276,3 +309,17 @@ class Renderer:
         """Return the wire format message."""
 
         return self.output.getvalue()
+
+    def reserve(self, size: int) -> None:
+        """Reserve *size* bytes."""
+        if size < 0:
+            raise ValueError(f"reserved amount must be non-negative")
+        if size > self.max_size:
+            raise ValueError(f"cannot reserve more than the maximum size")
+        self.reserved += size
+        self.max_size -= size
+
+    def release_reserved(self) -> None:
+        """Release the reserved bytes."""
+        self.max_size += self.reserved
+        self.reserved = 0

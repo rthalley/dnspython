@@ -20,6 +20,7 @@ import unittest
 import binascii
 
 import dns.exception
+import dns.edns
 import dns.flags
 import dns.message
 import dns.name
@@ -30,6 +31,7 @@ import dns.tsig
 import dns.update
 import dns.rdtypes.ANY.OPT
 import dns.rdtypes.ANY.TSIG
+import dns.tsigkeyring
 
 from tests.util import here
 
@@ -809,6 +811,56 @@ www.dnspython.org. 300 IN A 1.2.3.4
 """
         )
         self.assertEqual(m, expected_message)
+
+    def test_padding_basic(self):
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=0)
+        w = q.to_wire()
+        self.assertEqual(len(w), 40)
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=128)
+        w = q.to_wire()
+        self.assertEqual(len(w), 128)
+        q2 = dns.message.from_wire(w)
+        self.assertEqual(q, q2)
+
+    def test_padding_various(self):
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=1)
+        w = q.to_wire()
+        self.assertEqual(len(w), 44)
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=2)
+        w = q.to_wire()
+        self.assertEqual(len(w), 44)
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=3)
+        w = q.to_wire()
+        self.assertEqual(len(w), 45)
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=44)
+        w = q.to_wire()
+        self.assertEqual(len(w), 44)
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=67)
+        w = q.to_wire()
+        self.assertEqual(len(w), 67)
+
+    def test_padding_with_option(self):
+        options = [dns.edns.ECSOption("1.2.3.0", 24)]
+        q = dns.message.make_query(
+            "www.example", "a", use_edns=0, pad=128, options=options
+        )
+        w = q.to_wire()
+        self.assertEqual(len(w), 128)
+        q2 = dns.message.from_wire(w)
+        self.assertEqual(q, q2)
+
+    def test_padding_with_tsig_and_option(self):
+        keyring = dns.tsigkeyring.from_text({"keyname.": "NjHwPsMKjdN++dOfE5iAiQ=="})
+        options = [dns.edns.ECSOption("1.2.3.0", 24)]
+        q = dns.message.make_query(
+            "www.example", "a", use_edns=0, options=options, pad=128
+        )
+        q.use_tsig(keyring)
+        w = q.to_wire()
+        self.assertEqual(len(w), 256)
+        q2 = dns.message.from_wire(w, keyring=keyring)
+        self.assertIsNotNone(q2.tsig)
+        self.assertEqual(q, q2)
 
 
 if __name__ == "__main__":
