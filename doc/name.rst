@@ -30,7 +30,7 @@ absolute names.
 
 Names may also be compared according to the DNS tree hierarchy with
 the :py:func:`dns.name.Name.fullcompare` method.  For example
-```www.dnspython.org.`` is a subdomain of ``dnspython.org.``.  See the
+``www.dnspython.org.`` is a subdomain of ``dnspython.org.``.  See the
 method description for full details.
 
 .. toctree::
