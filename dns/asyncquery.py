@@ -485,7 +485,7 @@ async def https(
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    client: Optional[httpx.AsyncClient] = None,
+    client: Optional["httpx.AsyncClient"] = None,
     path: str = "/dns-query",
     post: bool = True,
     verify: bool = True,
