@@ -288,37 +288,36 @@ def https(
 
     *q*, a ``dns.message.Message``, the query to send.
 
-    *where*, a ``str``, the nameserver IP address or the full URL. If an IP
-    address is given, the URL will be constructed using the following schema:
+    *where*, a ``str``, the nameserver IP address or the full URL. If an IP address is
+    given, the URL will be constructed using the following schema:
     https://<IP-address>:<port>/<path>.
 
-    *timeout*, a ``float`` or ``None``, the number of seconds to
-    wait before the query times out. If ``None``, the default, wait forever.
+    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the query
+    times out. If ``None``, the default, wait forever.
 
     *port*, a ``int``, the port to send the query to. The default is 443.
 
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
+    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying the source
+    address.  The default is the wildcard address.
 
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
+    *source_port*, an ``int``, the port from which to send the message. The default is
+    0.
 
-    *one_rr_per_rrset*, a ``bool``. If ``True``, put each RR into its own
-    RRset.
+    *one_rr_per_rrset*, a ``bool``. If ``True``, put each RR into its own RRset.
 
-    *ignore_trailing*, a ``bool``. If ``True``, ignore trailing
-    junk at end of the received message.
+    *ignore_trailing*, a ``bool``. If ``True``, ignore trailing junk at end of the
+    received message.
 
-    *session*, an ``httpx.Client`` or ``requests.session.Session``.  If
-    provided, the client/session to use to send the queries.
+    *session*, an ``httpx.Client`` or ``requests.session.Session``.  If provided, the
+    client/session to use to send the queries.
 
     *path*, a ``str``. If *where* is an IP address, then *path* will be used to
     construct the URL to send the DNS query to.
 
     *post*, a ``bool``. If ``True``, the default, POST method will be used.
 
-    *bootstrap_address*, a ``str``, the IP address to use to bypass the
-    system's DNS resolver.
+    *bootstrap_address*, a ``str``, the IP address to use to bypass the system's DNS
+    resolver.
 
     *verify*, a ``str``, containing a path to a certificate file or directory.
 

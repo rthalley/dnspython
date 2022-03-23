@@ -152,6 +152,7 @@ class Message:
         self.sections: List[List[dns.rrset.RRset]] = [[], [], [], []]
         self.opt: Optional[dns.rrset.RRset] = None
         self.request_payload = 0
+        self.pad = 0
         self.keyring: Any = None
         self.tsig: Optional[dns.rrset.RRset] = None
         self.request_mac = b""
@@ -460,6 +461,38 @@ class Message:
             rrset = None
         return rrset
 
+    def _compute_opt_reserve(self) -> int:
+        """Compute the size required for the OPT RR, padding excluded"""
+        if not self.opt:
+            return 0
+        # 1 byte for the root name, 10 for the standard RR fields
+        size = 11
+        # This would be more efficient if options had a size() method, but we won't
+        # worry about that for now.  We also don't worry if there is an existing padding
+        # option, as it is unlikely and probably harmless, as the worst case is that we
+        # may add another, and this seems to be legal.
+        for option in self.opt[0].options:
+            wire = option.to_wire()
+            # We add 4 here to account for the option type and length
+            size += len(wire) + 4
+        if self.pad:
+            # Padding will be added, so again add the option type and length.
+            size += 4
+        return size
+
+    def _compute_tsig_reserve(self) -> int:
+        """Compute the size required for the TSIG RR"""
+        # This would be more efficient if TSIGs had a size method, but we won't
+        # worry about for now.  Also, we can't really cope with the potential
+        # compressibility of the TSIG owner name, so we estimate with the uncompressed
+        # size.  We will disable compression when TSIG and padding are both is active
+        # so that the padding comes out right.
+        if not self.tsig:
+            return 0
+        f = io.BytesIO()
+        self.tsig.to_wire(f)
+        return len(f.getvalue())
+
     def to_wire(
         self,
         origin: Optional[dns.name.Name] = None,
@@ -505,16 +538,21 @@ class Message:
         elif max_size > 65535:
             max_size = 65535
         r = dns.renderer.Renderer(self.id, self.flags, max_size, origin)
+        opt_reserve = self._compute_opt_reserve()
+        r.reserve(opt_reserve)
+        tsig_reserve = self._compute_tsig_reserve()
+        r.reserve(tsig_reserve)
         for rrset in self.question:
             r.add_question(rrset.name, rrset.rdtype, rrset.rdclass)
         for rrset in self.answer:
             r.add_rrset(dns.renderer.ANSWER, rrset, **kw)
         for rrset in self.authority:
             r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
-        if self.opt is not None:
-            r.add_rrset(dns.renderer.ADDITIONAL, self.opt)
         for rrset in self.additional:
             r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
+        r.release_reserved()
+        if self.opt is not None:
+            r.add_opt(self.opt, self.pad, opt_reserve, tsig_reserve)
         r.write_header()
         if self.tsig is not None:
             (new_tsig, ctx) = dns.tsig.sign(
@@ -619,7 +657,7 @@ class Message:
             self.keyring.algorithm,
             0,
             fudge,
-            b"",
+            b"\x00" * dns.tsig.mac_sizes[self.keyring.algorithm],
             original_id,
             tsig_error,
             other_data,
@@ -669,26 +707,29 @@ class Message:
         payload: int = DEFAULT_EDNS_PAYLOAD,
         request_payload: Optional[int] = None,
         options: Optional[List[dns.edns.Option]] = None,
+        pad: int = 0,
     ) -> None:
         """Configure EDNS behavior.
 
-        *edns*, an ``int``, is the EDNS level to use.  Specifying
-        ``None``, ``False``, or ``-1`` means "do not use EDNS", and in this case
-        the other parameters are ignored.  Specifying ``True`` is
-        equivalent to specifying 0, i.e. "use EDNS0".
+        *edns*, an ``int``, is the EDNS level to use.  Specifying ``None``, ``False``,
+        or ``-1`` means "do not use EDNS", and in this case the other parameters are
+        ignored.  Specifying ``True`` is equivalent to specifying 0, i.e. "use EDNS0".
 
         *ednsflags*, an ``int``, the EDNS flag values.
 
-        *payload*, an ``int``, is the EDNS sender's payload field, which is the
-        maximum size of UDP datagram the sender can handle.  I.e. how big
-        a response to this message can be.
+        *payload*, an ``int``, is the EDNS sender's payload field, which is the maximum
+        size of UDP datagram the sender can handle.  I.e. how big a response to this
+        message can be.
 
-        *request_payload*, an ``int``, is the EDNS payload size to use when
-        sending this message.  If not specified, defaults to the value of
-        *payload*.
+        *request_payload*, an ``int``, is the EDNS payload size to use when sending this
+        message.  If not specified, defaults to the value of *payload*.
 
-        *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS
-        options.
+        *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS options.
+
+        *pad*, a non-negative ``int``.  If 0, the default, do not pad; otherwise add
+        padding bytes to make the message size a multiple of *pad*.  Note that if
+        padding is non-zero, an EDNS PADDING option will always be added to the
+        message.
         """
 
         if edns is None or edns is False:
@@ -708,6 +749,7 @@ class Message:
             if request_payload is None:
                 request_payload = payload
             self.request_payload = request_payload
+            self.pad = pad
 
     @property
     def edns(self) -> int:
@@ -1607,6 +1649,7 @@ def make_query(
     idna_codec: Optional[dns.name.IDNACodec] = None,
     id: Optional[int] = None,
     flags: int = dns.flags.RD,
+    pad: int = 0,
 ) -> QueryMessage:
     """Make a query message.
 
@@ -1655,6 +1698,11 @@ def make_query(
     *flags*, an ``int``, the desired query flags.  The default is
     ``dns.flags.RD``.
 
+    *pad*, a non-negative ``int``.  If 0, the default, do not pad; otherwise add
+    padding bytes to make the message size a multiple of *pad*.  Note that if
+    padding is non-zero, an EDNS PADDING option will always be added to the
+    message.
+
     Returns a ``dns.message.QueryMessage``
     """
 
@@ -1682,6 +1730,7 @@ def make_query(
     if kwargs and use_edns is None:
         use_edns = 0
     kwargs["edns"] = use_edns
+    kwargs["pad"] = pad
     m.use_edns(**kwargs)
     m.want_dnssec(want_dnssec)
     return m
