@@ -15,6 +15,10 @@ What's New in dnspython
 
 * The minimum TLS version is now 1.2.
 
+* EDNS padding is now supported.  Messages with EDNS enabled and with a
+  non-zero pad option will be automatically padded appropriately when
+  converted to wire format.
+
 2.2.1
 -----
 
