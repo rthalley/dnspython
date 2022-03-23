@@ -25,6 +25,7 @@ try:
 except Exception:
     _have_ssl = False
 
+import dns.edns
 import dns.message
 import dns.query
 import dns.rdatatype
@@ -67,6 +68,11 @@ KNOWN_ANYCAST_DOH_RESOLVER_URLS = [
     "https://cloudflare-dns.com/dns-query",
     "https://dns.google/dns-query",
     # 'https://dns11.quad9.net/dns-query',
+]
+
+KNOWN_PAD_AWARE_DOH_RESOLVER_URLS = [
+    "https://cloudflare-dns.com/dns-query",
+    "https://dns.google/dns-query",
 ]
 
 # Some tests require the internet to be available to run, so let's
@@ -255,6 +261,21 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
         seen = set([rdata.address for rdata in answer])
         self.assertTrue("8.8.8.8" in seen)
         self.assertTrue("8.8.4.4" in seen)
+
+    def test_padded_get(self):
+        nameserver_url = random.choice(KNOWN_PAD_AWARE_DOH_RESOLVER_URLS)
+        q = dns.message.make_query("example.com.", dns.rdatatype.A, use_edns=0, pad=128)
+        r = dns.query.https(
+            q, nameserver_url, session=self.session, post=False, timeout=4
+        )
+        self.assertTrue(q.is_response(r))
+        # the response should have a padding option
+        self.assertIsNotNone(r.opt)
+        has_pad = False
+        for o in r.opt[0].options:
+            if o.otype == dns.edns.OptionType.PADDING:
+                has_pad = True
+        self.assertTrue(has_pad)
 
 
 if __name__ == "__main__":
