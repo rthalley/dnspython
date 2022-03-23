@@ -142,6 +142,7 @@ class QueryTests(unittest.TestCase):
                 self.assertTrue("8.8.8.8" in seen)
                 self.assertTrue("8.8.4.4" in seen)
 
+    @unittest.skipUnless(have_ssl, "No SSL support")
     def testQueryTLS(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -183,6 +184,27 @@ class QueryTests(unittest.TestCase):
                     seen = set([rdata.address for rdata in rrs])
                     self.assertTrue("8.8.8.8" in seen)
                     self.assertTrue("8.8.4.4" in seen)
+
+    @unittest.skipUnless(have_ssl, "No SSL support")
+    def testQueryTLSwithPadding(self):
+        for address in query_addresses:
+            qname = dns.name.from_text("dns.google.")
+            q = dns.message.make_query(qname, dns.rdatatype.A, use_edns=0, pad=128)
+            response = dns.query.tls(q, address, timeout=2)
+            rrs = response.get_rrset(
+                response.answer, qname, dns.rdataclass.IN, dns.rdatatype.A
+            )
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue("8.8.8.8" in seen)
+            self.assertTrue("8.8.4.4" in seen)
+            # the response should have a padding option
+            self.assertIsNotNone(response.opt)
+            has_pad = False
+            for o in response.opt[0].options:
+                if o.otype == dns.edns.OptionType.PADDING:
+                    has_pad = True
+            self.assertTrue(has_pad)
 
     def testQueryUDPFallback(self):
         for address in query_addresses:
