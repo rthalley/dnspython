@@ -293,3 +293,54 @@ class TSIGTestCase(unittest.TestCase):
     def test_gss_key_repr(self):
         key = dns.tsig.Key("foo", None, algorithm=dns.tsig.GSS_TSIG)
         self.assertEqual(repr(key), "<DNS key name='foo.', algorithm='gss-tsig.'>")
+
+    def _test_multi(self, pad):
+        tm0 = """id 1
+;QUESTION
+example. IN AXFR
+"""
+        tm1 = """id 1
+flags QR
+;QUESTION
+example. IN AXFR
+;ANSWER
+example. 300 IN SOA . . 1 2 3 4 5
+example. 300 IN NS ns1.tld.
+example. 300 IN NS ns2.tld.
+"""
+        tm2 = """id 1
+flags QR
+;ANSWER
+example. 300 IN MX 10 mail.tld.
+example. 300 IN SOA . . 1 2 3 4 5
+"""
+        m0 = dns.message.from_text(tm0)
+        m0.use_edns(0, pad=pad)
+        m0.use_tsig(keyring)
+        w0 = m0.to_wire()
+        m1 = dns.message.from_text(tm1)
+        m1.use_edns(0, pad=pad)
+        m1.use_tsig(keyring)
+        m1.request_mac = m0.mac
+        w1 = m1.to_wire(multi=True)
+        if pad != 0:
+            self.assertEqual(len(w1) % pad, 0)
+        m2 = dns.message.from_text(tm2)
+        m2.use_edns(0, pad=pad)
+        m2.use_tsig(keyring)
+        w2 = m2.to_wire(multi=True, tsig_ctx=m1.tsig_ctx)
+        if pad != 0:
+            self.assertEqual(len(w2) % pad, 0)
+        m3 = dns.message.from_wire(w1, keyring=keyring, request_mac=m0.mac, multi=True)
+        m4 = dns.message.from_wire(
+            w2, keyring=keyring, multi=True, tsig_ctx=m3.tsig_ctx
+        )
+        # Not raising means we passed validation
+        self.assertEqual(m1, m3)
+        self.assertEqual(m2, m4)
+
+    def test_multi(self):
+        self._test_multi(0)
+
+    def test_multi_with_pad(self):
+        self._test_multi(468)
