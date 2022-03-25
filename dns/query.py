@@ -357,7 +357,7 @@ def https(
         # set source port and source address
         if _have_httpx:
             if source_port == 0:
-                transport = httpx.HTTPTransport(local_address=source[0])
+                transport = httpx.HTTPTransport(local_address=source[0], verify=verify)
             else:
                 _httpx_ok = False
         if _have_requests:
