@@ -357,7 +357,7 @@ def https(
         # set source port and source address
         if _have_httpx:
             if source_port == 0:
-                transport = httpx.HTTPTransport(local_address=source[0])
+                transport = httpx.HTTPTransport(local_address=source[0], verify=verify)
             else:
                 _httpx_ok = False
         if _have_requests:
@@ -390,7 +390,7 @@ def https(
     else:
         cm = requests.sessions.Session()
     with cm as session:
-        if transport_adapter:
+        if transport_adapter and not _is_httpx:
             session.mount(url, transport_adapter)
 
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
