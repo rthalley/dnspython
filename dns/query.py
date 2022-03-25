@@ -282,7 +282,7 @@ def https(
     path: str = "/dns-query",
     post: bool = True,
     bootstrap_address: Optional[str] = None,
-    verify: bool = True,
+    verify: Union[bool, str] = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -319,7 +319,10 @@ def https(
     *bootstrap_address*, a ``str``, the IP address to use to bypass the system's DNS
     resolver.
 
-    *verify*, a ``str``, containing a path to a certificate file or directory.
+    *verify*, a ``bool`` or ``str``.  If a ``True``, then TLS certificate verification
+    of the server is done using the default CA bundle; if ``False``, then no
+    verification is done; if a `str` then it specifies the path to a certificate file or
+    directory which will be used for verification.
 
     Returns a ``dns.message.Message``.
     """

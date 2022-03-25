@@ -488,7 +488,7 @@ async def https(
     client: Optional["httpx.AsyncClient"] = None,
     path: str = "/dns-query",
     post: bool = True,
-    verify: bool = True,
+    verify: Union[bool, str] = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
