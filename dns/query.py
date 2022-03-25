@@ -390,7 +390,7 @@ def https(
     else:
         cm = requests.sessions.Session()
     with cm as session:
-        if transport_adapter:
+        if transport_adapter and not _is_httpx:
             session.mount(url, transport_adapter)
 
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
