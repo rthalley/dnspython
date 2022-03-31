@@ -82,6 +82,3 @@ lifetime of the Python 3 versions.
 
 Documentation has moved to
 [dnspython.readthedocs.io](https://dnspython.readthedocs.io).
-
-The ChangeLog has been discontinued.  Please see the git history for detailed
-change information.
