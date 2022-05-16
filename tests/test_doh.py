@@ -38,6 +38,8 @@ if dns.query._have_requests:
 if dns.query._have_httpx:
     import httpx
 
+import tests.util
+
 # Probe for IPv4 and IPv6
 resolver_v4_addresses = []
 resolver_v6_addresses = []
@@ -75,17 +77,9 @@ KNOWN_PAD_AWARE_DOH_RESOLVER_URLS = [
     "https://dns.google/dns-query",
 ]
 
-# Some tests require the internet to be available to run, so let's
-# skip those if it's not there.
-_network_available = True
-try:
-    socket.gethostbyname("dnspython.org")
-except socket.gaierror:
-    _network_available = False
-
 
 @unittest.skipUnless(
-    dns.query._have_requests and _network_available,
+    dns.query._have_requests and tests.util.is_internet_reachable(),
     "Python requests cannot be imported; no DNS over HTTPS (DOH)",
 )
 class DNSOverHTTPSTestCaseRequests(unittest.TestCase):
@@ -165,7 +159,7 @@ class DNSOverHTTPSTestCaseRequests(unittest.TestCase):
 
 
 @unittest.skipUnless(
-    dns.query._have_httpx and _network_available and _have_ssl,
+    dns.query._have_httpx and tests.util.is_internet_reachable() and _have_ssl,
     "Python httpx cannot be imported; no DNS over HTTPS (DOH)",
 )
 class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):

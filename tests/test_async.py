@@ -31,7 +31,7 @@ import dns.query
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
-
+import tests.util
 
 # Some tests require TLS so skip those if it's not there.
 ssl = dns.query.ssl
@@ -40,15 +40,6 @@ try:
     _ssl_available = True
 except Exception:
     _ssl_available = False
-
-
-# Some tests require the internet to be available to run, so let's
-# skip those if it's not there.
-_network_available = True
-try:
-    socket.gethostbyname("dnspython.org")
-except socket.gaierror:
-    _network_available = False
 
 
 # Look for systemd-resolved, as it does dangling CNAME responses incorrectly.
@@ -178,7 +169,7 @@ class MiscQuery(unittest.TestCase):
         self.assertEqual(t, ("::", 53))
 
 
-@unittest.skipIf(not _network_available, "Internet not reachable")
+@unittest.skipIf(not tests.util.is_internet_reachable(), "Internet not reachable")
 class AsyncTests(unittest.TestCase):
     connect_udp = sys.platform == "win32"
 
