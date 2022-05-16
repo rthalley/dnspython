@@ -36,14 +36,7 @@ import dns.rdatatype
 import dns.query
 import dns.tsigkeyring
 import dns.zone
-
-# Some tests require the internet to be available to run, so let's
-# skip those if it's not there.
-_network_available = True
-try:
-    socket.gethostbyname("dnspython.org")
-except socket.gaierror:
-    _network_available = False
+import tests.util
 
 # Some tests use a "nano nameserver" for testing.  It requires trio
 # and threading, so try to import it and if it doesn't work, skip
@@ -77,7 +70,7 @@ for (af, address) in (
 keyring = dns.tsigkeyring.from_text({"name": "tDz6cfXXGtNivRpQ98hr6A=="})
 
 
-@unittest.skipIf(not _network_available, "Internet not reachable")
+@unittest.skipIf(not tests.util.is_internet_reachable(), "Internet not reachable")
 class QueryTests(unittest.TestCase):
     def testQueryUDP(self):
         for address in query_addresses:

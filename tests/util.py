@@ -17,11 +17,34 @@
 
 import enum
 import inspect
-import os.path
+import os
+import socket
+
+# Cache for is_internet_reachable()
+_internet_reachable = None
 
 
 def here(filename):
     return os.path.join(os.path.dirname(__file__), filename)
+
+
+def is_internet_reachable():
+    """Check if the Internet is reachable.
+
+    Setting the environment variable `NO_INTERNET` will let this
+    function always return False. The result is cached.
+    """
+    global _internet_reachable
+    if _internet_reachable is None:
+        if os.environ.get("NO_INTERNET"):
+            _internet_reachable = False
+        else:
+            try:
+                socket.gethostbyname("dnspython.org")
+                _internet_reachable = True
+            except socket.gaierror:
+                _internet_reachable = False
+    return _internet_reachable
 
 
 def enumerate_module(module, super_class):

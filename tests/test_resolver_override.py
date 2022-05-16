@@ -8,17 +8,10 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
-
-# Some tests require the internet to be available to run, so let's
-# skip those if it's not there.
-_network_available = True
-try:
-    socket.gethostbyname("dnspython.org")
-except socket.gaierror:
-    _network_available = False
+import tests.util
 
 
-@unittest.skipIf(not _network_available, "Internet not reachable")
+@unittest.skipIf(not tests.util.is_internet_reachable(), "Internet not reachable")
 class OverrideSystemResolverTestCase(unittest.TestCase):
     def setUp(self):
         self.res = dns.resolver.Resolver(configure=False)
@@ -242,7 +235,7 @@ class OverrideSystemResolverUsingFakeResolverTestCase(unittest.TestCase):
             socket.gethostbyaddr("bogus")
 
 
-@unittest.skipIf(not _network_available, "Internet not reachable")
+@unittest.skipIf(not tests.util.is_internet_reachable(), "Internet not reachable")
 class OverrideSystemResolverUsingDefaultResolverTestCase(unittest.TestCase):
     def setUp(self):
         self.res = FakeResolver()
