@@ -492,7 +492,7 @@ class Name:
         """Is self a subdomain of other?
 
         Note that the notion of subdomain includes equality, e.g.
-        "dnpython.org" is a subdomain of itself.
+        "dnspython.org" is a subdomain of itself.
 
         Returns a ``bool``.
         """
@@ -506,7 +506,7 @@ class Name:
         """Is self a superdomain of other?
 
         Note that the notion of superdomain includes equality, e.g.
-        "dnpython.org" is a superdomain of itself.
+        "dnspython.org" is a superdomain of itself.
 
         Returns a ``bool``.
         """
