@@ -705,6 +705,7 @@ class LiveResolverTests(unittest.TestCase):
             self.assertIn(qname, nx.qnames())
             self.assertGreaterEqual(len(nx.responses()), 1)
 
+    @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
     def testResolveCacheHit(self):
         res = dns.resolver.Resolver(configure=False)
         res.nameservers = ["8.8.8.8"]

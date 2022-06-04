@@ -40,31 +40,20 @@ if dns.query._have_httpx:
 
 import tests.util
 
-# Probe for IPv4 and IPv6
 resolver_v4_addresses = []
 resolver_v6_addresses = []
-try:
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.settimeout(4)
-        s.connect(("8.8.8.8", 53))
+if tests.util.have_ipv4():
     resolver_v4_addresses = [
         "1.1.1.1",
         "8.8.8.8",
         # '9.9.9.9',
     ]
-except Exception:
-    pass
-try:
-    with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as s:
-        s.connect(("2001:4860:4860::8888", 53))
+if tests.util.have_ipv6():
     resolver_v6_addresses = [
         "2606:4700:4700::1111",
-        # Google says 404
-        # '2001:4860:4860::8888',
+        "2001:4860:4860::8888",
         # '2620:fe::fe',
     ]
-except Exception:
-    pass
 
 KNOWN_ANYCAST_DOH_RESOLVER_URLS = [
     "https://cloudflare-dns.com/dns-query",
