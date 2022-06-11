@@ -555,6 +555,7 @@ try:
     import curio
     import sniffio
 
+    @unittest.skipIf(sys.platform == "win32", "curio does not work in windows CI")
     class CurioAsyncDetectionTests(AsyncDetectionTests):
         sniff_result = "curio"
 
@@ -562,6 +563,7 @@ try:
             with curio.Kernel() as kernel:
                 return kernel.run(afunc, shutdown=True)
 
+    @unittest.skipIf(sys.platform == "win32", "curio does not work in windows CI")
     class CurioNoSniffioAsyncDetectionTests(NoSniffioAsyncDetectionTests):
         expect_raise = True
 
@@ -569,6 +571,7 @@ try:
             with curio.Kernel() as kernel:
                 return kernel.run(afunc, shutdown=True)
 
+    @unittest.skipIf(sys.platform == "win32", "curio does not work in windows CI")
     class CurioAsyncTests(AsyncTests):
         connect_udp = False
 
