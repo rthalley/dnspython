@@ -90,7 +90,6 @@ def is_internet_reachable():
             _have_ipv6 = check_networking(
                 ["2001:4860:4860::8888", "2606:4700:4700::1111"]
             )
-            print(_have_ipv4 or _have_ipv6)
             _internet_reachable = _have_ipv4 or _have_ipv6
     return _internet_reachable
 
