@@ -559,13 +559,15 @@ try:
         sniff_result = "curio"
 
         def async_run(self, afunc):
-            return curio.run(afunc)
+            with curio.Kernel() as kernel:
+                return kernel.run(afunc, shutdown=True)
 
     class CurioNoSniffioAsyncDetectionTests(NoSniffioAsyncDetectionTests):
         expect_raise = True
 
         def async_run(self, afunc):
-            return curio.run(afunc)
+            with curio.Kernel() as kernel:
+                return kernel.run(afunc, shutdown=True)
 
     class CurioAsyncTests(AsyncTests):
         connect_udp = False
@@ -574,7 +576,8 @@ try:
             self.backend = dns.asyncbackend.set_default_backend("curio")
 
         def async_run(self, afunc):
-            return curio.run(afunc)
+            with curio.Kernel() as kernel:
+                return kernel.run(afunc, shutdown=True)
 
 except ImportError:
     pass
