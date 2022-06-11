@@ -1,6 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import asyncio
+import sys
 
 import pytest
 
@@ -711,7 +712,10 @@ except ImportError:
 try:
     import curio
 
-    @pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+    @pytest.mark.skipif(
+        (not _nanonameserver_available) or sys.platform == "win32",
+        reason="requires nanonameserver or is windows",
+    )
     def test_curio_inbound_xfr():
         dns.asyncbackend.set_default_backend("curio")
 
