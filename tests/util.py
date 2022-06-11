@@ -20,12 +20,54 @@ import inspect
 import os
 import socket
 
+import dns.message
+import dns.name
+import dns.query
+import dns.rdataclass
+import dns.rdatatype
+
 # Cache for is_internet_reachable()
 _internet_reachable = None
+_have_ipv4 = False
+_have_ipv6 = False
 
 
 def here(filename):
     return os.path.join(os.path.dirname(__file__), filename)
+
+
+def check_networking(addresses):
+    """Can we do a DNS resolution via UDP and TCP to at least one of the addresses?"""
+    for address in addresses:
+        try:
+            q = dns.message.make_query(dns.name.root, dns.rdatatype.NS)
+            ok = False
+            # We try UDP a few times in case we get unlucky and a packet is lost.
+            for i in range(5):
+                # We don't check the answer other than make sure there is one.
+                try:
+                    r = dns.query.udp(q, address, timeout=4)
+                    ns = r.find_rrset(
+                        r.answer, dns.name.root, dns.rdataclass.IN, dns.rdatatype.NS
+                    )
+                    ok = True
+                    break
+                except Exception:
+                    continue  # UDP try loop
+            if not ok:
+                continue  # addresses loop
+            try:
+                r = dns.query.tcp(q, address, timeout=4)
+                ns = r.find_rrset(
+                    r.answer, dns.name.root, dns.rdataclass.IN, dns.rdatatype.NS
+                )
+                # UDP and TCP both work!
+                return True
+            except Exception:
+                continue
+        except Exception as e:
+            pass
+    return False
 
 
 def is_internet_reachable():
@@ -33,18 +75,35 @@ def is_internet_reachable():
 
     Setting the environment variable `NO_INTERNET` will let this
     function always return False. The result is cached.
+
+    We check using the Google and Cloudflare public resolvers as they are highly
+    available and have well-known stable addresses.
     """
     global _internet_reachable
     if _internet_reachable is None:
         if os.environ.get("NO_INTERNET"):
             _internet_reachable = False
         else:
-            try:
-                socket.gethostbyname("dnspython.org")
-                _internet_reachable = True
-            except socket.gaierror:
-                _internet_reachable = False
+            global _have_ipv4
+            _have_ipv4 = check_networking(["8.8.8.8", "1.1.1.1"])
+            global _have_ipv6
+            _have_ipv6 = check_networking(
+                ["2001:4860:4860::8888", "2606:4700:4700::1111"]
+            )
+            _internet_reachable = _have_ipv4 or _have_ipv6
     return _internet_reachable
+
+
+def have_ipv4():
+    if not is_internet_reachable():
+        return False
+    return _have_ipv4
+
+
+def have_ipv6():
+    if not is_internet_reachable():
+        return False
+    return _have_ipv6
 
 
 def enumerate_module(module, super_class):

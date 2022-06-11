@@ -53,20 +53,11 @@ try:
 except Exception:
     pass
 
-# Probe for IPv4 and IPv6
 query_addresses = []
-for (af, address) in (
-    (socket.AF_INET, "8.8.8.8"),
-    (socket.AF_INET6, "2001:4860:4860::8888"),
-):
-    try:
-        with socket.socket(af, socket.SOCK_DGRAM) as s:
-            # Connecting a UDP socket is supposed to return ENETUNREACH if
-            # no route to the network is present.
-            s.connect((address, 53))
-        query_addresses.append(address)
-    except Exception:
-        pass
+if tests.util.have_ipv4():
+    query_addresses.append("8.8.8.8")
+if tests.util.have_ipv6():
+    query_addresses.append("2001:4860:4860::8888")
 
 KNOWN_ANYCAST_DOH_RESOLVER_URLS = [
     "https://cloudflare-dns.com/dns-query",
