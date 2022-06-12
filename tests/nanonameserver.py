@@ -122,13 +122,15 @@ class Server(threading.Thread):
                     if self.port == 0 and self.enable_udp:
                         try:
                             self.tcp.bind((self.address, self.udp_address[1]))
-                        except OSError as e:
-                            if (
-                                e.errno == errno.EADDRINUSE
-                                and len(open_udp_sockets) < 100
-                            ):
+                        except OSError:
+                            # We can get EADDRINUSE and other errors like EPERM, so
+                            # we just remember to close the UDP socket later, try again,
+                            # and hope we get a better port.  You'd think the OS would
+                            # know better...
+                            if len(open_udp_sockets) < 100:
                                 open_udp_sockets.append(self.udp)
                                 continue
+                            # 100 tries to find a port is enough!  Give up!
                             raise
                     else:
                         self.tcp.bind((self.address, self.port))
