@@ -121,6 +121,23 @@ class RdataType(dns.enum.IntEnum):
         return "TYPE"
 
     @classmethod
+    def _extra_from_text(cls, text):
+        if text.find("-") >= 0:
+            try:
+                return cls[text.replace("-", "_")]
+            except KeyError:
+                pass
+        return _registered_by_text.get(text)
+
+    @classmethod
+    def _extra_to_text(cls, value, current_text):
+        if current_text is None:
+            return _registered_by_value.get(value)
+        if current_text.find("_") >= 0:
+            return current_text.replace("_", "-")
+        return current_text
+
+    @classmethod
     def _unknown_exception_class(cls):
         return UnknownRdatatype
 
@@ -158,14 +175,7 @@ def from_text(text: str) -> RdataType:
     Returns a ``dns.rdatatype.RdataType``.
     """
 
-    text = text.upper().replace("-", "_")
-    try:
-        return RdataType.from_text(text)
-    except UnknownRdatatype:
-        registered_type = _registered_by_text.get(text)
-        if registered_type:
-            return registered_type
-        raise
+    return RdataType.from_text(text)
 
 
 def to_text(value: RdataType) -> str:
@@ -179,12 +189,7 @@ def to_text(value: RdataType) -> str:
     Returns a ``str``.
     """
 
-    text = RdataType.to_text(value)
-    if text.startswith("TYPE"):
-        registered_text = _registered_by_value.get(value)
-        if registered_text:
-            text = registered_text
-    return text.replace("_", "-")
+    return RdataType.to_text(value)
 
 
 def is_metatype(rdtype: RdataType) -> bool:

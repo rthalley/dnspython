@@ -61,6 +61,9 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(rdata.strings, (b"hello", b"world"))
         self.assertEqual(dns.rdatatype.to_text(TTXT), "TTXT")
         self.assertEqual(dns.rdatatype.from_text("TTXT"), TTXT)
+        self.assertEqual(dns.rdatatype.RdataType.make("TTXT"), TTXT)
+        self.assertEqual(dns.rdatatype.from_text("ttxt"), TTXT)
+        self.assertEqual(dns.rdatatype.RdataType.make("ttxt"), TTXT)
 
     def test_module_reregistration(self):
         def bad():
@@ -936,6 +939,14 @@ class UtilTestCase(unittest.TestCase):
             dns.rdataset.from_text("in", "a", 1.6, "10.0.0.1")
         with self.assertRaises(dns.ttl.BadTTL):
             dns.rdataset.from_text("in", "a", "10.0.0.1", "10.0.0.2")
+
+    def test_nsap_ptr_type(self):
+        # The NSAP-PTR type is special because it contains a dash, which means
+        # that its enum value is not the same as its string value.
+        self.assertEqual(dns.rdatatype.from_text("NSAP-PTR"), dns.rdatatype.NSAP_PTR)
+        self.assertEqual(
+            dns.rdatatype.RdataType.make("NSAP-PTR"), dns.rdatatype.NSAP_PTR
+        )
 
 
 Rdata = dns.rdata.Rdata
