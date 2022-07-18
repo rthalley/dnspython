@@ -33,6 +33,9 @@ class IntEnum(enum.IntEnum):
             return cls[text]
         except KeyError:
             pass
+        value = cls._extra_from_text(text)
+        if value:
+            return value
         prefix = cls._prefix()
         if text.startswith(prefix) and text[len(prefix) :].isdigit():
             value = int(text[len(prefix) :])
@@ -47,9 +50,13 @@ class IntEnum(enum.IntEnum):
     def to_text(cls, value):
         cls._check_value(value)
         try:
-            return cls(value).name
+            text = cls(value).name
         except ValueError:
-            return f"{cls._prefix()}{value}"
+            text = None
+        text = cls._extra_to_text(value, text)
+        if text is None:
+            text = f"{cls._prefix()}{value}"
+        return text
 
     @classmethod
     def make(cls, value):
@@ -85,6 +92,14 @@ class IntEnum(enum.IntEnum):
     @classmethod
     def _prefix(cls):
         return ""
+
+    @classmethod
+    def _extra_from_text(cls, text):
+        return None
+
+    @classmethod
+    def _extra_to_text(cls, value, current_text):
+        return current_text
 
     @classmethod
     def _unknown_exception_class(cls):
