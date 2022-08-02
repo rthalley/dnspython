@@ -313,9 +313,9 @@ class Renderer:
     def reserve(self, size: int) -> None:
         """Reserve *size* bytes."""
         if size < 0:
-            raise ValueError(f"reserved amount must be non-negative")
+            raise ValueError("reserved amount must be non-negative")
         if size > self.max_size:
-            raise ValueError(f"cannot reserve more than the maximum size")
+            raise ValueError("cannot reserve more than the maximum size")
         self.reserved += size
         self.max_size -= size
 
