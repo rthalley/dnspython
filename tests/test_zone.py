@@ -58,6 +58,43 @@ ns1 3600 IN A 10.0.0.1
 ns2 3600 IN A 10.0.0.2
 """
 
+example_generate = """@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns
+$GENERATE 9-12       a.$         A 10.0.0.$
+$GENERATE 80-254/173 b.${0,5,d}  A 10.0.1.$
+$GENERATE 80-254/173 c.${0,5,o}  A 10.0.2.$
+$GENERATE 80-254/173 d.${0,5,x}  A 10.0.3.$
+$GENERATE 80-254/173 e.${0,5,X}  A 10.0.4.$
+$GENERATE 80-254/173 f.${0,5,n}  A 10.0.5.$
+$GENERATE 80-254/173 g.${0,5,N}  A 10.0.6.$
+$GENERATE 218-218/1  h.${0,4,N}  A 10.0.7.$
+$GENERATE 218-218/1  i.${0,4,N}j A 10.0.8.$
+$GENERATE 23-24      k.${1,2,d}  A 10.0.9.${-1,2,d}
+"""
+
+example_generate_output = """@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns
+a.9 5 IN A 10.0.0.9
+a.10 5 IN A 10.0.0.10
+a.11 5 IN A 10.0.0.11
+a.12 5 IN A 10.0.0.12
+b.00080 5 IN A 10.0.1.80
+b.00253 5 IN A 10.0.1.253
+c.00120 5 IN A 10.0.2.80
+c.00375 5 IN A 10.0.2.253
+d.00050 5 IN A 10.0.3.80
+d.000fd 5 IN A 10.0.3.253
+e.00050 5 IN A 10.0.4.80
+e.000FD 5 IN A 10.0.4.253
+f.0.5.0 5 IN A 10.0.5.80
+f.d.f.0 5 IN A 10.0.5.253
+g.0.5.0 5 IN A 10.0.6.80
+g.D.F.0 5 IN A 10.0.6.253
+i.A.D.j 5 IN A 10.0.8.218
+k.24 5 IN A 10.0.9.22
+k.25 5 IN A 10.0.9.23
+"""
+
 something_quite_similar = """@ 3600 IN SOA foo bar 1 2 3 4 5
 @ 3600 IN NS ns1
 @ 3600 IN NS ns2
@@ -430,6 +467,15 @@ class ZoneTestCase(unittest.TestCase):
             f.write(z[n].to_text(n))
             f.write("\n")
         self.assertEqual(f.getvalue(), example_text_output)
+
+    def testGenerate(self):
+        z = dns.zone.from_text(example_generate, "example.", relativize=True)
+        f = StringIO()
+        names = list(z.nodes.keys())
+        for n in names:
+            f.write(z[n].to_text(n))
+            f.write("\n")
+        self.assertEqual(f.getvalue(), example_generate_output)
 
     def testTorture1(self):
         #

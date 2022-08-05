@@ -244,7 +244,7 @@ class Reader:
 
         self.txn.add(name, ttl, rd)
 
-    def _parse_modify(self, side):
+    def _parse_modify(self, side: str) -> Tuple[str, str, int, int, str]:
         # Here we catch everything in '{' '}' in a group so we can replace it
         # with ''.
         is_generate1 = re.compile(r"^.*\$({(\+|-?)(\d+),(\d+),(.)}).*$")
@@ -279,8 +279,17 @@ class Reader:
             width = 0
             base = "d"
 
-        if base != "d":
-            raise NotImplementedError()
+        offset = int(offset)
+        width = int(width)
+
+        if sign not in ["+", "-"]:
+            raise dns.exception.SyntaxError(
+                "invalid offset sign %s" % sign
+            )
+        if base not in ["d", "o", "x", "X", "n", "N"]:
+            raise dns.exception.SyntaxError(
+                "invalid type %s" % base
+            )
 
         return mod, sign, offset, width, base
 
@@ -349,25 +358,35 @@ class Reader:
         # rhs (required)
         rhs = token.value
 
-        # The code currently only supports base 'd', so the last value
-        # in the tuple _parse_modify returns is ignored
-        lmod, lsign, loffset, lwidth, _ = self._parse_modify(lhs)
-        rmod, rsign, roffset, rwidth, _ = self._parse_modify(rhs)
+        def _calculate_index(counter: int, offset_sign: str, offset: int) -> int:
+            """Calculate the index from the counter and offset."""
+            if offset_sign == "-":
+                offset *= -1
+            return counter + offset
+
+        def _format_index(index: int, base: str, width: int) -> str:
+            """Format the index with the given base, and zero-fill it
+            to the given width."""
+            if base in ["d", "o", "x", "X"]:
+                return format(index, base).zfill(width)
+
+            # base can only be n or N here
+            hexa = _format_index(index, "x", width)
+            nibbles = ".".join(hexa[::-1])[:width]
+            if base == "N":
+                nibbles = nibbles.upper()
+            return nibbles
+
+        lmod, lsign, loffset, lwidth, lbase = self._parse_modify(lhs)
+        rmod, rsign, roffset, rwidth, rbase = self._parse_modify(rhs)
         for i in range(start, stop + 1, step):
             # +1 because bind is inclusive and python is exclusive
 
-            if lsign == "+":
-                lindex = i + int(loffset)
-            elif lsign == "-":
-                lindex = i - int(loffset)
+            lindex = _calculate_index(i, lsign, loffset)
+            rindex = _calculate_index(i, rsign, roffset)
 
-            if rsign == "-":
-                rindex = i - int(roffset)
-            elif rsign == "+":
-                rindex = i + int(roffset)
-
-            lzfindex = str(lindex).zfill(int(lwidth))
-            rzfindex = str(rindex).zfill(int(rwidth))
+            lzfindex = _format_index(lindex, lbase, lwidth)
+            rzfindex = _format_index(rindex, rbase, rwidth)
 
             name = lhs.replace("$%s" % (lmod), lzfindex)
             rdata = rhs.replace("$%s" % (rmod), rzfindex)
