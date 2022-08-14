@@ -1248,6 +1248,7 @@ def from_file(
     filename: Optional[str] = None,
     allow_include: bool = True,
     check_origin: bool = True,
+    idna_codec: Optional[dns.name.IDNACodec] = None,
 ) -> Zone:
     """Read a zone file and build a zone object.
 
@@ -1307,6 +1308,7 @@ def from_file(
             filename,
             allow_include,
             check_origin,
+            idna_codec,
         )
     assert False  # make mypy happy  lgtm[py/unreachable-statement]
 
