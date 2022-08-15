@@ -1210,7 +1210,7 @@ def from_text(
     encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
     is used.
 
-    *allow_directives*, a ``bool`` or an iteratable of `str`.  If ``True``, the default,
+    *allow_directives*, a ``bool`` or an iterable of `str`.  If ``True``, the default,
     then directives are permitted, and the *allow_include* parameter controls whether
     ``$INCLUDE`` is permitted.  If ``False`` or an empty iterable, then no directive
     processing is done and any directive-like text will be treated as a regular owner
@@ -1298,7 +1298,7 @@ def from_file(
     encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
     is used.
 
-    *allow_directives*, a ``bool`` or an iteratable of `str`.  If ``True``, the default,
+    *allow_directives*, a ``bool`` or an iterable of `str`.  If ``True``, the default,
     then directives are permitted, and the *allow_include* parameter controls whether
     ``$INCLUDE`` is permitted.  If ``False`` or an empty iterable, then no directive
     processing is done and any directive-like text will be treated as a regular owner
