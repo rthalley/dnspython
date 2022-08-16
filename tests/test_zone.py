@@ -854,9 +854,82 @@ class ZoneTestCase(unittest.TestCase):
         z2 = dns.zone.from_file(here("example"), "example.", relativize=True)
         self.assertEqual(z1, z2)
 
+    def testNoInclude(self):
+        def bad():
+            dns.zone.from_text(
+                include_text, "example.", relativize=True, allow_include=False
+            )
+
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testExplicitInclude(self):
+        z1 = dns.zone.from_text(
+            include_text,
+            "example.",
+            relativize=True,
+            allow_directives={"$INCLUDE", "$ORIGIN", "$TTL"},
+        )
+        z2 = dns.zone.from_file(here("example"), "example.", relativize=True)
+        self.assertEqual(z1, z2)
+
+    def testExplicitIncludeNotUpperNoDollar(self):
+        z1 = dns.zone.from_text(
+            include_text,
+            "example.",
+            relativize=True,
+            allow_directives={"InClUdE", "origin", "TTL"},
+        )
+        z2 = dns.zone.from_file(here("example"), "example.", relativize=True)
+        self.assertEqual(z1, z2)
+
+    def testExplicitLowerCase(self):
+        z1 = dns.zone.from_text(
+            include_text,
+            "example.",
+            relativize=True,
+            allow_directives={"$include", "$origin", "$ttl"},
+        )
+        z2 = dns.zone.from_file(here("example"), "example.", relativize=True)
+        self.assertEqual(z1, z2)
+
+    def testExplicitWithoutInclude1(self):
+        def bad():
+            dns.zone.from_text(
+                include_text,
+                "example.",
+                relativize=True,
+                allow_include=False,
+                allow_directives={"$ORIGIN", "$TTL"},
+            )
+
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testExplicitWithoutInclude2(self):
+        def bad():
+            dns.zone.from_text(
+                include_text,
+                "example.",
+                relativize=True,
+                allow_include=True,
+                allow_directives={"$ORIGIN", "$TTL"},
+            )
+
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
     def testBadDirective(self):
         def bad():
             dns.zone.from_text(bad_directive_text, "example.", relativize=True)
+
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testAllowedButNotImplementedDirective(self):
+        def bad():
+            dns.zone.from_text(
+                bad_directive_text,
+                "example.",
+                relativize=True,
+                allow_directives={"$FOO", "$ORIGIN"},
+            )
 
         self.assertRaises(dns.exception.SyntaxError, bad)
 

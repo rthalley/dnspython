@@ -17,7 +17,7 @@
 
 """DNS Zones."""
 
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterator, Iterable, List, Optional, Set, Tuple, Union
 
 import contextlib
 import io
@@ -1175,6 +1175,7 @@ def from_text(
     allow_include: bool = False,
     check_origin: bool = True,
     idna_codec: Optional[dns.name.IDNACodec] = None,
+    allow_directives: Union[bool, Iterable[str]] = True,
 ) -> Zone:
     """Build a zone object from a zone file format string.
 
@@ -1209,6 +1210,13 @@ def from_text(
     encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
     is used.
 
+    *allow_directives*, a ``bool`` or an iterable of `str`.  If ``True``, the default,
+    then directives are permitted, and the *allow_include* parameter controls whether
+    ``$INCLUDE`` is permitted.  If ``False`` or an empty iterable, then no directive
+    processing is done and any directive-like text will be treated as a regular owner
+    name.  If a non-empty iterable, then only the listed directives (including the
+    ``$``) are allowed.
+
     Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
 
     Raises ``dns.zone.NoNS`` if there is no NS RRset.
@@ -1227,7 +1235,13 @@ def from_text(
     zone = zone_factory(origin, rdclass, relativize=relativize)
     with zone.writer(True) as txn:
         tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
-        reader = dns.zonefile.Reader(tok, rdclass, txn, allow_include=allow_include)
+        reader = dns.zonefile.Reader(
+            tok,
+            rdclass,
+            txn,
+            allow_include=allow_include,
+            allow_directives=allow_directives,
+        )
         try:
             reader.read()
         except dns.zonefile.UnknownOrigin:
@@ -1249,6 +1263,7 @@ def from_file(
     allow_include: bool = True,
     check_origin: bool = True,
     idna_codec: Optional[dns.name.IDNACodec] = None,
+    allow_directives: Union[bool, Iterable[str]] = True,
 ) -> Zone:
     """Read a zone file and build a zone object.
 
@@ -1283,6 +1298,13 @@ def from_file(
     encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
     is used.
 
+    *allow_directives*, a ``bool`` or an iterable of `str`.  If ``True``, the default,
+    then directives are permitted, and the *allow_include* parameter controls whether
+    ``$INCLUDE`` is permitted.  If ``False`` or an empty iterable, then no directive
+    processing is done and any directive-like text will be treated as a regular owner
+    name.  If a non-empty iterable, then only the listed directives (including the
+    ``$``) are allowed.
+
     Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
 
     Raises ``dns.zone.NoNS`` if there is no NS RRset.
@@ -1309,6 +1331,7 @@ def from_file(
             allow_include,
             check_origin,
             idna_codec,
+            allow_directives,
         )
     assert False  # make mypy happy  lgtm[py/unreachable-statement]
 

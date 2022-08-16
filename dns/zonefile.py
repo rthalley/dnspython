@@ -17,7 +17,7 @@
 
 """DNS Zones."""
 
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Iterable, List, Optional, Set, Tuple, Union
 
 import re
 import sys
@@ -79,6 +79,13 @@ SavedStateType = Tuple[
 ]  # default_ttl_known
 
 
+def _upper_dollarize(s):
+    s = s.upper()
+    if not s.startswith("$"):
+        s = "$" + s
+    return s
+
+
 class Reader:
 
     """Read a DNS zone file into a transaction."""
@@ -89,7 +96,7 @@ class Reader:
         rdclass: dns.rdataclass.RdataClass,
         txn: dns.transaction.Transaction,
         allow_include: bool = False,
-        allow_directives: bool = True,
+        allow_directives: Union[bool, Iterable[str]] = True,
         force_name: Optional[dns.name.Name] = None,
         force_ttl: Optional[int] = None,
         force_rdclass: Optional[dns.rdataclass.RdataClass] = None,
@@ -114,8 +121,19 @@ class Reader:
         self.txn = txn
         self.saved_state: List[SavedStateType] = []
         self.current_file: Optional[Any] = None
-        self.allow_include = allow_include
-        self.allow_directives = allow_directives
+        self.allowed_directives: Set[str]
+        if allow_directives is True:
+            self.allowed_directives = {"$GENERATE", "$ORIGIN", "$TTL"}
+            if allow_include:
+                self.allowed_directives.add("$INCLUDE")
+        elif allow_directives is False:
+            # allow_include was ignored in earlier releases if allow_directives was
+            # False, so we continue that.
+            self.allowed_directives = set()
+        else:
+            # Note that if directives are explicitly specified, then allow_include
+            # is ignored.
+            self.allowed_directives = set(_upper_dollarize(d) for d in allow_directives)
         self.force_name = force_name
         self.force_ttl = force_ttl
         self.force_rdclass = force_rdclass
@@ -283,13 +301,9 @@ class Reader:
         width = int(width)
 
         if sign not in ["+", "-"]:
-            raise dns.exception.SyntaxError(
-                "invalid offset sign %s" % sign
-            )
+            raise dns.exception.SyntaxError("invalid offset sign %s" % sign)
         if base not in ["d", "o", "x", "X", "n", "N"]:
-            raise dns.exception.SyntaxError(
-                "invalid type %s" % base
-            )
+            raise dns.exception.SyntaxError("invalid type %s" % base)
 
         return mod, sign, offset, width, base
 
@@ -457,8 +471,14 @@ class Reader:
                 elif token.is_comment():
                     self.tok.get_eol()
                     continue
-                elif token.value[0] == "$" and self.allow_directives:
+                elif token.value[0] == "$" and len(self.allowed_directives) > 0:
+                    # Note that we only run directive processing code if at least
+                    # one directive is allowed in order to be backwards compatible
                     c = token.value.upper()
+                    if not c in self.allowed_directives:
+                        raise dns.exception.SyntaxError(
+                            f"zone file directive '{c}' is not allowed"
+                        )
                     if c == "$TTL":
                         token = self.tok.get()
                         if not token.is_identifier():
@@ -472,7 +492,7 @@ class Reader:
                         if self.zone_origin is None:
                             self.zone_origin = self.current_origin
                         self.txn._set_origin(self.current_origin)
-                    elif c == "$INCLUDE" and self.allow_include:
+                    elif c == "$INCLUDE":
                         token = self.tok.get()
                         filename = token.value
                         token = self.tok.get()
@@ -505,7 +525,7 @@ class Reader:
                         self._generate_line()
                     else:
                         raise dns.exception.SyntaxError(
-                            "Unknown zone file directive '" + c + "'"
+                            f"Unknown zone file directive '{c}'"
                         )
                     continue
                 self.tok.unget(token)
