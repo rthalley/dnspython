@@ -79,6 +79,13 @@ SavedStateType = Tuple[
 ]  # default_ttl_known
 
 
+def _upper_dollarize(s):
+    s = s.upper()
+    if not s.startswith("$"):
+        s = "$" + s
+    return s
+
+
 class Reader:
 
     """Read a DNS zone file into a transaction."""
@@ -126,7 +133,7 @@ class Reader:
         else:
             # Note that if directives are explicitly specified, then allow_include
             # is ignored.
-            self.allowed_directives = set(d.upper() for d in allow_directives)
+            self.allowed_directives = set(_upper_dollarize(d) for d in allow_directives)
         self.force_name = force_name
         self.force_ttl = force_ttl
         self.force_rdclass = force_rdclass

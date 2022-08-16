@@ -872,6 +872,16 @@ class ZoneTestCase(unittest.TestCase):
         z2 = dns.zone.from_file(here("example"), "example.", relativize=True)
         self.assertEqual(z1, z2)
 
+    def testExplicitIncludeNotUpperNoDollar(self):
+        z1 = dns.zone.from_text(
+            include_text,
+            "example.",
+            relativize=True,
+            allow_directives={"InClUdE", "origin", "TTL"},
+        )
+        z2 = dns.zone.from_file(here("example"), "example.", relativize=True)
+        self.assertEqual(z1, z2)
+
     def testExplicitLowerCase(self):
         z1 = dns.zone.from_text(
             include_text,
