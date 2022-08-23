@@ -45,13 +45,14 @@ if sys.platform == "win32":
                 try:
                     system = wmi.WMI()
                     for interface in system.Win32_NetworkAdapterConfiguration():
-                        if interface.IPEnabled:
+                        if interface.IPEnabled and interface.DNSDomain:
                             self.info.domain = _config_domain(interface.DNSDomain)
                             self.info.nameservers = list(interface.DNSServerSearchOrder)
-                            self.info.search = [
-                                dns.name.from_text(x)
-                                for x in interface.DNSDomainSuffixSearchOrder
-                            ]
+                            if interface.DNSDomainSuffixSearchOrder:
+                                self.info.search = [
+                                    dns.name.from_text(x)
+                                    for x in interface.DNSDomainSuffixSearchOrder
+                                ]
                             break
                 finally:
                     pythoncom.CoUninitialize()
