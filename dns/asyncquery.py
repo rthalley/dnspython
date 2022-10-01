@@ -30,6 +30,7 @@ import dns.exception
 import dns.inet
 import dns.name
 import dns.message
+import dns.quic
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
@@ -45,6 +46,7 @@ from dns.query import (
     _have_httpx,
     _have_http2,
     NoDOH,
+    NoDOQ,
 )
 
 if _have_httpx:
@@ -670,3 +672,62 @@ async def inbound_xfr(
                     tsig_ctx = r.tsig_ctx
                 if not retry and query.keyring and not r.had_tsig:
                     raise dns.exception.FormError("missing TSIG")
+
+
+async def quic(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 853,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    connection: Optional[dns.quic.AsyncQuicConnection] = None,
+    verify: Union[bool, str] = True,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> dns.message.Message:
+    """Return the response obtained after sending an asynchronous query via
+    DNS-over-QUIC.
+
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
+
+    See :py:func:`dns.query.doq()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
+    """
+
+    if not dns.quic.have_quic:
+        raise NoDOQ("DNS-over-QUIC is not available.")  # pragma: no cover
+
+    q.id = 0
+    wire = q.to_wire()
+    the_connection: dns.quic.AsyncQuicConnection
+    if connection:
+        cfactory = dns.quic.null_factory
+        mfactory = dns.quic.null_factory
+        the_connection = connection
+    else:
+        (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
+
+    async with cfactory() as context:
+        async with mfactory(context, verify_mode=verify) as the_manager:
+            if not connection:
+                the_connection = the_manager.connect(where, port, source, source_port)
+            start = time.time()
+            stream = await the_connection.make_stream()
+            async with stream:
+                await stream.send(wire, True)
+                wire = await stream.receive(timeout)
+            finish = time.time()
+        r = dns.message.from_wire(
+            wire,
+            keyring=q.keyring,
+            request_mac=q.request_mac,
+            one_rr_per_rrset=one_rr_per_rrset,
+            ignore_trailing=ignore_trailing,
+        )
+    r.time = max(finish - start, 0.0)
+    if not q.is_response(r):
+        raise BadResponse
+    return r

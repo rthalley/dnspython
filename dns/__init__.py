@@ -38,6 +38,7 @@ __all__ = [
     "node",
     "opcode",
     "query",
+    "quic",
     "rcode",
     "rdata",
     "rdataclass",
