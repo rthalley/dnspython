@@ -475,7 +475,7 @@ class Reader:
                     # Note that we only run directive processing code if at least
                     # one directive is allowed in order to be backwards compatible
                     c = token.value.upper()
-                    if not c in self.allowed_directives:
+                    if c not in self.allowed_directives:
                         raise dns.exception.SyntaxError(
                             f"zone file directive '{c}' is not allowed"
                         )
