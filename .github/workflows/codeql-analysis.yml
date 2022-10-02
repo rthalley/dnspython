@@ -42,12 +42,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install poetry
-        poetry install -E dnssec -E doh -E idna -E trio -E curio
-
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
@@ -57,6 +51,16 @@ jobs:
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
+
+    # I'm not sure why the same recipe we use to build in normal CI does not work
+    # for CodeQL any more, but the error it logs is apparently about gnome-keyring
+    # not being installed, so we will try to install it.
+    - name: Install dependencies
+      run: |
+        sudo apt install -y gnome-keyring
+        python -m pip install --upgrade pip
+        python -m pip install poetry
+        poetry install -E dnssec -E doh -E idna -E trio -E curio
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
