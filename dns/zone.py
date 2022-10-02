@@ -904,8 +904,6 @@ class VersionedNode(dns.node.Node):  # lgtm[py/missing-equals]
 
 @dns.immutable.immutable
 class ImmutableVersionedNode(VersionedNode):
-    __slots__ = ["id"]
-
     def __init__(self, node):
         super().__init__()
         self.id = node.id

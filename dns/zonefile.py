@@ -603,6 +603,9 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
     def _set_origin(self, origin):
         pass
 
+    def _iterate_rdatasets(self):
+        raise NotImplementedError  # pragma: no cover
+
 
 class RRSetsReaderManager(dns.transaction.TransactionManager):
     def __init__(
@@ -612,6 +615,9 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
         self.relativize = relativize
         self.rdclass = rdclass
         self.rrsets = []
+
+    def reader(self):  # pragma: no cover
+        raise NotImplementedError
 
     def writer(self, replacement=False):
         assert replacement is True

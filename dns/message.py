@@ -1096,8 +1096,8 @@ class _WireReader:
                 (rdclass, rdtype, deleting, empty) = self.message._parse_rr_header(
                     section_number, name, rdclass, rdtype
                 )
+            rdata_start = self.parser.current
             try:
-                rdata_start = self.parser.current
                 if empty:
                     if rdlen > 0:
                         raise dns.exception.FormError

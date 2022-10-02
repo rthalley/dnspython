@@ -482,7 +482,7 @@ async def https(
     timeout: Optional[float] = None,
     port: int = 443,
     source: Optional[str] = None,
-    source_port: int = 0,
+    source_port: int = 0,  # pylint: disable=W0613
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     client: Optional["httpx.AsyncClient"] = None,

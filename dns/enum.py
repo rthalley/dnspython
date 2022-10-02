@@ -94,11 +94,11 @@ class IntEnum(enum.IntEnum):
         return ""
 
     @classmethod
-    def _extra_from_text(cls, text):
+    def _extra_from_text(cls, text):  # pylint: disable=W0613
         return None
 
     @classmethod
-    def _extra_to_text(cls, value, current_text):
+    def _extra_to_text(cls, value, current_text):  # pylint: disable=W0613
         return current_text
 
     @classmethod

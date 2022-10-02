@@ -8,12 +8,18 @@ if sys.platform == "win32":
 
     _prefer_wmi = True
 
-    import winreg
+    import winreg  # pylint: disable=import-error
+
+    # Keep pylint quiet on non-windows.
+    try:
+        WindowsError is None  # pylint: disable=used-before-assignment
+    except KeyError:
+        WindowsError = Exception
 
     try:
         import threading
-        import pythoncom
-        import wmi
+        import pythoncom  # pylint: disable=import-error
+        import wmi  # pylint: disable=import-error
 
         _have_wmi = True
     except Exception:
