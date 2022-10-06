@@ -56,7 +56,7 @@ if sys.platform == "win32":
                             self.info.nameservers = list(interface.DNSServerSearchOrder)
                             if interface.DNSDomainSuffixSearchOrder:
                                 self.info.search = [
-                                    dns.name.from_text(x)
+                                    _config_domain(x)
                                     for x in interface.DNSDomainSuffixSearchOrder
                                 ]
                             break
@@ -105,7 +105,7 @@ if sys.platform == "win32":
             split_char = self._determine_split_char(search)
             search_list = search.split(split_char)
             for s in search_list:
-                s = dns.name.from_text(s)
+                s = _config_domain(s)
                 if s not in self.info.search:
                     self.info.search.append(s)
 
