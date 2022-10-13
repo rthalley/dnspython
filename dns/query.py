@@ -1086,7 +1086,7 @@ def quic(
     *timeout*, a ``float`` or ``None``, the number of seconds to wait before the query
     times out. If ``None``, the default, wait forever.
 
-    *port*, a ``int``, the port to send the query to. The default is 443.
+    *port*, a ``int``, the port to send the query to. The default is 853.
 
     *source*, a ``str`` containing an IPv4 or IPv6 address, specifying the source
     address.  The default is the wildcard address.
