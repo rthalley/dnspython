@@ -96,7 +96,8 @@ async def send_udp(
 
     *expiration*, a ``float`` or ``None``, the absolute time at which
     a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
+    occur.  The expiration value is meaningless for the asyncio backend, as
+    asyncio's transport sendto() never blocks.
 
     Returns an ``(int, float)`` tuple of bytes sent and the sent time.
     """
@@ -124,7 +125,10 @@ async def receive_udp(
     *sock*, a ``dns.asyncbackend.DatagramSocket``.
 
     See :py:func:`dns.query.receive_udp()` for the documentation of the other
-    parameters, exceptions, and return type of this method.
+    parameters, and exceptions.
+
+    Returns a ``(dns.message.Message, float, tuple)`` tuple of the received message, the
+    received time, and the address where the message arrived from.
     """
 
     wire = b""

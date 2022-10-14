@@ -63,6 +63,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def sendto(self, what, destination, timeout):  # pragma: no cover
         # no timeout for asyncio sendto
         self.transport.sendto(what, destination)
+        return len(what)
 
     async def recvfrom(self, size, timeout):
         # ignore size as there's no way I know to tell protocol about it
