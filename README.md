@@ -70,6 +70,9 @@ If you want to use WMI on Windows to determine the active DNS settings
 instead of the default registry scanning method, run
 `pip install dnspython[wmi]`.
 
+If you want to try the experimental DNS-over-QUIC code, run
+`pip install dnspython[doq]`.
+
 Note that you can install any combination of the above, e.g.:
 `pip install dnspython[doh,dnssec,idna]`
 
