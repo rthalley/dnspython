@@ -90,7 +90,7 @@ class DNSException(Exception):
         Resulting dictionary has to have keys necessary for str.format call
         on fmt class variable.
         """
-        fmtargs: Dict[str, Any] = {}
+        fmtargs = {}
         for kw, data in kwargs.items():
             if isinstance(data, (list, set)):
                 # convert list of <someobj> to list of str(<someobj>)

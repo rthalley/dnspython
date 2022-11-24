@@ -92,7 +92,7 @@ class Node:
 
     def __init__(self):
         # the set of rdatasets, represented as a list.
-        self.rdatasets: List[dns.rdataset.Rdataset] = []
+        self.rdatasets = []
 
     def to_text(self, name: dns.name.Name, **kw: Dict[str, Any]) -> str:
         """Convert a node to text format.

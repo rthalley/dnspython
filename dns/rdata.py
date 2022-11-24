@@ -143,7 +143,7 @@ class Rdata:
 
         self.rdclass = self._as_rdataclass(rdclass)
         self.rdtype = self._as_rdatatype(rdtype)
-        self.rdcomment: Optional[str] = None
+        self.rdcomment = None
 
     def _get_all_slots(self):
         return itertools.chain.from_iterable(

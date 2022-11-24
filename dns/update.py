@@ -317,7 +317,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
     def absent(
         self,
         name: Union[dns.name.Name, str],
-        rdtype: Union[dns.rdatatype.RdataType, str] = None,
+        rdtype: Optional[Union[dns.rdatatype.RdataType, str]] = None,
     ) -> None:
         """Require that an owner name (and optionally an rdata type) does
         not exist as a prerequisite to the execution of the update."""
