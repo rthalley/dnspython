@@ -269,7 +269,7 @@ def _validate_signature(sig: bytes, data: bytes, key: DNSKEY, chosen_hash: Any) 
         keyptr = keyptr[octets:]
         dsa_y = keyptr[0:octets]
         try:
-            dsa_public_key = dsa.DSAPublicNumbers(
+            dsa_public_key = dsa.DSAPublicNumbers(  # type: ignore
                 _bytes_to_long(dsa_y),
                 dsa.DSAParameterNumbers(
                     _bytes_to_long(dsa_p), _bytes_to_long(dsa_q), _bytes_to_long(dsa_g)

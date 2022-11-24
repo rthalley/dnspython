@@ -20,6 +20,8 @@ include = [
     { path="tests/*.pickle", format="sdist" },
     { path="tests/*.text", format="sdist" },
     { path="tests/*.generic", format="sdist" },
+    { path="tests/tls/*.crt", format="sdist" },
+    { path="tests/tls/*.pem", format="sdist" },
     { path="util/**", format="sdist" },
     { path="setup.cfg", format="sdist" },
 ]
@@ -47,6 +49,7 @@ trio = {version=">=0.14,<0.23", optional=true}
 curio = {version="^1.2", optional=true}
 sniffio = {version="^1.1", optional=true}
 wmi = {version="^1.5.1", optional=true}
+aioquic = {version="^0.9.20", optional=true}
 
 [tool.poetry.dev-dependencies]
 pytest = ">=5.4.1,<8"
@@ -67,6 +70,7 @@ dnssec = ['cryptography']
 trio = ['trio']
 curio = ['curio', 'sniffio']
 wmi = ['wmi']
+doq = ['aioquic']
 
 [build-system]
 requires = ["poetry-core"]
