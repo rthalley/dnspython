@@ -12,6 +12,9 @@ Rdata Subclass Reference
 .. autoclass:: dns.rdtypes.ANY.AFSDB.AFSDB
    :members:
 
+.. autoclass:: dns.rdtypes.ANY.AMTRELAY.AMTRELAY
+   :members:
+
 .. autoclass:: dns.rdtypes.ANY.AVC.AVC
    :members:
 
@@ -27,11 +30,11 @@ Rdata Subclass Reference
       An ``int``, the flags
 
    .. attribute:: tag
-                  
+
       A ``bytes``, the tag
 
    .. attribute:: value
-                  
+
       A ``bytes``, the value
 
 .. autoclass:: dns.rdtypes.ANY.CDNSKEY.CDNSKEY
@@ -61,7 +64,7 @@ Rdata Subclass Reference
       An ``int``, the key tag.
 
    .. attribute:: algorithm
-      
+
       An ``int``, the algorithm used for the key.
 
    .. attribute:: digest_type
@@ -85,7 +88,7 @@ Rdata Subclass Reference
 
    .. attribute:: algorithm
 
-      An ``int``, the algorithm.                  
+      An ``int``, the algorithm.
 
    .. attribute:: certificate
 
@@ -121,7 +124,7 @@ Rdata Subclass Reference
       An ``int``, the key tag.
 
    .. attribute:: algorithm
-      
+
       An ``int``, the algorithm used for the key.
 
    .. attribute:: digest_type
@@ -166,7 +169,7 @@ Rdata Subclass Reference
       An ``int``, the key tag.
 
    .. attribute:: algorithm
-      
+
       An ``int``, the algorithm used for the key.
 
    .. attribute:: digest_type
@@ -238,7 +241,7 @@ Rdata Subclass Reference
 
 .. autoclass:: dns.rdtypes.ANY.ISDN.ISDN
    :members:
-      
+
    .. attribute:: address
 
       A ``bytes``, the ISDN address.
@@ -246,6 +249,28 @@ Rdata Subclass Reference
    .. attribute:: subaddress
 
       A ``bytes`` the ISDN subaddress (or ``b''`` if not present).
+
+.. autoclass:: dns.rdtypes.ANY.L32.L32
+   :members:
+
+   .. attribute:: preference
+
+      An ``int``, the preference value.
+
+   .. attribute:: locator32
+
+      A ``string``, the 32-bit locator value in the form of an IPv4 address.
+
+.. autoclass:: dns.rdtypes.ANY.L64.L64
+   :members:
+
+   .. attribute:: preference
+
+      An ``int``, the preference value.
+
+   .. attribute:: locator64
+
+      A ``string``, the 64-bit locator value in colon-separated-hex form.
 
 .. autoclass:: dns.rdtypes.ANY.LOC.LOC
    :members:
@@ -276,6 +301,17 @@ Rdata Subclass Reference
 
       A ``float``, the vertical precision, in centimeters.
 
+.. autoclass:: dns.rdtypes.ANY.LP.LP
+   :members:
+
+   .. attribute:: preference
+
+      An ``int``, the preference value.
+
+   .. attribute:: fqdn
+
+      A ``dns.name.Name``, the domain name of a locator.
+
 .. autoclass:: dns.rdtypes.ANY.MX.MX
    :members:
 
@@ -286,6 +322,17 @@ Rdata Subclass Reference
    .. attribute:: exchange
 
       A ``dns.name.Name``, the exchange name.
+
+.. autoclass:: dns.rdtypes.ANY.NID.NID
+   :members:
+
+   .. attribute:: preference
+
+      An ``int``, the preference value.
+
+   .. attribute:: nodeid
+
+      A ``string``, the 64-bit nodeid value in colon-separated-hex form.
 
 .. autoclass:: dns.rdtypes.ANY.NINFO.NINFO
 
@@ -432,7 +479,7 @@ Rdata Subclass Reference
    .. attribute:: exchange
 
       A ``dns.name.Name``, the exchange name.
-      
+
 .. autoclass:: dns.rdtypes.ANY.SMIMEA.SMIMEA
    :members:
 
@@ -466,7 +513,7 @@ Rdata Subclass Reference
    .. attribute:: serial
 
       An ``int``, the zone's serial number.
-      
+
    .. attribute:: refresh
 
       An ``int``, the zone's refresh value (in seconds).
@@ -501,11 +548,11 @@ Rdata Subclass Reference
    .. attribute:: fp_type
 
       An ``int``, the digest type.
-      
+
    .. attribute:: fingerprint
 
       A ``bytes``, the fingerprint.
-    
+
 .. autoclass:: dns.rdtypes.ANY.TLSA.TLSA
    :members:
 
@@ -625,7 +672,7 @@ Rdata Subclass Reference
 
       The gateway.  This value may be ``None``, a ``str` with an IPv4 or
       IPV6 address, or a ``dns.name.Name``.
-       
+
    .. attribute:: key
 
       A ``bytes``, the public key.
@@ -653,7 +700,7 @@ Rdata Subclass Reference
       An ``int``, the preference.
 
    .. attribute:: flags
-                  
+
       A ``bytes``, the flags.
 
    .. attribute:: service
