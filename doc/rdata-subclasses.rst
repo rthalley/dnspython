@@ -15,6 +15,22 @@ Rdata Subclass Reference
 .. autoclass:: dns.rdtypes.ANY.AMTRELAY.AMTRELAY
    :members:
 
+   .. attribute:: precedence
+
+   An ``int``, the 8-bit unsigned integer preference.
+
+   .. attribute:: discovery_optional
+
+   A ``bool``, specifying whether discovery is optional or not.
+
+   .. attribute:: relay_type
+
+   An ``int``, the 8-bit unsigned integer relay type.
+
+   .. attribute:: relay
+
+   A ``dns.rdtypes.ANY.AMTRELAY.Relay`` instance, the relay.
+
 .. autoclass:: dns.rdtypes.ANY.AVC.AVC
    :members:
 
