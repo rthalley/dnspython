@@ -53,13 +53,13 @@ Core RFCs
     Note that dnspython does not currently have GSS-TSIG support.
     GSS-TSIG is most frequently used when updating Microsoft
     Active-Directory-based DNS servers.
-    
+
 `RFC 5936 <https://tools.ietf.org/html/rfc5936>`_
     Zone transfers (AXFR).
 
 `RFC 6891 <https://tools.ietf.org/html/rfc6891>`_
     EDNS (version 0)
-    
+
 `RFC 8020 <https://tools.ietf.org/html/rfc8020>`_
     Clarification on the meaning of NXDOMAIN.
 
@@ -77,9 +77,15 @@ DNSSEC RFCs
 
 `RFC 4470 <https://tools.ietf.org/html/rfc4470>`_
     Minimally covering NSEC records and On-line Signing.
-    
+
+`RFC 6781 <https://tools.ietf.org/html/rfc6781>`_
+    Operational Practices, Version 2.
+
 `RFC 6840 <https://tools.ietf.org/html/rfc6840>`_
-    Clarifications and implementation Notes.
+    Clarifications and Implementation Notes.
+
+`RFC 7583 <https://tools.ietf.org/html/rfc7583>`_
+    Key Rollover Timing Considerations.
 
 Misc RFCs
 ---------
@@ -92,6 +98,18 @@ Misc RFCs
 
 `RFC 4343 <https://tools.ietf.org/html/rfc4343>`_
     Case-sensitivity clarification.
+
+Additional Transport RFCs
+-------------------------
+
+`RFC 7858 <https://tools.ietf.org/html/rfc7858>`_
+    Specification for DNS over Transport Layer Security (TLS).
+
+`RFC 8484 <https://tools.ietf.org/html/rfc8484>`_
+    DNS Queries over HTTPS (DoH).
+
+`RFC 9250 <https://tools.ietf.org/html/rfc9250>`_
+    DNS over Dedicated QUIC Connections.
 
 RFCs for RR types
 -----------------
