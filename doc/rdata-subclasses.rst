@@ -3,6 +3,11 @@
 Rdata Subclass Reference
 ========================
 
+.. _rdata-subclasses-any:
+
+Universal Types
+---------------
+
 .. autoclass:: dns.rdata.GenericRdata
 
    .. attribute:: data
@@ -617,6 +622,11 @@ Rdata Subclass Reference
 
       A ``bytes``, the PSDN address.
 
+.. _rdata-subclasses-in:
+
+Types specific to class IN
+--------------------------
+
 .. autoclass:: dns.rdtypes.IN.A.A
    :members:
 
@@ -664,6 +674,23 @@ Rdata Subclass Reference
 
       A ``bytes``, the data (the content of the RR is opaque as far as
       the DNS is concerned).
+
+.. autoclass:: dns.rdtypes.IN.HTTPS.HTTPS
+   :members:
+
+   .. attribute:: priority
+
+      An ``int``, the unsigned 16-bit integer priority.
+
+   .. attribute:: target
+
+      A ``dns.name.Name``, the target name.
+
+   .. attribute:: params
+
+      A ``dict[dns.rdtypes.svcbbase.ParamKey, dns.rdtypes.svcbbase.Param]``, the
+      parameters.  See the dedicated section :ref:`svcb-https-params` below for
+      more information on the parameter types.
 
 .. autoclass:: dns.rdtypes.IN.IPSECKEY.IPSECKEY
    :members:
@@ -779,6 +806,23 @@ Rdata Subclass Reference
 
       A ``dns.name.Name``, the target host.
 
+.. autoclass:: dns.rdtypes.IN.SVCB.SVCB
+   :members:
+
+   .. attribute:: priority
+
+      An ``int``, the unsigned 16-bit integer priority.
+
+   .. attribute:: target
+
+      A ``dns.name.Name``, the target name.
+
+   .. attribute:: params
+
+      A ``dict[dns.rdtypes.svcbbase.ParamKey, dns.rdtypes.svcbbase.Param]``, the
+      parameters.  See the dedicated section :ref:`svcb-https-params` below for
+      more information on the parameter types.
+
 .. autoclass:: dns.rdtypes.IN.WKS.WKS
    :members:
 
@@ -793,3 +837,71 @@ Rdata Subclass Reference
    .. attribute:: bitmap
 
       A ``bytes``, the bitmap.
+
+.. _svcb-https-params:
+
+SVCB and HTTPS Parameter Classes
+--------------------------------
+
+.. autoclass:: dns.rdtypes.svcbbase.ParamKey
+   :members:
+
+   .. attribute:: ALPN
+   .. attribute:: ECH
+   .. attribute:: IPV4HINT
+   .. attribute:: IPV6HINT
+   .. attribute:: MANDATORY
+   .. attribute:: NO_DEFAULT_ALPN
+   .. attribute:: PORT
+
+.. autoclass:: dns.rdtypes.svcbbase.Param
+   :members:
+
+.. autoclass:: dns.rdtypes.svcbbase.GenericParam
+   :members:
+
+   .. attribute:: value
+
+      A ``bytes``, the value of the parameter.
+
+.. autoclass:: dns.rdtypes.svcbbase.MandatoryParam
+   :members:
+
+   .. attribute:: keys
+
+      A tuple of ``ParamKey``, the keys which are mandatory.
+
+.. autoclass:: dns.rdtypes.svcbbase.ALPNParam
+   :members:
+
+   .. attribute:: ids
+
+      A tuple of ``bytes`` values, the APLN ids.
+
+.. autoclass:: dns.rdtypes.svcbbase.PortParam
+   :members:
+
+   .. attribute:: port
+
+      An ``int``, the unsigned 16-bit integer port.
+
+.. autoclass:: dns.rdtypes.svcbbase.IPv4HintParam
+   :members:
+
+   .. attribute:: addresses
+
+      A tuple of ``string``, which each string is an IPv4 address.
+
+.. autoclass:: dns.rdtypes.svcbbase.IPv6HintParam
+   :members:
+
+   .. attribute:: addresses
+
+      A tuple of ``string``, which each string is an IPv6 address.
+
+.. autoclass:: dns.rdtypes.svcbbase.ECHParam
+   :members:
+
+   .. attribute:: ech
+
+      A ``bytes``.

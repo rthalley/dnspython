@@ -429,7 +429,7 @@ class SVCBBase(dns.rdata.Rdata):
 
     """Base class for SVCB-like records"""
 
-    # see: draft-ietf-dnsop-svcb-https-01
+    # see: draft-ietf-dnsop-svcb-https-11
 
     __slots__ = ["priority", "target", "params"]
 
