@@ -19,6 +19,19 @@ What's New in dnspython
   non-zero pad option will be automatically padded appropriately when
   converted to wire format.
 
+* ``dns.zone.from_text()`` and ``dns.zone.from_file()`` now have an
+  ``allow_directives`` parameter to allow finer control over how directives
+  in zonefiles are processed.
+
+* A preliminary implementation of DNS-over-QUIC has been added, and will be
+  available if the aioquic library is present.  See ``dns.query.quic()``,
+  ``dns.asyncquery.quic()``, and examples/doq.py for more info.  This API
+  is subject to change in future releases.  For asynchronous I/O, both
+  asyncio and Trio are supported, but Curio is not.
+
+* Curio asynchronous I/O support is deprecated as of this release and will
+  be removed in a future release.
+
 2.2.1
 -----
 
