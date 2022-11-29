@@ -121,7 +121,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: response
 
-      A ``dns.message.Message``, the response message.
+      A ``dns.message.QueryMessage``, the response message.
 
    .. attribute:: rrset
 
