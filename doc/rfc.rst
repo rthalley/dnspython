@@ -125,9 +125,11 @@ A
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_
 AAAA
     `RFC 3596 <https://tools.ietf.org/html/rfc3596>`_
-CDS
-    `RFC 7344 <https://tools.ietf.org/html/rfc7344>`_
+CAA
+    `RFC 8659 <https://tools.ietf.org/html/rfc8659>`_
 CDNSKEY
+    `RFC 7344 <https://tools.ietf.org/html/rfc7344>`_
+CDS
     `RFC 7344 <https://tools.ietf.org/html/rfc7344>`_
 CNAME
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_
@@ -139,6 +141,8 @@ DNSKEY
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
 DS
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
+HTTPS
+    `draft-ietf-dnsop-svcb-https-11 <https://www.ietf.org/archive/id/draft-ietf-dnsop-svcb-https-11.html>`_
 LOC
     `RFC 1876 <https://tools.ietf.org/html/rfc1876>`_
 MX
@@ -167,7 +171,11 @@ SPF
     `RFC 7208 <https://tools.ietf.org/html/rfc7208>`_
 SRV
     `RFC 2782 <https://tools.ietf.org/html/rfc2782>`_
+SSHFP
+    `RFC 4255 <https://tools.ietf.org/html/rfc4255>`_
 TLSA
     `RFC 6698 <https://tools.ietf.org/html/rfc6698>`_
 TXT
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_
+ZONEMD
+    `RFC 8976 <https://tools.ietf.org/html/rfc8976>`_
