@@ -116,7 +116,7 @@ RFCs for RR types
 
 There are many more RR types than are listed here; if a type is not
 listed it means it is obsolete, deprecated, or rare "in the wild".
-Some newer types that are currently rare are listed because they may
+Some types that are currently rare are listed because they may
 well be more heavily used in the not-to-distant future.
 See the
 IANA `DNS Parameters <http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml>`_ registry for a complete list.
