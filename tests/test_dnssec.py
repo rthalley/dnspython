@@ -32,6 +32,7 @@ from .keys import test_dnskeys
 
 try:
     from cryptography.hazmat.primitives.serialization import load_pem_private_key
+    from cryptography.hazmat.primitives.asymmetric import rsa
 except ImportError:
     pass
 
@@ -925,6 +926,9 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
                     dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, record)
                 self.assertEqual(msg, str(cm.exception))
 
+
+class DNSSECKeyTestCase(unittest.TestCase):
+
     def testKeyToDNSKEY(self):  # type: () -> None
         for tk in test_dnskeys:
             print(tk.command)
@@ -932,6 +936,7 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
             rdata1 = str(dns.dnssec.key_to_dnskey(key.public_key(), tk.algorithm))
             rdata2 = str(dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DNSKEY, tk.dnskey))
             self.assertEqual(rdata1,rdata2)
+
 
 
 if __name__ == "__main__":
