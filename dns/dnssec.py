@@ -509,9 +509,7 @@ def _key_to_dnskey(
     ``cryptography.hazmat.primitives.asymmetric`` public key class applicable
     for DNSSEC.
 
-    *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
-    The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
-    does not matter for these strings.
+    *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
 
     *flags: DNSKEY flags field as an integer.
 
