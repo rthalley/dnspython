@@ -501,7 +501,7 @@ def _key_to_dnskey(
     public_key,
     algorithm: Union[int, str] = None,
     flags: int = Flag.ZONE,
-    protocol: int = 5,
+    protocol: int = 3,
 ) -> DNSKEY:
     """Convert a public key to DNSKEY Rdata
 
