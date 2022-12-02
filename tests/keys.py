@@ -1,5 +1,20 @@
-# openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:2048
-PRIVATE_KEY_RSA_2048 = """
+from dataclasses import dataclass
+
+from dns.dnssectypes import Algorithm
+
+
+@dataclass(frozen=True)
+class TestKey:
+    command: str
+    private_pem: str
+    dnskey: str
+    algorithm: int
+
+
+test_dnskeys = [
+    TestKey(
+        command="openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:2048",
+        private_pem="""
 -----BEGIN PRIVATE KEY-----
 MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDHve8aGCaof3lX
 Cc6QREh9gFvtc0pIm8iZAayiRu1KNS6EH2mN27+9jbfKRETywsxGN86XH/LZEEXH
@@ -28,10 +43,13 @@ lJ9PrYW3gfGRMoeEifhTs0f4FJDqbuiT8tsrEWUOJhsBebpXR9bfMD+F8aJ6Re3d
 sZio5F16RuyuhwHv7agNfIcrCCXIs2xERN+q8D0Gi6LzwrtGxeaRPQnQFXo7kEOQ
 HzK7xZItz01yelD1En+o4m2/Dg==
 -----END PRIVATE KEY-----
-"""
-
-# openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:4096
-PRIVATE_KEY_RSA_4096 = """
+""",
+        dnskey="256 3 8 AwEAAce97xoYJqh/eVcJzpBESH2AW+1zSkibyJkBrKJG7Uo1LoQfaY3bv72Nt8pERPLCzEY3zpcf8tkQRccLQSXZgwkbBFuDs6qNSnXjMQjfdf/fiNlmyqUdZvMnZYEtjj0r2YF6eAMt1C7lV73xhaX5BgOjJGtPGp8QOAvslnSAQJC4WNX/9wiKi8hqgpx98IaZYNjRCSc+0fOfxfgtBXH9LbW4Y09kzwlxLDp+Bsn+G/5xy3jHcm2tKS1/ZcMEfwdln99vEepJIG5D9j4m/Hq3Cm3FtjQsUAsNmGJ13UdnGwh/y4+R/iR+zBIYRh5lAMO1BqYbWrghtFv89kw8e0JfJ2s=",
+        algorithm=Algorithm.RSASHA256,
+    ),
+    TestKey(
+        command="openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:4096",
+        private_pem="""
 -----BEGIN PRIVATE KEY-----
 MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoICAQDI/o4RjA9g/qWS
 DagWOYP+tY5f3EV5P8kKP3OMx+RRC/s4JnzQXKgy/yWM3eCnPcnYy1amtr4LCpQr
@@ -84,37 +102,53 @@ bC4GpbaK19yYz2giYZ/++mSF7576mDhDI1E8CqSYhed/Pf7LsRAbpIV9lH448SvE
 hFKqR94vMlAyNj7FNl1VuN0VqUsceqXyhvrdNc6w/+YdOS4MDzzGL4gEFSJM3GQe
 bVQXjmugND3w6dydVZp/DrvEqfE1Ib0=
 -----END PRIVATE KEY-----
-"""
-
-# openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -pkeyopt ec_param_enc:named_curve
-PRIVATE_KEY_EC_P256 = """
+""",
+        dnskey="256 3 8 AwEAAcj+jhGMD2D+pZINqBY5g/61jl/cRXk/yQo/c4zH5FEL+zgmfNBcqDL/JYzd4Kc9ydjLVqa2vgsKlCvBl37wNXlO6n9Zms8dC7lihGAtv6gqe/DY0YwxsZDqOV6EDxN9+4XVtFB/VM8sFFospEnv1J6a+LIdxm6eq2OK/yZsOYWQyZQAVVAWcIat2/S+TyZuTGn3xQSTPAEqTgR3bCJBkCXUVYylZSG0B5m4kLhzW0dTXE2M3hzZeZiiRG8rSPf3qXoHSKH+CL3A5h/qN5OXmrSVK1v43Q9p5C+WPI4KOjvleoyRzdxVJpn/16SSmtIVnJXlR9LVqOPmsSSHg4f/0jIhMzx4WisyVnlGqGemfvG8uHXahnUBmSSLbHdWriHw7je5Uga0pdIaTaSse6xuN69WxrnOLNsdN3ygFpSu9SE5jUvw5KbQyI+tJAZFpXJDUDIF3eoSTACqC5m85RhYTfQMrxOiISaOORvV0hawlrgN4SS6H0iiHYceMthqfc+ilmqRGtjhkB0vcgscL+oiHjw2/fcS39DkkTlo9ZKWo9k3Rn82COAAfGyxZW/9L1yYCs0cTGesaKMQzE/xTaZcvxUplM2w0jXPEg61GO65W8bKLUU68Pye0zh5Dn2KES/+zKv4b14llnAs6cVCqoKRegHONbCUWsAP+RcgmzQxC8uT",
+        algorithm=Algorithm.RSASHA256,
+    ),
+    TestKey(
+        command="openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -pkeyopt ec_param_enc:named_curve",
+        private_pem="""
 -----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgJFyT16nmjmDgEF2v
 1iTperYVGR52zVT8ej6A9eTmmSChRANCAASfsKTiVq2KNEKSUoYtPAXiZbDG6EEP
 8TwdLumK8ge2F9AtE0Q343bnnZBCFpCxuvxtuWmS8QQwAWh8PizqKrDu
 -----END PRIVATE KEY-----
-"""
-
-# openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 -pkeyopt ec_param_enc:named_curve
-PRIVATE_KEY_EC_P384 = """
+""",
+        dnskey="256 3 13 n7Ck4latijRCklKGLTwF4mWwxuhBD/E8HS7pivIHthfQLRNEN+N2552QQhaQsbr8bblpkvEEMAFofD4s6iqw7g==",
+        algorithm=Algorithm.ECDSAP256SHA256,
+    ),
+    TestKey(
+        command="openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 -pkeyopt ec_param_enc:named_curve",
+        private_pem="""
 -----BEGIN PRIVATE KEY-----
 MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDCNSZ3SrRmdh8wcUVPO
 h9ea2zw9Jyc3P1XuP2nOYZR/aQMHfScCtWA3AsMCcsseEmihZANiAATv2H3Q3jrI
 aH/Vmit9RefIpnh+iZzpyk29/m1EJKgkkwbA0OHClk8Nt7RL/4CO4CUpzaOcqamN
 6B48G68LN4yZByMKt3z751qB86Z7rYc7SuOR0m7bPlXyUsO48+8o/hU=
 -----END PRIVATE KEY-----
-"""
-
-# openssl genpkey -algorithm ED25519
-PRIVATE_KEY_ED25519 = """
+""",
+        dnskey="256 3 14 79h90N46yGh/1ZorfUXnyKZ4fomc6cpNvf5tRCSoJJMGwNDhwpZPDbe0S/+AjuAlKc2jnKmpjegePBuvCzeMmQcjCrd8++dagfOme62HO0rjkdJu2z5V8lLDuPPvKP4V",
+        algorithm=Algorithm.ECDSAP384SHA384,
+    ),
+    TestKey(
+        command="openssl genpkey -algorithm ED25519",
+        private_pem="""
 -----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIKGelcdVWlxU5YlLE5/LAEfqhZq7P9s0NHlQqxOjBvcS
------END PRIVATE KEY-----"""
-
-# openssl genpkey -algorithm ED448
-PRIVATE_KEY_ED448 = """
+-----END PRIVATE KEY-----""",
+        dnskey="256 3 15 iHaBu3tWzJxuuMSzk1WMwCGF3LD60n0fkOdaCCqsL0A=",
+        algorithm=Algorithm.ED25519,
+    ),
+    TestKey(
+        command="openssl genpkey -algorithm ED448",
+        private_pem="""
 -----BEGIN PRIVATE KEY-----
 MEcCAQAwBQYDK2VxBDsEOfGENbZhfMbspoQV1c3/vljWPMFsIzef7M111gU0QTva
 dUd0khisgJ/gk+I1DWLtf/6M4wxXje5FLg==
 -----END PRIVATE KEY-----
-"""
+""",
+        dnskey="256 3 16 ziFYQq6fEXyNKPGzq2GErJxCl9979MKNdW46r4Bqn/waS+iIAmAbaTG3klpwqJtl+Qvdj2xGqJwA",
+        algorithm=Algorithm.ED448,
+    ),
+]
