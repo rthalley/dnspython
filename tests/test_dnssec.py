@@ -28,6 +28,13 @@ import dns.rdtypes.ANY.CDS
 import dns.rdtypes.ANY.DS
 import dns.rrset
 
+from .keys import PRIVATE_KEY_RSA_2048, PRIVATE_KEY_RSA_4096, PRIVATE_KEY_EC_P256, PRIVATE_KEY_EC_P384, PRIVATE_KEY_ED25519, PRIVATE_KEY_ED448
+
+try:
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
+except ImportError:
+    pass
+
 # pylint: disable=line-too-long
 
 abs_dnspython_org = dns.name.from_text("dnspython.org")
@@ -917,6 +924,21 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
                 with self.assertRaises(dns.exception.SyntaxError) as cm:
                     dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, record)
                 self.assertEqual(msg, str(cm.exception))
+
+    def testKeyToDNSKEY(self):  # type: () -> None
+        rsa2048_key = load_pem_private_key(PRIVATE_KEY_RSA_2048.encode(), password=None)
+        rsa4096_key = load_pem_private_key(PRIVATE_KEY_RSA_4096.encode(), password=None)
+        ecdsa_p256_key = load_pem_private_key(PRIVATE_KEY_EC_P256.encode(), password=None)
+        ecdsa_p384_key = load_pem_private_key(PRIVATE_KEY_EC_P384.encode(), password=None)
+        ed25519_key = load_pem_private_key(PRIVATE_KEY_ED25519.encode(), password=None)
+        ed448_key = load_pem_private_key(PRIVATE_KEY_ED448.encode(), password=None)
+    
+        rsa2048_rdata = dns.dnssec.key_to_dnskey(rsa2048_key.public_key(), dns.dnssec.Algorithm.RSASHA256)
+        rsa4096_rdata = dns.dnssec.key_to_dnskey(rsa4096_key.public_key(), dns.dnssec.Algorithm.RSASHA256)
+        ecdsa_p256_rdata = dns.dnssec.key_to_dnskey(ecdsa_p256_key.public_key(), dns.dnssec.Algorithm.ECDSAP256SHA256)
+        ecdsa_p384_rdata = dns.dnssec.key_to_dnskey(ecdsa_p384_key.public_key(), dns.dnssec.Algorithm.ECDSAP384SHA384)
+        ed25519_rdata = dns.dnssec.key_to_dnskey(ed25519_key.public_key(), dns.dnssec.Algorithm.ED25519)
+        ed448_rdata = dns.dnssec.key_to_dnskey(ed448_key.public_key(), dns.dnssec.Algorithm.ED448)
 
 
 if __name__ == "__main__":

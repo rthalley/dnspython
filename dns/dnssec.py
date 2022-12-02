@@ -20,6 +20,7 @@
 from typing import Any, cast, Dict, List, Optional, Tuple, Union
 
 import hashlib
+import math
 import struct
 import time
 import base64
@@ -37,6 +38,7 @@ import dns.rrset
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.ANY.DS import DS
 from dns.rdtypes.ANY.RRSIG import RRSIG
+from dns.rdtypes.dnskeybase import Flag
 
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
@@ -495,6 +497,93 @@ def _validate(
     raise ValidationFailure("no RRSIGs validated")
 
 
+def _key_to_dnskey(
+    public_key,
+    algorithm: Union[int, str] = None,
+    flags: int = Flag.ZONE,
+    protocol: int = 5,
+) -> DNSKEY:
+    """Convert a public key to DNSKEY Rdata
+
+    *public_key*, the public key to convert, a
+    ``cryptography.hazmat.primitives.asymmetric`` public key class applicable
+    for DNSSEC.
+
+    *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
+    The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
+    does not matter for these strings.
+
+    *flags: DNSKEY flags field as an integer.
+
+    *protocol*: DNSKEY protocol field as an integer.
+
+    Raises ``ValueError`` if the specified algorithm is unsupported or
+    ``TypeError`` if the key algorithm is unsupported.
+
+    Return DNSKEY ``Rdata``.
+    """
+
+    def encode_rsa_public_key(public_key) -> bytes:
+        """Encode a public key as RFC 3110, section 2."""
+        pn = public_key.public_numbers()
+        _exp_len = math.ceil(int.bit_length(pn.e) / 8)
+        exp = int.to_bytes(pn.e, length=_exp_len, byteorder="big")
+        if _exp_len > 255:
+            exp_header = b"\0" + struct.pack("!H", _exp_len)
+        else:
+            exp_header = struct.pack("!B", _exp_len)
+        if pn.n.bit_length() < 512 or pn.n.bit_length() > 4096:
+            raise ValueError("Unsupported RSA key length")
+        return exp_header + exp + pn.n.to_bytes((pn.n.bit_length() + 7) // 8, "big")
+
+    def encode_ecdsa_public_key(public_key) -> bytes:
+        pn = public_key.public_numbers()
+        if isinstance(public_key.curve, ec.SECP256R1):
+            return pn.x.to_bytes(32, "big") + pn.y.to_bytes(32, "big")
+        elif isinstance(public_key.curve, ec.SECP384R1):
+            return pn.x.to_bytes(48, "big") + pn.y.to_bytes(48, "big")
+        else:
+            raise ValueError("Unsupported ECDSA curve")
+
+    try:
+        if isinstance(algorithm, str):
+            algorithm = Algorithm[algorithm.upper()]
+    except Exception:
+        raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+
+    if isinstance(public_key, rsa.RSAPublicKey):
+        if not _is_rsa(algorithm):
+            raise ValueError("Invalid DNSKEY algorithm for RSA key")
+        key_bytes = encode_rsa_public_key(public_key)
+    elif isinstance(public_key, ec.EllipticCurvePublicKey):
+        if not _is_ecdsa(algorithm):
+            raise ValueError("Invalid DNSKEY algorithm for EC key")
+        key_bytes = encode_ecdsa_public_key(public_key)
+    elif isinstance(public_key, ed25519.Ed25519PublicKey):
+        if algorithm != Algorithm.ED25519:
+            raise ValueError("Invalid DNSKEY algorithm for ED25519 key")
+        key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        )
+    elif isinstance(public_key, ed448.Ed448PublicKey):
+        if algorithm != Algorithm.ED448:
+            raise ValueError("Invalid DNSKEY algorithm for ED448 key")
+        key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        )
+    else:
+        raise TypeError("Unsupported key algorithm")
+
+    return DNSKEY(
+        rdclass=dns.rdataclass.IN,
+        rdtype=dns.rdatatype.DNSKEY,
+        flags=flags,
+        protocol=protocol,
+        algorithm=algorithm,
+        key=key_bytes,
+    )
+
+
 def nsec3_hash(
     domain: Union[dns.name.Name, str],
     salt: Optional[Union[str, bytes]],
@@ -565,7 +654,7 @@ def _need_pyca(*args, **kwargs):
 try:
     from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import padding
     from cryptography.hazmat.primitives.asymmetric import utils
     from cryptography.hazmat.primitives.asymmetric import dsa
@@ -576,10 +665,12 @@ try:
 except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca
+    key_to_dnskey = _need_pyca
     _have_pyca = False
 else:
     validate = _validate  # type: ignore
     validate_rrsig = _validate_rrsig  # type: ignore
+    key_to_dnskey = _key_to_dnskey
     _have_pyca = True
 
 ### BEGIN generated Algorithm constants
