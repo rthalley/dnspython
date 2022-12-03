@@ -497,7 +497,7 @@ def _validate(
     raise ValidationFailure("no RRSIGs validated")
 
 
-def _key_to_dnskey(
+def _make_dnskey(
     public_key,
     algorithm: Union[int, str] = None,
     flags: int = Flag.ZONE,
@@ -663,12 +663,12 @@ try:
 except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca
-    key_to_dnskey = _need_pyca
+    make_dnskey = _need_pyca
     _have_pyca = False
 else:
     validate = _validate  # type: ignore
     validate_rrsig = _validate_rrsig  # type: ignore
-    key_to_dnskey = _key_to_dnskey
+    make_dnskey = _make_dnskey
     _have_pyca = True
 
 ### BEGIN generated Algorithm constants

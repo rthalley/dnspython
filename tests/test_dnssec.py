@@ -934,7 +934,7 @@ class DNSSECKeyTestCase(unittest.TestCase):
         for tk in test_dnskeys:
             print(tk.command)
             key = load_pem_private_key(tk.private_pem.encode(), password=None)
-            rdata1 = str(dns.dnssec.key_to_dnskey(key.public_key(), tk.algorithm))
+            rdata1 = str(dns.dnssec.make_dnskey(key.public_key(), tk.algorithm))
             rdata2 = str(
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DNSKEY, tk.dnskey)
             )
@@ -947,11 +947,11 @@ class DNSSECKeyTestCase(unittest.TestCase):
         rsa_key_large_exp = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
-        dnskey_small_exp = dns.dnssec.key_to_dnskey(
+        dnskey_small_exp = dns.dnssec.make_dnskey(
             rsa_key_small_exp.public_key(), algorithm=dns.dnssec.Algorithm.RSASHA256
         )
         self.assertEqual(len(dnskey_small_exp.key), 258)
-        dnskey_large_exp = dns.dnssec.key_to_dnskey(
+        dnskey_large_exp = dns.dnssec.make_dnskey(
             rsa_key_large_exp.public_key(), algorithm=dns.dnssec.Algorithm.RSASHA256
         )
         self.assertEqual(len(dnskey_large_exp.key), 260)
