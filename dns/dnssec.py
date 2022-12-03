@@ -499,7 +499,7 @@ def _validate(
 
 def _make_dnskey(
     public_key,
-    algorithm: Union[int, str] = None,
+    algorithm: Union[int, str],
     flags: int = Flag.ZONE,
     protocol: int = 3,
 ) -> DNSKEY:
