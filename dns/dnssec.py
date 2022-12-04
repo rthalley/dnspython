@@ -478,15 +478,15 @@ def _validate(
 
 
 def _sign(
-    rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
+    rrset: dns.rrset.RRset,
     private_key: PrivateKey,
-    signer: Optional[dns.name.Name],
-    dnskey: Optional[DNSKEY],
+    signer: dns.name.Name,
+    dnskey: DNSKEY,
     inception: Optional[Union[datetime, int]] = None,
     expiration: Optional[Union[datetime, int]] = None,
     lifetime: Optional[int] = None,
     verify: bool = False,
-) -> None:
+) -> RRSIG:
     """Sign RRset using private key.
 
     *rrset*, the RRset to sign.  This can be a
