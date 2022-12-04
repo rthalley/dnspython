@@ -49,6 +49,14 @@ class ValidationFailure(dns.exception.DNSException):
     """The DNSSEC signature is invalid."""
 
 
+PublicKey = Union[
+    "rsa.RSAPublicKey",
+    "ec.EllipticCurvePublicKey",
+    "ed25519.Ed25519PublicKey",
+    "ed448.Ed448PublicKey",
+]
+
+
 def algorithm_from_text(text: str) -> Algorithm:
     """Convert text into a DNSSEC algorithm value.
 
@@ -498,7 +506,7 @@ def _validate(
 
 
 def _make_dnskey(
-    public_key,
+    public_key: PublicKey,
     algorithm: Union[int, str],
     flags: int = Flag.ZONE,
     protocol: int = 3,
