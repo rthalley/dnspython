@@ -473,7 +473,7 @@ def _make_rrsig_signature_data(
     tuple.
 
     *rrsig*, a ``dns.rdata.Rdata``, the signature to validate, or the
-    signature template when signing
+    signature template used when signing.
 
     *origin*, a ``dns.name.Name`` or ``None``, the origin to use for relative
     names.
