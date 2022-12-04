@@ -35,7 +35,7 @@ try:
     from cryptography.hazmat.primitives.serialization import load_pem_private_key
     from cryptography.hazmat.primitives.asymmetric import rsa
 except ImportError:
-    pass
+    pass  # Cryptography ImportError already handled in dns.dnssec
 
 # pylint: disable=line-too-long
 
@@ -929,8 +929,8 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
-class DNSSECKeyTestCase(unittest.TestCase):
-    def testKeyToDNSKEY(self):  # type: () -> None
+class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
+    def testKnownDNSKEYs(self):  # type: () -> None
         for tk in test_dnskeys:
             print(tk.command)
             key = load_pem_private_key(tk.private_pem.encode(), password=None)
@@ -940,7 +940,7 @@ class DNSSECKeyTestCase(unittest.TestCase):
             )
             self.assertEqual(rdata1, rdata2)
 
-    def testKeyRSALargeExponent(self):  # type: () -> None
+    def testRSALargeExponent(self):  # type: () -> None
         rsa_key_small_exp = rsa.generate_private_key(
             public_exponent=3, key_size=2048, backend=default_backend()
         )
