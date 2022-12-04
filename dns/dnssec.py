@@ -497,17 +497,17 @@ def _sign(
     ``cryptography.hazmat.primitives.asymmetric`` private key class applicable
     for DNSSEC.
 
-    *signer*: Signer name
+    *signer*, a ``dns.name.Name``, the Signer's name.
 
-    *dnskey*: DNSKEY matching `private_key`
+    *dnskey*, a ``DNSKEY`` matching ``private_key``.
 
-    *inception*: Signature inception (default now)
+    *inception*, a ``datetime`` or ``int``, signature inception; defaults to now.
 
-    *expiration*: Signature expiration. Can also be specified via lifetime.
+    *expiration*, a ``datetime`` or ``int``, signature expiration. May be specified as lifetime.
 
-    *lifetime*: Signature lifetime in seconds.
+    *lifetime*, an ``int`` specifiying the signature lifetime in seconds.
 
-    *verify*: Verify issued signatures.
+    *verify*, a ``bool`` set to ``True`` if the signer should verify issued signaures.
     """
 
     if inception is not None:
