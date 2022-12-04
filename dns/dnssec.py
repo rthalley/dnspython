@@ -529,7 +529,7 @@ def _make_dnskey(
     Return DNSKEY ``Rdata``.
     """
 
-    def encode_rsa_public_key(public_key) -> bytes:
+    def encode_rsa_public_key(public_key: "rsa.RSAPublicKey") -> bytes:
         """Encode a public key as RFC 3110, section 2."""
         pn = public_key.public_numbers()
         _exp_len = math.ceil(int.bit_length(pn.e) / 8)
@@ -542,7 +542,7 @@ def _make_dnskey(
             raise ValueError("Unsupported RSA key length")
         return exp_header + exp + pn.n.to_bytes((pn.n.bit_length() + 7) // 8, "big")
 
-    def encode_ecdsa_public_key(public_key) -> bytes:
+    def encode_ecdsa_public_key(public_key: "ec.EllipticCurvePublicKey") -> bytes:
         pn = public_key.public_numbers()
         if isinstance(public_key.curve, ec.SECP256R1):
             return pn.x.to_bytes(32, "big") + pn.y.to_bytes(32, "big")
