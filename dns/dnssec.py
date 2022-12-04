@@ -24,6 +24,7 @@ import math
 import struct
 import time
 import base64
+from datetime import datetime
 
 from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
 
@@ -54,6 +55,13 @@ PublicKey = Union[
     "ec.EllipticCurvePublicKey",
     "ed25519.Ed25519PublicKey",
     "ed448.Ed448PublicKey",
+]
+
+PrivateKey = Union[
+    "rsa.RSAPrivateKey",
+    "ec.EllipticCurvePrivateKey",
+    "ed25519.Ed25519PrivateKey",
+    "ed448.Ed448PrivateKey",
 ]
 
 
@@ -469,10 +477,132 @@ def _validate(
     raise ValidationFailure("no RRSIGs validated")
 
 
+def _sign(
+    rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
+    private_key: PrivateKey,
+    signer: Optional[dns.name.Name],
+    dnskey: Optional[DNSKEY],
+    inception: Optional[Union[datetime, int]] = None,
+    expiration: Optional[Union[datetime, int]] = None,
+    lifetime: Optional[int] = None,
+    verify: bool = False,
+) -> None:
+    """Sign RRset using private key.
+
+    *rrset*, the RRset to sign.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *private_key*, the private key to use for signing, a
+    ``cryptography.hazmat.primitives.asymmetric`` private key class applicable
+    for DNSSEC.
+
+    *signer*: Signer name
+
+    *dnskey*: DNSKEY matching `private_key`
+
+    *inception*: Signature inception (default now)
+
+    *expiration*: Signature expiration. Can also be specified via lifetime.
+
+    *lifetime*: Signature lifetime in seconds.
+
+    *verify*: Verify issued signatures.
+    """
+
+    if inception is not None:
+        if isinstance(inception, datetime):
+            rrsig_inception = int(inception.timestamp())
+        else:
+            rrsig_inception = inception
+    else:
+        rrsig_inception = int(time.time())
+
+    if expiration is not None:
+        if isinstance(expiration, datetime):
+            rrsig_expiration = int(inception.timestamp())
+        else:
+            rrsig_expiration = expiration
+    elif lifetime is not None:
+        rrsig_expiration = int(time.time()) + lifetime
+    else:
+        raise ValueError("expiration or lifetime must be specified")
+
+    rrsig_template = RRSIG(
+        rdclass=rrset.rdclass,
+        rdtype=dns.rdatatype.RRSIG,
+        type_covered=rrset.rdtype,
+        algorithm=dnskey.algorithm,
+        labels=len(rrset.name) - 1,
+        original_ttl=rrset.ttl,
+        expiration=rrsig_expiration,
+        inception=rrsig_inception,
+        key_tag=key_id(dnskey),
+        signer=signer,
+        signature=b"",
+    )
+
+    data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template)
+    chosen_hash = _make_hash(rrsig_template.algorithm)
+    signature = None
+
+    if verify:
+        public_key = private_key.public_key()
+
+    if isinstance(private_key, rsa.RSAPrivateKey):
+        if not _is_rsa(dnskey.algorithm):
+            raise ValueError("Invalid DNSKEY algorithm for RSA key")
+        signature = private_key.sign(data, padding.PKCS1v15(), chosen_hash)
+        if verify:
+            public_key.verify(signature, data, padding.PKCS1v15(), chosen_hash)
+    elif isinstance(private_key, ec.EllipticCurvePrivateKey):
+        if not _is_ecdsa(dnskey.algorithm):
+            raise ValueError("Invalid DNSKEY algorithm for EC key")
+        der_signature = private_key.sign(data, ec.ECDSA(chosen_hash))
+        if verify:
+            public_key.verify(der_signature, data, ec.ECDSA(chosen_hash))
+        r, s = decode_dss_signature(der_signature)
+        if dnskey.algorithm == Algorithm.ECDSAP256SHA256:
+            octets = 32
+        else:
+            octets = 48
+        signature = int.to_bytes(r, length=octets, byteorder="big") + int.to_bytes(
+            s, length=octets, byteorder="big"
+        )
+    elif isinstance(private_key, ed25519.Ed25519PrivateKey):
+        if dnskey.algorithm != Algorithm.ED25519:
+            raise ValueError("Invalid DNSKEY algorithm for ED25519 key")
+        signature = private_key.sign(data)
+        if verify:
+            public_key.verify(signature, data)
+    elif isinstance(private_key, ed448.Ed448PrivateKey):
+        if dnskey.algorithm != Algorithm.ED448:
+            raise ValueError("Invalid DNSKEY algorithm for ED448 key")
+        signature = private_key.sign(data)
+        if verify:
+            public_key.verify(signature, data)
+    else:
+        raise TypeError("Unsupported key algorithm")
+
+    return RRSIG(
+        rdclass=rrsig_template.rdclass,
+        rdtype=rrsig_template.rdtype,
+        type_covered=rrsig_template.type_covered,
+        algorithm=rrsig_template.algorithm,
+        labels=rrsig_template.labels,
+        original_ttl=rrsig_template.original_ttl,
+        expiration=rrsig_template.expiration,
+        inception=rrsig_template.inception,
+        key_tag=rrsig_template.key_tag,
+        signer=rrsig_template.signer,
+        signature=signature,
+    )
+
+
 def _make_rrsig_signature_data(
     rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
     rrsig: RRSIG,
-    origin: Optional[dns.name.Name] = None
+    origin: Optional[dns.name.Name] = None,
 ) -> bytes:
     """Create signature rdata.
 
@@ -492,7 +622,7 @@ def _make_rrsig_signature_data(
 
     if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root)
-    
+
     signer = rrsig.signer
     if not signer.is_absolute():
         if origin is None:
@@ -699,14 +829,20 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     from cryptography.hazmat.primitives.asymmetric import ed448
     from cryptography.hazmat.primitives.asymmetric import rsa
+    from cryptography.hazmat.primitives.asymmetric.utils import (
+        decode_dss_signature,
+        encode_dss_signature,
+    )
 except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca
+    sign = _need_pyca
     make_dnskey = _need_pyca
     _have_pyca = False
 else:
     validate = _validate  # type: ignore
     validate_rrsig = _validate_rrsig  # type: ignore
+    sign = _sign
     make_dnskey = _make_dnskey
     _have_pyca = True
 

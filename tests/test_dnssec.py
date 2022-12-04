@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from datetime import datetime, timedelta
 from typing import Any
 
 import unittest
@@ -33,7 +34,7 @@ from .keys import test_dnskeys
 try:
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives.serialization import load_pem_private_key
-    from cryptography.hazmat.primitives.asymmetric import rsa
+    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
@@ -965,6 +966,49 @@ class DNSSECSignatureTestCase(unittest.TestCase):
     def testSignatureData(self):  # type: () -> None
         rrsig_template = abs_soa_rrsig[0]
         data = dns.dnssec._make_rrsig_signature_data(abs_soa, rrsig_template)
+
+    def testSignatureRSASHA256(self):  # type: () -> None
+        key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048, backend=default_backend()
+        )
+        self._test_signature(key, dns.dnssec.Algorithm.RSASHA256)
+
+    def testSignatureECDSAP256SHA256(self):  # type: () -> None
+        key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
+        self._test_signature(key, dns.dnssec.Algorithm.ECDSAP256SHA256)
+
+    def testSignatureECDSAP384SHA384(self):  # type: () -> None
+        key = ec.generate_private_key(curve=ec.SECP384R1, backend=default_backend())
+        self._test_signature(key, dns.dnssec.Algorithm.ECDSAP384SHA384)
+
+    def testSignatureED25519(self):  # type: () -> None
+        key = ed25519.Ed25519PrivateKey.generate()
+        self._test_signature(key, dns.dnssec.Algorithm.ED25519)
+
+    def testSignatureED448(self):  # type: () -> None
+        key = ed448.Ed448PrivateKey.generate()
+        self._test_signature(key, dns.dnssec.Algorithm.ED448)
+
+    def _test_signature(self, key, algorithm):  # type: () -> None
+        ttl = 60
+        lifetime = 3600
+        rrset = abs_soa
+        signer = rrset.name
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=key.public_key(), algorithm=algorithm
+        )
+        dnskey_rrset = dns.rrset.from_rdata(signer, ttl, dnskey)
+        rrsig = dns.dnssec.sign(
+            rrset=rrset,
+            private_key=key,
+            dnskey=dnskey,
+            lifetime=lifetime,
+            signer=signer,
+            verify=True,
+        )
+        keys = {signer: dnskey_rrset}
+        rrsigset = dns.rrset.from_rdata(rrset.name, ttl, rrsig)
+        dns.dnssec.validate(rrset=rrset, rrsigset=rrsigset, keys=keys)
 
 
 if __name__ == "__main__":
