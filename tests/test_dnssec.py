@@ -941,20 +941,23 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
             self.assertEqual(rdata1, rdata2)
 
     def testRSALargeExponent(self):  # type: () -> None
-        rsa_key_small_exp = rsa.generate_private_key(
-            public_exponent=3, key_size=2048, backend=default_backend()
-        )
-        rsa_key_large_exp = rsa.generate_private_key(
-            public_exponent=65537, key_size=2048, backend=default_backend()
-        )
-        dnskey_small_exp = dns.dnssec.make_dnskey(
-            rsa_key_small_exp.public_key(), algorithm=dns.dnssec.Algorithm.RSASHA256
-        )
-        self.assertEqual(len(dnskey_small_exp.key), 258)
-        dnskey_large_exp = dns.dnssec.make_dnskey(
-            rsa_key_large_exp.public_key(), algorithm=dns.dnssec.Algorithm.RSASHA256
-        )
-        self.assertEqual(len(dnskey_large_exp.key), 260)
+        for key_size, public_exponent, dnskey_key_length in [
+            (1024, 3, 130),
+            (1024, 65537, 132),
+            (2048, 3, 258),
+            (2048, 65537, 260),
+            (4096, 3, 514),
+            (4096, 65537, 516),
+        ]:
+            key = rsa.generate_private_key(
+                public_exponent=public_exponent,
+                key_size=key_size,
+                backend=default_backend(),
+            )
+            dnskey = dns.dnssec.make_dnskey(
+                key.public_key(), algorithm=dns.dnssec.Algorithm.RSASHA256
+            )
+            self.assertEqual(len(dnskey.key), dnskey_key_length)
 
 
 if __name__ == "__main__":
