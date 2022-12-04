@@ -546,26 +546,25 @@ def _sign(
     chosen_hash = _make_hash(rrsig_template.algorithm)
     signature = None
 
-    if verify:
-        public_key = private_key.public_key()
-
     if isinstance(private_key, rsa.RSAPrivateKey):
         if not _is_rsa(dnskey.algorithm):
             raise ValueError("Invalid DNSKEY algorithm for RSA key")
         signature = private_key.sign(data, padding.PKCS1v15(), chosen_hash)
         if verify:
+            public_key = private_key.public_key()
             public_key.verify(signature, data, padding.PKCS1v15(), chosen_hash)
     elif isinstance(private_key, ec.EllipticCurvePrivateKey):
         if not _is_ecdsa(dnskey.algorithm):
             raise ValueError("Invalid DNSKEY algorithm for EC key")
         der_signature = private_key.sign(data, ec.ECDSA(chosen_hash))
         if verify:
+            public_key = private_key.public_key()
             public_key.verify(der_signature, data, ec.ECDSA(chosen_hash))
-        r, s = decode_dss_signature(der_signature)
         if dnskey.algorithm == Algorithm.ECDSAP256SHA256:
             octets = 32
         else:
             octets = 48
+        r, s = utils.decode_dss_signature(der_signature)
         signature = int.to_bytes(r, length=octets, byteorder="big") + int.to_bytes(
             s, length=octets, byteorder="big"
         )
@@ -574,12 +573,14 @@ def _sign(
             raise ValueError("Invalid DNSKEY algorithm for ED25519 key")
         signature = private_key.sign(data)
         if verify:
+            public_key = private_key.public_key()
             public_key.verify(signature, data)
     elif isinstance(private_key, ed448.Ed448PrivateKey):
         if dnskey.algorithm != Algorithm.ED448:
             raise ValueError("Invalid DNSKEY algorithm for ED448 key")
         signature = private_key.sign(data)
         if verify:
+            public_key = private_key.public_key()
             public_key.verify(signature, data)
     else:
         raise TypeError("Unsupported key algorithm")
@@ -829,10 +830,6 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     from cryptography.hazmat.primitives.asymmetric import ed448
     from cryptography.hazmat.primitives.asymmetric import rsa
-    from cryptography.hazmat.primitives.asymmetric.utils import (
-        decode_dss_signature,
-        encode_dss_signature,
-    )
 except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca
