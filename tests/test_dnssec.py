@@ -957,5 +957,12 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
         self.assertEqual(len(dnskey_large_exp.key), 260)
 
 
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
+class DNSSECSignatureTestCase(unittest.TestCase):
+    def testSignatureData(self):  # type: () -> None
+        rrsig_template = abs_soa_rrsig[0]
+        data = dns.dnssec._make_rrsig_signature_data(abs_soa, rrsig_template)
+
+
 if __name__ == "__main__":
     unittest.main()

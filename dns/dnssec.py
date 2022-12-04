@@ -355,21 +355,9 @@ def _validate_rrsig(
     dnspython but not implemented.
     """
 
-    if isinstance(origin, str):
-        origin = dns.name.from_text(origin, dns.name.root)
-
     candidate_keys = _find_candidate_keys(keys, rrsig)
     if candidate_keys is None:
         raise ValidationFailure("unknown key")
-
-    # For convenience, allow the rrset to be specified as a (name,
-    # rdataset) tuple as well as a proper rrset
-    if isinstance(rrset, tuple):
-        rrname = rrset[0]
-        rdataset = rrset[1]
-    else:
-        rrname = rrset.name
-        rdataset = rrset
 
     if now is None:
         now = time.time()
@@ -393,31 +381,7 @@ def _validate_rrsig(
     else:
         sig = rrsig.signature
 
-    data = b""
-    data += rrsig.to_wire(origin=origin)[:18]
-    data += rrsig.signer.to_digestable(origin)
-
-    # Derelativize the name before considering labels.
-    if not rrname.is_absolute():
-        if origin is None:
-            raise ValidationFailure("relative RR name without an origin specified")
-        rrname = rrname.derelativize(origin)
-
-    if len(rrname) - 1 < rrsig.labels:
-        raise ValidationFailure("owner name longer than RRSIG labels")
-    elif rrsig.labels < len(rrname) - 1:
-        suffix = rrname.split(rrsig.labels + 1)[1]
-        rrname = dns.name.from_text("*", suffix)
-    rrnamebuf = rrname.to_digestable()
-    rrfixed = struct.pack("!HHI", rdataset.rdtype, rdataset.rdclass, rrsig.original_ttl)
-    rdatas = [rdata.to_digestable(origin) for rdata in rdataset]
-    for rdata in sorted(rdatas):
-        data += rrnamebuf
-        data += rrfixed
-        rrlen = struct.pack("!H", len(rdata))
-        data += rrlen
-        data += rdata
-
+    data = _make_rrsig_signature_data(rrset, rrsig, origin)
     chosen_hash = _make_hash(rrsig.algorithm)
 
     for candidate_key in candidate_keys:
@@ -495,6 +459,73 @@ def _validate(
         except (ValidationFailure, UnsupportedAlgorithm):
             pass
     raise ValidationFailure("no RRSIGs validated")
+
+
+def _make_rrsig_signature_data(
+    rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
+    rrsig: RRSIG,
+    origin: Optional[dns.name.Name] = None
+) -> bytes:
+    """Create signature rdata.
+
+    *rrset*, the RRset to sign/validate.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *rrsig*, a ``dns.rdata.Rdata``, the signature to validate, or the
+    signature template when signing
+
+    *origin*, a ``dns.name.Name`` or ``None``, the origin to use for relative
+    names.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is recognized by
+    dnspython but not implemented.
+    """
+
+    if isinstance(origin, str):
+        origin = dns.name.from_text(origin, dns.name.root)
+    
+    signer = rrsig.signer
+    if not signer.is_absolute():
+        if origin is None:
+            raise ValidationFailure("relative RR name without an origin specified")
+        signer = signer.derelativize(origin)
+
+    # For convenience, allow the rrset to be specified as a (name,
+    # rdataset) tuple as well as a proper rrset
+    if isinstance(rrset, tuple):
+        rrname = rrset[0]
+        rdataset = rrset[1]
+    else:
+        rrname = rrset.name
+        rdataset = rrset
+
+    data = b""
+    data += rrsig.to_wire(origin=signer)[:18]
+    data += rrsig.signer.to_digestable(signer)
+
+    # Derelativize the name before considering labels.
+    if not rrname.is_absolute():
+        if origin is None:
+            raise ValidationFailure("relative RR name without an origin specified")
+        rrname = rrname.derelativize(origin)
+
+    if len(rrname) - 1 < rrsig.labels:
+        raise ValidationFailure("owner name longer than RRSIG labels")
+    elif rrsig.labels < len(rrname) - 1:
+        suffix = rrname.split(rrsig.labels + 1)[1]
+        rrname = dns.name.from_text("*", suffix)
+    rrnamebuf = rrname.to_digestable()
+    rrfixed = struct.pack("!HHI", rdataset.rdtype, rdataset.rdclass, rrsig.original_ttl)
+    rdatas = [rdata.to_digestable(origin) for rdata in rdataset]
+    for rdata in sorted(rdatas):
+        data += rrnamebuf
+        data += rrfixed
+        rrlen = struct.pack("!H", len(rdata))
+        data += rrlen
+        data += rdata
+
+    return data
 
 
 def _make_dnskey(
