@@ -554,13 +554,14 @@ def _sign(
     elif isinstance(private_key, dsa.DSAPrivateKey):
         if not _is_dsa(dnskey.algorithm):
             raise ValueError("Invalid DNSKEY algorithm for DSA key")
+        public_key = private_key.public_key()
+        if public_key.key_size > 1024:
+            raise ValueError("DSA key size overflow")
         der_signature = private_key.sign(data, chosen_hash)
         if verify:
-            public_key = private_key.public_key()
             public_key.verify(der_signature, data, chosen_hash)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
-        pn = private_key.public_key().public_numbers()
-        dsa_t = public_key.key_size // 128
+        dsa_t = 8  # TODO: determine how to calculate T
         octets = 20
         signature = (
             struct.pack("!B", dsa_t)
