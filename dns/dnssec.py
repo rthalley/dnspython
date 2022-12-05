@@ -530,7 +530,7 @@ def _make_dnskey(
     """
 
     def encode_rsa_public_key(public_key: "rsa.RSAPublicKey") -> bytes:
-        """Encode a public key as RFC 3110, section 2."""
+        """Encode a public key per RFC 3110, section 2."""
         pn = public_key.public_numbers()
         _exp_len = math.ceil(int.bit_length(pn.e) / 8)
         exp = int.to_bytes(pn.e, length=_exp_len, byteorder="big")
@@ -542,7 +542,22 @@ def _make_dnskey(
             raise ValueError("Unsupported RSA key length")
         return exp_header + exp + pn.n.to_bytes((pn.n.bit_length() + 7) // 8, "big")
 
+    def encode_dsa_public_key(public_key: "dsa.DSAPublicKey") -> bytes:
+        """Encode a public key per RFC 2536, section 2."""
+        pn = public_key.public_numbers()
+        dsa_t = (public_key.key_size // 8 - 64) // 8
+        if dsa_t > 8:
+            raise ValueError("Unsupported DSA key size")
+        octets = 64 + dsa_t * 8
+        res = struct.pack("!B", dsa_t)
+        res += pn.parameter_numbers.q.to_bytes(20, "big")
+        res += pn.parameter_numbers.p.to_bytes(octets, "big")
+        res += pn.parameter_numbers.g.to_bytes(octets, "big")
+        res += pn.y.to_bytes(octets, "big")
+        return res
+
     def encode_ecdsa_public_key(public_key: "ec.EllipticCurvePublicKey") -> bytes:
+        """Encode a public key per RFC 6605, section 4."""
         pn = public_key.public_numbers()
         if isinstance(public_key.curve, ec.SECP256R1):
             return pn.x.to_bytes(32, "big") + pn.y.to_bytes(32, "big")
@@ -561,6 +576,10 @@ def _make_dnskey(
         if not _is_rsa(algorithm):
             raise ValueError("Invalid DNSKEY algorithm for RSA key")
         key_bytes = encode_rsa_public_key(public_key)
+    elif isinstance(public_key, dsa.DSAPublicKey):
+        if not _is_dsa(algorithm):
+            raise ValueError("Invalid DNSKEY algorithm for DSAkey")
+        key_bytes = encode_dsa_public_key(public_key)
     elif isinstance(public_key, ec.EllipticCurvePublicKey):
         if not _is_ecdsa(algorithm):
             raise ValueError("Invalid DNSKEY algorithm for EC key")
