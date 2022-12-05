@@ -967,6 +967,12 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         rrsig_template = abs_soa_rrsig[0]
         data = dns.dnssec._make_rrsig_signature_data(abs_soa, rrsig_template)
 
+    def testSignatureRSASHA1(self):  # type: () -> None
+        key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048, backend=default_backend()
+        )
+        self._test_signature(key, dns.dnssec.Algorithm.RSASHA1)
+
     def testSignatureRSASHA256(self):  # type: () -> None
         key = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
