@@ -743,7 +743,7 @@ def _make_dnskey(
     def encode_dsa_public_key(public_key: "dsa.DSAPublicKey") -> bytes:
         """Encode a public key per RFC 2536, section 2."""
         pn = public_key.public_numbers()
-        dsa_t = public_key.key_size // 128
+        dsa_t = (public_key.key_size // 8 - 64) // 8
         if dsa_t > 8:
             raise ValueError("Unsupported DSA key size")
         octets = 64 + dsa_t * 8
