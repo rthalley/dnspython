@@ -492,7 +492,7 @@ def _validate(
 
 
 def _sign(
-    rrset: dns.rrset.RRset,
+    rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
     private_key: PrivateKey,
     signer: dns.name.Name,
     dnskey: DNSKEY,
@@ -503,7 +503,9 @@ def _sign(
 ) -> RRSIG:
     """Sign RRset using private key.
 
-    *rrset*, dns.rrset.RRset, the RRset to validate.
+    *rrset*, the RRset to validate.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
+    tuple.
 
     *private_key*, the private key to use for signing, a
     ``cryptography.hazmat.primitives.asymmetric`` private key class applicable
@@ -522,6 +524,13 @@ def _sign(
     *verify*, a ``bool`` set to ``True`` if the signer should verify issued signaures.
     """
 
+    if isinstance(rrset, tuple):
+        rrname = rrset[0]
+        original_ttl = rrset[0].ttl
+    else:
+        rrname = rrset.name
+        original_ttl = rrset.ttl
+
     if inception is not None:
         rrsig_inception = to_timestamp(inception)
     else:
@@ -539,8 +548,8 @@ def _sign(
         rdtype=dns.rdatatype.RRSIG,
         type_covered=rrset.rdtype,
         algorithm=dnskey.algorithm,
-        labels=len(rrset.name) - 1,
-        original_ttl=rrset.ttl,
+        labels=len(rrname) - 1,
+        original_ttl=original_ttl,
         expiration=rrsig_expiration,
         inception=rrsig_inception,
         key_tag=key_id(dnskey),
