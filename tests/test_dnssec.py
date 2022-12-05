@@ -980,39 +980,49 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         key = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
-        self._test_signature(key, dns.dnssec.Algorithm.RSASHA1)
+        self._test_signature(key, dns.dnssec.Algorithm.RSASHA1, abs_soa)
 
     def testSignatureRSASHA256(self):  # type: () -> None
         key = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
-        self._test_signature(key, dns.dnssec.Algorithm.RSASHA256)
+        self._test_signature(key, dns.dnssec.Algorithm.RSASHA256, abs_soa)
 
     def testSignatureDSA(self):  # type: () -> None
         key = dsa.generate_private_key(key_size=1024)
-        self._test_signature(key, dns.dnssec.Algorithm.DSA)
+        self._test_signature(key, dns.dnssec.Algorithm.DSA, abs_soa)
 
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
-        self._test_signature(key, dns.dnssec.Algorithm.ECDSAP256SHA256)
+        self._test_signature(key, dns.dnssec.Algorithm.ECDSAP256SHA256, abs_soa)
 
     def testSignatureECDSAP384SHA384(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP384R1, backend=default_backend())
-        self._test_signature(key, dns.dnssec.Algorithm.ECDSAP384SHA384)
+        self._test_signature(key, dns.dnssec.Algorithm.ECDSAP384SHA384, abs_soa)
 
     def testSignatureED25519(self):  # type: () -> None
         key = ed25519.Ed25519PrivateKey.generate()
-        self._test_signature(key, dns.dnssec.Algorithm.ED25519)
+        self._test_signature(key, dns.dnssec.Algorithm.ED25519, abs_soa)
 
     def testSignatureED448(self):  # type: () -> None
         key = ed448.Ed448PrivateKey.generate()
-        self._test_signature(key, dns.dnssec.Algorithm.ED448)
+        self._test_signature(key, dns.dnssec.Algorithm.ED448, abs_soa)
 
-    def _test_signature(self, key, algorithm):  # type: () -> None
+    def testSignRdataset(self):  # type: () -> None
+        key = ed448.Ed448PrivateKey.generate()
+        name = dns.name.from_text("example.com")
+        rdataset = dns.rdataset.from_text_list("in", "a", 30, ["10.0.0.1", "10.0.0.2"])
+        rrset = (name, rdataset)
+        self._test_signature(key, dns.dnssec.Algorithm.ED448, rrset)
+
+    def _test_signature(self, key, algorithm, rrset, signer=None):  # type: () -> None
         ttl = 60
         lifetime = 3600
-        rrset = abs_soa
-        signer = rrset.name
+        if isinstance(rrset, tuple):
+            rrname = rrset[0]
+        else:
+            rrname = rrset.name
+        signer = signer or rrname
         dnskey = dns.dnssec.make_dnskey(
             public_key=key.public_key(), algorithm=algorithm
         )
@@ -1026,7 +1036,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             verify=True,
         )
         keys = {signer: dnskey_rrset}
-        rrsigset = dns.rrset.from_rdata(rrset.name, ttl, rrsig)
+        rrsigset = dns.rrset.from_rdata(rrname, ttl, rrsig)
         dns.dnssec.validate(rrset=rrset, rrsigset=rrsigset, keys=keys)
 
 

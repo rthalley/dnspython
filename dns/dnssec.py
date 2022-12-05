@@ -525,9 +525,13 @@ def _sign(
     """
 
     if isinstance(rrset, tuple):
+        rdclass = rrset[1].rdclass
+        rdtype = rrset[1].rdtype
         rrname = rrset[0]
-        original_ttl = rrset[0].ttl
+        original_ttl = rrset[1].ttl
     else:
+        rdclass = rrset.rdclass
+        rdtype = rrset.rdtype
         rrname = rrset.name
         original_ttl = rrset.ttl
 
@@ -544,9 +548,9 @@ def _sign(
         raise ValueError("expiration or lifetime must be specified")
 
     rrsig_template = RRSIG(
-        rdclass=rrset.rdclass,
+        rdclass=rdclass,
         rdtype=dns.rdatatype.RRSIG,
-        type_covered=rrset.rdtype,
+        type_covered=rdtype,
         algorithm=dnskey.algorithm,
         labels=len(rrname) - 1,
         original_ttl=original_ttl,
