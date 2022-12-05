@@ -823,6 +823,13 @@ class DNSSECMiscTestCase(unittest.TestCase):
     def testUnknownHash(self):
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec._make_hash(100)
+    
+    def testToTimestamp(self):
+        d1 = dns.dnssec.to_timestamp(datetime(year=1984, month=1, day=1, hour=13, minute=37))
+        d2 = dns.dnssec.to_timestamp("19840101133700")
+        d3 = dns.dnssec.to_timestamp(441808620.0)
+        d4 = dns.dnssec.to_timestamp(441808620)
+        self.assertEqual(len(set([d1, d2, d3, d4])), 1)
 
 
 class DNSSECMakeDSTestCase(unittest.TestCase):

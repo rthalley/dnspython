@@ -87,6 +87,20 @@ def algorithm_to_text(value: Union[Algorithm, int]) -> str:
     return Algorithm.to_text(value)
 
 
+def to_timestamp(value: Union[datetime, str, float, int]) -> int:
+    """Convert various format to a timestamp"""
+    if isinstance(value, datetime):
+        return int(value.timestamp())
+    elif isinstance(value, str):
+        return int(datetime.strptime(value, "%Y%m%d%H%M%S").timestamp())
+    elif isinstance(value, float):
+        return int(value)
+    elif isinstance(value, int):
+        return value
+    else:
+        raise TypeError("Unsupported timestamp type")
+
+
 def key_id(key: DNSKEY) -> int:
     """Return the key id (a 16-bit number) for the specified key.
 
@@ -482,8 +496,8 @@ def _sign(
     private_key: PrivateKey,
     signer: dns.name.Name,
     dnskey: DNSKEY,
-    inception: Optional[Union[datetime, int]] = None,
-    expiration: Optional[Union[datetime, int]] = None,
+    inception: Optional[Union[datetime, str, float]] = None,
+    expiration: Optional[Union[datetime, str, float]] = None,
     lifetime: Optional[int] = None,
     verify: bool = False,
 ) -> RRSIG:
@@ -499,9 +513,9 @@ def _sign(
 
     *dnskey*, a ``DNSKEY`` matching ``private_key``.
 
-    *inception*, a ``datetime`` or ``int``, signature inception; defaults to now.
+    *inception*, a ``datetime``, ``str``, or ``float``, signature inception; defaults to now.
 
-    *expiration*, a ``datetime`` or ``int``, signature expiration. May be specified as lifetime.
+    *expiration*, a ``datetime``, ``str`` or ``float``, signature expiration. May be specified as lifetime.
 
     *lifetime*, an ``int`` specifiying the signature lifetime in seconds.
 
@@ -509,18 +523,12 @@ def _sign(
     """
 
     if inception is not None:
-        if isinstance(inception, datetime):
-            rrsig_inception = int(inception.timestamp())
-        else:
-            rrsig_inception = inception
+        rrsig_inception = to_timestamp(inception)
     else:
         rrsig_inception = int(time.time())
 
     if expiration is not None:
-        if isinstance(expiration, datetime):
-            rrsig_expiration = int(inception.timestamp())
-        else:
-            rrsig_expiration = expiration
+        rrsig_expiration = to_timestamp(expiration)
     elif lifetime is not None:
         rrsig_expiration = int(time.time()) + lifetime
     else:
