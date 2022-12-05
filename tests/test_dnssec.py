@@ -34,7 +34,7 @@ from .keys import test_dnskeys
 try:
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives.serialization import load_pem_private_key
-    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, rsa
+    from cryptography.hazmat.primitives.asymmetric import dsa, ec, ed25519, ed448, rsa
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
@@ -978,6 +978,10 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
         self._test_signature(key, dns.dnssec.Algorithm.RSASHA256)
+
+    def testSignatureDSA(self):  # type: () -> None
+        key = dsa.generate_private_key(key_size=1024)
+        self._test_signature(key, dns.dnssec.Algorithm.DSA)
 
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
