@@ -489,9 +489,7 @@ def _sign(
 ) -> RRSIG:
     """Sign RRset using private key.
 
-    *rrset*, the RRset to sign.  This can be a
-    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
-    tuple.
+    *rrset*, dns.rrset.RRset, the RRset to validate.
 
     *private_key*, the private key to use for signing, a
     ``cryptography.hazmat.primitives.asymmetric`` private key class applicable
