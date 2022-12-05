@@ -578,7 +578,7 @@ def _sign(
         if verify:
             public_key.verify(der_signature, data, chosen_hash)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
-        dsa_t = 8  # TODO: determine how to calculate T
+        dsa_t = (public_key.key_size // 8- 64) // 8
         octets = 20
         signature = (
             struct.pack("!B", dsa_t)
