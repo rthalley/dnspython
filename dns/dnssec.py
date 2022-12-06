@@ -249,7 +249,7 @@ def _is_sha512(algorithm: int) -> bool:
     return algorithm == Algorithm.RSASHA512
 
 
-def _ensure_algorithm_key_combination(algorithm: int, key: PublicKey) -> bool:
+def _ensure_algorithm_key_combination(algorithm: int, key: PublicKey) -> None:
     """Ensure algorithm is valid for key type, throwing an exception on
     mismatch."""
     if isinstance(key, rsa.RSAPublicKey):
