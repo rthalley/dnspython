@@ -33,7 +33,7 @@ from .keys import test_dnskeys
 try:
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives.serialization import load_pem_private_key
-    from cryptography.hazmat.primitives.asymmetric import rsa
+    from cryptography.hazmat.primitives.asymmetric import dsa, rsa
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
@@ -939,6 +939,22 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DNSKEY, tk.dnskey)
             )
             self.assertEqual(rdata1, rdata2)
+
+    def testInvalidMakeDNSKEY(self):  # type: () -> None
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=1024,
+            backend=default_backend(),
+        )
+        with self.assertRaises(dns.dnssec.AlgorithmKeyMismatch):
+            dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.ED448)
+
+        with self.assertRaises(TypeError):
+            dns.dnssec.make_dnskey("xyzzy", dns.dnssec.Algorithm.ED448)
+
+        key = dsa.generate_private_key(2048)
+        with self.assertRaises(ValueError):
+            dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.DSA)
 
     def testRSALargeExponent(self):  # type: () -> None
         for key_size, public_exponent, dnskey_key_length in [
