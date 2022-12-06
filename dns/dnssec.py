@@ -46,6 +46,10 @@ class UnsupportedAlgorithm(dns.exception.DNSException):
     """The DNSSEC algorithm is not supported."""
 
 
+class AlgorithmKeyMismatch(UnsupportedAlgorithm):
+    """The DNSSEC algorithm is not supported for the given key type."""
+
+
 class ValidationFailure(dns.exception.DNSException):
     """The DNSSEC signature is invalid."""
 
@@ -243,6 +247,35 @@ def _is_sha384(algorithm: int) -> bool:
 
 def _is_sha512(algorithm: int) -> bool:
     return algorithm == Algorithm.RSASHA512
+
+
+def _ensure_algorithm_key_combination(algorithm: int, key: PublicKey) -> bool:
+    """Ensure algorithm is valid for key type, throwing an exception on
+    mismatch."""
+    if isinstance(key, rsa.RSAPublicKey):
+        if _is_rsa(algorithm):
+            return
+        raise AlgorithmKeyMismatch('algorithm "%s" not valid for RSA key' % algorithm)
+    if isinstance(key, dsa.DSAPublicKey):
+        if _is_dsa(algorithm):
+            return
+        raise AlgorithmKeyMismatch('algorithm "%s" not valid for DSA key' % algorithm)
+    if isinstance(key, ec.EllipticCurvePublicKey):
+        if _is_ecdsa(algorithm):
+            return
+        raise AlgorithmKeyMismatch('algorithm "%s" not valid for ECDSA key' % algorithm)
+    if isinstance(key, ed25519.Ed25519PublicKey):
+        if algorithm == Algorithm.ED25519:
+            return
+        raise AlgorithmKeyMismatch(
+            'algorithm "%s" not valid for ED25519 key' % algorithm
+        )
+    if isinstance(key, ed448.Ed448PublicKey):
+        if algorithm == Algorithm.ED448:
+            return
+        raise AlgorithmKeyMismatch('algorithm "%s" not valid for ED448 key' % algorithm)
+
+    raise TypeError("unsupported key type")
 
 
 def _make_hash(algorithm: int) -> Any:
@@ -721,8 +754,10 @@ def _make_dnskey(
 
     *protocol*: DNSKEY protocol field as an integer.
 
-    Raises ``ValueError`` if the specified algorithm is unsupported or
-    ``TypeError`` if the key algorithm is unsupported.
+    Raises ``ValueError`` if the specified key algorithm parameters are not
+    unsupported, ``TypeError`` if the key type is unsupported,
+    `UnsupportedAlgorithm` if the algorithm is unknown and
+    `AlgorithmKeyMismatch` if the algorithm does not match the key type.
 
     Return DNSKEY ``Rdata``.
     """
@@ -737,7 +772,7 @@ def _make_dnskey(
         else:
             exp_header = struct.pack("!B", _exp_len)
         if pn.n.bit_length() < 512 or pn.n.bit_length() > 4096:
-            raise ValueError("Unsupported RSA key length")
+            raise ValueError("unsupported RSA key length")
         return exp_header + exp + pn.n.to_bytes((pn.n.bit_length() + 7) // 8, "big")
 
     def encode_dsa_public_key(public_key: "dsa.DSAPublicKey") -> bytes:
@@ -745,7 +780,7 @@ def _make_dnskey(
         pn = public_key.public_numbers()
         dsa_t = (public_key.key_size // 8 - 64) // 8
         if dsa_t > 8:
-            raise ValueError("Unsupported DSA key size")
+            raise ValueError("unsupported DSA key size")
         octets = 64 + dsa_t * 8
         res = struct.pack("!B", dsa_t)
         res += pn.parameter_numbers.q.to_bytes(20, "big")
@@ -762,7 +797,7 @@ def _make_dnskey(
         elif isinstance(public_key.curve, ec.SECP384R1):
             return pn.x.to_bytes(48, "big") + pn.y.to_bytes(48, "big")
         else:
-            raise ValueError("Unsupported ECDSA curve")
+            raise ValueError("unsupported ECDSA curve")
 
     try:
         if isinstance(algorithm, str):
@@ -770,32 +805,24 @@ def _make_dnskey(
     except Exception:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
+    _ensure_algorithm_key_combination(algorithm, public_key)
+
     if isinstance(public_key, rsa.RSAPublicKey):
-        if not _is_rsa(algorithm):
-            raise ValueError("Invalid DNSKEY algorithm for RSA key")
         key_bytes = encode_rsa_public_key(public_key)
     elif isinstance(public_key, dsa.DSAPublicKey):
-        if not _is_dsa(algorithm):
-            raise ValueError("Invalid DNSKEY algorithm for DSAkey")
         key_bytes = encode_dsa_public_key(public_key)
     elif isinstance(public_key, ec.EllipticCurvePublicKey):
-        if not _is_ecdsa(algorithm):
-            raise ValueError("Invalid DNSKEY algorithm for EC key")
         key_bytes = encode_ecdsa_public_key(public_key)
     elif isinstance(public_key, ed25519.Ed25519PublicKey):
-        if algorithm != Algorithm.ED25519:
-            raise ValueError("Invalid DNSKEY algorithm for ED25519 key")
         key_bytes = public_key.public_bytes(
             encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )
     elif isinstance(public_key, ed448.Ed448PublicKey):
-        if algorithm != Algorithm.ED448:
-            raise ValueError("Invalid DNSKEY algorithm for ED448 key")
         key_bytes = public_key.public_bytes(
             encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )
     else:
-        raise TypeError("Unsupported key algorithm")
+        raise TypeError("unsupported key algorithm")
 
     return DNSKEY(
         rdclass=dns.rdataclass.IN,
