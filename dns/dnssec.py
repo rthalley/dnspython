@@ -603,19 +603,20 @@ def _sign(
             raise ValueError("Invalid DNSKEY algorithm for RSA key")
         signature = private_key.sign(data, padding.PKCS1v15(), chosen_hash)
         if verify:
-            public_key = private_key.public_key()
-            public_key.verify(signature, data, padding.PKCS1v15(), chosen_hash)
+            private_key.public_key().verify(
+                signature, data, padding.PKCS1v15(), chosen_hash
+            )
     elif isinstance(private_key, dsa.DSAPrivateKey):
         if not _is_dsa(dnskey.algorithm):
             raise ValueError("Invalid DNSKEY algorithm for DSA key")
-        public_key = private_key.public_key()
-        if public_key.key_size > 1024:
+        public_dsa_key = private_key.public_key()
+        if public_dsa_key.key_size > 1024:
             raise ValueError("DSA key size overflow")
         der_signature = private_key.sign(data, chosen_hash)
         if verify:
-            public_key.verify(der_signature, data, chosen_hash)
+            public_dsa_key.verify(der_signature, data, chosen_hash)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
-        dsa_t = (public_key.key_size // 8- 64) // 8
+        dsa_t = (public_dsa_key.key_size // 8 - 64) // 8
         octets = 20
         signature = (
             struct.pack("!B", dsa_t)
@@ -627,8 +628,7 @@ def _sign(
             raise ValueError("Invalid DNSKEY algorithm for EC key")
         der_signature = private_key.sign(data, ec.ECDSA(chosen_hash))
         if verify:
-            public_key = private_key.public_key()
-            public_key.verify(der_signature, data, ec.ECDSA(chosen_hash))
+            private_key.public_key().verify(der_signature, data, ec.ECDSA(chosen_hash))
         if dnskey.algorithm == Algorithm.ECDSAP256SHA256:
             octets = 32
         else:
@@ -642,15 +642,13 @@ def _sign(
             raise ValueError("Invalid DNSKEY algorithm for ED25519 key")
         signature = private_key.sign(data)
         if verify:
-            public_key = private_key.public_key()
-            public_key.verify(signature, data)
+            private_key.public_key().verify(signature, data)
     elif isinstance(private_key, ed448.Ed448PrivateKey):
         if dnskey.algorithm != Algorithm.ED448:
             raise ValueError("Invalid DNSKEY algorithm for ED448 key")
         signature = private_key.sign(data)
         if verify:
-            public_key = private_key.public_key()
-            public_key.verify(signature, data)
+            private_key.public_key().verify(signature, data)
     else:
         raise TypeError("Unsupported key algorithm")
 
