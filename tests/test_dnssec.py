@@ -825,13 +825,21 @@ class DNSSECMiscTestCase(unittest.TestCase):
             dns.dnssec._make_hash(100)
 
     def testToTimestamp(self):
-        d1 = dns.dnssec.to_timestamp(
+        REFERENCE_TIMESTAMP = 441808620
+
+        ts = dns.dnssec.to_timestamp(
             datetime(year=1984, month=1, day=1, hour=13, minute=37)
         )
-        d2 = dns.dnssec.to_timestamp("19840101133700")
-        d3 = dns.dnssec.to_timestamp(441808620.0)
-        d4 = dns.dnssec.to_timestamp(441808620)
-        self.assertEqual(len(set([d1, d2, d3, d4])), 1)
+        self.assertEqual(ts, REFERENCE_TIMESTAMP)
+
+        ts = dns.dnssec.to_timestamp("19840101133700")
+        self.assertEqual(ts, REFERENCE_TIMESTAMP)
+
+        ts = dns.dnssec.to_timestamp(441808620.0)
+        self.assertEqual(ts, REFERENCE_TIMESTAMP)
+
+        ts = dns.dnssec.to_timestamp(441808620)
+        self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
