@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import unittest
@@ -825,20 +825,20 @@ class DNSSECMiscTestCase(unittest.TestCase):
             dns.dnssec._make_hash(100)
 
     def testToTimestamp(self):
-        REFERENCE_TIMESTAMP = 441808620
+        REFERENCE_TIMESTAMP = 441812220
 
         ts = dns.dnssec.to_timestamp(
-            datetime(year=1984, month=1, day=1, hour=13, minute=37)
+            datetime(year=1984, month=1, day=1, hour=13, minute=37, tzinfo=timezone.utc)
         )
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
         ts = dns.dnssec.to_timestamp("19840101133700")
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
-        ts = dns.dnssec.to_timestamp(441808620.0)
+        ts = dns.dnssec.to_timestamp(441812220.0)
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
-        ts = dns.dnssec.to_timestamp(441808620)
+        ts = dns.dnssec.to_timestamp(441812220)
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
 

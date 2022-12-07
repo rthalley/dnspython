@@ -24,7 +24,7 @@ import math
 import struct
 import time
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 
 from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
 
@@ -38,7 +38,7 @@ import dns.rdataclass
 import dns.rrset
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.ANY.DS import DS
-from dns.rdtypes.ANY.RRSIG import RRSIG
+from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
 from dns.rdtypes.dnskeybase import Flag
 
 
@@ -96,7 +96,7 @@ def to_timestamp(value: Union[datetime, str, float, int]) -> int:
     if isinstance(value, datetime):
         return int(value.timestamp())
     elif isinstance(value, str):
-        return int(datetime.strptime(value, "%Y%m%d%H%M%S").timestamp())
+        return sigtime_to_posixtime(value)
     elif isinstance(value, float):
         return int(value)
     elif isinstance(value, int):
