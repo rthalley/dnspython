@@ -87,6 +87,12 @@ DNSSEC RFCs
 `RFC 7583 <https://tools.ietf.org/html/rfc7583>`_
     Key Rollover Timing Considerations.
 
+`RFC 8624 <https://tools.ietf.org/html/rfc8624>`_
+    Algorithm Implementation Requirements and Usage Guidance for DNSSEC.
+
+`RFC 9157 <https://tools.ietf.org/html/rfc9157>`_
+    Revised IANA Considerations for DNSSEC.
+
 Misc RFCs
 ---------
 
