@@ -78,6 +78,9 @@ DNSSEC RFCs
 `RFC 4470 <https://tools.ietf.org/html/rfc4470>`_
     Minimally covering NSEC records and On-line Signing.
 
+`RFC 5155 <https://tools.ietf.org/html/rfc5155>`_
+    DNS Security (DNSSEC) Hashed Authenticated Denial of Existence.  [NSEC3]
+
 `RFC 6781 <https://tools.ietf.org/html/rfc6781>`_
     Operational Practices, Version 2.
 
