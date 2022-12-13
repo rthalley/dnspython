@@ -50,8 +50,10 @@ class Algorithm(dns.enum.IntEnum):
 class DSDigest(dns.enum.IntEnum):
     """DNSSEC Delegation Signer Digest Algorithm"""
 
+    NULL = 0
     SHA1 = 1
     SHA256 = 2
+    GOST = 3
     SHA384 = 4
 
     @classmethod
