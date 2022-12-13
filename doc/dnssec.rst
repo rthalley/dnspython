@@ -4,8 +4,7 @@
 DNSSEC
 ======
 
-Dnspython can do simple DNSSEC signature validation, but currently has no
-facilities for signing.  In order to use DNSSEC functions, you must have
+Dnspython can do simple DNSSEC signature validation and signing.  In order to use DNSSEC functions, you must have
 ``python cryptography`` installed.
 
 DNSSEC Functions
@@ -15,6 +14,8 @@ DNSSEC Functions
 .. autofunction:: dns.dnssec.algorithm_to_text
 .. autofunction:: dns.dnssec.key_id
 .. autofunction:: dns.dnssec.make_ds
+.. autofunction:: dns.dnssec.make_dnskey
+.. autofunction:: dns.dnssec.sign
 .. autofunction:: dns.dnssec.validate
 .. autofunction:: dns.dnssec.validate_rrsig
 .. autofunction:: dns.dnssec.nsec3_hash
