@@ -29,6 +29,8 @@ What's New in dnspython
   is subject to change in future releases.  For asynchronous I/O, both
   asyncio and Trio are supported, but Curio is not.
 
+* DNSSEC signing support has been added to the ``dns.dnssec`` module.
+
 * Curio asynchronous I/O support is deprecated as of this release and will
   be removed in a future release.
 
