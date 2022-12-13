@@ -1271,9 +1271,7 @@ class Resolver(BaseResolver):
             True,
         )
 
-    def resolve_address(
-        self, ipaddr: str, *args: Any, **kwargs: Dict[str, Any]
-    ) -> Answer:
+    def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Any) -> Answer:
         """Use a resolver to run a reverse query for PTR records.
 
         This utilizes the resolve() method to perform a PTR lookup on the
@@ -1413,7 +1411,7 @@ def query(
     )
 
 
-def resolve_address(ipaddr: str, *args: Any, **kwargs: Dict[str, Any]) -> Answer:
+def resolve_address(ipaddr: str, *args: Any, **kwargs: Any) -> Answer:
     """Use a resolver to run a reverse query for PTR records.
 
     See ``dns.resolver.Resolver.resolve_address`` for more information on the

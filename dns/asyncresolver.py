@@ -126,7 +126,7 @@ class Resolver(dns.resolver.BaseResolver):
                     return answer
 
     async def resolve_address(
-        self, ipaddr: str, *args: Any, **kwargs: Dict[str, Any]
+        self, ipaddr: str, *args: Any, **kwargs: Any
     ) -> dns.resolver.Answer:
         """Use an asynchronous resolver to run a reverse query for PTR
         records.
@@ -235,7 +235,7 @@ async def resolve(
 
 
 async def resolve_address(
-    ipaddr: str, *args: Any, **kwargs: Dict[str, Any]
+    ipaddr: str, *args: Any, **kwargs: Any
 ) -> dns.resolver.Answer:
     """Use a resolver to run a reverse query for PTR records.
 

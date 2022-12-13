@@ -92,9 +92,7 @@ class RRset(dns.rdataset.Rdataset):
             return False
         return super().__eq__(other)
 
-    def match(  # type: ignore[override]
-        self, *args: Any, **kwargs: Dict[str, Any]
-    ) -> bool:
+    def match(self, *args: Any, **kwargs: Any) -> bool:  # type: ignore[override]
         """Does this rrset match the specified attributes?
 
         Behaves as :py:func:`full_match()` if the first argument is a

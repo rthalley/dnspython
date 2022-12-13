@@ -529,8 +529,8 @@ def _sign(
     private_key: PrivateKey,
     signer: dns.name.Name,
     dnskey: DNSKEY,
-    inception: Optional[Union[datetime, str, float]] = None,
-    expiration: Optional[Union[datetime, str, float]] = None,
+    inception: Optional[Union[datetime, str, int, float]] = None,
+    expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
     verify: bool = False,
 ) -> RRSIG:
@@ -548,13 +548,22 @@ def _sign(
 
     *dnskey*, a ``DNSKEY`` matching ``private_key``.
 
-    *inception*, a ``datetime``, ``str``, or ``float``, signature inception; defaults to now.
+    *inception*, a ``datetime``, ``str``, ``int``, ``float`` or ``None``, the
+    signature inception time.  If ``None``, the current time is used.  If a ``str``, the
+    format is "YYYYMMDDHHMMSS" or alternatively the number of seconds since the UNIX
+    epoch in text form; this is the same the RRSIG rdata's text form.
+    Values of type `int` or `float` are interpreted as seconds since the UNIX epoch.
 
-    *expiration*, a ``datetime``, ``str`` or ``float``, signature expiration. May be specified as lifetime.
+    *expiration*, a ``datetime``, ``str``, ``int``, ``float`` or ``None``, the signature
+    expiration time.  If ``None``, the expiration time will be the inception time plus
+    the value of the *lifetime* parameter.  See the description of *inception* above
+    for how the various parameter types are interpreted.
 
-    *lifetime*, an ``int`` specifiying the signature lifetime in seconds.
+    *lifetime*, an ``int`` or ``None``, the signature lifetime in seconds.  This
+    parameter is only meaningful if *expiration* is ``None``.
 
-    *verify*, a ``bool`` set to ``True`` if the signer should verify issued signaures.
+    *verify*, a ``bool``.  If set to ``True``, the signer will verify signatures
+    after they are created; the default is ``False``.
     """
 
     if isinstance(rrset, tuple):
@@ -652,19 +661,7 @@ def _sign(
     else:
         raise TypeError("Unsupported key algorithm")
 
-    return RRSIG(
-        rdclass=rrsig_template.rdclass,
-        rdtype=rrsig_template.rdtype,
-        type_covered=rrsig_template.type_covered,
-        algorithm=rrsig_template.algorithm,
-        labels=rrsig_template.labels,
-        original_ttl=rrsig_template.original_ttl,
-        expiration=rrsig_template.expiration,
-        inception=rrsig_template.inception,
-        key_tag=rrsig_template.key_tag,
-        signer=rrsig_template.signer,
-        signature=signature,
-    )
+    return cast(RRSIG, rrsig_template.replace(signature=signature))
 
 
 def _make_rrsig_signature_data(
@@ -797,13 +794,9 @@ def _make_dnskey(
         else:
             raise ValueError("unsupported ECDSA curve")
 
-    try:
-        if isinstance(algorithm, str):
-            algorithm = Algorithm[algorithm.upper()]
-    except Exception:
-        raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+    the_algorithm = Algorithm.make(algorithm)
 
-    _ensure_algorithm_key_combination(algorithm, public_key)
+    _ensure_algorithm_key_combination(the_algorithm, public_key)
 
     if isinstance(public_key, rsa.RSAPublicKey):
         key_bytes = encode_rsa_public_key(public_key)
@@ -827,7 +820,7 @@ def _make_dnskey(
         rdtype=dns.rdatatype.DNSKEY,
         flags=flags,
         protocol=protocol,
-        algorithm=algorithm,
+        algorithm=the_algorithm,
         key=key_bytes,
     )
 

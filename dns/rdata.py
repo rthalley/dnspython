@@ -414,7 +414,7 @@ class Rdata:
     ) -> "Rdata":
         raise NotImplementedError  # pragma: no cover
 
-    def replace(self, **kwargs: Dict[str, Any]) -> "Rdata":
+    def replace(self, **kwargs: Any) -> "Rdata":
         """
         Create a new Rdata instance based on the instance replace was
         invoked on. It is possible to pass different parameters to
