@@ -36,6 +36,8 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
 import dns.rrset
+from dns.rdtypes.ANY.CDNSKEY import CDNSKEY
+from dns.rdtypes.ANY.CDS import CDS
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.ANY.DS import DS
 from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
@@ -179,6 +181,41 @@ def make_ds(
         dns.rdataclass.IN, dns.rdatatype.DS, dsrdata, 0, len(dsrdata)
     )
     return cast(DS, ds)
+
+
+def make_cds(
+    name: Union[dns.name.Name, str],
+    key: dns.rdata.Rdata,
+    algorithm: Union[DSDigest, str],
+    origin: Optional[dns.name.Name] = None,
+) -> CDS:
+    """Create a CDS record for a DNSSEC key.
+
+    *name*, a ``dns.name.Name`` or ``str``, the owner name of the DS record.
+
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``, the key the DS is about.
+
+    *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
+    The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
+    does not matter for these strings.
+
+    *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
+    then it will be made absolute using the specified origin.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
+
+    Returns a ``dns.rdtypes.ANY.DS.CDS``
+    """
+
+    ds = make_ds(name, key, algorithm, origin)
+    return CDS(
+        rdclass=dns.rdataclass.IN,
+        rdtype=dns.rdatatype.CDS,
+        key_tag=ds.key_tag,
+        algorithm=ds.algorithm,
+        digest_type=ds.digest_type,
+        digest=ds.digest,
+    )
 
 
 def _find_candidate_keys(
@@ -825,6 +862,44 @@ def _make_dnskey(
     )
 
 
+def _make_cdnskey(
+    public_key: PublicKey,
+    algorithm: Union[int, str],
+    flags: int = Flag.ZONE,
+    protocol: int = 3,
+) -> CDNSKEY:
+    """Convert a public key to CDNSKEY Rdata
+
+    *public_key*, the public key to convert, a
+    ``cryptography.hazmat.primitives.asymmetric`` public key class applicable
+    for DNSSEC.
+
+    *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
+
+    *flags: DNSKEY flags field as an integer.
+
+    *protocol*: DNSKEY protocol field as an integer.
+
+    Raises ``ValueError`` if the specified key algorithm parameters are not
+    unsupported, ``TypeError`` if the key type is unsupported,
+    `UnsupportedAlgorithm` if the algorithm is unknown and
+    `AlgorithmKeyMismatch` if the algorithm does not match the key type.
+
+    Return CDNSKEY ``Rdata``.
+    """
+
+    dnskey = _make_dnskey(public_key, algorithm, flags, protocol)
+
+    return CDNSKEY(
+        rdclass=dns.rdataclass.IN,
+        rdtype=dns.rdatatype.CDNSKEY,
+        flags=dnskey.flags,
+        protocol=dnskey.protocol,
+        algorithm=dnskey.algorithm,
+        key=dnskey.key
+    )
+
+
 def nsec3_hash(
     domain: Union[dns.name.Name, str],
     salt: Optional[Union[str, bytes]],
@@ -908,12 +983,14 @@ except ImportError:  # pragma: no cover
     validate_rrsig = _need_pyca
     sign = _need_pyca
     make_dnskey = _need_pyca
+    make_cdnskey = _need_pyca
     _have_pyca = False
 else:
     validate = _validate  # type: ignore
     validate_rrsig = _validate_rrsig  # type: ignore
     sign = _sign
     make_dnskey = _make_dnskey
+    make_cdnskey = _make_cdnskey
     _have_pyca = True
 
 ### BEGIN generated Algorithm constants

@@ -164,6 +164,12 @@ good_ds = dns.rdata.from_text(
     "57349 5 2 53A79A3E7488AB44FFC56B2D1109F0699D1796DD977E72108B841F96 E47D7013",
 )
 
+good_cds = dns.rdata.from_text(
+    dns.rdataclass.IN,
+    dns.rdatatype.CDS,
+    "57349 5 2 53A79A3E7488AB44FFC56B2D1109F0699D1796DD977E72108B841F96 E47D7013",
+)
+
 when2 = 1290425644
 
 abs_example = dns.name.from_text("example")
@@ -876,6 +882,10 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, "SHA256")
         self.assertEqual(ds, good_ds)
 
+    def testMakeSHA256CDS(self):  # type: () -> None
+        cds = dns.dnssec.make_cds(abs_dnspython_org, sep_key, "SHA256")
+        self.assertEqual(cds, good_cds)
+
     def testInvalidAlgorithm(self):  # type: () -> None
         algorithm: Any
         for algorithm in (10, "shax"):
@@ -973,6 +983,19 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
         key = dsa.generate_private_key(2048)
         with self.assertRaises(ValueError):
             dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.DSA)
+
+    def testMakeCDNSKEY(self):  # type: () -> None
+        key = ed448.Ed448PrivateKey.generate()
+        dnskey = dns.dnssec.make_cdnskey(
+            key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+        )
+        cdnskey = dns.dnssec.make_cdnskey(
+            key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+        )
+        self.assertEqual(dnskey.flags, cdnskey.flags)
+        self.assertEqual(dnskey.protocol, cdnskey.protocol)
+        self.assertEqual(dnskey.algorithm, cdnskey.algorithm)
+        self.assertEqual(dnskey.key, cdnskey.key)
 
     def testRSALargeExponent(self):  # type: () -> None
         for key_size, public_exponent, dnskey_key_length in [
