@@ -986,7 +986,7 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
 
     def testMakeCDNSKEY(self):  # type: () -> None
         key = ed448.Ed448PrivateKey.generate()
-        dnskey = dns.dnssec.make_cdnskey(
+        dnskey = dns.dnssec.make_dnskey(
             key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
         )
         cdnskey = dns.dnssec.make_cdnskey(
