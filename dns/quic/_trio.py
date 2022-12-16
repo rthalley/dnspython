@@ -8,14 +8,14 @@ import time
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
-import dns.inet
 import trio
 
+import dns.inet
+from dns._asyncbackend import NullContext
 from dns.quic._common import (
     BaseQuicStream,
     AsyncQuicConnection,
     AsyncQuicManager,
-    NullContext,
     QUIC_MAX_DATAGRAM,
 )
 
