@@ -1070,8 +1070,8 @@ def quic(
     where: str,
     timeout: Optional[float] = None,
     port: int = 853,
-    source: Optional[str] = None,  # pylint: disable=unused-argument
-    source_port: int = 0,  # pylint: disable=unused-argument
+    source: Optional[str] = None,
+    source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     connection: Optional[dns.quic.SyncQuicConnection] = None,
@@ -1126,7 +1126,7 @@ def quic(
 
     with manager:
         if not connection:
-            the_connection = the_manager.connect(where, port)
+            the_connection = the_manager.connect(where, port, source, source_port)
         start = time.time()
         with the_connection.make_stream() as stream:
             stream.send(wire, True)
