@@ -970,6 +970,26 @@ def make_ds_rdataset(
     algorithms: Set[Union[DSDigest, str]],
     origin: Optional[dns.name.Name] = None,
 ) -> dns.rdataset.Rdataset:
+    """Create a DS record from DNSKEY/CDNSKEY/CDS.
+
+    *rrset*, the RRset to create DS Rdataset for.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *algorithms*, a set of ``str`` or ``int`` specifying the hash algorithms.
+    The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
+    does not matter for these strings. If the RRset is a CDS, only digest
+    algorithms matching algorithms are accepted.
+
+    *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
+    then it will be made absolute using the specified origin.
+
+    Raises ``UnsupportedAlgorithm`` if any of the algorithms are unknown and
+    ``ValueError`` if the given RRset is not usable.
+
+    Returns a ``dns.rdataset.Rdataset``
+    """
+
     rrname, rdataset = _get_rrname_rdataset(rrset)
 
     if rdataset.rdtype not in (
@@ -991,11 +1011,11 @@ def make_ds_rdataset(
 
     if rdataset.rdtype == dns.rdatatype.CDS:
         res = []
-        for rdata in cds_rdataset_to_ds_rdataset(rdataset):
+        for rdata in _cds_rdataset_to_ds_rdataset(rdataset):
             if rdata.digest_type in algorithms:
                 res.append(rdata)
         if not len(res):
-            raise ValueError("no usable CDS found")
+            raise ValueError("no acceptable CDS rdata found")
         return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
     res = []
@@ -1004,7 +1024,7 @@ def make_ds_rdataset(
     return res
 
 
-def cds_rdataset_to_ds_rdataset(
+def _cds_rdataset_to_ds_rdataset(
     rdataset: dns.rdataset.Rdataset,
 ) -> dns.rdataset.Rdataset:
     if rdataset.rdtype != dns.rdatatype.CDS:
@@ -1030,6 +1050,23 @@ def dnskey_rdataset_to_cds_rdataset(
     algorithm: Union[DSDigest, str],
     origin: Optional[dns.name.Name] = None,
 ) -> dns.rdataset.Rdataset:
+    """Create a CDS record from DNSKEY/CDNSKEY.
+
+    *name*, a ``dns.name.Name`` or ``str``, the owner name of the CDS record.
+
+    *rdataset*, a ``dns.rdataset.Rdataset``, to create DS Rdataset for.
+
+    *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
+    The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
+    does not matter for these strings.
+
+    *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
+    then it will be made absolute using the specified origin.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
+
+    Returns a ``dns.rdataset.Rdataset``
+    """
     if rdataset.rdtype not in (dns.rdatatype.DNSKEY, dns.rdatatype.CDNSKEY):
         raise ValueError("rdataset not a DNSKEY/CDNSKEY")
     res = []
@@ -1041,6 +1078,13 @@ def dnskey_rdataset_to_cds_rdataset(
 def dnskey_rdataset_to_cdnskey_rdataset(
     rdataset: dns.rdataset.Rdataset,
 ) -> dns.rdataset.Rdataset:
+    """Create a CDNSKEY record from DNSKEY.
+
+    *rdataset*, a ``dns.rdataset.Rdataset``, to create CDNSKEY Rdataset for.
+
+    Returns a ``dns.rdataset.Rdataset``
+    """
+
     if rdataset.rdtype != dns.rdatatype.DNSKEY:
         raise ValueError("rdataset not a DNSKEY")
     res = []
