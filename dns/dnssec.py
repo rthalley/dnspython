@@ -209,7 +209,7 @@ def make_cds(
 
     ds = make_ds(name, key, algorithm, origin)
     return CDS(
-        rdclass=dns.rdataclass.IN,
+        rdclass=ds.rdclass,
         rdtype=dns.rdatatype.CDS,
         key_tag=ds.key_tag,
         algorithm=ds.algorithm,
@@ -891,7 +891,7 @@ def _make_cdnskey(
     dnskey = _make_dnskey(public_key, algorithm, flags, protocol)
 
     return CDNSKEY(
-        rdclass=dns.rdataclass.IN,
+        rdclass=dnskey.rdclass,
         rdtype=dns.rdatatype.CDNSKEY,
         flags=dnskey.flags,
         protocol=dnskey.protocol,
