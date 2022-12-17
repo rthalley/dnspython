@@ -17,7 +17,7 @@
 
 """Common DNSSEC-related functions and constants."""
 
-from typing import Any, cast, Dict, List, Optional, Tuple, Union
+from typing import Any, cast, Dict, List, Optional, Set, Tuple, Union
 
 import hashlib
 import math
@@ -138,7 +138,7 @@ def make_ds(
 
     *name*, a ``dns.name.Name`` or ``str``, the owner name of the DS record.
 
-    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``, the key the DS is about.
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY`` or ``dns.rdtypes.ANY.DNSKEY.CDNSKEY``, the key the DS is about.
 
     *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
     The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
@@ -157,8 +157,8 @@ def make_ds(
             algorithm = DSDigest[algorithm.upper()]
     except Exception:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
-    if not isinstance(key, DNSKEY):
-        raise ValueError("key is not a DNSKEY")
+    if not isinstance(key, (DNSKEY, CDNSKEY)):
+        raise ValueError("key is not a DNSKEY/CDNSKEY")
     if algorithm == DSDigest.SHA1:
         dshash = hashlib.sha1()
     elif algorithm == DSDigest.SHA256:
@@ -193,7 +193,7 @@ def make_cds(
 
     *name*, a ``dns.name.Name`` or ``str``, the owner name of the DS record.
 
-    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``, the key the DS is about.
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY`` or ``dns.rdtypes.ANY.DNSKEY.CDNSKEY``,  key the DS is about.
 
     *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
     The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
@@ -336,6 +336,15 @@ def _make_hash(algorithm: int) -> Any:
 
 def _bytes_to_long(b: bytes) -> int:
     return int.from_bytes(b, "big")
+
+
+def _get_rrname_rdataset(
+    rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
+) -> Tuple[dns.name.Name, dns.rdataset.Rdataset]:
+    if isinstance(rrset, tuple):
+        return rrset[0], rrset[1]
+    else:
+        return rrset.name, rrset
 
 
 def _validate_signature(sig: bytes, data: bytes, key: DNSKEY, chosen_hash: Any) -> None:
@@ -733,12 +742,7 @@ def _make_rrsig_signature_data(
 
     # For convenience, allow the rrset to be specified as a (name,
     # rdataset) tuple as well as a proper rrset
-    if isinstance(rrset, tuple):
-        rrname = rrset[0]
-        rdataset = rrset[1]
-    else:
-        rrname = rrset.name
-        rdataset = rrset
+    rrname, rdataset = _get_rrname_rdataset(rrset)
 
     data = b""
     data += rrsig.to_wire(origin=signer)[:18]
@@ -896,7 +900,7 @@ def _make_cdnskey(
         flags=dnskey.flags,
         protocol=dnskey.protocol,
         algorithm=dnskey.algorithm,
-        key=dnskey.key
+        key=dnskey.key,
     )
 
 
@@ -959,6 +963,99 @@ def nsec3_hash(
     output = output.translate(b32_conversion)
 
     return output
+
+
+def make_ds_rdataset(
+    rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
+    algorithms: Set[Union[DSDigest, str]],
+    origin: Optional[dns.name.Name] = None,
+) -> dns.rdataset.Rdataset:
+    rrname, rdataset = _get_rrname_rdataset(rrset)
+
+    if rdataset.rdtype not in (
+        dns.rdatatype.DNSKEY,
+        dns.rdatatype.CDNSKEY,
+        dns.rdatatype.CDS,
+    ):
+        raise ValueError("rrset not a DNSKEY/CDNSKEY/CDS")
+
+    new_algorithms = set()
+    for algorithm in algorithms:
+        try:
+            if isinstance(algorithm, str):
+                algorithm = DSDigest[algorithm.upper()]
+        except Exception:
+            raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+        new_algorithms.add(algorithm)
+    algorithms = new_algorithms
+
+    if rdataset.rdtype == dns.rdatatype.CDS:
+        res = []
+        for rdata in cds_rdataset_to_ds_rdataset(rdataset):
+            if rdata.digest_type in algorithms:
+                res.append(rdata)
+        if not len(res):
+            raise ValueError("no usable CDS found")
+        return dns.rdataset.from_rdata_list(rdataset.ttl, res)
+
+    res = []
+    for algorithm in algorithms:
+        res.extend(dnskey_rdataset_to_cds_rdataset(rrname, rdataset, algorithm, origin))
+    return res
+
+
+def cds_rdataset_to_ds_rdataset(
+    rdataset: dns.rdataset.Rdataset,
+) -> dns.rdataset.Rdataset:
+    if rdataset.rdtype != dns.rdatatype.CDS:
+        raise ValueError("rdataset not a CDS")
+    res = []
+    for rdata in rdataset:
+        res.append(
+            CDS(
+                rdclass=rdata.rdclass,
+                rdtype=dns.rdatatype.CDS,
+                key_tag=rdata.key_tag,
+                algorithm=rdata.algorithm,
+                digest_type=rdata.digest_type,
+                digest=rdata.digest,
+            )
+        )
+    return dns.rdataset.from_rdata_list(rdataset.ttl, res)
+
+
+def dnskey_rdataset_to_cds_rdataset(
+    name: Union[dns.name.Name, str],
+    rdataset: dns.rdataset.Rdataset,
+    algorithm: Union[DSDigest, str],
+    origin: Optional[dns.name.Name] = None,
+) -> dns.rdataset.Rdataset:
+    if rdataset.rdtype not in (dns.rdatatype.DNSKEY, dns.rdatatype.CDNSKEY):
+        raise ValueError("rdataset not a DNSKEY/CDNSKEY")
+    res = []
+    for rdata in rdataset:
+        res.append(make_cds(name, rdata, algorithm, origin))
+    return dns.rdataset.from_rdata_list(rdataset.ttl, res)
+
+
+def dnskey_rdataset_to_cdnskey_rdataset(
+    rdataset: dns.rdataset.Rdataset,
+) -> dns.rdataset.Rdataset:
+    if rdataset.rdtype != dns.rdatatype.DNSKEY:
+        raise ValueError("rdataset not a DNSKEY")
+    res = []
+    for rdata in rdataset:
+        res.append(
+            CDNSKEY(
+                rdclass=rdataset.rdclass,
+                rdtype=rdataset.rdtype,
+                flags=rdata.flags,
+                protocol=rdata.protocol,
+                algorithm=rdata.algorithm,
+                key=rdata.key,
+            )
+        )
+    return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
 def _need_pyca(*args, **kwargs):
