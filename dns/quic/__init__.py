@@ -15,10 +15,15 @@ try:
 
     have_quic = True
 
-    def null_factory(*args, **kwargs):
+    def null_factory(
+        *args,  # pylint: disable=unused-argument
+        **kwargs  # pylint: disable=unused-argument
+    ):
         return NullContext(None)
 
-    def _asyncio_manager_factory(context, *args, **kwargs):
+    def _asyncio_manager_factory(
+        context, *args, **kwargs  # pylint: disable=unused-argument
+    ):
         return AsyncioQuicManager(*args, **kwargs)
 
     # We have a context factory and a manager factory as for trio we need to have
@@ -28,7 +33,11 @@ try:
 
     try:
         import trio
-        from dns.quic._trio import TrioQuicManager, TrioQuicConnection, TrioQuicStream
+        from dns.quic._trio import (  # pylint: disable=ungrouped-imports
+            TrioQuicManager,
+            TrioQuicConnection,
+            TrioQuicStream,
+        )
 
         def _trio_context_factory():
             return trio.open_nursery()

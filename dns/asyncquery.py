@@ -697,7 +697,7 @@ async def quic(
     *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
     the default, then dnspython will use the default backend.
 
-    See :py:func:`dns.query.doq()` for the documentation of the other
+    See :py:func:`dns.query.quic()` for the documentation of the other
     parameters, exceptions, and return type of this method.
     """
 

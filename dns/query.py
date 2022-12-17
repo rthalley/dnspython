@@ -1126,7 +1126,7 @@ def quic(
 
     with manager:
         if not connection:
-            the_connection = the_manager.connect(where, port)
+            the_connection = the_manager.connect(where, port, source, source_port)
         start = time.time()
         with the_connection.make_stream() as stream:
             stream.send(wire, True)

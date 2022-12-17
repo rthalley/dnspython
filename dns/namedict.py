@@ -27,7 +27,8 @@
 
 """DNS name dictionary"""
 
-from collections.abc import MutableMapping
+# pylint seems to be confused about this one!
+from collections.abc import MutableMapping  # pylint: disable=no-name-in-module
 
 import dns.name
 
