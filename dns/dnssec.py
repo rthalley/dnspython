@@ -111,7 +111,7 @@ def to_timestamp(value: Union[datetime, str, float, int]) -> int:
         raise TypeError("Unsupported timestamp type")
 
 
-def key_id(key: DNSKEY) -> int:
+def key_id(key: Union[DNSKEY,CDNSKEY]) -> int:
     """Return the key id (a 16-bit number) for the specified key.
 
     *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``
@@ -1101,29 +1101,28 @@ def make_ds_rdataset(
     ):
         raise ValueError("rrset not a DNSKEY/CDNSKEY/CDS")
 
-    new_algorithms = set()
+    _algorithms = set()
     for algorithm in algorithms:
         try:
             if isinstance(algorithm, str):
                 algorithm = DSDigest[algorithm.upper()]
         except Exception:
             raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
-        new_algorithms.add(algorithm)
-    algorithms = new_algorithms
+        _algorithms.add(algorithm)
 
     if rdataset.rdtype == dns.rdatatype.CDS:
         res = []
         for rdata in _cds_rdataset_to_ds_rdataset(rdataset):
-            if rdata.digest_type in algorithms:
+            if rdata.digest_type in _algorithms:
                 res.append(rdata)
         if not len(res):
             raise ValueError("no acceptable CDS rdata found")
         return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
     res = []
-    for algorithm in algorithms:
+    for algorithm in _algorithms:
         res.extend(dnskey_rdataset_to_cds_rdataset(rrname, rdataset, algorithm, origin))
-    return res
+    return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
 def _cds_rdataset_to_ds_rdataset(
