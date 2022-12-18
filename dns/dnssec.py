@@ -1135,7 +1135,7 @@ def _cds_rdataset_to_ds_rdataset(
         res.append(
             CDS(
                 rdclass=rdata.rdclass,
-                rdtype=dns.rdatatype.CDS,
+                rdtype=dns.rdatatype.DS,
                 key_tag=rdata.key_tag,
                 algorithm=rdata.algorithm,
                 digest_type=rdata.digest_type,
