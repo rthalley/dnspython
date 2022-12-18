@@ -1032,13 +1032,7 @@ def tls(
         where, port, source, source_port
     )
     if ssl_context is None and not sock:
-        # LGTM complains about this because the default might permit TLS < 1.2
-        # for compatibility, but the python documentation says that explicit
-        # versioning is deprecated, and that as of python 3.6 it will negotiate
-        # the highest version possible.  We also set a minimum version when we
-        # can, even though this might require a future dnspython release if that
-        # version becomes deprecated.
-        ssl_context = ssl.create_default_context()  # lgtm[py/insecure-protocol]
+        ssl_context = ssl.create_default_context()
         ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
         if server_hostname is None:
             ssl_context.check_hostname = False
