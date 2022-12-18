@@ -1112,7 +1112,7 @@ def make_ds_rdataset(
 
     if rdataset.rdtype == dns.rdatatype.CDS:
         res = []
-        for rdata in _cds_rdataset_to_ds_rdataset(rdataset):
+        for rdata in cds_rdataset_to_ds_rdataset(rdataset):
             if rdata.digest_type in _algorithms:
                 res.append(rdata)
         if not len(res):
@@ -1125,9 +1125,18 @@ def make_ds_rdataset(
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
-def _cds_rdataset_to_ds_rdataset(
+def cds_rdataset_to_ds_rdataset(
     rdataset: dns.rdataset.Rdataset,
 ) -> dns.rdataset.Rdataset:
+    """Create a CDS record from DS.
+
+    *rdataset*, a ``dns.rdataset.Rdataset``, to create DS Rdataset for.
+
+    Raises ``ValueError`` if the rdataset is not CDS.
+
+    Returns a ``dns.rdataset.Rdataset``
+    """
+
     if rdataset.rdtype != dns.rdatatype.CDS:
         raise ValueError("rdataset not a CDS")
     res = []
@@ -1164,10 +1173,12 @@ def dnskey_rdataset_to_cds_rdataset(
     *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
     then it will be made absolute using the specified origin.
 
-    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
+    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown or
+    ``ValueError`` if the rdataset is not DNSKEY/CDNSKEY.
 
     Returns a ``dns.rdataset.Rdataset``
     """
+
     if rdataset.rdtype not in (dns.rdatatype.DNSKEY, dns.rdatatype.CDNSKEY):
         raise ValueError("rdataset not a DNSKEY/CDNSKEY")
     res = []
