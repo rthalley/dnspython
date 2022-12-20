@@ -69,8 +69,8 @@ poflake:
 
 pocov:
 	poetry run coverage run --branch -m pytest
-	poetry run coverage html --include 'dns*'
-	poetry run coverage report --include 'dns*'
+	poetry run coverage html --include 'dns/*'
+	poetry run coverage report --include 'dns/*'
 
 oldpokit:
 	po run python setup.py sdist --formats=zip bdist_wheel
