@@ -195,7 +195,8 @@ def make_ds(
 
     *name*, a ``dns.name.Name`` or ``str``, the owner name of the DS record.
 
-    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY`` or ``dns.rdtypes.ANY.DNSKEY.CDNSKEY``, the key the DS is about.
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY`` or ``dns.rdtypes.ANY.DNSKEY.CDNSKEY``,
+    the key the DS is about.
 
     *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
     The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
@@ -268,7 +269,8 @@ def make_cds(
 
     *name*, a ``dns.name.Name`` or ``str``, the owner name of the DS record.
 
-    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY`` or ``dns.rdtypes.ANY.DNSKEY.CDNSKEY``,  key the DS is about.
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY`` or ``dns.rdtypes.ANY.DNSKEY.CDNSKEY``,
+    the key the DS is about.
 
     *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
     The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
@@ -1115,7 +1117,7 @@ def make_ds_rdataset(
         for rdata in cds_rdataset_to_ds_rdataset(rdataset):
             if rdata.digest_type in _algorithms:
                 res.append(rdata)
-        if not len(res):
+        if len(res) == 0:
             raise ValueError("no acceptable CDS rdata found")
         return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
