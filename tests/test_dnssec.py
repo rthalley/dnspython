@@ -25,7 +25,9 @@ import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdtypes.ANY.CDNSKEY
 import dns.rdtypes.ANY.CDS
+import dns.rdtypes.ANY.DNSKEY
 import dns.rdtypes.ANY.DS
 import dns.rrset
 
@@ -161,6 +163,12 @@ sep_key = dns.rdata.from_text(
 good_ds = dns.rdata.from_text(
     dns.rdataclass.IN,
     dns.rdatatype.DS,
+    "57349 5 2 53A79A3E7488AB44FFC56B2D1109F0699D1796DD977E72108B841F96 E47D7013",
+)
+
+good_cds = dns.rdata.from_text(
+    dns.rdataclass.IN,
+    dns.rdatatype.CDS,
     "57349 5 2 53A79A3E7488AB44FFC56B2D1109F0699D1796DD977E72108B841F96 E47D7013",
 )
 
@@ -937,6 +945,10 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
         ds = dns.dnssec.make_ds(abs_dnspython_org, sep_key, "SHA256")
         self.assertEqual(ds, good_ds)
 
+    def testMakeSHA256CDS(self):  # type: () -> None
+        cds = dns.dnssec.make_cds(abs_dnspython_org, sep_key, "SHA256")
+        self.assertEqual(cds, good_cds)
+
     def testInvalidAlgorithm(self):  # type: () -> None
         algorithm: Any
         for algorithm in (10, "shax"):
@@ -1006,6 +1018,80 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
                     dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, record)
                 self.assertEqual(msg, str(cm.exception))
 
+    def testMakeCDS(self):  # type: () -> None
+        name = dns.name.from_text("example.com")
+        key = ed448.Ed448PrivateKey.generate()
+
+        for dnskey in [
+            dns.dnssec.make_dnskey(
+                key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+            ),
+            dns.dnssec.make_cdnskey(
+                key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+            ),
+        ]:
+            dnskey_rdataset = dns.rdataset.from_rdata_list(3600, [dnskey])
+            cds_rdataset = dns.dnssec.dnskey_rdataset_to_cds_rdataset(
+                name, dnskey_rdataset, "SHA256"
+            )
+            self.assertEqual(len(dnskey_rdataset), len(cds_rdataset))
+            for d, c in zip(dnskey_rdataset, cds_rdataset):
+                self.assertTrue(
+                    isinstance(
+                        d,
+                        (
+                            dns.rdtypes.ANY.DNSKEY.DNSKEY,
+                            dns.rdtypes.ANY.CDNSKEY.CDNSKEY,
+                        ),
+                    )
+                )
+                self.assertTrue(isinstance(c, dns.rdtypes.ANY.CDS.CDS))
+                self.assertEqual(dns.dnssec.key_id(d), c.key_tag)
+                self.assertEqual(d.algorithm, c.algorithm)
+
+    def testMakeManyDSfromCDS(self):  # type: () -> None
+        name = dns.name.from_text("example.com")
+        nkeys = 3
+        algorithms = ["SHA256", "SHA384"]
+        keys = [ed448.Ed448PrivateKey.generate() for _ in range(0, nkeys)]
+
+        dnskeys = [
+            dns.dnssec.make_dnskey(
+                key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+            )
+            for key in keys
+        ]
+
+        dnskey_rdataset = dns.rdataset.from_rdata_list(3600, dnskeys)
+
+        cds_rdataset = dns.dnssec.dnskey_rdataset_to_cds_rdataset(
+            name, dnskey_rdataset, "SHA256"
+        )
+        cds_rrset = dns.rrset.from_rdata_list(name, 3600, cds_rdataset)
+
+        ds_rdataset = dns.dnssec.make_ds_rdataset(cds_rrset, algorithms)
+
+        self.assertEqual(len(cds_rdataset), nkeys)
+
+    def testMakeManyDSfromDNSKEY(self):  # type: () -> None
+        name = dns.name.from_text("example.com")
+        nkeys = 3
+        algorithms = ["SHA256", "SHA384"]
+        keys = [ed448.Ed448PrivateKey.generate() for _ in range(0, nkeys)]
+
+        dnskeys = [
+            dns.dnssec.make_dnskey(
+                key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+            )
+            for key in keys
+        ]
+
+        dnskey_rrset = dns.rrset.from_rdata_list(name, 3600, dnskeys)
+
+        ds_rdataset = dns.dnssec.make_ds_rdataset(dnskey_rrset, algorithms)
+
+        self.assertEqual(len(ds_rdataset), nkeys * len(algorithms))
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
@@ -1034,6 +1120,30 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
         key = dsa.generate_private_key(2048)
         with self.assertRaises(ValueError):
             dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.DSA)
+
+    def testMakeCDNSKEY(self):  # type: () -> None
+        key = ed448.Ed448PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(
+            key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+        )
+        cdnskey = dns.dnssec.make_cdnskey(
+            key.public_key(), algorithm=dns.dnssec.Algorithm.ED448
+        )
+
+        self.assertEqual(dnskey.flags, cdnskey.flags)
+        self.assertEqual(dnskey.protocol, cdnskey.protocol)
+        self.assertEqual(dnskey.algorithm, cdnskey.algorithm)
+        self.assertEqual(dnskey.key, cdnskey.key)
+
+        dnskey_rdataset = dns.rdataset.from_rdata_list(3600, [dnskey])
+        cdnskey_rdataset = dns.dnssec.dnskey_rdataset_to_cdnskey_rdataset(
+            dnskey_rdataset
+        )
+        self.assertEqual(len(dnskey_rdataset), len(cdnskey_rdataset))
+        for d, c in zip(dnskey_rdataset, cdnskey_rdataset):
+            self.assertTrue(isinstance(d, dns.rdtypes.ANY.DNSKEY.DNSKEY))
+            self.assertTrue(isinstance(c, dns.rdtypes.ANY.CDNSKEY.CDNSKEY))
+            self.assertEqual(d, c)
 
     # XXXRTH This test is fine but is noticably slow, so I have commented it out for
     # now
