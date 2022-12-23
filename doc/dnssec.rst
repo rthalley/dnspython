@@ -14,11 +14,17 @@ DNSSEC Functions
 .. autofunction:: dns.dnssec.algorithm_to_text
 .. autofunction:: dns.dnssec.key_id
 .. autofunction:: dns.dnssec.make_ds
+.. autofunction:: dns.dnssec.make_cds
 .. autofunction:: dns.dnssec.make_dnskey
+.. autofunction:: dns.dnssec.make_cdnskey()
 .. autofunction:: dns.dnssec.sign
 .. autofunction:: dns.dnssec.validate
 .. autofunction:: dns.dnssec.validate_rrsig
 .. autofunction:: dns.dnssec.nsec3_hash
+.. autofunction:: dns.dnssec.make_ds_rdataset()
+.. autofunction:: dns.dnssec.cds_rdataset_to_ds_rdataset()
+.. autofunction:: dns.dnssec.dnskey_rdataset_to_cds_rdataset()
+.. autofunction:: dns.dnssec.dnskey_rdataset_to_cdnskey_rdataset()
 
 DNSSEC Algorithms
 -----------------

@@ -111,7 +111,7 @@ def to_timestamp(value: Union[datetime, str, float, int]) -> int:
         raise TypeError("Unsupported timestamp type")
 
 
-def key_id(key: Union[DNSKEY,CDNSKEY]) -> int:
+def key_id(key: Union[DNSKEY, CDNSKEY]) -> int:
     """Return the key id (a 16-bit number) for the specified key.
 
     *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``
@@ -201,7 +201,7 @@ def make_ds(
     The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
     does not matter for these strings.
 
-    *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
+    *origin*, a ``dns.name.Name`` or ``None``.  If *key* is a relative name,
     then it will be made absolute using the specified origin.
 
     *policy*, a ``dns.dnssec.Policy`` or ``None``.  If ``None``, the default policy,
@@ -274,7 +274,7 @@ def make_cds(
     The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
     does not matter for these strings.
 
-    *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
+    *origin*, a ``dns.name.Name`` or ``None``.  If *key* is a relative name,
     then it will be made absolute using the specified origin.
 
     Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
@@ -888,7 +888,7 @@ def _make_dnskey(
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
 
-    *flags: DNSKEY flags field as an integer.
+    *flags*: DNSKEY flags field as an integer.
 
     *protocol*: DNSKEY protocol field as an integer.
 
@@ -982,7 +982,7 @@ def _make_cdnskey(
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
 
-    *flags: DNSKEY flags field as an integer.
+    *flags*: DNSKEY flags field as an integer.
 
     *protocol*: DNSKEY protocol field as an integer.
 
