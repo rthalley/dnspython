@@ -6,12 +6,10 @@ name: Python build
 on:
   push:
     branches:
-      - master
-    paths:
-      - '**.py'
+      - 2.3
   pull_request:
     branches:
-      - master
+      - 2.3
 
 jobs:
   build:
