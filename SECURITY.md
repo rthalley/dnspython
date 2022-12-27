@@ -6,7 +6,7 @@ The following versions would get a security update release if necessary.
 
 | Version  | Supported          |
 | -------- | ------------------ |
-| 2.2.x    | :white_check_mark: |
+| 2.3.x    | :white_check_mark: |
 | 1.16.x   | :white_check_mark: |
 | < 1.16.0 | :x:                |
 
