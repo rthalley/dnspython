@@ -6,6 +6,11 @@ What's New in dnspython
 2.3.0 (in development)
 ----------------------
 
+* TBD
+
+2.3.0
+-----
+
 * Python 3.7 or newer is required.
 
 * Type annotations are now integrated with the source code and cover
