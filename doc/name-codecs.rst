@@ -11,7 +11,7 @@ widely used, and the revised and not fully compatible standard "IDNA
 2008".  There are also varying degrees of strictness that can be applied
 in encoding and decoding.  Explaining the standards in detail is
 out of scope for this document; Unicode Technical Standard #46
-http://unicode.org/reports/tr46/ is a good place to start learning more.
+https://unicode.org/reports/tr46/ is a good place to start learning more.
 
 Dnspython provides "codecs" to implement International Domain Name policy
 according to the user's desire.

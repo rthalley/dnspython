@@ -16,7 +16,7 @@ list because there are many DNSSEC related RFCs and it's helpful to group
 them together.  It's not a statement that DNSSEC isn't part of the "Core"
 of the DNS.
 
-The IANA `DNS Parameters <http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml>`_ registry is the official reference site for all DNS
+The IANA `DNS Parameters <https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml>`_ registry is the official reference site for all DNS
 constants.
 
 
@@ -128,7 +128,7 @@ listed it means it is obsolete, deprecated, or rare "in the wild".
 Some types that are currently rare are listed because they may
 well be more heavily used in the not-to-distant future.
 See the
-IANA `DNS Parameters <http://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml>`_ registry for a complete list.
+IANA `DNS Parameters <https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml>`_ registry for a complete list.
 
 A
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_

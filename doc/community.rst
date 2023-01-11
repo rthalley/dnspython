@@ -12,6 +12,6 @@ Bugs and feature requests can be made using the github issues system at
 Mailing Lists
 -------------
 
-| `dnspython-announce <http://groups.google.com/group/dnspython-announce>`_
-| `dnspython-users <http://groups.google.com/group/dnspython-users>`_
-| `dnspython-dev <http://groups.google.com/group/dnspython-dev>`_
+| `dnspython-announce <https://groups.google.com/group/dnspython-announce>`_
+| `dnspython-users <https://groups.google.com/group/dnspython-users>`_
+| `dnspython-dev <https://groups.google.com/group/dnspython-dev>`_
