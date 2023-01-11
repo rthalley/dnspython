@@ -238,7 +238,7 @@ class IDNA2008Codec(IDNACodec):
 
         *uts_46* is a ``bool``.  If True, apply Unicode IDNA
         compatibility processing as described in Unicode Technical
-        Standard #46 (http://unicode.org/reports/tr46/).
+        Standard #46 (https://unicode.org/reports/tr46/).
         If False, do not apply the mapping.  The default is False.
 
         *transitional* is a ``bool``: If True, use the
