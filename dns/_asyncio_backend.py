@@ -145,6 +145,10 @@ class Backend(dns._asyncbackend.Backend):
             )
             return DatagramSocket(af, transport, protocol)
         elif socktype == socket.SOCK_STREAM:
+            if destination is None:
+                # This shouldn't happen, but we check to make code analysis software
+                # happier.
+                raise ValueError("destination required for stream sockets")
             (r, w) = await _maybe_wait_for(
                 asyncio.open_connection(
                     destination[0],
