@@ -3,11 +3,6 @@
 What's New in dnspython
 =======================
 
-2.3.0 (in development)
-----------------------
-
-* TBD
-
 2.3.0
 -----
 
@@ -40,6 +35,11 @@ What's New in dnspython
 
 * Curio asynchronous I/O support is deprecated as of this release and will
   be removed in a future release.
+
+* The resolver object's ``nameserver`` field is planned to become a property in
+  dnspython 2.4.  Writing to this field other than by direct assignment is deprecated,
+  and so is depending on the mutability and form of the iterable returned when it is
+  read.
 
 2.2.1
 -----
