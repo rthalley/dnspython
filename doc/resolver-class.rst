@@ -14,6 +14,10 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
       A ``list`` of ``str``, each item containing an IPv4 or IPv6 address.
 
+      This field is planned to become a property in dnspython 2.4.  Writing to this
+      field other than by direct assignment is deprecated, and so is depending on the
+      mutability and form of the iterable returned when it is read.
+
    .. attribute:: search
 
       A ``list`` of dns.name.Name objects.  If the query name is a
@@ -55,7 +59,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
       An object implementing the caching protocol, e.g. a
       ``dns.resolver.Cache`` or a ``dns.resolver.LRUCache``.  The default
       is ``None``, in which case there is no local caching.
-       
+
    .. attribute:: retry_servfail
 
       A ``bool``.  Should we retry a nameserver if it says ``SERVFAIL``?
@@ -75,7 +79,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
       A ``dns.name.Name`` or ``None``, the name of the TSIG key to
       use; defaults to ``None``. The key must be defined in the
       keyring.
-        
+
    .. attribute:: keyalgorithm
 
       A ``dns.name.Name`` or ``str``, the TSIG algorithm to use.
