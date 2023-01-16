@@ -32,8 +32,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rdata
 import dns.rdataset
-import dns.rdtypes.ANY.SOA
-import dns.rdtypes.ANY.ZONEMD
+import dns.rdtypes.ANY.SOA as SOA
+import dns.rdtypes.ANY.ZONEMD as ZONEMD
 import dns.rrset
 import dns.tokenizer
 import dns.transaction
@@ -754,7 +754,7 @@ class Zone(dns.transaction.TransactionManager):
 
     def get_soa(
         self, txn: Optional[dns.transaction.Transaction] = None
-    ) -> dns.rdtypes.ANY.SOA.SOA:
+    ) -> SOA.SOA:
         """Get the zone SOA rdata.
 
         Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
@@ -816,7 +816,7 @@ class Zone(dns.transaction.TransactionManager):
         self,
         hash_algorithm: DigestHashAlgorithm,
         scheme: DigestScheme = DigestScheme.SIMPLE,
-    ) -> dns.rdtypes.ANY.ZONEMD.ZONEMD:
+    ) -> ZONEMD.ZONEMD:
         serial = self.get_soa().serial
         digest = self._compute_digest(hash_algorithm, scheme)
         return dns.rdtypes.ANY.ZONEMD.ZONEMD(
@@ -824,9 +824,9 @@ class Zone(dns.transaction.TransactionManager):
         )
 
     def verify_digest(
-        self, zonemd: Optional[dns.rdtypes.ANY.ZONEMD.ZONEMD] = None
+        self, zonemd: Optional[ZONEMD.ZONEMD] = None
     ) -> None:
-        digests: Union[dns.rdataset.Rdataset, List[dns.rdtypes.ANY.ZONEMD.ZONEMD]]
+        digests: Union[dns.rdataset.Rdataset, List[ZONEMD.ZONEMD]]
         if zonemd:
             digests = [zonemd]
         else:
