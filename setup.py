@@ -30,7 +30,8 @@ else:
     from Cython.Build import cythonize
 
     ext_modules = cythonize(
-        ["dns/*.py", "dns/rdtypes/*.py", "dns/rdtypes/*/*.py"], language_level="3"
+        ["dns/*.py", "dns/quic/*.py", "dns/rdtypes/*.py", "dns/rdtypes/*/*.py"],
+        language_level="3",
     )
 
 kwargs = {
