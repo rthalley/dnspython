@@ -72,7 +72,7 @@ class NXDOMAIN(dns.exception.DNSException):
         kwargs = dict(qnames=qnames, responses=responses)
         return kwargs
 
-    def __str__(self):
+    def __str__(self) -> str:
         if "qnames" not in self.kwargs:
             return super().__str__()
         qnames = self.kwargs["qnames"]
@@ -264,7 +264,7 @@ class Answer:
         response: dns.message.QueryMessage,
         nameserver: Optional[str] = None,
         port: Optional[int] = None,
-    ):
+    ) -> None:
         self.qname = qname
         self.rdtype = rdtype
         self.rdclass = rdclass
@@ -292,7 +292,7 @@ class Answer:
         else:
             raise AttributeError(attr)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.rrset and len(self.rrset) or 0
 
     def __iter__(self):
@@ -312,11 +312,11 @@ class Answer:
 class CacheStatistics:
     """Cache Statistics"""
 
-    def __init__(self, hits=0, misses=0):
+    def __init__(self, hits: int = 0, misses: int = 0) -> None:
         self.hits = hits
         self.misses = misses
 
-    def reset(self):
+    def reset(self) -> None:
         self.hits = 0
         self.misses = 0
 
@@ -325,7 +325,7 @@ class CacheStatistics:
 
 
 class CacheBase:
-    def __init__(self):
+    def __init__(self) -> None:
         self.lock = threading.Lock()
         self.statistics = CacheStatistics()
 
@@ -361,7 +361,7 @@ CacheKey = Tuple[dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataCla
 class Cache(CacheBase):
     """Simple thread-safe DNS answer cache."""
 
-    def __init__(self, cleaning_interval: float = 300.0):
+    def __init__(self, cleaning_interval: float = 300.0) -> None:
         """*cleaning_interval*, a ``float`` is the number of seconds between
         periodic cleanings.
         """
@@ -447,13 +447,13 @@ class LRUCacheNode:
         self.prev = self
         self.next = self
 
-    def link_after(self, node):
+    def link_after(self, node: "LRUCacheNode") -> None:
         self.prev = node
         self.next = node.next
         node.next.prev = self
         node.next = self
 
-    def unlink(self):
+    def unlink(self) -> None:
         self.next.prev = self.prev
         self.prev.next = self.next
 
@@ -468,7 +468,7 @@ class LRUCache(CacheBase):
     for a new one.
     """
 
-    def __init__(self, max_size: int = 100000):
+    def __init__(self, max_size: int = 100000) -> None:
         """*max_size*, an ``int``, is the maximum number of nodes to cache;
         it must be greater than 0.
         """
@@ -590,7 +590,7 @@ class _Resolution:
         tcp: bool,
         raise_on_no_answer: bool,
         search: Optional[bool],
-    ):
+    ) -> None:
         if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
         the_rdtype = dns.rdatatype.RdataType.make(rdtype)
@@ -841,7 +841,9 @@ class BaseResolver:
     rotate: bool
     ndots: Optional[int]
 
-    def __init__(self, filename: str = "/etc/resolv.conf", configure: bool = True):
+    def __init__(
+        self, filename: str = "/etc/resolv.conf", configure: bool = True
+    ) -> None:
         """*filename*, a ``str`` or file object, specifying a file
         in standard /etc/resolv.conf format.  This parameter is meaningful
         only when *configure* is true and the platform is POSIX.
@@ -860,7 +862,7 @@ class BaseResolver:
             elif filename:
                 self.read_resolv_conf(filename)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all resolver configuration to the defaults."""
 
         self.domain = dns.name.Name(dns.name.from_text(socket.gethostname())[1:])
@@ -1293,7 +1295,7 @@ class Resolver(BaseResolver):
         modified_kwargs["rdclass"] = dns.rdataclass.IN
         return self.resolve(
             dns.reversename.from_address(ipaddr), *args, **modified_kwargs
-        )  # type: ignore[arg-type]
+        )
 
     # pylint: disable=redefined-outer-name
 
@@ -1333,7 +1335,7 @@ def get_default_resolver() -> Resolver:
     return default_resolver
 
 
-def reset_default_resolver():
+def reset_default_resolver() -> None:
     """Re-initialize default resolver.
 
     Note that the resolver configuration (i.e. /etc/resolv.conf on UNIX
