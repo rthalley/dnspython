@@ -44,7 +44,7 @@ class DSBase(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.key_tag = self._as_uint16(key_tag)
         self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
-        self.digest_type = self._as_uint8(digest_type)
+        self.digest_type = dns.dnssectypes.DSDigest.make(self._as_uint8(digest_type))
         self.digest = self._as_bytes(digest)
         try:
             if len(self.digest) != self._digest_length_by_type[self.digest_type]:
