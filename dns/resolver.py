@@ -36,6 +36,7 @@ import dns.ipv4
 import dns.ipv6
 import dns.message
 import dns.name
+import dns.nameserver
 import dns.query
 import dns.rcode
 import dns.rdataclass
@@ -140,7 +141,11 @@ class YXDOMAIN(dns.exception.DNSException):
 
 
 ErrorTuple = Tuple[
-    Optional[str], bool, int, Union[Exception, str], Optional[dns.message.Message]
+    Optional[str],
+    bool,
+    int,
+    Union[Exception, str],
+    Optional[dns.message.Message],
 ]
 
 
@@ -148,11 +153,7 @@ def _errors_to_text(errors: List[ErrorTuple]) -> List[str]:
     """Turn a resolution errors trace into a list of text."""
     texts = []
     for err in errors:
-        texts.append(
-            "Server {} {} port {} answered {}".format(
-                err[0], "TCP" if err[1] else "UDP", err[2], err[3]
-            )
-        )
+        texts.append("Server {} answered {}".format(err[0], err[3]))
     return texts
 
 
@@ -609,11 +610,10 @@ class _Resolution:
         self.nxdomain_responses: Dict[dns.name.Name, dns.message.QueryMessage] = {}
         # Initialize other things to help analysis tools
         self.qname = dns.name.empty
-        self.nameservers: List[str] = []
-        self.current_nameservers: List[str] = []
+        self.nameservers: List[dns.nameserver.Nameserver] = []
+        self.current_nameservers: List[dns.nameserver.Nameserver] = []
         self.errors: List[ErrorTuple] = []
-        self.nameserver: Optional[str] = None
-        self.port = 0
+        self.nameserver: Optional[dns.nameserver.Nameserver] = None
         self.tcp_attempt = False
         self.retry_with_tcp = False
         self.request: Optional[dns.message.QueryMessage] = None
@@ -670,7 +670,7 @@ class _Resolution:
             if self.resolver.flags is not None:
                 request.flags = self.resolver.flags
 
-            self.nameservers = self.resolver.nameservers[:]
+            self.nameservers = self.resolver._enriched_nameservers[:]
             if self.resolver.rotate:
                 random.shuffle(self.nameservers)
             self.current_nameservers = self.nameservers[:]
@@ -690,12 +690,13 @@ class _Resolution:
         #
         raise NXDOMAIN(qnames=self.qnames_to_try, responses=self.nxdomain_responses)
 
-    def next_nameserver(self) -> Tuple[str, int, bool, float]:
+    def next_nameserver(self) -> Tuple[dns.nameserver.Nameserver, bool, float]:
         if self.retry_with_tcp:
             assert self.nameserver is not None
+            assert not self.nameserver.is_always_max_size()
             self.tcp_attempt = True
             self.retry_with_tcp = False
-            return (self.nameserver, self.port, True, 0)
+            return (self.nameserver, True, 0)
 
         backoff = 0.0
         if not self.current_nameservers:
@@ -707,11 +708,8 @@ class _Resolution:
             self.backoff = min(self.backoff * 2, 2)
 
         self.nameserver = self.current_nameservers.pop(0)
-        self.port = self.resolver.nameserver_ports.get(
-            self.nameserver, self.resolver.port
-        )
-        self.tcp_attempt = self.tcp
-        return (self.nameserver, self.port, self.tcp_attempt, backoff)
+        self.tcp_attempt = self.tcp or self.nameserver.is_always_max_size()
+        return (self.nameserver, self.tcp_attempt, backoff)
 
     def query_result(
         self, response: Optional[dns.message.Message], ex: Optional[Exception]
@@ -724,7 +722,13 @@ class _Resolution:
             # Exception during I/O or from_wire()
             assert response is None
             self.errors.append(
-                (self.nameserver, self.tcp_attempt, self.port, ex, response)
+                (
+                    str(self.nameserver),
+                    self.tcp_attempt,
+                    self.nameserver.answer_port(),
+                    ex,
+                    response,
+                )
             )
             if (
                 isinstance(ex, dns.exception.FormError)
@@ -752,12 +756,18 @@ class _Resolution:
                     self.rdtype,
                     self.rdclass,
                     response,
-                    self.nameserver,
-                    self.port,
+                    self.nameserver.answer_nameserver(),
+                    self.nameserver.answer_port(),
                 )
             except Exception as e:
                 self.errors.append(
-                    (self.nameserver, self.tcp_attempt, self.port, e, response)
+                    (
+                        str(self.nameserver),
+                        self.tcp_attempt,
+                        self.nameserver.answer_port(),
+                        e,
+                        response,
+                    )
                 )
                 # The nameserver is no good, take it out of the mix.
                 self.nameservers.remove(self.nameserver)
@@ -776,7 +786,13 @@ class _Resolution:
                 )
             except Exception as e:
                 self.errors.append(
-                    (self.nameserver, self.tcp_attempt, self.port, e, response)
+                    (
+                        str(self.nameserver),
+                        self.tcp_attempt,
+                        self.nameserver.answer_port(),
+                        e,
+                        response,
+                    )
                 )
                 # The nameserver is no good, take it out of the mix.
                 self.nameservers.remove(self.nameserver)
@@ -792,7 +808,13 @@ class _Resolution:
         elif rcode == dns.rcode.YXDOMAIN:
             yex = YXDOMAIN()
             self.errors.append(
-                (self.nameserver, self.tcp_attempt, self.port, yex, response)
+                (
+                    str(self.nameserver),
+                    self.tcp_attempt,
+                    self.nameserver.answer_port(),
+                    yex,
+                    response,
+                )
             )
             raise yex
         else:
@@ -804,9 +826,9 @@ class _Resolution:
                 self.nameservers.remove(self.nameserver)
             self.errors.append(
                 (
-                    self.nameserver,
+                    str(self.nameserver),
                     self.tcp_attempt,
-                    self.port,
+                    self.nameserver.answer_port(),
                     dns.rcode.to_text(rcode),
                     response,
                 )
@@ -840,6 +862,8 @@ class BaseResolver:
     retry_servfail: bool
     rotate: bool
     ndots: Optional[int]
+    _nameservers: List[str]
+    _enriched_nameservers: List[dns.nameserver.Nameserver]
 
     def __init__(
         self, filename: str = "/etc/resolv.conf", configure: bool = True
@@ -868,8 +892,9 @@ class BaseResolver:
         self.domain = dns.name.Name(dns.name.from_text(socket.gethostname())[1:])
         if len(self.domain) == 0:
             self.domain = dns.name.root
-        self.nameservers = []
+        self._nameservers = []
         self.nameserver_ports = {}
+        self._enriched_nameservers = []
         self.port = 53
         self.search = []
         self.use_search_by_default = False
@@ -905,6 +930,7 @@ class BaseResolver:
 
         """
 
+        nameservers = []
         if isinstance(f, str):
             try:
                 cm: contextlib.AbstractContextManager = open(f)
@@ -924,7 +950,7 @@ class BaseResolver:
                     continue
 
                 if tokens[0] == "nameserver":
-                    self.nameservers.append(tokens[1])
+                    nameservers.append(tokens[1])
                 elif tokens[0] == "domain":
                     self.domain = dns.name.from_text(tokens[1])
                     # domain and search are exclusive
@@ -952,8 +978,11 @@ class BaseResolver:
                                 self.ndots = int(opt.split(":")[1])
                             except (ValueError, IndexError):
                                 pass
-        if len(self.nameservers) == 0:
+        if len(nameservers) == 0:
             raise NoResolverConfiguration("no nameservers")
+        # Assigning directly instead of appending means we invoke the
+        # setter logic, with additonal checking and enrichment.
+        self.nameservers = nameservers
 
     def read_registry(self) -> None:
         """Extract resolver configuration from the Windows registry."""
@@ -1088,9 +1117,19 @@ class BaseResolver:
 
         self.flags = flags
 
+    # Note that we never return a List[str], but we have to specify a union
+    # as the return type as mypi interprets the type of the property as the
+    # type of its getter, and will complain if you try to set anything else.
     @property
-    def nameservers(self) -> List[str]:
-        return self._nameservers
+    def nameservers(
+        self,
+    ) -> (
+        Union[
+            Tuple[Union[str, dns.nameserver.Nameserver], ...],
+            List[Union[str, dns.nameserver.Nameserver]],
+        ]
+    ):
+        return tuple(self._nameservers)
 
     @nameservers.setter
     def nameservers(self, nameservers: List[str]) -> None:
@@ -1100,21 +1139,35 @@ class BaseResolver:
         Raises ``ValueError`` if *nameservers* is anything other than a
         ``list``.
         """
-        if isinstance(nameservers, list):
+        self._enriched_nameservers = []
+        if isinstance(nameservers, (list, tuple)):
             for nameserver in nameservers:
-                if not dns.inet.is_address(nameserver):
+                enriched_nameserver: dns.nameserver.Nameserver
+                if isinstance(nameserver, dns.nameserver.Nameserver):
+                    enriched_nameserver = nameserver
+                elif dns.inet.is_address(nameserver):
+                    port = self.nameserver_ports.get(nameserver, self.port)
+                    enriched_nameserver = dns.nameserver.Do53Nameserver(
+                        nameserver, port
+                    )
+                else:
                     try:
                         if urlparse(nameserver).scheme != "https":
                             raise NotImplementedError
                     except Exception:
                         raise ValueError(
-                            f"nameserver {nameserver} is not an "
-                            "IP address or valid https URL"
+                            f"nameserver {nameserver} is not a "
+                            "dns.nameserver.Nameserver instance or text form, "
+                            "IP address, nor a valid https URL"
                         )
+                    enriched_nameserver = dns.nameserver.DoHNameserver(nameserver)
+                self._enriched_nameservers.append(enriched_nameserver)
             self._nameservers = nameservers
         else:
             raise ValueError(
-                "nameservers must be a list (not a {})".format(type(nameservers))
+                "nameservers must be a list or tuple (not a {})".format(
+                    type(nameservers)
+                )
             )
 
 
@@ -1200,33 +1253,18 @@ class Resolver(BaseResolver):
             assert request is not None  # needed for type checking
             done = False
             while not done:
-                (nameserver, port, tcp, backoff) = resolution.next_nameserver()
+                (nameserver, tcp, backoff) = resolution.next_nameserver()
                 if backoff:
                     time.sleep(backoff)
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
                 try:
-                    if dns.inet.is_address(nameserver):
-                        if tcp:
-                            response = dns.query.tcp(
-                                request,
-                                nameserver,
-                                timeout=timeout,
-                                port=port,
-                                source=source,
-                                source_port=source_port,
-                            )
-                        else:
-                            response = dns.query.udp(
-                                request,
-                                nameserver,
-                                timeout=timeout,
-                                port=port,
-                                source=source,
-                                source_port=source_port,
-                                raise_on_truncation=True,
-                            )
-                    else:
-                        response = dns.query.https(request, nameserver, timeout=timeout)
+                    response = nameserver.query(
+                        request,
+                        timeout=timeout,
+                        source=source,
+                        source_port=source_port,
+                        max_size=tcp,
+                    )
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
                     continue

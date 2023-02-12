@@ -222,8 +222,8 @@ class ResolutionTestCase(unittest.TestCase):
 
     def test_next_request_rotate(self):
         self.resolver.rotate = True
-        order1 = ["10.0.0.1", "10.0.0.2"]
-        order2 = ["10.0.0.2", "10.0.0.1"]
+        order1 = ["Do53:10.0.0.1@53", "Do53:10.0.0.2@53"]
+        order2 = ["Do53:10.0.0.2@53", "Do53:10.0.0.1@53"]
         seen1 = False
         seen2 = False
         # We're not interested in testing the randomness, but we'd
@@ -235,9 +235,11 @@ class ResolutionTestCase(unittest.TestCase):
                 self.resolver, self.qname, "A", "IN", False, True, False
             )
             self.resn.next_request()
-            if self.resn.nameservers == order1:
+            text_form = [str(n) for n in self.resn.nameservers]
+            print(text_form)
+            if text_form == order1:
                 seen1 = True
-            elif self.resn.nameservers == order2:
+            elif text_form == order2:
                 seen2 = True
             else:
                 raise ValueError  # should not happen!
@@ -264,68 +266,75 @@ class ResolutionTestCase(unittest.TestCase):
 
     def test_next_nameserver_udp(self):
         (request, answer) = self.resn.next_request()
-        (nameserver1, port, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver1 in self.resolver.nameservers)
-        self.assertEqual(port, 53)
+        (nameserver1, tcp, backoff) = self.resn.next_nameserver()
+        self.assertTrue(nameserver1 in self.resolver._enriched_nameservers)
+        self.assertEqual(nameserver1.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver2, port, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver2 in self.resolver.nameservers)
+        (nameserver2, tcp, backoff) = self.resn.next_nameserver()
+        self.assertTrue(nameserver2 in self.resolver._enriched_nameservers)
         self.assertTrue(nameserver2 != nameserver1)
-        self.assertEqual(port, 53)
+        self.assertEqual(nameserver2.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver3, port, tcp, backoff) = self.resn.next_nameserver()
+        (nameserver3, tcp, backoff) = self.resn.next_nameserver()
         self.assertTrue(nameserver3 is nameserver1)
-        self.assertEqual(port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.1)
-        (nameserver4, port, tcp, backoff) = self.resn.next_nameserver()
+        (nameserver4, tcp, backoff) = self.resn.next_nameserver()
         self.assertTrue(nameserver4 is nameserver2)
-        self.assertEqual(port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver5, port, tcp, backoff) = self.resn.next_nameserver()
+        (nameserver5, tcp, backoff) = self.resn.next_nameserver()
         self.assertTrue(nameserver5 is nameserver1)
-        self.assertEqual(port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.2)
 
     def test_next_nameserver_retry_with_tcp(self):
         (request, answer) = self.resn.next_request()
-        (nameserver1, port, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver1 in self.resolver.nameservers)
-        self.assertEqual(port, 53)
+        (nameserver1, tcp, backoff) = self.resn.next_nameserver()
+        self.assertTrue(nameserver1 in self.resolver._enriched_nameservers)
+        self.assertEqual(nameserver1.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
         self.resn.retry_with_tcp = True
-        (nameserver2, port, tcp, backoff) = self.resn.next_nameserver()
+        (nameserver2, tcp, backoff) = self.resn.next_nameserver()
         self.assertTrue(nameserver2 is nameserver1)
-        self.assertEqual(port, 53)
         self.assertTrue(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver3, port, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver3 in self.resolver.nameservers)
+        (nameserver3, tcp, backoff) = self.resn.next_nameserver()
+        self.assertTrue(nameserver3 in self.resolver._enriched_nameservers)
         self.assertTrue(nameserver3 != nameserver1)
-        self.assertEqual(port, 53)
+        self.assertEqual(nameserver3.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
 
     def test_next_nameserver_no_nameservers(self):
         (request, answer) = self.resn.next_request()
-        (nameserver, _, _, _) = self.resn.next_nameserver()
+        (nameserver, _, _) = self.resn.next_nameserver()
         self.resn.nameservers.remove(nameserver)
-        (nameserver, _, _, _) = self.resn.next_nameserver()
+        (nameserver, _, _) = self.resn.next_nameserver()
         self.resn.nameservers.remove(nameserver)
 
         def bad():
-            (nameserver, _, _, _) = self.resn.next_nameserver()
+            (nameserver, _, _) = self.resn.next_nameserver()
 
         self.assertRaises(dns.resolver.NoNameservers, bad)
 
+    def test_next_nameserver_max_size_nameserver(self):
+        # A query to a nameserver that always supports a maximum size query
+        # always counts as a "tcp attempt" for the state machine
+        self.resolver.nameservers = ["https://127.0.0.1:443/bogus"]
+        (_, _) = self.resn.next_request()
+        (nameserver, tcp_attempt, _) = self.resn.next_nameserver()
+        print(nameserver)
+        assert tcp_attempt
+
     def test_query_result_nameserver_removing_exceptions(self):
         # add some nameservers so we have enough to remove :)
-        self.resolver.nameservers.extend(["10.0.0.3", "10.0.0.4"])
+        new_nameservers = list(self.resolver.nameservers[:])
+        new_nameservers.extend(["10.0.0.3", "10.0.0.4"])
+        self.resolver.nameservers = new_nameservers
         (request, _) = self.resn.next_request()
         exceptions = [
             dns.exception.FormError(),
@@ -334,7 +343,7 @@ class ResolutionTestCase(unittest.TestCase):
             dns.message.Truncated(),
         ]
         for i in range(4):
-            (nameserver, _, _, _) = self.resn.next_nameserver()
+            (nameserver, _, _) = self.resn.next_nameserver()
             if i == 3:
                 # Truncated is only bad if we're doing TCP, make it look
                 # like that's the case
@@ -351,7 +360,7 @@ class ResolutionTestCase(unittest.TestCase):
         # test_query_result_nameserver_removing_exceptions(), we should
         # not remove any nameservers and just continue resolving.
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
         nameservers = self.resn.nameservers[:]
         (answer, done) = self.resn.query_result(None, dns.exception.Timeout())
         self.assertTrue(answer is None)
@@ -360,7 +369,7 @@ class ResolutionTestCase(unittest.TestCase):
 
     def test_query_result_retry_with_tcp(self):
         (request, _) = self.resn.next_request()
-        (nameserver, _, tcp, _) = self.resn.next_nameserver()
+        (nameserver, tcp, _) = self.resn.next_nameserver()
         self.assertFalse(tcp)
         (answer, done) = self.resn.query_result(None, dns.message.Truncated())
         self.assertTrue(answer is None)
@@ -374,7 +383,7 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertFalse(answer is None)
         self.assertTrue(done)
@@ -386,7 +395,7 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertFalse(answer is None)
         cache_answer = self.resolver.cache.get(
@@ -398,7 +407,7 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_negative_response(q)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
 
         def bad():
             (answer, done) = self.resn.query_result(r, None)
@@ -409,7 +418,7 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_negative_response(q, True)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertTrue(done)
@@ -419,7 +428,7 @@ class ResolutionTestCase(unittest.TestCase):
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.NXDOMAIN)
         (_, _) = self.resn.next_request()
-        (nameserver, _, _, _) = self.resn.next_nameserver()
+        (nameserver, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertIsNone(answer)
         self.assertFalse(done)
@@ -429,7 +438,7 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_long_chain_response(q, 15)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertIsNotNone(answer)
         self.assertTrue(done)
@@ -438,7 +447,7 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_long_chain_response(q, 16)
         (_, _) = self.resn.next_request()
-        (nameserver, _, _, _) = self.resn.next_nameserver()
+        (nameserver, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertIsNone(answer)
         self.assertFalse(done)
@@ -449,7 +458,7 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_negative_response(q, True)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertTrue(done)
@@ -463,7 +472,7 @@ class ResolutionTestCase(unittest.TestCase):
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.YXDOMAIN)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
 
         def bad():
             (answer, done) = self.resn.query_result(r, None)
@@ -475,7 +484,7 @@ class ResolutionTestCase(unittest.TestCase):
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.SERVFAIL)
         (_, _) = self.resn.next_request()
-        (nameserver, _, _, _) = self.resn.next_nameserver()
+        (nameserver, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertFalse(done)
@@ -487,7 +496,7 @@ class ResolutionTestCase(unittest.TestCase):
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.SERVFAIL)
         (_, _) = self.resn.next_request()
-        (_, _, _, _) = self.resn.next_nameserver()
+        (_, _, _) = self.resn.next_nameserver()
         nameservers = self.resn.nameservers[:]
         (answer, done) = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
@@ -499,7 +508,7 @@ class ResolutionTestCase(unittest.TestCase):
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.REFUSED)
         (_, _) = self.resn.next_request()
-        (nameserver, _, _, _) = self.resn.next_nameserver()
+        (nameserver, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertFalse(done)

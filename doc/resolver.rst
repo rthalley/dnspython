@@ -13,6 +13,7 @@ be used simply by setting the *nameservers* attribute.
 .. toctree::
 
    resolver-class
+   resolver-nameserver
    resolver-functions
    resolver-caching
    resolver-override
