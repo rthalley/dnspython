@@ -206,7 +206,7 @@ class SyncQuicManager(BaseQuicManager):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Copy the itertor into a list as exiting things will mutate the connections
+        # Copy the iterator into a list as exiting things will mutate the connections
         # table.
         connections = list(self._connections.values())
         for connection in connections:
