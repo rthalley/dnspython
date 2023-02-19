@@ -267,12 +267,10 @@ class ResolutionTestCase(unittest.TestCase):
     def test_next_nameserver_udp(self):
         (request, answer) = self.resn.next_request()
         (nameserver1, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver1 in self.resolver._enriched_nameservers)
         self.assertEqual(nameserver1.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
         (nameserver2, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver2 in self.resolver._enriched_nameservers)
         self.assertTrue(nameserver2 != nameserver1)
         self.assertEqual(nameserver2.port, 53)
         self.assertFalse(tcp)
@@ -293,7 +291,6 @@ class ResolutionTestCase(unittest.TestCase):
     def test_next_nameserver_retry_with_tcp(self):
         (request, answer) = self.resn.next_request()
         (nameserver1, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver1 in self.resolver._enriched_nameservers)
         self.assertEqual(nameserver1.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
@@ -303,7 +300,6 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertTrue(tcp)
         self.assertEqual(backoff, 0.0)
         (nameserver3, tcp, backoff) = self.resn.next_nameserver()
-        self.assertTrue(nameserver3 in self.resolver._enriched_nameservers)
         self.assertTrue(nameserver3 != nameserver1)
         self.assertEqual(nameserver3.port, 53)
         self.assertFalse(tcp)

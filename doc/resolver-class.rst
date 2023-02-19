@@ -42,11 +42,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
       A ``dict`` mapping an IPv4 or IPv6 address ``str`` to an ``int``.
       This specifies the port to use when sending to a nameserver.  If
       a port is not defined for an address, the value of the *port*
-      attribute will be used.  With the introduction of the
-      ``dns.nameserver.Nameserver``, this field is now obsolete, but is still
-      used when constructing ``dns.nameserver.Nameserver`` instances.
-      For this to work correctly, *nameserver_ports* must be set before
-      assigning to *nameservers*.
+      attribute will be used.
 
    .. attribute:: timeout
 

@@ -378,7 +378,7 @@ class Cache(CacheBase):
         now = time.time()
         if self.next_cleaning <= now:
             keys_to_delete = []
-            for (k, v) in self.data.items():
+            for k, v in self.data.items():
                 if v.expiration <= now:
                     keys_to_delete.append(k)
             for k in keys_to_delete:
@@ -670,7 +670,9 @@ class _Resolution:
             if self.resolver.flags is not None:
                 request.flags = self.resolver.flags
 
-            self.nameservers = self.resolver._enriched_nameservers[:]
+            self.nameservers = self.resolver._enrich_nameservers(
+                self.resolver._nameservers
+            )
             if self.resolver.rotate:
                 random.shuffle(self.nameservers)
             self.current_nameservers = self.nameservers[:]
@@ -863,7 +865,6 @@ class BaseResolver:
     rotate: bool
     ndots: Optional[int]
     _nameservers: List[str]
-    _enriched_nameservers: List[dns.nameserver.Nameserver]
 
     def __init__(
         self, filename: str = "/etc/resolv.conf", configure: bool = True
@@ -894,7 +895,6 @@ class BaseResolver:
             self.domain = dns.name.root
         self._nameservers = []
         self.nameserver_ports = {}
-        self._enriched_nameservers = []
         self.port = 53
         self.search = []
         self.use_search_by_default = False
@@ -1117,30 +1117,9 @@ class BaseResolver:
 
         self.flags = flags
 
-    # Note that we never return a List[str], but we have to specify a union
-    # as the return type as mypi interprets the type of the property as the
-    # type of its getter, and will complain if you try to set anything else.
-    @property
-    def nameservers(
-        self,
-    ) -> (
-        Union[
-            Tuple[Union[str, dns.nameserver.Nameserver], ...],
-            List[Union[str, dns.nameserver.Nameserver]],
-        ]
-    ):
-        return tuple(self._nameservers)
-
-    @nameservers.setter
-    def nameservers(self, nameservers: List[str]) -> None:
-        """
-        *nameservers*, a ``list`` of nameservers.
-
-        Raises ``ValueError`` if *nameservers* is anything other than a
-        ``list``.
-        """
-        self._enriched_nameservers = []
-        if isinstance(nameservers, (list, tuple)):
+    def _enrich_nameservers(self, nameservers):
+        enriched_nameservers = []
+        if isinstance(nameservers, list):
             for nameserver in nameservers:
                 enriched_nameserver: dns.nameserver.Nameserver
                 if isinstance(nameserver, dns.nameserver.Nameserver):
@@ -1161,14 +1140,33 @@ class BaseResolver:
                             "IP address, nor a valid https URL"
                         )
                     enriched_nameserver = dns.nameserver.DoHNameserver(nameserver)
-                self._enriched_nameservers.append(enriched_nameserver)
-            self._nameservers = nameservers
+                enriched_nameservers.append(enriched_nameserver)
         else:
             raise ValueError(
                 "nameservers must be a list or tuple (not a {})".format(
                     type(nameservers)
                 )
             )
+        return enriched_nameservers
+
+    @property
+    def nameservers(
+        self,
+    ) -> List[Union[str, dns.nameserver.Nameserver]]:
+        return self._nameservers
+
+    @nameservers.setter
+    def nameservers(self, nameservers: List[str]) -> None:
+        """
+        *nameservers*, a ``list`` of nameservers, where a nameserver is either
+        a string interpretable as a nameserver, or a ``dns.nameserver.Nameserver``
+        instance.
+
+        Raises ``ValueError`` if *nameservers* is not a list of nameservers.
+        """
+        # We just call _enrich_nameservers() for checking
+        self._enrich_nameservers(nameservers)
+        self._nameservers = nameservers
 
 
 class Resolver(BaseResolver):
@@ -1395,7 +1393,6 @@ def resolve(
     lifetime: Optional[float] = None,
     search: Optional[bool] = None,
 ) -> Answer:  # pragma: no cover
-
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver

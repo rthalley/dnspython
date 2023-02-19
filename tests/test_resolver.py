@@ -221,14 +221,14 @@ class BaseResolverTests(unittest.TestCase):
         f = StringIO(resolv_conf)
         r = dns.resolver.Resolver(configure=False)
         r.read_resolv_conf(f)
-        self.assertEqual(r.nameservers, ("10.0.0.1", "10.0.0.2"))
+        self.assertEqual(r.nameservers, ["10.0.0.1", "10.0.0.2"])
         self.assertEqual(r.domain, dns.name.from_text("foo"))
 
     def testReadOptions(self):
         f = StringIO(resolv_conf_options1)
         r = dns.resolver.Resolver(configure=False)
         r.read_resolv_conf(f)
-        self.assertEqual(r.nameservers, ("10.0.0.1", "10.0.0.2"))
+        self.assertEqual(r.nameservers, ["10.0.0.1", "10.0.0.2"])
         self.assertTrue(r.rotate)
         self.assertEqual(r.timeout, 1)
         self.assertEqual(r.ndots, 2)
@@ -271,14 +271,14 @@ class BaseResolverTests(unittest.TestCase):
         f = StringIO(unknown_and_bad_directives)
         r = dns.resolver.Resolver(configure=False)
         r.read_resolv_conf(f)
-        self.assertEqual(r.nameservers, ("10.0.0.1",))
+        self.assertEqual(r.nameservers, ["10.0.0.1"])
 
     def testReadUnknownOption(self):
         # The real test here is ignoring the unknown option
         f = StringIO(unknown_option)
         r = dns.resolver.Resolver(configure=False)
         r.read_resolv_conf(f)
-        self.assertEqual(r.nameservers, ("10.0.0.1",))
+        self.assertEqual(r.nameservers, ["10.0.0.1"])
 
     def testCacheExpiration(self):
         with FakeTime() as fake_time:
@@ -756,7 +756,7 @@ class LiveResolverTests(unittest.TestCase):
 
     def testNameserverSetting(self):
         res = dns.resolver.Resolver(configure=False)
-        ns = ("1.2.3.4", "::1", "https://ns.example")
+        ns = ["1.2.3.4", "::1", "https://ns.example"]
         res.nameservers = ns[:]
         self.assertEqual(res.nameservers, ns)
         for ns in ["999.999.999.999", "ns.example.", "bogus://ns.example"]:
@@ -794,7 +794,6 @@ if hasattr(selectors, "PollSelector"):
 
 
 class NXDOMAINExceptionTestCase(unittest.TestCase):
-
     # pylint: disable=broad-except
 
     def test_nxdomain_compatible(self):
@@ -959,22 +958,12 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
     def test_set_nameservers_to_list(self):
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = ["1.2.3.4"]
-        self.assertEqual(resolver.nameservers, ("1.2.3.4",))
+        self.assertEqual(resolver.nameservers, ["1.2.3.4"])
 
     def test_set_namservers_to_empty_list(self):
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = []
-        self.assertEqual(resolver.nameservers, ())
-
-    def test_set_nameservers_to_tuple(self):
-        resolver = dns.resolver.Resolver(configure=False)
-        resolver.nameservers = ("1.2.3.4",)
-        self.assertEqual(resolver.nameservers, ("1.2.3.4",))
-
-    def test_set_namservers_to_empty_list(self):
-        resolver = dns.resolver.Resolver(configure=False)
-        resolver.nameservers = ()
-        self.assertEqual(resolver.nameservers, ())
+        self.assertEqual(resolver.nameservers, [])
 
     def test_set_nameservers_invalid_type(self):
         resolver = dns.resolver.Resolver(configure=False)
@@ -983,6 +972,7 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
             "1.2.3.4",
             1234,
             (1, 2, 3, 4),
+            (),
             {"invalid": "nameserver"},
         ]
         for invalid_nameserver in invalid_nameservers:
