@@ -7,13 +7,13 @@ What's New in dnspython
 ----------------------
 
 * The stub resolver uses instances of ``dns.nameserver.Nameserver`` to represent
-remote recursive resolvers.  The stub resolver can now communicate using ordinary
-DNS over port 53, HTTPS, TLS, and QUIC.  This change is NOT completely backwards
-compatible!  The resolver *nameservers* field is now a tuple instead of a list when read,
-and so cannot be mutated, for example by appending.  Because the old text forms of
-nameservers are "enriched" into ``dns.nameserver.Nameserver`` instances when the
-*nameservers* field is assigned, you must now ensure that you set *nameserver_ports*
-before assigning nameservers if you want it to have any effect.
+  remote recursive resolvers.  The stub resolver can now communicate using ordinary
+  DNS over port 53, HTTPS, TLS, and QUIC.  This change is NOT completely backwards
+  compatible!  The resolver *nameservers* field is now a tuple instead of a list when read,
+  and so cannot be mutated, for example by appending.  Because the old text forms of
+  nameservers are "enriched" into ``dns.nameserver.Nameserver`` instances when the
+  *nameservers* field is assigned, you must now ensure that you set *nameserver_ports*
+  before assigning nameservers if you want it to have any effect.
 
 
 2.3.0
