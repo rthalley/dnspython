@@ -864,7 +864,7 @@ class BaseResolver:
     retry_servfail: bool
     rotate: bool
     ndots: Optional[int]
-    _nameservers: List[str]
+    _nameservers: List[Union[str, dns.nameserver.Nameserver]]
 
     def __init__(
         self, filename: str = "/etc/resolv.conf", configure: bool = True
@@ -1117,7 +1117,9 @@ class BaseResolver:
 
         self.flags = flags
 
-    def _enrich_nameservers(self, nameservers):
+    def _enrich_nameservers(
+        self, nameservers: List[Union[str, dns.nameserver.Nameserver]]
+    ) -> List[dns.nameserver.Nameserver]:
         enriched_nameservers = []
         if isinstance(nameservers, list):
             for nameserver in nameservers:
@@ -1156,7 +1158,9 @@ class BaseResolver:
         return self._nameservers
 
     @nameservers.setter
-    def nameservers(self, nameservers: List[str]) -> None:
+    def nameservers(
+        self, nameservers: List[Union[str, dns.nameserver.Nameserver]]
+    ) -> None:
         """
         *nameservers*, a ``list`` of nameservers, where a nameserver is either
         a string interpretable as a nameserver, or a ``dns.nameserver.Nameserver``

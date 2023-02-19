@@ -60,7 +60,7 @@ coverage = "^7.0"
 twine = "^4.0.0"
 wheel = "^0.38.1"
 pylint = "^2.7.4"
-mypy = ">=0.940"
+mypy = ">=1.0.1"
 black = "^23.1.0"
 
 [tool.poetry.extras]
