@@ -12,11 +12,12 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: nameservers
 
-      A ``list`` of ``str``, each item containing an IPv4 or IPv6 address.
+      A ``list`` of ``str`` or ``dns.nameserver.Nameserver``.  A string may be
+      an IPv4 or IPv6 address, or an https URL.
 
-      This field is planned to become a property in dnspython 2.4.  Writing to this
-      field other than by direct assignment is deprecated, and so is depending on the
-      mutability and form of the iterable returned when it is read.
+      This field is actually a property, and returns a tuple as of dnspython 2.4.
+      Assigning this this field converts any strings into
+      ``dns.nameserver.Nameserver`` instances.
 
    .. attribute:: search
 

@@ -83,37 +83,19 @@ class Resolver(dns.resolver.BaseResolver):
             assert request is not None  # needed for type checking
             done = False
             while not done:
-                (nameserver, port, tcp, backoff) = resolution.next_nameserver()
+                (nameserver, tcp, backoff) = resolution.next_nameserver()
                 if backoff:
                     await backend.sleep(backoff)
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
                 try:
-                    if dns.inet.is_address(nameserver):
-                        if tcp:
-                            response = await _tcp(
-                                request,
-                                nameserver,
-                                timeout,
-                                port,
-                                source,
-                                source_port,
-                                backend=backend,
-                            )
-                        else:
-                            response = await _udp(
-                                request,
-                                nameserver,
-                                timeout,
-                                port,
-                                source,
-                                source_port,
-                                raise_on_truncation=True,
-                                backend=backend,
-                            )
-                    else:
-                        response = await dns.asyncquery.https(
-                            request, nameserver, timeout=timeout
-                        )
+                    response = await nameserver.async_query(
+                        request,
+                        timeout=timeout,
+                        source=source,
+                        source_port=source_port,
+                        max_size=tcp,
+                        backend=backend,
+                    )
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
                     continue

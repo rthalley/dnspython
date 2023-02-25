@@ -27,6 +27,7 @@ from unittest.mock import patch
 import dns.e164
 import dns.message
 import dns.name
+import dns.quic
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
@@ -717,6 +718,27 @@ class LiveResolverTests(unittest.TestCase):
         answer2 = res.resolve("dns.google.", "A")
         self.assertIs(answer2, answer1)
 
+    @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    def testTLSNameserver(self):
+        res = dns.resolver.Resolver(configure=False)
+        res.nameservers = [dns.nameserver.DoTNameserver("8.8.8.8", 853)]
+        answer = res.resolve("dns.google.", "A")
+        seen = set([rdata.address for rdata in answer])
+        self.assertIn("8.8.8.8", seen)
+        self.assertIn("8.8.4.4", seen)
+
+    @unittest.skipIf(
+        not (tests.util.have_ipv4() and dns.quic.have_quic),
+        "IPv4 not reachable or QUIC not available",
+    )
+    def testQuicNameserver(self):
+        res = dns.resolver.Resolver(configure=False)
+        res.nameservers = [dns.nameserver.DoQNameserver("94.140.14.14", 784)]
+        answer = res.resolve("dns.adguard.com.", "A")
+        seen = set([rdata.address for rdata in answer])
+        self.assertIn("94.140.14.14", seen)
+        self.assertIn("94.140.15.15", seen)
+
     def testCanonicalNameNoCNAME(self):
         cname = dns.name.from_text("www.google.com")
         self.assertEqual(dns.resolver.canonical_name("www.google.com"), cname)
@@ -772,7 +794,6 @@ if hasattr(selectors, "PollSelector"):
 
 
 class NXDOMAINExceptionTestCase(unittest.TestCase):
-
     # pylint: disable=broad-except
 
     def test_nxdomain_compatible(self):
@@ -951,6 +972,7 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
             "1.2.3.4",
             1234,
             (1, 2, 3, 4),
+            (),
             {"invalid": "nameserver"},
         ]
         for invalid_nameserver in invalid_nameservers:
@@ -1123,7 +1145,7 @@ def testResolverTimeout():
             errors = e.kwargs["errors"]
             assert len(errors) > 1
             for error in errors:
-                assert error[0] == na.udp_address[0]  # address
+                assert str(error[0]) == f"Do53:{na.udp_address[0]}@{na.udp_address[1]}"
                 assert not error[1]  # not TCP
                 assert error[2] == na.udp_address[1]  # port
                 assert isinstance(error[3], dns.exception.Timeout)  # exception
@@ -1145,7 +1167,7 @@ def testResolverNoNameservers():
             errors = e.kwargs["errors"]
             assert len(errors) == 1
             for error in errors:
-                assert error[0] == na.udp_address[0]  # address
+                assert error[0] == f"Do53:{na.udp_address[0]}@{na.udp_address[1]}"
                 assert not error[1]  # not TCP
                 assert error[2] == na.udp_address[1]  # port
                 assert error[3] == "FORMERR"
