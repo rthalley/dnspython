@@ -8,7 +8,7 @@ What's New in dnspython
 
 * The stub resolver now uses instances of ``dns.nameserver.Nameserver`` to represent
   remote recursive resolvers, and can communicate using
-  DNS over port 53, HTTPS, TLS, and QUIC.  In additional to being able to specify
+  DNS over UDP/TCP, HTTPS, TLS, and QUIC.  In additional to being able to specify
   an IPv4, IPv6, or HTTPS URL as a nameserver, instances of ``dns.nameserver.Nameserver``
   are now permitted.
 

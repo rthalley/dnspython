@@ -671,7 +671,9 @@ class _Resolution:
                 request.flags = self.resolver.flags
 
             self.nameservers = self.resolver._enrich_nameservers(
-                self.resolver._nameservers
+                self.resolver._nameservers,
+                self.resolver.nameserver_ports,
+                self.resolver.port,
             )
             if self.resolver.rotate:
                 random.shuffle(self.nameservers)
@@ -1117,8 +1119,12 @@ class BaseResolver:
 
         self.flags = flags
 
+    @classmethod
     def _enrich_nameservers(
-        self, nameservers: List[Union[str, dns.nameserver.Nameserver]]
+        cls,
+        nameservers: List[Union[str, dns.nameserver.Nameserver]],
+        nameserver_ports: Dict[str, int],
+        default_port: int,
     ) -> List[dns.nameserver.Nameserver]:
         enriched_nameservers = []
         if isinstance(nameservers, list):
@@ -1127,7 +1133,7 @@ class BaseResolver:
                 if isinstance(nameserver, dns.nameserver.Nameserver):
                     enriched_nameserver = nameserver
                 elif dns.inet.is_address(nameserver):
-                    port = self.nameserver_ports.get(nameserver, self.port)
+                    port = nameserver_ports.get(nameserver, default_port)
                     enriched_nameserver = dns.nameserver.Do53Nameserver(
                         nameserver, port
                     )
@@ -1169,7 +1175,7 @@ class BaseResolver:
         Raises ``ValueError`` if *nameservers* is not a list of nameservers.
         """
         # We just call _enrich_nameservers() for checking
-        self._enrich_nameservers(nameservers)
+        self._enrich_nameservers(nameservers, self.nameserver_ports, self.port)
         self._nameservers = nameservers
 
 
