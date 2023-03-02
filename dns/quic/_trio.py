@@ -17,6 +17,7 @@ from dns.quic._common import (
     AsyncQuicConnection,
     AsyncQuicManager,
     QUIC_MAX_DATAGRAM,
+    UnexpectedEOF,
 )
 
 
@@ -80,20 +81,26 @@ class TrioQuicConnection(AsyncQuicConnection):
         self._worker_scope = None
 
     async def _worker(self):
-        await self._socket.connect(self._peer)
-        while not self._done:
-            (expiration, interval) = self._get_timer_values(False)
-            with trio.CancelScope(
-                deadline=trio.current_time() + interval
-            ) as self._worker_scope:
-                datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
-                self._connection.receive_datagram(datagram, self._peer[0], time.time())
-            self._worker_scope = None
-            self._handle_timer(expiration)
-            datagrams = self._connection.datagrams_to_send(time.time())
-            for (datagram, _) in datagrams:
-                await self._socket.send(datagram)
-            await self._handle_events()
+        try:
+            await self._socket.connect(self._peer)
+            while not self._done:
+                (expiration, interval) = self._get_timer_values(False)
+                with trio.CancelScope(
+                    deadline=trio.current_time() + interval
+                ) as self._worker_scope:
+                    datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
+                    self._connection.receive_datagram(
+                        datagram, self._peer[0], time.time()
+                    )
+                self._worker_scope = None
+                self._handle_timer(expiration)
+                datagrams = self._connection.datagrams_to_send(time.time())
+                for datagram, _ in datagrams:
+                    await self._socket.send(datagram)
+                await self._handle_events()
+        finally:
+            self._done = True
+            self._handshake_complete.set()
 
     async def _handle_events(self):
         count = 0
@@ -132,6 +139,8 @@ class TrioQuicConnection(AsyncQuicConnection):
 
     async def make_stream(self):
         await self._handshake_complete.wait()
+        if self._done:
+            raise UnexpectedEOF
         stream_id = self._connection.get_next_available_stream_id(False)
         stream = TrioQuicStream(self, stream_id)
         self._streams[stream_id] = stream

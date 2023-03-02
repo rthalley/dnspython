@@ -17,6 +17,7 @@ from dns.quic._common import (
     BaseQuicConnection,
     BaseQuicManager,
     QUIC_MAX_DATAGRAM,
+    UnexpectedEOF,
 )
 
 # Avoid circularity with dns.query
@@ -33,14 +34,15 @@ class SyncQuicStream(BaseQuicStream):
         self._lock = threading.Lock()
 
     def wait_for(self, amount, expiration):
-        timeout = self._timeout_from_expiration(expiration)
         while True:
+            timeout = self._timeout_from_expiration(expiration)
             with self._lock:
                 if self._buffer.have(amount):
                     return
                 self._expecting = amount
             with self._wake_up:
-                self._wake_up.wait(timeout)
+                if not self._wake_up.wait(timeout):
+                    raise TimeoutError
             self._expecting = 0
 
     def receive(self, timeout=None):
@@ -114,24 +116,30 @@ class SyncQuicConnection(BaseQuicConnection):
                 return
 
     def _worker(self):
-        sel = _selector_class()
-        sel.register(self._socket, selectors.EVENT_READ, self._read)
-        sel.register(self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup)
-        while not self._done:
-            (expiration, interval) = self._get_timer_values(False)
-            items = sel.select(interval)
-            for (key, _) in items:
-                key.data()
+        try:
+            sel = _selector_class()
+            sel.register(self._socket, selectors.EVENT_READ, self._read)
+            sel.register(self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup)
+            while not self._done:
+                (expiration, interval) = self._get_timer_values(False)
+                items = sel.select(interval)
+                for key, _ in items:
+                    key.data()
+                with self._lock:
+                    self._handle_timer(expiration)
+                    datagrams = self._connection.datagrams_to_send(time.time())
+                for datagram, _ in datagrams:
+                    try:
+                        self._socket.send(datagram)
+                    except BlockingIOError:
+                        # we let QUIC handle any lossage
+                        pass
+                self._handle_events()
+        finally:
             with self._lock:
-                self._handle_timer(expiration)
-                datagrams = self._connection.datagrams_to_send(time.time())
-            for (datagram, _) in datagrams:
-                try:
-                    self._socket.send(datagram)
-                except BlockingIOError:
-                    # we let QUIC handle any lossage
-                    pass
-            self._handle_events()
+                self._done = True
+            # Ensure anyone waiting for this gets woken up.
+            self._handshake_complete.set()
 
     def _handle_events(self):
         while True:
@@ -166,6 +174,8 @@ class SyncQuicConnection(BaseQuicConnection):
     def make_stream(self):
         self._handshake_complete.wait()
         with self._lock:
+            if self._done:
+                raise UnexpectedEOF
             stream_id = self._connection.get_next_available_stream_id(False)
             stream = SyncQuicStream(self, stream_id)
             self._streams[stream_id] = stream
