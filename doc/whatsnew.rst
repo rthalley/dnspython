@@ -12,6 +12,11 @@ What's New in dnspython
   an IPv4, IPv6, or HTTPS URL as a nameserver, instances of ``dns.nameserver.Nameserver``
   are now permitted.
 
+* The DNS-over-HTTPS bootstrap address no longer causes URL rewriting.
+
+* DNS-over-HTTPS now only uses httpx; support for requests has been dropped.  A source
+  port may now be supplied when using httpx.
+
 2.3.0
 -----
 

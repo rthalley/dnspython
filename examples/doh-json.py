@@ -2,7 +2,7 @@
 
 import copy
 import json
-import requests
+import httpx
 
 import dns.flags
 import dns.message
@@ -92,7 +92,7 @@ def from_doh_simple(simple, add_qr=False):
 a = dns.resolver.resolve("www.dnspython.org", "a")
 p = to_doh_simple(a.response)
 print(json.dumps(p, indent=4))
-response = requests.get(
+response = httpx.get(
     "https://dns.google/resolve?",
     verify=True,
     params={"name": "www.dnspython.org", "type": 1},

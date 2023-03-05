@@ -43,13 +43,13 @@ from dns.query import (
     BadResponse,
     ssl,
     UDPMode,
-    _have_httpx,
+    have_doh,
     _have_http2,
     NoDOH,
     NoDOQ,
 )
 
-if _have_httpx:
+if have_doh:
     import httpx
 
 # for brevity
@@ -495,6 +495,9 @@ async def https(
     path: str = "/dns-query",
     post: bool = True,
     verify: Union[bool, str] = True,
+    bootstrap_address: Optional[str] = None,
+    resolver: Optional["dns.asyncresolver.Resolver"] = None,
+    family: Optional[int] = socket.AF_UNSPEC,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -508,8 +511,10 @@ async def https(
     parameters, exceptions, and return type of this method.
     """
 
-    if not _have_httpx:
+    if not have_doh:
         raise NoDOH("httpx is not available.")  # pragma: no cover
+    if client and not isinstance(client, httpx.AsyncClient):
+        raise ValueError("session parameter must be an httpx.AsyncClient")
 
     wire = q.to_wire()
     try:
@@ -518,15 +523,30 @@ async def https(
         af = None
     transport = None
     headers = {"accept": "application/dns-message"}
-    if af is not None:
+    if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
             url = "https://{}:{}{}".format(where, port, path)
         elif af == socket.AF_INET6:
             url = "https://[{}]:{}{}".format(where, port, path)
     else:
         url = where
-    if source is not None:
-        transport = httpx.AsyncHTTPTransport(local_address=source[0])
+
+    backend = dns.asyncbackend.get_default_backend()
+
+    if source is None:
+        local_address = None
+        local_port = 0
+    else:
+        local_address = source
+        local_port = source_port
+    transport = backend.get_transport_class()(
+        local_address=local_address,
+        verify=verify,
+        local_port=local_port,
+        bootstrap_address=bootstrap_address,
+        resolver=resolver,
+        family=family,
+    )
 
     if client:
         cm: contextlib.AbstractAsyncContextManager = NullContext(client)

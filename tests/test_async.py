@@ -54,9 +54,18 @@ except Exception:
     pass
 
 query_addresses = []
+family = socket.AF_UNSPEC
 if tests.util.have_ipv4():
     query_addresses.append("8.8.8.8")
+    family = socket.AF_INET
 if tests.util.have_ipv6():
+    have_v6 = True
+    if family == socket.AF_INET:
+        # we have both working, go back to UNSPEC
+        family = socket.AF_UNSPEC
+    else:
+        # v6 only
+        family = socket.AF_INET6
     query_addresses.append("2001:4860:4860::8888")
 
 KNOWN_ANYCAST_DOH_RESOLVER_URLS = [
@@ -503,7 +512,9 @@ class AsyncTests(unittest.TestCase):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
             q = dns.message.make_query("example.com.", dns.rdatatype.A)
-            r = await dns.asyncquery.https(q, nameserver_url, post=False, timeout=4)
+            r = await dns.asyncquery.https(
+                q, nameserver_url, post=False, timeout=4, family=family
+            )
             self.assertTrue(q.is_response(r))
 
         self.async_run(run)
@@ -516,7 +527,9 @@ class AsyncTests(unittest.TestCase):
                 dns.query._have_http2 = False
                 nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
                 q = dns.message.make_query("example.com.", dns.rdatatype.A)
-                r = await dns.asyncquery.https(q, nameserver_url, post=False, timeout=4)
+                r = await dns.asyncquery.https(
+                    q, nameserver_url, post=False, timeout=4, family=family
+                )
                 self.assertTrue(q.is_response(r))
             finally:
                 dns.query._have_http2 = saved_have_http2
@@ -528,7 +541,9 @@ class AsyncTests(unittest.TestCase):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
             q = dns.message.make_query("example.com.", dns.rdatatype.A)
-            r = await dns.asyncquery.https(q, nameserver_url, post=True, timeout=4)
+            r = await dns.asyncquery.https(
+                q, nameserver_url, post=True, timeout=4, family=family
+            )
             self.assertTrue(q.is_response(r))
 
         self.async_run(run)

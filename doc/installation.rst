@@ -45,10 +45,11 @@ Optional Modules
 
 The following modules are optional, but recommended for full functionality.
 
-If ``requests`` and ``requests-toolbelt`` are installed, then DNS-over-HTTPS
-will be available.
+If ``httpx`` is installed, then DNS-over-HTTPS will be available.
 
 If ``cryptography`` is installed, then dnspython will be
-able to do low-level DNSSEC RSA, DSA, ECDSA and EdDSA signature validation.
+able to do low-level DNSSEC signature generation and validation.
 
 If ``idna`` is installed, then IDNA 2008 will be available.
+
+If ``aioquic`` is installed, the DNS-over-QUIC will be available.

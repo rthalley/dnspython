@@ -43,14 +43,21 @@ import dns.transaction
 import dns.tsig
 import dns.xfr
 
-try:
-    import requests
-    from requests_toolbelt.adapters.source import SourceAddressAdapter
-    from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
 
-    _have_requests = True
-except ImportError:  # pragma: no cover
-    _have_requests = False
+def _remaining(expiration):
+    if expiration is None:
+        return None
+    timeout = expiration - time.time()
+    if timeout <= 0.0:
+        raise dns.exception.Timeout
+    return timeout
+
+
+def _expiration_for_this_attempt(timeout, expiration):
+    if expiration is None:
+        return None
+    return min(time.time() + timeout, expiration)
+
 
 _have_httpx = False
 _have_http2 = False
@@ -64,10 +71,83 @@ try:
             _have_http2 = True
     except Exception:
         pass
-except ImportError:  # pragma: no cover
-    pass
 
-have_doh = _have_requests or _have_httpx
+    import httpcore
+    import httpcore.backends.base
+    import httpcore.backends.sync
+
+    class _NetworkBackend(httpcore.backends.base.NetworkBackend):
+        def __init__(self, resolver, local_port, bootstrap_address, family):
+            super().__init__()
+            self._local_port = local_port
+            self._resolver = resolver
+            self._bootstrap_address = bootstrap_address
+            self._family = family
+
+        def connect_tcp(self, host, port, timeout, local_address):
+            addresses = []
+            now, expiration = _compute_times(timeout)
+            if dns.inet.is_address(host):
+                addresses.append(host)
+            elif self._bootstrap_address is not None:
+                addresses.append(self._bootstrap_address)
+            else:
+                timeout = _remaining(expiration)
+                family = self._family
+                if local_address:
+                    family = dns.inet.af_for_address(local_address)
+                answers = self._resolver.resolve_name(
+                    host, family=family, lifetime=timeout
+                )
+                addresses = answers.addresses()
+            for address in addresses:
+                af = dns.inet.af_for_address(address)
+                if local_address is not None or self._local_port != 0:
+                    source = dns.inet.low_level_address_tuple(
+                        (local_address, self._local_port), af
+                    )
+                else:
+                    source = None
+                sock = _make_socket(af, socket.SOCK_STREAM, source)
+                attempt_expiration = _expiration_for_this_attempt(2.0, expiration)
+                try:
+                    _connect(
+                        sock,
+                        dns.inet.low_level_address_tuple((address, port), af),
+                        attempt_expiration,
+                    )
+                    return httpcore.backends.sync.SyncStream(sock)
+                except Exception:
+                    pass
+            raise httpcore.ConnectError
+
+    class _HTTPTransport(httpx.HTTPTransport):
+        def __init__(
+            self,
+            *args,
+            local_port=0,
+            bootstrap_address=None,
+            resolver=None,
+            family=socket.AF_UNSPEC,
+            **kwargs,
+        ):
+            if resolver is None:
+                import dns.resolver
+
+                resolver = dns.resolver.Resolver()
+            super().__init__(*args, **kwargs)
+            self._pool._network_backend = _NetworkBackend(
+                resolver, local_port, bootstrap_address, family
+            )
+
+except ImportError:  # pragma: no cover
+
+    class _HTTPTransport:  # type: ignore
+        def connect_tcp(self, host, port, timeout, local_address):
+            raise NotImplementedError
+
+
+have_doh = _have_httpx
 
 try:
     import ssl
@@ -240,11 +320,10 @@ def _destination_and_source(
         # Caller has specified a source_port but not an address, so we
         # need to return a source, and we need to use the appropriate
         # wildcard address as the address.
-        if af == socket.AF_INET:
-            source = "0.0.0.0"
-        elif af == socket.AF_INET6:
-            source = "::"
-        else:
+        try:
+            source = dns.inet.any_for_af(af)
+        except Exception:
+            # we catch this and raise ValueError for backwards compatibility
             raise ValueError("source_port specified but address family is unknown")
     # Convert high-level (address, port) tuples into low-level address
     # tuples.
@@ -289,6 +368,8 @@ def https(
     post: bool = True,
     bootstrap_address: Optional[str] = None,
     verify: Union[bool, str] = True,
+    resolver: Optional["dns.resolver.Resolver"] = None,
+    family: Optional[int] = socket.AF_UNSPEC,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -314,91 +395,76 @@ def https(
     *ignore_trailing*, a ``bool``. If ``True``, ignore trailing junk at end of the
     received message.
 
-    *session*, an ``httpx.Client`` or ``requests.session.Session``.  If provided, the
-    client/session to use to send the queries.
+    *session*, an ``httpx.Client``.  If provided, the client session to use to send the
+    queries.
 
     *path*, a ``str``. If *where* is an IP address, then *path* will be used to
     construct the URL to send the DNS query to.
 
     *post*, a ``bool``. If ``True``, the default, POST method will be used.
 
-    *bootstrap_address*, a ``str``, the IP address to use to bypass the system's DNS
-    resolver.
+    *bootstrap_address*, a ``str``, the IP address to use to bypass resolution.
 
     *verify*, a ``bool`` or ``str``.  If a ``True``, then TLS certificate verification
     of the server is done using the default CA bundle; if ``False``, then no
     verification is done; if a `str` then it specifies the path to a certificate file or
     directory which will be used for verification.
 
+    *resolver*, a ``dns.resolver.Resolver`` or ``None``, the resolver to use for
+    resolution of hostnames in URLs.  If not specified, a new resolver with a default
+    configuration will be used; note this is *not* the default resolver as that resolver
+    might have been configured to use DoH causing a chicken-and-egg problem.  This
+    parameter only has an effect if the HTTP library is httpx.
+
+    *family*, an ``int``, the address family.  If socket.AF_UNSPEC (the default), both A
+    and AAAA records will be retrieved.
+
     Returns a ``dns.message.Message``.
     """
 
     if not have_doh:
-        raise NoDOH("Neither httpx nor requests is available.")  # pragma: no cover
-
-    _httpx_ok = _have_httpx
+        raise NoDOH("DNS-over-HTTPS is not available.")  # pragma: no cover
+    if session and not isinstance(session, httpx.Client):
+        raise ValueError("session parameter must be an httpx.Client")
 
     wire = q.to_wire()
-    (af, _, source) = _destination_and_source(where, port, source, source_port, False)
-    transport_adapter = None
+    (af, _, the_source) = _destination_and_source(
+        where, port, source, source_port, False
+    )
     transport = None
     headers = {"accept": "application/dns-message"}
-    if af is not None:
+    if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
             url = "https://{}:{}{}".format(where, port, path)
         elif af == socket.AF_INET6:
             url = "https://[{}]:{}{}".format(where, port, path)
-    elif bootstrap_address is not None:
-        _httpx_ok = False
-        split_url = urllib.parse.urlsplit(where)
-        if split_url.hostname is None:
-            raise ValueError("DoH URL has no hostname")
-        headers["Host"] = split_url.hostname
-        url = where.replace(split_url.hostname, bootstrap_address)
-        if _have_requests:
-            transport_adapter = HostHeaderSSLAdapter()
     else:
         url = where
-    if source is not None:
-        # set source port and source address
-        if _have_httpx:
-            if source_port == 0:
-                transport = httpx.HTTPTransport(local_address=source[0], verify=verify)
-            else:
-                _httpx_ok = False
-        if _have_requests:
-            transport_adapter = SourceAddressAdapter(source)
 
-    if session:
-        if _have_httpx:
-            _is_httpx = isinstance(session, httpx.Client)
-        else:
-            _is_httpx = False
-        if _is_httpx and not _httpx_ok:
-            raise NoDOH(
-                "Session is httpx, but httpx cannot be used for "
-                "the requested operation."
-            )
+    # set source port and source address
+
+    if the_source is None:
+        local_address = None
+        local_port = 0
     else:
-        _is_httpx = _httpx_ok
-
-    if not _httpx_ok and not _have_requests:
-        raise NoDOH(
-            "Cannot use httpx for this operation, and requests is not available."
-        )
+        local_address = the_source[0]
+        local_port = the_source[1]
+    transport = _HTTPTransport(
+        local_address=local_address,
+        verify=verify,
+        local_port=local_port,
+        bootstrap_address=bootstrap_address,
+        resolver=resolver,
+        family=family,
+    )
 
     if session:
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(session)
-    elif _is_httpx:
+    else:
         cm = httpx.Client(
             http1=True, http2=_have_http2, verify=verify, transport=transport
         )
-    else:
-        cm = requests.sessions.Session()
     with cm as session:
-        if transport_adapter and not _is_httpx:
-            session.mount(url, transport_adapter)
-
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples
         if post:
@@ -408,29 +474,13 @@ def https(
                     "content-length": str(len(wire)),
                 }
             )
-            if _is_httpx:
-                response = session.post(
-                    url, headers=headers, content=wire, timeout=timeout
-                )
-            else:
-                response = session.post(
-                    url, headers=headers, data=wire, timeout=timeout, verify=verify
-                )
+            response = session.post(url, headers=headers, content=wire, timeout=timeout)
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
-            if _is_httpx:
-                twire = wire.decode()  # httpx does a repr() if we give it bytes
-                response = session.get(
-                    url, headers=headers, timeout=timeout, params={"dns": twire}
-                )
-            else:
-                response = session.get(
-                    url,
-                    headers=headers,
-                    timeout=timeout,
-                    verify=verify,
-                    params={"dns": wire},
-                )
+            twire = wire.decode()  # httpx does a repr() if we give it bytes
+            response = session.get(
+                url, headers=headers, timeout=timeout, params={"dns": twire}
+            )
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes

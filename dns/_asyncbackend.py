@@ -61,6 +61,11 @@ class StreamSocket(Socket):  # pragma: no cover
         raise NotImplementedError
 
 
+class NullTransport:
+    async def connect_tcp(self, host, port, timeout, local_address):
+        raise NotImplementedError
+
+
 class Backend:  # pragma: no cover
     def name(self):
         return "unknown"
@@ -82,4 +87,7 @@ class Backend:  # pragma: no cover
         return False
 
     async def sleep(self, interval):
+        raise NotImplementedError
+
+    def get_transport_class(self):
         raise NotImplementedError
