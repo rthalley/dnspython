@@ -1346,7 +1346,7 @@ class Resolver(BaseResolver):
     def resolve_name(
         self,
         name: Union[dns.name.Name, str],
-        family=socket.AF_UNSPEC,
+        family: int = socket.AF_UNSPEC,
         **kwargs: Any
     ) -> List[Answer]:
         """Use a resolver to query for address records.
@@ -1530,7 +1530,7 @@ def resolve_address(ipaddr: str, *args: Any, **kwargs: Any) -> Answer:
 
 def resolve_name(
     name: Union[dns.name.Name, str],
-    family=socket.AF_UNSPEC,
+    family: int = socket.AF_UNSPEC,
     **kwargs: Any
 ) -> List[Answer]:
     """Use a resolver to query for address records.
