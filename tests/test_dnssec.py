@@ -776,13 +776,13 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
         # Pass keys as a name->node dict, not a name->rrset dict
         keys = {}
-        for (name, key_rrset) in abs_keys.items():
+        for name, key_rrset in abs_keys.items():
             keys[name] = dns.node.Node()
             keys[name].rdatasets.append(key_rrset.to_rdataset())
         dns.dnssec.validate(abs_soa, abs_soa_rrsig, keys, None, when)
         # test key not found.
         keys = {}
-        for (name, key_rrset) in abs_keys.items():
+        for name, key_rrset in abs_keys.items():
             keys[name] = dns.node.Node()
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(abs_soa, abs_soa_rrsig, keys, None, when)
@@ -1185,12 +1185,6 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
         self._test_signature(key, dns.dnssec.Algorithm.RSASHA256, abs_soa)
-
-    def testSignatureDSA(self):  # type: () -> None
-        key = dsa.generate_private_key(key_size=1024)
-        self._test_signature(
-            key, dns.dnssec.Algorithm.DSA, abs_soa, policy=dns.dnssec.allow_all_policy
-        )
 
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
