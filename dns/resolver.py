@@ -334,8 +334,8 @@ class HostAnswers(Answers):
         return answers
 
 
-    # Returns pairs of (af, address) from this result, potentially filtering by
-    # address family.
+    # Returns pairs of (address, family) from this result, potentiallys
+    # filtering by address family.
     def addresses_and_families(
         self,
         family : int = socket.AF_UNSPEC
