@@ -582,19 +582,16 @@ fake_gost_ns_rrsig = dns.rrset.from_text(
 )
 
 test_zone_sans_nsec = """
-$TTL 3600
-$ORIGIN example.
-@ soa foo bar 1 2 3 4 5
-@ ns ns1
-@ ns ns2
-ns1 a 10.0.0.1
-ns2 a 10.0.0.2
-sub ns ns1
-sub ns ns2
-sub ns ns3.sub
-ns3.sub a 10.0.0.3
-$ORIGIN foo.example.
-bar mx 0 blaz
+example. 3600 IN SOA foo.example. bar.example. 1 2 3 4 5
+example. 3600 IN NS ns1.example.
+example. 3600 IN NS ns2.example.
+bar.foo.example. 3600 IN MX 0 blaz.foo.example.
+ns1.example. 3600 IN A 10.0.0.1
+ns2.example. 3600 IN A 10.0.0.2
+sub.example. 3600 IN NS ns1.example.
+sub.example. 3600 IN NS ns2.example.
+sub.example. 3600 IN NS ns3.sub.example.
+ns3.sub.example. 3600 IN A 10.0.0.3
 """
 
 test_zone_with_nsec = """
@@ -607,10 +604,11 @@ bar.foo.example. 5 IN NSEC ns1.example. MX RRSIG
 ns1.example. 3600 IN A 10.0.0.1
 ns1.example. 5 IN NSEC ns2.example. A RRSIG
 ns2.example. 3600 IN A 10.0.0.2
-ns2.example. 5 IN NSEC example. A RRSIG
+ns2.example. 5 IN NSEC sub.example. A RRSIG
 sub.example. 3600 IN NS ns1.example.
 sub.example. 3600 IN NS ns2.example.
 sub.example. 3600 IN NS ns3.sub.example.
+sub.example. 5 IN NSEC example. NS RRSIG
 ns3.sub.example. 3600 IN A 10.0.0.3
 """
 

@@ -1235,40 +1235,41 @@ def add_nsec_records(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     # find all delegations
     delegations = set()
     for (name, rdataset) in zone.iterate_rdatasets(rdtype=dns.rdatatype.RdataType.NS):
-        for rdata in rdataset:
-            if name != zone.origin:
-                delegations.add(name)
+        if name != zone.origin:
+            delegations.add(name)
 
     # secure names are all names except names below delegations
     secure_names = set(zone.keys())
     for name in zone.keys():
         for delegation in delegations:
-            if name.is_subdomain(delegation):
+            (namerel, _, _) = name.fullcompare(delegation)
+            if namerel == dns.name.NameRelation.SUBDOMAIN:
                 secure_names.discard(name)
                 break
 
     names = list(secure_names)
     names.sort()
 
-    for index, name in enumerate(names):
-        node = zone.get(name)
-        types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig
-
-        n = index + 1
-        next_name = names[n] if n < len(names) else zone.origin
-        windows = Bitmap.from_rdtypes(list(types))
-
-        rdataset = dns.rdataset.from_rdata(
-            ttl,
-            NSEC(
-                rdclass=zone.rdclass,
-                rdtype=dns.rdatatype.RdataType.NSEC,
-                next=next_name,
-                windows=windows,
-            ),
-        )
-
-        node.rdatasets.append(rdataset)
+    with zone.writer() as txn:
+        for index, name in enumerate(names):
+            node = txn.get_node(name)
+            types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig
+        
+            n = index + 1
+            next_name = names[n] if n < len(names) else zone.origin
+            windows = Bitmap.from_rdtypes(list(types))
+        
+            rdataset = dns.rdataset.from_rdata(
+                ttl,
+                NSEC(
+                    rdclass=zone.rdclass,
+                    rdtype=dns.rdatatype.RdataType.NSEC,
+                    next=next_name,
+                    windows=windows,
+                ),
+            )
+        
+            txn.add(name, rdataset)
 
 
 def _need_pyca(*args, **kwargs):
