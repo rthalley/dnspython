@@ -339,7 +339,7 @@ class HostAnswers(Answers):
     def addresses_and_families(
         self,
         family : int = socket.AF_UNSPEC
-    ) -> Iterator[Tuple[int, str]]:
+    ) -> Iterator[Tuple[str, int]]:
         if family == socket.AF_UNSPEC:
             yield from self.addresses_and_families(socket.AF_INET6)
             yield from self.addresses_and_families(socket.AF_INET)
@@ -352,12 +352,12 @@ class HostAnswers(Answers):
             raise NotImplementedError(f"unknown address family {family}")
         if answer:
             for rdata in answer:
-                yield (family, rdata.address)
+                yield (rdata.address, family)
 
     # Returns addresses from this result, potentially filtering by
     # address family.
     def addresses(self, family : int = socket.AF_UNSPEC) -> Iterator[str]:
-        return (pair[1] for pair in self.addresses_and_families(family))
+        return (pair[0] for pair in self.addresses_and_families(family))
 
     # Returns the canonical name from this result.
     def canonical_name(self) -> dns.name.Name:
@@ -1785,7 +1785,7 @@ def _getaddrinfo(
         cname = canonical_name
     else:
         cname = ""
-    for af, addr in addrs:
+    for addr, af in addrs:
         for socktype in socktypes:
             for proto in _protocols_for_socktype[socktype]:
                 addr_tuple = dns.inet.low_level_address_tuple((addr, port), af)
