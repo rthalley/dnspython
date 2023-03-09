@@ -18,6 +18,7 @@
 import collections
 import random
 import struct
+from typing import List
 
 import dns.exception
 import dns.ipv4
@@ -152,7 +153,11 @@ class Bitmap:
             if rdtype == 0:
                 raise dns.exception.SyntaxError(f"{cls.type_name} with bit 0")
             rdtypes.append(rdtype)
-        rdtypes.sort()
+        return cls.from_rdtypes(rdtypes)
+
+    @classmethod
+    def from_rdtypes(cls, rdtypes: List[dns.rdatatype.RdataType]):
+        rdtypes = sorted(rdtypes)
         window = 0
         octets = 0
         prior_rdtype = 0

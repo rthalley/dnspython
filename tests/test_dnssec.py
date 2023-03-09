@@ -30,6 +30,7 @@ import dns.rdtypes.ANY.CDS
 import dns.rdtypes.ANY.DNSKEY
 import dns.rdtypes.ANY.DS
 import dns.rrset
+import dns.zone
 
 from .keys import test_dnskeys
 
@@ -580,6 +581,39 @@ fake_gost_ns_rrsig = dns.rrset.from_text(
     " SXTV9hCLVFWU4PS+/fxxfOHCetsY5tWWSxZi zSHfgpGfsHWzQoAamag4XYDyykc=",
 )
 
+test_zone_sans_nsec = """
+$TTL 3600
+$ORIGIN example.
+@ soa foo bar 1 2 3 4 5
+@ ns ns1
+@ ns ns2
+ns1 a 10.0.0.1
+ns2 a 10.0.0.2
+sub ns ns1
+sub ns ns2
+sub ns ns3.sub
+ns3.sub a 10.0.0.3
+$ORIGIN foo.example.
+bar mx 0 blaz
+"""
+
+test_zone_with_nsec = """
+example. 3600 IN SOA foo.example. bar.example. 1 2 3 4 5
+example. 3600 IN NS ns1.example.
+example. 3600 IN NS ns2.example.
+example. 5 IN NSEC bar.foo.example. NS SOA RRSIG
+bar.foo.example. 3600 IN MX 0 blaz.foo.example.
+bar.foo.example. 5 IN NSEC ns1.example. MX RRSIG
+ns1.example. 3600 IN A 10.0.0.1
+ns1.example. 5 IN NSEC ns2.example. A RRSIG
+ns2.example. 3600 IN A 10.0.0.2
+ns2.example. 5 IN NSEC example. A RRSIG
+sub.example. 3600 IN NS ns1.example.
+sub.example. 3600 IN NS ns2.example.
+sub.example. 3600 IN NS ns3.sub.example.
+ns3.sub.example. 3600 IN A 10.0.0.3
+"""
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECValidatorTestCase(unittest.TestCase):
@@ -879,6 +913,14 @@ class DNSSECMiscTestCase(unittest.TestCase):
 
         ts = dns.dnssec.to_timestamp(441812220)
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
+
+    def test_add_nsec_records(self):
+        zone1 = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
+        dns.dnssec.add_nsec_records(zone1)
+        md1 = zone1.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
+        zone2 = dns.zone.from_text(test_zone_with_nsec, "example.", relativize=False)
+        md2 = zone2.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
+        self.assertEqual(md1, md2)
 
 
 class DNSSECMakeDSTestCase(unittest.TestCase):

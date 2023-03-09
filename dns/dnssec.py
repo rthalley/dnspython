@@ -36,10 +36,12 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
 import dns.rrset
+import dns.zone
 from dns.rdtypes.ANY.CDNSKEY import CDNSKEY
 from dns.rdtypes.ANY.CDS import CDS
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.ANY.DS import DS
+from dns.rdtypes.ANY.NSEC import NSEC, Bitmap
 from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
 from dns.rdtypes.dnskeybase import Flag
 
@@ -1214,6 +1216,59 @@ def dnskey_rdataset_to_cdnskey_rdataset(
             )
         )
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
+
+
+def add_nsec_records(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
+    """Add NSEC records to Zone.
+
+    *zone*, a ``dns.zone.Zone``, to add NSEC records to.
+
+    *add_rrsig*, a ``bool``.  If ``True``, the default, add RRSIG to each NSEC
+    type bit map as a preparation to zone signing.
+
+    Returns ``None``.
+    """
+
+    rrsig = {dns.rdatatype.RdataType.RRSIG} if add_rrsig else set()
+    ttl = zone.get_soa().minimum
+
+    # find all delegations
+    delegations = set()
+    for (name, rdataset) in zone.iterate_rdatasets(rdtype=dns.rdatatype.RdataType.NS):
+        for rdata in rdataset:
+            if name != zone.origin:
+                delegations.add(name)
+
+    # secure names are all names except names below delegations
+    secure_names = set(zone.keys())
+    for name in zone.keys():
+        for delegation in delegations:
+            if name.is_subdomain(delegation):
+                secure_names.discard(name)
+                break
+
+    names = list(secure_names)
+    names.sort()
+
+    for index, name in enumerate(names):
+        node = zone.get(name)
+        types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig
+
+        n = index + 1
+        next_name = names[n] if n < len(names) else zone.origin
+        windows = Bitmap.from_rdtypes(list(types))
+
+        rdataset = dns.rdataset.from_rdata(
+            ttl,
+            NSEC(
+                rdclass=zone.rdclass,
+                rdtype=dns.rdatatype.RdataType.NSEC,
+                next=next_name,
+                windows=windows,
+            ),
+        )
+
+        node.rdatasets.append(rdataset)
 
 
 def _need_pyca(*args, **kwargs):
