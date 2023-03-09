@@ -17,7 +17,7 @@
 
 """Asynchronous DNS stub resolver."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import socket
 import time
@@ -32,7 +32,7 @@ import dns.rdatatype
 import dns.resolver  # lgtm[py/import-and-import-from]
 
 # import some resolver symbols for brevity
-from dns.resolver import Answer, NXDOMAIN, NoAnswer, NotAbsolute, NoRootSOA
+from dns.resolver import NXDOMAIN, NoAnswer, NotAbsolute, NoRootSOA
 
 
 # for indentation purposes below
@@ -142,7 +142,7 @@ class Resolver(dns.resolver.BaseResolver):
         name: Union[dns.name.Name, str],
         family: int = socket.AF_UNSPEC,
         **kwargs: Any
-    ) -> List[Answer]:
+    ) -> dns.resolver.HostAnswers:
         """Use an asynchronous resolver to query for address records.
 
         This utilizes the resolve() method to perform A and/or AAAA lookups on
@@ -166,9 +166,11 @@ class Resolver(dns.resolver.BaseResolver):
         modified_kwargs["rdclass"] = dns.rdataclass.IN
 
         if family == socket.AF_INET:
-            return [await self.resolve(name, dns.rdatatype.A, **modified_kwargs)]
+            v4 = await self.resolve(name, dns.rdatatype.A, **modified_kwargs)
+            return dns.resolver.HostAnswers.make(v4=v4)
         elif family == socket.AF_INET6:
-            return [await self.resolve(name, dns.rdatatype.AAAA, **modified_kwargs)]
+            v6 = await self.resolve(name, dns.rdatatype.AAAA, **modified_kwargs)
+            return dns.resolver.HostAnswers.make(v6=v6)
         elif family != socket.AF_UNSPEC:
             raise NotImplementedError(f"unknown address family {family}")
 
@@ -189,9 +191,11 @@ class Resolver(dns.resolver.BaseResolver):
                                 raise_on_no_answer=False,
                                 lifetime=self._compute_timeout(start, lifetime),
                                 **modified_kwargs)
-        if not raise_on_no_answer:
-            return [v6, v4]
-        answers = [a for a in (v6, v4) if a.rrset is not None]
+        answers = dns.resolver.HostAnswers.make(
+            v6=v6,
+            v4=v4,
+            add_empty=not raise_on_no_answer
+        )
         if not answers:
             raise NoAnswer(response=v6.response)
         return answers
@@ -294,7 +298,7 @@ async def resolve_name(
     name: Union[dns.name.Name, str],
     family: int = socket.AF_UNSPEC,
     **kwargs: Any
-) -> List[Answer]:
+) -> dns.resolver.HostAnswers:
     """Use a resolver to asynchronously query for address records.
 
     See :py:func:`dns.asyncresolver.Resolver.resolve_name` for more

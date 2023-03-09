@@ -16,7 +16,6 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from io import StringIO
-import itertools
 import selectors
 import sys
 import socket
@@ -669,7 +668,7 @@ class LiveResolverTests(unittest.TestCase):
 
     def testResolveName(self):
         answers = dns.resolver.resolve_name("dns.google.")
-        seen = set(rdata.address for rdata in itertools.chain(*answers))
+        seen = set(answers.addresses())
         self.assertEqual(len(seen), 4)
         self.assertIn("8.8.8.8", seen)
         self.assertIn("8.8.4.4", seen)
@@ -677,22 +676,22 @@ class LiveResolverTests(unittest.TestCase):
         self.assertIn("2001:4860:4860::8888", seen)
 
         answers = dns.resolver.resolve_name("dns.google.", socket.AF_INET)
-        seen = set(rdata.address for rdata in itertools.chain(*answers))
+        seen = set(answers.addresses())
         self.assertEqual(len(seen), 2)
         self.assertIn("8.8.8.8", seen)
         self.assertIn("8.8.4.4", seen)
 
         answers = dns.resolver.resolve_name("dns.google.", socket.AF_INET6)
-        seen = set(rdata.address for rdata in itertools.chain(*answers))
+        seen = set(answers.addresses())
         self.assertEqual(len(seen), 2)
         self.assertIn("2001:4860:4860::8844", seen)
         self.assertIn("2001:4860:4860::8888", seen)
 
         with self.assertRaises(dns.resolver.NXDOMAIN):
-            answers = dns.resolver.resolve_name("nxdomain.dnspython.org")
+            dns.resolver.resolve_name("nxdomain.dnspython.org")
 
         with self.assertRaises(dns.resolver.NoAnswer):
-            answers = dns.resolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
+            dns.resolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
 
     @patch.object(dns.message.Message, "use_edns")
     def testResolveEdnsOptions(self, message_use_edns_mock):

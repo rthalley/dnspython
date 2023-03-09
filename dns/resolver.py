@@ -17,7 +17,7 @@
 
 """DNS stub resolver."""
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 from urllib.parse import urlparse
 import contextlib
@@ -308,6 +308,61 @@ class Answer:
         if self.rrset is None:
             raise IndexError
         del self.rrset[i]
+
+
+class Answers(dict):
+    """A dict of DNS stub resolver answers, indexed by type."""
+    pass
+
+class HostAnswers(Answers):
+    """A dict of DNS stub resolver answers to a host name lookup, indexed by
+    type.
+    """
+
+    @classmethod
+    def make(
+        self,
+        v6 : Optional[Answer] = None,
+        v4 : Optional[Answer] = None,
+        add_empty : bool = True
+    ) -> 'HostAnswers':
+        answers = HostAnswers()
+        if v6 is not None and (add_empty or v6.rrset):
+            answers[dns.rdatatype.AAAA] = v6
+        if v4 is not None and (add_empty or v4.rrset):
+            answers[dns.rdatatype.A] = v4
+        return answers
+
+
+    # Returns pairs of (af, address) from this result, potentially filtering by
+    # address family.
+    def addresses_and_families(
+        self,
+        family : int = socket.AF_UNSPEC
+    ) -> Iterator[Tuple[int, str]]:
+        if family == socket.AF_UNSPEC:
+            yield from self.addresses_and_families(socket.AF_INET6)
+            yield from self.addresses_and_families(socket.AF_INET)
+            return
+        elif family == socket.AF_INET6:
+            answer = self.get(dns.rdatatype.AAAA)
+        elif family == socket.AF_INET:
+            answer = self.get(dns.rdatatype.A)
+        else:
+            raise NotImplementedError(f"unknown address family {family}")
+        if answer:
+            for rdata in answer:
+                yield (family, rdata.address)
+
+    # Returns addresses from this result, potentially filtering by
+    # address family.
+    def addresses(self, family : int = socket.AF_UNSPEC) -> Iterator[str]:
+        return (pair[1] for pair in self.addresses_and_families(family))
+
+    # Returns the canonical name from this result.
+    def canonical_name(self) -> dns.name.Name:
+        answer = self.get(dns.rdatatype.AAAA, self.get(dns.rdatatype.A))
+        return answer.canonical_name
 
 
 class CacheStatistics:
@@ -1348,7 +1403,7 @@ class Resolver(BaseResolver):
         name: Union[dns.name.Name, str],
         family: int = socket.AF_UNSPEC,
         **kwargs: Any
-    ) -> List[Answer]:
+    ) -> HostAnswers:
         """Use a resolver to query for address records.
 
         This utilizes the resolve() method to perform A and/or AAAA lookups on
@@ -1372,9 +1427,11 @@ class Resolver(BaseResolver):
         modified_kwargs["rdclass"] = dns.rdataclass.IN
 
         if family == socket.AF_INET:
-            return [self.resolve(name, dns.rdatatype.A, **modified_kwargs)]
+            v4 = self.resolve(name, dns.rdatatype.A, **modified_kwargs)
+            return HostAnswers.make(v4=v4)
         elif family == socket.AF_INET6:
-            return [self.resolve(name, dns.rdatatype.AAAA, **modified_kwargs)]
+            v6 = self.resolve(name, dns.rdatatype.AAAA, **modified_kwargs)
+            return HostAnswers.make(v6=v6)
         elif family != socket.AF_UNSPEC:
             raise NotImplementedError(f"unknown address family {family}")
 
@@ -1395,9 +1452,7 @@ class Resolver(BaseResolver):
                           raise_on_no_answer=False,
                           lifetime=self._compute_timeout(start, lifetime),
                           **modified_kwargs)
-        if not raise_on_no_answer:
-            return [v6, v4]
-        answers = [a for a in (v6, v4) if a.rrset is not None]
+        answers = HostAnswers.make(v6=v6, v4=v4, add_empty=not raise_on_no_answer)
         if not answers:
             raise NoAnswer(response=v6.response)
         return answers
@@ -1532,7 +1587,7 @@ def resolve_name(
     name: Union[dns.name.Name, str],
     family: int = socket.AF_UNSPEC,
     **kwargs: Any
-) -> List[Answer]:
+) -> HostAnswers:
     """Use a resolver to query for address records.
 
     See ``dns.resolver.Resolver.resolve_name`` for more information on the
@@ -1696,16 +1751,9 @@ def _getaddrinfo(
         pass
     # Something needs resolution!
     try:
-        for answer in _resolver.resolve_name(host, family, raise_on_no_answer=False):
-            if answer.rdtype == dns.rdatatype.AAAA:
-                af = socket.AF_INET6
-            elif answer.rdtype == dns.rdatatype.A:
-                af = socket.AF_INET
-            else:
-                pass
-            for rdata in answer.rrset:
-                addrs.append((af, rdata.address))
-            canonical_name = answer.canonical_name.to_text(True)
+        answers = _resolver.resolve_name(host, family)
+        addrs = answers.addresses_and_families()
+        canonical_name = answers.canonical_name().to_text(True)
     except dns.resolver.NXDOMAIN:
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
     except Exception:

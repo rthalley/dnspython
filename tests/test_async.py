@@ -16,7 +16,6 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import asyncio
-import itertools
 import random
 import socket
 import sys
@@ -193,7 +192,7 @@ class AsyncTests(unittest.TestCase):
             return await dns.asyncresolver.resolve_name("dns.google.")
 
         answers = self.async_run(run1)
-        seen = set(rdata.address for rdata in itertools.chain(*answers))
+        seen = set(answers.addresses())
         self.assertEqual(len(seen), 4)
         self.assertIn("8.8.8.8", seen)
         self.assertIn("8.8.4.4", seen)
@@ -204,7 +203,7 @@ class AsyncTests(unittest.TestCase):
             return await dns.asyncresolver.resolve_name("dns.google.", socket.AF_INET)
 
         answers = self.async_run(run2)
-        seen = set(rdata.address for rdata in itertools.chain(*answers))
+        seen = set(answers.addresses())
         self.assertEqual(len(seen), 2)
         self.assertIn("8.8.8.8", seen)
         self.assertIn("8.8.4.4", seen)
@@ -213,19 +212,19 @@ class AsyncTests(unittest.TestCase):
             return await dns.asyncresolver.resolve_name("dns.google.", socket.AF_INET6)
 
         answers = self.async_run(run3)
-        seen = set(rdata.address for rdata in itertools.chain(*answers))
+        seen = set(answers.addresses())
         self.assertEqual(len(seen), 2)
         self.assertIn("2001:4860:4860::8844", seen)
         self.assertIn("2001:4860:4860::8888", seen)
 
         async def run4():
-            return await dns.asyncresolver.resolve_name("nxdomain.dnspython.org")
+            await dns.asyncresolver.resolve_name("nxdomain.dnspython.org")
 
         with self.assertRaises(dns.resolver.NXDOMAIN):
             self.async_run(run4)
 
         async def run5():
-            return await dns.asyncresolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
+            await dns.asyncresolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
 
         with self.assertRaises(dns.resolver.NoAnswer):
             self.async_run(run5)
