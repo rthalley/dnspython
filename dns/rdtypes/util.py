@@ -146,7 +146,7 @@ class Bitmap:
         return text
 
     @classmethod
-    def from_text(cls, tok) -> "Bitmap":
+    def from_text(cls, tok: str) -> "Bitmap":
         rdtypes = []
         for token in tok.get_remaining():
             rdtype = dns.rdatatype.from_text(token.unescape().value)
