@@ -182,13 +182,13 @@ class Bitmap:
             windows.append((window, bytes(bitmap[0:octets])))
         return cls(windows)
 
-    def to_wire(self, file) -> None:
+    def to_wire(self, file: Any) -> None:
         for (window, bitmap) in self.windows:
             file.write(struct.pack("!BB", window, len(bitmap)))
             file.write(bitmap)
 
     @classmethod
-    def from_wire_parser(cls, parser) -> "Bitmap":
+    def from_wire_parser(cls, parser: "dns.wire.Parser") -> "Bitmap":
         windows = []
         while parser.remaining() > 0:
             window = parser.get_uint8()
