@@ -1232,33 +1232,36 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     rrsig = {dns.rdatatype.RdataType.RRSIG} if add_rrsig else set()
     ttl = zone.get_soa().minimum
 
-    # find all delegations
-    delegations = set()
-    for (name, rdataset) in zone.iterate_rdatasets(rdtype=dns.rdatatype.RdataType.NS):
-        if name != zone.origin:
-            delegations.add(name)
+    secure_names = []
 
-    # secure names are all names except names below delegations
-    secure_names = set(zone.keys())
-    for name in zone.keys():
-        for delegation in delegations:
-            (namerel, _, _) = name.fullcompare(delegation)
-            if namerel == dns.name.NameRelation.SUBDOMAIN:
-                secure_names.discard(name)
-                break
-
-    names = list(secure_names)
+    names = list(zone.keys())
     names.sort()
 
+    delegation = None
+    for name in names:
+        node = zone.get(name)
+
+        if node.get_rdataset(zone.rdclass, dns.rdatatype.NS):
+            if name != zone.origin:
+                delegation = name
+        else:
+            if delegation and name.is_subdomain(delegation):
+                # names below delegation and not secure
+                continue
+            else:
+                delegation = None
+
+        secure_names.append(name)
+
     with zone.writer() as txn:
-        for index, name in enumerate(names):
+        for index, name in enumerate(secure_names):
             node = txn.get_node(name)
             types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig
-        
+
             n = index + 1
-            next_name = names[n] if n < len(names) else zone.origin
+            next_name = secure_names[n] if n < len(secure_names) else zone.origin
             windows = Bitmap.from_rdtypes(list(types))
-        
+
             rdataset = dns.rdataset.from_rdata(
                 ttl,
                 NSEC(
@@ -1268,7 +1271,7 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
                     windows=windows,
                 ),
             )
-        
+
             txn.add(name, rdataset)
 
 
