@@ -18,7 +18,7 @@
 import collections
 import random
 import struct
-from typing import List
+from typing import Any, List
 
 import dns.exception
 import dns.ipv4
