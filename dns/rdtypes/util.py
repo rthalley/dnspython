@@ -18,6 +18,7 @@
 import collections
 import random
 import struct
+from typing import List
 
 import dns.exception
 import dns.ipv4
@@ -132,7 +133,7 @@ class Bitmap:
             if len(bitmap) == 0 or len(bitmap) > 32:
                 raise ValueError(f"bad {self.type_name} octets")
 
-    def to_text(self):
+    def to_text(self) -> str:
         text = ""
         for (window, bitmap) in self.windows:
             bits = []
@@ -145,14 +146,18 @@ class Bitmap:
         return text
 
     @classmethod
-    def from_text(cls, tok):
+    def from_text(cls, tok) -> "Bitmap":
         rdtypes = []
         for token in tok.get_remaining():
             rdtype = dns.rdatatype.from_text(token.unescape().value)
             if rdtype == 0:
                 raise dns.exception.SyntaxError(f"{cls.type_name} with bit 0")
             rdtypes.append(rdtype)
-        rdtypes.sort()
+        return cls.from_rdtypes(rdtypes)
+
+    @classmethod
+    def from_rdtypes(cls, rdtypes: List[dns.rdatatype.RdataType]) -> "Bitmap":
+        rdtypes = sorted(rdtypes)
         window = 0
         octets = 0
         prior_rdtype = 0
@@ -177,13 +182,13 @@ class Bitmap:
             windows.append((window, bytes(bitmap[0:octets])))
         return cls(windows)
 
-    def to_wire(self, file):
+    def to_wire(self, file) -> None:
         for (window, bitmap) in self.windows:
             file.write(struct.pack("!BB", window, len(bitmap)))
             file.write(bitmap)
 
     @classmethod
-    def from_wire_parser(cls, parser):
+    def from_wire_parser(cls, parser) -> "Bitmap":
         windows = []
         while parser.remaining() > 0:
             window = parser.get_uint8()
