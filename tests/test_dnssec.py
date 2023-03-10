@@ -912,9 +912,9 @@ class DNSSECMiscTestCase(unittest.TestCase):
         ts = dns.dnssec.to_timestamp(441812220)
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
-    def test_add_nsec_records(self):
+    def test_add_nsec_to_zone(self):
         zone1 = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
-        dns.dnssec.add_nsec_records(zone1)
+        dns.dnssec.add_nsec_to_zone(zone1)
         md1 = zone1.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
         zone2 = dns.zone.from_text(test_zone_with_nsec, "example.", relativize=False)
         md2 = zone2.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)

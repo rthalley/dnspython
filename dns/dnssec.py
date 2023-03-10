@@ -1218,7 +1218,7 @@ def dnskey_rdataset_to_cdnskey_rdataset(
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
-def add_nsec_records(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
+def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     """Add NSEC records to Zone.
 
     *zone*, a ``dns.zone.Zone``, to add NSEC records to.
