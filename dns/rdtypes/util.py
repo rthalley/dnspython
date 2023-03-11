@@ -18,11 +18,7 @@
 import collections
 import random
 import struct
-<<<<<<< HEAD
-from typing import List
-=======
 from typing import Any, List
->>>>>>> bitmap_fixes
 
 import dns.exception
 import dns.ipv4

@@ -187,6 +187,48 @@ class AsyncTests(unittest.TestCase):
         dnsgoogle = dns.name.from_text("dns.google.")
         self.assertEqual(answer[0].target, dnsgoogle)
 
+    def testResolveName(self):
+        async def run1():
+            return await dns.asyncresolver.resolve_name("dns.google.")
+
+        answers = self.async_run(run1)
+        seen = set(answers.addresses())
+        self.assertEqual(len(seen), 4)
+        self.assertIn("8.8.8.8", seen)
+        self.assertIn("8.8.4.4", seen)
+        self.assertIn("2001:4860:4860::8844", seen)
+        self.assertIn("2001:4860:4860::8888", seen)
+
+        async def run2():
+            return await dns.asyncresolver.resolve_name("dns.google.", socket.AF_INET)
+
+        answers = self.async_run(run2)
+        seen = set(answers.addresses())
+        self.assertEqual(len(seen), 2)
+        self.assertIn("8.8.8.8", seen)
+        self.assertIn("8.8.4.4", seen)
+
+        async def run3():
+            return await dns.asyncresolver.resolve_name("dns.google.", socket.AF_INET6)
+
+        answers = self.async_run(run3)
+        seen = set(answers.addresses())
+        self.assertEqual(len(seen), 2)
+        self.assertIn("2001:4860:4860::8844", seen)
+        self.assertIn("2001:4860:4860::8888", seen)
+
+        async def run4():
+            await dns.asyncresolver.resolve_name("nxdomain.dnspython.org")
+
+        with self.assertRaises(dns.resolver.NXDOMAIN):
+            self.async_run(run4)
+
+        async def run5():
+            await dns.asyncresolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
+
+        with self.assertRaises(dns.resolver.NoAnswer):
+            self.async_run(run5)
+
     def testCanonicalNameNoCNAME(self):
         cname = dns.name.from_text("www.google.com")
 
