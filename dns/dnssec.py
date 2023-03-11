@@ -1218,31 +1218,6 @@ def dnskey_rdataset_to_cdnskey_rdataset(
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
-def _get_secure_names(zone: dns.zone.Zone) -> List[dns.name.Name]:
-    secure_names = []
-
-    names = list(zone.keys())
-    names.sort()
-
-    delegation = None
-
-    for name in names:
-        node = zone.get(name)
-        if node.get_rdataset(zone.rdclass, dns.rdatatype.NS):
-            if name != zone.origin:
-                delegation = name
-        else:
-            if delegation and name.is_subdomain(delegation):
-                # names below delegations are not secure
-                continue
-            else:
-                delegation = None
-        # all other names are secure
-        secure_names.append(name)
-
-    return secure_names
-
-
 def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     """Add NSEC records to Zone.
 
@@ -1257,7 +1232,23 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     rrsig = {dns.rdatatype.RdataType.RRSIG} if add_rrsig else set()
     ttl = zone.get_soa().minimum
 
-    secure_names = _get_secure_names(zone)
+    secure_names = []
+    delegation = None
+
+    for name in sorted(zone.keys()):
+        node = zone.get(name)
+
+        if delegation and name.is_subdomain(delegation):
+            # names below delegations are not secure
+            continue
+
+        if node.get_rdataset(zone.rdclass, dns.rdatatype.NS) and name != zone.origin:
+            delegation = name
+        else:
+            delegation = None
+
+        # all other names are secure
+        secure_names.append(name)
 
     with zone.writer() as txn:
         for index, name in enumerate(secure_names):
