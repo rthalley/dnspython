@@ -1233,7 +1233,6 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     nsec = {dns.rdatatype.RdataType.NSEC}
     ttl = zone.get_soa().minimum
 
-
     with zone.writer() as txn:
 
         secure_names = []
@@ -1249,7 +1248,7 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
             else:
                 # outside delegation
                 delegation = None
-    
+
             # all other names are secure
             secure_names.append(name)
 
