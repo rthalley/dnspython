@@ -1238,10 +1238,10 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     def _add_nsec(
         txn: dns.transaction.Transaction,
         name: dns.name.Name,
-        next_secure: dns.name.Name,
+        next_secure: Optional[dns.name.Name],
     ) -> None:
         node = txn.get_node(name)
-        if node:
+        if node and next_secure:
             types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig | nsec
             windows = Bitmap.from_rdtypes(list(types))
             rdataset = dns.rdataset.from_rdata(
@@ -1274,7 +1274,7 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
                 _add_nsec(txn, last_secure, name)
             last_secure = name
 
-        if last_secure and zone.origin:
+        if last_secure:
             _add_nsec(txn, last_secure, zone.origin)
 
 
