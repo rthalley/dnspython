@@ -1233,25 +1233,26 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     nsec = {dns.rdatatype.RdataType.NSEC}
     ttl = zone.get_soa().minimum
 
-    secure_names = []
-    delegation = None
-
-    for name in sorted(zone.keys()):
-        node = zone.get(name)
-
-        if delegation and name.is_subdomain(delegation):
-            # names below delegations are not secure
-            continue
-
-        if node.get_rdataset(zone.rdclass, dns.rdatatype.NS) and name != zone.origin:
-            delegation = name
-        else:
-            delegation = None
-
-        # all other names are secure
-        secure_names.append(name)
 
     with zone.writer() as txn:
+
+        secure_names = []
+        delegation = None
+
+        for name in txn.iterate_names():
+            if delegation and name.is_subdomain(delegation):
+                # names below delegations are not secure
+                continue
+            elif txn.get(name, dns.rdatatype.NS) and name != zone.origin:
+                # inside delegation
+                delegation = name
+            else:
+                # outside delegation
+                delegation = None
+    
+            # all other names are secure
+            secure_names.append(name)
+
         for index, name in enumerate(secure_names):
             node = txn.get_node(name)
             types = set([rdataset.rdtype for rdataset in node.rdatasets]) | nsec | rrsig
