@@ -1230,6 +1230,7 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     """
 
     rrsig = {dns.rdatatype.RdataType.RRSIG} if add_rrsig else set()
+    nsec = {dns.rdatatype.RdataType.NSEC}
     ttl = zone.get_soa().minimum
 
     secure_names = []
@@ -1253,7 +1254,7 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     with zone.writer() as txn:
         for index, name in enumerate(secure_names):
             node = txn.get_node(name)
-            types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig
+            types = set([rdataset.rdtype for rdataset in node.rdatasets]) | nsec | rrsig
 
             n = index + 1
             next_name = secure_names[n] if n < len(secure_names) else zone.origin
