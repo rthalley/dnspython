@@ -36,6 +36,7 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
 import dns.rrset
+import dns.transaction
 import dns.zone
 from dns.rdtypes.ANY.CDNSKEY import CDNSKEY
 from dns.rdtypes.ANY.CDS import CDS
@@ -1232,11 +1233,32 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
     rrsig = {dns.rdatatype.RdataType.RRSIG} if add_rrsig else set()
     nsec = {dns.rdatatype.RdataType.NSEC}
     ttl = zone.get_soa().minimum
+    rdclass = zone.rdclass
+
+    def _add_nsec(
+        txn: dns.transaction.Transaction,
+        name: dns.name.Name,
+        next_secure: dns.name.Name,
+    ) -> None:
+        node = txn.get_node(name)
+        if node:
+            types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig | nsec
+            windows = Bitmap.from_rdtypes(list(types))
+            rdataset = dns.rdataset.from_rdata(
+                ttl,
+                NSEC(
+                    rdclass=rdclass,
+                    rdtype=dns.rdatatype.RdataType.NSEC,
+                    next=next_secure,
+                    windows=windows,
+                ),
+            )
+            txn.add(name, rdataset)
 
     with zone.writer() as txn:
 
-        secure_names = []
         delegation = None
+        last_secure = None
 
         for name in txn.iterate_names():
             if delegation and name.is_subdomain(delegation):
@@ -1248,29 +1270,12 @@ def add_nsec_to_zone(zone: dns.zone.Zone, add_rrsig: bool = True) -> None:
             else:
                 # outside delegation
                 delegation = None
+            if last_secure:
+                _add_nsec(txn, last_secure, name)
+            last_secure = name
 
-            # all other names are secure
-            secure_names.append(name)
-
-        for index, name in enumerate(secure_names):
-            node = txn.get_node(name)
-            types = set([rdataset.rdtype for rdataset in node.rdatasets]) | nsec | rrsig
-
-            n = index + 1
-            next_name = secure_names[n] if n < len(secure_names) else zone.origin
-            windows = Bitmap.from_rdtypes(list(types))
-
-            rdataset = dns.rdataset.from_rdata(
-                ttl,
-                NSEC(
-                    rdclass=zone.rdclass,
-                    rdtype=dns.rdatatype.RdataType.NSEC,
-                    next=next_name,
-                    windows=windows,
-                ),
-            )
-
-            txn.add(name, rdataset)
+        if last_secure and zone.origin:
+            _add_nsec(txn, last_secure, zone.origin)
 
 
 def _need_pyca(*args, **kwargs):
