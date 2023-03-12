@@ -599,7 +599,7 @@ test_zone_with_nsec = """
 example. 3600 IN SOA foo.example. bar.example. 1 2 3 4 5
 example. 3600 IN NS ns1.example.
 example. 3600 IN NS ns2.example.
-example. 5 IN NSEC bar.foo.example. NS NSEC  SOA RRSIG
+example. 5 IN NSEC bar.foo.example. NS NSEC SOA RRSIG
 bar.foo.example. 3600 IN MX 0 blaz.foo.example.
 bar.foo.example. 5 IN NSEC ns1.example. MX NSEC RRSIG
 ns1.example. 3600 IN A 10.0.0.1
