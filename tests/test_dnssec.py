@@ -591,6 +591,7 @@ ns2.example. 3600 IN A 10.0.0.2
 sub.example. 3600 IN NS ns1.example.
 sub.example. 3600 IN NS ns2.example.
 sub.example. 3600 IN NS ns3.sub.example.
+sub.sub.example. 3600 IN NS ns3.sub.example.
 ns3.sub.example. 3600 IN A 10.0.0.3
 """
 
@@ -609,6 +610,7 @@ sub.example. 3600 IN NS ns1.example.
 sub.example. 3600 IN NS ns2.example.
 sub.example. 3600 IN NS ns3.sub.example.
 sub.example. 5 IN NSEC example. NS RRSIG
+sub.sub.example. 3600 IN NS ns3.sub.example.
 ns3.sub.example. 3600 IN A 10.0.0.3
 """
 
@@ -915,10 +917,8 @@ class DNSSECMiscTestCase(unittest.TestCase):
     def test_add_nsec_to_zone(self):
         zone1 = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
         dns.dnssec.add_nsec_to_zone(zone1)
-        md1 = zone1.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
         zone2 = dns.zone.from_text(test_zone_with_nsec, "example.", relativize=False)
-        md2 = zone2.compute_digest(dns.zone.DigestHashAlgorithm.SHA384)
-        self.assertEqual(md1, md2)
+        self.assertEqual(zone1.to_text(), zone2.to_text())
 
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
