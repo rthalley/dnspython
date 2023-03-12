@@ -499,12 +499,23 @@ def test_zone_ooz_name(zone):
 
 def test_zone_iteration(zone):
     expected = {}
-    for (name, rdataset) in zone.iterate_rdatasets():
+    for name, rdataset in zone.iterate_rdatasets():
         expected[(name, rdataset.rdtype, rdataset.covers)] = rdataset
     with zone.writer() as txn:
-        actual = {}
-        for (name, rdataset) in txn:
-            actual[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+        actual1 = {}
+        for name, rdataset in txn:
+            actual1[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+        actual2 = {}
+        for name, rdataset in txn.iterate_rdatasets():
+            actual2[(name, rdataset.rdtype, rdataset.covers)] = rdataset
+    assert actual1 == expected
+    assert actual2 == expected
+
+
+def test_zone_name_iteration(zone):
+    expected = list(zone.keys())
+    with zone.writer() as txn:
+        actual = list(txn.iterate_names())
     assert actual == expected
 
 
@@ -515,7 +526,7 @@ def test_iteration_in_replacement_txn(zone):
     with zone.writer(True) as txn:
         txn.replace(dns.name.empty, rds)
         actual = {}
-        for (name, rdataset) in txn:
+        for name, rdataset in txn:
             actual[(name, rdataset.rdtype, rdataset.covers)] = rdataset
     assert actual == expected
 
@@ -528,7 +539,7 @@ def test_replacement_commit(zone):
         txn.replace(dns.name.empty, rds)
     with zone.reader() as txn:
         actual = {}
-        for (name, rdataset) in txn:
+        for name, rdataset in txn:
             actual[(name, rdataset.rdtype, rdataset.covers)] = rdataset
     assert actual == expected
 
@@ -592,7 +603,7 @@ def test_vzone_multiple_versions(vzone):
 def _dump(zone):
     for v in zone._versions:
         print("VERSION", v.id)
-        for (name, n) in v.nodes.items():
+        for name, n in v.nodes.items():
             for rdataset in n:
                 print(rdataset.to_text(name))
 
