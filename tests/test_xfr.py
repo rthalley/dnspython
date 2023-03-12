@@ -709,24 +709,6 @@ try:
 except ImportError:
     pass
 
-try:
-    import curio
-
-    @pytest.mark.skipif(
-        (not _nanonameserver_available) or sys.platform == "win32",
-        reason="requires nanonameserver or is windows",
-    )
-    def test_curio_inbound_xfr():
-        dns.asyncbackend.set_default_backend("curio")
-
-        async def run():
-            await async_inbound_xfr()
-
-        curio.run(run)
-
-except ImportError:
-    pass
-
 
 class UDPXFRNanoNameserver(Server):
     def __init__(self):

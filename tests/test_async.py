@@ -224,7 +224,9 @@ class AsyncTests(unittest.TestCase):
             self.async_run(run4)
 
         async def run5():
-            await dns.asyncresolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
+            await dns.asyncresolver.resolve_name(
+                dns.reversename.from_address("8.8.8.8")
+            )
 
         with self.assertRaises(dns.resolver.NoAnswer):
             self.async_run(run5)
@@ -498,9 +500,6 @@ class AsyncTests(unittest.TestCase):
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testDOHGetRequest(self):
-        if self.backend.name() == "curio":
-            self.skipTest("anyio dropped curio support")
-
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
             q = dns.message.make_query("example.com.", dns.rdatatype.A)
@@ -511,9 +510,6 @@ class AsyncTests(unittest.TestCase):
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testDOHGetRequestHttp1(self):
-        if self.backend.name() == "curio":
-            self.skipTest("anyio dropped curio support")
-
         async def run():
             saved_have_http2 = dns.query._have_http2
             try:
@@ -529,9 +525,6 @@ class AsyncTests(unittest.TestCase):
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testDOHPostRequest(self):
-        if self.backend.name() == "curio":
-            self.skipTest("anyio dropped curio support")
-
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
             q = dns.message.make_query("example.com.", dns.rdatatype.A)
@@ -542,9 +535,6 @@ class AsyncTests(unittest.TestCase):
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testResolverDOH(self):
-        if self.backend.name() == "curio":
-            self.skipTest("anyio dropped curio support")
-
         async def run():
             res = dns.asyncresolver.Resolver(configure=False)
             res.nameservers = ["https://dns.google/dns-query"]
@@ -578,6 +568,7 @@ class AsyncioOnlyTests(unittest.TestCase):
     def testUseAfterTimeout(self):
         if self.connect_udp:
             self.skipTest("test needs connectionless sockets")
+
         # Test #843 fix.
         async def run():
             qname = dns.name.from_text("dns.google")
@@ -635,40 +626,6 @@ try:
 
         def async_run(self, afunc):
             return trio.run(afunc)
-
-except ImportError:
-    pass
-
-try:
-    import curio
-    import sniffio
-
-    @unittest.skipIf(sys.platform == "win32", "curio does not work in windows CI")
-    class CurioAsyncDetectionTests(AsyncDetectionTests):
-        sniff_result = "curio"
-
-        def async_run(self, afunc):
-            with curio.Kernel() as kernel:
-                return kernel.run(afunc, shutdown=True)
-
-    @unittest.skipIf(sys.platform == "win32", "curio does not work in windows CI")
-    class CurioNoSniffioAsyncDetectionTests(NoSniffioAsyncDetectionTests):
-        expect_raise = True
-
-        def async_run(self, afunc):
-            with curio.Kernel() as kernel:
-                return kernel.run(afunc, shutdown=True)
-
-    @unittest.skipIf(sys.platform == "win32", "curio does not work in windows CI")
-    class CurioAsyncTests(AsyncTests):
-        connect_udp = False
-
-        def setUp(self):
-            self.backend = dns.asyncbackend.set_default_backend("curio")
-
-        def async_run(self, afunc):
-            with curio.Kernel() as kernel:
-                return kernel.run(afunc, shutdown=True)
 
 except ImportError:
     pass

@@ -32,7 +32,6 @@ Transaction = dns.zone.Transaction
 
 
 class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
-
     __slots__ = [
         "_versions",
         "_versions_lock",
@@ -152,7 +151,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
             #
             # This is not a problem with Threading module threads as
             # they cannot be canceled, but could be an issue with trio
-            # or curio tasks when we do the async version of writer().
+            # tasks when we do the async version of writer().
             # I.e. we'd need to do something like:
             #
             # try:

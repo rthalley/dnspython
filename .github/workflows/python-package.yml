@@ -44,7 +44,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install poetry
-        poetry install -E dnssec -E doh -E idna -E trio -E curio -E doq
+        poetry install -E dnssec -E doh -E idna -E trio -E doq
     - name: Typecheck
       run: |
         poetry run python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
