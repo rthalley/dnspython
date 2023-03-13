@@ -1264,7 +1264,8 @@ def sign_zone_nsec(
             txn.add(name, rdataset)
             if rdataset_signer:
                 for rdataset in node.rdatasets:
-                    rdataset_signer(txn, name, rdataset)
+                    if rdataset.rdtype != dns.rdatatype.RRSIG:
+                        rdataset_signer(txn, name, rdataset)
 
     def _iterate_nsec(txn: dns.transaction.Transaction) -> None:
         delegation = None
