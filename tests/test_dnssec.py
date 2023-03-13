@@ -597,6 +597,23 @@ sub.sub.example. 3600 IN NS ns3.sub.example.
 ns3.sub.example. 3600 IN A 10.0.0.3
 """
 
+test_zone_rrsigs = set(
+    [
+        ("example.", dns.rdatatype.DNSKEY),
+        ("example.", dns.rdatatype.NS),
+        ("example.", dns.rdatatype.NSEC),
+        ("example.", dns.rdatatype.SOA),
+        ("bar.foo.example.", dns.rdatatype.MX),
+        ("bar.foo.example.", dns.rdatatype.NSEC),
+        ("ns1.example.", dns.rdatatype.A),
+        ("ns1.example.", dns.rdatatype.NSEC),
+        ("ns2.example.", dns.rdatatype.A),
+        ("ns2.example.", dns.rdatatype.NSEC),
+        ("sub.example.", dns.rdatatype.DS),
+        ("sub.example.", dns.rdatatype.NSEC),
+    ]
+)
+
 test_zone_with_nsec = """
 example. 3600 IN SOA foo.example. bar.example. 1 2 3 4 5
 example. 3600 IN NS ns1.example.
@@ -960,6 +977,15 @@ class DNSSECMiscTestCase(unittest.TestCase):
         with zone.writer() as txn:
             txn.add(zone.origin, dnskey_rrset)
             dns.dnssec.sign_zone_nsec(zone, txn=txn, rrset_signer=partial_rrset_signer)
+
+        rrsigs = set(
+            [
+                (str(name), rdataset.covers)
+                for (name, rdataset) in zone.iterate_rdatasets()
+                if rdataset.rdtype == dns.rdatatype.RRSIG
+            ]
+        )
+        self.assertEqual(rrsigs, test_zone_rrsigs)
 
     def test_sign_zone_nsec_null_signer(self):
         def rrset_signer(
