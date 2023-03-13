@@ -1262,15 +1262,24 @@ def sign_zone_nsec(
                 ),
             )
             txn.add(name, rdataset)
-            if rdataset_signer:
-                for rdataset in node.rdatasets:
-                    if rdataset.rdtype != dns.rdatatype.RRSIG:
-                        rdataset_signer(txn, name, rdataset)
+            rdataset_signer(txn, name, rdataset)
+
+    def _sign_rrset(
+        txn: dns.transaction.Transaction,
+        name: dns.name.Name
+    ) -> None:
+        node = txn.get_node(name)
+        for rdataset in node.rdatasets:
+            if rdataset.rdtype == dns.rdatatype.RRSIG:
+                continue
+            if rdataset.rdtype == dns.rdatatype.NS and name != zone.origin:
+                continue
+            rdataset_signer(txn, name, rdataset)
 
     def _iterate_nsec(txn: dns.transaction.Transaction) -> None:
         delegation = None
         last_secure = None
-        for name in txn.iterate_names():
+        for name in sorted(txn.iterate_names()):
             if delegation and name.is_subdomain(delegation):
                 # names below delegations are not secure
                 continue
@@ -1280,6 +1289,9 @@ def sign_zone_nsec(
             else:
                 # outside delegation
                 delegation = None
+
+            _sign_rrset(txn, name)
+
             if last_secure:
                 _add_nsec(txn, last_secure, name)
             last_secure = name
