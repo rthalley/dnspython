@@ -77,7 +77,9 @@ PrivateKey = Union[
     "ed448.Ed448PrivateKey",
 ]
 
-RdatasetSigner = Callable[[dns.transaction.Transaction, dns.name.Name, dns.rdataset.Rdataset], None]
+RdatasetSigner = Callable[
+    [dns.transaction.Transaction, dns.name.Name, dns.rdataset.Rdataset], None
+]
 
 
 def algorithm_from_text(text: str) -> Algorithm:
@@ -1266,15 +1268,19 @@ def sign_zone_nsec(
 
     def _sign_rrset(
         txn: dns.transaction.Transaction,
-        name: dns.name.Name
+        name: dns.name.Name,
+        delegation: Optional[dns.name.Name],
     ) -> None:
         node = txn.get_node(name)
         for rdataset in node.rdatasets:
             if rdataset.rdtype == dns.rdatatype.RRSIG:
+                # do not sign RRSIGs
                 continue
-            if rdataset.rdtype == dns.rdatatype.NS and name != zone.origin:
+            elif delegation and rdataset.rdtype != dns.rdatatype.DS:
+                # do not sign delegations except DS records
                 continue
-            rdataset_signer(txn, name, rdataset)
+            else:
+                rdataset_signer(txn, name, rdataset)
 
     def _iterate_nsec(txn: dns.transaction.Transaction) -> None:
         delegation = None
@@ -1290,7 +1296,7 @@ def sign_zone_nsec(
                 # outside delegation
                 delegation = None
 
-            _sign_rrset(txn, name)
+            _sign_rrset(txn, name, delegation)
 
             if last_secure:
                 _add_nsec(txn, last_secure, name)
