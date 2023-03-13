@@ -1233,8 +1233,8 @@ def sign_zone_nsec(
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
     for NSEC addition.
 
-    *rrset_signer*, a ``Callable``, an optional function for signing
-    rdatasets. Accepts two arguments: transaction and RRset.
+    *rrset_signer*, a ``Callable``, an optional function for signing RRset.
+    The function requires two arguments: transaction and RRset.
 
     Returns ``None``.
     """
