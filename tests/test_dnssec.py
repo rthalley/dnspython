@@ -592,6 +592,7 @@ ns2.example. 3600 IN A 10.0.0.2
 sub.example. 3600 IN NS ns1.example.
 sub.example. 3600 IN NS ns2.example.
 sub.example. 3600 IN NS ns3.sub.example.
+sub.example. 3600 IN DS 12345 13 2 0100D208742A23024DF3C8827DFF3EB3E25126E9B72850E99D6055E18913CB2F
 sub.sub.example. 3600 IN NS ns3.sub.example.
 ns3.sub.example. 3600 IN A 10.0.0.3
 """
@@ -610,7 +611,8 @@ ns2.example. 5 IN NSEC sub.example. A NSEC RRSIG
 sub.example. 3600 IN NS ns1.example.
 sub.example. 3600 IN NS ns2.example.
 sub.example. 3600 IN NS ns3.sub.example.
-sub.example. 5 IN NSEC example. NS NSEC RRSIG
+sub.example. 3600 IN DS 12345 13 2 0100D208742A23024DF3C8827DFF3EB3E25126E9B72850E99D6055E18913CB2F
+sub.example. 5 IN NSEC example. DS NS NSEC RRSIG
 sub.sub.example. 3600 IN NS ns3.sub.example.
 ns3.sub.example. 3600 IN A 10.0.0.3
 """
