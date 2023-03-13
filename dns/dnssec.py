@@ -1266,22 +1266,6 @@ def sign_zone_nsec(
             txn.add(name, rdataset)
             rdataset_signer(txn, name, rdataset)
 
-    def _sign_rrset(
-        txn: dns.transaction.Transaction,
-        name: dns.name.Name,
-        delegation: Optional[dns.name.Name],
-    ) -> None:
-        node = txn.get_node(name)
-        for rdataset in node.rdatasets:
-            if rdataset.rdtype == dns.rdatatype.RRSIG:
-                # do not sign RRSIGs
-                continue
-            elif delegation and rdataset.rdtype != dns.rdatatype.DS:
-                # do not sign delegations except DS records
-                continue
-            else:
-                rdataset_signer(txn, name, rdataset)
-
     def _iterate_nsec(txn: dns.transaction.Transaction) -> None:
         delegation = None
         last_secure = None
@@ -1296,7 +1280,16 @@ def sign_zone_nsec(
                 # outside delegation
                 delegation = None
 
-            _sign_rrset(txn, name, delegation)
+            node = txn.get_node(name)
+            for rdataset in node.rdatasets:
+                if rdataset.rdtype == dns.rdatatype.RRSIG:
+                    # do not sign RRSIGs
+                    continue
+                elif delegation and rdataset.rdtype != dns.rdatatype.DS:
+                    # do not sign delegations except DS records
+                    continue
+                else:
+                    rdataset_signer(txn, name, rdataset)
 
             if last_secure:
                 _add_nsec(txn, last_secure, name)
