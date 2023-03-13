@@ -916,63 +916,58 @@ class DNSSECMiscTestCase(unittest.TestCase):
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
     def test_sign_zone_nsec(self):
-        def rdataset_signer(
+        def rrset_signer(
             txn: dns.transaction.Transaction,
-            name: dns.name.Name,
-            rdataset: dns.rdataset.Rdataset,
-            ttl,
-            lifetime,
-            key,
-            dnskey,
-            signer,
+            rrset: dns.rrset.RRset,
+            ttl: int,
+            lifetime: int,
+            private_key: dns.dnssec.PrivateKey,
+            dnskey: dns.rdtypes.ANY.DNSKEY,
+            signer: dns.name.Name,
         ) -> None:
-            rrset = (name, rdataset)
             rrsig = dns.dnssec.sign(
                 rrset=rrset,
-                private_key=key,
+                private_key=private_key,
                 dnskey=dnskey,
                 lifetime=lifetime,
                 signer=signer,
             )
-            rrsigset = dns.rrset.from_rdata(name, ttl, rrsig)
-            txn.add(name, rrsigset)
+            rrsigset = dns.rrset.from_rdata(rrset.name, ttl, rrsig)
+            txn.add(rrsigset)
 
         zone = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
 
-        key = ed25519.Ed25519PrivateKey.generate()
+        private_key = ed25519.Ed25519PrivateKey.generate()
         algorithm = dns.dnssec.Algorithm.ED25519
         dnskey = dns.dnssec.make_dnskey(
-            public_key=key.public_key(), algorithm=algorithm
+            public_key=private_key.public_key(), algorithm=algorithm
         )
         ttl = 60
         lifetime = 3600
         dnskey_rrset = dns.rrset.from_rdata(zone.origin, ttl, dnskey)
 
-        partial_rdataset_signer = functools.partial(
-            rdataset_signer,
+        partial_rrset_signer = functools.partial(
+            rrset_signer,
             ttl=ttl,
             lifetime=lifetime,
-            key=key,
+            private_key=private_key,
             dnskey=dnskey,
             signer=zone.origin,
         )
 
         with zone.writer() as txn:
             txn.add(zone.origin, dnskey_rrset)
-            dns.dnssec.sign_zone_nsec(
-                zone, txn=txn, rdataset_signer=partial_rdataset_signer
-            )
+            dns.dnssec.sign_zone_nsec(zone, txn=txn, rrset_signer=partial_rrset_signer)
 
     def test_sign_zone_nsec_null_signer(self):
-        def rdataset_signer(
+        def rrset_signer(
             txn: dns.transaction.Transaction,
-            name: dns.name.Name,
-            rdataset: dns.rdataset.Rdataset,
+            rrset: dns.rrset.RRset,
         ) -> None:
             pass
 
         zone1 = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
-        dns.dnssec.sign_zone_nsec(zone1, rdataset_signer=rdataset_signer)
+        dns.dnssec.sign_zone_nsec(zone1, rrset_signer=rrset_signer)
         zone2 = dns.zone.from_text(test_zone_with_nsec, "example.", relativize=False)
         self.assertEqual(zone1.to_text(), zone2.to_text())
 

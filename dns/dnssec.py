@@ -77,9 +77,7 @@ PrivateKey = Union[
     "ed448.Ed448PrivateKey",
 ]
 
-RdatasetSigner = Callable[
-    [dns.transaction.Transaction, dns.name.Name, dns.rdataset.Rdataset], None
-]
+RRsetSigner = Callable[[dns.transaction.Transaction, dns.rrset.RRset], None]
 
 
 def algorithm_from_text(text: str) -> Algorithm:
@@ -1226,7 +1224,7 @@ def dnskey_rdataset_to_cdnskey_rdataset(
 def sign_zone_nsec(
     zone: dns.zone.Zone,
     txn: Optional[dns.transaction.Transaction] = None,
-    rdataset_signer: Optional[RdatasetSigner] = None,
+    rrset_signer: Optional[RRsetSigner] = None,
 ) -> None:
     """Sign zone with NSEC.
 
@@ -1235,12 +1233,13 @@ def sign_zone_nsec(
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
     for NSEC addition.
 
-    *rdataset_signer*, a ``Callable``, an optional function to use to sign zone rdatasets.
+    *rrset_signer*, a ``Callable``, an optional function for signing
+    rdatasets. Accepts two arguments: transaction and RRset.
 
     Returns ``None``.
     """
 
-    rrsig = {dns.rdatatype.RdataType.RRSIG} if rdataset_signer else set()
+    rrsig = {dns.rdatatype.RdataType.RRSIG} if rrset_signer else set()
     nsec = {dns.rdatatype.RdataType.NSEC}
     ttl = zone.get_soa().minimum
     rdclass = zone.rdclass
@@ -1254,7 +1253,8 @@ def sign_zone_nsec(
         if node and next_secure:
             types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig | nsec
             windows = Bitmap.from_rdtypes(list(types))
-            rdataset = dns.rdataset.from_rdata(
+            rrset = dns.rrset.from_rdata(
+                name,
                 ttl,
                 NSEC(
                     rdclass=rdclass,
@@ -1263,8 +1263,8 @@ def sign_zone_nsec(
                     windows=windows,
                 ),
             )
-            txn.add(name, rdataset)
-            rdataset_signer(txn, name, rdataset)
+            txn.add(rrset)
+            rrset_signer(txn, rrset)
 
     def _iterate_nsec(txn: dns.transaction.Transaction) -> None:
         delegation = None
@@ -1289,7 +1289,8 @@ def sign_zone_nsec(
                     # do not sign delegations except DS records
                     continue
                 else:
-                    rdataset_signer(txn, name, rdataset)
+                    rrset = dns.rrset.from_rdata(name, rdataset.ttl, *rdataset)
+                    rrset_signer(txn, rrset)
 
             if last_secure:
                 _add_nsec(txn, last_secure, name)
