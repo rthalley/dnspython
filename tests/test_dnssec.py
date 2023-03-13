@@ -920,6 +920,11 @@ class DNSSECMiscTestCase(unittest.TestCase):
         zone2 = dns.zone.from_text(test_zone_with_nsec, "example.", relativize=False)
         self.assertEqual(zone1.to_text(), zone2.to_text())
 
+    def test_add_nsec_to_zone_txn(self):
+        zone = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
+        with zone.writer() as txn:
+            dns.dnssec.add_nsec_to_zone(zone, txn=txn)
+
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
     def testMnemonicParser(self):
