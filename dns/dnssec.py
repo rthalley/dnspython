@@ -17,7 +17,7 @@
 
 """Common DNSSEC-related functions and constants."""
 
-from typing import Any, cast, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, cast, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import hashlib
 import math
@@ -76,6 +76,8 @@ PrivateKey = Union[
     "ed25519.Ed25519PrivateKey",
     "ed448.Ed448PrivateKey",
 ]
+
+RdatasetSigner = Callable[[dns.transaction.Transaction, dns.name.Name, dns.rdataset.Rdataset], None]
 
 
 def algorithm_from_text(text: str) -> Algorithm:
@@ -1219,25 +1221,24 @@ def dnskey_rdataset_to_cdnskey_rdataset(
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
-def add_nsec_to_zone(
+def sign_zone_nsec(
     zone: dns.zone.Zone,
     txn: Optional[dns.transaction.Transaction] = None,
-    add_rrsig: bool = True,
+    rdataset_signer: Optional[RdatasetSigner] = None,
 ) -> None:
-    """Add NSEC records to Zone.
+    """Sign zone with NSEC.
 
     *zone*, a ``dns.zone.Zone``, to add NSEC records to.
 
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
     for NSEC addition.
 
-    *add_rrsig*, a ``bool``.  If ``True``, the default, add RRSIG to each NSEC
-    type bit map as a preparation to zone signing.
+    *rdataset_signer*, a ``Callable``, an optional function to use to sign zone rdatasets.
 
     Returns ``None``.
     """
 
-    rrsig = {dns.rdatatype.RdataType.RRSIG} if add_rrsig else set()
+    rrsig = {dns.rdatatype.RdataType.RRSIG} if rdataset_signer else set()
     nsec = {dns.rdatatype.RdataType.NSEC}
     ttl = zone.get_soa().minimum
     rdclass = zone.rdclass
@@ -1261,6 +1262,9 @@ def add_nsec_to_zone(
                 ),
             )
             txn.add(name, rdataset)
+            if rdataset_signer:
+                for rdataset in node.rdatasets:
+                    rdataset_signer(txn, name, rdataset)
 
     def _iterate_nsec(txn: dns.transaction.Transaction) -> None:
         delegation = None
