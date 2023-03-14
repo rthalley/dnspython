@@ -20,6 +20,7 @@
 
 from typing import Any, cast, Callable, Dict, List, Optional, Set, Tuple, Union
 
+import contextlib
 import functools
 import hashlib
 import math
@@ -1311,21 +1312,24 @@ def sign_zone(
     Returns ``None``.
     """
 
-    def _sign_zone(txn: dns.transaction.Transaction) -> None:
+    if txn is None:
+        ctx = zone.writer()
+    else:
+        ctx = contextlib.nullcontext(txn)
+
+    with ctx as _txn:
         if dnskey_include:
             if dnskey_ttl is None:
-                dnskey = txn.get(zone.origin, dns.rdatatype.DNSKEY)
+                dnskey = _txn.get(zone.origin, dns.rdatatype.DNSKEY)
                 if dnskey:
-                    ttl = dnskey.ttl
+                    dnskey_ttl = dnskey.ttl
                 else:
-                    soa = txn.get(zone.origin, dns.rdatatype.SOA)
-                    ttl = soa.ttl
-            else:
-                ttl = dnskey_ttl
+                    soa = _txn.get(zone.origin, dns.rdatatype.SOA)
+                    dnskey_ttl = soa.ttl
 
             _keys = (ksks or []) + (keys or [])
             for (_, dnskey) in _keys:
-                txn.add(zone.origin, ttl, dnskey)
+                _txn.add(zone.origin, dnskey_ttl, dnskey)
 
         if nsec3:
             raise NotImplementedError("Signing with NSEC3 not yet implemented")
@@ -1339,13 +1343,7 @@ def sign_zone(
                 expiration=expiration,
                 lifetime=lifetime,
             )
-            return _sign_zone_nsec(zone, txn, _rrset_signer)
-
-    if txn is not None:
-        _sign_zone(txn)
-    else:
-        with zone.writer() as txn:
-            _sign_zone(txn)
+            return _sign_zone_nsec(zone, _txn, _rrset_signer)
 
 
 def _sign_zone_nsec(
