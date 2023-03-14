@@ -1247,9 +1247,6 @@ def sign_zone(
     Returns ``None``.
     """
 
-    if not keys:
-        raise ValueError("keys must be specified")
-
     def _rrset_signer(
         txn: dns.transaction.Transaction,
         rrset: dns.rrset.RRset,
@@ -1283,12 +1280,10 @@ def sign_zone(
         else:
             ttl = dnskey_ttl
 
-        _keys = []
-        if ksks:
-            _keys.extend(ksks)
-        if keys:
-            _keys.extend(keys)
-        for (_, dnskey) in _keys:
+        if not keys:
+            raise ValueError("keys must be specified")
+
+        for (_, dnskey) in keys + (ksks or []):
             txn.add(zone.origin, ttl, dnskey)
 
         if nsec3:
