@@ -1234,6 +1234,7 @@ def sign_zone(
     expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
     nsec3: Optional[NSEC3PARAM] = None,
+    rrset_signer: Optional[RRsetSigner] = None,
 ) -> None:
     """Sign zone.
 
@@ -1244,10 +1245,13 @@ def sign_zone(
 
     ...TODO...
 
+    *rrset_signer*, a ``Callable``, an optional function for signing RRsets.
+    The function requires two arguments: transaction and RRset.
+
     Returns ``None``.
     """
 
-    def _rrset_signer(
+    def default_rrset_signer(
         txn: dns.transaction.Transaction,
         rrset: dns.rrset.RRset,
         ksks: List[Tuple[PrivateKey, DNSKEY]],
@@ -1280,17 +1284,17 @@ def sign_zone(
         else:
             ttl = dnskey_ttl
 
-        if not keys:
-            raise ValueError("keys must be specified")
-        _keys = keys + (ksks or [])
+        _keys = (ksks or []) + (keys or [])
         for (_, dnskey) in _keys:
             txn.add(zone.origin, ttl, dnskey)
 
         if nsec3:
             raise NotImplementedError("Signing with NSEC3 not yet implemented")
         else:
-            rrset_signer = functools.partial(_rrset_signer, ksks=ksks, keys=keys)
-            return _sign_zone_nsec(zone, txn, rrset_signer)
+            _rrset_signer = rrset_signer or functools.partial(
+                default_rrset_signer, ksks=ksks, keys=keys
+            )
+            return _sign_zone_nsec(zone, txn, _rrset_signer)
 
     if txn is not None:
         _sign_zone(txn)

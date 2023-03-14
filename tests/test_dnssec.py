@@ -969,8 +969,7 @@ class DNSSECMiscTestCase(unittest.TestCase):
             pass
 
         zone1 = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
-        with zone1.writer() as txn:
-            dns.dnssec._sign_zone_nsec(zone1, txn, rrset_signer)
+        dns.dnssec.sign_zone(zone1, rrset_signer=rrset_signer)
 
         zone2 = dns.zone.from_text(test_zone_with_nsec, "example.", relativize=False)
         self.assertEqual(zone1.to_text(), zone2.to_text())
