@@ -17,8 +17,10 @@
 
 """Common DNSSEC-related functions and constants."""
 
+
 from typing import Any, cast, Callable, Dict, List, Optional, Set, Tuple, Union
 
+import functools
 import hashlib
 import math
 import struct
@@ -43,6 +45,7 @@ from dns.rdtypes.ANY.CDS import CDS
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.ANY.DS import DS
 from dns.rdtypes.ANY.NSEC import NSEC, Bitmap
+from dns.rdtypes.ANY.NSEC3PARAM import NSEC3PARAM
 from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
 from dns.rdtypes.dnskeybase import Flag
 
@@ -1221,24 +1224,92 @@ def dnskey_rdataset_to_cdnskey_rdataset(
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
-def sign_zone_nsec(
+def sign_zone(
     zone: dns.zone.Zone,
     txn: Optional[dns.transaction.Transaction] = None,
-    rrset_signer: Optional[RRsetSigner] = None,
+    ksks: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
+    keys: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
+    dnskey_ttl: Optional[int] = None,
+    inception: Optional[Union[datetime, str, int, float]] = None,
+    expiration: Optional[Union[datetime, str, int, float]] = None,
+    lifetime: Optional[int] = None,
+    nsec3: Optional[NSEC3PARAM] = None,
 ) -> None:
-    """Sign zone with NSEC.
+    """Sign zone.
 
     *zone*, a ``dns.zone.Zone``, to add NSEC records to.
 
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
-    for NSEC addition.
+    for signing.
 
-    *rrset_signer*, a ``Callable``, an optional function for signing RRset.
-    The function requires two arguments: transaction and RRset.
+    ...TODO...
 
     Returns ``None``.
     """
 
+    if not keys:
+        raise ValueError("keys must be specified")
+
+    def _rrset_signer(
+        txn: dns.transaction.Transaction,
+        rrset: dns.rrset.RRset,
+        ksks: List[Tuple[PrivateKey, DNSKEY]],
+        keys: List[Tuple[PrivateKey, DNSKEY]],
+    ) -> None:
+        if ksks is not None and rrset.rdtype in [
+            dns.rdatatype.RdataType.DNSKEY,
+            dns.rdatatype.RdataType.CDS,
+            dns.rdatatype.RdataType.CDNSKEY,
+        ]:
+            _keys = ksks
+        else:
+            _keys = keys
+        for (private_key, dnskey) in _keys:
+            rrsig = dns.dnssec.sign(
+                rrset=rrset,
+                private_key=private_key,
+                dnskey=dnskey,
+                inception=inception,
+                expiration=expiration,
+                lifetime=lifetime,
+                signer=zone.origin,
+            )
+            txn.add(rrset.name, rrset.ttl, rrsig)
+
+    def _sign_zone(txn: dns.transaction.Transaction) -> None:
+        if dnskey_ttl is None:
+            soa = txn.get(zone.origin, dns.rdatatype.SOA)
+            ttl = soa.ttl
+        else:
+            ttl = dnskey_ttl
+
+        _keys = []
+        if ksks:
+            _keys.extend(ksks)
+        if keys:
+            _keys.extend(keys)
+        for (_, dnskey) in _keys:
+            txn.add(zone.origin, ttl, dnskey)
+
+        if nsec3:
+            raise NotImplementedError("Signing with NSEC3 not yet implemented")
+        else:
+            return _sign_zone_nsec(
+                zone, txn, functools.partial(_rrset_signer, ksks=ksks, keys=keys)
+            )
+
+    if txn is not None:
+        _sign_zone(txn)
+    else:
+        with zone.writer() as txn:
+            _sign_zone(txn)
+
+
+def _sign_zone_nsec(
+    zone: dns.zone.Zone,
+    txn: dns.transaction.Transaction,
+    rrset_signer: Optional[RRsetSigner] = None,
+) -> None:
     rrsig = {dns.rdatatype.RdataType.RRSIG} if rrset_signer else set()
     nsec = {dns.rdatatype.RdataType.NSEC}
     ttl = zone.get_soa().minimum
@@ -1267,45 +1338,39 @@ def sign_zone_nsec(
             if rrset_signer:
                 rrset_signer(txn, rrset)
 
-    def _iterate_nsec(txn: dns.transaction.Transaction) -> None:
-        delegation = None
-        last_secure = None
-        for name in sorted(txn.iterate_names()):
-            if delegation and name.is_subdomain(delegation):
-                # names below delegations are not secure
-                continue
-            elif txn.get(name, dns.rdatatype.NS) and name != zone.origin:
-                # inside delegation
-                delegation = name
-            else:
-                # outside delegation
-                delegation = None
+    delegation = None
+    last_secure = None
+    for name in sorted(txn.iterate_names()):
+        if delegation and name.is_subdomain(delegation):
+            # names below delegations are not secure
+            continue
+        elif txn.get(name, dns.rdatatype.NS) and name != zone.origin:
+            # inside delegation
+            delegation = name
+        else:
+            # outside delegation
+            delegation = None
 
-            if rrset_signer:
-                node = txn.get_node(name)
-                if node:
-                    for rdataset in node.rdatasets:
-                        if rdataset.rdtype == dns.rdatatype.RRSIG:
-                            # do not sign RRSIGs
-                            continue
-                        elif delegation and rdataset.rdtype != dns.rdatatype.DS:
-                            # do not sign delegations except DS records
-                            continue
-                        else:
-                            rrset = dns.rrset.from_rdata(name, rdataset.ttl, *rdataset)
-                            rrset_signer(txn, rrset)
+        if rrset_signer:
+            node = txn.get_node(name)
+            if node:
+                for rdataset in node.rdatasets:
+                    if rdataset.rdtype == dns.rdatatype.RRSIG:
+                        # do not sign RRSIGs
+                        continue
+                    elif delegation and rdataset.rdtype != dns.rdatatype.DS:
+                        # do not sign delegations except DS records
+                        continue
+                    else:
+                        rrset = dns.rrset.from_rdata(name, rdataset.ttl, *rdataset)
+                        rrset_signer(txn, rrset)
 
-            if last_secure:
-                _add_nsec(txn, last_secure, name)
-            last_secure = name
         if last_secure:
-            _add_nsec(txn, last_secure, zone.origin)
+            _add_nsec(txn, last_secure, name)
+        last_secure = name
 
-    if txn is not None:
-        _iterate_nsec(txn)
-    else:
-        with zone.writer() as txn:
-            _iterate_nsec(txn)
+    if last_secure:
+        _add_nsec(txn, last_secure, zone.origin)
 
 
 def _need_pyca(*args, **kwargs):
