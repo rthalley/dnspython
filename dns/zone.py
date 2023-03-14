@@ -565,7 +565,7 @@ class Zone(dns.transaction.TransactionManager):
 
         rdtype = dns.rdatatype.RdataType.make(rdtype)
         covers = dns.rdatatype.RdataType.make(covers)
-        for (name, node) in self.items():
+        for name, node in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or (
                     rds.rdtype == rdtype and rds.covers == covers
@@ -597,7 +597,7 @@ class Zone(dns.transaction.TransactionManager):
 
         rdtype = dns.rdatatype.RdataType.make(rdtype)
         covers = dns.rdatatype.RdataType.make(covers)
-        for (name, node) in self.items():
+        for name, node in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or (
                     rds.rdtype == rdtype and rds.covers == covers
@@ -795,7 +795,7 @@ class Zone(dns.transaction.TransactionManager):
             assert self.origin is not None
             origin_name = self.origin
         hasher = hashinfo()
-        for (name, node) in sorted(self.items()):
+        for name, node in sorted(self.items()):
             rrnamebuf = name.to_digestable(self.origin)
             for rdataset in sorted(node, key=lambda rds: (rds.rdtype, rds.covers)):
                 if name == origin_name and dns.rdatatype.ZONEMD in (
@@ -997,6 +997,9 @@ class Version:
             return None
         return node.get_rdataset(self.zone.rdclass, rdtype, covers)
 
+    def keys(self):
+        return self.nodes.keys()
+
     def items(self):
         return self.nodes.items()
 
@@ -1143,9 +1146,12 @@ class Transaction(dns.transaction.Transaction):
             self.version.origin = origin
 
     def _iterate_rdatasets(self):
-        for (name, node) in self.version.items():
+        for name, node in self.version.items():
             for rdataset in node:
                 yield (name, rdataset)
+
+    def _iterate_names(self):
+        return self.version.keys()
 
     def _get_node(self, name):
         return self.version.get_node(name)

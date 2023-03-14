@@ -581,7 +581,7 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
             pass
 
     def _name_exists(self, name):
-        for (n, _, _) in self.rdatasets:
+        for n, _, _ in self.rdatasets:
             if n == name:
                 return True
         return False
@@ -604,6 +604,9 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
         pass
 
     def _iterate_rdatasets(self):
+        raise NotImplementedError  # pragma: no cover
+
+    def _iterate_names(self):
         raise NotImplementedError  # pragma: no cover
 
 
