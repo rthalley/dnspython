@@ -1230,21 +1230,25 @@ def default_rrset_signer(
     rrset: dns.rrset.RRset,
     signer: dns.name.Name,
     ksks: List[Tuple[PrivateKey, DNSKEY]],
-    keys: List[Tuple[PrivateKey, DNSKEY]],
+    zsks: List[Tuple[PrivateKey, DNSKEY]],
     inception: Optional[Union[datetime, str, int, float]] = None,
     expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
 ) -> None:
     """Default RRset signer"""
-    if ksks is not None and rrset.rdtype in [
-        dns.rdatatype.RdataType.DNSKEY,
-        dns.rdatatype.RdataType.CDS,
-        dns.rdatatype.RdataType.CDNSKEY,
-    ]:
-        _keys = ksks
+
+    if rrset.rdtype in set(
+        [
+            dns.rdatatype.RdataType.DNSKEY,
+            dns.rdatatype.RdataType.CDS,
+            dns.rdatatype.RdataType.CDNSKEY,
+        ]
+    ):
+        keys = ksks
     else:
-        _keys = keys
-    for (private_key, dnskey) in _keys:
+        keys = zsks
+
+    for (private_key, dnskey) in keys:
         rrsig = dns.dnssec.sign(
             rrset=rrset,
             private_key=private_key,
@@ -1260,10 +1264,9 @@ def default_rrset_signer(
 def sign_zone(
     zone: dns.zone.Zone,
     txn: Optional[dns.transaction.Transaction] = None,
-    ksks: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
     keys: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
-    dnskey_ttl: Optional[int] = None,
     dnskey_include: bool = True,
+    dnskey_ttl: Optional[int] = None,
     inception: Optional[Union[datetime, str, int, float]] = None,
     expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
@@ -1277,17 +1280,14 @@ def sign_zone(
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
     for signing.
 
-    *ksks*, a list of (``PrivateKey``, ``DNSKEY``) tuples, to use for signing
-    DNSKEY, CDS and CDNSKEY RRsets.
-
     *keys*, a list of (``PrivateKey``, ``DNSKEY``) tuples, to use for signing
-    all RRsets, excluding those signed by *ksks* (if specified).
-
-    *dnskey_ttl*, a``int``, specifies the TTL for DNSKEY RRs. If not specified
-    the TTL of the existing DNSKEY RRset used or the TTL of the SOA RRset.
+    all RRsets.
 
     *dnskey_include*, a ``bool``.  If ``True``, the default, all specified
     DNSKEYs are automatically added to the zone on signing.
+
+    *dnskey_ttl*, a``int``, specifies the TTL for DNSKEY RRs. If not specified
+    the TTL of the existing DNSKEY RRset used or the TTL of the SOA RRset.
 
     *inception*, a ``datetime``, ``str``, ``int``, ``float`` or ``None``, the
     signature inception time.  If ``None``, the current time is used.  If a ``str``, the
@@ -1312,24 +1312,39 @@ def sign_zone(
     Returns ``None``.
     """
 
-    if txn is None:
-        ctx = zone.writer()
+    ksks = []
+    zsks = []
+
+    # if we have both KSKs and ZSKs, split by SEP flag. if not, sign all
+    # records with all keys
+    if keys:
+        for key in keys:
+            if key[1].flags & Flag.SEP:
+                ksks.append(key)
+            else:
+                zsks.append(key)
+        if not ksks:
+            ksks = keys
+        if not zsks:
+            zsks = keys
     else:
-        ctx = contextlib.nullcontext(txn)
+        keys = []
 
-    with ctx as _txn:
-        if dnskey_include:
-            if dnskey_ttl is None:
-                dnskey = _txn.get(zone.origin, dns.rdatatype.DNSKEY)
-                if dnskey:
-                    dnskey_ttl = dnskey.ttl
-                else:
-                    soa = _txn.get(zone.origin, dns.rdatatype.SOA)
-                    dnskey_ttl = soa.ttl
+    if txn:
+        cm: contextlib.AbstractContextManager = contextlib.nullcontext(txn)
+    else:
+        cm = zone.writer()
 
-            _keys = (ksks or []) + (keys or [])
-            for (_, dnskey) in _keys:
-                _txn.add(zone.origin, dnskey_ttl, dnskey)
+    with cm as _txn:
+        if dnskey_ttl is None:
+            dnskey = _txn.get(zone.origin, dns.rdatatype.DNSKEY)
+            if dnskey:
+                dnskey_ttl = dnskey.ttl
+            else:
+                soa = _txn.get(zone.origin, dns.rdatatype.SOA)
+                dnskey_ttl = soa.ttl
+        for (_, dnskey) in keys:
+            _txn.add(zone.origin, dnskey_ttl, dnskey)
 
         if nsec3:
             raise NotImplementedError("Signing with NSEC3 not yet implemented")
@@ -1338,7 +1353,7 @@ def sign_zone(
                 default_rrset_signer,
                 signer=zone.origin,
                 ksks=ksks,
-                keys=keys,
+                zsks=zsks,
                 inception=inception,
                 expiration=expiration,
                 lifetime=lifetime,
