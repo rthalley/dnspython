@@ -1346,41 +1346,47 @@ def sign_zone(
             return _sign_zone_nsec(zone, _txn, _rrset_signer)
 
 
+def _txn_add_nsec(
+    txn: dns.transaction.Transaction,
+    name: dns.name.Name,
+    next_secure: Optional[dns.name.Name],
+    rdclass: dns.rdataclass.RdataClass,
+    ttl: int,
+    rrset_signer: Optional[RRsetSigner] = None,
+) -> None:
+    """NSEC zone signer helper"""
+    mandatory_types = set([dns.rdatatype.RdataType.RRSIG, dns.rdatatype.RdataType.NSEC])
+
+    node = txn.get_node(name)
+    if node and next_secure:
+        types = set([rdataset.rdtype for rdataset in node.rdatasets]) | mandatory_types
+        windows = Bitmap.from_rdtypes(list(types))
+        rrset = dns.rrset.from_rdata(
+            name,
+            ttl,
+            NSEC(
+                rdclass=rdclass,
+                rdtype=dns.rdatatype.RdataType.NSEC,
+                next=next_secure,
+                windows=windows,
+            ),
+        )
+        txn.add(rrset)
+        if rrset_signer:
+            rrset_signer(txn, rrset)
+
+
 def _sign_zone_nsec(
     zone: dns.zone.Zone,
     txn: dns.transaction.Transaction,
     rrset_signer: Optional[RRsetSigner] = None,
 ) -> None:
-    rrsig = {dns.rdatatype.RdataType.RRSIG} if rrset_signer else set()
-    nsec = {dns.rdatatype.RdataType.NSEC}
-    ttl = zone.get_soa().minimum
-    rdclass = zone.rdclass
+    """NSEC zone signer"""
 
-    def _add_nsec(
-        txn: dns.transaction.Transaction,
-        name: dns.name.Name,
-        next_secure: Optional[dns.name.Name],
-    ) -> None:
-        node = txn.get_node(name)
-        if node and next_secure:
-            types = set([rdataset.rdtype for rdataset in node.rdatasets]) | rrsig | nsec
-            windows = Bitmap.from_rdtypes(list(types))
-            rrset = dns.rrset.from_rdata(
-                name,
-                ttl,
-                NSEC(
-                    rdclass=rdclass,
-                    rdtype=dns.rdatatype.RdataType.NSEC,
-                    next=next_secure,
-                    windows=windows,
-                ),
-            )
-            txn.add(rrset)
-            if rrset_signer:
-                rrset_signer(txn, rrset)
-
+    rrsig_ttl = zone.get_soa().minimum
     delegation = None
     last_secure = None
+
     for name in sorted(txn.iterate_names()):
         if delegation and name.is_subdomain(delegation):
             # names below delegations are not secure
@@ -1407,11 +1413,13 @@ def _sign_zone_nsec(
                         rrset_signer(txn, rrset)
 
         if last_secure:
-            _add_nsec(txn, last_secure, name)
+            _txn_add_nsec(txn, last_secure, name, zone.rdclass, rrsig_ttl, rrset_signer)
         last_secure = name
 
     if last_secure:
-        _add_nsec(txn, last_secure, zone.origin)
+        _txn_add_nsec(
+            txn, last_secure, zone.origin, zone.rdclass, rrsig_ttl, rrset_signer
+        )
 
 
 def _need_pyca(*args, **kwargs):
