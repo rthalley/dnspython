@@ -1280,8 +1280,9 @@ def sign_zone(
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
     for signing.
 
-    *keys*, a list of (``PrivateKey``, ``DNSKEY``) tuples, to use for signing
-    all RRsets.
+    *keys*, a list of (``PrivateKey``, ``DNSKEY``) tuples, to use for signing.
+    KSK/ZSK roles are assigned automatically if the SEP flag is used, otherwise
+    all RRsets are signed by all keys.
 
     *dnskey_include*, a ``bool``.  If ``True``, the default, all specified
     DNSKEYs are automatically added to the zone on signing.
