@@ -1271,14 +1271,16 @@ def sign_zone(
 ) -> None:
     """Sign zone.
 
-    *zone*, a ``dns.zone.Zone``, to add NSEC records to.
+    *zone*, a ``dns.zone.Zone``, the zone to sign.
 
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
     for signing.
 
-    *ksks*, TODO
+    *ksks*, a list of (``PrivateKey``, ``DNSKEY``) tuples, to use for signing
+    DNSKEY, CDS and CDNSKEY RRsets.
 
-    *keys*, TODO
+    *keys*, a list of (``PrivateKey``, ``DNSKEY``) tuples, to use for signing
+    all RRsets, excluding those signed by *ksks* (if specified).
 
     *dnskey_ttl*, a``int``, specifies the TTL for DNSKEY RRs. If not specified
     the TTL of the existing DNSKEY RRset used or the TTL of the SOA RRset.
