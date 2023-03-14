@@ -1255,12 +1255,14 @@ def default_rrset_signer(
         )
         txn.add(rrset.name, rrset.ttl, rrsig)
 
+
 def sign_zone(
     zone: dns.zone.Zone,
     txn: Optional[dns.transaction.Transaction] = None,
     ksks: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
     keys: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
     dnskey_ttl: Optional[int] = None,
+    dnskey_include: bool = True,
     inception: Optional[Union[datetime, str, int, float]] = None,
     expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
@@ -1274,24 +1276,54 @@ def sign_zone(
     *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
     for signing.
 
-    ...TODO...
+    *ksks*, TODO
+
+    *keys*, TODO
+
+    *dnskey_ttl*, a``int``, specifies the TTL for DNSKEY RRs. If not specified
+    the TTL of the existing DNSKEY RRset used or the TTL of the SOA RRset.
+
+    *dnskey_include*, a ``bool``.  If ``True``, the default, all specified
+    DNSKEYs are automatically added to the zone on signing.
+
+    *inception*, a ``datetime``, ``str``, ``int``, ``float`` or ``None``, the
+    signature inception time.  If ``None``, the current time is used.  If a ``str``, the
+    format is "YYYYMMDDHHMMSS" or alternatively the number of seconds since the UNIX
+    epoch in text form; this is the same the RRSIG rdata's text form.
+    Values of type `int` or `float` are interpreted as seconds since the UNIX epoch.
+
+    *expiration*, a ``datetime``, ``str``, ``int``, ``float`` or ``None``, the signature
+    expiration time.  If ``None``, the expiration time will be the inception time plus
+    the value of the *lifetime* parameter.  See the description of *inception* above
+    for how the various parameter types are interpreted.
+
+    *lifetime*, an ``int`` or ``None``, the signature lifetime in seconds.  This
+    parameter is only meaningful if *expiration* is ``None``.
+
+    *nsec3*, a ``NSEC3PARAM`` Rdata, configures signing using NSEC3. Not yet implemented.
 
     *rrset_signer*, a ``Callable``, an optional function for signing RRsets.
-    The function requires two arguments: transaction and RRset.
+    The function requires two arguments: transaction and RRset. If the not
+    specified, ``dns.dnssec.default_rrset_signer`` will be used.
 
     Returns ``None``.
     """
 
     def _sign_zone(txn: dns.transaction.Transaction) -> None:
-        if dnskey_ttl is None:
-            soa = txn.get(zone.origin, dns.rdatatype.SOA)
-            ttl = soa.ttl
-        else:
-            ttl = dnskey_ttl
+        if dnskey_include:
+            if dnskey_ttl is None:
+                dnskey = txn.get(zone.origin, dns.rdatatype.DNSKEY)
+                if dnskey:
+                    ttl = dnskey.ttl
+                else:
+                    soa = txn.get(zone.origin, dns.rdatatype.SOA)
+                    ttl = soa.ttl
+            else:
+                ttl = dnskey_ttl
 
-        _keys = (ksks or []) + (keys or [])
-        for (_, dnskey) in _keys:
-            txn.add(zone.origin, ttl, dnskey)
+            _keys = (ksks or []) + (keys or [])
+            for (_, dnskey) in _keys:
+                txn.add(zone.origin, ttl, dnskey)
 
         if nsec3:
             raise NotImplementedError("Signing with NSEC3 not yet implemented")
