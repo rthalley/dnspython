@@ -1346,42 +1346,44 @@ def sign_zone(
             return _sign_zone_nsec(zone, _txn, _rrset_signer)
 
 
-def _txn_add_nsec(
-    txn: dns.transaction.Transaction,
-    name: dns.name.Name,
-    next_secure: Optional[dns.name.Name],
-    rdclass: dns.rdataclass.RdataClass,
-    ttl: int,
-    rrset_signer: Optional[RRsetSigner] = None,
-) -> None:
-    """NSEC zone signer helper"""
-    mandatory_types = set([dns.rdatatype.RdataType.RRSIG, dns.rdatatype.RdataType.NSEC])
-
-    node = txn.get_node(name)
-    if node and next_secure:
-        types = set([rdataset.rdtype for rdataset in node.rdatasets]) | mandatory_types
-        windows = Bitmap.from_rdtypes(list(types))
-        rrset = dns.rrset.from_rdata(
-            name,
-            ttl,
-            NSEC(
-                rdclass=rdclass,
-                rdtype=dns.rdatatype.RdataType.NSEC,
-                next=next_secure,
-                windows=windows,
-            ),
-        )
-        txn.add(rrset)
-        if rrset_signer:
-            rrset_signer(txn, rrset)
-
-
 def _sign_zone_nsec(
     zone: dns.zone.Zone,
     txn: dns.transaction.Transaction,
     rrset_signer: Optional[RRsetSigner] = None,
 ) -> None:
     """NSEC zone signer"""
+
+    def _txn_add_nsec(
+        txn: dns.transaction.Transaction,
+        name: dns.name.Name,
+        next_secure: Optional[dns.name.Name],
+        rdclass: dns.rdataclass.RdataClass,
+        ttl: int,
+        rrset_signer: Optional[RRsetSigner] = None,
+    ) -> None:
+        """NSEC zone signer helper"""
+        mandatory_types = set(
+            [dns.rdatatype.RdataType.RRSIG, dns.rdatatype.RdataType.NSEC]
+        )
+        node = txn.get_node(name)
+        if node and next_secure:
+            types = (
+                set([rdataset.rdtype for rdataset in node.rdatasets]) | mandatory_types
+            )
+            windows = Bitmap.from_rdtypes(list(types))
+            rrset = dns.rrset.from_rdata(
+                name,
+                ttl,
+                NSEC(
+                    rdclass=rdclass,
+                    rdtype=dns.rdatatype.RdataType.NSEC,
+                    next=next_secure,
+                    windows=windows,
+                ),
+            )
+            txn.add(rrset)
+            if rrset_signer:
+                rrset_signer(txn, rrset)
 
     rrsig_ttl = zone.get_soa().minimum
     delegation = None
