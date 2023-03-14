@@ -1337,15 +1337,16 @@ def sign_zone(
         cm = zone.writer()
 
     with cm as _txn:
-        if dnskey_ttl is None:
-            dnskey = _txn.get(zone.origin, dns.rdatatype.DNSKEY)
-            if dnskey:
-                dnskey_ttl = dnskey.ttl
-            else:
-                soa = _txn.get(zone.origin, dns.rdatatype.SOA)
-                dnskey_ttl = soa.ttl
-        for (_, dnskey) in keys:
-            _txn.add(zone.origin, dnskey_ttl, dnskey)
+        if dnskey_include:
+            if dnskey_ttl is None:
+                dnskey = _txn.get(zone.origin, dns.rdatatype.DNSKEY)
+                if dnskey:
+                    dnskey_ttl = dnskey.ttl
+                else:
+                    soa = _txn.get(zone.origin, dns.rdatatype.SOA)
+                    dnskey_ttl = soa.ttl
+            for (_, dnskey) in keys:
+                _txn.add(zone.origin, dnskey_ttl, dnskey)
 
         if nsec3:
             raise NotImplementedError("Signing with NSEC3 not yet implemented")
