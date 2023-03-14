@@ -1289,9 +1289,8 @@ def sign_zone(
         if nsec3:
             raise NotImplementedError("Signing with NSEC3 not yet implemented")
         else:
-            return _sign_zone_nsec(
-                zone, txn, functools.partial(_rrset_signer, ksks=ksks, keys=keys)
-            )
+            rrset_signer = functools.partial(_rrset_signer, ksks=ksks, keys=keys)
+            return _sign_zone_nsec(zone, txn, rrset_signer)
 
     if txn is not None:
         _sign_zone(txn)
