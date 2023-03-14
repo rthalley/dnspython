@@ -1282,8 +1282,8 @@ def sign_zone(
 
         if not keys:
             raise ValueError("keys must be specified")
-
-        for (_, dnskey) in keys + (ksks or []):
+        _keys = keys + (ksks or [])
+        for (_, dnskey) in _keys:
             txn.add(zone.origin, ttl, dnskey)
 
         if nsec3:

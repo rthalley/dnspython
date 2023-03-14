@@ -948,7 +948,6 @@ class DNSSECMiscTestCase(unittest.TestCase):
             dns.dnssec.sign_zone(
                 zone=zone,
                 txn=txn,
-                ksks=[(private_key, dnskey)],
                 keys=[(private_key, dnskey)],
                 lifetime=lifetime,
             )
