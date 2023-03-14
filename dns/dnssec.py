@@ -1224,6 +1224,37 @@ def dnskey_rdataset_to_cdnskey_rdataset(
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
 
 
+def default_rrset_signer(
+    txn: dns.transaction.Transaction,
+    rrset: dns.rrset.RRset,
+    signer: dns.name.Name,
+    ksks: List[Tuple[PrivateKey, DNSKEY]],
+    keys: List[Tuple[PrivateKey, DNSKEY]],
+    inception: Optional[Union[datetime, str, int, float]] = None,
+    expiration: Optional[Union[datetime, str, int, float]] = None,
+    lifetime: Optional[int] = None,
+) -> None:
+    """Default RRset signer"""
+    if ksks is not None and rrset.rdtype in [
+        dns.rdatatype.RdataType.DNSKEY,
+        dns.rdatatype.RdataType.CDS,
+        dns.rdatatype.RdataType.CDNSKEY,
+    ]:
+        _keys = ksks
+    else:
+        _keys = keys
+    for (private_key, dnskey) in _keys:
+        rrsig = dns.dnssec.sign(
+            rrset=rrset,
+            private_key=private_key,
+            dnskey=dnskey,
+            inception=inception,
+            expiration=expiration,
+            lifetime=lifetime,
+            signer=signer,
+        )
+        txn.add(rrset.name, rrset.ttl, rrsig)
+
 def sign_zone(
     zone: dns.zone.Zone,
     txn: Optional[dns.transaction.Transaction] = None,
@@ -1251,32 +1282,6 @@ def sign_zone(
     Returns ``None``.
     """
 
-    def default_rrset_signer(
-        txn: dns.transaction.Transaction,
-        rrset: dns.rrset.RRset,
-        ksks: List[Tuple[PrivateKey, DNSKEY]],
-        keys: List[Tuple[PrivateKey, DNSKEY]],
-    ) -> None:
-        if ksks is not None and rrset.rdtype in [
-            dns.rdatatype.RdataType.DNSKEY,
-            dns.rdatatype.RdataType.CDS,
-            dns.rdatatype.RdataType.CDNSKEY,
-        ]:
-            _keys = ksks
-        else:
-            _keys = keys
-        for (private_key, dnskey) in _keys:
-            rrsig = dns.dnssec.sign(
-                rrset=rrset,
-                private_key=private_key,
-                dnskey=dnskey,
-                inception=inception,
-                expiration=expiration,
-                lifetime=lifetime,
-                signer=zone.origin,
-            )
-            txn.add(rrset.name, rrset.ttl, rrsig)
-
     def _sign_zone(txn: dns.transaction.Transaction) -> None:
         if dnskey_ttl is None:
             soa = txn.get(zone.origin, dns.rdatatype.SOA)
@@ -1292,7 +1297,13 @@ def sign_zone(
             raise NotImplementedError("Signing with NSEC3 not yet implemented")
         else:
             _rrset_signer = rrset_signer or functools.partial(
-                default_rrset_signer, ksks=ksks, keys=keys
+                default_rrset_signer,
+                signer=zone.origin,
+                ksks=ksks,
+                keys=keys,
+                inception=inception,
+                expiration=expiration,
+                lifetime=lifetime,
             )
             return _sign_zone_nsec(zone, txn, _rrset_signer)
 
