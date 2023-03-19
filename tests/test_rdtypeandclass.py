@@ -22,7 +22,6 @@ import dns.rdatatype
 
 
 class RdTypeAndClassTestCase(unittest.TestCase):
-
     # Classes
 
     def test_class_meta1(self):

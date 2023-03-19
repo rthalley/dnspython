@@ -358,7 +358,6 @@ class Rdata:
             or self.rdclass != other.rdclass
             or self.rdtype != other.rdtype
         ):
-
             return NotImplemented
         return self._cmp(other) < 0
 

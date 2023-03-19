@@ -6,7 +6,6 @@ from dns import dnssec, name
 
 
 class NSEC3Hash(unittest.TestCase):
-
     DATA = [
         # Source: https://tools.ietf.org/html/rfc5155#appendix-A
         ("example", "aabbccdd", 12, "0p9mhaveqvm6t7vbl5lop2u3t2rp3tom", 1),

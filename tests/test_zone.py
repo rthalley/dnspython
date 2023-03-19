@@ -305,7 +305,7 @@ def make_xfr(zone):
         soa_name = zone.origin
     soa = zone.find_rdataset(soa_name, "SOA")
     add_rdataset(msg, soa_name, soa)
-    for (name, rds) in zone.iterate_rdatasets():
+    for name, rds in zone.iterate_rdatasets():
         if rds.rdtype == dns.rdatatype.SOA:
             continue
         add_rdataset(msg, name, rds)

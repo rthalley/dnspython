@@ -330,7 +330,7 @@ class AXFRNanoNameserver(Server):
         response = dns.message.make_response(request.message)
         response.question = []
         response.flags |= dns.flags.AA
-        for (name, rdataset) in self.zone.iterate_rdatasets():
+        for name, rdataset in self.zone.iterate_rdatasets():
             if rdataset.rdtype == dns.rdatatype.SOA and name == dns.name.empty:
                 continue
             rrset = dns.rrset.RRset(

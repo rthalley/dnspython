@@ -39,7 +39,6 @@ class ImmutableTestCase(unittest.TestCase):
 
 
 class DecoratorTestCase(unittest.TestCase):
-
     immutable_module = dns._immutable_ctx
 
     def make_classes(self):
@@ -125,7 +124,6 @@ class DecoratorTestCase(unittest.TestCase):
         self.assertFalse(hasattr(a, "b"))
 
     def test_no_collateral_damage(self):
-
         # A and B are immutable but not related.  The magic that lets
         # us write to immutable things while initializing B should not let
         # B mess with A.

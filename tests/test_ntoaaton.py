@@ -205,7 +205,7 @@ class NtoAAtoNTestCase(unittest.TestCase):
             ("255.255.255.255", b"\xff\xff\xff\xff"),
             ("0.0.0.0", b"\x00\x00\x00\x00"),
         ]
-        for (t, b) in pairs:
+        for t, b in pairs:
             b1 = aton4(t)
             t1 = ntoa4(b1)
             self.assertEqual(b1, b)
@@ -289,14 +289,14 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.assertRaises(dns.exception.SyntaxError, bad)
 
     def test_ptontop(self):
-        for (af, a) in [
+        for af, a in [
             (socket.AF_INET, "1.2.3.4"),
             (socket.AF_INET6, "2001:db8:0:1:1:1:1:1"),
         ]:
             self.assertEqual(dns.inet.inet_ntop(af, dns.inet.inet_pton(af, a)), a)
 
     def test_isaddress(self):
-        for (t, e) in [
+        for t, e in [
             ("1.2.3.4", True),
             ("2001:db8:0:1:1:1:1:1", True),
             ("hello world", False),

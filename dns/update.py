@@ -43,7 +43,6 @@ class UpdateSection(dns.enum.IntEnum):
 
 
 class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
-
     # ignore the mypy error here as we mean to use a different enum
     _section_enum = UpdateSection  # type: ignore
 

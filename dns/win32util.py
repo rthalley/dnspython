@@ -1,7 +1,6 @@
 import sys
 
 if sys.platform == "win32":
-
     from typing import Any
 
     import dns.name
