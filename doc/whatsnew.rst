@@ -17,6 +17,8 @@ What's New in dnspython
 * DNS-over-HTTPS now only uses httpx; support for requests has been dropped.  A source
   port may now be supplied when using httpx.
 
+* Curio support has been removed.
+
 2.3.0
 -----
 
