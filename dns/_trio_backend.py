@@ -100,9 +100,11 @@ try:
             self._bootstrap_address = bootstrap_address
             self._family = family
 
-        async def connect_tcp(self, host, port, timeout, local_address):
+        async def connect_tcp(
+            self, host, port, timeout, local_address
+        ):  # pylint: disable=signature-differs
             addresses = []
-            now, expiration = _compute_times(timeout)
+            _, expiration = _compute_times(timeout)
             if dns.inet.is_address(host):
                 addresses.append(host)
             elif self._bootstrap_address is not None:
@@ -134,6 +136,14 @@ try:
                     continue
             raise httpcore.ConnectError
 
+        async def connect_unix_socket(
+            self, path, timeout
+        ):  # pylint: disable=signature-differs
+            raise NotImplementedError
+
+        async def sleep(self, seconds):  # pylint: disable=signature-differs
+            await trio.sleep(seconds)
+
     class _HTTPTransport(httpx.AsyncHTTPTransport):
         def __init__(
             self,
@@ -145,6 +155,7 @@ try:
             **kwargs,
         ):
             if resolver is None:
+                # pylint: disable=import-outside-toplevel,redefined-outer-name
                 import dns.asyncresolver
 
                 resolver = dns.asyncresolver.Resolver()

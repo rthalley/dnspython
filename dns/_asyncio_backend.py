@@ -135,9 +135,11 @@ try:
                     "the asyncio transport for HTTPX cannot set the local port"
                 )
 
-        async def connect_tcp(self, host, port, timeout, local_address):
+        async def connect_tcp(
+            self, host, port, timeout, local_address
+        ):  # pylint: disable=signature-differs
             addresses = []
-            now, expiration = _compute_times(timeout)
+            _, expiration = _compute_times(timeout)
             if dns.inet.is_address(host):
                 addresses.append(host)
             elif self._bootstrap_address is not None:
@@ -157,7 +159,7 @@ try:
                     timeout = _remaining(attempt_expiration)
                     with anyio.fail_after(timeout):
                         stream = await anyio.connect_tcp(
-                            remote_host=host,
+                            remote_host=address,
                             remote_port=port,
                             local_host=local_address,
                         )
@@ -165,6 +167,14 @@ try:
                 except Exception:
                     pass
             raise httpcore.ConnectError
+
+        async def connect_unix_socket(
+            self, path, timeout
+        ):  # pylint: disable=signature-differs
+            raise NotImplementedError
+
+        async def sleep(self, seconds):  # pylint: disable=signature-differs
+            await anyio.sleep(seconds)
 
     class _HTTPTransport(httpx.AsyncHTTPTransport):
         def __init__(
@@ -177,6 +187,7 @@ try:
             **kwargs,
         ):
             if resolver is None:
+                # pylint: disable=import-outside-toplevel,redefined-outer-name
                 import dns.asyncresolver
 
                 resolver = dns.asyncresolver.Resolver()

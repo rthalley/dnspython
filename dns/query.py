@@ -28,7 +28,6 @@ import selectors
 import socket
 import struct
 import time
-import urllib.parse
 
 import dns.exception
 import dns.inet
@@ -84,9 +83,11 @@ try:
             self._bootstrap_address = bootstrap_address
             self._family = family
 
-        def connect_tcp(self, host, port, timeout, local_address):
+        def connect_tcp(
+            self, host, port, timeout, local_address
+        ):  # pylint: disable=signature-differs
             addresses = []
-            now, expiration = _compute_times(timeout)
+            _, expiration = _compute_times(timeout)
             if dns.inet.is_address(host):
                 addresses.append(host)
             elif self._bootstrap_address is not None:
@@ -121,6 +122,11 @@ try:
                     pass
             raise httpcore.ConnectError
 
+        def connect_unix_socket(
+            self, path, timeout
+        ):  # pylint: disable=signature-differs
+            raise NotImplementedError
+
     class _HTTPTransport(httpx.HTTPTransport):
         def __init__(
             self,
@@ -132,6 +138,7 @@ try:
             **kwargs,
         ):
             if resolver is None:
+                # pylint: disable=import-outside-toplevel,redefined-outer-name
                 import dns.resolver
 
                 resolver = dns.resolver.Resolver()
