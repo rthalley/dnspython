@@ -171,3 +171,12 @@ def low_level_address_tuple(
             return tup
     else:
         raise NotImplementedError(f"unknown address family {af}")
+
+
+def any_for_af(af):
+    """Return the 'any' address for the specified address family."""
+    if af == socket.AF_INET:
+        return "0.0.0.0"
+    elif af == socket.AF_INET6:
+        return "::"
+    raise NotImplementedError(f"unknown address family {af}")
