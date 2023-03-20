@@ -1265,7 +1265,7 @@ def sign_zone(
     zone: dns.zone.Zone,
     txn: Optional[dns.transaction.Transaction] = None,
     keys: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
-    dnskey_include: bool = True,
+    add_dnskey: bool = True,
     dnskey_ttl: Optional[int] = None,
     inception: Optional[Union[datetime, str, int, float]] = None,
     expiration: Optional[Union[datetime, str, int, float]] = None,
@@ -1284,7 +1284,7 @@ def sign_zone(
     KSK/ZSK roles are assigned automatically if the SEP flag is used, otherwise
     all RRsets are signed by all keys.
 
-    *dnskey_include*, a ``bool``.  If ``True``, the default, all specified
+    *add_dnskey*, a ``bool``.  If ``True``, the default, all specified
     DNSKEYs are automatically added to the zone on signing.
 
     *dnskey_ttl*, a``int``, specifies the TTL for DNSKEY RRs. If not specified
@@ -1337,7 +1337,7 @@ def sign_zone(
         cm = zone.writer()
 
     with cm as _txn:
-        if dnskey_include:
+        if add_dnskey:
             if dnskey_ttl is None:
                 dnskey = _txn.get(zone.origin, dns.rdatatype.DNSKEY)
                 if dnskey:
