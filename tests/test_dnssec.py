@@ -33,6 +33,8 @@ import dns.rdtypes.ANY.DS
 import dns.rrset
 import dns.zone
 
+from dns.rdtypes.dnskeybase import Flag
+
 from .keys import test_dnskeys
 
 try:
@@ -937,18 +939,30 @@ class DNSSECMiscTestCase(unittest.TestCase):
     def test_sign_zone(self):
         zone = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
 
-        private_key = ed25519.Ed25519PrivateKey.generate()
         algorithm = dns.dnssec.Algorithm.ED25519
-        dnskey = dns.dnssec.make_dnskey(
-            public_key=private_key.public_key(), algorithm=algorithm
-        )
         lifetime = 3600
+
+        ksk_private_key = ed25519.Ed25519PrivateKey.generate()
+        ksk_dnskey = dns.dnssec.make_dnskey(
+            public_key=ksk_private_key.public_key(),
+            algorithm=algorithm,
+            flags=Flag.ZONE | Flag.SEP,
+        )
+
+        zsk_private_key = ed25519.Ed25519PrivateKey.generate()
+        zsk_dnskey = dns.dnssec.make_dnskey(
+            public_key=zsk_private_key.public_key(),
+            algorithm=algorithm,
+            flags=Flag.ZONE,
+        )
+
+        keys = [(ksk_private_key, ksk_dnskey), (zsk_private_key, zsk_dnskey)]
 
         with zone.writer() as txn:
             dns.dnssec.sign_zone(
                 zone=zone,
                 txn=txn,
-                keys=[(private_key, dnskey)],
+                keys=keys,
                 lifetime=lifetime,
             )
 
@@ -960,6 +974,23 @@ class DNSSECMiscTestCase(unittest.TestCase):
             ]
         )
         self.assertEqual(rrsigs, test_zone_rrsigs)
+
+        signers = set(
+            [
+                (str(name), rdataset.covers, rdataset[0].key_tag)
+                for (name, rdataset) in zone.iterate_rdatasets()
+                if rdataset.rdtype == dns.rdatatype.RRSIG
+            ]
+        )
+        for name, covers, key_tag in signers:
+            if covers in [
+                dns.rdatatype.DNSKEY,
+                dns.rdatatype.CDNSKEY,
+                dns.rdatatype.CDS,
+            ]:
+                self.assertEqual(key_tag, dns.dnssec.key_id(ksk_dnskey))
+            else:
+                self.assertEqual(key_tag, dns.dnssec.key_id(zsk_dnskey))
 
     def test_sign_zone_nsec_null_signer(self):
         def rrset_signer(
