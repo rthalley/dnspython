@@ -17,8 +17,11 @@
 
 """Common DNSSEC-related functions and constants."""
 
-from typing import Any, cast, Dict, List, Optional, Set, Tuple, Union
 
+from typing import Any, cast, Callable, Dict, List, Optional, Set, Tuple, Union
+
+import contextlib
+import functools
 import hashlib
 import math
 import struct
@@ -36,10 +39,14 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
 import dns.rrset
+import dns.transaction
+import dns.zone
 from dns.rdtypes.ANY.CDNSKEY import CDNSKEY
 from dns.rdtypes.ANY.CDS import CDS
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.ANY.DS import DS
+from dns.rdtypes.ANY.NSEC import NSEC, Bitmap
+from dns.rdtypes.ANY.NSEC3PARAM import NSEC3PARAM
 from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
 from dns.rdtypes.dnskeybase import Flag
 
@@ -73,6 +80,8 @@ PrivateKey = Union[
     "ed25519.Ed25519PrivateKey",
     "ed448.Ed448PrivateKey",
 ]
+
+RRsetSigner = Callable[[dns.transaction.Transaction, dns.rrset.RRset], None]
 
 
 def algorithm_from_text(text: str) -> Algorithm:
@@ -1214,6 +1223,222 @@ def dnskey_rdataset_to_cdnskey_rdataset(
             )
         )
     return dns.rdataset.from_rdata_list(rdataset.ttl, res)
+
+
+def default_rrset_signer(
+    txn: dns.transaction.Transaction,
+    rrset: dns.rrset.RRset,
+    signer: dns.name.Name,
+    ksks: List[Tuple[PrivateKey, DNSKEY]],
+    zsks: List[Tuple[PrivateKey, DNSKEY]],
+    inception: Optional[Union[datetime, str, int, float]] = None,
+    expiration: Optional[Union[datetime, str, int, float]] = None,
+    lifetime: Optional[int] = None,
+) -> None:
+    """Default RRset signer"""
+
+    if rrset.rdtype in set(
+        [
+            dns.rdatatype.RdataType.DNSKEY,
+            dns.rdatatype.RdataType.CDS,
+            dns.rdatatype.RdataType.CDNSKEY,
+        ]
+    ):
+        keys = ksks
+    else:
+        keys = zsks
+
+    for (private_key, dnskey) in keys:
+        rrsig = dns.dnssec.sign(
+            rrset=rrset,
+            private_key=private_key,
+            dnskey=dnskey,
+            inception=inception,
+            expiration=expiration,
+            lifetime=lifetime,
+            signer=signer,
+        )
+        txn.add(rrset.name, rrset.ttl, rrsig)
+
+
+def sign_zone(
+    zone: dns.zone.Zone,
+    txn: Optional[dns.transaction.Transaction] = None,
+    keys: Optional[List[Tuple[PrivateKey, DNSKEY]]] = None,
+    add_dnskey: bool = True,
+    dnskey_ttl: Optional[int] = None,
+    inception: Optional[Union[datetime, str, int, float]] = None,
+    expiration: Optional[Union[datetime, str, int, float]] = None,
+    lifetime: Optional[int] = None,
+    nsec3: Optional[NSEC3PARAM] = None,
+    rrset_signer: Optional[RRsetSigner] = None,
+) -> None:
+    """Sign zone.
+
+    *zone*, a ``dns.zone.Zone``, the zone to sign.
+
+    *txn*, a ``dns.transaction.Transaction``, an optional transaction to use
+    for signing.
+
+    *keys*, a list of (``PrivateKey``, ``DNSKEY``) tuples, to use for signing.
+    KSK/ZSK roles are assigned automatically if the SEP flag is used, otherwise
+    all RRsets are signed by all keys.
+
+    *add_dnskey*, a ``bool``.  If ``True``, the default, all specified
+    DNSKEYs are automatically added to the zone on signing.
+
+    *dnskey_ttl*, a``int``, specifies the TTL for DNSKEY RRs. If not specified
+    the TTL of the existing DNSKEY RRset used or the TTL of the SOA RRset.
+
+    *inception*, a ``datetime``, ``str``, ``int``, ``float`` or ``None``, the
+    signature inception time.  If ``None``, the current time is used.  If a ``str``, the
+    format is "YYYYMMDDHHMMSS" or alternatively the number of seconds since the UNIX
+    epoch in text form; this is the same the RRSIG rdata's text form.
+    Values of type `int` or `float` are interpreted as seconds since the UNIX epoch.
+
+    *expiration*, a ``datetime``, ``str``, ``int``, ``float`` or ``None``, the signature
+    expiration time.  If ``None``, the expiration time will be the inception time plus
+    the value of the *lifetime* parameter.  See the description of *inception* above
+    for how the various parameter types are interpreted.
+
+    *lifetime*, an ``int`` or ``None``, the signature lifetime in seconds.  This
+    parameter is only meaningful if *expiration* is ``None``.
+
+    *nsec3*, a ``NSEC3PARAM`` Rdata, configures signing using NSEC3. Not yet implemented.
+
+    *rrset_signer*, a ``Callable``, an optional function for signing RRsets.
+    The function requires two arguments: transaction and RRset. If the not
+    specified, ``dns.dnssec.default_rrset_signer`` will be used.
+
+    Returns ``None``.
+    """
+
+    ksks = []
+    zsks = []
+
+    # if we have both KSKs and ZSKs, split by SEP flag. if not, sign all
+    # records with all keys
+    if keys:
+        for key in keys:
+            if key[1].flags & Flag.SEP:
+                ksks.append(key)
+            else:
+                zsks.append(key)
+        if not ksks:
+            ksks = keys
+        if not zsks:
+            zsks = keys
+    else:
+        keys = []
+
+    if txn:
+        cm: contextlib.AbstractContextManager = contextlib.nullcontext(txn)
+    else:
+        cm = zone.writer()
+
+    with cm as _txn:
+        if add_dnskey:
+            if dnskey_ttl is None:
+                dnskey = _txn.get(zone.origin, dns.rdatatype.DNSKEY)
+                if dnskey:
+                    dnskey_ttl = dnskey.ttl
+                else:
+                    soa = _txn.get(zone.origin, dns.rdatatype.SOA)
+                    dnskey_ttl = soa.ttl
+            for (_, dnskey) in keys:
+                _txn.add(zone.origin, dnskey_ttl, dnskey)
+
+        if nsec3:
+            raise NotImplementedError("Signing with NSEC3 not yet implemented")
+        else:
+            _rrset_signer = rrset_signer or functools.partial(
+                default_rrset_signer,
+                signer=zone.origin,
+                ksks=ksks,
+                zsks=zsks,
+                inception=inception,
+                expiration=expiration,
+                lifetime=lifetime,
+            )
+            return _sign_zone_nsec(zone, _txn, _rrset_signer)
+
+
+def _sign_zone_nsec(
+    zone: dns.zone.Zone,
+    txn: dns.transaction.Transaction,
+    rrset_signer: Optional[RRsetSigner] = None,
+) -> None:
+    """NSEC zone signer"""
+
+    def _txn_add_nsec(
+        txn: dns.transaction.Transaction,
+        name: dns.name.Name,
+        next_secure: Optional[dns.name.Name],
+        rdclass: dns.rdataclass.RdataClass,
+        ttl: int,
+        rrset_signer: Optional[RRsetSigner] = None,
+    ) -> None:
+        """NSEC zone signer helper"""
+        mandatory_types = set(
+            [dns.rdatatype.RdataType.RRSIG, dns.rdatatype.RdataType.NSEC]
+        )
+        node = txn.get_node(name)
+        if node and next_secure:
+            types = (
+                set([rdataset.rdtype for rdataset in node.rdatasets]) | mandatory_types
+            )
+            windows = Bitmap.from_rdtypes(list(types))
+            rrset = dns.rrset.from_rdata(
+                name,
+                ttl,
+                NSEC(
+                    rdclass=rdclass,
+                    rdtype=dns.rdatatype.RdataType.NSEC,
+                    next=next_secure,
+                    windows=windows,
+                ),
+            )
+            txn.add(rrset)
+            if rrset_signer:
+                rrset_signer(txn, rrset)
+
+    rrsig_ttl = zone.get_soa().minimum
+    delegation = None
+    last_secure = None
+
+    for name in sorted(txn.iterate_names()):
+        if delegation and name.is_subdomain(delegation):
+            # names below delegations are not secure
+            continue
+        elif txn.get(name, dns.rdatatype.NS) and name != zone.origin:
+            # inside delegation
+            delegation = name
+        else:
+            # outside delegation
+            delegation = None
+
+        if rrset_signer:
+            node = txn.get_node(name)
+            if node:
+                for rdataset in node.rdatasets:
+                    if rdataset.rdtype == dns.rdatatype.RRSIG:
+                        # do not sign RRSIGs
+                        continue
+                    elif delegation and rdataset.rdtype != dns.rdatatype.DS:
+                        # do not sign delegations except DS records
+                        continue
+                    else:
+                        rrset = dns.rrset.from_rdata(name, rdataset.ttl, *rdataset)
+                        rrset_signer(txn, rrset)
+
+        if last_secure:
+            _txn_add_nsec(txn, last_secure, name, zone.rdclass, rrsig_ttl, rrset_signer)
+        last_secure = name
+
+    if last_secure:
+        _txn_add_nsec(
+            txn, last_secure, zone.origin, zone.rdclass, rrsig_ttl, rrset_signer
+        )
 
 
 def _need_pyca(*args, **kwargs):

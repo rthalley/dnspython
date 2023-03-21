@@ -18,6 +18,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import functools
 import unittest
 
 import dns.dnssec
@@ -30,6 +31,9 @@ import dns.rdtypes.ANY.CDS
 import dns.rdtypes.ANY.DNSKEY
 import dns.rdtypes.ANY.DS
 import dns.rrset
+import dns.zone
+
+from dns.rdtypes.dnskeybase import Flag
 
 from .keys import test_dnskeys
 
@@ -580,6 +584,58 @@ fake_gost_ns_rrsig = dns.rrset.from_text(
     " SXTV9hCLVFWU4PS+/fxxfOHCetsY5tWWSxZi zSHfgpGfsHWzQoAamag4XYDyykc=",
 )
 
+test_zone_sans_nsec = """
+example. 3600 IN SOA foo.example. bar.example. 1 2 3 4 5
+example. 3600 IN NS ns1.example.
+example. 3600 IN NS ns2.example.
+bar.foo.example. 3600 IN MX 0 blaz.foo.example.
+ns1.example. 3600 IN A 10.0.0.1
+ns2.example. 3600 IN A 10.0.0.2
+sub.example. 3600 IN NS ns1.example.
+sub.example. 3600 IN NS ns2.example.
+sub.example. 3600 IN NS ns3.sub.example.
+sub.example. 3600 IN DS 12345 13 2 0100D208742A23024DF3C8827DFF3EB3E25126E9B72850E99D6055E18913CB2F
+sub.sub.example. 3600 IN NS ns3.sub.example.
+ns3.sub.example. 3600 IN A 10.0.0.3
+"""
+
+test_zone_rrsigs = set(
+    [
+        ("example.", dns.rdatatype.DNSKEY),
+        ("example.", dns.rdatatype.NS),
+        ("example.", dns.rdatatype.NSEC),
+        ("example.", dns.rdatatype.SOA),
+        ("bar.foo.example.", dns.rdatatype.MX),
+        ("bar.foo.example.", dns.rdatatype.NSEC),
+        ("ns1.example.", dns.rdatatype.A),
+        ("ns1.example.", dns.rdatatype.NSEC),
+        ("ns2.example.", dns.rdatatype.A),
+        ("ns2.example.", dns.rdatatype.NSEC),
+        ("sub.example.", dns.rdatatype.DS),
+        ("sub.example.", dns.rdatatype.NSEC),
+    ]
+)
+
+test_zone_with_nsec = """
+example. 3600 IN SOA foo.example. bar.example. 1 2 3 4 5
+example. 3600 IN NS ns1.example.
+example. 3600 IN NS ns2.example.
+example. 5 IN NSEC bar.foo.example. NS NSEC SOA RRSIG
+bar.foo.example. 3600 IN MX 0 blaz.foo.example.
+bar.foo.example. 5 IN NSEC ns1.example. MX NSEC RRSIG
+ns1.example. 3600 IN A 10.0.0.1
+ns1.example. 5 IN NSEC ns2.example. A NSEC RRSIG
+ns2.example. 3600 IN A 10.0.0.2
+ns2.example. 5 IN NSEC sub.example. A NSEC RRSIG
+sub.example. 3600 IN NS ns1.example.
+sub.example. 3600 IN NS ns2.example.
+sub.example. 3600 IN NS ns3.sub.example.
+sub.example. 3600 IN DS 12345 13 2 0100D208742A23024DF3C8827DFF3EB3E25126E9B72850E99D6055E18913CB2F
+sub.example. 5 IN NSEC example. DS NS NSEC RRSIG
+sub.sub.example. 3600 IN NS ns3.sub.example.
+ns3.sub.example. 3600 IN A 10.0.0.3
+"""
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECValidatorTestCase(unittest.TestCase):
@@ -879,6 +935,75 @@ class DNSSECMiscTestCase(unittest.TestCase):
 
         ts = dns.dnssec.to_timestamp(441812220)
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
+
+    def test_sign_zone(self):
+        zone = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
+
+        algorithm = dns.dnssec.Algorithm.ED25519
+        lifetime = 3600
+
+        ksk_private_key = ed25519.Ed25519PrivateKey.generate()
+        ksk_dnskey = dns.dnssec.make_dnskey(
+            public_key=ksk_private_key.public_key(),
+            algorithm=algorithm,
+            flags=Flag.ZONE | Flag.SEP,
+        )
+
+        zsk_private_key = ed25519.Ed25519PrivateKey.generate()
+        zsk_dnskey = dns.dnssec.make_dnskey(
+            public_key=zsk_private_key.public_key(),
+            algorithm=algorithm,
+            flags=Flag.ZONE,
+        )
+
+        keys = [(ksk_private_key, ksk_dnskey), (zsk_private_key, zsk_dnskey)]
+
+        with zone.writer() as txn:
+            dns.dnssec.sign_zone(
+                zone=zone,
+                txn=txn,
+                keys=keys,
+                lifetime=lifetime,
+            )
+
+        rrsigs = set(
+            [
+                (str(name), rdataset.covers)
+                for (name, rdataset) in zone.iterate_rdatasets()
+                if rdataset.rdtype == dns.rdatatype.RRSIG
+            ]
+        )
+        self.assertEqual(rrsigs, test_zone_rrsigs)
+
+        signers = set(
+            [
+                (str(name), rdataset.covers, rdataset[0].key_tag)
+                for (name, rdataset) in zone.iterate_rdatasets()
+                if rdataset.rdtype == dns.rdatatype.RRSIG
+            ]
+        )
+        for name, covers, key_tag in signers:
+            if covers in [
+                dns.rdatatype.DNSKEY,
+                dns.rdatatype.CDNSKEY,
+                dns.rdatatype.CDS,
+            ]:
+                self.assertEqual(key_tag, dns.dnssec.key_id(ksk_dnskey))
+            else:
+                self.assertEqual(key_tag, dns.dnssec.key_id(zsk_dnskey))
+
+    def test_sign_zone_nsec_null_signer(self):
+        def rrset_signer(
+            txn: dns.transaction.Transaction,
+            rrset: dns.rrset.RRset,
+        ) -> None:
+            pass
+
+        zone1 = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
+        dns.dnssec.sign_zone(zone1, rrset_signer=rrset_signer)
+
+        zone2 = dns.zone.from_text(test_zone_with_nsec, "example.", relativize=False)
+        self.assertEqual(zone1.to_text(), zone2.to_text())
 
 
 class DNSSECMakeDSTestCase(unittest.TestCase):
