@@ -17,6 +17,9 @@ What's New in dnspython
 * DNS-over-HTTPS now only uses httpx; support for requests has been dropped.  A source
   port may now be supplied when using httpx.
 
+* DNSSEC zone signing with NSEC records is now supported. Thank you
+  very much (again!) Jakob Schlyter!
+
 * Curio support has been removed.
 
 2.3.0

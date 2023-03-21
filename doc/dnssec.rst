@@ -25,6 +25,8 @@ DNSSEC Functions
 .. autofunction:: dns.dnssec.cds_rdataset_to_ds_rdataset()
 .. autofunction:: dns.dnssec.dnskey_rdataset_to_cds_rdataset()
 .. autofunction:: dns.dnssec.dnskey_rdataset_to_cdnskey_rdataset()
+.. autofunction:: dns.dnssec.default_rrset_signer()
+.. autofunction:: dns.dnssec.sign_zone()
 
 DNSSEC Algorithms
 -----------------
