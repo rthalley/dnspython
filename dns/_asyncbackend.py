@@ -35,6 +35,9 @@ class Socket:  # pragma: no cover
     async def getsockname(self):
         raise NotImplementedError
 
+    async def getpeercert(self):
+        raise NotImplementedError
+
     async def __aenter__(self):
         return self
 

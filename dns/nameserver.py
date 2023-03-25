@@ -16,6 +16,9 @@ class Nameserver:
     def __str__(self):
         raise NotImplementedError
 
+    def kind(self) -> str:
+        raise NotImplementedError
+
     def is_always_max_size(self) -> bool:
         raise NotImplementedError
 
@@ -160,6 +163,9 @@ class DoHNameserver(Nameserver):
         super().__init__()
         self.url = url
         self.bootstrap_address = bootstrap_address
+
+    def kind(self):
+        return "DoH"
 
     def is_always_max_size(self) -> bool:
         return True

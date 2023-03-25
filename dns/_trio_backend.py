@@ -50,6 +50,9 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def getsockname(self):
         return self.socket.getsockname()
 
+    async def getpeercert(self):
+        raise NotImplementedError
+
 
 class StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, family, stream, tls=False):
@@ -81,6 +84,13 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
             return self.stream.transport_stream.socket.getsockname()
         else:
             return self.stream.socket.getsockname()
+
+    async def getpeercert(self):
+        if self.tls:
+            await self.stream.do_handshake()
+            return self.stream.getpeercert()
+        else:
+            raise NotImplementedError
 
 
 try:

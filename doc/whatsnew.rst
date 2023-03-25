@@ -20,6 +20,12 @@ What's New in dnspython
 * DNSSEC zone signing with NSEC records is now supported. Thank you
   very much (again!) Jakob Schlyter!
 
+* The resolver and async resolver now have the ``try_ddr()`` method, which will try to
+  use Discovery of Designated Resolvers (DDR) to upgrade the connection from the stub
+  resolver to the recursive server so that it uses DNS-over-HTTPS, DNS-over-TLS, or
+  DNS-over-QUIC. This feature is currently experimental as the standard is still in
+  draft stage, although the DDR has been deployed already.
+
 * Curio support has been removed.
 
 2.3.0
