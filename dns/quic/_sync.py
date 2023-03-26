@@ -197,8 +197,8 @@ class SyncQuicConnection(BaseQuicConnection):
 
 
 class SyncQuicManager(BaseQuicManager):
-    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED):
-        super().__init__(conf, verify_mode, SyncQuicConnection)
+    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None):
+        super().__init__(conf, verify_mode, SyncQuicConnection, server_name)
         self._lock = threading.Lock()
 
     def connect(self, address, port=853, source=None, source_port=0):

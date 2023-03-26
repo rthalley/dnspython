@@ -710,6 +710,7 @@ async def quic(
     connection: Optional[dns.quic.AsyncQuicConnection] = None,
     verify: Union[bool, str] = True,
     backend: Optional[dns.asyncbackend.Backend] = None,
+    server_hostname: Optional[str] = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending an asynchronous query via
     DNS-over-QUIC.
@@ -735,7 +736,9 @@ async def quic(
         (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
 
     async with cfactory() as context:
-        async with mfactory(context, verify_mode=verify) as the_manager:
+        async with mfactory(
+            context, verify_mode=verify, server_name=server_hostname
+        ) as the_manager:
             if not connection:
                 the_connection = the_manager.connect(where, port, source, source_port)
             start = time.time()

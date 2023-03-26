@@ -157,8 +157,10 @@ class TrioQuicConnection(AsyncQuicConnection):
 
 
 class TrioQuicManager(AsyncQuicManager):
-    def __init__(self, nursery, conf=None, verify_mode=ssl.CERT_REQUIRED):
-        super().__init__(conf, verify_mode, TrioQuicConnection)
+    def __init__(
+        self, nursery, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None
+    ):
+        super().__init__(conf, verify_mode, TrioQuicConnection, server_name)
         self._nursery = nursery
 
     def connect(self, address, port=853, source=None, source_port=0):

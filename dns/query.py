@@ -1127,6 +1127,7 @@ def quic(
     ignore_trailing: bool = False,
     connection: Optional[dns.quic.SyncQuicConnection] = None,
     verify: Union[bool, str] = True,
+    server_hostname: Optional[str] = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-QUIC.
 
@@ -1158,6 +1159,10 @@ def quic(
     verification is done; if a `str` then it specifies the path to a certificate file or
     directory which will be used for verification.
 
+    *server_hostname*, a ``str`` containing the server's hostname.  The
+    default is ``None``, which means that no hostname is known, and if an
+    SSL context is created, hostname checking will be disabled.
+
     Returns a ``dns.message.Message``.
     """
 
@@ -1172,7 +1177,9 @@ def quic(
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
         the_connection = connection
     else:
-        manager = dns.quic.SyncQuicManager(verify_mode=verify)
+        manager = dns.quic.SyncQuicManager(
+            verify_mode=verify, server_name=server_hostname
+        )
         the_manager = manager  # for type checking happiness
 
     with manager:

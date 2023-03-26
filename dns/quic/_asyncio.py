@@ -193,8 +193,8 @@ class AsyncioQuicConnection(AsyncQuicConnection):
 
 
 class AsyncioQuicManager(AsyncQuicManager):
-    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED):
-        super().__init__(conf, verify_mode, AsyncioQuicConnection)
+    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None):
+        super().__init__(conf, verify_mode, AsyncioQuicConnection, server_name)
 
     def connect(self, address, port=853, source=None, source_port=0):
         (connection, start) = self._connect(address, port, source, source_port)
