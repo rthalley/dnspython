@@ -266,9 +266,16 @@ class DoTNameserver(AddressAndPortNameserver):
 
 
 class DoQNameserver(AddressAndPortNameserver):
-    def __init__(self, address: str, port: int = 853, verify: Union[bool, str] = True):
+    def __init__(
+        self,
+        address: str,
+        port: int = 853,
+        verify: Union[bool, str] = True,
+        server_hostname: Optional[str] = None,
+    ):
         super().__init__(address, port)
         self.verify = verify
+        self.server_hostname = server_hostname
 
     def kind(self):
         return "DoQ"
@@ -291,6 +298,7 @@ class DoQNameserver(AddressAndPortNameserver):
             one_rr_per_rrset=one_rr_per_rrset,
             ignore_trailing=ignore_trailing,
             verify=self.verify,
+            server_hostname=self.server_hostname,
         )
 
     async def async_query(
@@ -312,4 +320,5 @@ class DoQNameserver(AddressAndPortNameserver):
             one_rr_per_rrset=one_rr_per_rrset,
             ignore_trailing=ignore_trailing,
             verify=self.verify,
+            server_hostname=self.server_hostname,
         )
