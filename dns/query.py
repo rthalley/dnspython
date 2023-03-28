@@ -192,7 +192,7 @@ class BadResponse(dns.exception.FormError):
 
 
 class NoDOH(dns.exception.DNSException):
-    """DNS over HTTPS (DOH) was requested but the requests module is not
+    """DNS over HTTPS (DOH) was requested but the httpx module is not
     available."""
 
 
@@ -430,7 +430,7 @@ def https(
     """
 
     if not have_doh:
-        raise NoDOH("DNS-over-HTTPS is not available.")  # pragma: no cover
+        raise NoDOH  # pragma: no cover
     if session and not isinstance(session, httpx.Client):
         raise ValueError("session parameter must be an httpx.Client")
 

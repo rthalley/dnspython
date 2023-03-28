@@ -512,7 +512,7 @@ async def https(
     """
 
     if not have_doh:
-        raise NoDOH("httpx is not available.")  # pragma: no cover
+        raise NoDOH  # pragma: no cover
     if client and not isinstance(client, httpx.AsyncClient):
         raise ValueError("session parameter must be an httpx.AsyncClient")
 
