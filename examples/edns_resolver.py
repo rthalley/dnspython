@@ -53,7 +53,7 @@ o_list.append((l, dict(options=[dns.edns.ECSOption(external_ip, 24)])))
 
 aresolver = dns.resolver.Resolver()
 
-for (addr, edns_kwargs) in o_list:
+for addr, edns_kwargs in o_list:
     if edns_kwargs:
         aresolver.use_edns(**edns_kwargs)
     aresolver.nameservers = ["8.8.8.8"]

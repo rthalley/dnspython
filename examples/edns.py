@@ -60,7 +60,7 @@ q_list.append(
     (l, dns.message.make_query(n, t, options=[dns.edns.ECSOption("192.168.0.0", 20)]))
 )
 
-for (addr, q) in q_list:
+for addr, q in q_list:
     r = dns.query.udp(q, addr)
     if not r.options:
         print("No EDNS options returned")

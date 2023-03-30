@@ -80,3 +80,6 @@ pokit:
 
 findjunk:
 	find dns -type f | egrep -v '.*\.py' | egrep -v 'py\.typed'
+
+poblack:
+	poetry run black dns examples tests

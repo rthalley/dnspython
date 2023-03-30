@@ -120,7 +120,7 @@ class Bitmap:
     def __init__(self, windows=None):
         last_window = -1
         self.windows = windows
-        for (window, bitmap) in self.windows:
+        for window, bitmap in self.windows:
             if not isinstance(window, int):
                 raise ValueError(f"bad {self.type_name} window type")
             if window <= last_window:
@@ -135,9 +135,9 @@ class Bitmap:
 
     def to_text(self) -> str:
         text = ""
-        for (window, bitmap) in self.windows:
+        for window, bitmap in self.windows:
             bits = []
-            for (i, byte) in enumerate(bitmap):
+            for i, byte in enumerate(bitmap):
                 for j in range(0, 8):
                     if byte & (0x80 >> j):
                         rdtype = window * 256 + i * 8 + j
@@ -183,7 +183,7 @@ class Bitmap:
         return cls(windows)
 
     def to_wire(self, file: Any) -> None:
-        for (window, bitmap) in self.windows:
+        for window, bitmap in self.windows:
             file.write(struct.pack("!BB", window, len(bitmap)))
             file.write(bitmap)
 
@@ -231,7 +231,7 @@ def weighted_processing_order(iterable):
         total = sum(rdata._processing_weight() or _no_weight for rdata in rdatas)
         while len(rdatas) > 1:
             r = random.uniform(0, total)
-            for (n, rdata) in enumerate(rdatas):
+            for n, rdata in enumerate(rdatas):
                 weight = rdata._processing_weight() or _no_weight
                 if weight > r:
                     break

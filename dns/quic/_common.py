@@ -151,7 +151,7 @@ class BaseQuicManager:
             conf = aioquic.quic.configuration.QuicConfiguration(
                 alpn_protocols=["doq", "doq-i03"],
                 verify_mode=verify_mode,
-                server_name=server_name
+                server_name=server_name,
             )
             if verify_path is not None:
                 conf.load_verify_locations(verify_path)
