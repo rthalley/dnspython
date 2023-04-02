@@ -1503,7 +1503,9 @@ class Resolver(BaseResolver):
         The current implementation does not use any address hints from the SVCB record,
         nor does it resolve addresses for the SCVB target name, rather it assumes that
         the bootstrap nameserver will always be one of the addresses and uses it.
-        A future revision to the code may offer fuller support.
+        A future revision to the code may offer fuller support.  The code verifies that
+        the bootstrap nameserver is in the Subject Alternative Name field of the
+        TLS certficate.
         """
         try:
             expiration = time.time() + lifetime
