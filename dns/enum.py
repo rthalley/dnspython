@@ -34,9 +34,9 @@ class IntEnum(enum.IntEnum):
     @classmethod
     def _check_value(cls, value):
         max = cls._maximum()
-        if value < 0 or value > max:
+        if not isinstance(value, int) or value < 0 or value > max:
             name = cls._short_name()
-            raise ValueError(f"{name} must be between >= 0 and <= {max}")
+            raise ValueError(f"{name} must be an int between >= 0 and <= {max}")
 
     @classmethod
     def from_text(cls, text):
