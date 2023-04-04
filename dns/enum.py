@@ -15,10 +15,22 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from typing import Type, TypeVar, Union
+
 import enum
+
+TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 
 
 class IntEnum(enum.IntEnum):
+    @classmethod
+    def _missing_(cls, value):
+        cls._check_value(value)
+        val = int.__new__(cls, value)
+        val._name_ = cls._extra_to_text(value, None) or f"{cls._prefix()}{value}"
+        val._value_ = value
+        return val
+
     @classmethod
     def _check_value(cls, value):
         max = cls._maximum()
@@ -59,7 +71,7 @@ class IntEnum(enum.IntEnum):
         return text
 
     @classmethod
-    def make(cls, value):
+    def make(cls: Type[TIntEnum], value: Union[int, str]) -> TIntEnum:
         """Convert text or a value into an enumerated type, if possible.
 
         *value*, the ``int`` or ``str`` to convert.
@@ -76,10 +88,7 @@ class IntEnum(enum.IntEnum):
         if isinstance(value, str):
             return cls.from_text(value)
         cls._check_value(value)
-        try:
-            return cls(value)
-        except ValueError:
-            return value
+        return cls(value)
 
     @classmethod
     def _maximum(cls):

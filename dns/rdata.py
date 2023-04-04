@@ -885,7 +885,10 @@ def register_type(
     if existing_cls != GenericRdata or dns.rdatatype.is_metatype(the_rdtype):
         raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
     try:
-        if dns.rdatatype.RdataType(the_rdtype).name != rdtype_text:
+        if (
+            the_rdtype in dns.rdatatype.RdataType
+            and dns.rdatatype.RdataType(the_rdtype).name != rdtype_text
+        ):
             raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
     except ValueError:
         pass
