@@ -135,7 +135,7 @@ IndexKeyType = Tuple[
     Optional[dns.rdataclass.RdataClass],
 ]
 IndexType = Dict[IndexKeyType, dns.rrset.RRset]
-SectionType = Union[int, List[dns.rrset.RRset]]
+SectionType = Union[int, str, List[dns.rrset.RRset]]
 
 
 class Message:
@@ -348,27 +348,29 @@ class Message:
         deleting: Optional[dns.rdataclass.RdataClass] = None,
         create: bool = False,
         force_unique: bool = False,
+        idna_codec: Optional[dns.name.IDNACodec] = None,
     ) -> dns.rrset.RRset:
         """Find the RRset with the given attributes in the specified section.
 
-        *section*, an ``int`` section number, or one of the section
-        attributes of this message.  This specifies the
+        *section*, an ``int`` section number, a ``str`` section name, or one of
+        the section attributes of this message.  This specifies the
         the section of the message to search.  For example::
 
             my_message.find_rrset(my_message.answer, name, rdclass, rdtype)
             my_message.find_rrset(dns.message.ANSWER, name, rdclass, rdtype)
+            my_message.find_rrset("ANSWER", name, rdclass, rdtype)
 
-        *name*, a ``dns.name.Name``, the name of the RRset.
+        *name*, a ``dns.name.Name`` or ``str``, the name of the RRset.
 
-        *rdclass*, an ``int``, the class of the RRset.
+        *rdclass*, an ``int`` or ``str``, the class of the RRset.
 
-        *rdtype*, an ``int``, the type of the RRset.
+        *rdtype*, an ``int`` or ``str``, the type of the RRset.
 
-        *covers*, an ``int`` or ``None``, the covers value of the RRset.
-        The default is ``None``.
+        *covers*, an ``int`` or ``str``, the covers value of the RRset.
+        The default is ``dns.rdatatype.NONE``.
 
-        *deleting*, an ``int`` or ``None``, the deleting value of the RRset.
-        The default is ``None``.
+        *deleting*, an ``int``, ``str``, or ``None``, the deleting value of the
+        RRset.  The default is ``None``.
 
         *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
         The created RRset is appended to *section*.
@@ -377,6 +379,10 @@ class Message:
         create a new RRset regardless of whether a matching RRset exists
         already.  The default is ``False``.  This is useful when creating
         DDNS Update messages, as order matters for them.
+
+        *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+        encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+        is used.
 
         Raises ``KeyError`` if the RRset was not found and create was
         ``False``.
@@ -387,9 +393,19 @@ class Message:
         if isinstance(section, int):
             section_number = section
             the_section = self.section_from_number(section_number)
+        elif isinstance(section, str):
+            section_number = MessageSection.from_text(section)
+            the_section = self.section_from_number(section_number)
         else:
             section_number = self.section_number(section)
             the_section = section
+        if isinstance(name, str):
+            name = dns.name.from_text(name, idna_codec=idna_codec)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
+        covers = dns.rdatatype.RdataType.make(covers)
+        if deleting is not None:
+            deleting = dns.rdataclass.RdataClass.make(deleting)
         key = (section_number, name, rdclass, rdtype, covers, deleting)
         if not force_unique:
             if self.index is not None:
@@ -418,29 +434,31 @@ class Message:
         deleting: Optional[dns.rdataclass.RdataClass] = None,
         create: bool = False,
         force_unique: bool = False,
+        idna_codec: Optional[dns.name.IDNACodec] = None,
     ) -> Optional[dns.rrset.RRset]:
         """Get the RRset with the given attributes in the specified section.
 
         If the RRset is not found, None is returned.
 
-        *section*, an ``int`` section number, or one of the section
-        attributes of this message.  This specifies the
+        *section*, an ``int`` section number, a ``str`` section name, or one of
+        the section attributes of this message.  This specifies the
         the section of the message to search.  For example::
 
             my_message.get_rrset(my_message.answer, name, rdclass, rdtype)
             my_message.get_rrset(dns.message.ANSWER, name, rdclass, rdtype)
+            my_message.get_rrset("ANSWER", name, rdclass, rdtype)
 
-        *name*, a ``dns.name.Name``, the name of the RRset.
+        *name*, a ``dns.name.Name`` or ``str``, the name of the RRset.
 
-        *rdclass*, an ``int``, the class of the RRset.
+        *rdclass*, an ``int`` or ``str``, the class of the RRset.
 
-        *rdtype*, an ``int``, the type of the RRset.
+        *rdtype*, an ``int`` or ``str``, the type of the RRset.
 
-        *covers*, an ``int`` or ``None``, the covers value of the RRset.
-        The default is ``None``.
+        *covers*, an ``int`` or ``str``, the covers value of the RRset.
+        The default is ``dns.rdatatype.NONE``.
 
-        *deleting*, an ``int`` or ``None``, the deleting value of the RRset.
-        The default is ``None``.
+        *deleting*, an ``int``, ``str``, or ``None``, the deleting value of the
+        RRset.  The default is ``None``.
 
         *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
         The created RRset is appended to *section*.
@@ -449,6 +467,10 @@ class Message:
         create a new RRset regardless of whether a matching RRset exists
         already.  The default is ``False``.  This is useful when creating
         DDNS Update messages, as order matters for them.
+
+        *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+        encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+        is used.
 
         Returns a ``dns.rrset.RRset object`` or ``None``.
         """

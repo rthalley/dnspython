@@ -285,6 +285,14 @@ class MessageTestCase(unittest.TestCase):
         self.assertTrue(rrs1 is None)
         self.assertEqual(rrs1, rrs2)
 
+    def test_GetRRsetStrings(self):
+        a = dns.message.from_text(answer_text)
+        a.index = None
+        n = dns.name.from_text("dnspython.org.")
+        rrs1 = a.get_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        rrs2 = a.get_rrset("ANSWER", "dnspython.org.", "IN", "SOA")
+        self.assertEqual(rrs1, rrs2)
+
     def test_CleanTruncated(self):
         def bad():
             a = dns.message.from_text(answer_text)
