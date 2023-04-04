@@ -41,7 +41,7 @@ class IntEnum(enum.IntEnum):
             raise ValueError(f"{name} must be an int between >= 0 and <= {max}")
 
     @classmethod
-    def from_text(cls, text):
+    def from_text(cls : Type[TIntEnum], text: str) -> TIntEnum:
         text = text.upper()
         try:
             return cls[text]
@@ -61,7 +61,7 @@ class IntEnum(enum.IntEnum):
         raise cls._unknown_exception_class()
 
     @classmethod
-    def to_text(cls, value):
+    def to_text(cls : Type[TIntEnum], value : int) -> str:
         cls._check_value(value)
         try:
             text = cls(value).name
