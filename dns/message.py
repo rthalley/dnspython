@@ -392,13 +392,13 @@ class Message:
 
         if isinstance(section, int):
             section_number = section
-            the_section = self.section_from_number(section_number)
+            section = self.section_from_number(section_number)
         elif isinstance(section, str):
             section_number = MessageSection.from_text(section)
-            the_section = self.section_from_number(section_number)
+            section = self.section_from_number(section_number)
         else:
             section_number = self.section_number(section)
-            the_section = section
+            section = section
         if isinstance(name, str):
             name = dns.name.from_text(name, idna_codec=idna_codec)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
@@ -413,13 +413,13 @@ class Message:
                 if rrset is not None:
                     return rrset
             else:
-                for rrset in the_section:
+                for rrset in section:
                     if rrset.full_match(name, rdclass, rdtype, covers, deleting):
                         return rrset
         if not create:
             raise KeyError
         rrset = dns.rrset.RRset(name, rdclass, rdtype, covers, deleting)
-        the_section.append(rrset)
+        section.append(rrset)
         if self.index is not None:
             self.index[key] = rrset
         return rrset
