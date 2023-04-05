@@ -335,12 +335,12 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                 True,
             )
         else:
-            the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+            rdtype = dns.rdatatype.RdataType.make(rdtype)
             self.find_rrset(
                 self.prerequisite,
                 name,
                 dns.rdataclass.NONE,
-                the_rdtype,
+                rdtype,
                 dns.rdatatype.NONE,
                 None,
                 True,

@@ -321,11 +321,11 @@ class Zone(dns.transaction.TransactionManager):
         Returns a ``dns.rdataset.Rdataset``.
         """
 
-        the_name = self._validate_name(name)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        the_covers = dns.rdatatype.RdataType.make(covers)
-        node = self.find_node(the_name, create)
-        return node.find_rdataset(self.rdclass, the_rdtype, the_covers, create)
+        name = self._validate_name(name)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
+        node = self.find_node(name, create)
+        return node.find_rdataset(self.rdclass, rdtype, covers, create)
 
     def get_rdataset(
         self,
@@ -404,14 +404,14 @@ class Zone(dns.transaction.TransactionManager):
         types were aggregated into a single RRSIG rdataset.
         """
 
-        the_name = self._validate_name(name)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        the_covers = dns.rdatatype.RdataType.make(covers)
-        node = self.get_node(the_name)
+        name = self._validate_name(name)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
+        node = self.get_node(name)
         if node is not None:
-            node.delete_rdataset(self.rdclass, the_rdtype, the_covers)
+            node.delete_rdataset(self.rdclass, rdtype, covers)
             if len(node) == 0:
-                self.delete_node(the_name)
+                self.delete_node(name)
 
     def replace_rdataset(
         self, name: Union[dns.name.Name, str], replacement: dns.rdataset.Rdataset
@@ -484,10 +484,10 @@ class Zone(dns.transaction.TransactionManager):
         """
 
         vname = self._validate_name(name)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        the_covers = dns.rdatatype.RdataType.make(covers)
-        rdataset = self.nodes[vname].find_rdataset(self.rdclass, the_rdtype, the_covers)
-        rrset = dns.rrset.RRset(vname, self.rdclass, the_rdtype, the_covers)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
+        rdataset = self.nodes[vname].find_rdataset(self.rdclass, rdtype, covers)
+        rrset = dns.rrset.RRset(vname, self.rdclass, rdtype, covers)
         rrset.update(rdataset)
         return rrset
 

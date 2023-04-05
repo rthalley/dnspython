@@ -710,26 +710,26 @@ def read_rrsets(
     if isinstance(default_ttl, str):
         default_ttl = dns.ttl.from_text(default_ttl)
     if rdclass is not None:
-        the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
     else:
-        the_rdclass = None
-    the_default_rdclass = dns.rdataclass.RdataClass.make(default_rdclass)
+        rdclass = None
+    default_rdclass = dns.rdataclass.RdataClass.make(default_rdclass)
     if rdtype is not None:
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
     else:
-        the_rdtype = None
+        rdtype = None
     manager = RRSetsReaderManager(origin, relativize, default_rdclass)
     with manager.writer(True) as txn:
         tok = dns.tokenizer.Tokenizer(text, "<input>", idna_codec=idna_codec)
         reader = Reader(
             tok,
-            the_default_rdclass,
+            default_rdclass,
             txn,
             allow_directives=False,
             force_name=name,
             force_ttl=ttl,
-            force_rdclass=the_rdclass,
-            force_rdtype=the_rdtype,
+            force_rdclass=rdclass,
+            force_rdtype=rdtype,
             default_ttl=default_ttl,
         )
         reader.read()

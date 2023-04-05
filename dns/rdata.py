@@ -880,19 +880,19 @@ def register_type(
     it applies to all classes.
     """
 
-    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-    existing_cls = get_rdata_class(rdclass, the_rdtype)
-    if existing_cls != GenericRdata or dns.rdatatype.is_metatype(the_rdtype):
-        raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    existing_cls = get_rdata_class(rdclass, rdtype)
+    if existing_cls != GenericRdata or dns.rdatatype.is_metatype(rdtype):
+        raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
     try:
         if (
-            the_rdtype in dns.rdatatype.RdataType
-            and dns.rdatatype.RdataType(the_rdtype).name != rdtype_text
+            rdtype in dns.rdatatype.RdataType
+            and dns.rdatatype.RdataType(rdtype).name != rdtype_text
         ):
-            raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
+            raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
     except ValueError:
         pass
-    _rdata_classes[(rdclass, the_rdtype)] = getattr(
+    _rdata_classes[(rdclass, rdtype)] = getattr(
         implementation, rdtype_text.replace("-", "_")
     )
-    dns.rdatatype.register_type(the_rdtype, rdtype_text, is_singleton)
+    dns.rdatatype.register_type(rdtype, rdtype_text, is_singleton)
