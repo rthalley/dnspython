@@ -948,9 +948,9 @@ def _make_dnskey(
         else:
             raise ValueError("unsupported ECDSA curve")
 
-    the_algorithm = Algorithm.make(algorithm)
+    algorithm = Algorithm.make(algorithm)
 
-    _ensure_algorithm_key_combination(the_algorithm, public_key)
+    _ensure_algorithm_key_combination(algorithm, public_key)
 
     if isinstance(public_key, rsa.RSAPublicKey):
         key_bytes = encode_rsa_public_key(public_key)
@@ -974,7 +974,7 @@ def _make_dnskey(
         rdtype=dns.rdatatype.DNSKEY,
         flags=flags,
         protocol=protocol,
-        algorithm=the_algorithm,
+        algorithm=algorithm,
         key=key_bytes,
     )
 

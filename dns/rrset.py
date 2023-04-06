@@ -214,9 +214,9 @@ def from_text_list(
 
     if isinstance(name, str):
         name = dns.name.from_text(name, None, idna_codec=idna_codec)
-    the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
-    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-    r = RRset(name, the_rdclass, the_rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    r = RRset(name, rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:
         rd = dns.rdata.from_text(

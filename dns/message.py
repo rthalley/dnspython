@@ -1730,13 +1730,11 @@ def make_query(
 
     if isinstance(qname, str):
         qname = dns.name.from_text(qname, idna_codec=idna_codec)
-    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-    the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
     m = QueryMessage(id=id)
     m.flags = dns.flags.Flag(flags)
-    m.find_rrset(
-        m.question, qname, the_rdclass, the_rdtype, create=True, force_unique=True
-    )
+    m.find_rrset(m.question, qname, rdclass, rdtype, create=True, force_unique=True)
     # only pass keywords on to use_edns if they have been set to a
     # non-None value.  Setting a field will turn EDNS on if it hasn't
     # been configured.

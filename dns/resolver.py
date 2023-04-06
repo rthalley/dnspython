@@ -647,17 +647,17 @@ class _Resolution:
     ) -> None:
         if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        if dns.rdatatype.is_metatype(the_rdtype):
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        if dns.rdatatype.is_metatype(rdtype):
             raise NoMetaqueries
-        the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
-        if dns.rdataclass.is_metaclass(the_rdclass):
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
+        if dns.rdataclass.is_metaclass(rdclass):
             raise NoMetaqueries
         self.resolver = resolver
         self.qnames_to_try = resolver._get_qnames_to_try(qname, search)
         self.qnames = self.qnames_to_try[:]
-        self.rdtype = the_rdtype
-        self.rdclass = the_rdclass
+        self.rdtype = rdtype
+        self.rdclass = rdclass
         self.tcp = tcp
         self.raise_on_no_answer = raise_on_no_answer
         self.nxdomain_responses: Dict[dns.name.Name, dns.message.QueryMessage] = {}
