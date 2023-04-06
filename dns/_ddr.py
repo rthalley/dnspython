@@ -60,6 +60,7 @@ class _SVCBInfo:
         if backend is None:
             backend = dns.asyncbackend.get_default_backend()
         ctx = self.make_tls_context()
+        expiration = time.time() + lifetime
         async with await backend.make_socket(
             dns.inet.af_for_address(self.bootstrap_address),
             socket.SOCK_STREAM,
@@ -70,7 +71,7 @@ class _SVCBInfo:
             ctx,
             self.hostname,
         ) as ts:
-            cert = await ts.getpeercert()
+            cert = await ts.getpeercert(dns.query._remaining(expiration))
             return self.ddr_check_certificate(cert)
 
 

@@ -85,7 +85,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def getsockname(self):
         return self.transport.get_extra_info("sockname")
 
-    async def getpeercert(self):
+    async def getpeercert(self, timeout):
         raise NotImplementedError
 
 
@@ -115,7 +115,7 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
     async def getsockname(self):
         return self.writer.get_extra_info("sockname")
 
-    async def getpeercert(self):
+    async def getpeercert(self, timeout):
         return self.writer.get_extra_info("peercert")
 
 

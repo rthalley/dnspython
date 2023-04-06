@@ -50,7 +50,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def getsockname(self):
         return self.socket.getsockname()
 
-    async def getpeercert(self):
+    async def getpeercert(self, timeout):
         raise NotImplementedError
 
 
@@ -85,9 +85,10 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
         else:
             return self.stream.socket.getsockname()
 
-    async def getpeercert(self):
+    async def getpeercert(self, timeout):
         if self.tls:
-            await self.stream.do_handshake()
+            with _maybe_timeout(timeout):
+                await self.stream.do_handshake()
             return self.stream.getpeercert()
         else:
             raise NotImplementedError

@@ -1516,8 +1516,7 @@ class Resolver(BaseResolver):
             nameservers = dns._ddr._get_nameservers_sync(answer, timeout)
             if len(nameservers) > 0:
                 self.nameservers = nameservers
-        except Exception as e:
-            print(e)
+        except Exception:
             pass
 
 
