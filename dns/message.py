@@ -398,7 +398,6 @@ class Message:
             section = self.section_from_number(section_number)
         else:
             section_number = self.section_number(section)
-            section = section
         if isinstance(name, str):
             name = dns.name.from_text(name, idna_codec=idna_codec)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
@@ -477,7 +476,15 @@ class Message:
 
         try:
             rrset = self.find_rrset(
-                section, name, rdclass, rdtype, covers, deleting, create, force_unique
+                section,
+                name,
+                rdclass,
+                rdtype,
+                covers,
+                deleting,
+                create,
+                force_unique,
+                idna_codec,
             )
         except KeyError:
             rrset = None
