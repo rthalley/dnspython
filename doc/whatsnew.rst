@@ -6,6 +6,8 @@ What's New in dnspython
 2.4.0 (in development)
 ----------------------
 
+* Python 3.8 or newer is required.
+
 * The stub resolver now uses instances of ``dns.nameserver.Nameserver`` to represent
   remote recursive resolvers, and can communicate using
   DNS over UDP/TCP, HTTPS, TLS, and QUIC.  In additional to being able to specify
