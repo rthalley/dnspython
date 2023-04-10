@@ -25,16 +25,31 @@ for rr in ns_rrset:
 print("")
 print("")
 
-# A higher-level way
+# A higher-level way:
 
 import dns.resolver
 
-resolver = dns.resolver.Resolver(configure=False)
-resolver.nameservers = ["8.8.8.8"]
-answer = resolver.resolve("amazon.com", "NS")
+answer = dns.resolver.resolve_at("8.8.8.8", "amazon.com", "NS")
 print("The nameservers are:")
 for rr in answer:
     print(rr.target)
+print("")
+print("")
+
+# If you're going to make a bunch of queries to the server, make the resolver once
+# and then use it multiple times:
+
+res = dns.resolver.make_resolver_at("dns.google")
+answer = res.resolve("amazon.com", "NS")
+print("The amazon.com nameservers are:")
+for rr in answer:
+    print(rr.target)
+answer = res.resolve("google.com", "NS")
+print("The google.com nameservers are:")
+for rr in answer:
+    print(rr.target)
+print("")
+print("")
 
 # Sending a query with the all flags set to 0.  This is the easiest way
 # to make a query with the RD flag off.

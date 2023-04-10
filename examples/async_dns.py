@@ -25,6 +25,10 @@ async def main():
     print(a.response)
     zn = await dns.asyncresolver.zone_for_name(host)
     print(zn)
+    answer = await dns.asyncresolver.resolve_at("8.8.8.8", "amazon.com", "NS")
+    print("The amazon.com nameservers are:")
+    for rr in answer:
+        print(rr.target)
 
 
 if __name__ == "__main__":

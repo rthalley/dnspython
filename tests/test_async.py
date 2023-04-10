@@ -560,6 +560,28 @@ class AsyncTests(unittest.TestCase):
 
         self.async_run(run)
 
+    @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    def testResolveAtAddress(self):
+        async def run():
+            answer = await dns.asyncresolver.resolve_at("8.8.8.8", "dns.google.", "A")
+            seen = set([rdata.address for rdata in answer])
+            self.assertIn("8.8.8.8", seen)
+            self.assertIn("8.8.4.4", seen)
+
+        self.async_run(run)
+
+    @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    def testResolveAtName(self):
+        async def run():
+            answer = await dns.asyncresolver.resolve_at(
+                "dns.google", "dns.google.", "A", family=socket.AF_INET
+            )
+            seen = set([rdata.address for rdata in answer])
+            self.assertIn("8.8.8.8", seen)
+            self.assertIn("8.8.4.4", seen)
+
+        self.async_run(run)
+
     def testSleep(self):
         async def run():
             before = time.time()

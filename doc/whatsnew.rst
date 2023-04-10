@@ -28,6 +28,10 @@ What's New in dnspython
   DNS-over-QUIC. This feature is currently experimental as the standard is still in
   draft stage.
 
+* The resolver and async resolver now have the ``make_resolver_at()`` and
+  ``resolve_at()`` functions, as a convenience for making queries to specific
+  recursive servers.
+
 * Curio support has been removed.
 
 2.3.0
