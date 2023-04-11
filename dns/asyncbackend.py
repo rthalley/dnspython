@@ -69,9 +69,7 @@ def sniff() -> str:
         try:
             return sniffio.current_async_library()
         except sniffio.AsyncLibraryNotFoundError:
-            raise AsyncLibraryNotFoundError(
-                "sniffio cannot determine " + "async library"
-            )
+            raise AsyncLibraryNotFoundError("sniffio cannot determine async library")
     except ImportError:
         import asyncio
 

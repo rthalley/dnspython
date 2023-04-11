@@ -1444,7 +1444,7 @@ def _sign_zone_nsec(
 
 def _need_pyca(*args, **kwargs):
     raise ImportError(
-        "DNSSEC validation requires " + "python cryptography"
+        "DNSSEC validation requires python cryptography"
     )  # pragma: no cover
 
 

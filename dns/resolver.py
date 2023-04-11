@@ -187,7 +187,7 @@ Timeout = LifetimeTimeout
 class NoAnswer(dns.exception.DNSException):
     """The DNS response does not contain an answer to the question."""
 
-    fmt = "The DNS response does not contain an answer " + "to the question: {query}"
+    fmt = "The DNS response does not contain an answer to the question: {query}"
     supp_kwargs = {"response"}
 
     # We do this as otherwise mypy complains about unexpected keyword argument

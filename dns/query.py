@@ -317,7 +317,7 @@ def _destination_and_source(
             # We know the destination af, so source had better agree!
             if saf != af:
                 raise ValueError(
-                    "different address families for source " + "and destination"
+                    "different address families for source and destination"
                 )
         else:
             # We didn't know the destination af, but we know the source,

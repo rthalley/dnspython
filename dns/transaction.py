@@ -437,7 +437,7 @@ class Transaction:
                 rdataset = rrset.to_rdataset()
             else:
                 raise TypeError(
-                    f"{method} requires a name or RRset " + "as the first argument"
+                    f"{method} requires a name or RRset as the first argument"
                 )
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f"{method} has objects of wrong RdataClass")
@@ -496,7 +496,7 @@ class Transaction:
                 name = rdataset.name
             else:
                 raise TypeError(
-                    f"{method} requires a name or RRset " + "as the first argument"
+                    f"{method} requires a name or RRset as the first argument"
                 )
             self._raise_if_not_empty(method, args)
             if rdataset:

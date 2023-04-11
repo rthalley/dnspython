@@ -187,9 +187,7 @@ class HMACTSig:
         try:
             hashinfo = self._hashes[algorithm]
         except KeyError:
-            raise NotImplementedError(
-                f"TSIG algorithm {algorithm} " + "is not supported"
-            )
+            raise NotImplementedError(f"TSIG algorithm {algorithm} is not supported")
 
         # create the HMAC context
         if isinstance(hashinfo, tuple):
