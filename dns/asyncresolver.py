@@ -17,7 +17,7 @@
 
 """Asynchronous DNS stub resolver."""
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import socket
 import time
@@ -421,7 +421,7 @@ async def make_resolver_at(
     """
     if resolver is None:
         resolver = get_default_resolver()
-    nameservers = []
+    nameservers: List[Union[str, dns.nameserver.Nameserver]] = []
     if isinstance(where, str) and dns.inet.is_address(where):
         nameservers.append(dns.nameserver.Do53Nameserver(where, port))
     else:
