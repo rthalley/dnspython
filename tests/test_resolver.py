@@ -767,6 +767,22 @@ class LiveResolverTests(unittest.TestCase):
         self.assertIn("94.140.14.14", seen)
         self.assertIn("94.140.15.15", seen)
 
+    @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    def testResolveAtAddress(self):
+        answer = dns.resolver.resolve_at("8.8.8.8", "dns.google.", "A")
+        seen = set([rdata.address for rdata in answer])
+        self.assertIn("8.8.8.8", seen)
+        self.assertIn("8.8.4.4", seen)
+
+    @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    def testResolveAtName(self):
+        answer = dns.resolver.resolve_at(
+            "dns.google", "dns.google.", "A", family=socket.AF_INET
+        )
+        seen = set([rdata.address for rdata in answer])
+        self.assertIn("8.8.8.8", seen)
+        self.assertIn("8.8.4.4", seen)
+
     def testCanonicalNameNoCNAME(self):
         cname = dns.name.from_text("www.google.com")
         self.assertEqual(dns.resolver.canonical_name("www.google.com"), cname)
