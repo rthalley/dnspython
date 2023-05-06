@@ -586,13 +586,12 @@ class RdataTestCase(unittest.TestCase):
         rd = dns.rdata.from_text("in", "rrsig", text)
         self.assertEqual(repr(rd), "<DNS IN RRSIG(NSEC) rdata: " + text + ">")
 
-    def test_bad_registration_implementing_known_type_with_wrong_name(self):
-        # Try to register an implementation at the MG codepoint that isn't
-        # called "MG"
+    def test_registration_implementing_known_and_implemented_type(self):
+        # Try to register an implementation at the A codepoint.
         with self.assertRaises(dns.rdata.RdatatypeExists):
-            dns.rdata.register_type(None, dns.rdatatype.MG, "NOTMG")
+            dns.rdata.register_type(None, dns.rdatatype.A, "ANYTHING")
 
-    def test_registration_implementing_known_type_with_right_name(self):
+    def test_registration_of_known_but_unimplmented_type(self):
         # Try to register an implementation at the MD codepoint
         dns.rdata.register_type(tests.md_module, dns.rdatatype.MD, "MD")
         rd = dns.rdata.from_text("in", "md", "foo.")
