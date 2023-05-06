@@ -67,6 +67,9 @@ polint:
 poflake:
 	poetry run flake8 dns
 
+poruff:
+	poetry run ruff dns
+
 pocov:
 	poetry run coverage run --branch -m pytest
 	poetry run coverage html --include 'dns/*'

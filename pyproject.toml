@@ -73,3 +73,6 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.setuptools_scm]
+
+[tool.ruff]
+ignore = ['E741', 'F401']
