@@ -193,7 +193,7 @@ allow_all_policy = SimpleDeny(set(), set(), set(), set())
 default_policy = rfc_8624_policy
 
 
-class PrivateAlgorithmMetaPublicKey(metaclass=abc.ABCMeta):
+class PrivateAlgorithmPublicKeyBase(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def public_bytes(self) -> bytes:
         pass
@@ -203,9 +203,9 @@ class PrivateAlgorithmMetaPublicKey(metaclass=abc.ABCMeta):
         pass
 
 
-class PrivateAlgorithmMetaPrivateKey(metaclass=abc.ABCMeta):
+class PrivateAlgorithmPrivateKeyBase(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def public_key(self) -> PrivateAlgorithmMetaPublicKey:
+    def public_key(self) -> PrivateAlgorithmPublicKeyBase:
         pass
 
     @abc.abstractmethod
@@ -425,7 +425,7 @@ def _ensure_algorithm_key_combination(algorithm: int, key: PublicKey) -> None:
         if algorithm == Algorithm.ED448:
             return
         raise AlgorithmKeyMismatch('algorithm "%s" not valid for ED448 key' % algorithm)
-    if isinstance(key, PrivateAlgorithmMetaPublicKey):
+    if isinstance(key, PrivateAlgorithmPublicKeyBase):
         if _is_private(algorithm):
             return
 
@@ -850,7 +850,7 @@ def _sign(
         signature = private_key.sign(data)
         if verify:
             private_key.public_key().verify(signature, data)
-    elif isinstance(private_key, PrivateAlgorithmMetaPrivateKey):
+    elif isinstance(private_key, PrivateAlgorithmPrivateKeyBase):
         if not _is_private(dnskey.algorithm):
             raise ValueError("Invalid DNSKEY algorithm for unknown key")
         signature = private_key.sign(data)
@@ -1005,7 +1005,7 @@ def _make_dnskey(
         key_bytes = public_key.public_bytes(
             encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )
-    elif isinstance(public_key, PrivateAlgorithmMetaPublicKey):
+    elif isinstance(public_key, PrivateAlgorithmPublicKeyBase):
         key_bytes = public_key.public_bytes()
     else:
         raise TypeError("unsupported key algorithm")

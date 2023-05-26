@@ -1363,7 +1363,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         SIGNED_FAKE_DATA = b"signed"
         PRIVATE_ALGORITHM_NAME = dns.name.from_text("algorithm.example.com").to_wire()
 
-        class MyPublicKey(dns.dnssec.PrivateAlgorithmMetaPublicKey):
+        class MyPublicKey(dns.dnssec.PrivateAlgorithmPublicKeyBase):
             name = PRIVATE_ALGORITHM_NAME
 
             def verify(self, signature: bytes, data: bytes):
@@ -1372,7 +1372,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             def public_bytes(self) -> bytes:
                 return self.name + b"publickey"
 
-        class MyPrivateKey(dns.dnssec.PrivateAlgorithmMetaPrivateKey):
+        class MyPrivateKey(dns.dnssec.PrivateAlgorithmPrivateKeyBase):
             def public_key(self):
                 return MyPublicKey()
 
