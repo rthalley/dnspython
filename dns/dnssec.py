@@ -20,6 +20,7 @@
 
 from typing import Any, cast, Callable, Dict, List, Optional, Set, Tuple, Union
 
+import abc
 import contextlib
 import functools
 import hashlib
@@ -192,6 +193,26 @@ allow_all_policy = SimpleDeny(set(), set(), set(), set())
 default_policy = rfc_8624_policy
 
 
+class PrivateAlgorithmMetaPublicKey(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def public_bytes(self) -> bytes:
+        pass
+
+    @abc.abstractmethod
+    def verify(self, signature: bytes, data: bytes) -> None:
+        pass
+
+
+class PrivateAlgorithmMetaPrivateKey(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def public_key(self) -> PrivateAlgorithmMetaPublicKey:
+        pass
+
+    @abc.abstractmethod
+    def sign(self, data: bytes) -> bytes:
+        pass
+
+
 def make_ds(
     name: Union[dns.name.Name, str],
     key: dns.rdata.Rdata,
@@ -360,6 +381,13 @@ def _is_sha1(algorithm: int) -> bool:
     )
 
 
+def _is_private(algorithm: int) -> bool:
+    return algorithm in (
+        Algorithm.PRIVATEDNS,
+        Algorithm.PRIVATEOID,
+    )
+
+
 def _is_sha256(algorithm: int) -> bool:
     return algorithm in (Algorithm.RSASHA256, Algorithm.ECDSAP256SHA256)
 
@@ -397,6 +425,9 @@ def _ensure_algorithm_key_combination(algorithm: int, key: PublicKey) -> None:
         if algorithm == Algorithm.ED448:
             return
         raise AlgorithmKeyMismatch('algorithm "%s" not valid for ED448 key' % algorithm)
+    if isinstance(key, PrivateAlgorithmMetaPublicKey):
+        if _is_private(algorithm):
+            return
 
     raise TypeError("unsupported key type")
 
@@ -416,6 +447,8 @@ def _make_hash(algorithm: int) -> Any:
         return hashes.SHA512()
     if algorithm == Algorithm.ED448:
         return hashes.SHAKE256(114)
+    if _is_private(algorithm):
+        return None
 
     raise ValidationFailure("unknown hash for algorithm %u" % algorithm)
 
@@ -817,6 +850,12 @@ def _sign(
         signature = private_key.sign(data)
         if verify:
             private_key.public_key().verify(signature, data)
+    elif isinstance(private_key, PrivateAlgorithmMetaPrivateKey):
+        if not _is_private(dnskey.algorithm):
+            raise ValueError("Invalid DNSKEY algorithm for unknown key")
+        signature = private_key.sign(data)
+        if verify:
+            private_key.public_key().verify(signature, data)
     else:
         raise TypeError("Unsupported key algorithm")
 
@@ -966,6 +1005,8 @@ def _make_dnskey(
         key_bytes = public_key.public_bytes(
             encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )
+    elif isinstance(public_key, PrivateAlgorithmMetaPublicKey):
+        key_bytes = public_key.public_bytes()
     else:
         raise TypeError("unsupported key algorithm")
 

@@ -1359,6 +1359,51 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         rrsigset = dns.rrset.from_rdata(rrname, ttl, rrsig)
         dns.dnssec.validate(rrset=rrset, rrsigset=rrsigset, keys=keys, policy=policy)
 
+    def testSignaturePrivateAlgorithm(self):  # type: () -> None
+        SIGNED_FAKE_DATA = b"signed"
+        PRIVATE_ALGORITHM_NAME = dns.name.from_text("algorithm.example.com").to_wire()
+
+        class MyPublicKey(dns.dnssec.PrivateAlgorithmMetaPublicKey):
+            name = PRIVATE_ALGORITHM_NAME
+
+            def verify(self, signature: bytes, data: bytes):
+                return
+
+            def public_bytes(self) -> bytes:
+                return self.name + b"publickey"
+
+        class MyPrivateKey(dns.dnssec.PrivateAlgorithmMetaPrivateKey):
+            def public_key(self):
+                return MyPublicKey()
+
+            def sign(self, data: bytes) -> bytes:
+                return SIGNED_FAKE_DATA
+
+        key = MyPrivateKey()
+        algorithm = dns.dnssec.Algorithm.PRIVATEDNS
+        ttl = 60
+        lifetime = 3600
+        rrset = abs_soa
+        rrname = rrset.name
+        signer = rrname
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=key.public_key(), algorithm=algorithm
+        )
+        dnskey_rrset = dns.rrset.from_rdata(signer, ttl, dnskey)
+        self.assertEqual(
+            dnskey.key[0 : len(PRIVATE_ALGORITHM_NAME)], PRIVATE_ALGORITHM_NAME
+        )
+        rrsig = dns.dnssec.sign(
+            rrset=rrset,
+            private_key=key,
+            dnskey=dnskey,
+            lifetime=lifetime,
+            signer=signer,
+            verify=True,
+            policy=None,
+        )
+        self.assertEqual(rrsig.signature, SIGNED_FAKE_DATA)
+
 
 if __name__ == "__main__":
     unittest.main()
