@@ -84,7 +84,7 @@ try:
             self._family = family
 
         def connect_tcp(
-            self, host, port, timeout, local_address
+            self, host, port, timeout, local_address, socket_options=None
         ):  # pylint: disable=signature-differs
             addresses = []
             _, expiration = _compute_times(timeout)
@@ -123,7 +123,7 @@ try:
             raise httpcore.ConnectError
 
         def connect_unix_socket(
-            self, path, timeout
+            self, path, timeout, socket_options=None
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
