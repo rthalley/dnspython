@@ -852,7 +852,7 @@ def _sign(
             private_key.public_key().verify(signature, data)
     elif isinstance(private_key, PrivateAlgorithmPrivateKeyBase):
         if not _is_private(dnskey.algorithm):
-            raise ValueError("Invalid DNSKEY algorithm for unknown key")
+            raise ValueError("Invalid DNSKEY algorithm for private algorithm key")
         signature = private_key.sign(data)
         if verify:
             private_key.public_key().verify(signature, data)
