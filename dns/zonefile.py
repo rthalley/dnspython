@@ -191,10 +191,6 @@ class Reader:
                 self.last_ttl_known = True
                 token = None
             except dns.ttl.BadTTL:
-                if self.default_ttl_known:
-                    ttl = self.default_ttl
-                elif self.last_ttl_known:
-                    ttl = self.last_ttl
                 self.tok.unget(token)
 
         # Class
@@ -211,6 +207,22 @@ class Reader:
                 self.tok.unget(token)
             if rdclass != self.zone_rdclass:
                 raise dns.exception.SyntaxError("RR class is not zone's class")
+
+        if ttl is None:
+            # support for <class> <ttl> <type> syntax
+            token = self._get_identifier()
+            ttl = None
+            try:
+                ttl = dns.ttl.from_text(token.value)
+                self.last_ttl = ttl
+                self.last_ttl_known = True
+                token = None
+            except dns.ttl.BadTTL:
+                if self.default_ttl_known:
+                    ttl = self.default_ttl
+                elif self.last_ttl_known:
+                    ttl = self.last_ttl
+                self.tok.unget(token)
 
         # Type
         if self.force_rdtype is not None:

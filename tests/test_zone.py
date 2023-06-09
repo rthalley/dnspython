@@ -58,6 +58,14 @@ ns1 3600 IN A 10.0.0.1
 ns2 3600 IN A 10.0.0.2
 """
 
+example_text_output_class_before_ttl = """@ IN 3600 SOA foo bar 1 2 3 4 5
+@ 3600 NS ns1 ; no class
+@ NS ns2 ; no class or TTL, TTL inferred from prior record
+bar.foo IN 300 MX 0 blaz.foo
+ns1 IN 3600 A 10.0.0.1
+ns2 IN 3600 A 10.0.0.2
+"""
+
 example_generate = """@ 3600 IN SOA foo bar 1 2 3 4 5
 @ 3600 IN NS ns
 $GENERATE 9-12       a.$         A 10.0.0.$
@@ -500,6 +508,13 @@ class ZoneTestCase(unittest.TestCase):
 
     def testEqual(self):
         z1 = dns.zone.from_text(example_text, "example.", relativize=True)
+        z2 = dns.zone.from_text(example_text_output, "example.", relativize=True)
+        self.assertEqual(z1, z2)
+
+    def testEqualClassBeforeTTL(self):
+        z1 = dns.zone.from_text(
+            example_text_output_class_before_ttl, "example.", relativize=True
+        )
         z2 = dns.zone.from_text(example_text_output, "example.", relativize=True)
         self.assertEqual(z1, z2)
 
