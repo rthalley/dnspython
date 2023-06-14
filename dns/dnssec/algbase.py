@@ -12,6 +12,7 @@ from dns.rdtypes.dnskeybase import Flag
 @dataclass
 class AlgorithmPublicKeyBase(ABC):
     algorithm: Algorithm
+    key_cls = None
 
     @abstractmethod
     def verify(self, signature: bytes, data: bytes) -> None:
@@ -36,10 +37,20 @@ class AlgorithmPublicKeyBase(ABC):
     def from_dnskey(cls, key: DNSKEY):
         pass
 
+    @classmethod
+    def from_key(cls, key: Any):
+        """Return PublicKey from cryptography public key"""
+        if cls.key_cls is None:
+            raise TypeError("Unknown public key class: " + str(type(key)))
+        if not isinstance(key, cls.key_cls):
+            raise TypeError("Public key class mismatch: " + str(type(key)))
+        return cls(public_key=key, algorithm=cls.algorithm)
+
 
 @dataclass
 class AlgorithmPrivateKeyBase(ABC):
     public_cls: AlgorithmPublicKeyBase
+    key_cls = None
 
     @abstractmethod
     def sign(self, data: bytes, verify: bool = False) -> bytes:
@@ -48,3 +59,12 @@ class AlgorithmPrivateKeyBase(ABC):
     @abstractmethod
     def public_key(self) -> "AlgorithmPublicKeyBase":
         pass
+
+    @classmethod
+    def from_key(cls, key: Any):
+        """Return PrivateKey from cryptography private key"""
+        if cls.key_cls is None:
+            raise TypeError("Unknown private key class: " + str(type(key)))
+        if not isinstance(key, cls.key_cls):
+            raise TypeError("Private key class mismatch: " + str(type(key)))
+        return cls(private_key=key, public_cls=cls.public_cls)

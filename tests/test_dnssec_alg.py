@@ -43,7 +43,7 @@ class DNSSECAlgorithm(unittest.TestCase):
         # sign random data
         data = os.urandom(1024)
         signature = private_key.sign(data, verify=True)
-        
+
         # validate signature using public key
         public_key = private_key.public_key()
         public_key.verify(signature, data)
@@ -52,6 +52,10 @@ class DNSSECAlgorithm(unittest.TestCase):
         dnskey = public_key.to_dnskey()
         dnskey2 = public_cls.from_dnskey(dnskey).to_dnskey()
         self.assertEqual(dnskey, dnskey2)
+
+        # test cryptography keys
+        _ = private_cls.from_key(private_key.private_key)
+        _ = public_cls.from_key(public_key.public_key)
 
     def test_rsa(self):
         self._test_dnssec_alg(PrivateRSAMD5, 2048)

@@ -16,6 +16,7 @@ class PublicDSA(AlgorithmPublicKeyBase):
     public_key: dsa.DSAPublicKey
     algorithm = Algorithm.DSA
     chosen_hash = hashes.SHA1()
+    key_cls = dsa.DSAPublicKey
 
     def verify(self, signature: bytes, data: bytes):
         sig_r = signature[1:21]
@@ -69,6 +70,7 @@ class PublicDSA(AlgorithmPublicKeyBase):
 class PrivateDSA(AlgorithmPrivateKeyBase):
     private_key: dsa.DSAPrivateKey
     public_cls = PublicDSA
+    key_cls = dsa.DSAPrivateKey
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 2536, section 3."""

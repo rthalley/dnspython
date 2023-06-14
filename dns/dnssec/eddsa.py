@@ -34,6 +34,7 @@ class PrivateEDDSA(AlgorithmPrivateKeyBase):
 class PublicED25519(PublicEDDSA):
     public_key: ed25519.Ed25519PublicKey
     algorithm = Algorithm.ED25519
+    key_cls = ed25519.Ed25519PublicKey
 
     @classmethod
     def from_dnskey(cls, key: DNSKEY):
@@ -47,6 +48,7 @@ class PublicED25519(PublicEDDSA):
 class PrivateED25519(PrivateEDDSA):
     private_key: ed25519.Ed25519PrivateKey
     public_cls = PublicED25519
+    key_cls = ed25519.Ed25519PrivateKey
 
     def public_key(self) -> "PublicED25519":
         return self.public_cls(
@@ -65,6 +67,7 @@ class PrivateED25519(PrivateEDDSA):
 class PublicED448(PublicEDDSA):
     public_key: ed448.Ed448PublicKey
     algorithm = Algorithm.ED448
+    key_cls = ed448.Ed448PublicKey
 
     @classmethod
     def from_dnskey(cls, key: DNSKEY):
@@ -78,6 +81,7 @@ class PublicED448(PublicEDDSA):
 class PrivateED448(PrivateEDDSA):
     private_key: ed448.Ed448PrivateKey
     public_cls = PublicED448
+    key_cls = ed448.Ed448PrivateKey
 
     def public_key(self) -> "PublicED448":
         return self.public_cls(

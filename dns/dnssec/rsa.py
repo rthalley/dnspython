@@ -16,6 +16,7 @@ class PublicRSA(AlgorithmPublicKeyBase):
     public_key: rsa.RSAPublicKey
     algorithm = None
     chosen_hash = None
+    key_cls = rsa.RSAPublicKey
 
     def verify(self, signature: bytes, data: bytes):
         self.public_key.verify(signature, data, padding.PKCS1v15(), self.chosen_hash)
@@ -55,11 +56,7 @@ class PublicRSA(AlgorithmPublicKeyBase):
 class PrivateRSA(AlgorithmPrivateKeyBase):
     private_key: rsa.RSAPrivateKey
     default_public_exponent = 65537
-    public_cls = PublicRSA
-
-    @classmethod
-    def from_key(cls, key: rsa.RSAPrivateKey):
-        return cls(private_key=key, public_cls=cls.public_cls)
+    key_cls = rsa.RSAPrivateKey
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 3110, section 3."""

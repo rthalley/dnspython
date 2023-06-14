@@ -16,6 +16,7 @@ class PublicECDSA(AlgorithmPublicKeyBase):
     chosen_hash = None
     curve = None
     octets = None
+    key_cls = ec.EllipticCurvePublicKey
 
     def verify(self, signature: bytes, data: bytes):
         sig_r = signature[0 : self.octets]
@@ -48,6 +49,7 @@ class PublicECDSA(AlgorithmPublicKeyBase):
 class PrivateECDSA(AlgorithmPrivateKeyBase):
     private_key: ec.EllipticCurvePrivateKey
     public_cls = None
+    key_cls = ec.EllipticCurvePrivateKey
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 6605, section 4."""
