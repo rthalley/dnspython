@@ -50,6 +50,7 @@ class PrivateECDSA(AlgorithmPrivateKeyBase):
     public_cls = None
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
+        """Sign using a private key per RFC 6605, section 4."""
         der_signature = self.private_key.sign(
             data, ec.ECDSA(self.public_cls.chosen_hash)
         )

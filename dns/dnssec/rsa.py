@@ -62,6 +62,7 @@ class PrivateRSA(AlgorithmPrivateKeyBase):
         return cls(private_key=key, public_cls=cls.public_cls)
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
+        """Sign using a private key per RFC 3110, section 3."""
         signature = self.private_key.sign(
             data, padding.PKCS1v15(), self.public_cls.chosen_hash
         )

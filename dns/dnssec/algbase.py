@@ -19,7 +19,6 @@ class AlgorithmPublicKeyBase(ABC):
 
     @abstractmethod
     def encode_key_bytes(self) -> bytes:
-        """Encode a public key per RFC 3110, section 2."""
         pass
 
     def to_dnskey(self, flags: int = Flag.ZONE, protocol: int = 3):

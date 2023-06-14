@@ -14,6 +14,7 @@ class PublicEDDSA(AlgorithmPublicKeyBase):
         self.public_key.verify(signature, data)
 
     def encode_key_bytes(self) -> bytes:
+        """Encode a public key per RFC 8080, section 3."""
         return self.public_key.public_bytes(
             encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )
@@ -22,6 +23,7 @@ class PublicEDDSA(AlgorithmPublicKeyBase):
 @dataclass
 class PrivateEDDSA(AlgorithmPrivateKeyBase):
     def sign(self, data: bytes, verify: bool = False) -> bytes:
+        """Sign using a private key per RFC 8080, section 4."""
         signature = self.private_key.sign(data)
         if verify:
             self.private_key.public_key().verify(signature, data)
