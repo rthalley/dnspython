@@ -35,7 +35,7 @@ def _is_private(algorithm: Algorithm) -> bool:
 
 
 def get_algorithm_cls(dnskey: DNSKEY) -> AlgorithmPrivateKeyBase:
-    """Get Algorithm Private Key from DNSKEY"""
+    """Get Algorithm Private Key class from DNSKEY"""
     cls = algorithms.get((dnskey.algorithm, None))
     if cls:
         return cls
@@ -54,11 +54,9 @@ def register_algorithm_cls(
     algorithm_cls: AlgorithmPrivateKeyBase,
     prefix: Optional[bytes] = None,
 ):
-    """Register Algorithm Private Key for algorithm and optional rdata prefix"""
-    if _is_private(algorithm):
-        key = (algorithm, prefix)
-    else:
-        key = (algorithm, None)
+    """Register Algorithm Private Key class for an algorithm with optional prefix"""
     if not issubclass(algorithm_cls, AlgorithmPrivateKeyBase):
         raise TypeError("Invalid algorithm class")
-    algorithms[key] = algorithm_cls
+    if prefix and not _is_private(algorithm):
+        raise ValueError("Prefix only supported for private algorithms")
+    algorithms[(algorithm, prefix)] = algorithm_cls
