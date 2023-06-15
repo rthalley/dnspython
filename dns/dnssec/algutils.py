@@ -1,21 +1,17 @@
-from typing import Optional
+from typing import Dict, Optional, Tuple, Type
 
 from dns.dnssec import UnsupportedAlgorithm
 from dns.dnssec.algbase import AlgorithmPrivateKeyBase
 from dns.dnssec.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssec.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
 from dns.dnssec.eddsa import PrivateED448, PrivateED25519
-from dns.dnssec.rsa import (
-    PrivateRSAMD5,
-    PrivateRSASHA1,
-    PrivateRSASHA1NSEC3SHA1,
-    PrivateRSASHA256,
-    PrivateRSASHA512,
-)
+from dns.dnssec.rsa import (PrivateRSAMD5, PrivateRSASHA1,
+                            PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
+                            PrivateRSASHA512)
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
-algorithms = {
+algorithms: Dict[Tuple[Algorithm, Optional[bytes]], Type[AlgorithmPrivateKeyBase]] = {
     (Algorithm.RSAMD5, None): PrivateRSAMD5,
     (Algorithm.DSA, None): PrivateDSA,
     (Algorithm.RSASHA1, None): PrivateRSASHA1,
@@ -34,7 +30,7 @@ def _is_private(algorithm: Algorithm) -> bool:
     return algorithm in set([Algorithm.PRIVATEDNS, Algorithm.PRIVATEOID])
 
 
-def get_algorithm_cls(dnskey: DNSKEY) -> AlgorithmPrivateKeyBase:
+def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
     """Get Algorithm Private Key class from DNSKEY"""
     cls = algorithms.get((dnskey.algorithm, None))
     if cls:
@@ -51,9 +47,9 @@ def get_algorithm_cls(dnskey: DNSKEY) -> AlgorithmPrivateKeyBase:
 
 def register_algorithm_cls(
     algorithm: Algorithm,
-    algorithm_cls: AlgorithmPrivateKeyBase,
+    algorithm_cls: Type[AlgorithmPrivateKeyBase],
     prefix: Optional[bytes] = None,
-):
+) -> None:
     """Register Algorithm Private Key class for an algorithm with optional prefix"""
     if not issubclass(algorithm_cls, AlgorithmPrivateKeyBase):
         raise TypeError("Invalid algorithm class")
