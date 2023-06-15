@@ -12,7 +12,7 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 @dataclass
 class PublicDSA(AlgorithmPublicKeyBase):
-    public_key: dsa.DSAPublicKey
+    key: dsa.DSAPublicKey
     algorithm = Algorithm.DSA
     chosen_hash = hashes.SHA1()
     key_cls = dsa.DSAPublicKey
@@ -23,12 +23,12 @@ class PublicDSA(AlgorithmPublicKeyBase):
         sig = utils.encode_dss_signature(
             int.from_bytes(sig_r, "big"), int.from_bytes(sig_s, "big")
         )
-        self.public_key.verify(sig, data, self.chosen_hash)
+        self.key.verify(sig, data, self.chosen_hash)
 
     def encode_key_bytes(self) -> bytes:
         """Encode a public key per RFC 2536, section 2."""
-        pn = self.public_key.public_numbers()
-        dsa_t = (self.public_key.key_size // 8 - 64) // 8
+        pn = self.key.public_numbers()
+        dsa_t = (self.key.key_size // 8 - 64) // 8
         if dsa_t > 8:
             raise ValueError("unsupported DSA key size")
         octets = 64 + dsa_t * 8
@@ -53,7 +53,7 @@ class PublicDSA(AlgorithmPublicKeyBase):
         keyptr = keyptr[octets:]
         dsa_y = keyptr[0:octets]
         return cls(
-            public_key=dsa.DSAPublicNumbers(  # type: ignore
+            key=dsa.DSAPublicNumbers(  # type: ignore
                 int.from_bytes(dsa_y, "big"),
                 dsa.DSAParameterNumbers(
                     int.from_bytes(dsa_p, "big"),
@@ -67,16 +67,16 @@ class PublicDSA(AlgorithmPublicKeyBase):
 
 @dataclass
 class PrivateDSA(AlgorithmPrivateKeyBase):
-    private_key: dsa.DSAPrivateKey
+    key: dsa.DSAPrivateKey
     public_cls = PublicDSA
     key_cls = dsa.DSAPrivateKey
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 2536, section 3."""
-        public_dsa_key = self.private_key.public_key()
+        public_dsa_key = self.key.public_key()
         if public_dsa_key.key_size > 1024:
             raise ValueError("DSA key size overflow")
-        der_signature = self.private_key.sign(data, self.public_cls.chosen_hash)
+        der_signature = self.key.sign(data, self.public_cls.chosen_hash)
         if verify:
             public_dsa_key.verify(der_signature, data, self.public_cls.chosen_hash)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
@@ -90,14 +90,14 @@ class PrivateDSA(AlgorithmPrivateKeyBase):
 
     def public_key(self) -> "PublicDSA":
         return self.public_cls(
-            public_key=self.private_key.public_key(),
+            key=self.key.public_key(),
             algorithm=self.public_cls.algorithm,
         )
 
     @classmethod
     def generate(cls, key_size: int):
         return cls(
-            private_key=dsa.generate_private_key(key_size=key_size),
+            key=dsa.generate_private_key(key_size=key_size),
             public_cls=cls.public_cls,
         )
 

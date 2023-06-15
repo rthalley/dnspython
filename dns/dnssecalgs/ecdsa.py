@@ -11,7 +11,7 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 @dataclass
 class PublicECDSA(AlgorithmPublicKeyBase):
-    public_key: ec.EllipticCurvePublicKey
+    key: ec.EllipticCurvePublicKey
     chosen_hash = None
     curve = None
     octets = None
@@ -23,11 +23,11 @@ class PublicECDSA(AlgorithmPublicKeyBase):
         sig = utils.encode_dss_signature(
             int.from_bytes(sig_r, "big"), int.from_bytes(sig_s, "big")
         )
-        self.public_key.verify(sig, data, ec.ECDSA(self.chosen_hash))
+        self.key.verify(sig, data, ec.ECDSA(self.chosen_hash))
 
     def encode_key_bytes(self) -> bytes:
         """Encode a public key per RFC 6605, section 4."""
-        pn = self.public_key.public_numbers()
+        pn = self.key.public_numbers()
         return pn.x.to_bytes(self.octets, "big") + pn.y.to_bytes(self.octets, "big")
 
     @classmethod
@@ -35,7 +35,7 @@ class PublicECDSA(AlgorithmPublicKeyBase):
         ecdsa_x = key.key[0 : cls.octets]
         ecdsa_y = key.key[cls.octets : cls.octets * 2]
         return cls(
-            public_key=ec.EllipticCurvePublicNumbers(
+            key=ec.EllipticCurvePublicNumbers(
                 curve=cls.curve,
                 x=int.from_bytes(ecdsa_x, "big"),
                 y=int.from_bytes(ecdsa_y, "big"),
@@ -46,17 +46,17 @@ class PublicECDSA(AlgorithmPublicKeyBase):
 
 @dataclass
 class PrivateECDSA(AlgorithmPrivateKeyBase):
-    private_key: ec.EllipticCurvePrivateKey
+    key: ec.EllipticCurvePrivateKey
     public_cls = None
     key_cls = ec.EllipticCurvePrivateKey
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 6605, section 4."""
-        der_signature = self.private_key.sign(
+        der_signature = self.key.sign(
             data, ec.ECDSA(self.public_cls.chosen_hash)
         )
         if verify:
-            self.private_key.public_key().verify(
+            self.key.public_key().verify(
                 der_signature, data, ec.ECDSA(self.public_cls.chosen_hash)
             )
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
@@ -66,14 +66,14 @@ class PrivateECDSA(AlgorithmPrivateKeyBase):
 
     def public_key(self) -> "PublicECDSA":
         return self.public_cls(
-            public_key=self.private_key.public_key(),
+            key=self.key.public_key(),
             algorithm=self.public_cls.algorithm,
         )
 
     @classmethod
     def generate(cls):
         return cls(
-            private_key=ec.generate_private_key(
+            key=ec.generate_private_key(
                 curve=cls.public_cls.curve, backend=default_backend()
             ),
             public_cls=cls.public_cls,

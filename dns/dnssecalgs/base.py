@@ -44,7 +44,7 @@ class AlgorithmPublicKeyBase(ABC):
             raise TypeError("Unknown public key class: " + str(type(key)))
         if not isinstance(key, cls.key_cls):
             raise TypeError("Public key class mismatch: " + str(type(key)))
-        return cls(public_key=key, algorithm=cls.algorithm)
+        return cls(key=key, algorithm=cls.algorithm)
 
 
 @dataclass
@@ -67,4 +67,4 @@ class AlgorithmPrivateKeyBase(ABC):
             raise TypeError("Unknown private key class: " + str(type(key)))
         if not isinstance(key, cls.key_cls):
             raise TypeError("Private key class mismatch: " + str(type(key)))
-        return cls(private_key=key, public_cls=cls.public_cls)
+        return cls(key=key, public_cls=cls.public_cls)

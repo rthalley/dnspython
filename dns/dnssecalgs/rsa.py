@@ -13,17 +13,17 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 @dataclass
 class PublicRSA(AlgorithmPublicKeyBase):
-    public_key: rsa.RSAPublicKey
+    key: rsa.RSAPublicKey
     algorithm = None
     chosen_hash = None
     key_cls = rsa.RSAPublicKey
 
     def verify(self, signature: bytes, data: bytes):
-        self.public_key.verify(signature, data, padding.PKCS1v15(), self.chosen_hash)
+        self.key.verify(signature, data, padding.PKCS1v15(), self.chosen_hash)
 
     def encode_key_bytes(self) -> bytes:
         """Encode a public key per RFC 3110, section 2."""
-        pn = self.public_key.public_numbers()
+        pn = self.key.public_numbers()
         _exp_len = math.ceil(int.bit_length(pn.e) / 8)
         exp = int.to_bytes(pn.e, length=_exp_len, byteorder="big")
         if _exp_len > 255:
@@ -45,7 +45,7 @@ class PublicRSA(AlgorithmPublicKeyBase):
         rsa_e = keyptr[0:bytes_]
         rsa_n = keyptr[bytes_:]
         return cls(
-            public_key=rsa.RSAPublicNumbers(
+            key=rsa.RSAPublicNumbers(
                 int.from_bytes(rsa_e, "big"), int.from_bytes(rsa_n, "big")
             ).public_key(default_backend()),
             algorithm=cls.algorithm,
@@ -54,31 +54,31 @@ class PublicRSA(AlgorithmPublicKeyBase):
 
 @dataclass
 class PrivateRSA(AlgorithmPrivateKeyBase):
-    private_key: rsa.RSAPrivateKey
+    key: rsa.RSAPrivateKey
     default_public_exponent = 65537
     key_cls = rsa.RSAPrivateKey
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 3110, section 3."""
-        signature = self.private_key.sign(
+        signature = self.key.sign(
             data, padding.PKCS1v15(), self.public_cls.chosen_hash
         )
         if verify:
-            self.private_key.public_key().verify(
+            self.key.public_key().verify(
                 signature, data, padding.PKCS1v15(), self.public_cls.chosen_hash
             )
         return signature
 
     def public_key(self) -> "PublicRSA":
         return self.public_cls(
-            public_key=self.private_key.public_key(),
+            key=self.key.public_key(),
             algorithm=self.public_cls.algorithm,
         )
 
     @classmethod
     def generate(cls, key_size: int):
         return cls(
-            private_key=rsa.generate_private_key(
+            key=rsa.generate_private_key(
                 public_exponent=cls.default_public_exponent,
                 key_size=key_size,
                 backend=default_backend(),
