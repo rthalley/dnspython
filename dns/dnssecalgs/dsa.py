@@ -13,9 +13,9 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 @dataclass
 class PublicDSA(AlgorithmPublicKeyBase):
     key: dsa.DSAPublicKey
+    key_cls = dsa.DSAPublicKey
     algorithm = Algorithm.DSA
     chosen_hash = hashes.SHA1()
-    key_cls = dsa.DSAPublicKey
 
     def verify(self, signature: bytes, data: bytes):
         sig_r = signature[1:21]
@@ -68,8 +68,8 @@ class PublicDSA(AlgorithmPublicKeyBase):
 @dataclass
 class PrivateDSA(AlgorithmPrivateKeyBase):
     key: dsa.DSAPrivateKey
-    public_cls = PublicDSA
     key_cls = dsa.DSAPrivateKey
+    public_cls = PublicDSA
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 2536, section 3."""
@@ -77,16 +77,17 @@ class PrivateDSA(AlgorithmPrivateKeyBase):
         if public_dsa_key.key_size > 1024:
             raise ValueError("DSA key size overflow")
         der_signature = self.key.sign(data, self.public_cls.chosen_hash)
-        if verify:
-            public_dsa_key.verify(der_signature, data, self.public_cls.chosen_hash)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
         dsa_t = (public_dsa_key.key_size // 8 - 64) // 8
         octets = 20
-        return (
+        signature = (
             struct.pack("!B", dsa_t)
             + int.to_bytes(dsa_r, length=octets, byteorder="big")
             + int.to_bytes(dsa_s, length=octets, byteorder="big")
         )
+        if verify:
+            self.public_key().verify(signature, data)
+        return signature
 
     def public_key(self) -> "PublicDSA":
         return self.public_cls(

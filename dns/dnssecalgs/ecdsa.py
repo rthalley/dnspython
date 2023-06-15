@@ -12,10 +12,10 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 @dataclass
 class PublicECDSA(AlgorithmPublicKeyBase):
     key: ec.EllipticCurvePublicKey
+    key_cls = ec.EllipticCurvePublicKey
     chosen_hash = None
     curve = None
     octets = None
-    key_cls = ec.EllipticCurvePublicKey
 
     def verify(self, signature: bytes, data: bytes):
         sig_r = signature[0 : self.octets]
@@ -47,22 +47,19 @@ class PublicECDSA(AlgorithmPublicKeyBase):
 @dataclass
 class PrivateECDSA(AlgorithmPrivateKeyBase):
     key: ec.EllipticCurvePrivateKey
-    public_cls = None
     key_cls = ec.EllipticCurvePrivateKey
+    public_cls = None
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 6605, section 4."""
-        der_signature = self.key.sign(
-            data, ec.ECDSA(self.public_cls.chosen_hash)
-        )
-        if verify:
-            self.key.public_key().verify(
-                der_signature, data, ec.ECDSA(self.public_cls.chosen_hash)
-            )
+        der_signature = self.key.sign(data, ec.ECDSA(self.public_cls.chosen_hash))
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
-        return int.to_bytes(
+        signature = int.to_bytes(
             dsa_r, length=self.public_cls.octets, byteorder="big"
         ) + int.to_bytes(dsa_s, length=self.public_cls.octets, byteorder="big")
+        if verify:
+            self.public_key().verify(signature, data)
+        return signature
 
     def public_key(self) -> "PublicECDSA":
         return self.public_cls(

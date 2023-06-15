@@ -14,9 +14,9 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 @dataclass
 class PublicRSA(AlgorithmPublicKeyBase):
     key: rsa.RSAPublicKey
+    key_cls = rsa.RSAPublicKey
     algorithm = None
     chosen_hash = None
-    key_cls = rsa.RSAPublicKey
 
     def verify(self, signature: bytes, data: bytes):
         self.key.verify(signature, data, padding.PKCS1v15(), self.chosen_hash)
@@ -55,18 +55,14 @@ class PublicRSA(AlgorithmPublicKeyBase):
 @dataclass
 class PrivateRSA(AlgorithmPrivateKeyBase):
     key: rsa.RSAPrivateKey
-    default_public_exponent = 65537
     key_cls = rsa.RSAPrivateKey
+    default_public_exponent = 65537
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 3110, section 3."""
-        signature = self.key.sign(
-            data, padding.PKCS1v15(), self.public_cls.chosen_hash
-        )
+        signature = self.key.sign(data, padding.PKCS1v15(), self.public_cls.chosen_hash)
         if verify:
-            self.key.public_key().verify(
-                signature, data, padding.PKCS1v15(), self.public_cls.chosen_hash
-            )
+            self.public_key().verify(signature, data)
         return signature
 
     def public_key(self) -> "PublicRSA":
