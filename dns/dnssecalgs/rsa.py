@@ -15,10 +15,10 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 class PublicRSA(AlgorithmPublicKeyBase):
     key: rsa.RSAPublicKey
     key_cls = rsa.RSAPublicKey
-    algorithm = None
-    chosen_hash = None
+    algorithm = Algorithm.RSASHA256
+    chosen_hash: hashes.HashAlgorithm = hashes.SHA256()
 
-    def verify(self, signature: bytes, data: bytes):
+    def verify(self, signature: bytes, data: bytes) -> None:
         self.key.verify(signature, data, padding.PKCS1v15(), self.chosen_hash)
 
     def encode_key_bytes(self) -> bytes:
@@ -35,7 +35,7 @@ class PublicRSA(AlgorithmPublicKeyBase):
         return exp_header + exp + pn.n.to_bytes((pn.n.bit_length() + 7) // 8, "big")
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY):
+    def from_dnskey(cls, key: DNSKEY) -> "PublicRSA":
         keyptr = key.key
         (bytes_,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]
@@ -56,6 +56,7 @@ class PublicRSA(AlgorithmPublicKeyBase):
 class PrivateRSA(AlgorithmPrivateKeyBase):
     key: rsa.RSAPrivateKey
     key_cls = rsa.RSAPrivateKey
+    public_cls = PublicRSA
     default_public_exponent = 65537
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
@@ -69,17 +70,18 @@ class PrivateRSA(AlgorithmPrivateKeyBase):
         return self.public_cls(
             key=self.key.public_key(),
             algorithm=self.public_cls.algorithm,
+            chosen_hash=self.public_cls.chosen_hash,
         )
 
     @classmethod
-    def generate(cls, key_size: int):
+    def generate(cls, key_size: int) -> "PrivateRSA":
         return cls(
             key=rsa.generate_private_key(
                 public_exponent=cls.default_public_exponent,
                 key_size=key_size,
                 backend=default_backend(),
             ),
-            public_cls=cls.public_cls,
+            public_cls=cls.public_cls
         )
 
 
@@ -91,8 +93,6 @@ class PublicRSAMD5(PublicRSA):
 
 @dataclass
 class PrivateRSAMD5(PrivateRSA):
-    algorithm = Algorithm.RSAMD5
-    chosen_hash = hashes.MD5()
     public_cls = PublicRSAMD5
 
 

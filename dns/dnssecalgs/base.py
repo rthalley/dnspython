@@ -12,7 +12,8 @@ from dns.rdtypes.dnskeybase import Flag
 @dataclass
 class AlgorithmPublicKeyBase(ABC):
     algorithm: Algorithm
-    key_cls = None
+    key: Any = None
+    key_cls: Any = None
 
     @abstractmethod
     def verify(self, signature: bytes, data: bytes) -> None:
@@ -50,7 +51,8 @@ class AlgorithmPublicKeyBase(ABC):
 @dataclass
 class AlgorithmPrivateKeyBase(ABC):
     public_cls: Type[AlgorithmPublicKeyBase]
-    key_cls = None
+    key: Any = None
+    key_cls: Any = None
 
     @abstractmethod
     def sign(self, data: bytes, verify: bool = False) -> bytes:

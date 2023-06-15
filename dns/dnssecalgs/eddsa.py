@@ -1,3 +1,4 @@
+from typing import Type
 from dataclasses import dataclass
 
 from cryptography.hazmat.primitives import serialization
@@ -10,7 +11,7 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 @dataclass
 class PublicEDDSA(AlgorithmPublicKeyBase):
-    def verify(self, signature: bytes, data: bytes):
+    def verify(self, signature: bytes, data: bytes) -> None:
         self.key.verify(signature, data)
 
     def encode_key_bytes(self) -> bytes:
@@ -20,7 +21,7 @@ class PublicEDDSA(AlgorithmPublicKeyBase):
         )
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY):
+    def from_dnskey(cls, key: DNSKEY) -> "PublicEDDSA":
         return cls(
             key=cls.key_cls.from_public_bytes(key.key),
             algorithm=cls.algorithm,
@@ -29,6 +30,8 @@ class PublicEDDSA(AlgorithmPublicKeyBase):
 
 @dataclass
 class PrivateEDDSA(AlgorithmPrivateKeyBase):
+    public_cls: Type[PublicEDDSA]
+
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 8080, section 4."""
         signature = self.key.sign(data)
@@ -36,14 +39,14 @@ class PrivateEDDSA(AlgorithmPrivateKeyBase):
             self.public_key().verify(signature, data)
         return signature
 
-    def public_key(self) -> "PrivateEDDSA":
+    def public_key(self) -> "PublicEDDSA":
         return self.public_cls(
             key=self.key.public_key(),
             algorithm=self.public_cls.algorithm,
         )
 
     @classmethod
-    def generate(cls):
+    def generate(cls) -> "PrivateEDDSA":
         return cls(key=cls.key_cls.generate(), public_cls=cls.public_cls)
 
 

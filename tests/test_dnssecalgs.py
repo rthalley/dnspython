@@ -54,8 +54,8 @@ class DNSSECAlgorithm(unittest.TestCase):
         self.assertEqual(dnskey, dnskey2)
 
         # test cryptography keys
-        _ = private_cls.from_key(private_key.private_key)
-        _ = public_cls.from_key(public_key.public_key)
+        _ = private_cls.from_key(private_key.key)
+        _ = public_cls.from_key(public_key.key)
 
     def test_rsa(self):
         self._test_dnssec_alg(PrivateRSAMD5, 2048)

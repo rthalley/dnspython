@@ -17,7 +17,7 @@ class PublicDSA(AlgorithmPublicKeyBase):
     algorithm = Algorithm.DSA
     chosen_hash = hashes.SHA1()
 
-    def verify(self, signature: bytes, data: bytes):
+    def verify(self, signature: bytes, data: bytes) -> None:
         sig_r = signature[1:21]
         sig_s = signature[21:]
         sig = utils.encode_dss_signature(
@@ -40,7 +40,7 @@ class PublicDSA(AlgorithmPublicKeyBase):
         return res
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY):
+    def from_dnskey(cls, key: DNSKEY) -> "PublicDSA":
         keyptr = key.key
         (t,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]
@@ -96,7 +96,7 @@ class PrivateDSA(AlgorithmPrivateKeyBase):
         )
 
     @classmethod
-    def generate(cls, key_size: int):
+    def generate(cls, key_size: int) -> "PrivateDSA":
         return cls(
             key=dsa.generate_private_key(key_size=key_size),
             public_cls=cls.public_cls,
