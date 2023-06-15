@@ -1,13 +1,17 @@
 from typing import Dict, Optional, Tuple, Type
 
 from dns.dnssec import UnsupportedAlgorithm
-from dns.dnssec.algbase import AlgorithmPrivateKeyBase
-from dns.dnssec.dsa import PrivateDSA, PrivateDSANSEC3SHA1
-from dns.dnssec.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
-from dns.dnssec.eddsa import PrivateED448, PrivateED25519
-from dns.dnssec.rsa import (PrivateRSAMD5, PrivateRSASHA1,
-                            PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
-                            PrivateRSASHA512)
+from dns.dnssecalgs.base import AlgorithmPrivateKeyBase
+from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
+from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
+from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
+from dns.dnssecalgs.rsa import (
+    PrivateRSAMD5,
+    PrivateRSASHA1,
+    PrivateRSASHA1NSEC3SHA1,
+    PrivateRSASHA256,
+    PrivateRSASHA512,
+)
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 

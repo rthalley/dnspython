@@ -1,12 +1,12 @@
-from dns.dnssec.algbase import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
-
 import math
 import struct
 from dataclasses import dataclass
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
+from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 

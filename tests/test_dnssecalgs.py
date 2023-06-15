@@ -19,10 +19,10 @@ import unittest
 import os
 
 import dns.dnssec
-from dns.dnssec.dsa import PrivateDSA, PrivateDSANSEC3SHA1
-from dns.dnssec.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
-from dns.dnssec.eddsa import PrivateED448, PrivateED25519
-from dns.dnssec.rsa import (
+from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
+from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
+from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
+from dns.dnssecalgs.rsa import (
     PrivateRSASHA256,
     PrivateRSASHA512,
     PrivateRSAMD5,
