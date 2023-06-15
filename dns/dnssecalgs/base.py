@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Type
 
 import dns.rdataclass
 import dns.rdatatype
@@ -22,7 +22,7 @@ class AlgorithmPublicKeyBase(ABC):
     def encode_key_bytes(self) -> bytes:
         pass
 
-    def to_dnskey(self, flags: int = Flag.ZONE, protocol: int = 3):
+    def to_dnskey(self, flags: int = Flag.ZONE, protocol: int = 3) -> DNSKEY:
         return DNSKEY(
             rdclass=dns.rdataclass.IN,
             rdtype=dns.rdatatype.DNSKEY,
@@ -34,14 +34,14 @@ class AlgorithmPublicKeyBase(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dnskey(cls, key: DNSKEY):
+    def from_dnskey(cls, key: DNSKEY) -> "AlgorithmPublicKeyBase":
         pass
 
     @classmethod
-    def from_key(cls, key: Any):
+    def from_key(cls, key: Any) -> "AlgorithmPublicKeyBase":
         """Return PublicKey from cryptography public key"""
         if cls.key_cls is None:
-            raise TypeError("Unknown public key class: " + str(type(key)))
+            raise TypeError("Undefined private key class")
         if not isinstance(key, cls.key_cls):
             raise TypeError("Public key class mismatch: " + str(type(key)))
         return cls(key=key, algorithm=cls.algorithm)
@@ -49,7 +49,7 @@ class AlgorithmPublicKeyBase(ABC):
 
 @dataclass
 class AlgorithmPrivateKeyBase(ABC):
-    public_cls: AlgorithmPublicKeyBase
+    public_cls: Type[AlgorithmPublicKeyBase]
     key_cls = None
 
     @abstractmethod
@@ -61,10 +61,10 @@ class AlgorithmPrivateKeyBase(ABC):
         pass
 
     @classmethod
-    def from_key(cls, key: Any):
+    def from_key(cls, key: Any) -> "AlgorithmPrivateKeyBase":
         """Return PrivateKey from cryptography private key"""
         if cls.key_cls is None:
-            raise TypeError("Unknown private key class: " + str(type(key)))
+            raise TypeError("Undefined private key class")
         if not isinstance(key, cls.key_cls):
             raise TypeError("Private key class mismatch: " + str(type(key)))
         return cls(key=key, public_cls=cls.public_cls)
