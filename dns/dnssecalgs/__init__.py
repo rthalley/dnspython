@@ -1,5 +1,6 @@
-from typing import Dict, Optional, Tuple, Type
+from typing import Dict, Optional, Tuple, Type, Union
 
+import dns.name
 from dns.dnssec import UnsupportedAlgorithm
 from dns.dnssecalgs.base import AlgorithmPrivateKeyBase
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
@@ -36,27 +37,41 @@ def _is_private(algorithm: Algorithm) -> bool:
 
 def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
     """Get Algorithm Private Key class from DNSKEY"""
-    cls = algorithms.get((dnskey.algorithm, None))
+    prefix = None
+    if dnskey.algorithm == Algorithm.PRIVATEDNS:
+        _, length = dns.name.from_wire(dnskey.key, 0)
+        prefix = dnskey.key[0:length]
+    elif dnskey.algorithm == Algorithm.PRIVATEOID:
+        length = int(dnskey.key[0])
+        prefix = dnskey.key[0 : length + 1]
+    cls = algorithms.get((dnskey.algorithm, prefix))
     if cls:
         return cls
-    if _is_private(dnskey.algorithm):
-        for k, cls in algorithms.items():
-            algorithm, prefix = k
-            if algorithm != dnskey.algorithm:
-                continue
-            if prefix is None or dnskey.key.startswith(prefix):
-                return cls
     raise UnsupportedAlgorithm
 
 
 def register_algorithm_cls(
     algorithm: Algorithm,
     algorithm_cls: Type[AlgorithmPrivateKeyBase],
-    prefix: Optional[bytes] = None,
+    name: Optional[Union[dns.name.Name, str]] = None,
+    oid: Optional[bytes] = None,
 ) -> None:
-    """Register Algorithm Private Key class for an algorithm with optional prefix"""
+    """
+    Register Algorithm Private Key class for an algorithm with optional
+    name/oid prefix
+    """
     if not issubclass(algorithm_cls, AlgorithmPrivateKeyBase):
         raise TypeError("Invalid algorithm class")
-    if prefix and not _is_private(algorithm):
-        raise ValueError("Prefix only supported for private algorithms")
+    prefix = None
+    if algorithm == Algorithm.PRIVATEDNS:
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+        prefix = name.to_wire()
+    elif algorithm == Algorithm.PRIVATEOID:
+        prefix = bytes([len(oid)]) + oid
+    else:
+        if name:
+            raise ValueError("Name only supported for PRIVATEDNS algorithm")
+        if oid:
+            raise ValueError("OID only supported for PRIVATEOID algorithm")
     algorithms[(algorithm, prefix)] = algorithm_cls

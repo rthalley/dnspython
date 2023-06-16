@@ -15,20 +15,23 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import unittest
 import os
+import unittest
 
 import dns.dnssec
+from dns.dnssecalgs import get_algorithm_cls, register_algorithm_cls
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
 from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
 from dns.dnssecalgs.rsa import (
-    PrivateRSASHA256,
-    PrivateRSASHA512,
     PrivateRSAMD5,
     PrivateRSASHA1,
     PrivateRSASHA1NSEC3SHA1,
+    PrivateRSASHA256,
+    PrivateRSASHA512,
 )
+from dns.dnssectypes import Algorithm
+from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
@@ -75,6 +78,43 @@ class DNSSECAlgorithm(unittest.TestCase):
     def test_eddsa(self):
         self._test_dnssec_alg(PrivateED25519)
         self._test_dnssec_alg(PrivateED448)
+
+    def test_register(self):
+        register_algorithm_cls(
+            algorithm=Algorithm.PRIVATEDNS,
+            algorithm_cls=PrivateED25519,
+            name="ed25519.example.com",
+        )
+        register_algorithm_cls(
+            algorithm=Algorithm.PRIVATEOID,
+            algorithm_cls=PrivateED448,
+            oid=bytes([1, 2, 3, 4]),
+        )
+
+        dnskey_dns = DNSKEY(
+            "IN",
+            "DNSKEY",
+            256,
+            5,
+            Algorithm.PRIVATEDNS,
+            dns.name.from_text("ed25519.example.com").to_wire() + b"hello",
+        )
+        dnskey_oid = DNSKEY(
+            "IN",
+            "DNSKEY",
+            256,
+            5,
+            Algorithm.PRIVATEOID,
+            bytes([4, 1, 2, 3, 4]) + b"hello",
+        )
+
+        algorithm_cls = get_algorithm_cls(dnskey_dns)
+        self.assertEqual(algorithm_cls, PrivateED25519)
+
+        algorithm_cls = get_algorithm_cls(dnskey_oid)
+        self.assertEqual(algorithm_cls, PrivateED448)
+
+        breakpoint()
 
 
 if __name__ == "__main__":
