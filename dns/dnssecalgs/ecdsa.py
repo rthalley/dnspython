@@ -10,7 +10,7 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
 @dataclass
-class PublicECDSAP256SHA256(AlgorithmPublicKeyBase):
+class PublicECDSA(AlgorithmPublicKeyBase):
     key: ec.EllipticCurvePublicKey
     key_cls = ec.EllipticCurvePublicKey
     algorithm = Algorithm.ECDSAP256SHA256
@@ -32,7 +32,7 @@ class PublicECDSAP256SHA256(AlgorithmPublicKeyBase):
         return pn.x.to_bytes(self.octets, "big") + pn.y.to_bytes(self.octets, "big")
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY) -> "PublicECDSAP256SHA256":
+    def from_dnskey(cls, key: DNSKEY) -> "PublicECDSA":
         ecdsa_x = key.key[0 : cls.octets]
         ecdsa_y = key.key[cls.octets : cls.octets * 2]
         return cls(
@@ -46,10 +46,10 @@ class PublicECDSAP256SHA256(AlgorithmPublicKeyBase):
 
 
 @dataclass
-class PrivateECDSAP256SHA256(AlgorithmPrivateKeyBase):
+class PrivateECDSA(AlgorithmPrivateKeyBase):
     key: ec.EllipticCurvePrivateKey
     key_cls = ec.EllipticCurvePrivateKey
-    public_cls = PublicECDSAP256SHA256
+    public_cls = PublicECDSA
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign using a private key per RFC 6605, section 4."""
@@ -62,7 +62,7 @@ class PrivateECDSAP256SHA256(AlgorithmPrivateKeyBase):
             self.public_key().verify(signature, data)
         return signature
 
-    def public_key(self) -> "PublicECDSAP256SHA256":
+    def public_key(self) -> "PublicECDSA":
         return self.public_cls(
             key=self.key.public_key(),
             algorithm=self.public_cls.algorithm,
@@ -70,7 +70,7 @@ class PrivateECDSAP256SHA256(AlgorithmPrivateKeyBase):
         )
 
     @classmethod
-    def generate(cls) -> "PrivateECDSAP256SHA256":
+    def generate(cls) -> "PrivateECDSA":
         return cls(
             key=ec.generate_private_key(
                 curve=cls.public_cls.curve, backend=default_backend()
@@ -79,9 +79,21 @@ class PrivateECDSAP256SHA256(AlgorithmPrivateKeyBase):
         )
 
 
+@dataclass
+class PublicECDSAP256SHA256(PublicECDSA):
+    algorithm = Algorithm.ECDSAP256SHA256
+    chosen_hash = hashes.SHA256()
+    curve = ec.SECP256R1()
+    octets = 32
+
 
 @dataclass
-class PublicECDSAP384SHA384(PublicECDSAP256SHA256):
+class PrivateECDSAP256SHA256(PrivateECDSA):
+    public_cls = PublicECDSAP256SHA256
+
+
+@dataclass
+class PublicECDSAP384SHA384(PublicECDSA):
     algorithm = Algorithm.ECDSAP384SHA384
     chosen_hash = hashes.SHA384()
     curve = ec.SECP384R1()
@@ -89,5 +101,5 @@ class PublicECDSAP384SHA384(PublicECDSAP256SHA256):
 
 
 @dataclass
-class PrivateECDSAP384SHA384(PrivateECDSAP256SHA256):
+class PrivateECDSAP384SHA384(PrivateECDSA):
     public_cls = PublicECDSAP384SHA384
