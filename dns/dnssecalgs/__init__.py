@@ -1,7 +1,7 @@
 from typing import Dict, Optional, Tuple, Type, Union
 
 import dns.name
-from dns.dnssec import UnsupportedAlgorithm
+from dns.exception import UnsupportedAlgorithm
 from dns.dnssecalgs.base import AlgorithmPrivateKeyBase
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384

@@ -41,6 +41,12 @@ import dns.rdataclass
 import dns.rrset
 import dns.transaction
 import dns.zone
+from dns.exception import (
+    UnsupportedAlgorithm,
+    AlgorithmKeyMismatch,
+    ValidationFailure,
+    DeniedByPolicy,
+)
 from dns.rdtypes.ANY.CDNSKEY import CDNSKEY
 from dns.rdtypes.ANY.CDS import CDS
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
@@ -49,22 +55,6 @@ from dns.rdtypes.ANY.NSEC import NSEC, Bitmap
 from dns.rdtypes.ANY.NSEC3PARAM import NSEC3PARAM
 from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
 from dns.rdtypes.dnskeybase import Flag
-
-
-class UnsupportedAlgorithm(dns.exception.DNSException):
-    """The DNSSEC algorithm is not supported."""
-
-
-class AlgorithmKeyMismatch(UnsupportedAlgorithm):
-    """The DNSSEC algorithm is not supported for the given key type."""
-
-
-class ValidationFailure(dns.exception.DNSException):
-    """The DNSSEC signature is invalid."""
-
-
-class DeniedByPolicy(dns.exception.DNSException):
-    """Denied by DNSSEC policy."""
 
 
 PublicKey = Union[
