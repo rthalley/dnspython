@@ -912,13 +912,6 @@ class DNSSECMiscTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             dns.dnssec.NSEC3Hash.make(256)
 
-    def testIsNotGOST(self):
-        self.assertTrue(dns.dnssec._is_gost(dns.dnssec.Algorithm.ECCGOST))
-
-    def testUnknownHash(self):
-        with self.assertRaises(dns.dnssec.ValidationFailure):
-            dns.dnssec._make_hash(100)
-
     def testToTimestamp(self):
         REFERENCE_TIMESTAMP = 441812220
 
@@ -1236,7 +1229,7 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
             key_size=1024,
             backend=default_backend(),
         )
-        with self.assertRaises(dns.dnssec.AlgorithmKeyMismatch):
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.ED448)
 
         with self.assertRaises(TypeError):

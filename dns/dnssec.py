@@ -18,12 +18,11 @@
 """Common DNSSEC-related functions and constants."""
 
 
-from typing import Any, cast, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import cast, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import contextlib
 import functools
 import hashlib
-import math
 import struct
 import time
 import base64
@@ -45,7 +44,6 @@ import dns.transaction
 import dns.zone
 from dns.exception import (
     UnsupportedAlgorithm,
-    AlgorithmKeyMismatch,
     ValidationFailure,
     DeniedByPolicy,
 )
@@ -311,109 +309,6 @@ def _find_candidate_keys(
         for rd in rdataset
         if rd.algorithm == rrsig.algorithm and key_id(rd) == rrsig.key_tag
     ]
-
-
-def _is_rsa(algorithm: int) -> bool:
-    return algorithm in (
-        Algorithm.RSAMD5,
-        Algorithm.RSASHA1,
-        Algorithm.RSASHA1NSEC3SHA1,
-        Algorithm.RSASHA256,
-        Algorithm.RSASHA512,
-    )
-
-
-def _is_dsa(algorithm: int) -> bool:
-    return algorithm in (Algorithm.DSA, Algorithm.DSANSEC3SHA1)
-
-
-def _is_ecdsa(algorithm: int) -> bool:
-    return algorithm in (Algorithm.ECDSAP256SHA256, Algorithm.ECDSAP384SHA384)
-
-
-def _is_eddsa(algorithm: int) -> bool:
-    return algorithm in (Algorithm.ED25519, Algorithm.ED448)
-
-
-def _is_gost(algorithm: int) -> bool:
-    return algorithm == Algorithm.ECCGOST
-
-
-def _is_md5(algorithm: int) -> bool:
-    return algorithm == Algorithm.RSAMD5
-
-
-def _is_sha1(algorithm: int) -> bool:
-    return algorithm in (
-        Algorithm.DSA,
-        Algorithm.RSASHA1,
-        Algorithm.DSANSEC3SHA1,
-        Algorithm.RSASHA1NSEC3SHA1,
-    )
-
-
-def _is_sha256(algorithm: int) -> bool:
-    return algorithm in (Algorithm.RSASHA256, Algorithm.ECDSAP256SHA256)
-
-
-def _is_sha384(algorithm: int) -> bool:
-    return algorithm == Algorithm.ECDSAP384SHA384
-
-
-def _is_sha512(algorithm: int) -> bool:
-    return algorithm == Algorithm.RSASHA512
-
-
-def _ensure_algorithm_key_combination(algorithm: int, key: PublicKey) -> None:
-    """Ensure algorithm is valid for key type, throwing an exception on
-    mismatch."""
-    if isinstance(key, rsa.RSAPublicKey):
-        if _is_rsa(algorithm):
-            return
-        raise AlgorithmKeyMismatch('algorithm "%s" not valid for RSA key' % algorithm)
-    if isinstance(key, dsa.DSAPublicKey):
-        if _is_dsa(algorithm):
-            return
-        raise AlgorithmKeyMismatch('algorithm "%s" not valid for DSA key' % algorithm)
-    if isinstance(key, ec.EllipticCurvePublicKey):
-        if _is_ecdsa(algorithm):
-            return
-        raise AlgorithmKeyMismatch('algorithm "%s" not valid for ECDSA key' % algorithm)
-    if isinstance(key, ed25519.Ed25519PublicKey):
-        if algorithm == Algorithm.ED25519:
-            return
-        raise AlgorithmKeyMismatch(
-            'algorithm "%s" not valid for ED25519 key' % algorithm
-        )
-    if isinstance(key, ed448.Ed448PublicKey):
-        if algorithm == Algorithm.ED448:
-            return
-        raise AlgorithmKeyMismatch('algorithm "%s" not valid for ED448 key' % algorithm)
-
-    raise TypeError("unsupported key type")
-
-
-def _make_hash(algorithm: int) -> Any:
-    if _is_md5(algorithm):
-        return hashes.MD5()
-    if _is_sha1(algorithm):
-        return hashes.SHA1()
-    if _is_sha256(algorithm):
-        return hashes.SHA256()
-    if _is_sha384(algorithm):
-        return hashes.SHA384()
-    if _is_sha512(algorithm):
-        return hashes.SHA512()
-    if algorithm == Algorithm.ED25519:
-        return hashes.SHA512()
-    if algorithm == Algorithm.ED448:
-        return hashes.SHAKE256(114)
-
-    raise ValidationFailure("unknown hash for algorithm %u" % algorithm)
-
-
-def _bytes_to_long(b: bytes) -> int:
-    return int.from_bytes(b, "big")
 
 
 def _get_rrname_rdataset(
@@ -1274,10 +1169,6 @@ def _need_pyca(*args, **kwargs):
 
 try:
     from cryptography.exceptions import InvalidSignature
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.asymmetric import padding
-    from cryptography.hazmat.primitives.asymmetric import utils
     from cryptography.hazmat.primitives.asymmetric import dsa
     from cryptography.hazmat.primitives.asymmetric import ec
     from cryptography.hazmat.primitives.asymmetric import ed25519
