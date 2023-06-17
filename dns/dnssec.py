@@ -664,6 +664,8 @@ def _make_dnskey(
     Return DNSKEY ``Rdata``.
     """
 
+    algorithm = Algorithm.make(algorithm)
+
     if not isinstance(public_key, AlgorithmPublicKey):
         if not isinstance(
             public_key,
@@ -680,8 +682,6 @@ def _make_dnskey(
         key_bytes = public_cls.from_key(public_key).encode_key_bytes()
     else:
         key_bytes = public_key.encode_key_bytes()
-
-    algorithm = Algorithm.make(algorithm)
 
     return DNSKEY(
         rdclass=dns.rdataclass.IN,
