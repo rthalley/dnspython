@@ -646,9 +646,8 @@ def _make_dnskey(
 ) -> DNSKEY:
     """Convert a public key to DNSKEY Rdata
 
-    *public_key*, the public key to convert, a
-    ``cryptography.hazmat.primitives.asymmetric`` public key class applicable
-    for DNSSEC.
+    *public_key*, a ``PublicKey`` (``AlgorithmPublicKey`` or
+    ``cryptography.hazmat.primitives.asymmetric``) to convert.
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
 
@@ -666,7 +665,9 @@ def _make_dnskey(
 
     algorithm = Algorithm.make(algorithm)
 
-    if not isinstance(public_key, AlgorithmPublicKey):
+    if isinstance(public_key, AlgorithmPublicKey):
+        key_bytes = public_key.encode_key_bytes()
+    else:
         if not isinstance(
             public_key,
             (
@@ -680,8 +681,6 @@ def _make_dnskey(
             raise TypeError("unsupported key algorithm")
         public_cls = get_algorithm_cls(algorithm).public_cls
         key_bytes = public_cls.from_key(public_key).encode_key_bytes()
-    else:
-        key_bytes = public_key.encode_key_bytes()
 
     return DNSKEY(
         rdclass=dns.rdataclass.IN,
