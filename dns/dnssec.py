@@ -56,6 +56,7 @@ from dns.rdtypes.dnskeybase import Flag
 
 
 PublicKey = Union[
+    "AlgorithmPublicKey",
     "rsa.RSAPublicKey",
     "ec.EllipticCurvePublicKey",
     "ed25519.Ed25519PublicKey",
@@ -63,6 +64,7 @@ PublicKey = Union[
 ]
 
 PrivateKey = Union[
+    "AlgorithmPrivateKey",
     "rsa.RSAPrivateKey",
     "ec.EllipticCurvePrivateKey",
     "ed25519.Ed25519PrivateKey",
@@ -471,7 +473,7 @@ def _validate(
 
 def _sign(
     rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
-    private_key: Union[PrivateKey, "AlgorithmPrivateKey"],
+    private_key: PrivateKey,
     signer: dns.name.Name,
     dnskey: DNSKEY,
     inception: Optional[Union[datetime, str, int, float]] = None,
@@ -637,7 +639,7 @@ def _make_rrsig_signature_data(
 
 
 def _make_dnskey(
-    public_key: Union[PublicKey, "AlgorithmPublicKey"],
+    public_key: Union[PublicKey],
     algorithm: Union[int, str],
     flags: int = Flag.ZONE,
     protocol: int = 3,
