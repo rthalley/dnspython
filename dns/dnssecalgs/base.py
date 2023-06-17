@@ -4,6 +4,7 @@ from typing import Any, Type
 import dns.rdataclass
 import dns.rdatatype
 from dns.dnssectypes import Algorithm
+from dns.exception import AlgorithmKeyMismatch
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.dnskeybase import Flag
 
@@ -45,7 +46,7 @@ class AlgorithmPublicKeyBase(ABC):
         if cls.key_cls is None:
             raise TypeError("Undefined private key class")
         if not isinstance(key, cls.key_cls):
-            raise TypeError("Public key class mismatch: " + str(type(key)))
+            raise AlgorithmKeyMismatch
         return cls(key=key)
 
 
@@ -71,5 +72,5 @@ class AlgorithmPrivateKeyBase(ABC):
         if cls.key_cls is None:
             raise TypeError("Undefined private key class")
         if not isinstance(key, cls.key_cls):
-            raise TypeError("Private key class mismatch: " + str(type(key)))
+            raise AlgorithmKeyMismatch
         return cls(key=key)

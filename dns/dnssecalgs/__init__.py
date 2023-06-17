@@ -1,19 +1,15 @@
 from typing import Dict, Optional, Tuple, Type, Union
 
 import dns.name
-from dns.exception import UnsupportedAlgorithm
 from dns.dnssecalgs.base import AlgorithmPrivateKeyBase
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
 from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
-from dns.dnssecalgs.rsa import (
-    PrivateRSAMD5,
-    PrivateRSASHA1,
-    PrivateRSASHA1NSEC3SHA1,
-    PrivateRSASHA256,
-    PrivateRSASHA512,
-)
+from dns.dnssecalgs.rsa import (PrivateRSAMD5, PrivateRSASHA1,
+                                PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
+                                PrivateRSASHA512)
 from dns.dnssectypes import Algorithm
+from dns.exception import UnsupportedAlgorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 algorithms: Dict[Tuple[Algorithm, Optional[bytes]], Type[AlgorithmPrivateKeyBase]] = {
@@ -35,7 +31,26 @@ def _is_private(algorithm: Algorithm) -> bool:
     return algorithm in set([Algorithm.PRIVATEDNS, Algorithm.PRIVATEOID])
 
 
-def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
+def get_algorithm_cls(
+    algorithm: Union[int, str], prefix: Optional[bytes] = None
+) -> Type[AlgorithmPrivateKeyBase]:
+    """Get Algorithm Private Key class from Algorithm.
+
+    *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
+
+    Returns a ``dns.dnssecalgsAlgorithmPrivateKeyBase``
+    """
+    cls = algorithms.get((algorithm, prefix))
+    if cls:
+        return cls
+    raise UnsupportedAlgorithm(
+        'algorithm "%s" not supported by dnspython' % Algorithm.to_text(algorithm)
+    )
+
+
+def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
     """Get Algorithm Private Key class from DNSKEY.
 
     *dnskey*, a ``DNSKEY`` to get Algorithm class for.
@@ -51,17 +66,11 @@ def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
     elif dnskey.algorithm == Algorithm.PRIVATEOID:
         length = int(dnskey.key[0])
         prefix = dnskey.key[0 : length + 1]
-    cls = algorithms.get((dnskey.algorithm, prefix))
-    if cls:
-        return cls
-    raise UnsupportedAlgorithm(
-        'algorithm "%s" not supported by dnspython'
-        % Algorithm.to_text(dnskey.algorithm)
-    )
+    return get_algorithm_cls(dnskey.algorithm, prefix)
 
 
 def register_algorithm_cls(
-    algorithm: Algorithm,
+    algorithm: Union[int, str],
     algorithm_cls: Type[AlgorithmPrivateKeyBase],
     name: Optional[Union[dns.name.Name, str]] = None,
     oid: Optional[bytes] = None,

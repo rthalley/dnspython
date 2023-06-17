@@ -19,17 +19,14 @@ import os
 import unittest
 
 import dns.dnssec
-from dns.dnssecalgs import get_algorithm_cls, register_algorithm_cls
+from dns.dnssecalgs import (get_algorithm_cls_from_dnskey,
+                            register_algorithm_cls)
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
 from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
-from dns.dnssecalgs.rsa import (
-    PrivateRSAMD5,
-    PrivateRSASHA1,
-    PrivateRSASHA1NSEC3SHA1,
-    PrivateRSASHA256,
-    PrivateRSASHA512,
-)
+from dns.dnssecalgs.rsa import (PrivateRSAMD5, PrivateRSASHA1,
+                                PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
+                                PrivateRSASHA512)
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
@@ -144,13 +141,13 @@ class DNSSECAlgorithm(unittest.TestCase):
             bytes([4, 1, 2, 3, 4]) + b"hello",
         )
 
-        algorithm_cls = get_algorithm_cls(dnskey_251)
+        algorithm_cls = get_algorithm_cls_from_dnskey(dnskey_251)
         self.assertEqual(algorithm_cls, PrivateED25519)
 
-        algorithm_cls = get_algorithm_cls(dnskey_dns)
+        algorithm_cls = get_algorithm_cls_from_dnskey(dnskey_dns)
         self.assertEqual(algorithm_cls, PrivateED25519)
 
-        algorithm_cls = get_algorithm_cls(dnskey_oid)
+        algorithm_cls = get_algorithm_cls_from_dnskey(dnskey_oid)
         self.assertEqual(algorithm_cls, PrivateED448)
 
 
