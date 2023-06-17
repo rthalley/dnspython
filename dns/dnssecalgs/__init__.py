@@ -1,18 +1,22 @@
 from typing import Dict, Optional, Tuple, Type, Union
 
 import dns.name
-from dns.dnssecalgs.base import AlgorithmPrivateKeyBase
+from dns.dnssecalgs.base import AlgorithmPrivateKey
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
 from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
-from dns.dnssecalgs.rsa import (PrivateRSAMD5, PrivateRSASHA1,
-                                PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
-                                PrivateRSASHA512)
+from dns.dnssecalgs.rsa import (
+    PrivateRSAMD5,
+    PrivateRSASHA1,
+    PrivateRSASHA1NSEC3SHA1,
+    PrivateRSASHA256,
+    PrivateRSASHA512,
+)
 from dns.dnssectypes import Algorithm
 from dns.exception import UnsupportedAlgorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
-algorithms: Dict[Tuple[Algorithm, Optional[bytes]], Type[AlgorithmPrivateKeyBase]] = {
+algorithms: Dict[Tuple[Algorithm, Optional[bytes]], Type[AlgorithmPrivateKey]] = {
     (Algorithm.RSAMD5, None): PrivateRSAMD5,
     (Algorithm.DSA, None): PrivateDSA,
     (Algorithm.RSASHA1, None): PrivateRSASHA1,
@@ -33,14 +37,14 @@ def _is_private(algorithm: Algorithm) -> bool:
 
 def get_algorithm_cls(
     algorithm: Union[int, str], prefix: Optional[bytes] = None
-) -> Type[AlgorithmPrivateKeyBase]:
+) -> Type[AlgorithmPrivateKey]:
     """Get Algorithm Private Key class from Algorithm.
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
 
     Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
 
-    Returns a ``dns.dnssecalgsAlgorithmPrivateKeyBase``
+    Returns a ``dns.dnssecalgsAlgorithmPrivateKey``
     """
     cls = algorithms.get((algorithm, prefix))
     if cls:
@@ -50,14 +54,14 @@ def get_algorithm_cls(
     )
 
 
-def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
+def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[AlgorithmPrivateKey]:
     """Get Algorithm Private Key class from DNSKEY.
 
     *dnskey*, a ``DNSKEY`` to get Algorithm class for.
 
     Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
 
-    Returns a ``dns.dnssecalgsAlgorithmPrivateKeyBase``
+    Returns a ``dns.dnssecalgsAlgorithmPrivateKey``
     """
     prefix = None
     if dnskey.algorithm == Algorithm.PRIVATEDNS:
@@ -71,7 +75,7 @@ def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBas
 
 def register_algorithm_cls(
     algorithm: Union[int, str],
-    algorithm_cls: Type[AlgorithmPrivateKeyBase],
+    algorithm_cls: Type[AlgorithmPrivateKey],
     name: Optional[Union[dns.name.Name, str]] = None,
     oid: Optional[bytes] = None,
 ) -> None:
@@ -79,7 +83,7 @@ def register_algorithm_cls(
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
 
-    *algorithm_cls*: A `AlgorithmPrivateKeyBase` class.
+    *algorithm_cls*: A `AlgorithmPrivateKey` class.
 
     *name*, an optional ``dns.name.Name`` or ``str``, for for PRIVATEDNS algorithms.
 
@@ -88,7 +92,7 @@ def register_algorithm_cls(
     Raises ``ValueError`` if a name or oid is specified incorrectly.
     """
     algorithm = Algorithm.make(algorithm)
-    if not issubclass(algorithm_cls, AlgorithmPrivateKeyBase):
+    if not issubclass(algorithm_cls, AlgorithmPrivateKey):
         raise TypeError("Invalid algorithm class")
     prefix = None
     if algorithm == Algorithm.PRIVATEDNS and name:

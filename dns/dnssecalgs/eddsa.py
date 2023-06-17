@@ -4,12 +4,12 @@ from typing import Type
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed448, ed25519
 
-from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
+from dns.dnssecalgs.base import AlgorithmPrivateKey, AlgorithmPublicKey
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-class PublicEDDSA(AlgorithmPublicKeyBase):
+class PublicEDDSA(AlgorithmPublicKey):
     def verify(self, signature: bytes, data: bytes) -> None:
         self.key.verify(signature, data)
 
@@ -26,7 +26,7 @@ class PublicEDDSA(AlgorithmPublicKeyBase):
         )
 
 
-class PrivateEDDSA(AlgorithmPrivateKeyBase):
+class PrivateEDDSA(AlgorithmPrivateKey):
     public_cls: Type[PublicEDDSA]
 
     def sign(self, data: bytes, verify: bool = False) -> bytes:

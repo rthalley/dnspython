@@ -5,12 +5,12 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
+from dns.dnssecalgs.base import AlgorithmPrivateKey, AlgorithmPublicKey
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-class PublicRSA(AlgorithmPublicKeyBase):
+class PublicRSA(AlgorithmPublicKey):
     key: rsa.RSAPublicKey
     key_cls = rsa.RSAPublicKey
     algorithm: Algorithm
@@ -49,7 +49,7 @@ class PublicRSA(AlgorithmPublicKeyBase):
         )
 
 
-class PrivateRSA(AlgorithmPrivateKeyBase):
+class PrivateRSA(AlgorithmPrivateKey):
     key: rsa.RSAPrivateKey
     key_cls = rsa.RSAPrivateKey
     public_cls = PublicRSA

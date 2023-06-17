@@ -9,7 +9,7 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.dnskeybase import Flag
 
 
-class AlgorithmPublicKeyBase(ABC):
+class AlgorithmPublicKey(ABC):
     algorithm: Algorithm
     key: Any = None
     key_cls: Any = None
@@ -37,11 +37,11 @@ class AlgorithmPublicKeyBase(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dnskey(cls, key: DNSKEY) -> "AlgorithmPublicKeyBase":
+    def from_dnskey(cls, key: DNSKEY) -> "AlgorithmPublicKey":
         pass
 
     @classmethod
-    def from_key(cls, key: Any) -> "AlgorithmPublicKeyBase":
+    def from_key(cls, key: Any) -> "AlgorithmPublicKey":
         """Return PublicKey from cryptography public key"""
         if cls.key_cls is None:
             raise TypeError("Undefined private key class")
@@ -50,8 +50,8 @@ class AlgorithmPublicKeyBase(ABC):
         return cls(key=key)
 
 
-class AlgorithmPrivateKeyBase(ABC):
-    public_cls: Type[AlgorithmPublicKeyBase]
+class AlgorithmPrivateKey(ABC):
+    public_cls: Type[AlgorithmPublicKey]
     key: Any = None
     key_cls: Any = None
 
@@ -63,11 +63,11 @@ class AlgorithmPrivateKeyBase(ABC):
         pass
 
     @abstractmethod
-    def public_key(self) -> "AlgorithmPublicKeyBase":
+    def public_key(self) -> "AlgorithmPublicKey":
         pass
 
     @classmethod
-    def from_key(cls, key: Any) -> "AlgorithmPrivateKeyBase":
+    def from_key(cls, key: Any) -> "AlgorithmPrivateKey":
         """Return PrivateKey from cryptography private key"""
         if cls.key_cls is None:
             raise TypeError("Undefined private key class")

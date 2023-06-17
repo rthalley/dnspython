@@ -471,7 +471,7 @@ def _validate(
 
 def _sign(
     rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
-    private_key: Union[PrivateKey, "AlgorithmPrivateKeyBase"],
+    private_key: Union[PrivateKey, "AlgorithmPrivateKey"],
     signer: dns.name.Name,
     dnskey: DNSKEY,
     inception: Optional[Union[datetime, str, int, float]] = None,
@@ -561,7 +561,7 @@ def _sign(
 
     data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template)
 
-    if isinstance(private_key, AlgorithmPrivateKeyBase):
+    if isinstance(private_key, AlgorithmPrivateKey):
         signing_key = private_key
     else:
         try:
@@ -637,7 +637,7 @@ def _make_rrsig_signature_data(
 
 
 def _make_dnskey(
-    public_key: Union[PublicKey, "AlgorithmPublicKeyBase"],
+    public_key: Union[PublicKey, "AlgorithmPublicKey"],
     algorithm: Union[int, str],
     flags: int = Flag.ZONE,
     protocol: int = 3,
@@ -662,7 +662,7 @@ def _make_dnskey(
     Return DNSKEY ``Rdata``.
     """
 
-    if not isinstance(public_key, AlgorithmPublicKeyBase):
+    if not isinstance(public_key, AlgorithmPublicKey):
         if not isinstance(
             public_key,
             (
@@ -1172,7 +1172,7 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ed448
     from cryptography.hazmat.primitives.asymmetric import rsa
     from dns.dnssecalgs import get_algorithm_cls, get_algorithm_cls_from_dnskey
-    from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
+    from dns.dnssecalgs.base import AlgorithmPrivateKey, AlgorithmPublicKey
 except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca

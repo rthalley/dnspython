@@ -4,12 +4,12 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, utils
 
-from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
+from dns.dnssecalgs.base import AlgorithmPrivateKey, AlgorithmPublicKey
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-class PublicECDSA(AlgorithmPublicKeyBase):
+class PublicECDSA(AlgorithmPublicKey):
     key: ec.EllipticCurvePublicKey
     key_cls = ec.EllipticCurvePublicKey
     algorithm: Algorithm
@@ -43,7 +43,7 @@ class PublicECDSA(AlgorithmPublicKeyBase):
         )
 
 
-class PrivateECDSA(AlgorithmPrivateKeyBase):
+class PrivateECDSA(AlgorithmPrivateKey):
     key: ec.EllipticCurvePrivateKey
     key_cls = ec.EllipticCurvePrivateKey
     public_cls = PublicECDSA
