@@ -114,8 +114,6 @@ class DNSSECAlgorithm(unittest.TestCase):
         algorithm_cls = get_algorithm_cls(dnskey_oid)
         self.assertEqual(algorithm_cls, PrivateED448)
 
-        breakpoint()
-
 
 if __name__ == "__main__":
     unittest.main()
