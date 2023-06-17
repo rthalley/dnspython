@@ -28,8 +28,6 @@ import time
 import base64
 from datetime import datetime
 
-from dns.dnssecalgs import get_algorithm_cls, get_algorithm_cls_from_dnskey
-from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
 from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
 
 import dns.exception
@@ -473,7 +471,7 @@ def _validate(
 
 def _sign(
     rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
-    private_key: Union[PrivateKey, AlgorithmPrivateKeyBase],
+    private_key: Union[PrivateKey, "AlgorithmPrivateKeyBase"],
     signer: dns.name.Name,
     dnskey: DNSKEY,
     inception: Optional[Union[datetime, str, int, float]] = None,
@@ -639,7 +637,7 @@ def _make_rrsig_signature_data(
 
 
 def _make_dnskey(
-    public_key: Union[PublicKey, AlgorithmPublicKeyBase],
+    public_key: Union[PublicKey, "AlgorithmPublicKeyBase"],
     algorithm: Union[int, str],
     flags: int = Flag.ZONE,
     protocol: int = 3,
@@ -1174,6 +1172,8 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     from cryptography.hazmat.primitives.asymmetric import ed448
     from cryptography.hazmat.primitives.asymmetric import rsa
+    from dns.dnssecalgs import get_algorithm_cls, get_algorithm_cls_from_dnskey
+    from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
 except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca
