@@ -20,16 +20,27 @@ import unittest
 
 import dns.dnssec
 import dns.exception
-from dns.dnssecalgs import (get_algorithm_cls, get_algorithm_cls_from_dnskey,
-                            register_algorithm_cls)
-from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
-from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
-from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
-from dns.dnssecalgs.rsa import (PrivateRSAMD5, PrivateRSASHA1,
-                                PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
-                                PrivateRSASHA512)
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
+
+try:
+    from dns.dnssecalgs import (
+        get_algorithm_cls,
+        get_algorithm_cls_from_dnskey,
+        register_algorithm_cls,
+    )
+    from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
+    from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
+    from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
+    from dns.dnssecalgs.rsa import (
+        PrivateRSAMD5,
+        PrivateRSASHA1,
+        PrivateRSASHA1NSEC3SHA1,
+        PrivateRSASHA256,
+        PrivateRSASHA512,
+    )
+except ImportError:
+    pass  # Cryptography ImportError already handled in dns.dnssec
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")

@@ -903,6 +903,7 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             )
 
 
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMiscTestCase(unittest.TestCase):
     def testDigestToBig(self):
         with self.assertRaises(ValueError):
@@ -999,6 +1000,7 @@ class DNSSECMiscTestCase(unittest.TestCase):
         self.assertEqual(zone1.to_text(), zone2.to_text())
 
 
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMakeDSTestCase(unittest.TestCase):
     def testMnemonicParser(self):
         good_ds_mnemonic = dns.rdata.from_text(
