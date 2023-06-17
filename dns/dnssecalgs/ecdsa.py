@@ -9,14 +9,13 @@ from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-@dataclass
 class PublicECDSA(AlgorithmPublicKeyBase):
     key: ec.EllipticCurvePublicKey
     key_cls = ec.EllipticCurvePublicKey
-    algorithm = Algorithm.ECDSAP256SHA256
-    chosen_hash: hashes.HashAlgorithm = hashes.SHA256()
-    curve: ec.EllipticCurve = ec.SECP256R1()
-    octets = 32
+    algorithm: Algorithm
+    chosen_hash: hashes.HashAlgorithm
+    curve: ec.EllipticCurve
+    octets: int
 
     def verify(self, signature: bytes, data: bytes) -> None:
         sig_r = signature[0 : self.octets]
@@ -41,11 +40,9 @@ class PublicECDSA(AlgorithmPublicKeyBase):
                 x=int.from_bytes(ecdsa_x, "big"),
                 y=int.from_bytes(ecdsa_y, "big"),
             ).public_key(default_backend()),
-            algorithm=cls.algorithm,
         )
 
 
-@dataclass
 class PrivateECDSA(AlgorithmPrivateKeyBase):
     key: ec.EllipticCurvePrivateKey
     key_cls = ec.EllipticCurvePrivateKey
@@ -65,8 +62,6 @@ class PrivateECDSA(AlgorithmPrivateKeyBase):
     def public_key(self) -> "PublicECDSA":
         return self.public_cls(
             key=self.key.public_key(),
-            algorithm=self.public_cls.algorithm,
-            chosen_hash=self.public_cls.chosen_hash,
         )
 
     @classmethod
@@ -75,11 +70,9 @@ class PrivateECDSA(AlgorithmPrivateKeyBase):
             key=ec.generate_private_key(
                 curve=cls.public_cls.curve, backend=default_backend()
             ),
-            public_cls=cls.public_cls,
         )
 
 
-@dataclass
 class PublicECDSAP256SHA256(PublicECDSA):
     algorithm = Algorithm.ECDSAP256SHA256
     chosen_hash = hashes.SHA256()
@@ -87,12 +80,10 @@ class PublicECDSAP256SHA256(PublicECDSA):
     octets = 32
 
 
-@dataclass
 class PrivateECDSAP256SHA256(PrivateECDSA):
     public_cls = PublicECDSAP256SHA256
 
 
-@dataclass
 class PublicECDSAP384SHA384(PublicECDSA):
     algorithm = Algorithm.ECDSAP384SHA384
     chosen_hash = hashes.SHA384()
@@ -100,6 +91,5 @@ class PublicECDSAP384SHA384(PublicECDSA):
     octets = 48
 
 
-@dataclass
 class PrivateECDSAP384SHA384(PrivateECDSA):
     public_cls = PublicECDSAP384SHA384

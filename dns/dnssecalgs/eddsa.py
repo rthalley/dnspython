@@ -1,5 +1,5 @@
-from typing import Type
 from dataclasses import dataclass
+from typing import Type
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed448, ed25519
@@ -9,7 +9,6 @@ from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-@dataclass
 class PublicEDDSA(AlgorithmPublicKeyBase):
     def verify(self, signature: bytes, data: bytes) -> None:
         self.key.verify(signature, data)
@@ -24,11 +23,9 @@ class PublicEDDSA(AlgorithmPublicKeyBase):
     def from_dnskey(cls, key: DNSKEY) -> "PublicEDDSA":
         return cls(
             key=cls.key_cls.from_public_bytes(key.key),
-            algorithm=cls.algorithm,
         )
 
 
-@dataclass
 class PrivateEDDSA(AlgorithmPrivateKeyBase):
     public_cls: Type[PublicEDDSA]
 
@@ -42,36 +39,31 @@ class PrivateEDDSA(AlgorithmPrivateKeyBase):
     def public_key(self) -> "PublicEDDSA":
         return self.public_cls(
             key=self.key.public_key(),
-            algorithm=self.public_cls.algorithm,
         )
 
     @classmethod
     def generate(cls) -> "PrivateEDDSA":
-        return cls(key=cls.key_cls.generate(), public_cls=cls.public_cls)
+        return cls(key=cls.key_cls.generate())
 
 
-@dataclass
 class PublicED25519(PublicEDDSA):
     key: ed25519.Ed25519PublicKey
     key_cls = ed25519.Ed25519PublicKey
     algorithm = Algorithm.ED25519
 
 
-@dataclass
 class PrivateED25519(PrivateEDDSA):
     key: ed25519.Ed25519PrivateKey
     key_cls = ed25519.Ed25519PrivateKey
     public_cls = PublicED25519
 
 
-@dataclass
 class PublicED448(PublicEDDSA):
     key: ed448.Ed448PublicKey
     key_cls = ed448.Ed448PublicKey
     algorithm = Algorithm.ED448
 
 
-@dataclass
 class PrivateED448(PrivateEDDSA):
     key: ed448.Ed448PrivateKey
     key_cls = ed448.Ed448PrivateKey

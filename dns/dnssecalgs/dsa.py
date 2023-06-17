@@ -1,5 +1,4 @@
 import struct
-from dataclasses import dataclass
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -10,7 +9,6 @@ from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-@dataclass
 class PublicDSA(AlgorithmPublicKeyBase):
     key: dsa.DSAPublicKey
     key_cls = dsa.DSAPublicKey
@@ -61,11 +59,9 @@ class PublicDSA(AlgorithmPublicKeyBase):
                     int.from_bytes(dsa_g, "big"),
                 ),
             ).public_key(default_backend()),
-            algorithm=cls.algorithm,
         )
 
 
-@dataclass
 class PrivateDSA(AlgorithmPrivateKeyBase):
     key: dsa.DSAPrivateKey
     key_cls = dsa.DSAPrivateKey
@@ -92,22 +88,18 @@ class PrivateDSA(AlgorithmPrivateKeyBase):
     def public_key(self) -> "PublicDSA":
         return self.public_cls(
             key=self.key.public_key(),
-            algorithm=self.public_cls.algorithm,
         )
 
     @classmethod
     def generate(cls, key_size: int) -> "PrivateDSA":
         return cls(
             key=dsa.generate_private_key(key_size=key_size),
-            public_cls=cls.public_cls,
         )
 
 
-@dataclass
 class PublicDSANSEC3SHA1(PublicDSA):
     algorithm = Algorithm.DSANSEC3SHA1
 
 
-@dataclass
 class PrivateDSANSEC3SHA1(PrivateDSA):
     public_cls = PublicDSANSEC3SHA1

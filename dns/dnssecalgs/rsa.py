@@ -1,6 +1,5 @@
 import math
 import struct
-from dataclasses import dataclass
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -11,12 +10,11 @@ from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-@dataclass
 class PublicRSA(AlgorithmPublicKeyBase):
     key: rsa.RSAPublicKey
     key_cls = rsa.RSAPublicKey
-    algorithm = Algorithm.RSASHA256
-    chosen_hash: hashes.HashAlgorithm = hashes.SHA256()
+    algorithm: Algorithm
+    chosen_hash: hashes.HashAlgorithm
 
     def verify(self, signature: bytes, data: bytes) -> None:
         self.key.verify(signature, data, padding.PKCS1v15(), self.chosen_hash)
@@ -47,12 +45,10 @@ class PublicRSA(AlgorithmPublicKeyBase):
         return cls(
             key=rsa.RSAPublicNumbers(
                 int.from_bytes(rsa_e, "big"), int.from_bytes(rsa_n, "big")
-            ).public_key(default_backend()),
-            algorithm=cls.algorithm,
+            ).public_key(default_backend())
         )
 
 
-@dataclass
 class PrivateRSA(AlgorithmPrivateKeyBase):
     key: rsa.RSAPrivateKey
     key_cls = rsa.RSAPrivateKey
@@ -69,8 +65,6 @@ class PrivateRSA(AlgorithmPrivateKeyBase):
     def public_key(self) -> "PublicRSA":
         return self.public_cls(
             key=self.key.public_key(),
-            algorithm=self.public_cls.algorithm,
-            chosen_hash=self.public_cls.chosen_hash,
         )
 
     @classmethod
@@ -80,61 +74,50 @@ class PrivateRSA(AlgorithmPrivateKeyBase):
                 public_exponent=cls.default_public_exponent,
                 key_size=key_size,
                 backend=default_backend(),
-            ),
-            public_cls=cls.public_cls
+            )
         )
 
 
-@dataclass
 class PublicRSAMD5(PublicRSA):
     algorithm = Algorithm.RSAMD5
     chosen_hash = hashes.MD5()
 
 
-@dataclass
 class PrivateRSAMD5(PrivateRSA):
     public_cls = PublicRSAMD5
 
 
-@dataclass
 class PublicRSASHA1(PublicRSA):
     algorithm = Algorithm.RSASHA1
     chosen_hash = hashes.SHA1()
 
 
-@dataclass
 class PrivateRSASHA1(PrivateRSA):
     public_cls = PublicRSASHA1
 
 
-@dataclass
 class PublicRSASHA1NSEC3SHA1(PublicRSA):
     algorithm = Algorithm.RSASHA1NSEC3SHA1
     chosen_hash = hashes.SHA1()
 
 
-@dataclass
 class PrivateRSASHA1NSEC3SHA1(PrivateRSA):
     public_cls = PublicRSASHA1NSEC3SHA1
 
 
-@dataclass
 class PublicRSASHA256(PublicRSA):
     algorithm = Algorithm.RSASHA256
     chosen_hash = hashes.SHA256()
 
 
-@dataclass
 class PrivateRSASHA256(PrivateRSA):
     public_cls = PublicRSASHA256
 
 
-@dataclass
 class PublicRSASHA512(PublicRSA):
     algorithm = Algorithm.RSASHA512
     chosen_hash = hashes.SHA512()
 
 
-@dataclass
 class PrivateRSASHA512(PrivateRSA):
     public_cls = PublicRSASHA512

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any, Type
 
 import dns.rdataclass
@@ -9,11 +8,13 @@ from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.dnskeybase import Flag
 
 
-@dataclass
 class AlgorithmPublicKeyBase(ABC):
     algorithm: Algorithm
     key: Any = None
     key_cls: Any = None
+
+    def __init__(self, key: Any):
+        self.key = key
 
     @abstractmethod
     def verify(self, signature: bytes, data: bytes) -> None:
@@ -45,14 +46,16 @@ class AlgorithmPublicKeyBase(ABC):
             raise TypeError("Undefined private key class")
         if not isinstance(key, cls.key_cls):
             raise TypeError("Public key class mismatch: " + str(type(key)))
-        return cls(key=key, algorithm=cls.algorithm)
+        return cls(key=key)
 
 
-@dataclass
 class AlgorithmPrivateKeyBase(ABC):
     public_cls: Type[AlgorithmPublicKeyBase]
     key: Any = None
     key_cls: Any = None
+
+    def __init__(self, key: Any):
+        self.key = key
 
     @abstractmethod
     def sign(self, data: bytes, verify: bool = False) -> bytes:
@@ -69,4 +72,4 @@ class AlgorithmPrivateKeyBase(ABC):
             raise TypeError("Undefined private key class")
         if not isinstance(key, cls.key_cls):
             raise TypeError("Private key class mismatch: " + str(type(key)))
-        return cls(key=key, public_cls=cls.public_cls)
+        return cls(key=key)
