@@ -6,9 +6,13 @@ from dns.dnssecalgs.base import AlgorithmPrivateKeyBase
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
 from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
-from dns.dnssecalgs.rsa import (PrivateRSAMD5, PrivateRSASHA1,
-                                PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
-                                PrivateRSASHA512)
+from dns.dnssecalgs.rsa import (
+    PrivateRSAMD5,
+    PrivateRSASHA1,
+    PrivateRSASHA1NSEC3SHA1,
+    PrivateRSASHA256,
+    PrivateRSASHA512,
+)
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
@@ -33,7 +37,7 @@ def _is_private(algorithm: Algorithm) -> bool:
 
 def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
     """Get Algorithm Private Key class from DNSKEY.
-    
+
     *dnskey*, a ``DNSKEY`` to get Algorithm class for.
 
     Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
@@ -50,7 +54,10 @@ def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
     cls = algorithms.get((dnskey.algorithm, prefix))
     if cls:
         return cls
-    raise UnsupportedAlgorithm
+    raise UnsupportedAlgorithm(
+        'algorithm "%s" not supported by dnspython'
+        % algorithm_to_text(dnskey.algorithm)
+    )
 
 
 def register_algorithm_cls(
