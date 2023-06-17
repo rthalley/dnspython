@@ -90,7 +90,43 @@ class DNSSECAlgorithm(unittest.TestCase):
             algorithm_cls=PrivateED448,
             oid=bytes([1, 2, 3, 4]),
         )
+        register_algorithm_cls(
+            algorithm=251,
+            algorithm_cls=PrivateED25519,
+        )
 
+        with self.assertRaises(ValueError):
+            register_algorithm_cls(
+                algorithm=251, algorithm_cls=PrivateED25519, name="example.com"
+            )
+
+        with self.assertRaises(ValueError):
+            register_algorithm_cls(
+                algorithm=251, algorithm_cls=PrivateED25519, oid=bytes([1, 2, 3, 4])
+            )
+
+        with self.assertRaises(ValueError):
+            register_algorithm_cls(
+                algorithm=Algorithm.PRIVATEDNS,
+                algorithm_cls=PrivateED25519,
+                oid=bytes([1, 2, 3, 4]),
+            )
+
+        with self.assertRaises(ValueError):
+            register_algorithm_cls(
+                algorithm=Algorithm.PRIVATEOID,
+                algorithm_cls=PrivateED25519,
+                name="example.com",
+            )
+
+        dnskey_251 = DNSKEY(
+            "IN",
+            "DNSKEY",
+            256,
+            5,
+            251,
+            b"hello",
+        )
         dnskey_dns = DNSKEY(
             "IN",
             "DNSKEY",
@@ -107,6 +143,9 @@ class DNSSECAlgorithm(unittest.TestCase):
             Algorithm.PRIVATEOID,
             bytes([4, 1, 2, 3, 4]) + b"hello",
         )
+
+        algorithm_cls = get_algorithm_cls(dnskey_251)
+        self.assertEqual(algorithm_cls, PrivateED25519)
 
         algorithm_cls = get_algorithm_cls(dnskey_dns)
         self.assertEqual(algorithm_cls, PrivateED25519)

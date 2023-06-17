@@ -32,7 +32,14 @@ def _is_private(algorithm: Algorithm) -> bool:
 
 
 def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
-    """Get Algorithm Private Key class from DNSKEY"""
+    """Get Algorithm Private Key class from DNSKEY.
+    
+    *dnskey*, a ``DNSKEY`` to get Algorithm class for.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
+
+    Returns a ``dns.dnssecalgsAlgorithmPrivateKeyBase``
+    """
     prefix = None
     if dnskey.algorithm == Algorithm.PRIVATEDNS:
         _, length = dns.name.from_wire(dnskey.key, 0)
@@ -52,10 +59,19 @@ def register_algorithm_cls(
     name: Optional[Union[dns.name.Name, str]] = None,
     oid: Optional[bytes] = None,
 ) -> None:
+    """Register Algorithm Private Key class.
+
+    *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
+
+    *algorithm_cls*: A `AlgorithmPrivateKeyBase` class.
+
+    *name*, an optional ``dns.name.Name`` or ``str``, for for PRIVATEDNS algorithms.
+
+    *oid*: an optional BER-encoded `bytes` for PRIVATEOID algorithms.
+
+    Raises ``ValueError`` if a name or oid is specified incorrectly.
     """
-    Register Algorithm Private Key class for an algorithm with optional
-    name/oid prefix
-    """
+    algorithm = Algorithm.make(algorithm)
     if not issubclass(algorithm_cls, AlgorithmPrivateKeyBase):
         raise TypeError("Invalid algorithm class")
     prefix = None
@@ -66,8 +82,8 @@ def register_algorithm_cls(
     elif algorithm == Algorithm.PRIVATEOID and oid:
         prefix = bytes([len(oid)]) + oid
     else:
-        if name:
+        if name and algorithm != Algorithm.PRIVATEDNS:
             raise ValueError("Name only supported for PRIVATEDNS algorithm")
-        if oid:
+        if oid and algorithm != Algorithm.PRIVATEOID:
             raise ValueError("OID only supported for PRIVATEOID algorithm")
     algorithms[(algorithm, prefix)] = algorithm_cls
