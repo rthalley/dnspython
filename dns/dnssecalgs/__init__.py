@@ -56,7 +56,7 @@ def get_algorithm_cls(dnskey: DNSKEY) -> Type[AlgorithmPrivateKeyBase]:
         return cls
     raise UnsupportedAlgorithm(
         'algorithm "%s" not supported by dnspython'
-        % algorithm_to_text(dnskey.algorithm)
+        % Algorithm.to_text(dnskey.algorithm)
     )
 
 
