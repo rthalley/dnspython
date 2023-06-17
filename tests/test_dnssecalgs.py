@@ -19,14 +19,17 @@ import os
 import unittest
 
 import dns.dnssec
-from dns.dnssecalgs import (get_algorithm_cls_from_dnskey,
-                            register_algorithm_cls)
+from dns.dnssecalgs import get_algorithm_cls_from_dnskey, register_algorithm_cls
 from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
 from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
-from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
-from dns.dnssecalgs.rsa import (PrivateRSAMD5, PrivateRSASHA1,
-                                PrivateRSASHA1NSEC3SHA1, PrivateRSASHA256,
-                                PrivateRSASHA512)
+from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
+from dns.dnssecalgs.rsa import (
+    PrivateRSAMD5,
+    PrivateRSASHA1,
+    PrivateRSASHA1NSEC3SHA1,
+    PrivateRSASHA256,
+    PrivateRSASHA512,
+)
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
@@ -76,6 +79,62 @@ class DNSSECAlgorithm(unittest.TestCase):
         self._test_dnssec_alg(PrivateED25519)
         self._test_dnssec_alg(PrivateED448)
 
+
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
+class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
+    def test_private(self):
+        class PublicExampleAlgorithm(PublicED25519):
+            name = dns.name.from_text("ed25519.example.com")
+
+            def encode_key_bytes(self) -> bytes:
+                return self.name.to_wire() + super().encode_key_bytes()
+
+            @classmethod
+            def from_dnskey(cls, key: DNSKEY) -> "PublicEDDSA":
+                return cls(
+                    key=cls.key_cls.from_public_bytes(
+                        key.key[len(cls.name.to_wire()) :]
+                    ),
+                )
+
+        class PrivateExampleAlgorithm(PrivateED25519):
+            public_cls = PublicExampleAlgorithm
+
+        register_algorithm_cls(
+            algorithm=Algorithm.PRIVATEDNS,
+            algorithm_cls=PrivateExampleAlgorithm,
+            name=PublicExampleAlgorithm.name,
+        )
+
+        private_key = PrivateExampleAlgorithm.generate()
+        public_key = private_key.public_key()
+
+        name = dns.name.from_text("example.com")
+        rdataset = dns.rdataset.from_text_list("in", "a", 30, ["10.0.0.1", "10.0.0.2"])
+        rrset = (name, rdataset)
+        ttl = 60
+        lifetime = 3600
+        rrname = rrset[0]
+        signer = rrname
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=public_key, algorithm=Algorithm.PRIVATEDNS
+        )
+        dnskey_rrset = dns.rrset.from_rdata(signer, ttl, dnskey)
+
+        rrsig = dns.dnssec.sign(
+            rrset=rrset,
+            private_key=private_key,
+            dnskey=dnskey,
+            lifetime=lifetime,
+            signer=signer,
+            verify=True,
+            policy=None,
+        )
+
+        keys = {signer: dnskey_rrset}
+        rrsigset = dns.rrset.from_rdata(rrname, ttl, rrsig)
+        dns.dnssec.validate(rrset=rrset, rrsigset=rrsigset, keys=keys, policy=None)
+
     def test_register(self):
         register_algorithm_cls(
             algorithm=Algorithm.PRIVATEDNS,
@@ -120,7 +179,7 @@ class DNSSECAlgorithm(unittest.TestCase):
             "IN",
             "DNSKEY",
             256,
-            5,
+            3,
             251,
             b"hello",
         )
@@ -128,7 +187,7 @@ class DNSSECAlgorithm(unittest.TestCase):
             "IN",
             "DNSKEY",
             256,
-            5,
+            3,
             Algorithm.PRIVATEDNS,
             dns.name.from_text("ed25519.example.com").to_wire() + b"hello",
         )
@@ -136,7 +195,7 @@ class DNSSECAlgorithm(unittest.TestCase):
             "IN",
             "DNSKEY",
             256,
-            5,
+            3,
             Algorithm.PRIVATEOID,
             bytes([4, 1, 2, 3, 4]) + b"hello",
         )
