@@ -29,6 +29,8 @@ import time
 import base64
 from datetime import datetime
 
+from dns.dnssecalgs import get_algorithm_cls, get_algorithm_cls_from_dnskey
+from dns.dnssecalgs.base import AlgorithmPrivateKeyBase, AlgorithmPublicKeyBase
 from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
 
 import dns.exception
@@ -423,85 +425,13 @@ def _get_rrname_rdataset(
         return rrset.name, rrset
 
 
-def _validate_signature(sig: bytes, data: bytes, key: DNSKEY, chosen_hash: Any) -> None:
-    keyptr: bytes
-    if _is_rsa(key.algorithm):
-        # we ignore because mypy is confused and thinks key.key is a str for unknown
-        # reasons.
-        keyptr = key.key
-        (bytes_,) = struct.unpack("!B", keyptr[0:1])
-        keyptr = keyptr[1:]
-        if bytes_ == 0:
-            (bytes_,) = struct.unpack("!H", keyptr[0:2])
-            keyptr = keyptr[2:]
-        rsa_e = keyptr[0:bytes_]
-        rsa_n = keyptr[bytes_:]
-        try:
-            rsa_public_key = rsa.RSAPublicNumbers(
-                _bytes_to_long(rsa_e), _bytes_to_long(rsa_n)
-            ).public_key(default_backend())
-        except ValueError:
-            raise ValidationFailure("invalid public key")
-        rsa_public_key.verify(sig, data, padding.PKCS1v15(), chosen_hash)
-    elif _is_dsa(key.algorithm):
-        keyptr = key.key
-        (t,) = struct.unpack("!B", keyptr[0:1])
-        keyptr = keyptr[1:]
-        octets = 64 + t * 8
-        dsa_q = keyptr[0:20]
-        keyptr = keyptr[20:]
-        dsa_p = keyptr[0:octets]
-        keyptr = keyptr[octets:]
-        dsa_g = keyptr[0:octets]
-        keyptr = keyptr[octets:]
-        dsa_y = keyptr[0:octets]
-        try:
-            dsa_public_key = dsa.DSAPublicNumbers(  # type: ignore
-                _bytes_to_long(dsa_y),
-                dsa.DSAParameterNumbers(
-                    _bytes_to_long(dsa_p), _bytes_to_long(dsa_q), _bytes_to_long(dsa_g)
-                ),
-            ).public_key(default_backend())
-        except ValueError:
-            raise ValidationFailure("invalid public key")
-        dsa_public_key.verify(sig, data, chosen_hash)
-    elif _is_ecdsa(key.algorithm):
-        keyptr = key.key
-        curve: Any
-        if key.algorithm == Algorithm.ECDSAP256SHA256:
-            curve = ec.SECP256R1()
-            octets = 32
-        else:
-            curve = ec.SECP384R1()
-            octets = 48
-        ecdsa_x = keyptr[0:octets]
-        ecdsa_y = keyptr[octets : octets * 2]
-        try:
-            ecdsa_public_key = ec.EllipticCurvePublicNumbers(
-                curve=curve, x=_bytes_to_long(ecdsa_x), y=_bytes_to_long(ecdsa_y)
-            ).public_key(default_backend())
-        except ValueError:
-            raise ValidationFailure("invalid public key")
-        ecdsa_public_key.verify(sig, data, ec.ECDSA(chosen_hash))
-    elif _is_eddsa(key.algorithm):
-        keyptr = key.key
-        loader: Any
-        if key.algorithm == Algorithm.ED25519:
-            loader = ed25519.Ed25519PublicKey
-        else:
-            loader = ed448.Ed448PublicKey
-        try:
-            eddsa_public_key = loader.from_public_bytes(keyptr)
-        except ValueError:
-            raise ValidationFailure("invalid public key")
-        eddsa_public_key.verify(sig, data)
-    elif _is_gost(key.algorithm):
-        raise UnsupportedAlgorithm(
-            'algorithm "%s" not supported by dnspython'
-            % algorithm_to_text(key.algorithm)
-        )
-    else:
-        raise ValidationFailure("unknown algorithm %u" % key.algorithm)
+def _validate_signature(sig: bytes, data: bytes, key: DNSKEY) -> None:
+    public_cls = get_algorithm_cls_from_dnskey(key).public_cls
+    try:
+        public_key = public_cls.from_dnskey(key)
+    except ValueError:
+        raise ValidationFailure("invalid public key")
+    public_key.verify(sig, data)
 
 
 def _validate_rrsig(
@@ -558,29 +488,13 @@ def _validate_rrsig(
     if rrsig.inception > now:
         raise ValidationFailure("not yet valid")
 
-    if _is_dsa(rrsig.algorithm):
-        sig_r = rrsig.signature[1:21]
-        sig_s = rrsig.signature[21:]
-        sig = utils.encode_dss_signature(_bytes_to_long(sig_r), _bytes_to_long(sig_s))
-    elif _is_ecdsa(rrsig.algorithm):
-        if rrsig.algorithm == Algorithm.ECDSAP256SHA256:
-            octets = 32
-        else:
-            octets = 48
-        sig_r = rrsig.signature[0:octets]
-        sig_s = rrsig.signature[octets:]
-        sig = utils.encode_dss_signature(_bytes_to_long(sig_r), _bytes_to_long(sig_s))
-    else:
-        sig = rrsig.signature
-
     data = _make_rrsig_signature_data(rrset, rrsig, origin)
-    chosen_hash = _make_hash(rrsig.algorithm)
 
     for candidate_key in candidate_keys:
         if not policy.ok_to_validate(candidate_key):
             continue
         try:
-            _validate_signature(sig, data, candidate_key, chosen_hash)
+            _validate_signature(rrsig.signature, data, candidate_key)
             return
         except (InvalidSignature, ValidationFailure):
             # this happens on an individual validation failure
@@ -664,7 +578,7 @@ def _validate(
 
 def _sign(
     rrset: Union[dns.rrset.RRset, Tuple[dns.name.Name, dns.rdataset.Rdataset]],
-    private_key: PrivateKey,
+    private_key: Union[PrivateKey, AlgorithmPrivateKeyBase],
     signer: dns.name.Name,
     dnskey: DNSKEY,
     inception: Optional[Union[datetime, str, int, float]] = None,
@@ -753,62 +667,16 @@ def _sign(
     )
 
     data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template)
-    chosen_hash = _make_hash(rrsig_template.algorithm)
-    signature = None
 
-    if isinstance(private_key, rsa.RSAPrivateKey):
-        if not _is_rsa(dnskey.algorithm):
-            raise ValueError("Invalid DNSKEY algorithm for RSA key")
-        signature = private_key.sign(data, padding.PKCS1v15(), chosen_hash)
-        if verify:
-            private_key.public_key().verify(
-                signature, data, padding.PKCS1v15(), chosen_hash
-            )
-    elif isinstance(private_key, dsa.DSAPrivateKey):
-        if not _is_dsa(dnskey.algorithm):
-            raise ValueError("Invalid DNSKEY algorithm for DSA key")
-        public_dsa_key = private_key.public_key()
-        if public_dsa_key.key_size > 1024:
-            raise ValueError("DSA key size overflow")
-        der_signature = private_key.sign(data, chosen_hash)
-        if verify:
-            public_dsa_key.verify(der_signature, data, chosen_hash)
-        dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
-        dsa_t = (public_dsa_key.key_size // 8 - 64) // 8
-        octets = 20
-        signature = (
-            struct.pack("!B", dsa_t)
-            + int.to_bytes(dsa_r, length=octets, byteorder="big")
-            + int.to_bytes(dsa_s, length=octets, byteorder="big")
-        )
-    elif isinstance(private_key, ec.EllipticCurvePrivateKey):
-        if not _is_ecdsa(dnskey.algorithm):
-            raise ValueError("Invalid DNSKEY algorithm for EC key")
-        der_signature = private_key.sign(data, ec.ECDSA(chosen_hash))
-        if verify:
-            private_key.public_key().verify(der_signature, data, ec.ECDSA(chosen_hash))
-        if dnskey.algorithm == Algorithm.ECDSAP256SHA256:
-            octets = 32
-        else:
-            octets = 48
-        dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
-        signature = int.to_bytes(dsa_r, length=octets, byteorder="big") + int.to_bytes(
-            dsa_s, length=octets, byteorder="big"
-        )
-    elif isinstance(private_key, ed25519.Ed25519PrivateKey):
-        if dnskey.algorithm != Algorithm.ED25519:
-            raise ValueError("Invalid DNSKEY algorithm for ED25519 key")
-        signature = private_key.sign(data)
-        if verify:
-            private_key.public_key().verify(signature, data)
-    elif isinstance(private_key, ed448.Ed448PrivateKey):
-        if dnskey.algorithm != Algorithm.ED448:
-            raise ValueError("Invalid DNSKEY algorithm for ED448 key")
-        signature = private_key.sign(data)
-        if verify:
-            private_key.public_key().verify(signature, data)
+    if isinstance(private_key, AlgorithmPrivateKeyBase):
+        signing_key = private_key
     else:
-        raise TypeError("Unsupported key algorithm")
+        try:
+            signing_key = get_algorithm_cls_from_dnskey(dnskey).from_key(private_key)
+        except UnsupportedAlgorithm:
+            raise TypeError("Unsupported key algorithm")
+
+    signature = signing_key.sign(data, verify)
 
     return cast(RRSIG, rrsig_template.replace(signature=signature))
 
@@ -876,7 +744,7 @@ def _make_rrsig_signature_data(
 
 
 def _make_dnskey(
-    public_key: PublicKey,
+    public_key: Union[PublicKey, AlgorithmPublicKeyBase],
     algorithm: Union[int, str],
     flags: int = Flag.ZONE,
     protocol: int = 3,
@@ -901,63 +769,25 @@ def _make_dnskey(
     Return DNSKEY ``Rdata``.
     """
 
-    def encode_rsa_public_key(public_key: "rsa.RSAPublicKey") -> bytes:
-        """Encode a public key per RFC 3110, section 2."""
-        pn = public_key.public_numbers()
-        _exp_len = math.ceil(int.bit_length(pn.e) / 8)
-        exp = int.to_bytes(pn.e, length=_exp_len, byteorder="big")
-        if _exp_len > 255:
-            exp_header = b"\0" + struct.pack("!H", _exp_len)
-        else:
-            exp_header = struct.pack("!B", _exp_len)
-        if pn.n.bit_length() < 512 or pn.n.bit_length() > 4096:
-            raise ValueError("unsupported RSA key length")
-        return exp_header + exp + pn.n.to_bytes((pn.n.bit_length() + 7) // 8, "big")
-
-    def encode_dsa_public_key(public_key: "dsa.DSAPublicKey") -> bytes:
-        """Encode a public key per RFC 2536, section 2."""
-        pn = public_key.public_numbers()
-        dsa_t = (public_key.key_size // 8 - 64) // 8
-        if dsa_t > 8:
-            raise ValueError("unsupported DSA key size")
-        octets = 64 + dsa_t * 8
-        res = struct.pack("!B", dsa_t)
-        res += pn.parameter_numbers.q.to_bytes(20, "big")
-        res += pn.parameter_numbers.p.to_bytes(octets, "big")
-        res += pn.parameter_numbers.g.to_bytes(octets, "big")
-        res += pn.y.to_bytes(octets, "big")
-        return res
-
-    def encode_ecdsa_public_key(public_key: "ec.EllipticCurvePublicKey") -> bytes:
-        """Encode a public key per RFC 6605, section 4."""
-        pn = public_key.public_numbers()
-        if isinstance(public_key.curve, ec.SECP256R1):
-            return pn.x.to_bytes(32, "big") + pn.y.to_bytes(32, "big")
-        elif isinstance(public_key.curve, ec.SECP384R1):
-            return pn.x.to_bytes(48, "big") + pn.y.to_bytes(48, "big")
-        else:
-            raise ValueError("unsupported ECDSA curve")
+    if not isinstance(public_key, AlgorithmPublicKeyBase):
+        if not isinstance(
+            public_key,
+            (
+                rsa.RSAPublicKey,
+                dsa.DSAPublicKey,
+                ec.EllipticCurvePublicKey,
+                ed25519.Ed25519PublicKey,
+                ed448.Ed448PublicKey,
+            ),
+        ):
+            raise TypeError("unsupported key algorithm")
+        public_cls = get_algorithm_cls(algorithm).public_cls
+        _public_key = public_cls.from_key(public_key)
+    else:
+        _public_key = public_key
 
     algorithm = Algorithm.make(algorithm)
-
-    _ensure_algorithm_key_combination(algorithm, public_key)
-
-    if isinstance(public_key, rsa.RSAPublicKey):
-        key_bytes = encode_rsa_public_key(public_key)
-    elif isinstance(public_key, dsa.DSAPublicKey):
-        key_bytes = encode_dsa_public_key(public_key)
-    elif isinstance(public_key, ec.EllipticCurvePublicKey):
-        key_bytes = encode_ecdsa_public_key(public_key)
-    elif isinstance(public_key, ed25519.Ed25519PublicKey):
-        key_bytes = public_key.public_bytes(
-            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-        )
-    elif isinstance(public_key, ed448.Ed448PublicKey):
-        key_bytes = public_key.public_bytes(
-            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-        )
-    else:
-        raise TypeError("unsupported key algorithm")
+    key_bytes = _public_key.encode_key_bytes()
 
     return DNSKEY(
         rdclass=dns.rdataclass.IN,
