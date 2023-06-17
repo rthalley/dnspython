@@ -675,12 +675,11 @@ def _make_dnskey(
         ):
             raise TypeError("unsupported key algorithm")
         public_cls = get_algorithm_cls(algorithm).public_cls
-        _public_key = public_cls.from_key(public_key)
+        key_bytes = public_cls.from_key(public_key).encode_key_bytes()
     else:
-        _public_key = public_key
+        key_bytes = public_key.encode_key_bytes()
 
     algorithm = Algorithm.make(algorithm)
-    key_bytes = _public_key.encode_key_bytes()
 
     return DNSKEY(
         rdclass=dns.rdataclass.IN,
