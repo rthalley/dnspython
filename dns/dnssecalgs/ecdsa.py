@@ -58,11 +58,6 @@ class PrivateECDSA(CryptographyPrivateKey):
             self.public_key().verify(signature, data)
         return signature
 
-    def public_key(self) -> "PublicECDSA":
-        return self.public_cls(
-            key=self.key.public_key(),
-        )
-
     @classmethod
     def generate(cls) -> "PrivateECDSA":
         return cls(

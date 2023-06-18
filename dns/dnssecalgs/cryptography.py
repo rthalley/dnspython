@@ -40,6 +40,11 @@ class CryptographyPrivateKey(GenericPrivateKey):
             raise AlgorithmKeyMismatch
         self.key = key
 
+    def public_key(self) -> "CryptographyPublicKey":
+        return self.public_cls(
+            key=self.key.public_key(),
+        )
+
     @classmethod
     def from_pem(
         cls, private_pem: bytes, password: Optional[bytes] = None
