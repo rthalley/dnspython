@@ -39,6 +39,7 @@ class PublicDSA(CryptographyPublicKey):
 
     @classmethod
     def from_dnskey(cls, key: DNSKEY) -> "PublicDSA":
+        cls._ensure_algorithm_key_combination(key)
         keyptr = key.key
         (t,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]

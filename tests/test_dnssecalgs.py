@@ -22,7 +22,6 @@ import dns.dnssec
 import dns.exception
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
-
 try:
     from dns.dnssecalgs import (
         get_algorithm_cls,
@@ -99,6 +98,13 @@ class DNSSECAlgorithm(unittest.TestCase):
     def test_eddsa(self):
         self._test_dnssec_alg(PrivateED25519)
         self._test_dnssec_alg(PrivateED448)
+
+    def test_algorithm_mismatch(self):
+        private_key_ed448 = PrivateED448.generate()
+        dnskey_ed448 = private_key_ed448.public_key().to_dnskey()
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
+            PublicED25519.from_dnskey(dnskey_ed448)
+
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")

@@ -30,6 +30,7 @@ class PublicECDSA(CryptographyPublicKey):
 
     @classmethod
     def from_dnskey(cls, key: DNSKEY) -> "PublicECDSA":
+        cls._ensure_algorithm_key_combination(key)
         ecdsa_x = key.key[0 : cls.octets]
         ecdsa_y = key.key[cls.octets : cls.octets * 2]
         return cls(
