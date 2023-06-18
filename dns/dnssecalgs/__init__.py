@@ -34,13 +34,13 @@ algorithms: Dict[Tuple[Algorithm, Optional[bytes]], Type[GenericPrivateKey]] = {
 def get_algorithm_cls(
     algorithm: Union[int, str], prefix: Optional[bytes] = None
 ) -> Type[GenericPrivateKey]:
-    """Get Algorithm Private Key class from Algorithm.
+    """Get Private Key class from Algorithm.
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
 
     Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
 
-    Returns a ``dns.dnssecalgsGenericPrivateKey``
+    Returns a ``dns.dnssecalgs.GenericPrivateKey``
     """
     algorithm = Algorithm.make(algorithm)
     cls = algorithms.get((algorithm, prefix))
@@ -52,13 +52,13 @@ def get_algorithm_cls(
 
 
 def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[GenericPrivateKey]:
-    """Get Algorithm Private Key class from DNSKEY.
+    """Get Private Key class from DNSKEY.
 
     *dnskey*, a ``DNSKEY`` to get Algorithm class for.
 
     Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
 
-    Returns a ``dns.dnssecalgsGenericPrivateKey``
+    Returns a ``dns.dnssecalgs.GenericPrivateKey``
     """
     prefix = None
     if dnskey.algorithm == Algorithm.PRIVATEDNS:
