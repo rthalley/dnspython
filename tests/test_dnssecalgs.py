@@ -68,6 +68,15 @@ class DNSSECAlgorithm(unittest.TestCase):
         # test cryptography keys
         _ = private_cls(key=private_key.key)
         _ = public_cls(key=public_key.key)
+        
+        # to/from PEM
+        password=b'mekmitasdigoat'
+        private_pem = private_key.to_pem()
+        private_pem_encrypted = private_key.to_pem(password=password)
+        public_pem = public_key.to_pem()
+        _ = private_cls.from_pem(private_pem)
+        _ = private_cls.from_pem(private_pem_encrypted, password)
+        _ = public_cls.from_pem(public_pem)
 
     def test_rsa(self):
         self._test_dnssec_alg(PrivateRSAMD5, 2048)
