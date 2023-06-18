@@ -46,6 +46,7 @@ def get_algorithm_cls(
 
     Returns a ``dns.dnssecalgsAlgorithmPrivateKey``
     """
+    algorithm = Algorithm.make(algorithm)
     cls = algorithms.get((algorithm, prefix))
     if cls:
         return cls
