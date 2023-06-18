@@ -1,27 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Type
-
-from cryptography.hazmat.primitives import serialization
+from typing import Optional, Type
 
 import dns.rdataclass
 import dns.rdatatype
 from dns.dnssectypes import Algorithm
-from dns.exception import AlgorithmKeyMismatch
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from dns.rdtypes.dnskeybase import Flag
 
 
-class AlgorithmPublicKey(ABC):
+class GenericPublicKey(ABC):
     algorithm: Algorithm
-    key: Any = None
-    key_cls: Any = None
-
-    def __init__(self, key: Any):
-        if self.key_cls is None:
-            raise TypeError("Undefined private key class")
-        if not isinstance(key, self.key_cls):
-            raise AlgorithmKeyMismatch
-        self.key = key
 
     @abstractmethod
     def verify(self, signature: bytes, data: bytes) -> None:
@@ -43,54 +31,37 @@ class AlgorithmPublicKey(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dnskey(cls, key: DNSKEY) -> "AlgorithmPublicKey":
+    def from_dnskey(cls, key: DNSKEY) -> "GenericPublicKey":
         pass
 
     @classmethod
-    def from_pem(cls, public_pem: bytes) -> "AlgorithmPublicKey":
-        key = serialization.load_pem_public_key(public_pem)
-        return cls(key=key)
+    @abstractmethod
+    def from_pem(cls, public_pem: bytes) -> "GenericPublicKey":
+        pass
 
+    @abstractmethod
     def to_pem(self) -> bytes:
-        return self.key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
+        pass
 
 
-class AlgorithmPrivateKey(ABC):
-    public_cls: Type[AlgorithmPublicKey]
-    key: Any = None
-    key_cls: Any = None
-
-    def __init__(self, key: Any):
-        if self.key_cls is None:
-            raise TypeError("Undefined private key class")
-        if not isinstance(key, self.key_cls):
-            raise AlgorithmKeyMismatch
-        self.key = key
+class GenericPrivateKey(ABC):
+    public_cls: Type[GenericPublicKey]
 
     @abstractmethod
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         pass
 
     @abstractmethod
-    def public_key(self) -> "AlgorithmPublicKey":
+    def public_key(self) -> "GenericPublicKey":
         pass
 
     @classmethod
-    def from_pem(cls, private_pem: bytes, password: Optional[bytes] = None) -> "AlgorithmPrivateKey":
-        key = serialization.load_pem_private_key(private_pem, password=password)
-        return cls(key=key)
+    @abstractmethod
+    def from_pem(
+        cls, private_pem: bytes, password: Optional[bytes] = None
+    ) -> "GenericPrivateKey":
+        pass
 
+    @abstractmethod
     def to_pem(self, password: Optional[bytes] = None) -> bytes:
-        encryption_algorithm: serialization.KeySerializationEncryption
-        if password:
-            encryption_algorithm = serialization.BestAvailableEncryption(password)
-        else:
-            encryption_algorithm = serialization.NoEncryption()
-        return self.key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=encryption_algorithm,
-        )
+        pass

@@ -56,7 +56,7 @@ from dns.rdtypes.dnskeybase import Flag
 
 
 PublicKey = Union[
-    "AlgorithmPublicKey",
+    "GenericPublicKey",
     "rsa.RSAPublicKey",
     "ec.EllipticCurvePublicKey",
     "ed25519.Ed25519PublicKey",
@@ -64,7 +64,7 @@ PublicKey = Union[
 ]
 
 PrivateKey = Union[
-    "AlgorithmPrivateKey",
+    "GenericPrivateKey",
     "rsa.RSAPrivateKey",
     "ec.EllipticCurvePrivateKey",
     "ed25519.Ed25519PrivateKey",
@@ -563,7 +563,7 @@ def _sign(
 
     data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template)
 
-    if isinstance(private_key, AlgorithmPrivateKey):
+    if isinstance(private_key, GenericPrivateKey):
         signing_key = private_key
     else:
         try:
@@ -647,7 +647,7 @@ def _make_dnskey(
 ) -> DNSKEY:
     """Convert a public key to DNSKEY Rdata
 
-    *public_key*, a ``PublicKey`` (``AlgorithmPublicKey`` or
+    *public_key*, a ``PublicKey`` (``GenericPublicKey`` or
     ``cryptography.hazmat.primitives.asymmetric``) to convert.
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
@@ -666,7 +666,7 @@ def _make_dnskey(
 
     algorithm = Algorithm.make(algorithm)
 
-    if isinstance(public_key, AlgorithmPublicKey):
+    if isinstance(public_key, GenericPublicKey):
         key_bytes = public_key.encode_key_bytes()
     else:
         if not isinstance(
@@ -1174,7 +1174,7 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ed448
     from cryptography.hazmat.primitives.asymmetric import rsa
     from dns.dnssecalgs import get_algorithm_cls, get_algorithm_cls_from_dnskey
-    from dns.dnssecalgs.base import AlgorithmPrivateKey, AlgorithmPublicKey
+    from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
 except ImportError:  # pragma: no cover
     validate = _need_pyca
     validate_rrsig = _need_pyca
