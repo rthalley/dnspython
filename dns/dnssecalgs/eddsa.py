@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Type
 
 from cryptography.hazmat.primitives import serialization
