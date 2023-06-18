@@ -68,9 +68,9 @@ class DNSSECAlgorithm(unittest.TestCase):
         # test cryptography keys
         _ = private_cls(key=private_key.key)
         _ = public_cls(key=public_key.key)
-        
+
         # to/from PEM
-        password=b'mekmitasdigoat'
+        password = b"mekmitasdigoat"
         private_pem = private_key.to_pem()
         private_pem_encrypted = private_key.to_pem(password=password)
         public_pem = public_key.to_pem()
@@ -88,6 +88,9 @@ class DNSSECAlgorithm(unittest.TestCase):
     def test_dsa(self):
         self._test_dnssec_alg(PrivateDSA, 1024)
         self._test_dnssec_alg(PrivateDSANSEC3SHA1, 1024)
+        with self.assertRaises(ValueError):
+            k = PrivateDSA.generate(2048)
+            k.sign(b"hello")
 
     def test_ecdsa(self):
         self._test_dnssec_alg(PrivateECDSAP256SHA256)
@@ -168,6 +171,9 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
             algorithm=251,
             algorithm_cls=PrivateED25519,
         )
+
+        with self.assertRaises(TypeError):
+            register_algorithm_cls(algorithm=251, algorithm_cls=str, name="example.com")
 
         with self.assertRaises(ValueError):
             register_algorithm_cls(
