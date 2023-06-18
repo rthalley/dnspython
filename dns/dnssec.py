@@ -567,7 +567,8 @@ def _sign(
         signing_key = private_key
     else:
         try:
-            signing_key = get_algorithm_cls_from_dnskey(dnskey).from_key(private_key)
+            private_cls = get_algorithm_cls_from_dnskey(dnskey)
+            signing_key = private_cls(key=private_key)
         except UnsupportedAlgorithm:
             raise TypeError("Unsupported key algorithm")
 
@@ -680,7 +681,7 @@ def _make_dnskey(
         ):
             raise TypeError("unsupported key algorithm")
         public_cls = get_algorithm_cls(algorithm).public_cls
-        key_bytes = public_cls.from_key(public_key).encode_key_bytes()
+        key_bytes = public_cls(key=public_key).encode_key_bytes()
 
     return DNSKEY(
         rdclass=dns.rdataclass.IN,

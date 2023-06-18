@@ -15,6 +15,10 @@ class AlgorithmPublicKey(ABC):
     key_cls: Any = None
 
     def __init__(self, key: Any):
+        if self.key_cls is None:
+            raise TypeError("Undefined private key class")
+        if not isinstance(key, self.key_cls):
+            raise AlgorithmKeyMismatch
         self.key = key
 
     @abstractmethod
@@ -40,15 +44,6 @@ class AlgorithmPublicKey(ABC):
     def from_dnskey(cls, key: DNSKEY) -> "AlgorithmPublicKey":
         pass
 
-    @classmethod
-    def from_key(cls, key: Any) -> "AlgorithmPublicKey":
-        """Return PublicKey from cryptography public key"""
-        if cls.key_cls is None:
-            raise TypeError("Undefined private key class")
-        if not isinstance(key, cls.key_cls):
-            raise AlgorithmKeyMismatch
-        return cls(key=key)
-
 
 class AlgorithmPrivateKey(ABC):
     public_cls: Type[AlgorithmPublicKey]
@@ -56,6 +51,10 @@ class AlgorithmPrivateKey(ABC):
     key_cls: Any = None
 
     def __init__(self, key: Any):
+        if self.key_cls is None:
+            raise TypeError("Undefined private key class")
+        if not isinstance(key, self.key_cls):
+            raise AlgorithmKeyMismatch
         self.key = key
 
     @abstractmethod
@@ -65,12 +64,3 @@ class AlgorithmPrivateKey(ABC):
     @abstractmethod
     def public_key(self) -> "AlgorithmPublicKey":
         pass
-
-    @classmethod
-    def from_key(cls, key: Any) -> "AlgorithmPrivateKey":
-        """Return PrivateKey from cryptography private key"""
-        if cls.key_cls is None:
-            raise TypeError("Undefined private key class")
-        if not isinstance(key, cls.key_cls):
-            raise AlgorithmKeyMismatch
-        return cls(key=key)
