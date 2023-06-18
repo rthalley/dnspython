@@ -27,10 +27,6 @@ algorithms: Dict[Tuple[Algorithm, Optional[bytes]], Type[AlgorithmPrivateKey]] =
 }
 
 
-def _is_private(algorithm: Algorithm) -> bool:
-    return algorithm in set([Algorithm.PRIVATEDNS, Algorithm.PRIVATEOID])
-
-
 def get_algorithm_cls(
     algorithm: Union[int, str], prefix: Optional[bytes] = None
 ) -> Type[AlgorithmPrivateKey]:
