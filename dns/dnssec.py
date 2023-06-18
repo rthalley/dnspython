@@ -667,7 +667,7 @@ def _make_dnskey(
     algorithm = Algorithm.make(algorithm)
 
     if isinstance(public_key, GenericPublicKey):
-        key_bytes = public_key.encode_key_bytes()
+        return public_key.to_dnskey(flags=flags, protocol=protocol)
     else:
         if not isinstance(
             public_key,
@@ -681,16 +681,7 @@ def _make_dnskey(
         ):
             raise TypeError("unsupported key algorithm")
         public_cls = get_algorithm_cls(algorithm).public_cls
-        key_bytes = public_cls(key=public_key).encode_key_bytes()
-
-    return DNSKEY(
-        rdclass=dns.rdataclass.IN,
-        rdtype=dns.rdatatype.DNSKEY,
-        flags=flags,
-        protocol=protocol,
-        algorithm=algorithm,
-        key=key_bytes,
-    )
+        return public_cls(key=public_key).to_dnskey(flags=flags, protocol=protocol)
 
 
 def _make_cdnskey(
