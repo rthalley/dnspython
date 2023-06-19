@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Type
+from typing import Optional, Type, Any
 
 import dns.rdataclass
 import dns.rdatatype
@@ -11,6 +11,9 @@ from dns.rdtypes.dnskeybase import Flag
 
 class GenericPublicKey(ABC):
     algorithm: Algorithm
+
+    def __init__(self, key: Any) -> None:
+        pass
 
     @abstractmethod
     def verify(self, signature: bytes, data: bytes) -> None:
@@ -57,6 +60,9 @@ class GenericPublicKey(ABC):
 
 class GenericPrivateKey(ABC):
     public_cls: Type[GenericPublicKey]
+
+    def __init__(self, key: Any) -> None:
+        pass
 
     @abstractmethod
     def sign(self, data: bytes, verify: bool = False) -> bytes:

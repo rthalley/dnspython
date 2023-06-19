@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 from cryptography.hazmat.primitives import serialization
 
@@ -10,7 +10,7 @@ class CryptographyPublicKey(GenericPublicKey):
     key: Any = None
     key_cls: Any = None
 
-    def __init__(self, key: Any):
+    def __init__(self, key: Any) -> None:
         if self.key_cls is None:
             raise TypeError("Undefined private key class")
         if not isinstance(key, self.key_cls):
@@ -32,8 +32,9 @@ class CryptographyPublicKey(GenericPublicKey):
 class CryptographyPrivateKey(GenericPrivateKey):
     key: Any = None
     key_cls: Any = None
+    public_cls: Type[CryptographyPublicKey]
 
-    def __init__(self, key: Any):
+    def __init__(self, key: Any) -> None:
         if self.key_cls is None:
             raise TypeError("Undefined private key class")
         if not isinstance(key, self.key_cls):
@@ -41,9 +42,7 @@ class CryptographyPrivateKey(GenericPrivateKey):
         self.key = key
 
     def public_key(self) -> "CryptographyPublicKey":
-        return self.public_cls(
-            key=self.key.public_key(),
-        )
+        return self.public_cls(key=self.key.public_key())
 
     @classmethod
     def from_pem(
