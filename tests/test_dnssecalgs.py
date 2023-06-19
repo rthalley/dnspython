@@ -111,6 +111,7 @@ class DNSSECAlgorithm(unittest.TestCase):
 class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
     def test_private(self):
         class PublicExampleAlgorithm(PublicED25519):
+            algorithm = Algorithm.PRIVATEDNS
             name = dns.name.from_text("ed25519.example.com")
 
             def encode_key_bytes(self) -> bytes:
