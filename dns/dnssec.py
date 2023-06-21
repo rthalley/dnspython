@@ -669,17 +669,6 @@ def _make_dnskey(
     if isinstance(public_key, GenericPublicKey):
         return public_key.to_dnskey(flags=flags, protocol=protocol)
     else:
-        if not isinstance(
-            public_key,
-            (
-                rsa.RSAPublicKey,
-                dsa.DSAPublicKey,
-                ec.EllipticCurvePublicKey,
-                ed25519.Ed25519PublicKey,
-                ed448.Ed448PublicKey,
-            ),
-        ):
-            raise TypeError("unsupported key algorithm")
         public_cls = get_algorithm_cls(algorithm).public_cls
         return public_cls(key=public_key).to_dnskey(flags=flags, protocol=protocol)
 

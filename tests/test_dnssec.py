@@ -1234,7 +1234,7 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.ED448)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             dns.dnssec.make_dnskey("xyzzy", dns.dnssec.Algorithm.ED448)
 
         key = dsa.generate_private_key(2048)
