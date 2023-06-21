@@ -640,7 +640,7 @@ def _make_rrsig_signature_data(
 
 
 def _make_dnskey(
-    public_key: Union[PublicKey],
+    public_key: PublicKey,
     algorithm: Union[int, str],
     flags: int = Flag.ZONE,
     protocol: int = 3,
