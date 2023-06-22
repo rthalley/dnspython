@@ -62,8 +62,8 @@ def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[GenericPrivateKey]:
     """
     prefix = None
     if dnskey.algorithm == Algorithm.PRIVATEDNS:
-        _, length = dns.name.from_wire(dnskey.key, 0)
-        prefix = dnskey.key[0:length]
+        name, _ = dns.name.from_wire(dnskey.key, 0)
+        prefix = str(name.canonicalize()).encode()
     elif dnskey.algorithm == Algorithm.PRIVATEOID:
         length = int(dnskey.key[0])
         prefix = dnskey.key[0 : length + 1]
@@ -95,7 +95,7 @@ def register_algorithm_cls(
     if algorithm == Algorithm.PRIVATEDNS and name:
         if isinstance(name, str):
             name = dns.name.from_text(name)
-        prefix = name.to_wire()
+        prefix = str(name.canonicalize()).encode()
     elif algorithm == Algorithm.PRIVATEOID and oid:
         prefix = bytes([len(oid)]) + oid
     else:
