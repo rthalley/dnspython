@@ -112,7 +112,7 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
     def test_private(self):
         class PublicExampleAlgorithm(PublicED25519):
             algorithm = Algorithm.PRIVATEDNS
-            name = dns.name.from_text("ed25519.example.com")
+            name = dns.name.from_text("algorithm.example.com")
 
             def encode_key_bytes(self) -> bytes:
                 return self.name.to_wire() + super().encode_key_bytes()
@@ -268,6 +268,25 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
         with self.assertRaises(dns.exception.UnsupportedAlgorithm):
             _ = get_algorithm_cls_from_dnskey(dnskey_oid_unknown)
 
+    def test_register_canonical_lookup(self):
+        register_algorithm_cls(
+            algorithm=Algorithm.PRIVATEDNS,
+            algorithm_cls=PrivateED25519,
+            name="testing1234.example.com",
+        )
+
+        dnskey_dns = DNSKEY(
+            "IN",
+            "DNSKEY",
+            256,
+            3,
+            Algorithm.PRIVATEDNS,
+            dns.name.from_text("TESTING1234.EXAMPLE.COM").to_wire() + b"hello",
+        )
+
+        algorithm_cls = get_algorithm_cls_from_dnskey(dnskey_dns)
+        self.assertEqual(algorithm_cls, PrivateED25519)
+
     def test_register_private_without_prefix(self):
         register_algorithm_cls(
             algorithm=Algorithm.PRIVATEDNS,
@@ -280,7 +299,7 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
             256,
             3,
             Algorithm.PRIVATEDNS,
-            dns.name.from_text("ed25519.example.com").to_wire() + b"hello",
+            dns.name.from_text("xyzzy.example.com").to_wire() + b"hello",
         )
 
         algorithm_cls = get_algorithm_cls_from_dnskey(dnskey_dns)
