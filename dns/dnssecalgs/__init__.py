@@ -104,9 +104,8 @@ def register_algorithm_cls(
         if oid is None:
             raise ValueError("OID required for PRIVATEOID algorithms")
         prefix = bytes([len(oid)]) + oid
-    else:
-        if name and algorithm != Algorithm.PRIVATEDNS:
-            raise ValueError("Name only supported for PRIVATEDNS algorithm")
-        if oid and algorithm != Algorithm.PRIVATEOID:
-            raise ValueError("OID only supported for PRIVATEOID algorithm")
+    elif name:
+        raise ValueError("Name only supported for PRIVATEDNS algorithm")
+    elif oid:
+        raise ValueError("OID only supported for PRIVATEOID algorithm")
     algorithms[(algorithm, prefix)] = algorithm_cls
