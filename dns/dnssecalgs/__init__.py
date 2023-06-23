@@ -96,13 +96,13 @@ def register_algorithm_cls(
     prefix: AlgorithmPrefix = None
     if algorithm == Algorithm.PRIVATEDNS:
         if name is None:
-            raise ValueError("name required for PRIVATEDNS algorithms")
+            raise ValueError("Name required for PRIVATEDNS algorithms")
         if isinstance(name, str):
             name = dns.name.from_text(name)
         prefix = name
     elif algorithm == Algorithm.PRIVATEOID:
         if oid is None:
-            raise ValueError("oid required for PRIVATEOID algorithms")
+            raise ValueError("OID required for PRIVATEOID algorithms")
         prefix = bytes([len(oid)]) + oid
     else:
         if name and algorithm != Algorithm.PRIVATEDNS:
