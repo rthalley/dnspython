@@ -755,7 +755,8 @@ def _sign(
 
     # Derelativize now because we need a correct labels length for the
     # rrsig_template.
-    rrname = rrname.derelativize(origin)
+    if origin is not None:
+        rrname = rrname.derelativize(origin)
     labels = len(rrname) - 1
 
     # Adjust labels appropriately for wildcards.
@@ -1253,7 +1254,6 @@ def default_rrset_signer(
     lifetime: Optional[int] = None,
     policy: Optional[Policy] = None,
     origin: Optional[dns.name.Name] = None,
-    relativize: Optional[bool] = False,
 ) -> None:
     """Default RRset signer"""
 
