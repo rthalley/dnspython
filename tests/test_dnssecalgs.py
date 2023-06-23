@@ -288,22 +288,16 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
         self.assertEqual(algorithm_cls, PrivateED25519)
 
     def test_register_private_without_prefix(self):
-        register_algorithm_cls(
-            algorithm=Algorithm.PRIVATEDNS,
-            algorithm_cls=PrivateED25519,
-        )
-
-        dnskey_dns = DNSKEY(
-            "IN",
-            "DNSKEY",
-            256,
-            3,
-            Algorithm.PRIVATEDNS,
-            dns.name.from_text("xyzzy.example.com").to_wire() + b"hello",
-        )
-
-        algorithm_cls = get_algorithm_cls_from_dnskey(dnskey_dns)
-        self.assertEqual(algorithm_cls, PrivateED25519)
+        with self.assertRaises(ValueError):
+            register_algorithm_cls(
+                algorithm=Algorithm.PRIVATEDNS,
+                algorithm_cls=PrivateED25519,
+            )
+        with self.assertRaises(ValueError):
+            register_algorithm_cls(
+                algorithm=Algorithm.PRIVATEOID,
+                algorithm_cls=PrivateED25519,
+            )
 
 
 if __name__ == "__main__":

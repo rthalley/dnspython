@@ -46,11 +46,7 @@ def get_algorithm_cls(
     Returns a ``dns.dnssecalgs.GenericPrivateKey``
     """
     algorithm = Algorithm.make(algorithm)
-    if prefix:
-        cls = algorithms.get((algorithm, prefix))
-        if cls:
-            return cls
-    cls = algorithms.get((algorithm, None))
+    cls = algorithms.get((algorithm, prefix))
     if cls:
         return cls
     raise UnsupportedAlgorithm(
@@ -98,11 +94,15 @@ def register_algorithm_cls(
         raise TypeError("Invalid algorithm class")
     algorithm = Algorithm.make(algorithm)
     prefix: AlgorithmPrefix = None
-    if algorithm == Algorithm.PRIVATEDNS and name:
+    if algorithm == Algorithm.PRIVATEDNS:
+        if name is None:
+            raise ValueError("name required for PRIVATEDNS algorithms")
         if isinstance(name, str):
             name = dns.name.from_text(name)
         prefix = name
-    elif algorithm == Algorithm.PRIVATEOID and oid:
+    elif algorithm == Algorithm.PRIVATEOID:
+        if oid is None:
+            raise ValueError("oid required for PRIVATEOID algorithms")
         prefix = bytes([len(oid)]) + oid
     else:
         if name and algorithm != Algorithm.PRIVATEDNS:
