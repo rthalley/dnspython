@@ -17,11 +17,9 @@ from dns.exception import UnsupportedAlgorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
-AlgorithmPrefix = Union[bytes, dns.name.Name]
+AlgorithmPrefix = Optional[Union[bytes, dns.name.Name]]
 
-algorithms: Dict[
-    Tuple[Algorithm, Optional[AlgorithmPrefix]], Type[GenericPrivateKey]
-] = {
+algorithms: Dict[Tuple[Algorithm, AlgorithmPrefix], Type[GenericPrivateKey]] = {
     (Algorithm.RSAMD5, None): PrivateRSAMD5,
     (Algorithm.DSA, None): PrivateDSA,
     (Algorithm.RSASHA1, None): PrivateRSASHA1,
@@ -37,7 +35,7 @@ algorithms: Dict[
 
 
 def get_algorithm_cls(
-    algorithm: Union[int, str], prefix: Optional[AlgorithmPrefix] = None
+    algorithm: Union[int, str], prefix: AlgorithmPrefix = None
 ) -> Type[GenericPrivateKey]:
     """Get Private Key class from Algorithm.
 
@@ -69,7 +67,7 @@ def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[GenericPrivateKey]:
 
     Returns a ``dns.dnssecalgs.GenericPrivateKey``
     """
-    prefix = None
+    prefix: AlgorithmPrefix = None
     if dnskey.algorithm == Algorithm.PRIVATEDNS:
         prefix, _ = dns.name.from_wire(dnskey.key, 0)
     elif dnskey.algorithm == Algorithm.PRIVATEOID:
@@ -99,7 +97,7 @@ def register_algorithm_cls(
     algorithm = Algorithm.make(algorithm)
     if not issubclass(algorithm_cls, GenericPrivateKey):
         raise TypeError("Invalid algorithm class")
-    prefix = None
+    prefix: AlgorithmPrefix = None
     if algorithm == Algorithm.PRIVATEDNS and name:
         if isinstance(name, str):
             name = dns.name.from_text(name)
