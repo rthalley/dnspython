@@ -43,7 +43,11 @@ def get_algorithm_cls(
     Returns a ``dns.dnssecalgs.GenericPrivateKey``
     """
     algorithm = Algorithm.make(algorithm)
-    cls = algorithms.get((algorithm, prefix))
+    if prefix:
+        cls = algorithms.get((algorithm, prefix))
+        if cls:
+            return cls
+    cls = algorithms.get((algorithm, None))
     if cls:
         return cls
     raise UnsupportedAlgorithm(

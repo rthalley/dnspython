@@ -22,6 +22,7 @@ import dns.dnssec
 import dns.exception
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
+
 try:
     from dns.dnssecalgs import (
         get_algorithm_cls,
@@ -104,7 +105,6 @@ class DNSSECAlgorithm(unittest.TestCase):
         dnskey_ed448 = private_key_ed448.public_key().to_dnskey()
         with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             PublicED25519.from_dnskey(dnskey_ed448)
-
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
@@ -267,6 +267,24 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
 
         with self.assertRaises(dns.exception.UnsupportedAlgorithm):
             _ = get_algorithm_cls_from_dnskey(dnskey_oid_unknown)
+
+    def test_register_private_without_prefix(self):
+        register_algorithm_cls(
+            algorithm=Algorithm.PRIVATEDNS,
+            algorithm_cls=PrivateED25519,
+        )
+
+        dnskey_dns = DNSKEY(
+            "IN",
+            "DNSKEY",
+            256,
+            3,
+            Algorithm.PRIVATEDNS,
+            dns.name.from_text("ed25519.example.com").to_wire() + b"hello",
+        )
+
+        algorithm_cls = get_algorithm_cls_from_dnskey(dnskey_dns)
+        self.assertEqual(algorithm_cls, PrivateED25519)
 
 
 if __name__ == "__main__":
