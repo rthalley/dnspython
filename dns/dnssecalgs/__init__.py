@@ -94,9 +94,9 @@ def register_algorithm_cls(
 
     Raises ``ValueError`` if a name or oid is specified incorrectly.
     """
-    algorithm = Algorithm.make(algorithm)
     if not issubclass(algorithm_cls, GenericPrivateKey):
         raise TypeError("Invalid algorithm class")
+    algorithm = Algorithm.make(algorithm)
     prefix: AlgorithmPrefix = None
     if algorithm == Algorithm.PRIVATEDNS and name:
         if isinstance(name, str):
