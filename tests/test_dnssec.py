@@ -824,6 +824,26 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                 com_txt, com_txt_rrsig[0], wildcard_keys, None, wildcard_when
             )
 
+        # check some bogus label lengths
+        a_name = dns.name.from_text("a.example.com")
+        a_txt = clone_rrset(wildcard_txt, a_name)
+        a_txt_rrsig = clone_rrset(wildcard_txt_rrsig, a_name)
+        bad_rrsig = a_txt_rrsig[0].replace(labels=99)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate_rrsig(
+                a_txt, bad_rrsig, wildcard_keys, None, wildcard_when
+            )
+        bad_rrsig = a_txt_rrsig[0].replace(labels=3)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate_rrsig(
+                a_txt, bad_rrsig, wildcard_keys, None, wildcard_when
+            )
+        bad_rrsig = a_txt_rrsig[0].replace(labels=1)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate_rrsig(
+                a_txt, bad_rrsig, wildcard_keys, None, wildcard_when
+            )
+
     def testAlternateParameterFormats(self):  # type: () -> None
         # Pass rrset and rrsigset as (name, rdataset) tuples, not rrsets
         rrset = (abs_soa.name, abs_soa.to_rdataset())
@@ -936,8 +956,10 @@ class DNSSECMiscTestCase(unittest.TestCase):
         ts = dns.dnssec.to_timestamp(441812220)
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
-    def test_sign_zone(self):
-        zone = dns.zone.from_text(test_zone_sans_nsec, "example.", relativize=False)
+    def do_test_sign_zone(self, relativize):
+        zone = dns.zone.from_text(
+            test_zone_sans_nsec, "example.", relativize=relativize
+        )
 
         algorithm = dns.dnssec.Algorithm.ED25519
         lifetime = 3600
@@ -966,9 +988,10 @@ class DNSSECMiscTestCase(unittest.TestCase):
                 lifetime=lifetime,
             )
 
+        print(zone.to_text())
         rrsigs = set(
             [
-                (str(name), rdataset.covers)
+                (str(name.derelativize(zone.origin)), rdataset.covers)
                 for (name, rdataset) in zone.iterate_rdatasets()
                 if rdataset.rdtype == dns.rdatatype.RRSIG
             ]
@@ -977,7 +1000,11 @@ class DNSSECMiscTestCase(unittest.TestCase):
 
         signers = set(
             [
-                (str(name), rdataset.covers, rdataset[0].key_tag)
+                (
+                    str(name.derelativize(zone.origin)),
+                    rdataset.covers,
+                    rdataset[0].key_tag,
+                )
                 for (name, rdataset) in zone.iterate_rdatasets()
                 if rdataset.rdtype == dns.rdatatype.RRSIG
             ]
@@ -991,6 +1018,12 @@ class DNSSECMiscTestCase(unittest.TestCase):
                 self.assertEqual(key_tag, dns.dnssec.key_id(ksk_dnskey))
             else:
                 self.assertEqual(key_tag, dns.dnssec.key_id(zsk_dnskey))
+
+    def test_sign_zone_absolute(self):
+        self.do_test_sign_zone(False)
+
+    def test_sign_zone_relative(self):
+        self.do_test_sign_zone(True)
 
     def test_sign_zone_nsec_null_signer(self):
         def rrset_signer(
@@ -1334,6 +1367,14 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         rrset = (name, rdataset)
         self._test_signature(key, dns.dnssec.Algorithm.ED448, rrset)
 
+    def testSignWildRdataset(self):  # type: () -> None
+        key = ed448.Ed448PrivateKey.generate()
+        name = dns.name.from_text("*.example.com")
+        rdataset = dns.rdataset.from_text_list("in", "a", 30, ["10.0.0.1", "10.0.0.2"])
+        rrset = (name, rdataset)
+        rrsigset = self._test_signature(key, dns.dnssec.Algorithm.ED448, rrset)
+        self.assertEqual(rrsigset[0].labels, 2)
+
     def _test_signature(self, key, algorithm, rrset, signer=None, policy=None):
         ttl = 60
         lifetime = 3600
@@ -1358,6 +1399,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         keys = {signer: dnskey_rrset}
         rrsigset = dns.rrset.from_rdata(rrname, ttl, rrsig)
         dns.dnssec.validate(rrset=rrset, rrsigset=rrsigset, keys=keys, policy=policy)
+        return rrsigset
 
 
 if __name__ == "__main__":
