@@ -1173,15 +1173,15 @@ try:
     from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.primitives.asymmetric import dsa  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import ec  # pylint: disable=W0611
-    from cryptography.hazmat.primitives.asymmetric import (
+    from cryptography.hazmat.primitives.asymmetric import (  # pylint: disable=W0611
         ed25519,
-    )  # pylint: disable=W0611
+    )
     from cryptography.hazmat.primitives.asymmetric import ed448  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=W0611
-    from dns.dnssecalgs import (
+    from dns.dnssecalgs import (  # pylint: disable=C0412
         get_algorithm_cls,
         get_algorithm_cls_from_dnskey,
-    )  # pylint: disable=C0412
+    )
     from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
 except ImportError:  # pragma: no cover
     validate = _need_pyca
