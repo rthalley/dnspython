@@ -41,9 +41,10 @@ import dns.rrset
 import dns.transaction
 import dns.zone
 from dns.exception import (
+    AlgorithmKeyMismatch,
+    DeniedByPolicy,
     UnsupportedAlgorithm,
     ValidationFailure,
-    DeniedByPolicy,
 )
 from dns.rdtypes.ANY.CDNSKEY import CDNSKEY
 from dns.rdtypes.ANY.CDS import CDS
