@@ -481,6 +481,7 @@ def _sign(
     lifetime: Optional[int] = None,
     verify: bool = False,
     policy: Optional[Policy] = None,
+    origin: Optional[dns.name.Name] = None,
 ) -> RRSIG:
     """Sign RRset using private key.
 
@@ -516,6 +517,10 @@ def _sign(
     *policy*, a ``dns.dnssec.Policy`` or ``None``.  If ``None``, the default policy,
     ``dns.dnssec.default_policy`` is used; this policy defaults to that of RFC 8624.
 
+    *origin*, a ``dns.name.Name`` or ``None``.  If ``None``, the default, then all
+    names in the rrset (including its owner name) must be absolute; otherwise the
+    specified origin will be used to make names absolute when signing.
+
     Raises ``DeniedByPolicy`` if the signature is denied by policy.
     """
 
@@ -547,12 +552,22 @@ def _sign(
     else:
         raise ValueError("expiration or lifetime must be specified")
 
+    # Derelativize now because we need a correct labels length for the
+    # rrsig_template.
+    if origin is not None:
+        rrname = rrname.derelativize(origin)
+    labels = len(rrname) - 1
+
+    # Adjust labels appropriately for wildcards.
+    if rrname.is_wild():
+        labels -= 1
+
     rrsig_template = RRSIG(
         rdclass=rdclass,
         rdtype=dns.rdatatype.RRSIG,
         type_covered=rdtype,
         algorithm=dnskey.algorithm,
-        labels=len(rrname) - 1,
+        labels=labels,
         original_ttl=original_ttl,
         expiration=rrsig_expiration,
         inception=rrsig_inception,
@@ -561,7 +576,7 @@ def _sign(
         signature=b"",
     )
 
-    data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template)
+    data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template, origin)
 
     if isinstance(private_key, GenericPrivateKey):
         signing_key = private_key
@@ -621,9 +636,12 @@ def _make_rrsig_signature_data(
             raise ValidationFailure("relative RR name without an origin specified")
         rrname = rrname.derelativize(origin)
 
-    if len(rrname) - 1 < rrsig.labels:
+    name_len = len(rrname)
+    if rrname.is_wild() and rrsig.labels != name_len - 2:
+        raise ValidationFailure("wild owner name has wrong label length")
+    if name_len - 1 < rrsig.labels:
         raise ValidationFailure("owner name longer than RRSIG labels")
-    elif rrsig.labels < len(rrname) - 1:
+    elif rrsig.labels < name_len - 1:
         suffix = rrname.split(rrsig.labels + 1)[1]
         rrname = dns.name.from_text("*", suffix)
     rrnamebuf = rrname.to_digestable()
@@ -929,6 +947,7 @@ def default_rrset_signer(
     expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
     policy: Optional[Policy] = None,
+    origin: Optional[dns.name.Name] = None,
 ) -> None:
     """Default RRset signer"""
 
@@ -953,6 +972,7 @@ def default_rrset_signer(
             lifetime=lifetime,
             signer=signer,
             policy=policy,
+            origin=origin,
         )
         txn.add(rrset.name, rrset.ttl, rrsig)
 
@@ -1058,6 +1078,7 @@ def sign_zone(
                 expiration=expiration,
                 lifetime=lifetime,
                 policy=policy,
+                origin=zone.origin,
             )
             return _sign_zone_nsec(zone, _txn, _rrset_signer)
 
@@ -1130,7 +1151,8 @@ def _sign_zone_nsec(
                         rrset = dns.rrset.from_rdata(name, rdataset.ttl, *rdataset)
                         rrset_signer(txn, rrset)
 
-        if last_secure:
+        # We need "is not None" as the empty name is False because its length is 0.
+        if last_secure is not None:
             _txn_add_nsec(txn, last_secure, name, zone.rdclass, rrsig_ttl, rrset_signer)
         last_secure = name
 

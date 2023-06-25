@@ -85,10 +85,12 @@ try:
             self.protocol = None
             self.left = None
             self.right = None
+            self.ready = threading.Event()
 
         def __enter__(self):
             self.left, self.right = socket.socketpair()
             self.start()
+            self.ready.wait(4)
 
         def __exit__(self, ex_ty, ex_va, ex_tr):
             if self.protocol is not None:
@@ -116,6 +118,7 @@ try:
                 ),
                 local_addr=("127.0.0.1", 8853),
             )
+            self.ready.set()
             try:
                 await reader.read(1)
             except Exception:
