@@ -18,8 +18,8 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import sys
-from setuptools import setup
 
+from setuptools import setup
 
 try:
     sys.argv.remove("--cython-compile")
@@ -30,7 +30,13 @@ else:
     from Cython.Build import cythonize
 
     ext_modules = cythonize(
-        ["dns/*.py", "dns/quic/*.py", "dns/rdtypes/*.py", "dns/rdtypes/*/*.py"],
+        [
+            "dns/*.py",
+            "dns/dnssecalgs/*.py",
+            "dns/quic/*.py",
+            "dns/rdtypes/*.py",
+            "dns/rdtypes/*/*.py",
+        ],
         language_level="3",
     )
 
