@@ -40,7 +40,7 @@ import dns.rdataclass
 import dns.rrset
 import dns.transaction
 import dns.zone
-from dns.exception import (
+from dns.exception import (  # pylint: disable=W0611
     AlgorithmKeyMismatch,
     DeniedByPolicy,
     UnsupportedAlgorithm,
@@ -1171,12 +1171,17 @@ def _need_pyca(*args, **kwargs):
 
 try:
     from cryptography.exceptions import InvalidSignature
-    from cryptography.hazmat.primitives.asymmetric import dsa
-    from cryptography.hazmat.primitives.asymmetric import ec
-    from cryptography.hazmat.primitives.asymmetric import ed25519
-    from cryptography.hazmat.primitives.asymmetric import ed448
-    from cryptography.hazmat.primitives.asymmetric import rsa
-    from dns.dnssecalgs import get_algorithm_cls, get_algorithm_cls_from_dnskey
+    from cryptography.hazmat.primitives.asymmetric import dsa  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import ec  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import (
+        ed25519,
+    )  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import ed448  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=W0611
+    from dns.dnssecalgs import (
+        get_algorithm_cls,
+        get_algorithm_cls_from_dnskey,
+    )  # pylint: disable=C0412
     from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
 except ImportError:  # pragma: no cover
     validate = _need_pyca
