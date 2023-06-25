@@ -50,12 +50,14 @@ class GenericPublicKey(ABC):
     @classmethod
     @abstractmethod
     def from_pem(cls, public_pem: bytes) -> "GenericPublicKey":
-        """Create public key from PEM-encoded SubjectPublicKeyInfo as specified in RFC 5280"""
+        """Create public key from PEM-encoded SubjectPublicKeyInfo as specified
+        in RFC 5280"""
         pass
 
     @abstractmethod
     def to_pem(self) -> bytes:
-        """Return public-key as PEM-encoded SubjectPublicKeyInfo as specified in RFC 5280"""
+        """Return public-key as PEM-encoded SubjectPublicKeyInfo as specified
+        in RFC 5280"""
         pass
 
 
