@@ -923,6 +923,7 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             )
 
 
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMiscTestCase(unittest.TestCase):
     def testDigestToBig(self):
         with self.assertRaises(ValueError):
@@ -931,13 +932,6 @@ class DNSSECMiscTestCase(unittest.TestCase):
     def testNSEC3HashTooBig(self):
         with self.assertRaises(ValueError):
             dns.dnssec.NSEC3Hash.make(256)
-
-    def testIsNotGOST(self):
-        self.assertTrue(dns.dnssec._is_gost(dns.dnssec.Algorithm.ECCGOST))
-
-    def testUnknownHash(self):
-        with self.assertRaises(dns.dnssec.ValidationFailure):
-            dns.dnssec._make_hash(100)
 
     def testToTimestamp(self):
         REFERENCE_TIMESTAMP = 441812220
@@ -1039,6 +1033,7 @@ class DNSSECMiscTestCase(unittest.TestCase):
         self.assertEqual(zone1.to_text(), zone2.to_text())
 
 
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMakeDSTestCase(unittest.TestCase):
     def testMnemonicParser(self):
         good_ds_mnemonic = dns.rdata.from_text(
@@ -1269,10 +1264,10 @@ class DNSSECMakeDNSKEYTestCase(unittest.TestCase):
             key_size=1024,
             backend=default_backend(),
         )
-        with self.assertRaises(dns.dnssec.AlgorithmKeyMismatch):
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.ED448)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             dns.dnssec.make_dnskey("xyzzy", dns.dnssec.Algorithm.ED448)
 
         key = dsa.generate_private_key(2048)
