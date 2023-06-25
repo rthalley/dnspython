@@ -19,11 +19,10 @@ class GenericPublicKey(ABC):
     @abstractmethod
     def verify(self, signature: bytes, data: bytes) -> None:
         """Verify signed DNSSEC data"""
-        pass
 
     @abstractmethod
     def encode_key_bytes(self) -> bytes:
-        pass
+        """Encode key as bytes for DNSKEY"""
 
     @classmethod
     def _ensure_algorithm_key_combination(cls, key: DNSKEY) -> None:
@@ -45,20 +44,17 @@ class GenericPublicKey(ABC):
     @abstractmethod
     def from_dnskey(cls, key: DNSKEY) -> "GenericPublicKey":
         """Create public key from DNSKEY"""
-        pass
 
     @classmethod
     @abstractmethod
     def from_pem(cls, public_pem: bytes) -> "GenericPublicKey":
         """Create public key from PEM-encoded SubjectPublicKeyInfo as specified
         in RFC 5280"""
-        pass
 
     @abstractmethod
     def to_pem(self) -> bytes:
         """Return public-key as PEM-encoded SubjectPublicKeyInfo as specified
         in RFC 5280"""
-        pass
 
 
 class GenericPrivateKey(ABC):
@@ -71,12 +67,10 @@ class GenericPrivateKey(ABC):
     @abstractmethod
     def sign(self, data: bytes, verify: bool = False) -> bytes:
         """Sign DNSSEC data"""
-        pass
 
     @abstractmethod
     def public_key(self) -> "GenericPublicKey":
         """Return public key instance"""
-        pass
 
     @classmethod
     @abstractmethod
@@ -84,9 +78,7 @@ class GenericPrivateKey(ABC):
         cls, private_pem: bytes, password: Optional[bytes] = None
     ) -> "GenericPrivateKey":
         """Create private key from PEM-encoded PKCS#8"""
-        pass
 
     @abstractmethod
     def to_pem(self, password: Optional[bytes] = None) -> bytes:
         """Return private key as PEM-encoded PKCS#8"""
-        pass
