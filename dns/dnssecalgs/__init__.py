@@ -16,7 +16,6 @@ from dns.dnssectypes import Algorithm
 from dns.exception import UnsupportedAlgorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
-
 AlgorithmPrefix = Optional[Union[bytes, dns.name.Name]]
 
 algorithms: Dict[Tuple[Algorithm, AlgorithmPrefix], Type[GenericPrivateKey]] = {

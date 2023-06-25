@@ -17,13 +17,11 @@
 
 """Generic Internet address helper functions."""
 
-from typing import Any, Optional, Tuple
-
 import socket
+from typing import Any, Optional, Tuple
 
 import dns.ipv4
 import dns.ipv6
-
 
 # We assume that AF_INET and AF_INET6 are always defined.  We keep
 # these here for the benefit of any old code (unlikely though that

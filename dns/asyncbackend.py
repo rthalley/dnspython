@@ -5,13 +5,12 @@ from typing import Dict
 import dns.exception
 
 # pylint: disable=unused-import
-
-from dns._asyncbackend import (
-    Socket,
-    DatagramSocket,
-    StreamSocket,
+from dns._asyncbackend import (  # noqa: F401  lgtm[py/unused-import]
     Backend,
-)  # noqa: F401  lgtm[py/unused-import]
+    DatagramSocket,
+    Socket,
+    StreamSocket,
+)
 
 # pylint: enable=unused-import
 

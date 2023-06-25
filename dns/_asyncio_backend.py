@@ -2,13 +2,12 @@
 
 """asyncio library query support"""
 
-import socket
 import asyncio
+import socket
 import sys
 
 import dns._asyncbackend
 import dns.exception
-
 
 _is_win32 = sys.platform == "win32"
 
@@ -121,13 +120,12 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
 try:
     import anyio
+    import httpcore
+    import httpcore.backends.asyncio
+    import httpcore.backends.base
     import httpx
 
-    import httpcore
-    import httpcore.backends.base
-    import httpcore.backends.asyncio
-
-    from dns.query import _compute_times, _remaining, _expiration_for_this_attempt
+    from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
     class _NetworkBackend(httpcore.backends.base.AsyncNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):

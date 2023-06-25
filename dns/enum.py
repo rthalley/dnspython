@@ -15,9 +15,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from typing import Type, TypeVar, Union
-
 import enum
+from typing import Type, TypeVar, Union
 
 TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 

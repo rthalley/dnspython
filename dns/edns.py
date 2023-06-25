@@ -17,11 +17,10 @@
 
 """EDNS Options"""
 
-from typing import Any, Dict, Optional, Union
-
 import math
 import socket
 import struct
+from typing import Any, Dict, Optional, Union
 
 import dns.enum
 import dns.inet

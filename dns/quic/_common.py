@@ -3,13 +3,12 @@
 import socket
 import struct
 import time
-
 from typing import Any
 
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
-import dns.inet
 
+import dns.inet
 
 QUIC_MAX_DATAGRAM = 2048
 

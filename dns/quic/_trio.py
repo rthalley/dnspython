@@ -13,10 +13,10 @@ import trio
 import dns.inet
 from dns._asyncbackend import NullContext
 from dns.quic._common import (
-    BaseQuicStream,
+    QUIC_MAX_DATAGRAM,
     AsyncQuicConnection,
     AsyncQuicManager,
-    QUIC_MAX_DATAGRAM,
+    BaseQuicStream,
     UnexpectedEOF,
 )
 

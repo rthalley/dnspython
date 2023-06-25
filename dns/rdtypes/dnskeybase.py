@@ -19,9 +19,9 @@ import base64
 import enum
 import struct
 
+import dns.dnssectypes
 import dns.exception
 import dns.immutable
-import dns.dnssectypes
 import dns.rdata
 
 # wildcard import

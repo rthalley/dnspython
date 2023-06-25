@@ -17,8 +17,6 @@
 
 """Talk to a DNS server."""
 
-from typing import Any, Dict, Optional, Tuple, Union
-
 import base64
 import contextlib
 import enum
@@ -28,11 +26,12 @@ import selectors
 import socket
 import struct
 import time
+from typing import Any, Dict, Optional, Tuple, Union
 
 import dns.exception
 import dns.inet
-import dns.name
 import dns.message
+import dns.name
 import dns.quic
 import dns.rcode
 import dns.rdataclass

@@ -1,6 +1,5 @@
-from urllib.parse import urlparse
-
 from typing import Optional, Union
+from urllib.parse import urlparse
 
 import dns.asyncbackend
 import dns.asyncquery

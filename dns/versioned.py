@@ -2,10 +2,9 @@
 
 """DNS Versioned Zones."""
 
-from typing import Callable, Deque, Optional, Set, Union
-
 import collections
 import threading
+from typing import Callable, Deque, Optional, Set, Union
 
 import dns.exception
 import dns.immutable

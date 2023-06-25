@@ -23,9 +23,9 @@ import hmac
 import struct
 
 import dns.exception
-import dns.rdataclass
 import dns.name
 import dns.rcode
+import dns.rdataclass
 
 
 class BadTime(dns.exception.DNSException):

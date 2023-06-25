@@ -2,9 +2,9 @@
 #
 # Support for Discovery of Designated Resolvers
 
-from urllib.parse import urlparse
 import socket
 import time
+from urllib.parse import urlparse
 
 import dns.asyncbackend
 import dns.inet
@@ -12,7 +12,6 @@ import dns.name
 import dns.nameserver
 import dns.query
 import dns.rdtypes.svcbbase
-
 
 # The special name of the local resolver when using DDR
 _local_resolver_name = dns.name.from_text("_dns.resolver.arpa")

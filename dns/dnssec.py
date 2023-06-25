@@ -18,28 +18,26 @@
 """Common DNSSEC-related functions and constants."""
 
 
-from typing import cast, Callable, Dict, List, Optional, Set, Tuple, Union
-
+import base64
 import contextlib
 import functools
 import hashlib
 import struct
 import time
-import base64
 from datetime import datetime
-
-from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union, cast
 
 import dns.exception
 import dns.name
 import dns.node
-import dns.rdataset
 import dns.rdata
-import dns.rdatatype
 import dns.rdataclass
+import dns.rdataset
+import dns.rdatatype
 import dns.rrset
 import dns.transaction
 import dns.zone
+from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
 from dns.exception import (  # pylint: disable=W0611
     AlgorithmKeyMismatch,
     DeniedByPolicy,
@@ -54,7 +52,6 @@ from dns.rdtypes.ANY.NSEC import NSEC, Bitmap
 from dns.rdtypes.ANY.NSEC3PARAM import NSEC3PARAM
 from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
 from dns.rdtypes.dnskeybase import Flag
-
 
 PublicKey = Union[
     "GenericPublicKey",
@@ -1173,11 +1170,12 @@ try:
     from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.primitives.asymmetric import dsa  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import ec  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import ed448  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import (  # pylint: disable=W0611
         ed25519,
     )
-    from cryptography.hazmat.primitives.asymmetric import ed448  # pylint: disable=W0611
-    from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=W0611
+
     from dns.dnssecalgs import (  # pylint: disable=C0412
         get_algorithm_cls,
         get_algorithm_cls_from_dnskey,

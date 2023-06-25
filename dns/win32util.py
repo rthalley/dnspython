@@ -17,6 +17,7 @@ if sys.platform == "win32":
 
     try:
         import threading
+
         import pythoncom  # pylint: disable=import-error
         import wmi  # pylint: disable=import-error
 

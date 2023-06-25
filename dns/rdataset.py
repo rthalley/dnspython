@@ -17,18 +17,17 @@
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
 
-from typing import Any, cast, Collection, Dict, List, Optional, Union
-
 import io
 import random
 import struct
+from typing import Any, Collection, Dict, List, Optional, Union, cast
 
 import dns.exception
 import dns.immutable
 import dns.name
-import dns.rdatatype
-import dns.rdataclass
 import dns.rdata
+import dns.rdataclass
+import dns.rdatatype
 import dns.set
 import dns.ttl
 

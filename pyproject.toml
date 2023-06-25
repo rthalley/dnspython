@@ -76,3 +76,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 ignore = ['E741', 'F401']
+
+[tool.isort]
+profile = "black"

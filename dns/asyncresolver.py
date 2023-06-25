@@ -17,14 +17,13 @@
 
 """Asynchronous DNS stub resolver."""
 
-from typing import Any, Dict, List, Optional, Union
-
 import socket
 import time
+from typing import Any, Dict, List, Optional, Union
 
+import dns._ddr
 import dns.asyncbackend
 import dns.asyncquery
-import dns._ddr
 import dns.exception
 import dns.name
 import dns.query
@@ -33,8 +32,7 @@ import dns.rdatatype
 import dns.resolver  # lgtm[py/import-and-import-from]
 
 # import some resolver symbols for brevity
-from dns.resolver import NXDOMAIN, NoAnswer, NotAbsolute, NoRootSOA
-
+from dns.resolver import NXDOMAIN, NoAnswer, NoRootSOA, NotAbsolute
 
 # for indentation purposes below
 _udp = dns.asyncquery.udp

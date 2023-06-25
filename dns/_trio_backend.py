@@ -3,6 +3,7 @@
 """trio async I/O library query support"""
 
 import socket
+
 import trio
 import trio.socket  # type: ignore
 
@@ -95,13 +96,12 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
 
 try:
-    import httpx
-
     import httpcore
     import httpcore.backends.base
     import httpcore.backends.trio
+    import httpx
 
-    from dns.query import _compute_times, _remaining, _expiration_for_this_attempt
+    from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
     class _NetworkBackend(httpcore.backends.base.AsyncNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):

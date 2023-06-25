@@ -1,8 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
-
 import collections
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 import dns.exception
 import dns.name

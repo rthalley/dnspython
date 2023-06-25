@@ -9,14 +9,14 @@ import time
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
-import dns.inet
-import dns.asyncbackend
 
+import dns.asyncbackend
+import dns.inet
 from dns.quic._common import (
-    BaseQuicStream,
+    QUIC_MAX_DATAGRAM,
     AsyncQuicConnection,
     AsyncQuicManager,
-    QUIC_MAX_DATAGRAM,
+    BaseQuicStream,
     UnexpectedEOF,
 )
 

@@ -21,7 +21,6 @@ import dns.exception
 import dns.immutable
 import dns.rdata
 
-
 _pows = tuple(10**i for i in range(0, 11))
 
 # default values are in centimeters

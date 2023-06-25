@@ -1,8 +1,8 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import selectors
 import socket
 import ssl
-import selectors
 import struct
 import threading
 import time
@@ -10,13 +10,13 @@ import time
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
-import dns.inet
 
+import dns.inet
 from dns.quic._common import (
-    BaseQuicStream,
+    QUIC_MAX_DATAGRAM,
     BaseQuicConnection,
     BaseQuicManager,
-    QUIC_MAX_DATAGRAM,
+    BaseQuicStream,
     UnexpectedEOF,
 )
 

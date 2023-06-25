@@ -17,9 +17,6 @@
 
 """DNS stub resolver."""
 
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
-
-from urllib.parse import urlparse
 import contextlib
 import random
 import socket
@@ -27,10 +24,12 @@ import sys
 import threading
 import time
 import warnings
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import dns._ddr
-import dns.exception
 import dns.edns
+import dns.exception
 import dns.flags
 import dns.inet
 import dns.ipv4

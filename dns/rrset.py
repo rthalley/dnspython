@@ -17,11 +17,11 @@
 
 """DNS RRsets (an RRset is a named rdataset)"""
 
-from typing import Any, cast, Collection, Dict, Optional, Union
+from typing import Any, Collection, Dict, Optional, Union, cast
 
 import dns.name
-import dns.rdataset
 import dns.rdataclass
+import dns.rdataset
 import dns.renderer
 
 

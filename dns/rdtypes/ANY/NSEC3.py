@@ -25,7 +25,6 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdtypes.util
 
-
 b32_hex_to_normal = bytes.maketrans(
     b"0123456789ABCDEFGHIJKLMNOPQRSTUV", b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 )

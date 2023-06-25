@@ -24,8 +24,8 @@ import dns.name
 import dns.opcode
 import dns.rdata
 import dns.rdataclass
-import dns.rdatatype
 import dns.rdataset
+import dns.rdatatype
 import dns.tsig
 
 

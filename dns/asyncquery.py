@@ -17,36 +17,34 @@
 
 """Talk to a DNS server."""
 
-from typing import Any, Dict, Optional, Tuple, Union
-
 import base64
 import contextlib
 import socket
 import struct
 import time
+from typing import Any, Dict, Optional, Tuple, Union
 
 import dns.asyncbackend
 import dns.exception
 import dns.inet
-import dns.name
 import dns.message
+import dns.name
 import dns.quic
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 import dns.transaction
-
 from dns._asyncbackend import NullContext
 from dns.query import (
-    _compute_times,
-    _matches_destination,
     BadResponse,
-    ssl,
-    UDPMode,
-    have_doh,
-    _have_http2,
     NoDOH,
     NoDOQ,
+    UDPMode,
+    _compute_times,
+    _have_http2,
+    _matches_destination,
+    have_doh,
+    ssl,
 )
 
 if have_doh:
