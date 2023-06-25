@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
-from typing import Optional, Type, Any
+from abc import ABC, abstractmethod  # pylint: disable=no-name-in-module
+from typing import Any, Optional, Type
 
 import dns.rdataclass
 import dns.rdatatype

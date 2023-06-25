@@ -10,10 +10,12 @@ class CryptographyPublicKey(GenericPublicKey):
     key: Any = None
     key_cls: Any = None
 
-    def __init__(self, key: Any) -> None:
+    def __init__(self, key: Any) -> None:  # pylint: disable=super-init-not-called
         if self.key_cls is None:
             raise TypeError("Undefined private key class")
-        if not isinstance(key, self.key_cls):
+        if not isinstance(  # pylint: disable=isinstance-second-argument-not-valid-type
+            key, self.key_cls
+        ):
             raise AlgorithmKeyMismatch
         self.key = key
 
@@ -34,10 +36,12 @@ class CryptographyPrivateKey(GenericPrivateKey):
     key_cls: Any = None
     public_cls: Type[CryptographyPublicKey]
 
-    def __init__(self, key: Any) -> None:
+    def __init__(self, key: Any) -> None:  # pylint: disable=super-init-not-called
         if self.key_cls is None:
             raise TypeError("Undefined private key class")
-        if not isinstance(key, self.key_cls):
+        if not isinstance(  # pylint: disable=isinstance-second-argument-not-valid-type
+            key, self.key_cls
+        ):
             raise AlgorithmKeyMismatch
         self.key = key
 
