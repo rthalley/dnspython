@@ -3,8 +3,8 @@
 What's New in dnspython
 =======================
 
-2.4.0 (in development)
-----------------------
+2.4.0
+-----
 
 * Python 3.8 or newer is required.
 
