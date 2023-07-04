@@ -7,12 +7,14 @@ on:
   push:
     branches:
       - master
+      - 2.3
       - 2.4
     paths:
       - '**.py'
   pull_request:
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   build:
