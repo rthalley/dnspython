@@ -46,9 +46,11 @@ information about the changes in this release.
 * To install from the source code, go into the top-level of the source code
   and run:
 
+```
     pip install --upgrade pip build
     python -m build
     pip install dist/*.whl
+```
 
 * To install the latest from the master branch, run `pip install git+https://github.com/rthalley/dnspython.git`
 
