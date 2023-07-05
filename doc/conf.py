@@ -159,3 +159,5 @@ texinfo_documents = [
         "Miscellaneous",
     ),
 ]
+
+language = "en"

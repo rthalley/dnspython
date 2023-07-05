@@ -52,7 +52,7 @@ aioquic = {version=">=0.9.20", optional=true}
 pytest = ">=5.4.1,<8"
 pytest-cov = "^4.0.0"
 flake8 = "^5.0.3"
-sphinx = "^4.0.0"
+sphinx = "^7.0.0"
 coverage = "^7.0"
 twine = "^4.0.0"
 wheel = "^0.40.0"
