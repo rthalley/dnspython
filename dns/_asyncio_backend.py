@@ -121,13 +121,20 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 try:
     import anyio
     import httpcore
-    import httpcore.backends.asyncio
-    import httpcore.backends.base
+
+    try:
+        _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
+        from httpcore._backends.anyio import AnyIOStream as _CoreAnyIOStream
+    except ImportError:
+        from httpcore.backends.base import (
+            AsyncNetworkBackend as _CoreAsyncNetworkBackend,
+        )
+        from httpcore.backends.asyncio import AsyncIOStream as _CoreAnyIOStream
     import httpx
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
-    class _NetworkBackend(httpcore.backends.base.AsyncNetworkBackend):
+    class _NetworkBackend(_CoreAsyncNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):
             super().__init__()
             self._local_port = local_port
@@ -167,7 +174,7 @@ try:
                             remote_port=port,
                             local_host=local_address,
                         )
-                    return httpcore.backends.asyncio.AsyncIOStream(stream)
+                    return _CoreAnyIOStream(stream)
                 except Exception:
                     pass
             raise httpcore.ConnectError
