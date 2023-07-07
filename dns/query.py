@@ -71,13 +71,10 @@ try:
         pass
 
     import httpcore
+    import httpcore._backends.sync
 
-    try:
-        _CoreNetworkBackend = httpcore.NetworkBackend
-        from httpcore._backends.sync import SyncStream as _CoreSyncStream
-    except ImportError:
-        from httpcore.backends.base import NetworkBackend as _CoreNetworkBackend
-        from httpcore.backends.sync import SyncStream as _CoreSyncStream
+    _CoreNetworkBackend = httpcore.NetworkBackend
+    _CoreSyncStream = httpcore._backends.sync.SyncStream
 
     class _NetworkBackend(_CoreNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):

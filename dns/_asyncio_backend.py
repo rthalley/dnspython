@@ -121,16 +121,11 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 try:
     import anyio
     import httpcore
-
-    try:
-        _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-        from httpcore._backends.anyio import AnyIOStream as _CoreAnyIOStream
-    except ImportError:
-        from httpcore.backends.base import (
-            AsyncNetworkBackend as _CoreAsyncNetworkBackend,
-        )
-        from httpcore.backends.asyncio import AsyncIOStream as _CoreAnyIOStream
+    import httpcore._backends.anyio
     import httpx
+
+    _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
+    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
