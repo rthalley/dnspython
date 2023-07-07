@@ -97,16 +97,11 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
 try:
     import httpcore
-
-    try:
-        _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-        from httpcore._backends.trio import TrioStream as _CoreTrioStream
-    except ImportError:
-        from httpcore.backends.base import (
-            AsyncNetworkBackend as _CoreAsyncNetworkBackend,
-        )
-        from httpcore.backends.trio import TrioStream as _CoreTrioStream
+    import httpcore._backends.trio
     import httpx
+
+    _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
+    _CoreTrioStream = httpcore._backends.trio.TrioStream
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
