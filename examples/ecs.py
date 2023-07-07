@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import dns.edns
 import dns.message
 import dns.query
