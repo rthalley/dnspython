@@ -206,7 +206,7 @@ if sys.platform == "win32":
             lm = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
             try:
                 tcp_params = winreg.OpenKey(
-                    lm, r"SYSTEM\CurrentControlSet" r"\Services\Tcpip\Parameters"
+                    lm, r"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
                 )
                 try:
                     self._config_fromkey(tcp_params, True)
@@ -214,9 +214,7 @@ if sys.platform == "win32":
                     tcp_params.Close()
                 interfaces = winreg.OpenKey(
                     lm,
-                    r"SYSTEM\CurrentControlSet"
-                    r"\Services\Tcpip\Parameters"
-                    r"\Interfaces",
+                    r"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces",
                 )
                 try:
                     i = 0
