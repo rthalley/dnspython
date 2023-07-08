@@ -123,15 +123,6 @@ try:
     import httpcore
     import httpcore.backends.asyncio
     import httpcore.backends.base
-
-    try:
-        _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-        from httpcore._backends.anyio import AnyIOStream as _CoreAnyIOStream
-    except ImportError:
-        from httpcore.backends.base import (
-            AsyncNetworkBackend as _CoreAsyncNetworkBackend,
-        )
-        from httpcore.backends.asyncio import AsyncIOStream as _CoreAnyIOStream
     import httpx
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
