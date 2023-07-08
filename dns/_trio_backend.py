@@ -97,20 +97,13 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
 try:
     import httpcore
-
-    try:
-        _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-        from httpcore._backends.trio import TrioStream as _CoreTrioStream
-    except ImportError:
-        from httpcore.backends.base import (
-            AsyncNetworkBackend as _CoreAsyncNetworkBackend,
-        )
-        from httpcore.backends.trio import TrioStream as _CoreTrioStream
+    import httpcore.backends.base
+    import httpcore.backends.trio
     import httpx
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
-    class _NetworkBackend(_CoreAsyncNetworkBackend):
+    class _NetworkBackend(httpcore.backends.base.AsyncNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):
             super().__init__()
             self._local_port = local_port
@@ -149,7 +142,7 @@ try:
                     sock = await Backend().make_socket(
                         af, socket.SOCK_STREAM, 0, source, destination, timeout
                     )
-                    return _CoreTrioStream(sock.stream)
+                    return httpcore.backends.trio.TrioStream(sock.stream)
                 except Exception:
                     continue
             raise httpcore.ConnectError
