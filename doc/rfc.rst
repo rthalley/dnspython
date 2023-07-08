@@ -63,9 +63,6 @@ Core RFCs
 `RFC 8020 <https://tools.ietf.org/html/rfc8020>`_
     Clarification on the meaning of NXDOMAIN.
 
-`RFC 8914 <https://tools.ietf.org/html/rfc8914.html>`_
-    Extended DNS Errors
-
 DNSSEC RFCs
 -----------
 
