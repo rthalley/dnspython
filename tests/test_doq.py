@@ -24,7 +24,7 @@ except ImportError:
         pass
 
 
-@pytest.mark.skipif(not _nanoquic_available, reason="requires nanoquic")
+@pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
 def test_basic_sync():
     with Server() as server:
         q = dns.message.make_query("www.example.", "A")
@@ -38,7 +38,7 @@ async def amain():
     assert r.rcode() == dns.rcode.REFUSED
 
 
-@pytest.mark.skipif(not _nanoquic_available, reason="requires nanoquic")
+@pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
 def test_basic_asyncio():
     dns.asyncbackend.set_default_backend("asyncio")
     with Server() as server:
@@ -48,7 +48,7 @@ def test_basic_asyncio():
 try:
     import trio
 
-    @pytest.mark.skipif(not _nanoquic_available, reason="requires nanoquic")
+    @pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
     def test_basic_trio():
         dns.asyncbackend.set_default_backend("trio")
         with Server() as server:
