@@ -31,9 +31,9 @@ import dns.exception
 import dns.inet
 import dns.message
 import dns.name
+import dns.query
 import dns.rdataclass
 import dns.rdatatype
-import dns.query
 import dns.tsigkeyring
 import dns.zone
 import tests.util
@@ -132,6 +132,22 @@ class QueryTests(unittest.TestCase):
             qname = dns.name.from_text("dns.google.")
             q = dns.message.make_query(qname, dns.rdatatype.A)
             response = dns.query.tls(q, address, timeout=2)
+            rrs = response.get_rrset(
+                response.answer, qname, dns.rdataclass.IN, dns.rdatatype.A
+            )
+            self.assertTrue(rrs is not None)
+            seen = set([rdata.address for rdata in rrs])
+            self.assertTrue("8.8.8.8" in seen)
+            self.assertTrue("8.8.4.4" in seen)
+
+    @unittest.skipUnless(have_ssl, "No SSL support")
+    def testQueryTLSWithContext(self):
+        for address in query_addresses:
+            qname = dns.name.from_text("dns.google.")
+            q = dns.message.make_query(qname, dns.rdatatype.A)
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            response = dns.query.tls(q, address, timeout=2, ssl_context=ssl_context)
             rrs = response.get_rrset(
                 response.answer, qname, dns.rdataclass.IN, dns.rdatatype.A
             )
