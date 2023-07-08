@@ -443,6 +443,9 @@ async def tls(
             ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
             if server_hostname is None:
                 ssl_context.check_hostname = False
+        else:
+            ssl_context = None
+            server_hostname = None                
         af = dns.inet.af_for_address(where)
         stuple = _source_tuple(af, source, source_port)
         dtuple = (where, port)
