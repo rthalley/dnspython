@@ -71,14 +71,10 @@ try:
         pass
 
     import httpcore
-    try:
-        _CoreNetworkBackend = httpcore.NetworkBackend
-        from httpcore._backends.sync import SyncStream as _CoreSyncStream
-    except ImportError:
-        from httpcore.backends.base import NetworkBackend as _CoreNetworkBackend
-        from httpcore.backends.sync import SyncStream as _CoreSyncStream
+    import httpcore.backends.base
+    import httpcore.backends.sync
 
-    class _NetworkBackend(_CoreNetworkBackend):
+    class _NetworkBackend(httpcore.backends.base.NetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):
             super().__init__()
             self._local_port = local_port
@@ -120,7 +116,7 @@ try:
                         dns.inet.low_level_address_tuple((address, port), af),
                         attempt_expiration,
                     )
-                    return _CoreSyncStream(sock)
+                    return httpcore.backends.sync.SyncStream(sock)
                 except Exception:
                     pass
             raise httpcore.ConnectError
