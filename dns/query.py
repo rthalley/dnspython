@@ -176,7 +176,7 @@ except ImportError:  # pragma: no cover
 
         @classmethod
         def create_default_context(cls, *args, **kwargs):
-            raise Exception("no ssl support")
+            raise Exception("no ssl support")  # pylint: disable=broad-exception-raised
 
 
 # Function used to create a socket.  Can be overridden if needed in special
