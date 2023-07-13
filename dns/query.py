@@ -1186,10 +1186,10 @@ def quic(
     with manager:
         if not connection:
             the_connection = the_manager.connect(where, port, source, source_port)
-        start = time.time()
-        with the_connection.make_stream() as stream:
+        (start, expiration) = _compute_times(timeout)
+        with the_connection.make_stream(timeout) as stream:
             stream.send(wire, True)
-            wire = stream.receive(timeout)
+            wire = stream.receive(_remaining(expiration))
         finish = time.time()
     r = dns.message.from_wire(
         wire,

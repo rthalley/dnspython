@@ -3,7 +3,7 @@
 import socket
 import struct
 import time
-from typing import Any
+from typing import Any, Optional
 
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
@@ -134,7 +134,7 @@ class BaseQuicConnection:
 
 
 class AsyncQuicConnection(BaseQuicConnection):
-    async def make_stream(self) -> Any:
+    async def make_stream(self, timeout: Optional[float] = None) -> Any:
         pass
 
 
