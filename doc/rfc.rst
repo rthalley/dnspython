@@ -81,6 +81,12 @@ DNSSEC RFCs
 `RFC 5155 <https://tools.ietf.org/html/rfc5155>`_
     DNS Security (DNSSEC) Hashed Authenticated Denial of Existence.  [NSEC3]
 
+`RFC 5702 <https://tools.ietf.org/html/rfc5702>`_
+    Use of SHA-2 Algorithms with RSA in DNSKEY and RRSIG Resource Records for DNSSEC.
+
+`RFC 6605 <https://tools.ietf.org/html/rfc6605>`_
+    Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC.
+
 `RFC 6781 <https://tools.ietf.org/html/rfc6781>`_
     Operational Practices, Version 2.
 
@@ -89,6 +95,9 @@ DNSSEC RFCs
 
 `RFC 7583 <https://tools.ietf.org/html/rfc7583>`_
     Key Rollover Timing Considerations.
+
+`RFC 8080 <https://tools.ietf.org/html/rfc8080>`_
+    Edwards-Curve Digital Security Algorithm (EdDSA) for DNSSEC.
 
 `RFC 8624 <https://tools.ietf.org/html/rfc8624>`_
     Algorithm Implementation Requirements and Usage Guidance for DNSSEC.
