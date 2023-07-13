@@ -11,6 +11,7 @@ import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
 
+import dns.exception
 import dns.inet
 from dns.quic._common import (
     QUIC_MAX_DATAGRAM,
@@ -42,7 +43,7 @@ class SyncQuicStream(BaseQuicStream):
                 self._expecting = amount
             with self._wake_up:
                 if not self._wake_up.wait(timeout):
-                    raise TimeoutError
+                    raise dns.exception.Timeout
             self._expecting = 0
 
     def receive(self, timeout=None):
@@ -171,8 +172,9 @@ class SyncQuicConnection(BaseQuicConnection):
         self._worker_thread = threading.Thread(target=self._worker)
         self._worker_thread.start()
 
-    def make_stream(self):
-        self._handshake_complete.wait()
+    def make_stream(self, timeout=None):
+        if not self._handshake_complete.wait(timeout):
+            raise dns.exception.Timeout
         with self._lock:
             if self._done:
                 raise UnexpectedEOF
