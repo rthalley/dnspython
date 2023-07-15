@@ -103,10 +103,6 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
     async def close(self):
         self.writer.close()
-        try:
-            await self.writer.wait_closed()
-        except AttributeError:  # pragma: no cover
-            pass
 
     async def getpeername(self):
         return self.writer.get_extra_info("peername")
