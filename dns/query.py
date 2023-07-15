@@ -60,7 +60,12 @@ def _expiration_for_this_attempt(timeout, expiration):
 _have_httpx = False
 _have_http2 = False
 try:
+    import httpcore
+    import httpcore._backends.sync
     import httpx
+
+    _CoreNetworkBackend = httpcore.NetworkBackend
+    _CoreSyncStream = httpcore._backends.sync.SyncStream
 
     _have_httpx = True
     try:
@@ -69,12 +74,6 @@ try:
             _have_http2 = True
     except Exception:
         pass
-
-    import httpcore
-    import httpcore._backends.sync
-
-    _CoreNetworkBackend = httpcore.NetworkBackend
-    _CoreSyncStream = httpcore._backends.sync.SyncStream
 
     class _NetworkBackend(_CoreNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):
