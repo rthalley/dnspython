@@ -10,6 +10,7 @@ import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
 import trio
 
+import dns.exception
 import dns.inet
 from dns._asyncbackend import NullContext
 from dns.quic._common import (
@@ -45,6 +46,7 @@ class TrioQuicStream(BaseQuicStream):
             (size,) = struct.unpack("!H", self._buffer.get(2))
             await self.wait_for(size)
             return self._buffer.get(size)
+        raise dns.exception.Timeout
 
     async def send(self, datagram, is_end=False):
         data = self._encapsulate(datagram)
@@ -137,14 +139,20 @@ class TrioQuicConnection(AsyncQuicConnection):
             nursery.start_soon(self._worker)
         self._run_done.set()
 
-    async def make_stream(self):
-        await self._handshake_complete.wait()
-        if self._done:
-            raise UnexpectedEOF
-        stream_id = self._connection.get_next_available_stream_id(False)
-        stream = TrioQuicStream(self, stream_id)
-        self._streams[stream_id] = stream
-        return stream
+    async def make_stream(self, timeout=None):
+        if timeout is None:
+            context = NullContext(None)
+        else:
+            context = trio.move_on_after(timeout)
+        with context:
+            await self._handshake_complete.wait()
+            if self._done:
+                raise UnexpectedEOF
+            stream_id = self._connection.get_next_available_stream_id(False)
+            stream = TrioQuicStream(self, stream_id)
+            self._streams[stream_id] = stream
+            return stream
+        raise dns.exception.Timeout
 
     async def close(self):
         if not self._closed:
