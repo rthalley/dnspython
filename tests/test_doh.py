@@ -14,9 +14,9 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-import unittest
 import random
 import socket
+import unittest
 
 try:
     import ssl
@@ -147,26 +147,29 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
             )
             self.assertTrue(q.is_response(r))
 
-    def test_bootstrap_address_fails(self):
-        # We test this to see if v4 is available
-        if resolver_v4_addresses:
-            ip = "185.228.168.168"
-            invalid_tls_url = "https://{}/doh/family-filter/".format(ip)
-            valid_tls_url = "https://doh.cleanbrowsing.org/doh/family-filter/"
-            q = dns.message.make_query("example.com.", dns.rdatatype.A)
-            # make sure CleanBrowsing's IP address will fail TLS certificate
-            # check.
-            with self.assertRaises(httpx.ConnectError):
-                dns.query.https(q, invalid_tls_url, session=self.session, timeout=4)
-            # And if we don't mangle the URL, it should work.
-            r = dns.query.https(
-                q,
-                valid_tls_url,
-                session=self.session,
-                bootstrap_address=ip,
-                timeout=4,
-            )
-            self.assertTrue(q.is_response(r))
+    # This test is temporarily disabled as there's an expired certificate issue on one
+    # of the servers, so it fails on the part that is supposed to succeed (2023-07-15).
+
+    # def test_bootstrap_address_fails(self):
+    #     # We test this to see if v4 is available
+    #     if resolver_v4_addresses:
+    #         ip = "185.228.168.168"
+    #         invalid_tls_url = "https://{}/doh/family-filter/".format(ip)
+    #         valid_tls_url = "https://doh.cleanbrowsing.org/doh/family-filter/"
+    #         q = dns.message.make_query("example.com.", dns.rdatatype.A)
+    #         # make sure CleanBrowsing's IP address will fail TLS certificate
+    #         # check.
+    #         with self.assertRaises(httpx.ConnectError):
+    #             dns.query.https(q, invalid_tls_url, session=self.session, timeout=4)
+    #         # And if we don't mangle the URL, it should work.
+    #         r = dns.query.https(
+    #             q,
+    #             valid_tls_url,
+    #             session=self.session,
+    #             bootstrap_address=ip,
+    #             timeout=4,
+    #         )
+    #         self.assertTrue(q.is_response(r))
 
     def test_new_session(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
