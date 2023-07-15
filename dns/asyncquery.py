@@ -43,6 +43,7 @@ from dns.query import (
     _compute_times,
     _have_http2,
     _matches_destination,
+    _remaining,
     have_doh,
     ssl,
 )
@@ -739,11 +740,11 @@ async def quic(
         ) as the_manager:
             if not connection:
                 the_connection = the_manager.connect(where, port, source, source_port)
-            start = time.time()
-            stream = await the_connection.make_stream()
+            (start, expiration) = _compute_times(timeout)
+            stream = await the_connection.make_stream(timeout)
             async with stream:
                 await stream.send(wire, True)
-                wire = await stream.receive(timeout)
+                wire = await stream.receive(_remaining(expiration))
             finish = time.time()
         r = dns.message.from_wire(
             wire,
