@@ -30,7 +30,7 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is the development version of dnspython 2.4.0.
+This is the development version of dnspython 2.5.0.
 Please read
 [What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
 information about the changes in this release.
