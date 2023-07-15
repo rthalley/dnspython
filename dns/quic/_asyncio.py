@@ -11,6 +11,7 @@ import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
 
 import dns.asyncbackend
+import dns.exception
 import dns.inet
 from dns.quic._common import (
     QUIC_MAX_DATAGRAM,
@@ -25,11 +26,9 @@ class AsyncioQuicStream(BaseQuicStream):
     def __init__(self, connection, stream_id):
         super().__init__(connection, stream_id)
         self._wake_up = asyncio.Condition()
-
     async def _wait_for_wake_up(self):
         async with self._wake_up:
             await self._wake_up.wait()
-
     async def wait_for(self, amount, expiration):
         while True:
             timeout = self._timeout_from_expiration(expiration)
@@ -38,8 +37,8 @@ class AsyncioQuicStream(BaseQuicStream):
             self._expecting = amount
             try:
                 await asyncio.wait_for(self._wait_for_wake_up(), timeout)
-            except Exception:
-                pass
+            except TimeoutError:
+                raise dns.exception.Timeout
             self._expecting = 0
 
     async def receive(self, timeout=None):
@@ -166,8 +165,11 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         self._receiver_task = asyncio.Task(self._receiver())
         self._sender_task = asyncio.Task(self._sender())
 
-    async def make_stream(self):
-        await self._handshake_complete.wait()
+    async def make_stream(self, timeout=None):
+        try:
+            await asyncio.wait_for(self._handshake_complete.wait(), timeout)
+        except TimeoutError:
+            raise dns.exception.Timeout
         if self._done:
             raise UnexpectedEOF
         stream_id = self._connection.get_next_available_stream_id(False)
