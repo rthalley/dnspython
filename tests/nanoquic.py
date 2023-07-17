@@ -14,7 +14,6 @@ try:
     import dns.asyncquery
     import dns.message
     import dns.rcode
-
     from tests.util import here
 
     have_quic = True
@@ -79,8 +78,9 @@ try:
             return struct.pack("!H", len(wire)) + wire
 
     class Server(threading.Thread):
-        def __init__(self):
+        def __init__(self, address="127.0.0.1"):
             super().__init__()
+            self.address = address
             self.transport = None
             self.protocol = None
             self.left = None
@@ -91,6 +91,7 @@ try:
             self.left, self.right = socket.socketpair()
             self.start()
             self.ready.wait(4)
+            return self
 
         def __exit__(self, ex_ty, ex_va, ex_tr):
             if self.protocol is not None:
@@ -116,7 +117,7 @@ try:
                 lambda: aioquic.asyncio.server.QuicServer(
                     configuration=conf, create_protocol=NanoQuic
                 ),
-                local_addr=("127.0.0.1", 8853),
+                local_addr=(self.address, 8853),
             )
             self.ready.set()
             try:
