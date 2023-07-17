@@ -11,7 +11,7 @@ import dns.message
 import dns.query
 import dns.rcode
 
-from .util import here
+from .util import have_ipv4, have_ipv6, here
 
 try:
     from .nanoquic import Server
@@ -24,25 +24,37 @@ except ImportError:
         pass
 
 
+addresses = []
+if have_ipv4():
+    addresses.append("127.0.0.1")
+if have_ipv6():
+    addresses.append("::1")
+if len(addresses) == 0:
+    # no networking
+    _nanoquic_available = False
+
+
 @pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
 def test_basic_sync():
-    with Server() as server:
-        q = dns.message.make_query("www.example.", "A")
-        r = dns.query.quic(q, "127.0.0.1", port=8853, verify=here("tls/ca.crt"))
-        assert r.rcode() == dns.rcode.REFUSED
-
-
-async def amain():
     q = dns.message.make_query("www.example.", "A")
-    r = await dns.asyncquery.quic(q, "127.0.0.1", port=8853, verify=here("tls/ca.crt"))
+    for address in addresses:
+        with Server(address) as server:
+            r = dns.query.quic(q, address, port=8853, verify=here("tls/ca.crt"))
+            assert r.rcode() == dns.rcode.REFUSED
+
+
+async def amain(address):
+    q = dns.message.make_query("www.example.", "A")
+    r = await dns.asyncquery.quic(q, address, port=8853, verify=here("tls/ca.crt"))
     assert r.rcode() == dns.rcode.REFUSED
 
 
 @pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
 def test_basic_asyncio():
     dns.asyncbackend.set_default_backend("asyncio")
-    with Server() as server:
-        asyncio.run(amain())
+    for address in addresses:
+        with Server(address) as server:
+            asyncio.run(amain(address))
 
 
 try:
@@ -51,8 +63,9 @@ try:
     @pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
     def test_basic_trio():
         dns.asyncbackend.set_default_backend("trio")
-        with Server() as server:
-            trio.run(amain)
+        for address in addresses:
+            with Server(address) as server:
+                trio.run(amain, address)
 
 except ImportError:
     pass

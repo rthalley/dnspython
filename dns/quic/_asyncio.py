@@ -88,8 +88,10 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         try:
             af = dns.inet.af_for_address(self._address)
             backend = dns.asyncbackend.get_backend("asyncio")
+            # Note that peer is a low-level address tuple, but make_socket() wants
+            # a high-level address tuple, so we convert.
             self._socket = await backend.make_socket(
-                af, socket.SOCK_DGRAM, 0, self._source, self._peer
+                af, socket.SOCK_DGRAM, 0, self._source, (self._peer[0], self._peer[1])
             )
             self._socket_created.set()
             async with self._socket:
@@ -184,6 +186,9 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
+            if not self._socket_created.is_set():
+                # sender might be blocked on this, so set it
+                self._socket_created.set()
             async with self._wake_timer:
                 self._wake_timer.notify_all()
             try:
