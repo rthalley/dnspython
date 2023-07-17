@@ -1,36 +1,47 @@
 from typing import Dict, Optional, Tuple, Type, Union
 
 import dns.name
-from dns.dnssecalgs.base import GenericPrivateKey
-from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
-from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
-from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
-from dns.dnssecalgs.rsa import (
-    PrivateRSAMD5,
-    PrivateRSASHA1,
-    PrivateRSASHA1NSEC3SHA1,
-    PrivateRSASHA256,
-    PrivateRSASHA512,
-)
+
+try:
+    from dns.dnssecalgs.base import GenericPrivateKey
+    from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
+    from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
+    from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
+    from dns.dnssecalgs.rsa import (
+        PrivateRSAMD5,
+        PrivateRSASHA1,
+        PrivateRSASHA1NSEC3SHA1,
+        PrivateRSASHA256,
+        PrivateRSASHA512,
+    )
+
+    _have_cryptography = True
+except ImportError:
+    _have_cryptography = False
+
 from dns.dnssectypes import Algorithm
 from dns.exception import UnsupportedAlgorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 AlgorithmPrefix = Optional[Union[bytes, dns.name.Name]]
 
-algorithms: Dict[Tuple[Algorithm, AlgorithmPrefix], Type[GenericPrivateKey]] = {
-    (Algorithm.RSAMD5, None): PrivateRSAMD5,
-    (Algorithm.DSA, None): PrivateDSA,
-    (Algorithm.RSASHA1, None): PrivateRSASHA1,
-    (Algorithm.DSANSEC3SHA1, None): PrivateDSANSEC3SHA1,
-    (Algorithm.RSASHA1NSEC3SHA1, None): PrivateRSASHA1NSEC3SHA1,
-    (Algorithm.RSASHA256, None): PrivateRSASHA256,
-    (Algorithm.RSASHA512, None): PrivateRSASHA512,
-    (Algorithm.ECDSAP256SHA256, None): PrivateECDSAP256SHA256,
-    (Algorithm.ECDSAP384SHA384, None): PrivateECDSAP384SHA384,
-    (Algorithm.ED25519, None): PrivateED25519,
-    (Algorithm.ED448, None): PrivateED448,
-}
+algorithms: Dict[Tuple[Algorithm, AlgorithmPrefix], Type[GenericPrivateKey]] = {}
+if _have_cryptography:
+    algorithms.update(
+        {
+            (Algorithm.RSAMD5, None): PrivateRSAMD5,
+            (Algorithm.DSA, None): PrivateDSA,
+            (Algorithm.RSASHA1, None): PrivateRSASHA1,
+            (Algorithm.DSANSEC3SHA1, None): PrivateDSANSEC3SHA1,
+            (Algorithm.RSASHA1NSEC3SHA1, None): PrivateRSASHA1NSEC3SHA1,
+            (Algorithm.RSASHA256, None): PrivateRSASHA256,
+            (Algorithm.RSASHA512, None): PrivateRSASHA512,
+            (Algorithm.ECDSAP256SHA256, None): PrivateECDSAP256SHA256,
+            (Algorithm.ECDSAP384SHA384, None): PrivateECDSAP384SHA384,
+            (Algorithm.ED25519, None): PrivateED25519,
+            (Algorithm.ED448, None): PrivateED448,
+        }
+    )
 
 
 def get_algorithm_cls(
