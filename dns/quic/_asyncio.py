@@ -186,9 +186,8 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
-            if not self._socket_created.is_set():
-                # sender might be blocked on this, so set it
-                self._socket_created.set()
+            # sender might be blocked on this, so set it
+            self._socket_created.set()
             async with self._wake_timer:
                 self._wake_timer.notify_all()
             try:
