@@ -37,7 +37,14 @@ class _DatagramProtocol:
 
     def connection_lost(self, exc):
         if self.recvfrom and not self.recvfrom.done():
-            self.recvfrom.set_exception(exc)
+            if exc is None:
+                # EOF we triggered.  Is there a better way to do this?
+                try:
+                    raise EOFError
+                except EOFError as e:
+                    self.recvfrom.set_exception(e)
+            else:
+                self.recvfrom.set_exception(exc)
 
     def close(self):
         self.transport.close()
