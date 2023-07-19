@@ -39,13 +39,13 @@ def test_basic_sync():
     q = dns.message.make_query("www.example.", "A")
     for address in addresses:
         with Server(address) as server:
-            r = dns.query.quic(q, address, port=8853, verify=here("tls/ca.crt"))
+            r = dns.query.quic(q, address, port=server.port, verify=here("tls/ca.crt"))
             assert r.rcode() == dns.rcode.REFUSED
 
 
-async def amain(address):
+async def amain(address, port):
     q = dns.message.make_query("www.example.", "A")
-    r = await dns.asyncquery.quic(q, address, port=8853, verify=here("tls/ca.crt"))
+    r = await dns.asyncquery.quic(q, address, port=port, verify=here("tls/ca.crt"))
     assert r.rcode() == dns.rcode.REFUSED
 
 
@@ -54,7 +54,7 @@ def test_basic_asyncio():
     dns.asyncbackend.set_default_backend("asyncio")
     for address in addresses:
         with Server(address) as server:
-            asyncio.run(amain(address))
+            asyncio.run(amain(address, server.port))
 
 
 try:
@@ -65,7 +65,7 @@ try:
         dns.asyncbackend.set_default_backend("trio")
         for address in addresses:
             with Server(address) as server:
-                trio.run(amain, address)
+                trio.run(amain, address, server.port)
 
 except ImportError:
     pass
