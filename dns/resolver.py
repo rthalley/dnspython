@@ -24,7 +24,7 @@ import sys
 import threading
 import time
 import warnings
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 from urllib.parse import urlparse
 
 import dns._ddr
@@ -920,7 +920,7 @@ class BaseResolver:
     retry_servfail: bool
     rotate: bool
     ndots: Optional[int]
-    _nameservers: List[Union[str, dns.nameserver.Nameserver]]
+    _nameservers: Sequence[Union[str, dns.nameserver.Nameserver]]
 
     def __init__(
         self, filename: str = "/etc/resolv.conf", configure: bool = True
@@ -1176,7 +1176,7 @@ class BaseResolver:
     @classmethod
     def _enrich_nameservers(
         cls,
-        nameservers: List[Union[str, dns.nameserver.Nameserver]],
+        nameservers: Sequence[Union[str, dns.nameserver.Nameserver]],
         nameserver_ports: Dict[str, int],
         default_port: int,
     ) -> List[dns.nameserver.Nameserver]:
@@ -1214,12 +1214,12 @@ class BaseResolver:
     @property
     def nameservers(
         self,
-    ) -> List[Union[str, dns.nameserver.Nameserver]]:
+    ) -> Sequence[Union[str, dns.nameserver.Nameserver]]:
         return self._nameservers
 
     @nameservers.setter
     def nameservers(
-        self, nameservers: List[Union[str, dns.nameserver.Nameserver]]
+        self, nameservers: Sequence[Union[str, dns.nameserver.Nameserver]]
     ) -> None:
         """
         *nameservers*, a ``list`` of nameservers, where a nameserver is either
