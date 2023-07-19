@@ -117,8 +117,10 @@ try:
                 lambda: aioquic.asyncio.server.QuicServer(
                     configuration=conf, create_protocol=NanoQuic
                 ),
-                local_addr=(self.address, 8853),
+                local_addr=(self.address, 0),
             )
+            info = self.transport.get_extra_info("sockname")
+            self.port = info[1]
             self.ready.set()
             try:
                 await reader.read(1)
