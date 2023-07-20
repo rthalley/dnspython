@@ -39,13 +39,12 @@ documentation = "https://dnspython.readthedocs.io/en/stable/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-httpx = {version=">=0.24.1", optional=true, python=">=3.8"}
-httpcore = {version=">=0.17.3", optional=true, python=">=3.8"}
-h2 = {version=">=4.1.0", optional=true, python=">=3.8"}
+httpx = {version=">=0.24.1", optional=true}
+httpcore = {version=">=0.17.3", optional=true}
+h2 = {version=">=4.1.0", optional=true}
 idna = {version=">=2.1,<4.0", optional=true}
 cryptography = {version=">=2.6,<42.0", optional=true}
 trio = {version=">=0.14,<0.23", optional=true}
-sniffio = {version="^1.1", optional=true}
 wmi = {version="^1.5.1", optional=true}
 aioquic = {version=">=0.9.20", optional=true}
 
@@ -62,7 +61,7 @@ mypy = ">=1.0.1"
 black = "^23.1.0"
 
 [tool.poetry.extras]
-doh = ['httpx', 'h2']
+doh = ['httpx', 'h2', 'httpcore']
 idna = ['idna']
 dnssec = ['cryptography']
 trio = ['trio']
