@@ -8,6 +8,27 @@ What's New in dnspython
 
 * TBD
 
+2.4.1
+-----
+
+* Importing dns.dnssecalgs without the cryptography module installed no longer causes
+  an ImportError.
+
+* A number of timeout bugs with the asyncio backend have been fixed.
+
+* DNS-over-QUIC for the asyncio backend now works for IPv6.
+
+* Dnspython now enforces that the candidate DNSKEYs for DNSSEC signatures
+  have protocol 3 and have the ZONE flag set.  This is a standards compliance issue more
+  than a security issue as the legitimate authority would have to have published
+  the non-compliant keys as well as updated their DS record in order for the records
+  to validate (the DS digest includes both flags and protocol).  Dnspython will not
+  make invalid keys by default, but does allow them to be created and used
+  for testing purposes.
+
+* Dependency specifications for optional features in the package metadata have been
+  improved.
+
 2.4.0
 -----
 
