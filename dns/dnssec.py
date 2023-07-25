@@ -305,7 +305,10 @@ def _find_candidate_keys(
     return [
         cast(DNSKEY, rd)
         for rd in rdataset
-        if rd.algorithm == rrsig.algorithm and key_id(rd) == rrsig.key_tag
+        if rd.algorithm == rrsig.algorithm
+        and key_id(rd) == rrsig.key_tag
+        and (rd.flags & Flag.ZONE) == Flag.ZONE  # RFC 4034 2.1.1
+        and rd.protocol == 3  # RFC 4034 2.1.2
     ]
 
 

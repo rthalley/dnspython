@@ -15,16 +15,17 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import functools
+import time
+import unittest
 from datetime import datetime, timedelta, timezone
 from typing import Any
-
-import functools
-import unittest
 
 import dns.dnssec
 import dns.name
 import dns.rdata
 import dns.rdataclass
+import dns.rdataset
 import dns.rdatatype
 import dns.rdtypes.ANY.CDNSKEY
 import dns.rdtypes.ANY.CDS
@@ -32,15 +33,14 @@ import dns.rdtypes.ANY.DNSKEY
 import dns.rdtypes.ANY.DS
 import dns.rrset
 import dns.zone
-
 from dns.rdtypes.dnskeybase import Flag
 
 from .keys import test_dnskeys
 
 try:
     from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives.asymmetric import dsa, ec, ed448, ed25519, rsa
     from cryptography.hazmat.primitives.serialization import load_pem_private_key
-    from cryptography.hazmat.primitives.asymmetric import dsa, ec, ed25519, ed448, rsa
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
@@ -921,6 +921,37 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                 None,
                 rsasha512_when,
             )
+
+    def check_candidates(self, flags, protocol, expected_number_of_candidates):
+        algorithm = dns.dnssec.Algorithm.ED25519
+        zsk_private_key = ed25519.Ed25519PrivateKey.generate()
+        zsk_dnskey = dns.dnssec.make_dnskey(
+            public_key=zsk_private_key.public_key(),
+            algorithm=algorithm,
+            flags=flags,
+            protocol=protocol,
+        )
+        zsk_dnskey_rdataset = dns.rdataset.from_rdata(300, zsk_dnskey)
+        signer = dns.name.from_text("example")
+        a_rrset = dns.rrset.from_text(signer, 300, "IN", "A", "10.0.0.1")
+        inception = time.time()
+        expiration = inception + 86400
+        a_rrsig = dns.dnssec.sign(
+            a_rrset, zsk_private_key, signer, zsk_dnskey, inception, expiration
+        )
+        candidates = dns.dnssec._find_candidate_keys(
+            {signer: zsk_dnskey_rdataset}, a_rrsig
+        )
+        self.assertTrue(len(candidates) == expected_number_of_candidates)
+
+    def testCandidateKeyMustBeProtocol3(self):
+        self.check_candidates(Flag.ZONE, 1, 0)
+
+    def testCandidateKeyMustHaveZoneFlag(self):
+        self.check_candidates(0, 3, 0)
+
+    def testGoodCandidateKeyIsFound(self):
+        self.check_candidates(Flag.ZONE, 3, 1)
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
