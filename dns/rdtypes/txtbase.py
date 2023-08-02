@@ -17,8 +17,9 @@
 
 """TXT-like base class."""
 
-import struct
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
+
+import struct
 
 import dns.exception
 import dns.immutable
@@ -84,9 +85,15 @@ class TXTBase(dns.rdata.Rdata):
                 token.is_quoted_string() or token.is_identifier()
             ):  # pragma: no cover
                 raise dns.exception.SyntaxError("expected a string")
-            if len(token.value) > 255:
-                raise dns.exception.SyntaxError("string too long")
-            strings.append(token.value)
+            token_length = len(token.value)
+            if token_length > 255:
+                start = 0
+                while start < len(token.value):
+                    end = (start + 254) if token_length > (start + 254) else token_length
+                    strings.append(token.value[start:end])
+                    start = end
+            else:
+                strings.append(token.value)
         if len(strings) == 0:
             raise dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
