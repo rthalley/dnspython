@@ -1697,7 +1697,7 @@ def zone_for_name(
     while 1:
         try:
             rlifetime: Optional[float]
-            if expiration:
+            if expiration is not None:
                 rlifetime = expiration - time.time()
                 if rlifetime <= 0:
                     rlifetime = 0

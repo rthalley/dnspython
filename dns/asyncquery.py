@@ -72,7 +72,7 @@ def _source_tuple(af, address, port):
 
 
 def _timeout(expiration, now=None):
-    if expiration:
+    if expiration is not None:
         if not now:
             now = time.time()
         return max(expiration - now, 0)
