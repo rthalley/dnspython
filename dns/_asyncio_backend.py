@@ -51,7 +51,7 @@ class _DatagramProtocol:
 
 
 async def _maybe_wait_for(awaitable, timeout):
-    if timeout:
+    if timeout is not None:
         try:
             return await asyncio.wait_for(awaitable, timeout)
         except asyncio.TimeoutError:

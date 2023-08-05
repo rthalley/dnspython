@@ -13,7 +13,7 @@ import dns.inet
 
 
 def _maybe_timeout(timeout):
-    if timeout:
+    if timeout is not None:
         return trio.move_on_after(timeout)
     else:
         return dns._asyncbackend.NullContext()
