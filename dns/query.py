@@ -458,6 +458,8 @@ def https(
         local_port = the_source[1]
     transport = _HTTPTransport(
         local_address=local_address,
+        http1=True,
+        http2=_have_http2,
         verify=verify,
         local_port=local_port,
         bootstrap_address=bootstrap_address,

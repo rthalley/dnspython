@@ -537,6 +537,8 @@ async def https(
         local_port = source_port
     transport = backend.get_transport_class()(
         local_address=local_address,
+        http1=True,
+        http2=_have_http2,
         verify=verify,
         local_port=local_port,
         bootstrap_address=bootstrap_address,
