@@ -549,7 +549,7 @@ def _sign(
     if expiration is not None:
         rrsig_expiration = to_timestamp(expiration)
     elif lifetime is not None:
-        rrsig_expiration = int(time.time()) + lifetime
+        rrsig_expiration = rrsig_inception + lifetime
     else:
         raise ValueError("expiration or lifetime must be specified")
 
