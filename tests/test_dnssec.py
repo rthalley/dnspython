@@ -981,6 +981,33 @@ class DNSSECMiscTestCase(unittest.TestCase):
         ts = dns.dnssec.to_timestamp(441812220)
         self.assertEqual(ts, REFERENCE_TIMESTAMP)
 
+    def testInceptionExpiration(self):
+        zsk_private_key = ed25519.Ed25519PrivateKey.generate()
+        zsk_dnskey = dns.dnssec.make_dnskey(
+            public_key=zsk_private_key.public_key(),
+            algorithm=dns.dnssec.Algorithm.ED25519,
+        )
+        signer = dns.name.from_text("example")
+        a_rrset = dns.rrset.from_text(signer, 300, "IN", "A", "10.0.0.1")
+        inception = 10
+        expiration = inception + 86400
+        a_rrsig = dns.dnssec.sign(
+            a_rrset, zsk_private_key, signer, zsk_dnskey, inception, expiration
+        )
+        self.assertEqual(a_rrsig.inception, inception)
+        self.assertEqual(a_rrsig.expiration, expiration)
+        a_rrsig = dns.dnssec.sign(
+            a_rrset, zsk_private_key, signer, zsk_dnskey, inception, lifetime=86400
+        )
+        self.assertEqual(a_rrsig.inception, inception)
+        self.assertEqual(a_rrsig.expiration, expiration)
+        a_rrsig = dns.dnssec.sign(
+            a_rrset, zsk_private_key, signer, zsk_dnskey, lifetime=86400
+        )
+        self.assertEqual(a_rrsig.expiration - a_rrsig.inception, 86400)
+        # Allow a little slop in case the clock ticks.
+        self.assertTrue(time.time() - a_rrsig.inception <= 2)
+
     def do_test_sign_zone(self, relativize):
         zone = dns.zone.from_text(
             test_zone_sans_nsec, "example.", relativize=relativize
