@@ -3,6 +3,15 @@
 What's New in dnspython
 =======================
 
+2.4.2
+-----
+
+* Async queries could wait forever instead of respecting the timeout if the timeout was
+  0 and a packet was lost.  The timeout is now respected.
+
+* Restore HTTP/2 support which was accidentally broken during the https refactoring done
+  as part of 2.4.0.
+
 2.4.1
 -----
 
