@@ -23,6 +23,7 @@ from typing import Any, Dict, Iterable, Optional, Tuple, Union
 import dns.exception
 import dns.immutable
 import dns.rdata
+import dns.renderer
 import dns.tokenizer
 
 
@@ -93,10 +94,8 @@ class TXTBase(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         for s in self.strings:
-            l = len(s)
-            assert l < 256
-            file.write(struct.pack("!B", l))
-            file.write(s)
+            with dns.renderer.prefixed_length(file, 1):
+                file.write(s)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
