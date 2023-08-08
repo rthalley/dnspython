@@ -237,3 +237,10 @@ class Backend(dns._asyncbackend.Backend):
 
     def get_transport_class(self):
         return _HTTPTransport
+
+    async def wait_for(self, awaitable, timeout):
+        with _maybe_timeout(timeout):
+            return await awaitable
+        raise dns.exception.Timeout(
+            timeout=timeout
+        )  # pragma: no cover  lgtm[py/unreachable-statement]

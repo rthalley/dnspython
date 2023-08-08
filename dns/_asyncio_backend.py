@@ -270,3 +270,6 @@ class Backend(dns._asyncbackend.Backend):
 
     def get_transport_class(self):
         return _HTTPTransport
+
+    async def wait_for(self, awaitable, timeout):
+        return await _maybe_wait_for(awaitable, timeout)

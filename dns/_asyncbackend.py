@@ -94,3 +94,6 @@ class Backend:  # pragma: no cover
 
     def get_transport_class(self):
         raise NotImplementedError
+
+    async def wait_for(self, awaitable, timeout):
+        raise NotImplementedError
