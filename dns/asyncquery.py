@@ -563,14 +563,14 @@ async def https(
                     "content-length": str(len(wire)),
                 }
             )
-            response = await the_client.post(
-                url, headers=headers, content=wire, timeout=timeout
+            response = await backend.wait_for(
+                the_client.post(url, headers=headers, content=wire), timeout
             )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             twire = wire.decode()  # httpx does a repr() if we give it bytes
-            response = await the_client.get(
-                url, headers=headers, timeout=timeout, params={"dns": twire}
+            response = await backend.wait_for(
+                the_client.get(url, headers=headers, params={"dns": twire}), timeout
             )
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
