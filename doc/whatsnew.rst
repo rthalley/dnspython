@@ -12,6 +12,9 @@ What's New in dnspython
 * Restore HTTP/2 support which was accidentally broken during the https refactoring done
   as part of 2.4.0.
 
+* When an inception time and lifetime are specified, the signer now sets the expiration
+  to the inception time plus lifetime, instead of the current time plus the lifetime.
+
 2.4.1
 -----
 
