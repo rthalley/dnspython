@@ -13,6 +13,7 @@ import dns.ipv6
 import dns.name
 import dns.rdata
 import dns.rdtypes.util
+import dns.renderer
 import dns.tokenizer
 import dns.wire
 
@@ -521,19 +522,10 @@ class SVCBBase(dns.rdata.Rdata):
         for key in sorted(self.params):
             file.write(struct.pack("!H", key))
             value = self.params[key]
-            # placeholder for length (or actual length of empty values)
-            file.write(struct.pack("!H", 0))
-            if value is None:
-                continue
-            else:
-                start = file.tell()
-                value.to_wire(file, origin)
-                end = file.tell()
-                assert end - start < 65536
-                file.seek(start - 2)
-                stuff = struct.pack("!H", end - start)
-                file.write(stuff)
-                file.seek(0, io.SEEK_END)
+            with dns.renderer.prefixed_length(file, 2):
+                # Note that we're still writing a length of zero if the value is None
+                if value is not None:
+                    value.to_wire(file, origin)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
