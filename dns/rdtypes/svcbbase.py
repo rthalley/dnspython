@@ -36,6 +36,7 @@ class ParamKey(dns.enum.IntEnum):
     ECH = 5
     IPV6HINT = 6
     DOHPATH = 7
+    ODOH_CONFIG = 32769
 
     @classmethod
     def _maximum(cls):
@@ -396,6 +397,29 @@ class ECHParam(Param):
     def to_wire(self, file, origin=None):  # pylint: disable=W0613
         file.write(self.ech)
 
+@dns.immutable.immutable
+class ODOHConfigParam(Param):
+    def __init__(self, odoh_config):
+        self.odoh_config = dns.rdata.Rdata._as_bytes(odoh_config, True)
+
+    @classmethod
+    def from_value(cls, value):
+        if "\\" in value:
+            raise ValueError("escape in ECH value")
+        value = base64.b64decode(value.encode())
+        return cls(value)
+
+    def to_text(self):
+        b64 = base64.b64encode(self.odoh_config).decode("ascii")
+        return f'"{b64}"'
+
+    @classmethod
+    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
+        value = parser.get_bytes(parser.remaining())
+        return cls(value)
+
+    def to_wire(self, file, origin=None):  # pylint: disable=W0613
+        file.write(self.odoh_config)
 
 _class_for_key = {
     ParamKey.MANDATORY: MandatoryParam,
@@ -405,6 +429,7 @@ _class_for_key = {
     ParamKey.IPV4HINT: IPv4HintParam,
     ParamKey.ECH: ECHParam,
     ParamKey.IPV6HINT: IPv6HintParam,
+    ParamKey.ODOH_CONFIG: ODOHConfigParam,
 }
 
 
