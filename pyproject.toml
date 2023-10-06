@@ -56,7 +56,7 @@ sphinx = "^7.0.0"
 coverage = "^7.0"
 twine = "^4.0.0"
 wheel = "^0.41.0"
-pylint = "^2.7.4"
+pylint = "^3.0.1"
 mypy = ">=1.0.1"
 black = "^23.1.0"
 
