@@ -17,7 +17,6 @@
 
 """TXT-like base class."""
 
-import struct
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import dns.exception

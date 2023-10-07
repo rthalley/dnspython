@@ -2,7 +2,6 @@
 
 import base64
 import enum
-import io
 import struct
 
 import dns.enum

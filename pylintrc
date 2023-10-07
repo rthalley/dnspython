@@ -33,6 +33,8 @@ disable=
     consider-using-f-string,
     unspecified-encoding,
     useless-super-delegation, # not against this, but we have to do it for mypy happiness
+    use-implicit-booleaness-not-comparison-to-zero,  # I often prefer non-implicit booleaness.
+    use-implicit-booleaness-not-comparison-to-string,
 
 [REPORTS]
 
