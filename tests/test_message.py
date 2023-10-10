@@ -233,6 +233,18 @@ class MessageTestCase(unittest.TestCase):
         m.use_edns(1)
         self.assertEqual((m.ednsflags >> 16) & 0xFF, 1)
 
+    def test_EDNSVersionCoherenceWithDNSSEC(self):
+        m = dns.message.make_query("foo", "A")
+        m.use_edns(1)
+        m.want_dnssec(True)
+        self.assertEqual((m.ednsflags >> 16) & 0xFF, 1)
+
+    def test_EDNSVersionCoherenceWithoutDNSSEC(self):
+        m = dns.message.make_query("foo", "A")
+        m.use_edns(1)
+        m.want_dnssec(False)
+        self.assertEqual((m.ednsflags >> 16) & 0xFF, 1)
+
     def test_SettingNoEDNSOptionsImpliesNoEDNS(self):
         m = dns.message.make_query("foo", "A")
         self.assertEqual(m.edns, -1)

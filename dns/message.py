@@ -826,7 +826,7 @@ class Message:
         if wanted:
             self.ednsflags |= dns.flags.DO
         elif self.opt:
-            self.ednsflags &= ~dns.flags.DO
+            self.ednsflags &= ~int(dns.flags.DO)
 
     def rcode(self) -> dns.rcode.Rcode:
         """Return the rcode.
