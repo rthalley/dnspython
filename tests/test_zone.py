@@ -16,11 +16,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from io import BytesIO, StringIO
 import difflib
 import os
 import sys
 import unittest
+from io import BytesIO, StringIO
 from typing import cast
 
 import dns.exception
@@ -28,14 +28,12 @@ import dns.message
 import dns.name
 import dns.node
 import dns.rdata
-import dns.rdataset
 import dns.rdataclass
+import dns.rdataset
 import dns.rdatatype
 import dns.rrset
 import dns.versioned
 import dns.zone
-import dns.node
-
 from tests.util import here
 
 example_text = """$TTL 3600
@@ -1157,6 +1155,21 @@ class ZoneTestCase(unittest.TestCase):
         z = dns.zone.from_text(example_text, "example.", relativize=False)
         with self.assertRaises(KeyError):
             self.assertTrue(1 in z)
+
+    def testRelativeNameLengthChecks(self):
+        z = dns.zone.from_text(example_cname, "example.", relativize=True)
+        rds = dns.rdataset.from_text("in", "a", 300, "10.0.0.1")
+        # This name is 246 bytes long, which along with the 8 bytes for label "example"
+        # and 1 byte for the root name is 246 + 8 + 1 = 255 bytes long, the maximum
+        # legal wire format name length.
+        ok_long_relative = dns.name.Name(["a" * 63, "a" * 63, "a" * 63, "a" * 53])
+        z.replace_rdataset(ok_long_relative, rds)
+        self.assertEqual(z.find_rdataset(ok_long_relative, "A"), rds)
+        # This is the longest possible relative name and won't work in any zone
+        # as there is no space left for any origin labels.
+        too_long_relative = dns.name.Name(["a" * 63, "a" * 63, "a" * 63, "a" * 62])
+        with self.assertRaises(KeyError):
+            z.replace_rdataset(too_long_relative, rds)
 
 
 class VersionedZoneTestCase(unittest.TestCase):
