@@ -82,6 +82,38 @@ class DigestVerificationFailure(dns.exception.DNSException):
     """The ZONEMD digest failed to verify."""
 
 
+def _validate_name(
+    name: dns.name.Name,
+    origin: Optional[dns.name.Name],
+    relativize: bool,
+) -> dns.name.Name:
+    # This name validation code is shared by Zone and Version
+    if origin is None:
+        # This should probably never happen as other code (e.g.
+        # _rr_line) will notice the lack of an origin before us, but
+        # we check just in case!
+        raise KeyError("no zone origin is defined")
+    if name.is_absolute():
+        if not name.is_subdomain(origin):
+            raise KeyError("name parameter must be a subdomain of the zone origin")
+        if relativize:
+            name = name.relativize(origin)
+    else:
+        # We have a relative name.  Make sure that the derelativized name is
+        # not too long.
+        try:
+            abs_name = name.derelativize(origin)
+        except dns.name.NameTooLong:
+            # We map dns.name.NameTooLong to KeyError to be consistent with
+            # the other exceptions above.
+            raise KeyError("relative name too long for zone")
+        if not relativize:
+            # We have a relative name in a non-relative zone, so use the
+            # derelativized name.
+            name = abs_name
+    return name
+
+
 class Zone(dns.transaction.TransactionManager):
 
     """A DNS zone.
@@ -154,26 +186,13 @@ class Zone(dns.transaction.TransactionManager):
         return not self.__eq__(other)
 
     def _validate_name(self, name: Union[dns.name.Name, str]) -> dns.name.Name:
+        # Note that any changes in this method should have corresponding changes
+        # made in the Version _validate_name() method.
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         elif not isinstance(name, dns.name.Name):
             raise KeyError("name parameter must be convertible to a DNS name")
-        if name.is_absolute():
-            if self.origin is None:
-                # This should probably never happen as other code (e.g.
-                # _rr_line) will notice the lack of an origin before us, but
-                # we check just in case!
-                raise KeyError("no zone origin is defined")
-            if not name.is_subdomain(self.origin):
-                raise KeyError("name parameter must be a subdomain of the zone origin")
-            if self.relativize:
-                name = name.relativize(self.origin)
-        elif not self.relativize:
-            # We have a relative name in a non-relative zone, so derelativize.
-            if self.origin is None:
-                raise KeyError("no zone origin is defined")
-            name = name.derelativize(self.origin)
-        return name
+        return _validate_name(name, self.origin, self.relativize)
 
     def __getitem__(self, key):
         key = self._validate_name(key)
@@ -251,9 +270,6 @@ class Zone(dns.transaction.TransactionManager):
 
         *create*, a ``bool``.  If true, the node will be created if it does
         not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
 
         Returns a ``dns.node.Node`` or ``None``.
         """
@@ -526,9 +542,6 @@ class Zone(dns.transaction.TransactionManager):
 
         *create*, a ``bool``.  If true, the node will be created if it does
         not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
 
         Returns a ``dns.rrset.RRset`` or ``None``.
         """
@@ -964,22 +977,7 @@ class Version:
         self.origin = origin
 
     def _validate_name(self, name: dns.name.Name) -> dns.name.Name:
-        if name.is_absolute():
-            if self.origin is None:
-                # This should probably never happen as other code (e.g.
-                # _rr_line) will notice the lack of an origin before us, but
-                # we check just in case!
-                raise KeyError("no zone origin is defined")
-            if not name.is_subdomain(self.origin):
-                raise KeyError("name is not a subdomain of the zone origin")
-            if self.zone.relativize:
-                name = name.relativize(self.origin)
-        elif not self.zone.relativize:
-            # We have a relative name in a non-relative zone, so derelativize.
-            if self.origin is None:
-                raise KeyError("no zone origin is defined")
-            name = name.derelativize(self.origin)
-        return name
+        return _validate_name(name, self.origin, self.zone.relativize)
 
     def get_node(self, name: dns.name.Name) -> Optional[dns.node.Node]:
         name = self._validate_name(name)
