@@ -79,7 +79,10 @@ class BaseQuicStream:
 
     def _common_add_input(self, data, is_end):
         self._buffer.put(data, is_end)
-        return self._expecting > 0 and self._buffer.have(self._expecting)
+        try:
+            return self._expecting > 0 and self._buffer.have(self._expecting)
+        except UnexpectedEOF:
+            return True
 
     def _close(self):
         self._connection.close_stream(self._stream_id)

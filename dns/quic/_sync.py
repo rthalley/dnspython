@@ -155,11 +155,14 @@ class SyncQuicConnection(BaseQuicConnection):
                     stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
-            elif isinstance(
-                event, aioquic.quic.events.ConnectionTerminated
-            ) or isinstance(event, aioquic.quic.events.StreamReset):
+            elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
                 with self._lock:
                     self._done = True
+            elif isinstance(event, aioquic.quic.events.StreamReset):
+                with self._lock:
+                    stream = self._streams.get(event.stream_id)
+                if stream:
+                    stream._add_input(b"", True)
 
     def write(self, stream, data, is_end=False):
         with self._lock:

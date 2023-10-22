@@ -116,11 +116,13 @@ class TrioQuicConnection(AsyncQuicConnection):
                     await stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
-            elif isinstance(
-                event, aioquic.quic.events.ConnectionTerminated
-            ) or isinstance(event, aioquic.quic.events.StreamReset):
+            elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
                 self._done = True
                 self._socket.close()
+            elif isinstance(event, aioquic.quic.events.StreamReset):
+                stream = self._streams.get(event.stream_id)
+                if stream:
+                    await stream._add_input(b"", True)
             count += 1
             if count > 10:
                 # yield
