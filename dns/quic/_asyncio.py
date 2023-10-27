@@ -189,7 +189,6 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             self._connection.close()
             # sender might be blocked on this, so set it
             self._socket_created.set()
-            await self._socket.close()
             async with self._wake_timer:
                 self._wake_timer.notify_all()
             try:
@@ -200,6 +199,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                 await self._sender_task
             except asyncio.CancelledError:
                 pass
+            await self._socket.close()
 
 
 class AsyncioQuicManager(AsyncQuicManager):
