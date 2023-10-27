@@ -101,9 +101,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                     )
                     if address[0] != self._peer[0] or address[1] != self._peer[1]:
                         continue
-                    self._connection.receive_datagram(
-                        datagram, self._peer[0], time.time()
-                    )
+                    self._connection.receive_datagram(datagram, address, time.time())
                     # Wake up the timer in case the sender is sleeping, as there may be
                     # stuff to send now.
                     async with self._wake_timer:
@@ -125,7 +123,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         while not self._done:
             datagrams = self._connection.datagrams_to_send(time.time())
             for datagram, address in datagrams:
-                assert address == self._peer[0]
+                assert address == self._peer
                 await self._socket.sendto(datagram, self._peer, None)
             (expiration, interval) = self._get_timer_values()
             try:

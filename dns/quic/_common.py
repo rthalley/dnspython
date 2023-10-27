@@ -164,7 +164,8 @@ class BaseQuicManager:
         if connection is not None:
             return (connection, False)
         qconn = aioquic.quic.connection.QuicConnection(configuration=self._conf)
-        qconn.connect(address, time.time())
+        lladdress = dns.inet.low_level_address_tuple((address, port))
+        qconn.connect(lladdress, time.time())
         connection = self._connection_factory(
             qconn, address, port, source, source_port, self
         )

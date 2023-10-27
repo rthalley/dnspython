@@ -91,9 +91,7 @@ class TrioQuicConnection(AsyncQuicConnection):
                     deadline=trio.current_time() + interval
                 ) as self._worker_scope:
                     datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
-                    self._connection.receive_datagram(
-                        datagram, self._peer[0], time.time()
-                    )
+                    self._connection.receive_datagram(datagram, self._peer, time.time())
                 self._worker_scope = None
                 self._handle_timer(expiration)
                 datagrams = self._connection.datagrams_to_send(time.time())

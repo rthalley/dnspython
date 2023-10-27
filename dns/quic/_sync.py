@@ -107,7 +107,7 @@ class SyncQuicConnection(BaseQuicConnection):
             except BlockingIOError:
                 return
             with self._lock:
-                self._connection.receive_datagram(datagram, self._peer[0], time.time())
+                self._connection.receive_datagram(datagram, self._peer, time.time())
 
     def _drain_wakeup(self):
         while True:
