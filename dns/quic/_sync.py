@@ -128,6 +128,8 @@ class SyncQuicConnection(BaseQuicConnection):
                     key.data()
                 with self._lock:
                     self._handle_timer(expiration)
+                self._handle_events()
+                with self._lock:
                     datagrams = self._connection.datagrams_to_send(time.time())
                 for datagram, _ in datagrams:
                     try:
@@ -135,7 +137,6 @@ class SyncQuicConnection(BaseQuicConnection):
                     except BlockingIOError:
                         # we let QUIC handle any lossage
                         pass
-                self._handle_events()
         finally:
             with self._lock:
                 self._done = True
