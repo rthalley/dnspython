@@ -186,8 +186,12 @@ class TrioQuicManager(AsyncQuicManager):
         super().__init__(conf, verify_mode, TrioQuicConnection, server_name)
         self._nursery = nursery
 
-    def connect(self, address, port=853, source=None, source_port=0):
-        (connection, start) = self._connect(address, port, source, source_port)
+    def connect(
+        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+    ):
+        (connection, start) = self._connect(
+            address, port, source, source_port, want_session_ticket
+        )
         if start:
             self._nursery.start_soon(connection.run)
         return connection

@@ -1,5 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import copy
+import functools
 import socket
 import struct
 import time
@@ -11,6 +13,10 @@ import aioquic.quic.connection  # type: ignore
 import dns.inet
 
 QUIC_MAX_DATAGRAM = 2048
+MAX_SESSION_TICKETS = 8
+# If we hit the max sessions limit we will delete this many of the oldest connections.
+# The value must be a integer > 0 and <= MAX_SESSION_TICKETS.
+SESSIONS_TO_DELETE = MAX_SESSION_TICKETS // 4
 
 
 class UnexpectedEOF(Exception):
@@ -145,6 +151,7 @@ class BaseQuicManager:
     def __init__(self, conf, verify_mode, connection_factory, server_name=None):
         self._connections = {}
         self._connection_factory = connection_factory
+        self._session_tickets = {}
         if conf is None:
             verify_path = None
             if isinstance(verify_mode, str):
@@ -159,11 +166,33 @@ class BaseQuicManager:
                 conf.load_verify_locations(verify_path)
         self._conf = conf
 
-    def _connect(self, address, port=853, source=None, source_port=0):
+    def _connect(
+        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+    ):
         connection = self._connections.get((address, port))
         if connection is not None:
             return (connection, False)
-        qconn = aioquic.quic.connection.QuicConnection(configuration=self._conf)
+        conf = self._conf
+        if want_session_ticket:
+            try:
+                session_ticket = self._session_tickets.pop((address, port))
+                # We found a session ticket, so make a configuration that uses it.
+                conf = copy.copy(conf)
+                conf.session_ticket = session_ticket
+            except KeyError:
+                # No session ticket.
+                pass
+            # Whether or not we found a session ticket, we want a handler to save
+            # one.
+            session_ticket_handler = functools.partial(
+                self.save_session_ticket, address, port
+            )
+        else:
+            session_ticket_handler = None
+        qconn = aioquic.quic.connection.QuicConnection(
+            configuration=conf,
+            session_ticket_handler=session_ticket_handler,
+        )
         lladdress = dns.inet.low_level_address_tuple((address, port))
         qconn.connect(lladdress, time.time())
         connection = self._connection_factory(
@@ -177,6 +206,17 @@ class BaseQuicManager:
             del self._connections[(address, port)]
         except KeyError:
             pass
+
+    def save_session_ticket(self, address, port, ticket):
+        # We rely on dictionaries keys() being in insertion order here.  We
+        # can't just popitem() as that would be LIFO which is the opposite of
+        # what we want.
+        l = len(self._session_tickets)
+        if l >= MAX_SESSION_TICKETS:
+            keys_to_delete = list(self._session_tickets.keys())[0:SESSIONS_TO_DELETE]
+            for key in keys_to_delete:
+                del self._session_tickets[key]
+        self._session_tickets[(address, port)] = ticket
 
 
 class AsyncQuicManager(BaseQuicManager):

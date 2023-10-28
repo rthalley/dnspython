@@ -207,9 +207,13 @@ class SyncQuicManager(BaseQuicManager):
         super().__init__(conf, verify_mode, SyncQuicConnection, server_name)
         self._lock = threading.Lock()
 
-    def connect(self, address, port=853, source=None, source_port=0):
+    def connect(
+        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+    ):
         with self._lock:
-            (connection, start) = self._connect(address, port, source, source_port)
+            (connection, start) = self._connect(
+                address, port, source, source_port, want_session_ticket
+            )
             if start:
                 connection.run()
             return connection
@@ -217,6 +221,10 @@ class SyncQuicManager(BaseQuicManager):
     def closed(self, address, port):
         with self._lock:
             super().closed(address, port)
+
+    def save_session_ticket(self, address, port, ticket):
+        with self._lock:
+            super().save_session_ticket(address, port, ticket)
 
     def __enter__(self):
         return self
