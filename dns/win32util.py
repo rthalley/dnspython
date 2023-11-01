@@ -51,7 +51,7 @@ if sys.platform == "win32":
                 try:
                     system = wmi.WMI()
                     for interface in system.Win32_NetworkAdapterConfiguration():
-                        if interface.IPEnabled:
+                        if interface.IPEnabled and interface.DNSServerSearchOrder:
                             self.info.nameservers = list(interface.DNSServerSearchOrder)
                             if interface.DNSDomain:
                                 self.info.domain = _config_domain(interface.DNSDomain)
