@@ -5,9 +5,9 @@ import ssl
 import struct
 import time
 
-import aioquic.quic.configuration  # type: ignore
-import aioquic.quic.connection  # type: ignore
-import aioquic.quic.events  # type: ignore
+import qh3.quic.configuration  # type: ignore
+import qh3.quic.connection  # type: ignore
+import qh3.quic.events  # type: ignore
 import trio
 
 import dns.exception
@@ -121,16 +121,16 @@ class TrioQuicConnection(AsyncQuicConnection):
             event = self._connection.next_event()
             if event is None:
                 return
-            if isinstance(event, aioquic.quic.events.StreamDataReceived):
+            if isinstance(event, qh3.quic.events.StreamDataReceived):
                 stream = self._streams.get(event.stream_id)
                 if stream:
                     await stream._add_input(event.data, event.end_stream)
-            elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
+            elif isinstance(event, qh3.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
-            elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
+            elif isinstance(event, qh3.quic.events.ConnectionTerminated):
                 self._done = True
                 self._socket.close()
-            elif isinstance(event, aioquic.quic.events.StreamReset):
+            elif isinstance(event, qh3.quic.events.StreamReset):
                 stream = self._streams.get(event.stream_id)
                 if stream:
                     await stream._add_input(b"", True)

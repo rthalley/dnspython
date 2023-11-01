@@ -6,10 +6,10 @@ try:
     import struct
     import threading
 
-    import aioquic.asyncio
-    import aioquic.asyncio.server
-    import aioquic.quic.configuration
-    import aioquic.quic.events
+    import qh3.asyncio
+    import qh3.asyncio.server
+    import qh3.quic.configuration
+    import qh3.quic.events
 
     import dns.asyncquery
     import dns.message
@@ -39,10 +39,10 @@ try:
         def qtype(self):
             return self.question.rdtype
 
-    class NanoQuic(aioquic.asyncio.QuicConnectionProtocol):
+    class NanoQuic(qh3.asyncio.QuicConnectionProtocol):
         def quic_event_received(self, event):
             # This is a bit hackish and not fully general, but this is a test server!
-            if isinstance(event, aioquic.quic.events.StreamDataReceived):
+            if isinstance(event, qh3.quic.events.StreamDataReceived):
                 data = bytes(event.data)
                 (wire_len,) = struct.unpack("!H", data[:2])
                 wire = self.handle_wire(data[2 : 2 + wire_len])
@@ -107,14 +107,14 @@ try:
 
         async def arun(self):
             reader, _ = await asyncio.open_connection(sock=self.right)
-            conf = aioquic.quic.configuration.QuicConfiguration(
+            conf = qh3.quic.configuration.QuicConfiguration(
                 alpn_protocols=["doq"],
                 is_client=False,
             )
             conf.load_cert_chain(here("tls/public.crt"), here("tls/private.pem"))
             loop = asyncio.get_event_loop()
             (self.transport, self.protocol) = await loop.create_datagram_endpoint(
-                lambda: aioquic.asyncio.server.QuicServer(
+                lambda: qh3.asyncio.server.QuicServer(
                     configuration=conf, create_protocol=NanoQuic
                 ),
                 local_addr=(self.address, 0),

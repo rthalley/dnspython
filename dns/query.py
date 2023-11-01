@@ -197,7 +197,7 @@ class NoDOH(dns.exception.DNSException):
 
 
 class NoDOQ(dns.exception.DNSException):
-    """DNS over QUIC (DOQ) was requested but the aioquic module is not
+    """DNS over QUIC (DOQ) was requested but the qh3 module is not
     available."""
 
 

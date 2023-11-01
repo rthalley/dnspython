@@ -52,4 +52,4 @@ able to do low-level DNSSEC signature generation and validation.
 
 If ``idna`` is installed, then IDNA 2008 will be available.
 
-If ``aioquic`` is installed, the DNS-over-QUIC will be available.
+If ``qh3`` is installed, the DNS-over-QUIC will be available.

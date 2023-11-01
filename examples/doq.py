@@ -15,7 +15,7 @@ try:
 except ImportError:
     have_trio = False
 
-# This demo assumes you have the aioquic example doq_server.py running on localhost
+# This demo assumes you have the qh3 example doq_server.py running on localhost
 # on port 4784 on localhost.
 peer_address = "127.0.0.1"
 peer_port = 4784

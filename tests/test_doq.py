@@ -1,6 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-import asyncio
+import qh3
 import sys
 
 import pytest
@@ -34,7 +34,7 @@ if len(addresses) == 0:
     _nanoquic_available = False
 
 
-@pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
+@pytest.mark.skipif(not _nanoquic_available, reason="requires qh3")
 def test_basic_sync():
     q = dns.message.make_query("www.example.", "A")
     for address in addresses:
@@ -49,7 +49,7 @@ async def amain(address, port):
     assert r.rcode() == dns.rcode.REFUSED
 
 
-@pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
+@pytest.mark.skipif(not _nanoquic_available, reason="requires qh3")
 def test_basic_asyncio():
     dns.asyncbackend.set_default_backend("asyncio")
     for address in addresses:
@@ -60,7 +60,7 @@ def test_basic_asyncio():
 try:
     import trio
 
-    @pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
+    @pytest.mark.skipif(not _nanoquic_available, reason="requires qh3")
     def test_basic_trio():
         dns.asyncbackend.set_default_backend("trio")
         for address in addresses:

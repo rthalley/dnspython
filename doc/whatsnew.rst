@@ -93,7 +93,7 @@ What's New in dnspython
   in zonefiles are processed.
 
 * A preliminary implementation of DNS-over-QUIC has been added, and will be
-  available if the aioquic library is present.  See ``dns.query.quic()``,
+  available if the qh3 library is present.  See ``dns.query.quic()``,
   ``dns.asyncquery.quic()``, and examples/doq.py for more info.  This API
   is subject to change in future releases.  For asynchronous I/O, both
   asyncio and Trio are supported, but Curio is not.

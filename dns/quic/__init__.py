@@ -1,7 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 try:
-    import aioquic.quic.configuration  # type: ignore
+    import qh3.quic.configuration  # type: ignore
 
     import dns.asyncbackend
     from dns._asyncbackend import NullContext

@@ -46,7 +46,7 @@ idna = {version=">=2.1,<4.0", optional=true}
 cryptography = {version=">=2.6", optional=true}
 trio = {version=">=0.14,<0.23", optional=true}
 wmi = {version="^1.5.1", optional=true}
-aioquic = {version=">=0.9.20", optional=true}
+qh3 = {version=">=0.13.0", optional=true}
 
 [tool.poetry.dev-dependencies]
 pytest = ">=5.4.1,<8"
@@ -66,7 +66,7 @@ idna = ['idna']
 dnssec = ['cryptography']
 trio = ['trio']
 wmi = ['wmi']
-doq = ['aioquic']
+doq = ['qh3']
 
 [build-system]
 requires = ["poetry-core"]

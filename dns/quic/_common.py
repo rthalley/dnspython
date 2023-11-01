@@ -7,8 +7,8 @@ import struct
 import time
 from typing import Any, Optional
 
-import aioquic.quic.configuration  # type: ignore
-import aioquic.quic.connection  # type: ignore
+import qh3.quic.configuration  # type: ignore
+import qh3.quic.connection  # type: ignore
 
 import dns.inet
 
@@ -157,7 +157,7 @@ class BaseQuicManager:
             if isinstance(verify_mode, str):
                 verify_path = verify_mode
                 verify_mode = True
-            conf = aioquic.quic.configuration.QuicConfiguration(
+            conf = qh3.quic.configuration.QuicConfiguration(
                 alpn_protocols=["doq", "doq-i03"],
                 verify_mode=verify_mode,
                 server_name=server_name,
@@ -189,7 +189,7 @@ class BaseQuicManager:
             )
         else:
             session_ticket_handler = None
-        qconn = aioquic.quic.connection.QuicConnection(
+        qconn = qh3.quic.connection.QuicConnection(
             configuration=conf,
             session_ticket_handler=session_ticket_handler,
         )
