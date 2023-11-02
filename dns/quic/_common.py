@@ -7,8 +7,16 @@ import struct
 import time
 from typing import Any, Optional
 
-import aioquic.quic.configuration  # type: ignore
-import aioquic.quic.connection  # type: ignore
+# pylint: disable=unused-import
+try:
+    import qh3 as aioquic  # type: ignore
+    import qh3.quic.configuration  # type: ignore
+    import qh3.quic.connection  # type: ignore
+except ImportError:
+    import aioquic  # type: ignore
+    import aioquic.quic.configuration  # type: ignore
+    import aioquic.quic.connection  # type: ignore
+# pylint: enable=unused-import
 
 import dns.inet
 

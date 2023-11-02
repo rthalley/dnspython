@@ -6,10 +6,17 @@ try:
     import struct
     import threading
 
-    import aioquic.asyncio
-    import aioquic.asyncio.server
-    import aioquic.quic.configuration
-    import aioquic.quic.events
+    try:
+        import qh3 as aioquic
+        import qh3.asyncio
+        import qh3.asyncio.server
+        import qh3.quic.configuration
+        import qh3.quic.events
+    except ImportError:
+        import aioquic.asyncio
+        import aioquic.asyncio.server
+        import aioquic.quic.configuration
+        import aioquic.quic.events
 
     import dns.asyncquery
     import dns.message

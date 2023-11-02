@@ -1,8 +1,14 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 try:
-    import aioquic.quic.configuration  # type: ignore
-
+    # pylint: disable=unused-import
+    try:
+        import qh3 as aioquic  # type: ignore
+        import qh3.quic.configuration  # type: ignore
+    except ImportError:
+        import aioquic  # type: ignore
+        import aioquic.quic.configuration  # type: ignore
+    # pylint: enable=unused-import
     import dns.asyncbackend
     from dns._asyncbackend import NullContext
     from dns.quic._asyncio import (

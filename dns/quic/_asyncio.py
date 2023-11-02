@@ -6,9 +6,18 @@ import ssl
 import struct
 import time
 
-import aioquic.quic.configuration  # type: ignore
-import aioquic.quic.connection  # type: ignore
-import aioquic.quic.events  # type: ignore
+# pylint: disable=unused-import
+try:
+    import qh3 as aioquic  # type: ignore
+    import qh3.quic.configuration  # type: ignore
+    import qh3.quic.connection  # type: ignore
+    import qh3.quic.events  # type: ignore
+except ImportError:
+    import aioquic  # type: ignore
+    import aioquic.quic.configuration  # type: ignore
+    import aioquic.quic.connection  # type: ignore
+    import aioquic.quic.events  # type: ignore
+# pylint: enable=unused-import
 
 import dns.asyncbackend
 import dns.exception
