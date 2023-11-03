@@ -864,14 +864,12 @@ def send_tcp(
     """
 
     if isinstance(what, dns.message.Message):
-        wire = what.to_wire()
+        tcpmsg = what.to_wire(prepend_length=True)
     else:
-        wire = what
-    l = len(wire)
-    # copying the wire into tcpmsg is inefficient, but lets us
-    # avoid writev() or doing a short write that would get pushed
-    # onto the net
-    tcpmsg = struct.pack("!H", l) + wire
+        # copying the wire into tcpmsg is inefficient, but lets us
+        # avoid writev() or doing a short write that would get pushed
+        # onto the net
+        tcpmsg = len(what).to_bytes(2, 'big') + what
     sent_time = time.time()
     _net_write(sock, tcpmsg, expiration)
     return (len(tcpmsg), sent_time)
