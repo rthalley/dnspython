@@ -16,19 +16,65 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from typing import Dict  # pylint: disable=unused-import
 import copy
 import operator
 import pickle
 import unittest
-
 from io import BytesIO
+from typing import Dict  # pylint: disable=unused-import
 
+import dns.e164
 import dns.name
 import dns.reversename
-import dns.e164
 
 # pylint: disable=line-too-long,unsupported-assignment-operation
+
+
+def expand(text):
+    # This is a helper routine to expand name patterns for RFC 4471 tests.
+    #
+    # Basically it turns <character>{<n>} into <n> instances of the character.
+    # For example:
+    #
+    #       r"fo{2}.example." => r"foo.example.".
+    #
+    # Two characters get special treatment:
+    # "-" is mapped to r"\000" and "+" is mapped to r"\255".  For example
+    #
+    #       r"+{3}-.example." -> r"\255\255\255\000.example."
+    #
+    # We do this just to make parsing simpler, so we don't have to process escapes
+    # ourselves.
+    i = 0
+    l = len(text)
+    previous = ""
+    reading_count = False
+    count = 0
+    expanded = []
+    for c in text:
+        if c == "-":
+            c = r"\000"
+        elif c == "+":
+            c = r"\255"
+        if reading_count:
+            assert len(c) == 1
+            if c >= "0" and c <= "9":
+                count *= 10
+                count += ord(c) - ord("0")
+            elif c == "}":
+                expanded.append(previous * count)
+                previous = ""
+                reading_count = False
+                count = 0
+        elif c == "{":
+            reading_count = True
+        else:
+            expanded.append(previous)
+            previous = c
+    # don't forget the last char (if there is one)
+    expanded.append(previous)
+    x = "".join(expanded)
+    return x
 
 
 class NameTestCase(unittest.TestCase):
@@ -1138,6 +1184,104 @@ class NameTestCase(unittest.TestCase):
         p = pickle.dumps(n1)
         n2 = pickle.loads(p)
         self.assertEqual(n1, n2)
+
+    def test_pad_to_max_name(self):
+        # Test edge cases in our padding helper.
+        tests = [
+            ("o{61}.o{63}.o{63}.o{63}.", "o{61}.o{63}.o{63}.o{63}."),
+            ("o{60}.o{63}.o{63}.o{63}.", "o{60}.o{63}.o{63}.o{63}."),
+            ("o{59}.o{63}.o{63}.o{63}.", "+.o{59}.o{63}.o{63}.o{63}."),
+            ("o{63}.o{63}.o{63}.", "+{61}.o{63}.o{63}.o{63}."),
+            ("o{63}.o{63}.", "+{61}.+{63}.o{63}.o{63}."),
+        ]
+        for name_text, expected_text in tests:
+            name = dns.name.from_text(expand(name_text))
+            expected = dns.name.from_text(expand(expected_text))
+            self.assertEqual(dns.name._pad_to_max_name(name), expected)
+
+    def test_predecessors_and_successors(self):
+        # Test RFC 4471 predecessor and successor methods.
+
+        # Here we're actually testing the test suite, but expand() is complicated enough
+        # to deserve a little testing.
+        self.assertEqual(expand("f+{3}-o.example."), r"f\255\255\255\000o.example.")
+
+        # Ok, now test successors!
+        origin = dns.name.from_text("example.com.")
+        tests = [
+            # Examples from the RFC.
+            ("foo", True, "\\000.foo"),
+            ("foo", False, "foo\\000"),
+            # The syntax here is almost the RFC's "alternate syntax"  except that to
+            # make expand simpler, i.e. not have to understand that \000 was one octet,
+            # I made the convention that "-" means 0 and "+" means 255.  We use raw
+            # string constants where needed to avoid escaping backslash.
+            (
+                "fo{47}.o{63}.o{63}.o{63}",
+                True,
+                "fo{47}-.o{63}.o{63}.o{63}",
+            ),
+            (
+                "fo{48}.o{63}.o{63}.o{63}",
+                True,
+                "fo{47}p.o{63}.o{63}.o{63}",
+            ),
+            ("+{49}.o{63}.o{63}.o{63}", True, "o{62}p.o{63}.o{63}"),
+            (
+                "fo{40}+{8}.o{63}.o{63}.o{63}",
+                True,
+                "fo{39}p.o{63}.o{63}.o{63}",
+            ),
+            (
+                r"fo{47}\@.o{63}.o{63}.o{63}",
+                True,
+                r"fo{47}\[.o{63}.o{63}.o{63}",
+            ),
+            ("+{49}.+{63}.+{63}.+{63}", True, ""),
+            # Some more tests not in the RFC
+            ("+{49}.+{63}.o{63}.o{63}", True, "o{62}p.o{63}"),
+            (
+                "+{48}.o{63}.o{63}.o{63}",
+                True,
+                "+{48}-.o{63}.o{63}.o{63}",
+            ),
+        ]
+        for test_origin in [origin, None]:
+            for name_text, prefix_ok, expected_successor_text in tests:
+                name = dns.name.from_text(expand(name_text), test_origin)
+                expected_successor = dns.name.from_text(
+                    expand(expected_successor_text), test_origin
+                )
+                successor = name.successor(origin, prefix_ok)
+                self.assertEqual(successor, expected_successor)
+                self.assertTrue(
+                    successor > name
+                    or successor == origin
+                    or successor == dns.name.empty
+                )
+                # Now test the predecessor
+                predecessor = successor.predecessor(origin, prefix_ok)
+                self.assertEqual(predecessor, name)
+
+        # Finally, test that a maximal length origin is its own predecessor and
+        # successor.
+        origin = dns.name.from_text(expand("+{49}.+{63}.o{63}.o{63}.example.com."))
+        assert origin.successor(origin, True) == origin
+        assert origin.predecessor(origin, True) == origin
+
+    def test_predecessor_and_successor_errors(self):
+        name = dns.name.from_text("name", None)
+        origin = dns.name.from_text("origin", None)  # note Relative!
+        with self.assertRaises(dns.name.NeedAbsoluteNameOrOrigin):
+            name.successor(origin, True)
+        with self.assertRaises(dns.name.NeedAbsoluteNameOrOrigin):
+            name.predecessor(origin, True)
+        name = dns.name.from_text("name.")  # Note absolute
+        origin = dns.name.from_text("origin.")  # 'name' is not a subdomain of 'origin'
+        with self.assertRaises(dns.name.NeedSubdomainOfOrigin):
+            name.successor(origin, True)
+        with self.assertRaises(dns.name.NeedSubdomainOfOrigin):
+            name.predecessor(origin, True)
 
 
 if __name__ == "__main__":
