@@ -1166,6 +1166,48 @@ class Transaction(dns.transaction.Transaction):
         return (absolute, relativize, effective)
 
 
+def _from_text(
+    text: Any,
+    origin: Optional[Union[dns.name.Name, str]] = None,
+    rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
+    relativize: bool = True,
+    zone_factory: Any = Zone,
+    filename: Optional[str] = None,
+    allow_include: bool = False,
+    check_origin: bool = True,
+    idna_codec: Optional[dns.name.IDNACodec] = None,
+    allow_directives: Union[bool, Iterable[str]] = True,
+) -> Zone:
+    # See the comments for the public APIs from_text() and from_file() for
+    # details.
+
+    # 'text' can also be a file, but we don't publish that fact
+    # since it's an implementation detail.  The official file
+    # interface is from_file().
+
+    if filename is None:
+        filename = "<string>"
+    zone = zone_factory(origin, rdclass, relativize=relativize)
+    with zone.writer(True) as txn:
+        tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
+        reader = dns.zonefile.Reader(
+            tok,
+            rdclass,
+            txn,
+            allow_include=allow_include,
+            allow_directives=allow_directives,
+        )
+        try:
+            reader.read()
+        except dns.zonefile.UnknownOrigin:
+            # for backwards compatibility
+            raise dns.zone.UnknownOrigin
+    # Now that we're done reading, do some basic checking of the zone.
+    if check_origin:
+        zone.check_origin()
+    return zone
+
+
 def from_text(
     text: str,
     origin: Optional[Union[dns.name.Name, str]] = None,
@@ -1226,32 +1268,18 @@ def from_text(
 
     Returns a subclass of ``dns.zone.Zone``.
     """
-
-    # 'text' can also be a file, but we don't publish that fact
-    # since it's an implementation detail.  The official file
-    # interface is from_file().
-
-    if filename is None:
-        filename = "<string>"
-    zone = zone_factory(origin, rdclass, relativize=relativize)
-    with zone.writer(True) as txn:
-        tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
-        reader = dns.zonefile.Reader(
-            tok,
-            rdclass,
-            txn,
-            allow_include=allow_include,
-            allow_directives=allow_directives,
-        )
-        try:
-            reader.read()
-        except dns.zonefile.UnknownOrigin:
-            # for backwards compatibility
-            raise dns.zone.UnknownOrigin
-    # Now that we're done reading, do some basic checking of the zone.
-    if check_origin:
-        zone.check_origin()
-    return zone
+    return _from_text(
+        text,
+        origin,
+        rdclass,
+        relativize,
+        zone_factory,
+        filename,
+        allow_include,
+        check_origin,
+        idna_codec,
+        allow_directives,
+    )
 
 
 def from_file(
@@ -1322,7 +1350,7 @@ def from_file(
     else:
         cm = contextlib.nullcontext(f)
     with cm as f:
-        return from_text(
+        return _from_text(
             f,
             origin,
             rdclass,
