@@ -15,14 +15,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import unittest
 import binascii
+import itertools
 import socket
+import unittest
 
 import dns.exception
+import dns.inet
 import dns.ipv4
 import dns.ipv6
-import dns.inet
 
 # for convenience
 aton4 = dns.ipv4.inet_aton
@@ -39,6 +40,27 @@ v4_bad_addrs = [
     "1..2.3.4",
     ".1.2.3.4",
     "1.2.3.4.",
+]
+
+v4_canonicalize_addrs = [
+    # (input, expected)
+    ("127.0.0.1", "127.0.0.1"),
+    (b"127.0.0.1", "127.0.0.1"),
+]
+
+v6_canonicalize_addrs = [
+    # (input, expected)
+    ("2001:503:83eb:0:0:0:0:30", "2001:503:83eb::30"),
+    (b"2001:503:83eb:0:0:0:0:30", "2001:503:83eb::30"),
+    ("2001:db8::1:1:1:1:1", "2001:db8:0:1:1:1:1:1"),
+    ("2001:DB8::1:1:1:1:1", "2001:db8:0:1:1:1:1:1"),
+]
+
+bad_canonicalize_addrs = [
+    "127.00.0.1",
+    "hi there",
+    "2001::db8::1:1:1:1:1",
+    "fe80::1%lo0",
 ]
 
 
@@ -349,6 +371,30 @@ class NtoAAtoNTestCase(unittest.TestCase):
         self.assertRaises(
             NotImplementedError, lambda: dns.inet.inet_ntop(12345, b"bogus")
         )
+
+    def test_ipv4_canonicalize(self):
+        for address, expected in v4_canonicalize_addrs:
+            self.assertEqual(dns.ipv4.canonicalize(address), expected)
+        for bad_address in bad_canonicalize_addrs:
+            self.assertRaises(
+                dns.exception.SyntaxError, lambda: dns.ipv4.canonicalize(bad_address)
+            )
+
+    def test_ipv6_canonicalize(self):
+        for address, expected in v6_canonicalize_addrs:
+            self.assertEqual(dns.ipv6.canonicalize(address), expected)
+        for bad_address in bad_canonicalize_addrs:
+            self.assertRaises(
+                dns.exception.SyntaxError, lambda: dns.ipv6.canonicalize(bad_address)
+            )
+
+    def test_inet_canonicalize(self):
+        for address, expected in itertools.chain(
+            v4_canonicalize_addrs, v6_canonicalize_addrs
+        ):
+            self.assertEqual(dns.inet.canonicalize(address), expected)
+        for bad_address in bad_canonicalize_addrs:
+            self.assertRaises(ValueError, lambda: dns.inet.canonicalize(bad_address))
 
 
 if __name__ == "__main__":
