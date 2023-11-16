@@ -547,9 +547,7 @@ class Rdata:
     @classmethod
     def _as_ipv4_address(cls, value):
         if isinstance(value, str):
-            # call to check validity
-            dns.ipv4.inet_aton(value)
-            return value
+            return dns.ipv4.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv4.inet_ntoa(value)
         else:
@@ -558,9 +556,7 @@ class Rdata:
     @classmethod
     def _as_ipv6_address(cls, value):
         if isinstance(value, str):
-            # call to check validity
-            dns.ipv6.inet_aton(value)
-            return value
+            return dns.ipv6.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv6.inet_ntoa(value)
         else:
