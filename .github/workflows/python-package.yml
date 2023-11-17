@@ -48,14 +48,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install poetry
-        poetry install -E dnssec -E doh -E idna -E trio -E doq
+        python -m pip install hatch
+        hatch env create
     - name: Typecheck
       run: |
-        poetry run python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
+        hatch run python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
     - name: Test with pytest
       run: |
-        poetry run pytest --cov=dns --cov-branch --cov-report=xml:coverage.xml
+        hatch run pytest --cov=dns --cov-branch --cov-report=xml:coverage.xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:

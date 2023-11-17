@@ -59,8 +59,7 @@ jobs:
       run: |
         sudo apt install -y gnome-keyring
         python -m pip install --upgrade pip
-        python -m pip install poetry
-        poetry install -E dnssec -E doh -E idna -E trio
+        python -m pip install cryptography trio idna httpx h2 aioquic
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
