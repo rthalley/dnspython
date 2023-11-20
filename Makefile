@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 build:
-	hatch build
+	python -m build
 
 clean:
 	rm -rf htmlcov .coverage
@@ -31,26 +31,26 @@ doc:
 	cd doc; make html
 
 test:
-	hatch run pytest
+	pytest
 
 check: test
 
 type:
-	hatch run python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
+	python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
 
 lint:
-	hatch run pylint dns
+	pylint dns
 
 flake:
-	hatch run flake8 dns
+	flake8 dns
 
 ruff:
-	hatch run ruff dns
+	ruff dns
 
 cov:
-	hatch run coverage run --branch -m pytest
-	hatch run coverage html --include 'dns/*'
-	hatch run coverage report --include 'dns/*'
+	coverage --branch -m pytest
+	coverage html --include 'dns/*'
+	coverage report --include 'dns/*'
 
 black:
-	hatch run black dns examples tests
+	black dns examples tests
