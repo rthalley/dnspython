@@ -15,74 +15,42 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile,v 1.16 2004/03/19 00:17:27 halley Exp $
-
-PYTHON=python
-
-all:
-	${PYTHON} ./setup.py build
-
-install:
-	${PYTHON} ./setup.py install
+build:
+	python -m build
 
 clean:
-	${PYTHON} ./setup.py clean --all
-	find . -name '*.pyc' -exec rm {} \;
-	find . -name '*.pyo' -exec rm {} \;
-	rm -f TAGS
 	rm -rf htmlcov .coverage
 	rm -rf .pytest_cache
-
-distclean: clean docclean
-	rm -rf build dist
-	rm -f MANIFEST
-	rm -rf dnspython.egg-info
+	rm -rf .ruff_cache
+	rm -rf .mypy_cache
+	rm -rf doc/_build
+	rm -rf dist
+	rm -rf build
 
 doc:
 	cd doc; make html
 
-docclean:
-	rm -rf doc/_build
+test:
+	pytest
 
 check: test
 
-test:
-	cd tests; make test
+type:
+	python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
 
-potest:
-	poetry run pytest
+lint:
+	pylint dns
 
-potestlf:
-	poetry run pytest --lf
+flake:
+	flake8 dns
 
-potype:
-	poetry run python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
+ruff:
+	ruff dns
 
-potypetests:
-	poetry run python -m mypy --check-untyped-defs examples tests
+cov:
+	coverage --branch -m pytest
+	coverage html --include 'dns/*'
+	coverage report --include 'dns/*'
 
-polint:
-	poetry run pylint dns
-
-poflake:
-	poetry run flake8 dns
-
-poruff:
-	poetry run ruff dns
-
-pocov:
-	poetry run coverage run --branch -m pytest
-	poetry run coverage html --include 'dns/*'
-	poetry run coverage report --include 'dns/*'
-
-oldpokit:
-	po run python setup.py sdist --formats=zip bdist_wheel
-
-pokit:
-	po build
-
-findjunk:
-	find dns -type f | egrep -v '.*\.py' | egrep -v 'py\.typed'
-
-poblack:
-	poetry run black dns examples tests
+black:
+	black dns examples tests

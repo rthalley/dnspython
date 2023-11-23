@@ -17,3 +17,4 @@ htmlcov
 coverage.xml
 .dir-locals.el
 .vscode/
+doc/_build

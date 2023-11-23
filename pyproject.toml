@@ -1,81 +1,100 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling>=1.17.0"]
+build-backend = "hatchling.build"
+
+[project]
 name = "dnspython"
-version = "2.5.0"
 description = "DNS toolkit"
-authors = ["Bob Halley <halley@dnspython.org>"]
-license = "ISC"
-packages = [
-    {include = "dns"}
-]
-include = [
-    { path="LICENSE", format="sdist" },
-    { path="README.md", format="sdist" },
-    { path="examples/*.txt", format="sdist" },
-    { path="examples/*.py", format="sdist" },
-    { path="tests/*.txt", format="sdist" },
-    { path="tests/*.py", format="sdist" },
-    { path="tests/*.good", format="sdist" },
-    { path="tests/example", format="sdist" },
-    { path="tests/query", format="sdist" },
-    { path="tests/*.pickle", format="sdist" },
-    { path="tests/*.text", format="sdist" },
-    { path="tests/*.generic", format="sdist" },
-    { path="tests/tls/*.crt", format="sdist" },
-    { path="tests/tls/*.pem", format="sdist" },
-    { path="util/**", format="sdist" },
-    { path="setup.cfg", format="sdist" },
-]
-exclude = [
-    "**/.DS_Store",
-    "**/__pycache__/**",
+authors = [{ name = "Bob Halley", email = "halley@dnspython.org" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: ISC License (ISCL)",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python",
+    "Topic :: Internet :: Name Service (DNS)",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 readme = "README.md"
+requires-python = ">=3.8"
+dependencies = []
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.1.0",
+    "coverage>=7.0",
+    "flake8>=5.0.3",
+    "mypy>=1.0.1",
+    "pylint>=2.7",
+    "pytest>=6.2.5",
+    "pytest-cov>=3.0.0",
+    "sphinx>=7.0.0",
+    "twine>=4.0.0",
+    "wheel>=0.41.0",
+]
+dnssec = ["cryptography>=41"]
+doh = ["httpcore>=0.17.3", "httpx>=0.25.1", "h2>=4.1.0"]
+doq = ["aioquic>=0.9.20"]
+idna = ["idna>=2.1"]
+trio = ["trio>=0.14"]
+wmi = ["wmi>=1.5.1"]
+
+[project.urls]
 homepage = "https://www.dnspython.org"
 repository = "https://github.com/rthalley/dnspython.git"
 documentation = "https://dnspython.readthedocs.io/en/stable/"
+issues = "https://github.com/rthalley/dnspython/issues"
 
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/rthalley/dnspython/issues"
+[tool.hatch.build.targets.sdist]
+include = [
+    "/dns/*.py",
+    "/dns/**/*.py",
+    "/dns/py.typed",
+    "/examples/*.txt",
+    "/examples/*.py",
+    "/tests/*.txt",
+    "/tests/*.py",
+    "/tests/*.good",
+    "/tests/example",
+    "/tests/query",
+    "/tests/*.pickle",
+    "/tests/*.text",
+    "/tests/*.generic",
+    "/tests/tls/*.crt",
+    "/tests/tls/*.pem",
+    "/util/**",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-httpx = {version=">=0.24.1", optional=true}
-httpcore = {version=">=0.17.3", optional=true}
-h2 = {version=">=4.1.0", optional=true}
-idna = {version=">=2.1,<4.0", optional=true}
-cryptography = {version=">=2.6", optional=true}
-trio = {version=">=0.14,<0.24", optional=true}
-wmi = {version="^1.5.1", optional=true}
-aioquic = {version=">=0.9.20", optional=true}
+[tool.hatch.build.targets.wheel]
+include = ["dns/*.py", "dns/**/*.py", "dns/py.typed"]
 
-[tool.poetry.dev-dependencies]
-pytest = ">=5.4.1,<8"
-pytest-cov = "^4.0.0"
-flake8 = "^5.0.3"
-sphinx = "^7.0.0"
-coverage = "^7.0"
-twine = "^4.0.0"
-wheel = "^0.41.0"
-pylint = ">=2.7,<4"
-mypy = ">=1.0.1"
-black = "^23.1.0"
+[tool.hatch.envs.default]
+features = ["trio", "dnssec", "idna", "doh", "doq", "dev"]
 
-[tool.poetry.extras]
-doh = ['httpx', 'h2', 'httpcore']
-idna = ['idna']
-dnssec = ['cryptography']
-trio = ['trio']
-wmi = ['wmi']
-doq = ['aioquic']
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.setuptools_scm]
+[tool.hatch.version]
+source = "code"
+path = "dns/version.py"
+expression = "version"
 
 [tool.ruff]
 ignore = ['E741', 'F401']
 
 [tool.isort]
 profile = "black"
+
+[[tool.mypy.overrides]]
+module = "pythoncom"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "wmi"
+ignore_missing_imports = true
