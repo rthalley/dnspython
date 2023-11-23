@@ -21,7 +21,19 @@ import contextlib
 import io
 import os
 import struct
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
+from collections.abc import MutableMapping
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 import dns.exception
 import dns.grange
@@ -126,7 +138,10 @@ class Zone(dns.transaction.TransactionManager):
     the zone.
     """
 
-    node_factory = dns.node.Node
+    node_factory: Callable[[], dns.node.Node] = dns.node.Node
+    map_factory: Callable[[], MutableMapping[dns.name.Name, dns.node.Node]] = dict
+    writable_version_factory: Optional[Callable[[], "WritableVersion"]] = None
+    immutable_version_factory: Optional[Callable[[], "ImmutableVersion"]] = None
 
     __slots__ = ["rdclass", "origin", "nodes", "relativize"]
 
@@ -157,7 +172,7 @@ class Zone(dns.transaction.TransactionManager):
                 raise ValueError("origin parameter must be an absolute name")
         self.origin = origin
         self.rdclass = rdclass
-        self.nodes: Dict[dns.name.Name, dns.node.Node] = {}
+        self.nodes: MutableMapping[dns.name.Name, dns.node.Node] = self.map_factory()
         self.relativize = relativize
 
     def __eq__(self, other):
@@ -965,7 +980,7 @@ class Version:
         self,
         zone: Zone,
         id: int,
-        nodes: Optional[Dict[dns.name.Name, dns.node.Node]] = None,
+        nodes: Optional[MutableMapping[dns.name.Name, dns.node.Node]] = None,
         origin: Optional[dns.name.Name] = None,
     ):
         self.zone = zone
@@ -973,7 +988,7 @@ class Version:
         if nodes is not None:
             self.nodes = nodes
         else:
-            self.nodes = {}
+            self.nodes = zone.map_factory()
         self.origin = origin
 
     def _validate_name(self, name: dns.name.Name) -> dns.name.Name:
@@ -1083,7 +1098,7 @@ class ImmutableVersion(Version):
                 version.nodes[name] = ImmutableVersionedNode(node)
         # We're changing the type of the nodes dictionary here on purpose, so
         # we ignore the mypy error.
-        self.nodes = dns.immutable.Dict(version.nodes, True)  # type: ignore
+        self.nodes = dns.immutable.Dict(version.nodes, True, self.zone.map_factory)  # type: ignore
 
 
 class Transaction(dns.transaction.Transaction):
@@ -1099,7 +1114,10 @@ class Transaction(dns.transaction.Transaction):
 
     def _setup_version(self):
         assert self.version is None
-        self.version = WritableVersion(self.zone, self.replacement)
+        factory = self.manager.writable_version_factory
+        if factory is None:
+            factory = WritableVersion
+        self.version = factory(self.zone, self.replacement)
 
     def _get_rdataset(self, name, rdtype, covers):
         return self.version.get_rdataset(name, rdtype, covers)
@@ -1130,7 +1148,10 @@ class Transaction(dns.transaction.Transaction):
             self.zone._end_read(self)
         elif commit and len(self.version.changed) > 0:
             if self.make_immutable:
-                version = ImmutableVersion(self.version)
+                factory = self.manager.immutable_version_factory
+                if factory is None:
+                    factory = ImmutableVersion
+                version = factory(self.version)
             else:
                 version = self.version
             self.zone._commit_version(self, version, self.version.origin)
