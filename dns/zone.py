@@ -21,7 +21,6 @@ import contextlib
 import io
 import os
 import struct
-from collections.abc import MutableMapping
 from typing import (
     Any,
     Callable,
@@ -29,6 +28,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    MutableMapping,
     Optional,
     Set,
     Tuple,
