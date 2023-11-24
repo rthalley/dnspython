@@ -48,7 +48,7 @@ ruff:
 	ruff dns
 
 cov:
-	coverage --branch -m pytest
+	coverage run --branch -m pytest
 	coverage html --include 'dns/*'
 	coverage report --include 'dns/*'
 
