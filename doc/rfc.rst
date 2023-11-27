@@ -123,6 +123,9 @@ Misc RFCs
 `RFC 4343 <https://tools.ietf.org/html/rfc4343>`_
     Case-sensitivity clarification.
 
+`RFC 8499 <https://tools.ietf.org/html/rfc8499>`_
+    DNS Terminology.
+
 Additional Transport RFCs
 -------------------------
 

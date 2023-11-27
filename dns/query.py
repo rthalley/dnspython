@@ -869,7 +869,7 @@ def send_tcp(
         # copying the wire into tcpmsg is inefficient, but lets us
         # avoid writev() or doing a short write that would get pushed
         # onto the net
-        tcpmsg = len(what).to_bytes(2, 'big') + what
+        tcpmsg = len(what).to_bytes(2, "big") + what
     sent_time = time.time()
     _net_write(sock, tcpmsg, expiration)
     return (len(tcpmsg), sent_time)
@@ -1093,6 +1093,8 @@ def tls(
         ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
         if server_hostname is None:
             ssl_context.check_hostname = False
+        print("HAS_ALPN", ssl.HAS_ALPN)
+        ssl_context.set_alpn_protocols(["dot"])
 
     with _make_socket(
         af,
@@ -1103,6 +1105,7 @@ def tls(
     ) as s:
         _connect(s, destination, expiration)
         _tls_handshake(s, expiration)
+        print("ALPN", s.selected_alpn_protocol())
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
