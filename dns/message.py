@@ -527,7 +527,7 @@ class Message:
         max_size: int = 0,
         multi: bool = False,
         tsig_ctx: Optional[Any] = None,
-        prepend_length : bool = False,
+        prepend_length: bool = False,
         **kw: Dict[str, Any],
     ) -> bytes:
         """Return a string containing the message in DNS compressed wire
@@ -550,7 +550,7 @@ class Message:
         *tsig_ctx*, a ``dns.tsig.HMACTSig`` or ``dns.tsig.GSSTSig`` object, the
         ongoing TSIG context, used when signing zone transfers.
 
-        *prepend_length", a ``bool``, should be set to ``True`` if the caller
+        *prepend_length*, a ``bool``, should be set to ``True`` if the caller
         wants the message length prepended to the message itself.  This is
         useful for messages sent over TCP, TLS (DoT), or QUIC (DoQ).
 
@@ -605,7 +605,7 @@ class Message:
                 self.tsig_ctx = ctx
         wire = r.get_wire()
         if prepend_length:
-            wire = len(wire).to_bytes(2, 'big') + wire
+            wire = len(wire).to_bytes(2, "big") + wire
         return wire
 
     @staticmethod
