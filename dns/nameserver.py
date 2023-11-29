@@ -215,6 +215,7 @@ class DoHNameserver(Nameserver):
             request,
             self.url,
             timeout=timeout,
+            bootstrap_address=self.bootstrap_address,
             one_rr_per_rrset=one_rr_per_rrset,
             ignore_trailing=ignore_trailing,
         )
