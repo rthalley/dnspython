@@ -477,11 +477,10 @@ class ZoneTestCase(unittest.TestCase):
     def testGenerate(self):
         z = dns.zone.from_text(example_generate, "example.", relativize=True)
         f = StringIO()
-        names = list(z.nodes.keys())
-        for n in names:
-            f.write(z[n].to_text(n))
-            f.write("\n")
-        self.assertEqual(f.getvalue(), example_generate_output)
+        expected = dns.zone.from_text(
+            example_generate_output, "example.", relativize=True
+        )
+        self.assertEqual(z, expected)
 
     def testTorture1(self):
         #
