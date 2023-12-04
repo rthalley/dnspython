@@ -169,7 +169,7 @@ DNSKEY
 DS
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
 HTTPS
-    `draft-ietf-dnsop-svcb-https-11 <https://www.ietf.org/archive/id/draft-ietf-dnsop-svcb-https-11.html>`_
+    `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_
 LOC
     `RFC 1876 <https://tools.ietf.org/html/rfc1876>`_
 MX
@@ -200,6 +200,8 @@ SRV
     `RFC 2782 <https://tools.ietf.org/html/rfc2782>`_
 SSHFP
     `RFC 4255 <https://tools.ietf.org/html/rfc4255>`_
+SVCB
+    `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_
 TLSA
     `RFC 6698 <https://tools.ietf.org/html/rfc6698>`_
 TXT
