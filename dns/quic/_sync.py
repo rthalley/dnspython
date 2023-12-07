@@ -82,10 +82,6 @@ class SyncQuicConnection(BaseQuicConnection):
     def __init__(self, connection, address, port, source, source_port, manager):
         super().__init__(connection, address, port, source, source_port, manager)
         self._socket = socket.socket(self._af, socket.SOCK_DGRAM, 0)
-        self._socket.connect(self._peer)
-        (self._send_wakeup, self._receive_wakeup) = socket.socketpair()
-        self._receive_wakeup.setblocking(False)
-        self._socket.setblocking(False)
         if self._source is not None:
             try:
                 self._socket.bind(
@@ -94,6 +90,10 @@ class SyncQuicConnection(BaseQuicConnection):
             except Exception:
                 self._socket.close()
                 raise
+        self._socket.connect(self._peer)
+        (self._send_wakeup, self._receive_wakeup) = socket.socketpair()
+        self._receive_wakeup.setblocking(False)
+        self._socket.setblocking(False)
         self._handshake_complete = threading.Event()
         self._worker_thread = None
         self._lock = threading.Lock()

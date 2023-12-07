@@ -76,8 +76,6 @@ class TrioQuicConnection(AsyncQuicConnection):
     def __init__(self, connection, address, port, source, source_port, manager=None):
         super().__init__(connection, address, port, source, source_port, manager)
         self._socket = trio.socket.socket(self._af, socket.SOCK_DGRAM, 0)
-        if self._source:
-            trio.socket.bind(dns.inet.low_level_address_tuple(self._source, self._af))
         self._handshake_complete = trio.Event()
         self._run_done = trio.Event()
         self._worker_scope = None
@@ -85,6 +83,10 @@ class TrioQuicConnection(AsyncQuicConnection):
 
     async def _worker(self):
         try:
+            if self._source:
+                await self._socket.bind(
+                    dns.inet.low_level_address_tuple(self._source, self._af)
+                )
             await self._socket.connect(self._peer)
             while not self._done:
                 (expiration, interval) = self._get_timer_values(False)
