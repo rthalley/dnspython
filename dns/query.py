@@ -1093,7 +1093,6 @@ def tls(
         ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
         if server_hostname is None:
             ssl_context.check_hostname = False
-        print("HAS_ALPN", ssl.HAS_ALPN)
         ssl_context.set_alpn_protocols(["dot"])
 
     with _make_socket(
@@ -1105,7 +1104,6 @@ def tls(
     ) as s:
         _connect(s, destination, expiration)
         _tls_handshake(s, expiration)
-        print("ALPN", s.selected_alpn_protocol())
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
