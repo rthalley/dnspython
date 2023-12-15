@@ -8,6 +8,7 @@ import sys
 
 import dns._asyncbackend
 import dns.exception
+import dns.inet
 
 _is_win32 = sys.platform == "win32"
 
@@ -224,14 +225,12 @@ class Backend(dns._asyncbackend.Backend):
         ssl_context=None,
         server_hostname=None,
     ):
-        if destination is None and socktype == socket.SOCK_DGRAM and _is_win32:
-            raise NotImplementedError(
-                "destinationless datagram sockets "
-                "are not supported by asyncio "
-                "on Windows"
-            )
         loop = _get_running_loop()
         if socktype == socket.SOCK_DGRAM:
+            if _is_win32 and source is None:
+                # Win32 wants explicit binding before recvfrom().  This is the
+                # proper fix for [#637].
+                source = (dns.inet.any_for_af(af), 0)
             transport, protocol = await loop.create_datagram_endpoint(
                 _DatagramProtocol,
                 source,
@@ -266,7 +265,7 @@ class Backend(dns._asyncbackend.Backend):
         await asyncio.sleep(interval)
 
     def datagram_connection_required(self):
-        return _is_win32
+        return False
 
     def get_transport_class(self):
         return _HTTPTransport

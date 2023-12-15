@@ -171,8 +171,6 @@ class MiscQuery(unittest.TestCase):
 
 @unittest.skipIf(not tests.util.is_internet_reachable(), "Internet not reachable")
 class AsyncTests(unittest.TestCase):
-    connect_udp = sys.platform == "win32"
-
     def setUp(self):
         self.backend = dns.asyncbackend.set_default_backend("asyncio")
 
@@ -327,12 +325,12 @@ class AsyncTests(unittest.TestCase):
             qname = dns.name.from_text("dns.google.")
 
             async def run():
-                if self.connect_udp:
-                    dtuple = (address, 53)
-                else:
-                    dtuple = None
                 async with await self.backend.make_socket(
-                    dns.inet.af_for_address(address), socket.SOCK_DGRAM, 0, None, dtuple
+                    dns.inet.af_for_address(address),
+                    socket.SOCK_DGRAM,
+                    0,
+                    None,
+                    None,
                 ) as s:
                     q = dns.message.make_query(qname, dns.rdatatype.A)
                     return await dns.asyncquery.udp(q, address, sock=s, timeout=2)
@@ -485,9 +483,6 @@ class AsyncTests(unittest.TestCase):
             self.assertFalse(tcp)
 
     def testUDPReceiveQuery(self):
-        if self.connect_udp:
-            self.skipTest("test needs connectionless sockets")
-
         async def run():
             async with await self.backend.make_socket(
                 socket.AF_INET, socket.SOCK_DGRAM, source=("127.0.0.1", 0)
@@ -509,9 +504,6 @@ class AsyncTests(unittest.TestCase):
         self.assertEqual(sender_address, recv_address)
 
     def testUDPReceiveTimeout(self):
-        if self.connect_udp:
-            self.skipTest("test needs connectionless sockets")
-
         async def arun():
             async with await self.backend.make_socket(
                 socket.AF_INET, socket.SOCK_DGRAM, 0, ("127.0.0.1", 0)
@@ -616,8 +608,6 @@ class AsyncTests(unittest.TestCase):
 
 @unittest.skipIf(not tests.util.is_internet_reachable(), "Internet not reachable")
 class AsyncioOnlyTests(unittest.TestCase):
-    connect_udp = sys.platform == "win32"
-
     def setUp(self):
         self.backend = dns.asyncbackend.set_default_backend("asyncio")
 
@@ -625,9 +615,6 @@ class AsyncioOnlyTests(unittest.TestCase):
         return asyncio.run(afunc())
 
     def testUseAfterTimeout(self):
-        if self.connect_udp:
-            self.skipTest("test needs connectionless sockets")
-
         # Test #843 fix.
         async def run():
             qname = dns.name.from_text("dns.google")
@@ -678,8 +665,6 @@ try:
             return trio.run(afunc)
 
     class TrioAsyncTests(AsyncTests):
-        connect_udp = False
-
         def setUp(self):
             self.backend = dns.asyncbackend.set_default_backend("trio")
 
