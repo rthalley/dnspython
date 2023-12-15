@@ -400,7 +400,7 @@ Universal Types
 
    .. attribute:: next
 
-      A ``dns.name.Name``, the next name hash.
+      A ``bytes``, the next name hash.
 
    .. attribute:: windows
 
