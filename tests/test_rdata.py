@@ -22,26 +22,24 @@ import pickle
 import struct
 import unittest
 
-import dns.wire
 import dns.exception
 import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
-from dns.rdtypes.ANY.OPT import OPT
-from dns.rdtypes.ANY.LOC import LOC
-from dns.rdtypes.ANY.GPOS import GPOS
 import dns.rdtypes.ANY.RRSIG
 import dns.rdtypes.IN.APL
 import dns.rdtypes.util
 import dns.tokenizer
 import dns.ttl
 import dns.wire
-
+import tests.md_module
 import tests.stxt_module
 import tests.ttxt_module
-import tests.md_module
+from dns.rdtypes.ANY.GPOS import GPOS
+from dns.rdtypes.ANY.LOC import LOC
+from dns.rdtypes.ANY.OPT import OPT
 from tests.util import here
 
 
@@ -837,6 +835,20 @@ class RdataTestCase(unittest.TestCase):
             self.assertRaises(dns.rdata.NoRelativeRdataOrdering, bad4)
         finally:
             dns.rdata._allow_relative_comparisons = saved
+
+    def test_nsec3_next_name(self):
+        rdata = dns.rdata.from_text(
+            "in",
+            "nsec3",
+            "1 1 0 - CK0Q2D6NI4I7EQH8NA30NS61O48UL8G5 NS SOA RRSIG DNSKEY NSEC3PARAM",
+        )
+        origin = dns.name.from_text("com")
+        expected_rel = dns.name.from_text(
+            "ck0q2d6ni4i7eqh8na30ns61o48ul8g5", origin=None
+        )
+        expected_abs = dns.name.from_text("ck0q2d6ni4i7eqh8na30ns61o48ul8g5.com.")
+        self.assertEqual(rdata.next_name(), expected_rel)
+        self.assertEqual(rdata.next_name(origin), expected_abs)
 
 
 class UtilTestCase(unittest.TestCase):
