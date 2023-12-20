@@ -882,6 +882,66 @@ www.dnspython.org. 300 IN A 1.2.3.4
         self.assertIsNotNone(q2.tsig)
         self.assertEqual(q, q2)
 
+    def test_prefer_truncation_answer(self):
+        q = dns.message.make_query("www.example", "a")
+        rrs = [
+            dns.rrset.from_text("www.example.", 3600, "in", "a", f"1.2.3.{n}")
+            for n in range(32)
+        ]
+        r = dns.message.make_response(q)
+        r.answer.extend(rrs)
+
+        # Normally, we get an exception
+        with self.assertRaises(dns.exception.TooBig):
+            w1 = r.to_wire(max_size=512)
+
+        # With prefer_truncation, we get a truncated response where 1 record
+        # doesn't fit, and TC is set.
+        w2 = r.to_wire(max_size=512, prefer_truncation=True)
+        r2 = dns.message.from_wire(w2, one_rr_per_rrset=True)
+        self.assertNotEqual(r2.flags & dns.flags.TC, 0)
+        self.assertEqual(len(r2.answer), 30)
+
+    def test_prefer_truncation_edns(self):
+        q = dns.message.make_query("www.example", "a", payload=512)
+        rrs = [
+            dns.rrset.from_text("www.example.", 3600, "in", "a", f"1.2.3.{n}")
+            for n in range(32)
+        ]
+        r = dns.message.make_response(q)
+        r.answer.extend(rrs)
+
+        # Normally, we get an exception
+        with self.assertRaises(dns.exception.TooBig):
+            w1 = r.to_wire(max_size=512)
+
+        # With prefer_truncation, we get a truncated response where 2 records
+        # don't fit, and TC is set.
+        w2 = r.to_wire(max_size=512, prefer_truncation=True)
+        r2 = dns.message.from_wire(w2, one_rr_per_rrset=True)
+        self.assertNotEqual(r2.flags & dns.flags.TC, 0)
+        self.assertEqual(len(r2.answer), 29)
+
+    def test_prefer_truncation_additional(self):
+        q = dns.message.make_query("www.example", "a")
+        rrs = [
+            dns.rrset.from_text("www.example.", 3600, "in", "a", f"1.2.3.{n}")
+            for n in range(32)
+        ]
+        r = dns.message.make_response(q)
+        r.additional.extend(rrs)
+
+        # Normally, we get an exception
+        with self.assertRaises(dns.exception.TooBig):
+            w1 = r.to_wire(max_size=512)
+
+        # With prefer_truncation, we get a truncated response where 1 record
+        # doesn't fit, and TC is not set.
+        w2 = r.to_wire(max_size=512, prefer_truncation=True)
+        r2 = dns.message.from_wire(w2, one_rr_per_rrset=True)
+        self.assertEqual(r2.flags & dns.flags.TC, 0)
+        self.assertEqual(len(r2.additional), 30)
+
 
 if __name__ == "__main__":
     unittest.main()

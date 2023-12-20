@@ -528,6 +528,7 @@ class Message:
         multi: bool = False,
         tsig_ctx: Optional[Any] = None,
         prepend_length: bool = False,
+        prefer_truncation: bool = False,
         **kw: Dict[str, Any],
     ) -> bytes:
         """Return a string containing the message in DNS compressed wire
@@ -554,6 +555,11 @@ class Message:
         wants the message length prepended to the message itself.  This is
         useful for messages sent over TCP, TLS (DoT), or QUIC (DoQ).
 
+        *prefer_truncation*, a ``bool``, should be set to ``True`` if the caller
+        wants the message to be truncated if it would otherwise exceed the
+        maximum length.  If the truncation occurs before the additional section,
+        the TC bit will be set.
+
         Raises ``dns.exception.TooBig`` if *max_size* was exceeded.
 
         Returns a ``bytes``.
@@ -575,14 +581,21 @@ class Message:
         r.reserve(opt_reserve)
         tsig_reserve = self._compute_tsig_reserve()
         r.reserve(tsig_reserve)
-        for rrset in self.question:
-            r.add_question(rrset.name, rrset.rdtype, rrset.rdclass)
-        for rrset in self.answer:
-            r.add_rrset(dns.renderer.ANSWER, rrset, **kw)
-        for rrset in self.authority:
-            r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
-        for rrset in self.additional:
-            r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
+        try:
+            for rrset in self.question:
+                r.add_question(rrset.name, rrset.rdtype, rrset.rdclass)
+            for rrset in self.answer:
+                r.add_rrset(dns.renderer.ANSWER, rrset, **kw)
+            for rrset in self.authority:
+                r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
+            for rrset in self.additional:
+                r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
+        except dns.exception.TooBig:
+            if prefer_truncation:
+                if r.section < dns.renderer.ADDITIONAL:
+                    r.flags |= dns.flags.TC
+            else:
+                raise
         r.release_reserved()
         if self.opt is not None:
             r.add_opt(self.opt, self.pad, opt_reserve, tsig_reserve)
