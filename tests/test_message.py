@@ -942,6 +942,38 @@ www.dnspython.org. 300 IN A 1.2.3.4
         self.assertEqual(r2.flags & dns.flags.TC, 0)
         self.assertEqual(len(r2.additional), 30)
 
+    def test_section_count(self):
+        a = dns.message.from_text(answer_text)
+        self.assertEqual(a.section_count(a.question), 1)
+        self.assertEqual(a.section_count(a.answer), 1)
+        self.assertEqual(a.section_count("authority"), 3)
+        self.assertEqual(a.section_count(dns.message.MessageSection.ADDITIONAL), 1)
+
+        a.use_edns()
+        a.use_tsig(dns.tsig.Key("foo.", b"abcd"))
+        self.assertEqual(a.section_count(dns.message.MessageSection.ADDITIONAL), 3)
+
+    def test_section_count_update(self):
+        update = dns.update.Update("example")
+        update.id = 1
+        # These each add 1 record to the prereq section
+        update.present("foo")
+        update.present("foo", "a")
+        update.present("bar", "a", "10.0.0.5")
+        update.absent("blaz2")
+        update.absent("blaz2", "a")
+        # This adds 3 records to the update section
+        update.replace("foo", 300, "a", "10.0.0.1", "10.0.0.2")
+        # These each add 1 record to the update section
+        update.add("bar", dns.rdataset.from_text(1, 1, 300, "10.0.0.3"))
+        update.delete("bar", "a", "10.0.0.4")
+        update.delete("blaz", "a")
+        update.delete("blaz2")
+
+        self.assertEqual(update.section_count(dns.update.UpdateSection.ZONE), 1)
+        self.assertEqual(update.section_count(dns.update.UpdateSection.PREREQ), 5)
+        self.assertEqual(update.section_count(dns.update.UpdateSection.UPDATE), 7)
+
 
 if __name__ == "__main__":
     unittest.main()

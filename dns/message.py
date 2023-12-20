@@ -489,6 +489,34 @@ class Message:
             rrset = None
         return rrset
 
+    def section_count(self, section: SectionType) -> int:
+        """Returns the number of records in the specified section.
+
+        *section*, an ``int`` section number, a ``str`` section name, or one of
+        the section attributes of this message.  This specifies the
+        the section of the message to count.  For example::
+
+            my_message.section_count(my_message.answer)
+            my_message.section_count(dns.message.ANSWER)
+            my_message.section_count("ANSWER")
+        """
+
+        if isinstance(section, int):
+            section_number = section
+            section = self.section_from_number(section_number)
+        elif isinstance(section, str):
+            section_number = MessageSection.from_text(section)
+            section = self.section_from_number(section_number)
+        else:
+            section_number = self.section_number(section)
+        count = sum(max(1, len(rrs)) for rrs in section)
+        if section_number == MessageSection.ADDITIONAL:
+            if self.opt is not None:
+                count += 1
+            if self.tsig is not None:
+                count += 1
+        return count
+
     def _compute_opt_reserve(self) -> int:
         """Compute the size required for the OPT RR, padding excluded"""
         if not self.opt:
