@@ -61,11 +61,14 @@ def from_text(text: str) -> Tuple[int, int, int]:
     elif state == 1:
         stop = int(cur)
     else:
-        assert state == 2
+        if state != 2:
+            raise AssertionError("state is not equal to 2")
         step = int(cur)
 
-    assert step >= 1
-    assert start >= 0
+    if step < 1:
+        raise AssertionError("step is lower than 1")
+    if start < 0:
+        raise AssertionError("start is lower than 0")
     if start > stop:
         raise dns.exception.SyntaxError("start must be <= stop")
 

@@ -554,7 +554,8 @@ class Reader:
 
 class RRsetsReaderTransaction(dns.transaction.Transaction):
     def __init__(self, manager, replacement, read_only):
-        assert not read_only
+        if read_only:
+            raise AssertionError("Read only is not allowed")
         super().__init__(manager, replacement, read_only)
         self.rdatasets = {}
 
@@ -634,7 +635,8 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
         raise NotImplementedError
 
     def writer(self, replacement=False):
-        assert replacement is True
+        if replacement is not True:
+            raise AssertionError("replacement is set to False")
         return RRsetsReaderTransaction(self, True, False)
 
     def get_class(self):

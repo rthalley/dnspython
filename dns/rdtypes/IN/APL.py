@@ -70,7 +70,8 @@ class APLItem:
                 break
         address = address[0:last]
         l = len(address)
-        assert l < 128
+        if l >= 128:
+            raise AssertionError("address length can't be higher than 127")
         if self.negation:
             l |= 0x80
         header = struct.pack("!HBB", self.family, self.prefix, l)

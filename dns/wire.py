@@ -21,7 +21,8 @@ class Parser:
         return self.end - self.current
 
     def get_bytes(self, size: int) -> bytes:
-        assert size >= 0
+        if size < 0:
+            raise AssertionError("Size can't be lower than 1")
         if size > self.remaining():
             raise dns.exception.FormError
         output = self.wire[self.current : self.current + size]
@@ -66,7 +67,8 @@ class Parser:
 
     @contextlib.contextmanager
     def restrict_to(self, size: int) -> Iterator:
-        assert size >= 0
+        if size < 0:
+            raise AssertionError("Size can't be lower than 1")
         if size > self.remaining():
             raise dns.exception.FormError
         saved_end = self.end

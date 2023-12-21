@@ -203,7 +203,8 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         else:  # pragma: no cover   (this will never happen)
             raise ValueError("Bad address family")
 
-        assert srclen is not None
+        if srclen is None:
+            raise AssertionError("source length can't be empty")
         self.address = address
         self.srclen = srclen
         self.scopelen = scopelen

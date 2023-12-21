@@ -244,7 +244,8 @@ def make_ds(
     if isinstance(name, str):
         name = dns.name.from_text(name, origin)
     wire = name.canonicalize().to_wire()
-    assert wire is not None
+    if wire is None:
+        raise AssertionError("wire can't be empty")
     dshash.update(wire)
     dshash.update(key.to_wire(origin=origin))
     digest = dshash.digest()
@@ -779,7 +780,8 @@ def nsec3_hash(
     if not isinstance(domain, dns.name.Name):
         domain = dns.name.from_text(domain)
     domain_encoded = domain.canonicalize().to_wire()
-    assert domain_encoded is not None
+    if domain_encoded is None:
+        raise AssertionError("encoded domain can't be empty")
 
     digest = hashlib.sha1(domain_encoded + salt_encoded).digest()
     for _ in range(iterations):

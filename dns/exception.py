@@ -73,15 +73,13 @@ class DNSException(Exception):
 
         For sanity we do not allow to mix old and new behavior."""
         if args or kwargs:
-            assert bool(args) != bool(
-                kwargs
-            ), "keyword arguments are mutually exclusive with positional args"
+            if bool(args) == bool(kwargs):
+                raise AssertionError("keyword arguments are mutually exclusive with positional args")
 
     def _check_kwargs(self, **kwargs):
         if kwargs:
-            assert (
-                set(kwargs.keys()) == self.supp_kwargs
-            ), "following set of keyword args is required: %s" % (self.supp_kwargs)
+            if set(kwargs.keys()) != self.supp_kwargs:
+                raise AssertionError("following set of keyword args is required: %s" % (self.supp_kwargs))
         return kwargs
 
     def _fmt_kwargs(self, **kwargs):

@@ -1086,7 +1086,8 @@ class _WireReader:
         """Read the next *qcount* records from the wire data and add them to
         the question section.
         """
-        assert self.message is not None
+        if self.message is None:
+            raise AssertionError("message can't be empty")
         section = self.message.sections[section_number]
         for _ in range(qcount):
             qname = self.parser.get_name(self.message.origin)
@@ -1108,7 +1109,8 @@ class _WireReader:
         section_number: the section of the message to which to add records
         count: the number of records to read
         """
-        assert self.message is not None
+        if self.message is None:
+            raise AssertionError("message can't be empty")
         section = self.message.sections[section_number]
         force_unique = self.one_rr_per_rrset
         for i in range(count):
@@ -1669,7 +1671,7 @@ def from_file(
         cm = contextlib.nullcontext(f)
     with cm as f:
         return from_text(f, idna_codec, one_rr_per_rrset)
-    assert False  # for mypy  lgtm[py/unreachable-statement]
+    raise AssertionError("")  # for mypy  lgtm[py/unreachable-statement]
 
 
 def make_query(

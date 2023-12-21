@@ -270,7 +270,8 @@ class Tokenizer:
         self.eof = False
         self.delimiters = _DELIMITERS
         self.line_number = 1
-        assert filename is not None
+        if filename is None:
+            raise AssertionError("Filename can't be null")
         self.filename = filename
         if idna_codec is None:
             self.idna_codec: dns.name.IDNACodec = dns.name.IDNA_2003

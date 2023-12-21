@@ -750,8 +750,10 @@ class _Resolution:
 
     def next_nameserver(self) -> Tuple[dns.nameserver.Nameserver, bool, float]:
         if self.retry_with_tcp:
-            assert self.nameserver is not None
-            assert not self.nameserver.is_always_max_size()
+            if self.nameserver is None:
+                raise AssertionError("Nameserver can't be None")
+            if self.nameserver.is_always_max_size():
+                raise AssertionError("Nameserver max size is always true")
             self.tcp_attempt = True
             self.retry_with_tcp = False
             return (self.nameserver, True, 0)
@@ -775,10 +777,12 @@ class _Resolution:
         #
         # returns an (answer: Answer, end_loop: bool) tuple.
         #
-        assert self.nameserver is not None
+        if self.nameserver is None:
+            raise AssertionError("Nameserver can't be None")
         if ex:
             # Exception during I/O or from_wire()
-            assert response is None
+            if response is not None:
+                raise AssertionError("response is not empty")
             self.errors.append(
                 (
                     str(self.nameserver),
@@ -804,8 +808,10 @@ class _Resolution:
                     self.retry_with_tcp = True
             return (None, False)
         # We got an answer!
-        assert response is not None
-        assert isinstance(response, dns.message.QueryMessage)
+        if response is None:
+            raise AssertionError("response is not empty")
+        if not isinstance(response, dns.message.QueryMessage):
+            raise AssertionError("response is not instance of QueryMessage")
         rcode = response.rcode()
         if rcode == dns.rcode.NOERROR:
             try:
@@ -1312,7 +1318,8 @@ class Resolver(BaseResolver):
             if answer is not None:
                 # cache hit!
                 return answer
-            assert request is not None  # needed for type checking
+            if request is None:  # needed for type checking
+                raise AssertionError("request is None")
             done = False
             while not done:
                 (nameserver, tcp, backoff) = resolution.next_nameserver()
@@ -1527,7 +1534,8 @@ def get_default_resolver() -> Resolver:
     """Get the default resolver, initializing it if necessary."""
     if default_resolver is None:
         reset_default_resolver()
-    assert default_resolver is not None
+    if default_resolver is None:
+        raise AssertionError("default resolver is empty")
     return default_resolver
 
 
@@ -1706,7 +1714,8 @@ def zone_for_name(
             answer = resolver.resolve(
                 name, dns.rdatatype.SOA, rdclass, tcp, lifetime=rlifetime
             )
-            assert answer.rrset is not None
+            if answer.rrset is None:
+                raise AssertionError("answer rrset is empty")
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher

@@ -718,9 +718,7 @@ def udp(
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert (
-        False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
-    )
+    raise AssertionError("")  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
 
 def udp_with_fallback(
@@ -996,9 +994,7 @@ def tcp(
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert (
-        False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
-    )
+    raise AssertionError("")  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
 
 def _tls_handshake(s, expiration):
@@ -1112,9 +1108,7 @@ def tls(
         if not q.is_response(r):
             raise BadResponse
         return r
-    assert (
-        False  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
-    )
+    raise AssertionError("")  # help mypy figure out we can't get here  lgtm[py/unreachable-statement]
 
 
 def quic(
@@ -1506,7 +1500,8 @@ def inbound_xfr(
                     try:
                         done = inbound.process_message(r)
                     except dns.xfr.UseTCP:
-                        assert is_udp  # should not happen if we used TCP!
+                        if not is_udp:  # should not happen if we used TCP!
+                            raise AssertionError("udp is turned to false")
                         if udp_mode == UDPMode.ONLY:
                             raise
                         done = True

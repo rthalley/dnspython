@@ -26,7 +26,8 @@ import dns.rdtypes.util
 
 def _write_string(file, s):
     l = len(s)
-    assert l < 256
+    if l >= 256:
+        raise AssertionError("length s can't be higher than 255")
     file.write(struct.pack("!B", l))
     file.write(s)
 

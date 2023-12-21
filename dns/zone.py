@@ -690,7 +690,8 @@ class Zone(dns.transaction.TransactionManager):
                 nl = nl.decode()
 
             if want_origin:
-                assert self.origin is not None
+                if self.origin is None:
+                    raise AssertionError("Origjn can't be None")
                 l = "$ORIGIN " + self.origin.to_text()
                 l_b = l.encode(file_enc)
                 try:
@@ -772,7 +773,8 @@ class Zone(dns.transaction.TransactionManager):
         if self.relativize:
             name = dns.name.empty
         else:
-            assert self.origin is not None
+            if self.origin is None:
+                raise AssertionError("Origjn can't be None")
             name = self.origin
         if self.get_rdataset(name, dns.rdatatype.SOA) is None:
             raise NoSOA
@@ -819,7 +821,8 @@ class Zone(dns.transaction.TransactionManager):
         if self.relativize:
             origin_name = dns.name.empty
         else:
-            assert self.origin is not None
+            if self.origin is None:
+                raise AssertionError("Origjn can't be None")
             origin_name = self.origin
         hasher = hashinfo()
         for name, node in sorted(self.items()):
@@ -857,7 +860,8 @@ class Zone(dns.transaction.TransactionManager):
         if zonemd:
             digests = [zonemd]
         else:
-            assert self.origin is not None
+            if self.origin is None:
+                raise AssertionError("Origjn can't be None")
             rds = self.get_rdataset(self.origin, dns.rdatatype.ZONEMD)
             if rds is None:
                 raise NoDigest
@@ -1113,7 +1117,8 @@ class Transaction(dns.transaction.Transaction):
         return self.manager
 
     def _setup_version(self):
-        assert self.version is None
+        if self.version is not None:
+            raise AssertionError("Version should be None")
         factory = self.manager.writable_version_factory
         if factory is None:
             factory = WritableVersion
@@ -1123,15 +1128,18 @@ class Transaction(dns.transaction.Transaction):
         return self.version.get_rdataset(name, rdtype, covers)
 
     def _put_rdataset(self, name, rdataset):
-        assert not self.read_only
+        if self.read_only:
+            raise AssertionError("Read only is not allowed")
         self.version.put_rdataset(name, rdataset)
 
     def _delete_name(self, name):
-        assert not self.read_only
+        if self.read_only:
+            raise AssertionError("Read only is not allowed")
         self.version.delete_node(name)
 
     def _delete_rdataset(self, name, rdtype, covers):
-        assert not self.read_only
+        if self.read_only:
+            raise AssertionError("Read only is not allowed")
         self.version.delete_rdataset(name, rdtype, covers)
 
     def _name_exists(self, name):
@@ -1383,7 +1391,8 @@ def from_file(
             idna_codec,
             allow_directives,
         )
-    assert False  # make mypy happy  lgtm[py/unreachable-statement]
+    if not False:  # make mypy happy  lgtm[py/unreachable-statement]
+        raise AssertionError("")
 
 
 def from_xfr(

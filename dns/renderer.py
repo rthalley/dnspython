@@ -204,7 +204,8 @@ class Renderer:
         might be, so we we might not get an even multiple of the pad in that case."""
         if pad:
             ttl = opt.ttl
-            assert opt_size >= 11
+            if opt_size < 11:
+                raise AssertionError("opt_size can't be lower than 11")
             opt_rdata = opt[0]
             size_without_padding = self.output.tell() + opt_size + tsig_size
             remainder = size_without_padding % pad

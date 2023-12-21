@@ -123,7 +123,8 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         while not self._done:
             datagrams = self._connection.datagrams_to_send(time.time())
             for datagram, address in datagrams:
-                assert address == self._peer
+                if address != self._peer:
+                    raise AssertionError("datagram address is different from peer")
                 await self._socket.sendto(datagram, self._peer, None)
             (expiration, interval) = self._get_timer_values()
             try:

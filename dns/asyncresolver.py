@@ -80,7 +80,8 @@ class Resolver(dns.resolver.BaseResolver):
             if answer is not None:
                 # cache hit!
                 return answer
-            assert request is not None  # needed for type checking
+            if request is None:  # needed for type checking
+                raise AssertionError("request can't be empty")
             done = False
             while not done:
                 (nameserver, tcp, backoff) = resolution.next_nameserver()
@@ -264,7 +265,8 @@ def get_default_resolver() -> Resolver:
     """Get the default asynchronous resolver, initializing it if necessary."""
     if default_resolver is None:
         reset_default_resolver()
-    assert default_resolver is not None
+    if default_resolver is None:
+        raise AssertionError("default resolver can't be empty")
     return default_resolver
 
 
@@ -382,7 +384,8 @@ async def zone_for_name(
             answer = await resolver.resolve(
                 name, dns.rdatatype.SOA, rdclass, tcp, backend=backend
             )
-            assert answer.rrset is not None
+            if answer.rrset is None:
+                raise AssertionError("answer rrset can't be empty")
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher

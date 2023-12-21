@@ -76,7 +76,8 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         # ignore size as there's no way I know to tell protocol about it
         done = _get_running_loop().create_future()
         try:
-            assert self.protocol.recvfrom is None
+            if self.protocol.recvfrom is not None:
+                raise AssertionError("recvfrom should be empty at this stage")
             self.protocol.recvfrom = done
             await _maybe_wait_for(done, timeout)
             return done.result()

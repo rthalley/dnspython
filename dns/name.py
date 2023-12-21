@@ -638,7 +638,8 @@ class Name:
         """
 
         digest = self.to_wire(origin=origin, canonicalize=True)
-        assert digest is not None
+        if digest is None:
+            raise AssertionError("digest can't be None")
         return digest
 
     def to_wire(

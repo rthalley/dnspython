@@ -46,7 +46,8 @@ class Buffer:
         return self._seen_end
 
     def get(self, amount):
-        assert self.have(amount)
+        if not self.have(amount):
+            raise AssertionError("Buffer have no amount")
         data = self._buffer[:amount]
         self._buffer = self._buffer[amount:]
         return data

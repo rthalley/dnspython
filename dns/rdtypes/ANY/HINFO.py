@@ -52,11 +52,13 @@ class HINFO(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.cpu)
-        assert l < 256
+        if l >= 256:
+            raise AssertionError("cpu length can't be higher than 255")
         file.write(struct.pack("!B", l))
         file.write(self.cpu)
         l = len(self.os)
-        assert l < 256
+        if l >= 256:
+            raise AssertionError("os length can't be higher than 255")
         file.write(struct.pack("!B", l))
         file.write(self.os)
 

@@ -59,12 +59,14 @@ class ISDN(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.address)
-        assert l < 256
+        if l >= 256:
+            raise AssertionError("address length can't be higher than 255")
         file.write(struct.pack("!B", l))
         file.write(self.address)
         l = len(self.subaddress)
         if l > 0:
-            assert l < 256
+            if l >= 256:
+                raise AssertionError("subaddress length can't be higher than 255")
             file.write(struct.pack("!B", l))
             file.write(self.subaddress)
 

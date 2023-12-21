@@ -98,7 +98,8 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
                 if self.relativize:
                     oname = dns.name.empty
                 else:
-                    assert self.origin is not None
+                    if self.origin is None:
+                        raise AssertionError("Origin can't be None")
                     oname = self.origin
                 version = None
                 for v in reversed(self._versions):
@@ -177,7 +178,8 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
     # pylint: enable=unused-argument
 
     def _prune_versions_unlocked(self):
-        assert len(self._versions) > 0
+        if len(self._versions) <= 0:
+            raise AssertionError("Versions can't lower than 1")
         # Don't ever prune a version greater than or equal to one that
         # a reader has open.  This pins versions in memory while the
         # reader is open, and importantly lets the reader open a txn on
@@ -238,7 +240,8 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
             self._prune_versions_unlocked()
 
     def _end_write_unlocked(self, txn):
-        assert self._write_txn == txn
+        if self._write_txn != txn:
+            raise AssertionError("Writing error with transaction")
         self._write_txn = None
         self._maybe_wakeup_one_waiter_unlocked()
 

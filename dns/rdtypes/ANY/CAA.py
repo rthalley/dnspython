@@ -59,7 +59,8 @@ class CAA(dns.rdata.Rdata):
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack("!B", self.flags))
         l = len(self.tag)
-        assert l < 256
+        if l >= 256:
+            raise AssertionError("tag length can't be higher than 255")
         file.write(struct.pack("!B", l))
         file.write(self.tag)
         file.write(self.value)

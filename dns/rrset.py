@@ -272,7 +272,8 @@ def from_rdata_list(
             r = RRset(name, rd.rdclass, rd.rdtype)
             r.update_ttl(ttl)
         r.add(rd)
-    assert r is not None
+    if r is None:
+        raise AssertionError("r can't be None")
     return r
 
 

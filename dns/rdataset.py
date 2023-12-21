@@ -504,7 +504,8 @@ def from_rdata_list(ttl: int, rdatas: Collection[dns.rdata.Rdata]) -> Rdataset:
             r = Rdataset(rd.rdclass, rd.rdtype)
             r.update_ttl(ttl)
         r.add(rd)
-    assert r is not None
+    if r is None:
+        raise AssertionError("Rdataset can't be empty")
     return r
 
 

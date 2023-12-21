@@ -682,7 +682,8 @@ async def inbound_xfr(
                     try:
                         done = inbound.process_message(r)
                     except dns.xfr.UseTCP:
-                        assert is_udp  # should not happen if we used TCP!
+                        if not is_udp:  # should not happen if we used TCP!
+                            raise AssertionError("at this stage udp can't be null")
                         if udp_mode == UDPMode.ONLY:
                             raise
                         done = True

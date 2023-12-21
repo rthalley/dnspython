@@ -154,7 +154,8 @@ class Inbound:
             rdataset = rrset
             if self.done:
                 raise dns.exception.FormError("answers after final SOA")
-            assert self.txn is not None  # for mypy
+            if self.txn is None:
+                raise AssertionError("Transaction can't be None")
             if rdataset.rdtype == dns.rdatatype.SOA and name == self.origin:
                 #
                 # Every time we see an origin SOA delete_mode inverts
