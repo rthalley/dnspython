@@ -158,10 +158,16 @@ class Do53Nameserver(AddressAndPortNameserver):
 
 
 class DoHNameserver(Nameserver):
-    def __init__(self, url: str, bootstrap_address: Optional[str] = None):
+    def __init__(
+        self,
+        url: str,
+        bootstrap_address: Optional[str] = None,
+        verify: Union[bool, str] = True,
+    ):
         super().__init__()
         self.url = url
         self.bootstrap_address = bootstrap_address
+        self.verify = verify
 
     def kind(self):
         return "DoH"
@@ -198,6 +204,7 @@ class DoHNameserver(Nameserver):
             bootstrap_address=self.bootstrap_address,
             one_rr_per_rrset=one_rr_per_rrset,
             ignore_trailing=ignore_trailing,
+            verify=self.verify,
         )
 
     async def async_query(
@@ -218,13 +225,21 @@ class DoHNameserver(Nameserver):
             bootstrap_address=self.bootstrap_address,
             one_rr_per_rrset=one_rr_per_rrset,
             ignore_trailing=ignore_trailing,
+            verify=self.verify,
         )
 
 
 class DoTNameserver(AddressAndPortNameserver):
-    def __init__(self, address: str, port: int = 853, hostname: Optional[str] = None):
+    def __init__(
+        self,
+        address: str,
+        port: int = 853,
+        hostname: Optional[str] = None,
+        verify: Union[bool, str] = True,
+    ):
         super().__init__(address, port)
         self.hostname = hostname
+        self.verify = verify
 
     def kind(self):
         return "DoT"
@@ -247,6 +262,7 @@ class DoTNameserver(AddressAndPortNameserver):
             one_rr_per_rrset=one_rr_per_rrset,
             ignore_trailing=ignore_trailing,
             server_hostname=self.hostname,
+            verify=self.verify,
         )
 
     async def async_query(
