@@ -393,7 +393,7 @@ class Message:
             section_number = section
             section = self.section_from_number(section_number)
         elif isinstance(section, str):
-            section_number = MessageSection.from_text(section)
+            section_number = self._section_enum.from_text(section)
             section = self.section_from_number(section_number)
         else:
             section_number = self.section_number(section)
@@ -505,7 +505,7 @@ class Message:
             section_number = section
             section = self.section_from_number(section_number)
         elif isinstance(section, str):
-            section_number = MessageSection.from_text(section)
+            section_number = self._section_enum.from_text(section)
             section = self.section_from_number(section_number)
         else:
             section_number = self.section_number(section)
