@@ -60,11 +60,18 @@ Core RFCs
 `RFC 6891 <https://tools.ietf.org/html/rfc6891>`_
     EDNS (version 0)
 
+`RFC 7830 <https://tools.ietf.org/html/rfc7830.html>`_
+    The EDNS(0) Padding Option
+
 `RFC 8020 <https://tools.ietf.org/html/rfc8020>`_
     Clarification on the meaning of NXDOMAIN.
 
+`RFC 8467 <https://tools.ietf.org/html/rfc8467>`_
+    Padding Policies for Extension Mechanisms for DNS (EDNS(0))
+
 `RFC 8914 <https://tools.ietf.org/html/rfc8914.html>`_
     Extended DNS Errors
+
 
 DNSSEC RFCs
 -----------

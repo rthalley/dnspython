@@ -16,23 +16,22 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import unittest
 import binascii
+import unittest
 
-import dns.exception
 import dns.edns
+import dns.exception
 import dns.flags
 import dns.message
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
-import dns.rrset
-import dns.tsig
-import dns.update
 import dns.rdtypes.ANY.OPT
 import dns.rdtypes.ANY.TSIG
+import dns.rrset
+import dns.tsig
 import dns.tsigkeyring
-
+import dns.update
 from tests.util import here
 
 query_text = """id 1234
@@ -881,6 +880,24 @@ www.dnspython.org. 300 IN A 1.2.3.4
         q2 = dns.message.from_wire(w, keyring=keyring)
         self.assertIsNotNone(q2.tsig)
         self.assertEqual(q, q2)
+
+    def test_response_padding(self):
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=128)
+        w = q.to_wire()
+        self.assertEqual(len(w), 128)
+        # We need to go read the wire as the padding isn't instantiated in q.
+        pq = dns.message.from_wire(w)
+        r = dns.message.make_response(pq)
+        assert r.pad == 468
+        r = dns.message.make_response(pq, pad=0)
+        assert r.pad == 0
+        r = dns.message.make_response(pq, pad=40)
+        assert r.pad == 40
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=0)
+        w = q.to_wire()
+        pq = dns.message.from_wire(w)
+        r = dns.message.make_response(pq)
+        assert r.pad == 0
 
     def test_prefer_truncation_answer(self):
         q = dns.message.make_query("www.example", "a")
