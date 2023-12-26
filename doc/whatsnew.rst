@@ -6,7 +6,45 @@ What's New in dnspython
 2.5.0 (in development)
 ----------------------
 
-* TBD
+* Dnspython now uses hatchling for builds.
+
+* Asynchronous destinationless sockets now work on Windows.
+
+* Cython is no longer supported due to various typing issues.
+
+* Dnspython now explicitly canonicalizes IPv4 and IPv6 addresses.
+  Previously it was possible for non-canonical IPv6 forms to be stored
+  in a AAAA address, which would work correctly but possibly cause
+  problmes if the address were used as a key in a dictionary.
+
+* The number of messages in a section can be retrieved with
+  section_count().
+
+* Truncation preferences for messages can be specified.
+
+* The length of a message can be automatically prepended when
+  rendering.
+
+* dns.message.create_response() automatically adds padding when
+  required by RFC 8467.
+
+* The TLS verify parameter is now supported by dns.query.tls(),
+  and the DoH and DoT Nameserver subclasses.
+
+* The MutableMapping used to store content in a zone may now be
+  specified by a factory when subclassing.  Factories may also be
+  provided for writable verisons and immutable versions.
+
+* dns.name.Name now has predecessor() and successor() methods
+  implementing RFC 4471.
+
+* QUIC has had a number of bug fixes and also now supports session
+  tickets for faster session resumption.
+
+* The NSEC3 class now has a next_name() method for retrieving the next
+  name as a dns.name.Name.
+
+* Windows WMI interface detection should be more robust.
 
 2.4.2
 -----
