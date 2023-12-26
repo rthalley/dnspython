@@ -284,6 +284,7 @@ class DoTNameserver(AddressAndPortNameserver):
             one_rr_per_rrset=one_rr_per_rrset,
             ignore_trailing=ignore_trailing,
             server_hostname=self.hostname,
+            verify=self.verify,
         )
 
 
