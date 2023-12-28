@@ -24,7 +24,6 @@ import struct
 from typing import (
     Any,
     Callable,
-    Dict,
     Iterable,
     Iterator,
     List,
@@ -1098,7 +1097,9 @@ class ImmutableVersion(Version):
                 version.nodes[name] = ImmutableVersionedNode(node)
         # We're changing the type of the nodes dictionary here on purpose, so
         # we ignore the mypy error.
-        self.nodes = dns.immutable.Dict(version.nodes, True, self.zone.map_factory)  # type: ignore
+        self.nodes = dns.immutable.Dict(
+            version.nodes, True, self.zone.map_factory
+        )  # type: ignore
 
 
 class Transaction(dns.transaction.Transaction):
