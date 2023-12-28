@@ -56,7 +56,7 @@ class TXTBase(dns.rdata.Rdata):
         self,
         origin: Optional[dns.name.Name] = None,
         relativize: bool = True,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> str:
         txt = ""
         prefix = ""

@@ -199,7 +199,7 @@ class Rdata:
         self,
         origin: Optional[dns.name.Name] = None,
         relativize: bool = True,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> str:
         """Convert an rdata to text format.
 
@@ -617,7 +617,7 @@ class GenericRdata(Rdata):
         self,
         origin: Optional[dns.name.Name] = None,
         relativize: bool = True,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> str:
         return r"\# %d " % len(self.data) + _hexify(self.data, **kw)
 

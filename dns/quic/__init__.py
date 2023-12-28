@@ -17,7 +17,7 @@ try:
 
     def null_factory(
         *args,  # pylint: disable=unused-argument
-        **kwargs  # pylint: disable=unused-argument
+        **kwargs,  # pylint: disable=unused-argument
     ):
         return NullContext(None)
 
