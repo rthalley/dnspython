@@ -22,6 +22,7 @@ import contextlib
 import enum
 import errno
 import os
+import os.path
 import selectors
 import socket
 import struct
@@ -161,6 +162,8 @@ try:
 except ImportError:  # pragma: no cover
 
     class ssl:  # type: ignore
+        CERT_NONE = 0
+
         class WantReadException(Exception):
             pass
 
@@ -1012,6 +1015,28 @@ def _tls_handshake(s, expiration):
             _wait_for_writable(s, expiration)
 
 
+def _make_dot_ssl_context(
+    server_hostname: Optional[str], verify: Union[bool, str]
+) -> ssl.SSLContext:
+    cafile: Optional[str] = None
+    capath: Optional[str] = None
+    if isinstance(verify, str):
+        if os.path.isfile(verify):
+            cafile = verify
+        elif os.path.isdir(verify):
+            capath = verify
+        else:
+            raise ValueError("invalid verify string")
+    ssl_context = ssl.create_default_context(cafile=cafile, capath=capath)
+    ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+    if server_hostname is None:
+        ssl_context.check_hostname = False
+    ssl_context.set_alpn_protocols(["dot"])
+    if verify is False:
+        ssl_context.verify_mode = ssl.CERT_NONE
+    return ssl_context
+
+
 def tls(
     q: dns.message.Message,
     where: str,
@@ -1024,6 +1049,7 @@ def tls(
     sock: Optional[ssl.SSLSocket] = None,
     ssl_context: Optional[ssl.SSLContext] = None,
     server_hostname: Optional[str] = None,
+    verify: Union[bool, str] = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
@@ -1063,6 +1089,11 @@ def tls(
     default is ``None``, which means that no hostname is known, and if an
     SSL context is created, hostname checking will be disabled.
 
+    *verify*, a ``bool`` or ``str``.  If a ``True``, then TLS certificate verification
+    of the server is done using the default CA bundle; if ``False``, then no
+    verification is done; if a `str` then it specifies the path to a certificate file or
+    directory which will be used for verification.
+
     Returns a ``dns.message.Message``.
 
     """
@@ -1089,11 +1120,7 @@ def tls(
         where, port, source, source_port
     )
     if ssl_context is None and not sock:
-        ssl_context = ssl.create_default_context()
-        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        if server_hostname is None:
-            ssl_context.check_hostname = False
-        ssl_context.set_alpn_protocols(["dot"])
+        ssl_context = _make_dot_ssl_context(server_hostname, verify)
 
     with _make_socket(
         af,

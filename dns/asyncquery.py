@@ -42,6 +42,7 @@ from dns.query import (
     UDPMode,
     _compute_times,
     _have_http2,
+    _make_dot_ssl_context,
     _matches_destination,
     _remaining,
     have_doh,
@@ -297,7 +298,7 @@ async def send_tcp(
         # copying the wire into tcpmsg is inefficient, but lets us
         # avoid writev() or doing a short write that would get pushed
         # onto the net
-        tcpmsg = len(what).to_bytes(2, 'big') + what
+        tcpmsg = len(what).to_bytes(2, "big") + what
     sent_time = time.time()
     await sock.sendall(tcpmsg, _timeout(expiration, sent_time))
     return (len(tcpmsg), sent_time)
@@ -416,6 +417,7 @@ async def tls(
     backend: Optional[dns.asyncbackend.Backend] = None,
     ssl_context: Optional[ssl.SSLContext] = None,
     server_hostname: Optional[str] = None,
+    verify: Union[bool, str] = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
@@ -437,11 +439,7 @@ async def tls(
         cm: contextlib.AbstractAsyncContextManager = NullContext(sock)
     else:
         if ssl_context is None:
-            # See the comment about ssl.create_default_context() in query.py
-            ssl_context = ssl.create_default_context()  # lgtm[py/insecure-protocol]
-            ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-            if server_hostname is None:
-                ssl_context.check_hostname = False
+            ssl_context = _make_dot_ssl_context(server_hostname, verify)
         af = dns.inet.af_for_address(where)
         stuple = _source_tuple(af, source, source_port)
         dtuple = (where, port)
