@@ -50,10 +50,6 @@ Core RFCs
 `RFC 3645 <https://tools.ietf.org/html/rfc3645>`_
     GSS-TSIG.
 
-    Note that dnspython does not currently have GSS-TSIG support.
-    GSS-TSIG is most frequently used when updating Microsoft
-    Active-Directory-based DNS servers.
-
 `RFC 5936 <https://tools.ietf.org/html/rfc5936>`_
     Zone transfers (AXFR).
 

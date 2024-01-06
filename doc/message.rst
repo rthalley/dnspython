@@ -13,6 +13,10 @@ The module provides tools for constructing and manipulating messages.
 TSIG signatures and EDNS are also supported.  Messages can be dumped to
 a textual form, and also read from that form.
 
+Dnspython has also GSS-TSIG support, but the current API is low-level.  See `this
+discussion <https://github.com/rthalley/dnspython/pull/530#issuecomment-658959755>`_
+for the details.
+
 .. toctree::
 
    message-class
