@@ -3,8 +3,8 @@
 What's New in dnspython
 =======================
 
-2.5.0 (in development)
-----------------------
+2.5.0
+-----
 
 * Dnspython now uses hatchling for builds.
 

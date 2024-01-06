@@ -8,6 +8,7 @@ on:
     branches:
       - master
       - 2.4
+      - 2.5
     paths:
       - '**.py'
   pull_request:
