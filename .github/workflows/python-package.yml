@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - master
-      - 2.4
     paths:
       - '**.py'
   pull_request:
