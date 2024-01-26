@@ -32,20 +32,20 @@ dynamic = ["version"]
 dev = [
     "black>=23.1.0",
     "coverage>=7.0",
-    "flake8>=5.0.3",
-    "mypy>=1.0.1",
-    "pylint>=2.7",
-    "pytest>=6.2.5",
-    "pytest-cov>=3.0.0",
-    "sphinx>=7.0.0",
+    "flake8>=7",
+    "mypy>=1.8",
+    "pylint>=3",
+    "pytest>=7.4",
+    "pytest-cov>=4.1.0",
+    "sphinx>=7.2.0",
     "twine>=4.0.0",
-    "wheel>=0.41.0",
+    "wheel>=0.42.0",
 ]
-dnssec = ["cryptography>=41"]
-doh = ["httpcore>=0.17.3", "httpx>=0.25.1", "h2>=4.1.0"]
-doq = ["aioquic>=0.9.20"]
-idna = ["idna>=2.1"]
-trio = ["trio>=0.14"]
+dnssec = ["cryptography>=42"]
+doh = ["httpcore>=1.0.0", "httpx>=0.26.0", "h2>=4.1.0"]
+doq = ["aioquic>=0.9.25"]
+idna = ["idna>=3.6"]
+trio = ["trio>=0.23"]
 wmi = ["wmi>=1.5.1"]
 
 [project.urls]
