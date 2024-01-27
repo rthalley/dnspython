@@ -18,7 +18,6 @@
 import enum
 import inspect
 import os
-import socket
 
 import dns.message
 import dns.name
@@ -123,3 +122,12 @@ def check_enum_exports(module, eq_callback, only=None):
         for flag, value in attr.__members__.items():
             # print(module, flag, value)
             eq_callback(getattr(module, flag), value)
+
+
+def is_docker() -> bool:
+    # There are a lot of answers to "am I runnning in a container" and none appear
+    # to work reliably, so we're settling for "am I running in docker?"
+    try:
+        return os.path.isfile("/.dockerenv")
+    except Exception:
+        return False
