@@ -1398,11 +1398,11 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         self._test_signature(key, dns.dnssec.Algorithm.RSASHA256, abs_soa)
 
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
-        key = ec.generate_private_key(curve=ec.SECP256R1, backend=default_backend())
+        key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
         self._test_signature(key, dns.dnssec.Algorithm.ECDSAP256SHA256, abs_soa)
 
     def testSignatureECDSAP384SHA384(self):  # type: () -> None
-        key = ec.generate_private_key(curve=ec.SECP384R1, backend=default_backend())
+        key = ec.generate_private_key(curve=ec.SECP384R1(), backend=default_backend())
         self._test_signature(key, dns.dnssec.Algorithm.ECDSAP384SHA384, abs_soa)
 
     def testSignatureED25519(self):  # type: () -> None
