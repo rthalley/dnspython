@@ -69,7 +69,7 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
         dns.resolver.restore_system_resolver()
         self.assertTrue(socket.getaddrinfo is dns.resolver._original_getaddrinfo)
 
-    def equivalent_info(self, a, b):
+    def equivalent_info(self, a, b, q):
         if len(a) != len(b):
             return False
         for x in a:
@@ -78,16 +78,21 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
                 # looking for a zero protocol.
                 y = (x[0], x[1], 0, x[3], x[4])
                 if y not in b:
-                    print("NOT EQUIVALENT")
-                    print(a)
-                    print(b)
-                    return False
+                    # musl libc insists on always providing a canonical name, so
+                    # accept that too.
+                    y = (x[0], x[1], x[2], q, x[4])
+                    if y not in b:
+                        print("NOT EQUIVALENT")
+                        print(a)
+                        print(b)
+                        return False
         return True
 
     def equivalent(self, *args, **kwargs):
+        q = args[0]
         a = socket.getaddrinfo(*args, **kwargs)
         b = dns.resolver._original_getaddrinfo(*args, **kwargs)
-        return self.equivalent_info(a, b)
+        return self.equivalent_info(a, b, q)
 
     @unittest.skipIf(
         sys.platform == "win32", "avoid windows original getaddrinfo issues"
@@ -139,7 +144,7 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
     def test_getaddrinfo_service(self):
         a = socket.getaddrinfo("dns.google", "domain")
         b = socket.getaddrinfo("dns.google", 53)
-        self.assertTrue(self.equivalent_info(a, b))
+        self.assertTrue(self.equivalent_info(a, b, "dns.google"))
         try:
             socket.getaddrinfo("dns.google", "domain", flags=socket.AI_NUMERICSERV)
             self.assertTrue(False)  # should not happen!

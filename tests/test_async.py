@@ -53,6 +53,10 @@ try:
 except Exception:
     pass
 
+# Docker too!  It not only has problems with dangling CNAME, but also says NXDOMAIN when
+# it should say no error no data.
+_is_docker = tests.util.is_docker()
+
 query_addresses = []
 family = socket.AF_UNSPEC
 if tests.util.have_ipv4():
@@ -235,8 +239,10 @@ class AsyncTests(unittest.TestCase):
                 dns.reversename.from_address("8.8.8.8")
             )
 
-        with self.assertRaises(dns.resolver.NoAnswer):
-            self.async_run(run5)
+        if not _is_docker:
+            # docker returns NXDOMAIN!
+            with self.assertRaises(dns.resolver.NoAnswer):
+                self.async_run(run5)
 
     def testCanonicalNameNoCNAME(self):
         cname = dns.name.from_text("www.google.com")
@@ -255,7 +261,9 @@ class AsyncTests(unittest.TestCase):
 
         self.assertEqual(self.async_run(run), cname)
 
-    @unittest.skipIf(_systemd_resolved_present, "systemd-resolved in use")
+    @unittest.skipIf(
+        _systemd_resolved_present or _is_docker, "systemd-resolved or docker in use"
+    )
     def testCanonicalNameDangling(self):
         name = dns.name.from_text("dangling-cname.dnspython.org")
         cname = dns.name.from_text("dangling-target.dnspython.org")

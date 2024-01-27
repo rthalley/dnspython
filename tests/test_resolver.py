@@ -15,14 +15,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from io import StringIO
 import selectors
-import sys
 import socket
+import sys
 import time
 import unittest
-import pytest
+from io import StringIO
 from unittest.mock import patch
+
+import pytest
 
 import dns.e164
 import dns.message
@@ -60,6 +61,10 @@ try:
         _systemd_resolved_present = True
 except Exception:
     pass
+
+# Docker too!  It not only has problems with dangling CNAME, but also says NXDOMAIN when
+# it should say no error no data.
+_is_docker = tests.util.is_docker()
 
 
 resolv_conf = """
@@ -690,8 +695,10 @@ class LiveResolverTests(unittest.TestCase):
         with self.assertRaises(dns.resolver.NXDOMAIN):
             dns.resolver.resolve_name("nxdomain.dnspython.org")
 
-        with self.assertRaises(dns.resolver.NoAnswer):
-            dns.resolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
+        if not _is_docker:
+            # We skip docker as it says NXDOMAIN!
+            with self.assertRaises(dns.resolver.NoAnswer):
+                dns.resolver.resolve_name(dns.reversename.from_address("8.8.8.8"))
 
     @patch.object(dns.message.Message, "use_edns")
     def testResolveEdnsOptions(self, message_use_edns_mock):
@@ -792,7 +799,9 @@ class LiveResolverTests(unittest.TestCase):
         cname = dns.name.from_text("dmfrjf4ips8xa.cloudfront.net")
         self.assertEqual(dns.resolver.canonical_name(name), cname)
 
-    @unittest.skipIf(_systemd_resolved_present, "systemd-resolved in use")
+    @unittest.skipIf(
+        _systemd_resolved_present or _is_docker, "systemd-resolved or docker in use"
+    )
     def testCanonicalNameDangling(self):
         name = dns.name.from_text("dangling-cname.dnspython.org")
         cname = dns.name.from_text("dangling-target.dnspython.org")
