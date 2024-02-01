@@ -60,4 +60,5 @@ jobs:
         files: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
-      env: CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
