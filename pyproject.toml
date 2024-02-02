@@ -86,7 +86,7 @@ path = "dns/version.py"
 expression = "version"
 
 [tool.ruff]
-ignore = ['E741', 'F401']
+lint.ignore = ['E741', 'F401']
 
 [tool.isort]
 profile = "black"
