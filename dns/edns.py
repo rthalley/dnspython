@@ -58,7 +58,6 @@ class OptionType(dns.enum.IntEnum):
 
 
 class Option:
-
     """Base class for all EDNS option types."""
 
     def __init__(self, otype: Union[OptionType, str]):
@@ -74,6 +73,9 @@ class Option:
         Returns a ``bytes`` or ``None``.
 
         """
+        raise NotImplementedError  # pragma: no cover
+
+    def to_text(self) -> str:
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
@@ -141,7 +143,6 @@ class Option:
 
 
 class GenericOption(Option):  # lgtm[py/missing-equals]
-
     """Generic Option Class
 
     This class is used for EDNS option types for which we have no better
