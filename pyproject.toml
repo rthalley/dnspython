@@ -5,6 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "dnspython"
 description = "DNS toolkit"
+license = "ISC License (ISCL)"
 authors = [{ name = "Bob Halley", email = "halley@dnspython.org" }]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
