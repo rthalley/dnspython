@@ -6,7 +6,7 @@ What's New in dnspython
 2.6.0 (in development)
 ----------------------
 
-* TBD
+* Added support for the NSID EDNS option.
 
 2.5.0
 -----

@@ -19,7 +19,6 @@
 import operator
 import struct
 import unittest
-
 from io import BytesIO
 
 import dns.edns
@@ -200,6 +199,22 @@ class OptionTestCase(unittest.TestCase):
         self.assertTrue(o1 != o2)
         self.assertFalse(o1 == 123)
         self.assertTrue(o1 != 123)
+
+    def testNSIDOption(self):
+        opt = dns.edns.NSIDOption(b"testing")
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b"testing")
+        self.assertEqual(str(opt), "NSID testing")
+        opt = dns.edns.NSIDOption(b"\xfe\xff")
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b"\xfe\xff")
+        self.assertEqual(str(opt), "NSID feff")
+        o = dns.edns.option_from_wire(dns.edns.OptionType.NSID, data, 0, len(data))
+        self.assertEqual(o.nsid, b"\xfe\xff")
 
     def test_option_registration(self):
         U32OptionType = 9999
