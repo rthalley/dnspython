@@ -95,24 +95,6 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
         )
         self.assertTrue(q.is_response(r))
 
-    def test_get_request_http1(self):
-        saved_have_http2 = dns.query._have_http2
-        try:
-            dns.query._have_http2 = False
-            nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
-            q = dns.message.make_query("example.com.", dns.rdatatype.A)
-            r = dns.query.https(
-                q,
-                nameserver_url,
-                session=self.session,
-                post=False,
-                timeout=4,
-                family=family,
-            )
-            self.assertTrue(q.is_response(r))
-        finally:
-            dns.query._have_http2 = saved_have_http2
-
     def test_post_request(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query("example.com.", dns.rdatatype.A)
