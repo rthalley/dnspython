@@ -6,13 +6,13 @@ The following versions would get a security update release if necessary.
 
 | Version  | Supported          |
 | -------- | ------------------ |
-| 2.5.x    | :white_check_mark: |
-| 1.16.x   | :white_check_mark: |
+| 2.6.x    | :white_check_mark: |
 | < 1.16.0 | :x:                |
 
-For older version 2 releases, the normal security upgrade path would
-be to upgrade to the latest version 2 release.  Selective backports to
-older 2.x versions may be considered on a case-by-case basis.
+For older version 2 releases, the normal security upgrade path is
+to upgrade to the latest version 2 release.  Selective backports to
+older 2.x versions may be considered on a case-by-case basis
+if no API change is required.
 
 ## Reporting a Vulnerability
 
