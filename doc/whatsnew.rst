@@ -6,7 +6,21 @@ What's New in dnspython
 2.6.0 (in development)
 ----------------------
 
+* As mentioned in the "TuDoor" paper and the associated CVE-2023-29483, the dnspython
+  stub resolver is vulnerable to a potential DoS if a bad-in-some-way response from the
+  right address and port forged by an attacker arrives before a legitimate one on the
+  UDP port dnspython is using for that query.
+
+  This release addresses the issue by adopting the recommended mitigation, which is
+  ignoring the bad packets and continuing to listen for a legitimate response until
+  the timeout for the query has expired.
+
 * Added support for the NSID EDNS option.
+
+* Dnspython now looks for version metadata for optional packages and will not
+  use them if they are too old.  This prevents possible exceptions when a
+  feature like DoH is not desired in dnspython, but an old httpx is installed
+  along with dnspython for some other purpose.
 
 2.5.0
 -----
