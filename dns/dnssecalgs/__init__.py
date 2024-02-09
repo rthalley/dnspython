@@ -1,9 +1,9 @@
 from typing import Dict, Optional, Tuple, Type, Union
 
 import dns.name
+from dns.dnssecalgs.base import GenericPrivateKey
 
 if dns._features.have("dnssec"):
-    from dns.dnssecalgs.base import GenericPrivateKey
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
     from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
