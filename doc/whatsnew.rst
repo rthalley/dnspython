@@ -22,6 +22,10 @@ What's New in dnspython
   feature like DoH is not desired in dnspython, but an old httpx is installed
   along with dnspython for some other purpose.
 
+* The DoHNameserver class now allows GET to be used instead of the default POST,
+  and also passes source and source_port correctly to the underlying query
+  methods.
+
 2.5.0
 -----
 
