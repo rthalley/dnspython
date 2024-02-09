@@ -3,8 +3,13 @@
 What's New in dnspython
 =======================
 
-2.6.0 (in development)
+2.7.0 (in development)
 ----------------------
+
+* TBD
+
+2.6.0
+-----
 
 * As mentioned in the "TuDoor" paper and the associated CVE-2023-29483, the dnspython
   stub resolver is vulnerable to a potential DoS if a bad-in-some-way response from the
