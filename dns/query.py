@@ -29,6 +29,7 @@ import struct
 import time
 from typing import Any, Dict, Optional, Tuple, Union
 
+import dns._features
 import dns.exception
 import dns.inet
 import dns.message
@@ -58,23 +59,13 @@ def _expiration_for_this_attempt(timeout, expiration):
     return min(time.time() + timeout, expiration)
 
 
-_have_httpx = False
-_have_http2 = False
-try:
-    import httpcore
+_have_httpx = dns._features.have("doh")
+if _have_httpx:
     import httpcore._backends.sync
     import httpx
 
     _CoreNetworkBackend = httpcore.NetworkBackend
     _CoreSyncStream = httpcore._backends.sync.SyncStream
-
-    _have_httpx = True
-    try:
-        # See if http2 support is available.
-        with httpx.Client(http2=True):
-            _have_http2 = True
-    except Exception:
-        pass
 
     class _NetworkBackend(_CoreNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):
@@ -148,7 +139,7 @@ try:
                 resolver, local_port, bootstrap_address, family
             )
 
-except ImportError:  # pragma: no cover
+else:
 
     class _HTTPTransport:  # type: ignore
         def connect_tcp(self, host, port, timeout, local_address):
@@ -462,7 +453,7 @@ def https(
     transport = _HTTPTransport(
         local_address=local_address,
         http1=True,
-        http2=_have_http2,
+        http2=True,
         verify=verify,
         local_port=local_port,
         bootstrap_address=bootstrap_address,
@@ -473,9 +464,7 @@ def https(
     if session:
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(session)
     else:
-        cm = httpx.Client(
-            http1=True, http2=_have_http2, verify=verify, transport=transport
-        )
+        cm = httpx.Client(http1=True, http2=True, verify=verify, transport=transport)
     with cm as session:
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples

@@ -542,23 +542,6 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
-    def testDOHGetRequestHttp1(self):
-        async def run():
-            saved_have_http2 = dns.query._have_http2
-            try:
-                dns.query._have_http2 = False
-                nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
-                q = dns.message.make_query("example.com.", dns.rdatatype.A)
-                r = await dns.asyncquery.https(
-                    q, nameserver_url, post=False, timeout=4, family=family
-                )
-                self.assertTrue(q.is_response(r))
-            finally:
-                dns.query._have_http2 = saved_have_http2
-
-        self.async_run(run)
-
-    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testDOHPostRequest(self):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)

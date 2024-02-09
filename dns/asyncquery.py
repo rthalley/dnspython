@@ -41,7 +41,6 @@ from dns.query import (
     NoDOQ,
     UDPMode,
     _compute_times,
-    _have_http2,
     _make_dot_ssl_context,
     _matches_destination,
     _remaining,
@@ -534,7 +533,7 @@ async def https(
     transport = backend.get_transport_class()(
         local_address=local_address,
         http1=True,
-        http2=_have_http2,
+        http2=True,
         verify=verify,
         local_port=local_port,
         bootstrap_address=bootstrap_address,
@@ -546,7 +545,7 @@ async def https(
         cm: contextlib.AbstractAsyncContextManager = NullContext(client)
     else:
         cm = httpx.AsyncClient(
-            http1=True, http2=_have_http2, verify=verify, transport=transport
+            http1=True, http2=True, verify=verify, transport=transport
         )
 
     async with cm as the_client:

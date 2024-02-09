@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+import os
+import tomllib
+
+with open("pyproject.toml", "rb") as pp:
+    pyproject = tomllib.load(pp)
+
+FEATURES = "dns/_features.py"
+NEW_FEATURES = FEATURES + ".new"
+skip = False
+with open(FEATURES, "r") as input:
+    with open(NEW_FEATURES, "w") as output:
+        for l in input.readlines():
+            l = l.rstrip()
+            if l.startswith("    ### BEGIN generated requirements"):
+                print(l, file=output)
+                for name, deps in pyproject["project"]["optional-dependencies"].items():
+                    if name == "dev":
+                        continue
+                    print(
+                        f"    {repr(name)}: {repr(deps)},".replace("'", '"'),
+                        file=output,
+                    )
+                skip = True
+            elif l.startswith("    ### END generated requirements"):
+                skip = False
+            if not skip:
+                print(l, file=output)
+os.rename(NEW_FEATURES, FEATURES)
