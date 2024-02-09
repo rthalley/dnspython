@@ -141,7 +141,7 @@ class OptionTestCase(unittest.TestCase):
         opt.to_wire(io)
         data = io.getvalue()
         self.assertEqual(data, b"\x00\x03")
-        self.assertEqual(str(opt), "EDE 3")
+        self.assertEqual(str(opt), "EDE 3 (Stale Answer)")
         # with text
         opt = dns.edns.EDEOption(16, "test")
         io = BytesIO()

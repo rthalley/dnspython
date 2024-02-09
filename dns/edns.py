@@ -345,6 +345,8 @@ class EDECode(dns.enum.IntEnum):
 class EDEOption(Option):  # lgtm[py/missing-equals]
     """Extended DNS Error (EDE, RFC8914)"""
 
+    _preserve_case = {"DNSKEY", "DS", "DNSSEC", "RRSIGs", "NSEC", "NXDOMAIN"}
+
     def __init__(self, code: Union[EDECode, str], text: Optional[str] = None):
         """*code*, a ``dns.edns.EDECode`` or ``str``, the info code of the
         extended error.
@@ -362,6 +364,13 @@ class EDEOption(Option):  # lgtm[py/missing-equals]
 
     def to_text(self) -> str:
         output = f"EDE {self.code}"
+        if self.code in EDECode:
+            desc = EDECode.to_text(self.code)
+            desc = " ".join(
+                word if word in self._preserve_case else word.title()
+                for word in desc.split("_")
+            )
+            output += f" ({desc})"
         if self.text is not None:
             output += f": {self.text}"
         return output
