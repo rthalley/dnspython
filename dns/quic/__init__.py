@@ -1,11 +1,11 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import dns._features
+import dns.asyncbackend
 
 if dns._features.have("doq"):
     import aioquic.quic.configuration  # type: ignore
 
-    import dns.asyncbackend
     from dns._asyncbackend import NullContext
     from dns.quic._asyncio import (
         AsyncioQuicConnection,

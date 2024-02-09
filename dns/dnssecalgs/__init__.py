@@ -2,6 +2,9 @@ from typing import Dict, Optional, Tuple, Type, Union
 
 import dns.name
 from dns.dnssecalgs.base import GenericPrivateKey
+from dns.dnssectypes import Algorithm
+from dns.exception import UnsupportedAlgorithm
+from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 if dns._features.have("dnssec"):
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
@@ -18,10 +21,6 @@ if dns._features.have("dnssec"):
     _have_cryptography = True
 else:
     _have_cryptography = False
-
-from dns.dnssectypes import Algorithm
-from dns.exception import UnsupportedAlgorithm
-from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 AlgorithmPrefix = Optional[Union[bytes, dns.name.Name]]
 

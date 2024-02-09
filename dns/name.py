@@ -25,6 +25,10 @@ import struct
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 import dns._features
+import dns.enum
+import dns.exception
+import dns.immutable
+import dns.wire
 
 if dns._features.have("idna"):
     import idna  # type: ignore
@@ -32,11 +36,6 @@ if dns._features.have("idna"):
     have_idna_2008 = True
 else:  # pragma: no cover
     have_idna_2008 = False
-
-import dns.enum
-import dns.exception
-import dns.immutable
-import dns.wire
 
 CompressType = Dict["Name", int]
 
