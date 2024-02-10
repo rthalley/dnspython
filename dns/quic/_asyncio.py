@@ -43,12 +43,26 @@ class AsyncioQuicStream(BaseQuicStream):
                 raise dns.exception.Timeout
             self._expecting = 0
 
+    async def wait_for_end(self, expiration):
+        while True:
+            timeout = self._timeout_from_expiration(expiration)
+            if self._buffer.seen_end():
+                return
+            try:
+                await asyncio.wait_for(self._wait_for_wake_up(), timeout)
+            except TimeoutError:
+                raise dns.exception.Timeout
+
     async def receive(self, timeout=None):
         expiration = self._expiration_from_timeout(timeout)
-        await self.wait_for(2, expiration)
-        (size,) = struct.unpack("!H", self._buffer.get(2))
-        await self.wait_for(size, expiration)
-        return self._buffer.get(size)
+        if self._connection.is_h3():
+            await self.wait_for_end(expiration)
+            return self._buffer.get_all()
+        else:
+            await self.wait_for(2, expiration)
+            (size,) = struct.unpack("!H", self._buffer.get(2))
+            await self.wait_for(size, expiration)
+            return self._buffer.get(size)
 
     async def send(self, datagram, is_end=False):
         data = self._encapsulate(datagram)
@@ -140,9 +154,28 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             if event is None:
                 return
             if isinstance(event, aioquic.quic.events.StreamDataReceived):
-                stream = self._streams.get(event.stream_id)
-                if stream:
-                    await stream._add_input(event.data, event.end_stream)
+                if self.is_h3():
+                    h3_events = self._h3_conn.handle_event(event)
+                    for h3_event in h3_events:
+                        if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
+                            stream = self._streams.get(event.stream_id)
+                            if stream:
+                                if stream._headers is None:
+                                    stream._headers = h3_event.headers
+                                elif stream._trailers is None:
+                                    stream._trailers = h3_event.headers
+                                if h3_event.stream_ended:
+                                    await stream._add_input(b"", True)
+                        elif isinstance(h3_event, aioquic.h3.events.DataReceived):
+                            stream = self._streams.get(event.stream_id)
+                            if stream:
+                                await stream._add_input(
+                                    h3_event.data, h3_event.stream_ended
+                                )
+                else:
+                    stream = self._streams.get(event.stream_id)
+                    if stream:
+                        await stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
             elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
@@ -203,8 +236,10 @@ class AsyncioQuicConnection(AsyncQuicConnection):
 
 
 class AsyncioQuicManager(AsyncQuicManager):
-    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None):
-        super().__init__(conf, verify_mode, AsyncioQuicConnection, server_name)
+    def __init__(
+        self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None, h3=False
+    ):
+        super().__init__(conf, verify_mode, AsyncioQuicConnection, server_name, h3)
 
     def connect(
         self, address, port=853, source=None, source_port=0, want_session_ticket=True

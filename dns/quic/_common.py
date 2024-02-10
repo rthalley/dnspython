@@ -1,12 +1,16 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import base64
 import copy
 import functools
 import socket
 import struct
 import time
+import urllib
 from typing import Any, Optional
 
+import aioquic.h3.connection  # type: ignore
+import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 
@@ -51,6 +55,12 @@ class Buffer:
         self._buffer = self._buffer[amount:]
         return data
 
+    def get_all(self):
+        assert self.seen_end()
+        data = self._buffer
+        self._buffer = b""
+        return data
+
 
 class BaseQuicStream:
     def __init__(self, connection, stream_id):
@@ -58,9 +68,17 @@ class BaseQuicStream:
         self._stream_id = stream_id
         self._buffer = Buffer()
         self._expecting = 0
+        self._headers = None
+        self._trailers = None
 
     def id(self):
         return self._stream_id
+
+    def headers(self):
+        return self._headers
+
+    def trailers(self):
+        return self._trailers
 
     def _expiration_from_timeout(self, timeout):
         if timeout is not None:
@@ -77,16 +95,51 @@ class BaseQuicStream:
         return timeout
 
     # Subclass must implement receive() as sync / async and which returns a message
-    # or raises UnexpectedEOF.
+    # or raises.
+
+    # Subclass must implement send() as sync / async and which takes a message and
+    # an EOF indicator.
+
+    def send_h3(self, url, datagram, post=True):
+        if not self._connection.is_h3():
+            raise SyntaxError("cannot send H3 to a non-H3 connection")
+        url_parts = urllib.parse.urlparse(url)
+        path = url_parts.path.encode()
+        if post:
+            method = b"POST"
+        else:
+            method = b"GET"
+            path += b"?dns=" + base64.urlsafe_b64encode(datagram).rstrip(b"=")
+        headers = [
+            (b":method", method),
+            (b":scheme", url_parts.scheme.encode()),
+            (b":authority", url_parts.netloc.encode()),
+            (b":path", path),
+            (b"accept", b"application/dns-message"),
+        ]
+        if post:
+            headers.extend(
+                [
+                    (b"content-type", b"application/dns-message"),
+                    (b"content-length", str(len(datagram)).encode()),
+                ]
+            )
+        self._connection.send_headers(self._stream_id, headers, not post)
+        if post:
+            self._connection.send_data(self._stream_id, datagram, True)
 
     def _encapsulate(self, datagram):
+        if self._connection.is_h3():
+            return datagram
         l = len(datagram)
         return struct.pack("!H", l) + datagram
 
     def _common_add_input(self, data, is_end):
         self._buffer.put(data, is_end)
         try:
-            return self._expecting > 0 and self._buffer.have(self._expecting)
+            return (
+                self._expecting > 0 and self._buffer.have(self._expecting)
+            ) or self._buffer.seen_end
         except UnexpectedEOF:
             return True
 
@@ -97,7 +150,13 @@ class BaseQuicStream:
 
 class BaseQuicConnection:
     def __init__(
-        self, connection, address, port, source=None, source_port=0, manager=None
+        self,
+        connection,
+        address,
+        port,
+        source=None,
+        source_port=0,
+        manager=None,
     ):
         self._done = False
         self._connection = connection
@@ -106,6 +165,10 @@ class BaseQuicConnection:
         self._closed = False
         self._manager = manager
         self._streams = {}
+        if manager.is_h3():
+            self._h3_conn = aioquic.h3.connection.H3Connection(connection, False)
+        else:
+            self._h3_conn = None
         self._af = dns.inet.af_for_address(address)
         self._peer = dns.inet.low_level_address_tuple((address, port))
         if source is None and source_port != 0:
@@ -120,8 +183,17 @@ class BaseQuicConnection:
         else:
             self._source = None
 
+    def is_h3(self):
+        return self._h3_conn is not None
+
     def close_stream(self, stream_id):
         del self._streams[stream_id]
+
+    def send_headers(self, stream_id, headers, is_end=False):
+        self._h3_conn.send_headers(stream_id, headers, is_end)
+
+    def send_data(self, stream_id, data, is_end=False):
+        self._h3_conn.send_data(stream_id, data, is_end)
 
     def _get_timer_values(self, closed_is_special=True):
         now = time.time()
@@ -148,17 +220,24 @@ class AsyncQuicConnection(BaseQuicConnection):
 
 
 class BaseQuicManager:
-    def __init__(self, conf, verify_mode, connection_factory, server_name=None):
+    def __init__(
+        self, conf, verify_mode, connection_factory, server_name=None, h3=False
+    ):
         self._connections = {}
         self._connection_factory = connection_factory
         self._session_tickets = {}
+        self._h3 = h3
         if conf is None:
             verify_path = None
             if isinstance(verify_mode, str):
                 verify_path = verify_mode
                 verify_mode = True
+            if h3:
+                alpn_protocols = ["h3"]
+            else:
+                alpn_protocols = ["doq", "doq-i03"]
             conf = aioquic.quic.configuration.QuicConfiguration(
-                alpn_protocols=["doq", "doq-i03"],
+                alpn_protocols=alpn_protocols,
                 verify_mode=verify_mode,
                 server_name=server_name,
             )
@@ -167,7 +246,12 @@ class BaseQuicManager:
         self._conf = conf
 
     def _connect(
-        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+        self,
+        address,
+        port=853,
+        source=None,
+        source_port=0,
+        want_session_ticket=True,
     ):
         connection = self._connections.get((address, port))
         if connection is not None:
@@ -206,6 +290,9 @@ class BaseQuicManager:
             del self._connections[(address, port)]
         except KeyError:
             pass
+
+    def is_h3(self):
+        return self._h3
 
     def save_session_ticket(self, address, port, ticket):
         # We rely on dictionaries keys() being in insertion order here.  We
