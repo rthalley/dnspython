@@ -21,12 +21,6 @@ from dns.quic._common import (
     UnexpectedEOF,
 )
 
-# Avoid circularity with dns.query
-if hasattr(selectors, "PollSelector"):
-    _selector_class = selectors.PollSelector  # type: ignore
-else:
-    _selector_class = selectors.SelectSelector  # type: ignore
-
 
 class SyncQuicStream(BaseQuicStream):
     def __init__(self, connection, stream_id):
@@ -118,7 +112,7 @@ class SyncQuicConnection(BaseQuicConnection):
 
     def _worker(self):
         try:
-            sel = _selector_class()
+            sel = selectors.DefaultSelector()
             sel.register(self._socket, selectors.EVENT_READ, self._read)
             sel.register(self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup)
             while not self._done:
