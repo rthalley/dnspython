@@ -217,7 +217,7 @@ def _wait_for(fd, readable, writable, _, expiration):
 
     if readable and isinstance(fd, ssl.SSLSocket) and fd.pending() > 0:
         return True
-    sel = _selector_class()
+    sel = selectors.DefaultSelector()
     events = 0
     if readable:
         events |= selectors.EVENT_READ
@@ -233,26 +233,6 @@ def _wait_for(fd, readable, writable, _, expiration):
             raise dns.exception.Timeout
     if not sel.select(timeout):
         raise dns.exception.Timeout
-
-
-def _set_selector_class(selector_class):
-    # Internal API. Do not use.
-
-    global _selector_class
-
-    _selector_class = selector_class
-
-
-if hasattr(selectors, "PollSelector"):
-    # Prefer poll() on platforms that support it because it has no
-    # limits on the maximum value of a file descriptor (plus it will
-    # be more efficient for high values).
-    #
-    # We ignore typing here as we can't say _selector_class is Any
-    # on python < 3.8 due to a bug.
-    _selector_class = selectors.PollSelector  # type: ignore
-else:
-    _selector_class = selectors.SelectSelector  # type: ignore
 
 
 def _wait_for_readable(s, expiration):

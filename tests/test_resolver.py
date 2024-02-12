@@ -817,35 +817,6 @@ class LiveResolverTests(unittest.TestCase):
                 res.nameservers = [ns]
 
 
-class PollingMonkeyPatchMixin(object):
-    def setUp(self):
-        self.__native_selector_class = dns.query._selector_class
-        dns.query._set_selector_class(self.selector_class())
-
-        unittest.TestCase.setUp(self)
-
-    def tearDown(self):
-        dns.query._set_selector_class(self.__native_selector_class)
-
-        unittest.TestCase.tearDown(self)
-
-
-class SelectResolverTestCase(
-    PollingMonkeyPatchMixin, LiveResolverTests, unittest.TestCase
-):
-    def selector_class(self):
-        return selectors.SelectSelector
-
-
-if hasattr(selectors, "PollSelector"):
-
-    class PollResolverTestCase(
-        PollingMonkeyPatchMixin, LiveResolverTests, unittest.TestCase
-    ):
-        def selector_class(self):
-            return selectors.PollSelector
-
-
 class NXDOMAINExceptionTestCase(unittest.TestCase):
     # pylint: disable=broad-except
 
