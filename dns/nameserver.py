@@ -116,6 +116,7 @@ class Do53Nameserver(AddressAndPortNameserver):
                 one_rr_per_rrset=one_rr_per_rrset,
                 ignore_trailing=ignore_trailing,
                 ignore_errors=True,
+                ignore_unexpected=True,
             )
         return response
 
@@ -155,6 +156,7 @@ class Do53Nameserver(AddressAndPortNameserver):
                 one_rr_per_rrset=one_rr_per_rrset,
                 ignore_trailing=ignore_trailing,
                 ignore_errors=True,
+                ignore_unexpected=True,
             )
         return response
 
