@@ -683,6 +683,14 @@ def mock_udp_recv(wire1, from1, wire2, from2):
         dns.query._udp_recv = saved
 
 
+class MockSock:
+    def __init__(self):
+        self.family = socket.AF_INET
+
+    def sendto(self, data, where):
+        return len(data)
+
+
 class IgnoreErrors(unittest.TestCase):
     def setUp(self):
         self.q = dns.message.make_query("example.", "A")
@@ -757,6 +765,19 @@ class IgnoreErrors(unittest.TestCase):
             )
 
         self.assertRaises(AssertionError, bad)
+
+    def test_not_response_not_ignored_udp_level(self):
+        def bad():
+            bad_r = dns.message.make_response(self.q)
+            bad_r.id += 1
+            bad_r_wire = bad_r.to_wire()
+            with mock_udp_recv(
+                bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
+            ):
+                s = MockSock()
+                dns.query.udp(self.good_r, "127.0.0.1", sock=s)
+
+        self.assertRaises(dns.query.BadResponse, bad)
 
     def test_bad_wire(self):
         bad_r = dns.message.make_response(self.q)
