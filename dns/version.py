@@ -24,9 +24,9 @@ MINOR = 6
 #: MICRO
 MICRO = 0
 #: RELEASELEVEL
-RELEASELEVEL = 0x0C
+RELEASELEVEL = 0x0F
 #: SERIAL
-SERIAL = 1
+SERIAL = 0
 
 if RELEASELEVEL == 0x0F:  # pragma: no cover  lgtm[py/unreachable-statement]
     #: version

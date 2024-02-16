@@ -30,9 +30,9 @@ to facilitate the testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is dnspython 2.6.0rc1.
+This is dnspython 2.6.0.
 Please read
-[What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
+[What's New](https://dnspython.readthedocs.io/en/stable/whatsnew.html) for
 information about the changes in this release.
 
 ## INSTALLATION
