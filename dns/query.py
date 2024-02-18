@@ -638,6 +638,20 @@ def receive_udp(
                 ignore_trailing=ignore_trailing,
                 raise_on_truncation=raise_on_truncation,
             )
+        except dns.message.Truncated as e:
+            # If we got Truncated and not FORMERR, we at least got the header with TC
+            # set, and very likely the question section, so we'll re-raise if the
+            # message seems to be a response as we need to know when truncation happens.
+            # We need to check that it seems to be a response as we don't want a random
+            # injected message with TC set to cause us to bail out.
+            if (
+                ignore_errors
+                and query is not None
+                and not query.is_response(e.message())
+            ):
+                continue
+            else:
+                raise
         except Exception:
             if ignore_errors:
                 continue

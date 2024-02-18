@@ -705,7 +705,11 @@ class IgnoreErrors(unittest.TestCase):
         from2,
         ignore_unexpected=True,
         ignore_errors=True,
+        raise_on_truncation=False,
+        good_r=None,
     ):
+        if good_r is None:
+            good_r = self.good_r
         s = MockSock(wire1, from1, wire2, from2)
         (r, when, _) = await dns.asyncquery.receive_udp(
             s,
@@ -713,9 +717,10 @@ class IgnoreErrors(unittest.TestCase):
             time.time() + 2,
             ignore_unexpected=ignore_unexpected,
             ignore_errors=ignore_errors,
+            raise_on_truncation=raise_on_truncation,
             query=self.q,
         )
-        self.assertEqual(r, self.good_r)
+        self.assertEqual(r, good_r)
 
     def test_good_mock(self):
         async def run():
@@ -798,6 +803,59 @@ class IgnoreErrors(unittest.TestCase):
             bad_r_wire = bad_r.to_wire()
             await self.mock_receive(
                 bad_r_wire[:10], ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
+            )
+
+        self.async_run(run)
+
+    def test_good_wire_with_truncation_flag_and_no_truncation_raise(self):
+        async def run():
+            tc_r = dns.message.make_response(self.q)
+            tc_r.flags |= dns.flags.TC
+            tc_r_wire = tc_r.to_wire()
+            await self.mock_receive(
+                tc_r_wire, ("127.0.0.1", 53), None, None, good_r=tc_r
+            )
+
+        self.async_run(run)
+
+    def test_good_wire_with_truncation_flag_and_truncation_raise(self):
+        async def agood():
+            tc_r = dns.message.make_response(self.q)
+            tc_r.flags |= dns.flags.TC
+            tc_r_wire = tc_r.to_wire()
+            await self.mock_receive(
+                tc_r_wire, ("127.0.0.1", 53), None, None, raise_on_truncation=True
+            )
+
+        def good():
+            self.async_run(agood)
+
+        self.assertRaises(dns.message.Truncated, good)
+
+    def test_wrong_id_wire_with_truncation_flag_and_no_truncation_raise(self):
+        async def run():
+            bad_r = dns.message.make_response(self.q)
+            bad_r.id += 1
+            bad_r.flags |= dns.flags.TC
+            bad_r_wire = bad_r.to_wire()
+            await self.mock_receive(
+                bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
+            )
+
+        self.async_run(run)
+
+    def test_wrong_id_wire_with_truncation_flag_and_truncation_raise(self):
+        async def run():
+            bad_r = dns.message.make_response(self.q)
+            bad_r.id += 1
+            bad_r.flags |= dns.flags.TC
+            bad_r_wire = bad_r.to_wire()
+            await self.mock_receive(
+                bad_r_wire,
+                ("127.0.0.1", 53),
+                self.good_r_wire,
+                ("127.0.0.1", 53),
+                raise_on_truncation=True,
             )
 
         self.async_run(run)
