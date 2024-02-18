@@ -151,6 +151,16 @@ async def receive_udp(
                 ignore_trailing=ignore_trailing,
                 raise_on_truncation=raise_on_truncation,
             )
+        except dns.message.Truncated as e:
+            # See the comment in query.py for details.
+            if (
+                ignore_errors
+                and query is not None
+                and not query.is_response(e.message())
+            ):
+                continue
+            else:
+                raise
         except Exception:
             if ignore_errors:
                 continue
