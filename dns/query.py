@@ -624,10 +624,14 @@ def receive_udp(
             # message seems to be a response as we need to know when truncation happens.
             # We need to check that it seems to be a response as we don't want a random
             # injected message with TC set to cause us to bail out.
-            if not ignore_errors or not query or query.is_response(e.message()):
-                raise
-            else:
+            if (
+                ignore_errors
+                and query is not None
+                and not query.is_response(e.message())
+            ):
                 continue
+            else:
+                raise
         except Exception:
             if ignore_errors:
                 continue
