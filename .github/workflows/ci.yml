@@ -6,13 +6,13 @@ name: Python build
 on:
   push:
     branches:
-      - master
+      - main
       - 2.6
     paths:
       - '**.py'
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
