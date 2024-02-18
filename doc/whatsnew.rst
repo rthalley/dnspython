@@ -8,6 +8,12 @@ What's New in dnspython
 
 * TBD
 
+2.6.1
+-----
+
+* The Tudoor fix ate legitimate Truncated exceptions, preventing the resolver from
+  failing over to TCP and causing the query to timeout [#1053].
+
 2.6.0
 -----
 
