@@ -991,6 +991,15 @@ www.dnspython.org. 300 IN A 1.2.3.4
         self.assertEqual(update.section_count(dns.update.UpdateSection.PREREQ), 5)
         self.assertEqual(update.section_count(dns.update.UpdateSection.UPDATE), 7)
 
+    def test_extended_errors(self):
+        options = [
+            dns.edns.EDEOption(dns.edns.EDECode.NETWORK_ERROR, "tubes not tubing"),
+            dns.edns.EDEOption(dns.edns.EDECode.OTHER, "catch all code"),
+        ]
+        r = dns.message.make_query("example", "A", use_edns=0, options=options)
+        r.flags |= dns.flags.QR
+        self.assertEqual(r.extended_errors(), options)
+
 
 if __name__ == "__main__":
     unittest.main()
