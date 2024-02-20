@@ -161,6 +161,7 @@ class Message:
         self.index: IndexType = {}
         self.errors: List[MessageError] = []
         self.time = 0.0
+        self.wire: Optional[bytes] = None
 
     @property
     def question(self) -> List[dns.rrset.RRset]:
@@ -645,6 +646,7 @@ class Message:
             if multi:
                 self.tsig_ctx = ctx
         wire = r.get_wire()
+        self.wire = wire
         if prepend_length:
             wire = len(wire).to_bytes(2, "big") + wire
         return wire
@@ -1259,6 +1261,7 @@ class _WireReader:
         factory = _message_factory_from_opcode(dns.opcode.from_flags(flags))
         self.message = factory(id=id)
         self.message.flags = dns.flags.Flag(flags)
+        self.message.wire = self.parser.wire
         self.initialize_message(self.message)
         self.one_rr_per_rrset = self.message._get_one_rr_per_rrset(
             self.one_rr_per_rrset

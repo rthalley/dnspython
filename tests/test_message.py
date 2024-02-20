@@ -170,6 +170,20 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(len(m2.options), 1)
         self.assertEqual(m2.options[0], opt)
 
+    def test_keeping_wire(self):
+        m = dns.message.from_wire(goodwire)
+        self.assertEqual(m.wire, goodwire)
+        m = dns.message.make_query("example", "A")
+        self.assertEqual(m.wire, None)
+
+    def test_recording_wire(self):
+        m = dns.message.from_wire(goodwire)
+        self.assertEqual(m.wire, goodwire)
+        m.wire = None
+        wire = m.to_wire()
+        self.assertEqual(wire, goodwire)
+        self.assertEqual(m.wire, goodwire)
+
     def test_TooBig(self):
         def bad():
             q = dns.message.from_text(query_text)
