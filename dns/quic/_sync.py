@@ -21,6 +21,9 @@ from dns.quic._common import (
     UnexpectedEOF,
 )
 
+# Function used to create a socket.  Can be overridden if needed in special
+# situations.
+socket_factory = socket.socket
 
 class SyncQuicStream(BaseQuicStream):
     def __init__(self, connection, stream_id):
@@ -75,7 +78,7 @@ class SyncQuicStream(BaseQuicStream):
 class SyncQuicConnection(BaseQuicConnection):
     def __init__(self, connection, address, port, source, source_port, manager):
         super().__init__(connection, address, port, source, source_port, manager)
-        self._socket = socket.socket(self._af, socket.SOCK_DGRAM, 0)
+        self._socket = socket_factory(self._af, socket.SOCK_DGRAM, 0)
         if self._source is not None:
             try:
                 self._socket.bind(
