@@ -261,3 +261,4 @@ ech="abcd" ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4 key12345="foo"
 )
 https01                 HTTPS 0 svc
 https02                 HTTPS 1 . port=8002 ech="abcd"
+resinfo                 RESINFO qnamemin exterr=15,16,17 infourl=https://resolver.example.com/guide

@@ -119,6 +119,8 @@ Rdatatypes
    :annotation: = 12
 .. py:data:: dns.rdatatype.PX
    :annotation: = 26
+.. py:data:: dns.rdatatype.RESINFO
+   :annotation: = 261
 .. py:data:: dns.rdatatype.RP
    :annotation: = 17
 .. py:data:: dns.rdatatype.RRSIG

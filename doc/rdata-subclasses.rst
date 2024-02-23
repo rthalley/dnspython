@@ -439,6 +439,13 @@ Universal Types
 
       A ``dns.name.Name``, the target name.
 
+.. autoclass:: dns.rdtypes.ANY.RESINFO.RESINFO
+   :members:
+
+   .. attribute:: strings
+
+      A tuple of ``bytes``, the list of strings.
+
 .. autoclass:: dns.rdtypes.ANY.RP.RP
    :members:
 

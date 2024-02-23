@@ -105,6 +105,7 @@ class RdataType(dns.enum.IntEnum):
     CAA = 257
     AVC = 258
     AMTRELAY = 260
+    RESINFO = 261
     TA = 32768
     DLV = 32769
 
@@ -326,6 +327,7 @@ URI = RdataType.URI
 CAA = RdataType.CAA
 AVC = RdataType.AVC
 AMTRELAY = RdataType.AMTRELAY
+RESINFO = RdataType.RESINFO
 TA = RdataType.TA
 DLV = RdataType.DLV
 

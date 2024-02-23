@@ -116,6 +116,7 @@ openpgpkey.example. 3600 IN OPENPGPKEY mQENBEteQDsBCADYnatn9+5t43AdJlVk9dZC2RM0i
 ptr01.example. 3600 IN PTR example.
 px01.example. 3600 IN PX 65535 foo. bar.
 px02.example. 3600 IN PX 65535 . .
+resinfo.example. 3600 IN RESINFO "qnamemin" "exterr=15,16,17" "infourl=https://resolver.example.com/guide"
 rp01.example. 3600 IN RP mbox-dname.example. txt-dname.example.
 rp02.example. 3600 IN RP . .
 rrsig01.example. 3600 IN RRSIG NSEC 1 3 3600 20200101000000 20030101000000 2143 foo.example. MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
