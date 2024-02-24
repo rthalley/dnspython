@@ -27,6 +27,7 @@ import dns.asyncresolver
 import dns.message
 import dns.name
 import dns.query
+import dns.quic
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
@@ -76,6 +77,11 @@ KNOWN_ANYCAST_DOH_RESOLVER_URLS = [
     "https://cloudflare-dns.com/dns-query",
     "https://dns.google/dns-query",
     # 'https://dns11.quad9.net/dns-query',
+]
+
+KNOWN_ANYCAST_DOH3_RESOLVER_URLS = [
+    "https://cloudflare-dns.com/dns-query",
+    "https://dns.google/dns-query",
 ]
 
 
@@ -548,6 +554,40 @@ class AsyncTests(unittest.TestCase):
             q = dns.message.make_query("example.com.", dns.rdatatype.A)
             r = await dns.asyncquery.https(
                 q, nameserver_url, post=True, timeout=4, family=family
+            )
+            self.assertTrue(q.is_response(r))
+
+        self.async_run(run)
+
+    @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
+    def testDoH3GetRequest(self):
+        async def run():
+            nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
+            q = dns.message.make_query("dns.google.", dns.rdatatype.A)
+            r = await dns.asyncquery.https(
+                q,
+                nameserver_url,
+                post=False,
+                timeout=4,
+                family=family,
+                h3=True,
+            )
+            self.assertTrue(q.is_response(r))
+
+        self.async_run(run)
+
+    @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
+    def TestDoH3PostRequest(self):
+        async def run():
+            nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
+            q = dns.message.make_query("dns.google.", dns.rdatatype.A)
+            r = await dns.asyncquery.https(
+                q,
+                nameserver_url,
+                post=True,
+                timeout=4,
+                family=family,
+                h3=True,
             )
             self.assertTrue(q.is_response(r))
 

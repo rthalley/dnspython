@@ -28,6 +28,7 @@ except Exception:
 import dns.edns
 import dns.message
 import dns.query
+import dns.quic
 import dns.rdatatype
 import dns.resolver
 
@@ -63,6 +64,11 @@ KNOWN_ANYCAST_DOH_RESOLVER_URLS = [
     "https://cloudflare-dns.com/dns-query",
     "https://dns.google/dns-query",
     # 'https://dns11.quad9.net/dns-query',
+]
+
+KNOWN_ANYCAST_DOH3_RESOLVER_URLS = [
+    "https://cloudflare-dns.com/dns-query",
+    "https://dns.google/dns-query",
 ]
 
 KNOWN_PAD_AWARE_DOH_RESOLVER_URLS = [
@@ -181,6 +187,38 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
             if o.otype == dns.edns.OptionType.PADDING:
                 has_pad = True
         self.assertTrue(has_pad)
+
+
+@unittest.skipUnless(
+    dns.quic.have_quic and tests.util.is_internet_reachable() and _have_ssl,
+    "Aioquic cannot be imported; no DNS over HTTP3 (DOH3)",
+)
+class DNSOverHTTP3TestCase(unittest.TestCase):
+    def testDoH3GetRequest(self):
+        nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
+        q = dns.message.make_query("dns.google.", dns.rdatatype.A)
+        r = dns.query.https(
+            q,
+            nameserver_url,
+            post=False,
+            timeout=4,
+            family=family,
+            h3=True,
+        )
+        self.assertTrue(q.is_response(r))
+
+    def testDoH3PostRequest(self):
+        nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
+        q = dns.message.make_query("dns.google.", dns.rdatatype.A)
+        r = dns.query.https(
+            q,
+            nameserver_url,
+            post=True,
+            timeout=4,
+            family=family,
+            h3=True,
+        )
+        self.assertTrue(q.is_response(r))
 
 
 if __name__ == "__main__":

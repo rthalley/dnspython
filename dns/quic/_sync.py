@@ -43,14 +43,29 @@ class SyncQuicStream(BaseQuicStream):
                     raise dns.exception.Timeout
             self._expecting = 0
 
+    def wait_for_end(self, expiration):
+        while True:
+            timeout = self._timeout_from_expiration(expiration)
+            with self._lock:
+                if self._buffer.seen_end():
+                    return
+            with self._wake_up:
+                if not self._wake_up.wait(timeout):
+                    raise dns.exception.Timeout
+
     def receive(self, timeout=None):
         expiration = self._expiration_from_timeout(timeout)
-        self.wait_for(2, expiration)
-        with self._lock:
-            (size,) = struct.unpack("!H", self._buffer.get(2))
-        self.wait_for(size, expiration)
-        with self._lock:
-            return self._buffer.get(size)
+        if self._connection.is_h3():
+            self.wait_for_end(expiration)
+            with self._lock:
+                return self._buffer.get_all()
+        else:
+            self.wait_for(2, expiration)
+            with self._lock:
+                (size,) = struct.unpack("!H", self._buffer.get(2))
+            self.wait_for(size, expiration)
+            with self._lock:
+                return self._buffer.get(size)
 
     def send(self, datagram, is_end=False):
         data = self._encapsulate(datagram)
@@ -147,10 +162,29 @@ class SyncQuicConnection(BaseQuicConnection):
             if event is None:
                 return
             if isinstance(event, aioquic.quic.events.StreamDataReceived):
-                with self._lock:
-                    stream = self._streams.get(event.stream_id)
-                if stream:
-                    stream._add_input(event.data, event.end_stream)
+                if self.is_h3():
+                    h3_events = self._h3_conn.handle_event(event)
+                    for h3_event in h3_events:
+                        if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
+                            with self._lock:
+                                stream = self._streams.get(event.stream_id)
+                            if stream:
+                                if stream._headers is None:
+                                    stream._headers = h3_event.headers
+                                elif stream._trailers is None:
+                                    stream._trailers = h3_event.headers
+                                if h3_event.stream_ended:
+                                    stream._add_input(b"", True)
+                        elif isinstance(h3_event, aioquic.h3.events.DataReceived):
+                            with self._lock:
+                                stream = self._streams.get(event.stream_id)
+                            if stream:
+                                stream._add_input(h3_event.data, h3_event.stream_ended)
+                else:
+                    with self._lock:
+                        stream = self._streams.get(event.stream_id)
+                    if stream:
+                        stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
             elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
@@ -166,6 +200,18 @@ class SyncQuicConnection(BaseQuicConnection):
         with self._lock:
             self._connection.send_stream_data(stream, data, is_end)
         self._send_wakeup.send(b"\x01")
+
+    def send_headers(self, stream_id, headers, is_end=False):
+        with self._lock:
+            super().send_headers(stream_id, headers, is_end)
+        if is_end:
+            self._send_wakeup.send(b"\x01")
+
+    def send_data(self, stream_id, data, is_end=False):
+        with self._lock:
+            super().send_data(stream_id, data, is_end)
+        if is_end:
+            self._send_wakeup.send(b"\x01")
 
     def run(self):
         if self._closed:
@@ -200,12 +246,19 @@ class SyncQuicConnection(BaseQuicConnection):
 
 
 class SyncQuicManager(BaseQuicManager):
-    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None):
-        super().__init__(conf, verify_mode, SyncQuicConnection, server_name)
+    def __init__(
+        self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None, h3=False
+    ):
+        super().__init__(conf, verify_mode, SyncQuicConnection, server_name, h3)
         self._lock = threading.Lock()
 
     def connect(
-        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+        self,
+        address,
+        port=853,
+        source=None,
+        source_port=0,
+        want_session_ticket=True,
     ):
         with self._lock:
             (connection, start) = self._connect(

@@ -23,11 +23,13 @@ import enum
 import errno
 import os
 import os.path
+import random
 import selectors
 import socket
 import struct
 import time
-from typing import Any, Dict, Optional, Tuple, Union
+import urllib.parse
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import dns._features
 import dns.exception
@@ -335,6 +337,20 @@ def _make_socket(af, type, source, ssl_context=None, server_hostname=None):
         raise
 
 
+def _maybe_get_resolver(
+    resolver: Optional["dns.resolver.Resolver"],
+) -> "dns.resolver.Resolver":
+    # We need a separate method for this to avoid overriding the global
+    # variable "dns" with the as-yet undefined local variable "dns"
+    # in https().
+    if resolver is None:
+        # pylint: disable=import-outside-toplevel,redefined-outer-name
+        import dns.resolver
+
+        resolver = dns.resolver.Resolver()
+    return resolver
+
+
 def https(
     q: dns.message.Message,
     where: str,
@@ -350,7 +366,8 @@ def https(
     bootstrap_address: Optional[str] = None,
     verify: Union[bool, str] = True,
     resolver: Optional["dns.resolver.Resolver"] = None,
-    family: Optional[int] = socket.AF_UNSPEC,
+    family: int = socket.AF_UNSPEC,
+    h3: bool = False,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -400,20 +417,14 @@ def https(
     *family*, an ``int``, the address family.  If socket.AF_UNSPEC (the default), both A
     and AAAA records will be retrieved.
 
+    *h3*, a ``bool``.  If ``True``, use HTTP/3 otherwise use HTTP/2 or HTTP/1.1.
+
     Returns a ``dns.message.Message``.
     """
 
-    if not have_doh:
-        raise NoDOH  # pragma: no cover
-    if session and not isinstance(session, httpx.Client):
-        raise ValueError("session parameter must be an httpx.Client")
-
-    wire = q.to_wire()
     (af, _, the_source) = _destination_and_source(
         where, port, source, source_port, False
     )
-    transport = None
-    headers = {"accept": "application/dns-message"}
     if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
             url = "https://{}:{}{}".format(where, port, path)
@@ -421,6 +432,39 @@ def https(
             url = "https://[{}]:{}{}".format(where, port, path)
     else:
         url = where
+
+    if h3:
+        if bootstrap_address is None:
+            parsed = urllib.parse.urlparse(url)
+            resolver = _maybe_get_resolver(resolver)
+            if parsed.hostname is None:
+                raise ValueError("no hostname in URL")
+            answers = resolver.resolve_name(parsed.hostname, family)
+            bootstrap_address = random.choice(list(answers.addresses()))
+            if parsed.port is not None:
+                port = parsed.port
+        return _http3(
+            q,
+            bootstrap_address,
+            url,
+            timeout,
+            port,
+            source,
+            source_port,
+            one_rr_per_rrset,
+            ignore_trailing,
+            verify=verify,
+            post=post,
+        )
+
+    if not have_doh:
+        raise NoDOH  # pragma: no cover
+    if session and not isinstance(session, httpx.Client):
+        raise ValueError("session parameter must be an httpx.Client")
+
+    wire = q.to_wire()
+    transport = None
+    headers = {"accept": "application/dns-message"}
 
     # set source port and source address
 
@@ -478,6 +522,79 @@ def https(
         ignore_trailing=ignore_trailing,
     )
     r.time = response.elapsed.total_seconds()
+    if not q.is_response(r):
+        raise BadResponse
+    return r
+
+
+def _find_header(headers: dns.quic.Headers, name: bytes) -> bytes:
+    if headers is None:
+        raise KeyError
+    for header, value in headers:
+        if header == name:
+            return value
+    raise KeyError
+
+
+def _check_status(headers: dns.quic.Headers, peer: str, wire: bytes) -> None:
+    value = _find_header(headers, b":status")
+    if value is None:
+        raise SyntaxError("no :status header in response")
+    status = int(value)
+    if status < 0:
+        raise SyntaxError("status is negative")
+    if status < 200 or status > 299:
+        error = ""
+        if len(wire) > 0:
+            try:
+                error = ": " + wire.decode()
+            except Exception:
+                pass
+        raise ValueError(f"{peer} responded with status code {status}{error}")
+
+
+def _http3(
+    q: dns.message.Message,
+    where: str,
+    url: str,
+    timeout: Optional[float] = None,
+    port: int = 853,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    verify: Union[bool, str] = True,
+    hostname: Optional[str] = None,
+    post: bool = True,
+) -> dns.message.Message:
+    if not dns.quic.have_quic:
+        raise NoDOH("DNS-over-HTTP3 is not available.")  # pragma: no cover
+
+    url_parts = urllib.parse.urlparse(url)
+    hostname = url_parts.hostname
+
+    q.id = 0
+    wire = q.to_wire()
+    manager = dns.quic.SyncQuicManager(
+        verify_mode=verify, server_name=hostname, h3=True
+    )
+
+    with manager:
+        connection = manager.connect(where, port, source, source_port)
+        (start, expiration) = _compute_times(timeout)
+        with connection.make_stream(timeout) as stream:
+            stream.send_h3(url, wire, post)
+            wire = stream.receive(_remaining(expiration))
+            _check_status(stream.headers(), where, wire)
+        finish = time.time()
+    r = dns.message.from_wire(
+        wire,
+        keyring=q.keyring,
+        request_mac=q.request_mac,
+        one_rr_per_rrset=one_rr_per_rrset,
+        ignore_trailing=ignore_trailing,
+    )
+    r.time = max(finish - start, 0.0)
     if not q.is_response(r):
         raise BadResponse
     return r
@@ -1168,6 +1285,7 @@ def quic(
     ignore_trailing: bool = False,
     connection: Optional[dns.quic.SyncQuicConnection] = None,
     verify: Union[bool, str] = True,
+    hostname: Optional[str] = None,
     server_hostname: Optional[str] = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-QUIC.
@@ -1192,23 +1310,30 @@ def quic(
     *ignore_trailing*, a ``bool``. If ``True``, ignore trailing junk at end of the
     received message.
 
-    *connection*, a ``dns.quic.SyncQuicConnection``.  If provided, the
-    connection to use to send the query.
+    *connection*, a ``dns.quic.SyncQuicConnection``.  If provided, the connection to use
+    to send the query.
 
     *verify*, a ``bool`` or ``str``.  If a ``True``, then TLS certificate verification
     of the server is done using the default CA bundle; if ``False``, then no
     verification is done; if a `str` then it specifies the path to a certificate file or
     directory which will be used for verification.
 
-    *server_hostname*, a ``str`` containing the server's hostname.  The
-    default is ``None``, which means that no hostname is known, and if an
-    SSL context is created, hostname checking will be disabled.
+    *hostname*, a ``str`` containing the server's hostname or ``None``.  The default is
+    ``None``, which means that no hostname is known, and if an SSL context is created,
+    hostname checking will be disabled.  This value is ignored if *url* is not
+    ``None``.
+
+    *server_hostname*, a ``str`` or ``None``.  This item is for backwards compatibility
+    only, and has the same meaning as *hostname*.
 
     Returns a ``dns.message.Message``.
     """
 
     if not dns.quic.have_quic:
         raise NoDOQ("DNS-over-QUIC is not available.")  # pragma: no cover
+
+    if server_hostname is not None and hostname is None:
+        hostname = server_hostname
 
     q.id = 0
     wire = q.to_wire()
@@ -1218,9 +1343,7 @@ def quic(
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
         the_connection = connection
     else:
-        manager = dns.quic.SyncQuicManager(
-            verify_mode=verify, server_name=server_hostname
-        )
+        manager = dns.quic.SyncQuicManager(verify_mode=verify, server_name=hostname)
         the_manager = manager  # for type checking happiness
 
     with manager:
