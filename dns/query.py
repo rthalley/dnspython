@@ -29,7 +29,7 @@ import socket
 import struct
 import time
 import urllib.parse
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import dns._features
 import dns.exception
@@ -1572,9 +1572,15 @@ def xfr(
         def origin_information(self):
             return self.info
 
+        def get_class(self) -> dns.rdataclass.RdataClass:
+            raise NotImplementedError  # pragma: no cover
+
+        def reader(self):
+            raise NotImplementedError  # pragma: no cover
+
         def writer(self, replacement: bool = False) -> dns.transaction.Transaction:
             class DummyTransaction(object):
-                def nop(*args, **kw):
+                def nop(self, *args, **kw):
                     pass
 
                 def __getattr__(self, _):
@@ -1650,7 +1656,7 @@ def inbound_xfr(
 
     Raises on errors.
     """
-    for msg in _inbound_xfr(
+    for _ in _inbound_xfr(
         where,
         txn_manager,
         query,
