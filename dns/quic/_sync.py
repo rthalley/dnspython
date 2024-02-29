@@ -25,6 +25,7 @@ from dns.quic._common import (
 # situations.
 socket_factory = socket.socket
 
+
 class SyncQuicStream(BaseQuicStream):
     def __init__(self, connection, stream_id):
         super().__init__(connection, stream_id)
