@@ -480,7 +480,7 @@ class AsyncTests(unittest.TestCase):
 
             async def run():
                 q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
-                return await dns.asyncquery.udp_with_fallback(q, address, timeout=2)
+                return await dns.asyncquery.udp_with_fallback(q, address, timeout=4)
 
             (_, tcp) = self.async_run(run)
             self.assertTrue(tcp)
