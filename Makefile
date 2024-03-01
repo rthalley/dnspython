@@ -45,7 +45,7 @@ flake:
 	flake8 dns
 
 ruff:
-	ruff dns
+	ruff check dns
 
 cov:
 	coverage run --branch -m pytest
