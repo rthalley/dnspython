@@ -126,7 +126,7 @@ class RdataType(dns.enum.IntEnum):
         if text.find("-") >= 0:
             try:
                 return cls[text.replace("-", "_")]
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 pass
         return _registered_by_text.get(text)
 

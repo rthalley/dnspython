@@ -736,6 +736,11 @@ class RdataTestCase(unittest.TestCase):
                     new_text = rr.to_text(chunksize=chunksize)
                     self.assertEqual(output, new_text)
 
+    def test_simple_ordered_compare_when_equal(self):
+        r1 = dns.rdata.from_text("IN", "AAAA", "::1")
+        r2 = dns.rdata.from_text("IN", "AAAA", "0000:0000::1")
+        self.assertFalse(r1 < r2)
+
     def test_relative_vs_absolute_compare_unstrict(self):
         try:
             saved = dns.rdata._allow_relative_comparisons
@@ -783,15 +788,35 @@ class RdataTestCase(unittest.TestCase):
         finally:
             dns.rdata._allow_relative_comparisons = saved
 
-    def test_absolute_vs_absolute_compare(self):
-        r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, "www.")
-        r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, "xxx.")
-        self.assertFalse(r1 == r2)
-        self.assertTrue(r1 != r2)
-        self.assertTrue(r1 < r2)
-        self.assertTrue(r1 <= r2)
-        self.assertFalse(r1 > r2)
-        self.assertFalse(r1 >= r2)
+    def test_absolute_vs_absolute_compare_unstrict(self):
+        try:
+            saved = dns.rdata._allow_relative_comparisons
+            dns.rdata._allow_relative_comparisons = True
+            r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, "www.")
+            r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, "xxx.")
+            self.assertFalse(r1 == r2)
+            self.assertTrue(r1 != r2)
+            self.assertTrue(r1 < r2)
+            self.assertTrue(r1 <= r2)
+            self.assertFalse(r1 > r2)
+            self.assertFalse(r1 >= r2)
+        finally:
+            dns.rdata._allow_relative_comparisons = saved
+
+    def test_absolute_vs_absolute_compare_strict(self):
+        try:
+            saved = dns.rdata._allow_relative_comparisons
+            dns.rdata._allow_relative_comparisons = False
+            r1 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, "www.")
+            r2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.NS, "xxx.")
+            self.assertFalse(r1 == r2)
+            self.assertTrue(r1 != r2)
+            self.assertTrue(r1 < r2)
+            self.assertTrue(r1 <= r2)
+            self.assertFalse(r1 > r2)
+            self.assertFalse(r1 >= r2)
+        finally:
+            dns.rdata._allow_relative_comparisons = saved
 
     def test_relative_vs_relative_compare_unstrict(self):
         try:

@@ -31,6 +31,14 @@ class TTLTestCase(unittest.TestCase):
         with self.assertRaises(dns.ttl.BadTTL):
             dns.ttl.from_text("1mw")
 
+    def test_ttl_technically_too_big_but_tolerated(self):
+        ttl = dns.ttl.from_text("4294967295")
+        assert ttl == 4294967295
+
+    def test_ttl_technically_too_big(self):
+        with self.assertRaises(dns.ttl.BadTTL):
+            dns.ttl.from_text("4294967296")
+
     def test_empty(self):
         with self.assertRaises(dns.ttl.BadTTL):
             dns.ttl.from_text("")
