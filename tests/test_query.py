@@ -210,7 +210,7 @@ class QueryTests(unittest.TestCase):
         for address in query_addresses:
             qname = dns.name.from_text(".")
             q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
-            (_, tcp) = dns.query.udp_with_fallback(q, address, timeout=2)
+            (_, tcp) = dns.query.udp_with_fallback(q, address, timeout=4)
             self.assertTrue(tcp)
 
     def testQueryUDPFallbackWithSocket(self):
@@ -226,7 +226,7 @@ class QueryTests(unittest.TestCase):
                     qname = dns.name.from_text(".")
                     q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
                     (_, tcp) = dns.query.udp_with_fallback(
-                        q, address, udp_sock=udp_s, tcp_sock=tcp_s, timeout=2
+                        q, address, udp_sock=udp_s, tcp_sock=tcp_s, timeout=4
                     )
                     self.assertTrue(tcp)
 
@@ -825,8 +825,11 @@ class IgnoreErrors(unittest.TestCase):
         bad_r.flags |= dns.flags.TC
         bad_r_wire = bad_r.to_wire()
         self.mock_receive(
-            bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53),
-            raise_on_truncation=True
+            bad_r_wire,
+            ("127.0.0.1", 53),
+            self.good_r_wire,
+            ("127.0.0.1", 53),
+            raise_on_truncation=True,
         )
 
     def test_bad_wire_not_ignored(self):
