@@ -226,6 +226,7 @@ class BaseQuicManager:
         self._connections = {}
         self._connection_factory = connection_factory
         self._session_tickets = {}
+        self._tokens = {}
         self._h3 = h3
         if conf is None:
             verify_path = None
@@ -252,6 +253,7 @@ class BaseQuicManager:
         source=None,
         source_port=0,
         want_session_ticket=True,
+        want_token=True,
     ):
         connection = self._connections.get((address, port))
         if connection is not None:
@@ -273,9 +275,26 @@ class BaseQuicManager:
             )
         else:
             session_ticket_handler = None
+        if want_token:
+            try:
+                token = self._tokens.pop((address, port))
+                # We found a token, so make a configuration that uses it.
+                conf = copy.copy(conf)
+                conf.token = token
+            except KeyError:
+                # No token
+                pass
+            # Whether or not we found a token, we want a handler to save # one.
+            token_handler = functools.partial(self.save_token, address, port)
+        else:
+            token_handler = None
+
+
+
         qconn = aioquic.quic.connection.QuicConnection(
             configuration=conf,
             session_ticket_handler=session_ticket_handler,
+            token_handler=token_handler,
         )
         lladdress = dns.inet.low_level_address_tuple((address, port))
         qconn.connect(lladdress, time.time())
@@ -304,6 +323,17 @@ class BaseQuicManager:
             for key in keys_to_delete:
                 del self._session_tickets[key]
         self._session_tickets[(address, port)] = ticket
+
+    def save_token(self, address, port, token):
+        # We rely on dictionaries keys() being in insertion order here.  We
+        # can't just popitem() as that would be LIFO which is the opposite of
+        # what we want.
+        l = len(self._tokens)
+        if l >= MAX_SESSION_TICKETS:
+            keys_to_delete = list(self._tokens.keys())[0:SESSIONS_TO_DELETE]
+            for key in keys_to_delete:
+                del self._tokens[key]
+        self._tokens[(address, port)] = token
 
 
 class AsyncQuicManager(BaseQuicManager):
