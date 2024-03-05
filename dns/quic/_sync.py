@@ -260,10 +260,11 @@ class SyncQuicManager(BaseQuicManager):
         source=None,
         source_port=0,
         want_session_ticket=True,
+        want_token=True
     ):
         with self._lock:
             (connection, start) = self._connect(
-                address, port, source, source_port, want_session_ticket
+                address, port, source, source_port, want_session_ticket, want_token
             )
             if start:
                 connection.run()
@@ -276,6 +277,10 @@ class SyncQuicManager(BaseQuicManager):
     def save_session_ticket(self, address, port, ticket):
         with self._lock:
             super().save_session_ticket(address, port, ticket)
+
+    def save_token(self, address, port, token):
+        with self._lock:
+            super().save_token(address, port, token)
 
     def __enter__(self):
         return self
