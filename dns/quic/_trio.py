@@ -126,6 +126,7 @@ class TrioQuicConnection(AsyncQuicConnection):
                     await self._socket.send(datagram)
         finally:
             self._done = True
+            self._socket.close()
             self._handshake_complete.set()
 
     async def _handle_events(self):

@@ -153,6 +153,7 @@ class SyncQuicConnection(BaseQuicConnection):
         finally:
             with self._lock:
                 self._done = True
+            self._socket.close()
             # Ensure anyone waiting for this gets woken up.
             self._handshake_complete.set()
 
