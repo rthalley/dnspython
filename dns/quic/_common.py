@@ -289,8 +289,6 @@ class BaseQuicManager:
         else:
             token_handler = None
 
-
-
         qconn = aioquic.quic.connection.QuicConnection(
             configuration=conf,
             session_ticket_handler=session_ticket_handler,

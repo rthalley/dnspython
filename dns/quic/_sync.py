@@ -260,7 +260,7 @@ class SyncQuicManager(BaseQuicManager):
         source=None,
         source_port=0,
         want_session_ticket=True,
-        want_token=True
+        want_token=True,
     ):
         with self._lock:
             (connection, start) = self._connect(
