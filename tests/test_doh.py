@@ -220,6 +220,33 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
         )
         self.assertTrue(q.is_response(r))
 
+    def test_build_url_from_ip(self):
+        self.assertTrue(resolver_v4_addresses or resolver_v6_addresses)
+        if resolver_v4_addresses:
+            nameserver_ip = random.choice(resolver_v4_addresses)
+            q = dns.message.make_query("example.com.", dns.rdatatype.A)
+            # For some reason Google's DNS over HTTPS fails when you POST to
+            # https://8.8.8.8/dns-query
+            # So we're just going to do GET requests here
+            r = dns.query.https(
+                q,
+                nameserver_ip,
+                post=False,
+                timeout=4,
+                h3=True,
+            )
+            self.assertTrue(q.is_response(r))
+        if resolver_v6_addresses:
+            nameserver_ip = random.choice(resolver_v6_addresses)
+            q = dns.message.make_query("example.com.", dns.rdatatype.A)
+            r = dns.query.https(
+                q,
+                nameserver_ip,
+                post=False,
+                timeout=4,
+                h3=True,
+            )
+            self.assertTrue(q.is_response(r))
 
 if __name__ == "__main__":
     unittest.main()

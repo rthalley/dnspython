@@ -439,8 +439,11 @@ def https(
             resolver = _maybe_get_resolver(resolver)
             if parsed.hostname is None:
                 raise ValueError("no hostname in URL")
-            answers = resolver.resolve_name(parsed.hostname, family)
-            bootstrap_address = random.choice(list(answers.addresses()))
+            if dns.inet.is_address(parsed.hostname):
+                bootstrap_address = parsed.hostname
+            else:
+                answers = resolver.resolve_name(parsed.hostname, family)
+                bootstrap_address = random.choice(list(answers.addresses()))
             if parsed.port is not None:
                 port = parsed.port
         return _http3(
