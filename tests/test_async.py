@@ -593,6 +593,22 @@ class AsyncTests(unittest.TestCase):
 
         self.async_run(run)
 
+    @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
+    def TestDoH3QueryIP(self):
+        async def run():
+            nameserver_ip = '8.8.8.8'
+            q = dns.message.make_query("example.com.", dns.rdatatype.A)
+            r = dns.asyncquery.https(
+                q,
+                nameserver_ip,
+                post=False,
+                timeout=4,
+                h3=True,
+            )
+            self.assertTrue(q.is_response(r))
+
+        self.async_run(run)
+
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
     def testResolverDOH(self):
         async def run():
