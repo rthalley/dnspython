@@ -351,6 +351,22 @@ def _maybe_get_resolver(
     return resolver
 
 
+class HTTPVersion(enum.IntEnum):
+    """Which version of HTTP should be used?
+
+    DEFAULT will select the first version from the list [2, 1.1, 3] that
+    is available.
+    """
+
+    DEFAULT = 0
+    HTTP_1 = 1
+    H1 = 1
+    HTTP_2 = 2
+    H2 = 2
+    HTTP_3 = 3
+    H3 = 3
+
+
 def https(
     q: dns.message.Message,
     where: str,
@@ -367,7 +383,7 @@ def https(
     verify: Union[bool, str] = True,
     resolver: Optional["dns.resolver.Resolver"] = None,
     family: int = socket.AF_UNSPEC,
-    h3: bool = False,
+    http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -417,7 +433,7 @@ def https(
     *family*, an ``int``, the address family.  If socket.AF_UNSPEC (the default), both A
     and AAAA records will be retrieved.
 
-    *h3*, a ``bool``.  If ``True``, use HTTP/3 otherwise use HTTP/2 or HTTP/1.1.
+    *http_version*, a ``dns.query.HTTPVersion``, indicating which HTTP version to use.
 
     Returns a ``dns.message.Message``.
     """
@@ -433,7 +449,7 @@ def https(
     else:
         url = where
 
-    if h3:
+    if http_version == HTTPVersion.H3 or (http_version == HTTPVersion.DEFAULT and not have_doh):
         if bootstrap_address is None:
             parsed = urllib.parse.urlparse(url)
             resolver = _maybe_get_resolver(resolver)
@@ -469,6 +485,9 @@ def https(
     transport = None
     headers = {"accept": "application/dns-message"}
 
+    h1 = http_version in (HTTPVersion.H1, HTTPVersion.DEFAULT)
+    h2 = http_version in (HTTPVersion.H2, HTTPVersion.DEFAULT)
+
     # set source port and source address
 
     if the_source is None:
@@ -479,8 +498,8 @@ def https(
         local_port = the_source[1]
     transport = _HTTPTransport(
         local_address=local_address,
-        http1=True,
-        http2=True,
+        http1=h1,
+        http2=h2,
         verify=verify,
         local_port=local_port,
         bootstrap_address=bootstrap_address,
@@ -491,7 +510,7 @@ def https(
     if session:
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(session)
     else:
-        cm = httpx.Client(http1=True, http2=True, verify=verify, transport=transport)
+        cm = httpx.Client(http1=h1, http2=h2, verify=verify, transport=transport)
     with cm as session:
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples

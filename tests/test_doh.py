@@ -203,7 +203,7 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
             post=False,
             timeout=4,
             family=family,
-            h3=True,
+            http_version=dns.query.HTTPVersion.H3,
         )
         self.assertTrue(q.is_response(r))
 
@@ -216,7 +216,7 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
             post=True,
             timeout=4,
             family=family,
-            h3=True,
+            http_version=dns.query.HTTPVersion.H3,
         )
         self.assertTrue(q.is_response(r))
 
@@ -233,7 +233,7 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
                 nameserver_ip,
                 post=False,
                 timeout=4,
-                h3=True,
+                http_version=dns.query.HTTPVersion.H3,
             )
             self.assertTrue(q.is_response(r))
         if resolver_v6_addresses:
@@ -244,7 +244,7 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
                 nameserver_ip,
                 post=False,
                 timeout=4,
-                h3=True,
+                http_version=dns.query.HTTPVersion.H3,
             )
             self.assertTrue(q.is_response(r))
 

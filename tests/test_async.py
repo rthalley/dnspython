@@ -570,7 +570,7 @@ class AsyncTests(unittest.TestCase):
                 post=False,
                 timeout=4,
                 family=family,
-                h3=True,
+                http_version=dns.asyncquery.HTTPVersion.H3,
             )
             self.assertTrue(q.is_response(r))
 
@@ -587,7 +587,7 @@ class AsyncTests(unittest.TestCase):
                 post=True,
                 timeout=4,
                 family=family,
-                h3=True,
+                http_version=dns.asyncquery.HTTPVersion.H3,
             )
             self.assertTrue(q.is_response(r))
 
@@ -603,7 +603,7 @@ class AsyncTests(unittest.TestCase):
                 nameserver_ip,
                 post=False,
                 timeout=4,
-                h3=True,
+                http_version=dns.asyncquery.HTTPVersion.H3,
             )
             self.assertTrue(q.is_response(r))
 

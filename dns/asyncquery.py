@@ -41,6 +41,7 @@ from dns.query import (
     BadResponse,
     NoDOH,
     NoDOQ,
+    HTTPVersion,
     UDPMode,
     _check_status,
     _compute_times,
@@ -533,7 +534,7 @@ async def https(
     bootstrap_address: Optional[str] = None,
     resolver: Optional["dns.asyncresolver.Resolver"] = None,
     family: int = socket.AF_UNSPEC,
-    h3: bool = False,
+    http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -559,7 +560,7 @@ async def https(
     else:
         url = where
 
-    if h3:
+    if http_version == HTTPVersion.H3 or (http_version == HTTPVersion.DEFAULT and not have_doh):
         if bootstrap_address is None:
             parsed = urllib.parse.urlparse(url)
             resolver = _maybe_get_resolver(resolver)
@@ -595,6 +596,9 @@ async def https(
     transport = None
     headers = {"accept": "application/dns-message"}
 
+    h1 = http_version in (HTTPVersion.H1, HTTPVersion.DEFAULT)
+    h2 = http_version in (HTTPVersion.H2, HTTPVersion.DEFAULT)
+
     backend = dns.asyncbackend.get_default_backend()
 
     if source is None:
@@ -605,8 +609,8 @@ async def https(
         local_port = source_port
     transport = backend.get_transport_class()(
         local_address=local_address,
-        http1=True,
-        http2=True,
+        http1=h1,
+        http2=h2,
         verify=verify,
         local_port=local_port,
         bootstrap_address=bootstrap_address,
@@ -618,7 +622,7 @@ async def https(
         cm: contextlib.AbstractAsyncContextManager = NullContext(client)
     else:
         cm = httpx.AsyncClient(
-            http1=True, http2=True, verify=verify, transport=transport
+            http1=h1, http2=h2, verify=verify, transport=transport
         )
 
     async with cm as the_client:

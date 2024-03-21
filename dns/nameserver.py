@@ -168,14 +168,14 @@ class DoHNameserver(Nameserver):
         bootstrap_address: Optional[str] = None,
         verify: Union[bool, str] = True,
         want_get: bool = False,
-        h3: bool = False,
+        http_version: dns.query.HTTPVersion = dns.query.HTTPVersion.DEFAULT,
     ):
         super().__init__()
         self.url = url
         self.bootstrap_address = bootstrap_address
         self.verify = verify
         self.want_get = want_get
-        self.h3 = h3
+        self.http_version = http_version
 
     def kind(self):
         return "DoH"
@@ -216,7 +216,7 @@ class DoHNameserver(Nameserver):
             ignore_trailing=ignore_trailing,
             verify=self.verify,
             post=(not self.want_get),
-            h3=self.h3,
+            http_version=self.http_version,
         )
 
     async def async_query(
@@ -241,7 +241,7 @@ class DoHNameserver(Nameserver):
             ignore_trailing=ignore_trailing,
             verify=self.verify,
             post=(not self.want_get),
-            h3=self.h3,
+            http_version=self.http_version,
         )
 
 
