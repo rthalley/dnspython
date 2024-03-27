@@ -13,13 +13,15 @@ import dns.rcode
 
 from .util import have_ipv4, have_ipv6, here
 
+have_quic = False
 try:
-    from .nanoquic import Server
+    from .nanonameserver import Server
 
-    _nanoquic_available = True
+    have_quic = True
 except ImportError:
-    _nanoquic_available = False
+    pass
 
+if not have_quic:
     class Server(object):
         pass
 
@@ -31,15 +33,16 @@ if have_ipv6():
     addresses.append("::1")
 if len(addresses) == 0:
     # no networking
-    _nanoquic_available = False
+    have_quic = False
 
 
-@pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
+@pytest.mark.skipif(not have_quic, reason="requires aioquic")
 def test_basic_sync():
     q = dns.message.make_query("www.example.", "A")
     for address in addresses:
-        with Server(address) as server:
-            r = dns.query.quic(q, address, port=server.port, verify=here("tls/ca.crt"))
+        with Server(address=address) as server:
+            port = server.doq_address[1]
+            r = dns.query.quic(q, address, port=port, verify=here("tls/ca.crt"))
             assert r.rcode() == dns.rcode.REFUSED
 
 
@@ -49,23 +52,25 @@ async def amain(address, port):
     assert r.rcode() == dns.rcode.REFUSED
 
 
-@pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
+@pytest.mark.skipif(not have_quic, reason="requires aioquic")
 def test_basic_asyncio():
     dns.asyncbackend.set_default_backend("asyncio")
     for address in addresses:
-        with Server(address) as server:
-            asyncio.run(amain(address, server.port))
+        with Server(address=address) as server:
+            port = server.doq_address[1]
+            asyncio.run(amain(address, port))
 
 
 try:
     import trio
 
-    @pytest.mark.skipif(not _nanoquic_available, reason="requires aioquic")
+    @pytest.mark.skipif(not have_quic, reason="requires aioquic")
     def test_basic_trio():
         dns.asyncbackend.set_default_backend("trio")
         for address in addresses:
-            with Server(address) as server:
-                trio.run(amain, address, server.port)
+            with Server(address=address) as server:
+                port = server.doq_address[1]
+                trio.run(amain, address, port)
 
 except ImportError:
     pass
