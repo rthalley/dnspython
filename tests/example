@@ -259,6 +259,10 @@ svcb01                  SVCB (
 100 foo.com. mandatory="alpn,port" alpn="h2,h3" no-default-alpn port="12345"
 ech="abcd" ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4 key12345="foo"
 )
+svcb02                  SVCB 16 foo.example.org. alpn="foo\\,bar,h2"
+svcb03                  SVCB 16 foo.example.org. alpn=foo\092,bar,h2
+svcb04                  SVCB 16 foo.example.org. dohpath=/dns-query{?dns}
+svcb05                  SVCB 16 foo.example.org. ohttp
 https01                 HTTPS 0 svc
 https02                 HTTPS 1 . port=8002 ech="abcd"
 resinfo                 RESINFO qnamemin exterr=15,16,17 infourl=https://resolver.example.com/guide
