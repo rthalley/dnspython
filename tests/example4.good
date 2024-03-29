@@ -134,6 +134,10 @@ srv01 3600 IN SRV 0 0 0 .
 srv02 3600 IN SRV 65535 65535 65535 old-slow-box.example.com.
 sshfp1 3600 IN SSHFP 1 1 aa549bfe898489c02d1715d97d79c57ba2fa76ab
 svcb01 3600 IN SVCB 100 foo.com. mandatory="alpn,port" alpn="h2,h3" no-default-alpn port="12345" ipv4hint="1.2.3.4,4.3.2.1" ech="abcd" ipv6hint="1::2,3::4" key12345="foo"
+svcb02 3600 IN SVCB 16 foo.example.org. alpn="foo\\,bar,h2"
+svcb03 3600 IN SVCB 16 foo.example.org. alpn="foo\\,bar,h2"
+svcb04 3600 IN SVCB 16 foo.example.org. dohpath="/dns-query{?dns}"
+svcb05 3600 IN SVCB 16 foo.example.org. ohttp
 t 301 IN A 73.80.65.49
 tlsa1 3600 IN TLSA 3 1 1 a9cdf989b504fe5dca90c0d2167b6550570734f7c763e09fdf88904e06157065
 tlsa2 3600 IN TLSA 1 0 1 efddf0d915c7bdc5782c0881e1b2a95ad099fbdd06d7b1f77982d9364338d955
