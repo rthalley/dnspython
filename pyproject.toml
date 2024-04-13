@@ -41,6 +41,7 @@ dev = [
     "pytest-cov>=4.1.0",
     "quart-trio>=0.11.0",
     "sphinx>=7.2.0",
+    "sphinx-rtd-theme>=2.0.0",
     "twine>=4.0.0",
     "wheel>=0.42.0",
 ]
