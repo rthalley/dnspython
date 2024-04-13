@@ -222,11 +222,11 @@ class OptionTestCase(unittest.TestCase):
         opt.to_wire(io)
         data = io.getvalue()
         self.assertEqual(data, b"12345678")
-        self.assertEqual(str(opt), "COOKIE 3132333435363738:")
+        self.assertEqual(str(opt), "COOKIE 3132333435363738")
         opt = dns.edns.CookieOption(b"12345678", b"abcdefgh")
         data = opt.to_wire()
         self.assertEqual(data, b"12345678abcdefgh")
-        self.assertEqual(str(opt), "COOKIE 3132333435363738:6162636465666768")
+        self.assertEqual(str(opt), "COOKIE 31323334353637386162636465666768")
         # maximal server
         opt = dns.edns.CookieOption(b"12345678", b"abcdefghabcdefghabcdefghabcdefgh")
         io = BytesIO()

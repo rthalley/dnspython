@@ -455,7 +455,7 @@ class CookieOption(Option):
             server = binascii.hexlify(self.server).decode()
         else:
             server = ""
-        return f"COOKIE {client}:{server}"
+        return f"COOKIE {client}{server}"
 
     @classmethod
     def from_wire_parser(
