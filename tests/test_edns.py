@@ -216,6 +216,42 @@ class OptionTestCase(unittest.TestCase):
         o = dns.edns.option_from_wire(dns.edns.OptionType.NSID, data, 0, len(data))
         self.assertEqual(o.nsid, b"\xfe\xff")
 
+    def testCookieOption(self):
+        opt = dns.edns.CookieOption(b"12345678", b"")
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b"12345678")
+        self.assertEqual(str(opt), "COOKIE 3132333435363738:")
+        opt = dns.edns.CookieOption(b"12345678", b"abcdefgh")
+        data = opt.to_wire()
+        self.assertEqual(data, b"12345678abcdefgh")
+        self.assertEqual(str(opt), "COOKIE 3132333435363738:6162636465666768")
+        # maximal server
+        opt = dns.edns.CookieOption(b"12345678", b"abcdefghabcdefghabcdefghabcdefgh")
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, b"12345678abcdefghabcdefghabcdefghabcdefgh")
+        # from wire
+        opt2 = dns.edns.option_from_wire(dns.edns.OptionType.COOKIE, data, 0, len(data))
+        self.assertEqual(opt.client, opt2.client)
+        self.assertEqual(opt.server, opt2.server)
+        # client too short
+        with self.assertRaises(ValueError):
+            opt = dns.edns.CookieOption(b"1234567", b"")
+        # client too long
+        with self.assertRaises(ValueError):
+            opt = dns.edns.CookieOption(b"123456789", b"")
+        # server too short
+        with self.assertRaises(ValueError):
+            opt = dns.edns.CookieOption(b"12345678", b"a")
+        # server too long
+        with self.assertRaises(ValueError):
+            opt = dns.edns.CookieOption(
+                b"12345678", b"abcdefghabcdefghabcdefghabcdefghi"
+            )
+
     def test_option_registration(self):
         U32OptionType = 9999
 

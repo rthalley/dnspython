@@ -126,6 +126,9 @@ Misc RFCs
 `RFC 4343 <https://tools.ietf.org/html/rfc4343>`_
     Case-sensitivity clarification.
 
+`RFC 7873 <https://tools.ietf.org/html/rfc7873>`_
+   Domain Name System (DNS) Cookies
+
 `RFC 8499 <https://tools.ietf.org/html/rfc8499>`_
     DNS Terminology.
 

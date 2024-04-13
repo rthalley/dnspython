@@ -430,10 +430,45 @@ class NSIDOption(Option):
         return cls(parser.get_remaining())
 
 
+class CookieOption(Option):
+    def __init__(self, client: bytes, server: bytes):
+        super().__init__(dns.edns.OptionType.COOKIE)
+        self.client = client
+        self.server = server
+        if len(client) != 8:
+            raise ValueError("client cookie must be 8 bytes")
+        if len(server) != 0 and (len(server) < 8 or len(server) > 32):
+            raise ValueError("server cookie must be empty or between 8 and 32 bytes")
+
+    def to_wire(self, file: Any = None) -> Optional[bytes]:
+        if file:
+            file.write(self.client)
+            if len(self.server) > 0:
+                file.write(self.server)
+            return None
+        else:
+            return self.client + self.server
+
+    def to_text(self) -> str:
+        client = binascii.hexlify(self.client).decode()
+        if len(self.server) > 0:
+            server = binascii.hexlify(self.server).decode()
+        else:
+            server = ""
+        return f"COOKIE {client}:{server}"
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: Union[OptionType, str], parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_bytes(8), parser.get_remaining())
+
+
 _type_to_class: Dict[OptionType, Any] = {
     OptionType.ECS: ECSOption,
     OptionType.EDE: EDEOption,
     OptionType.NSID: NSIDOption,
+    OptionType.COOKIE: CookieOption,
 }
 
 
