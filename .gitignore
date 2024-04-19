@@ -5,6 +5,8 @@ html
 html.zip
 html.tar.gz
 tests/*.out
+tests/real_psl.txt
+tests/real_psl_tests.txt
 *.pyc
 .coverage
 .tox

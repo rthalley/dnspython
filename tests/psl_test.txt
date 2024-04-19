@@ -1,0 +1,11 @@
+// This is not the real PSL, it is just test data
+
+// ===BEGIN ICANN DOMAINS===
+com
+org
+net
+uk
+co.uk
+*.sch.uk
+!exc.sch.uk
+// ===END ICANN DOMAINS===

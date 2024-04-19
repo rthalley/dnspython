@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+import os.path
+
+import httpx
+
+if not os.path.isdir("tests"):
+    raise ValueError("should be run from the dnspython top-level directory")
+
+DOWNLOADS = {
+    "https://publicsuffix.org/list/public_suffix_list.dat": "tests/real_psl.txt",
+    "https://raw.githubusercontent.com/publicsuffix/list/master/tests/tests.txt": "tests/real_psl_tests.txt",
+}
+
+for url, filename in DOWNLOADS.items():
+    response = httpx.request("GET", url)
+    if response.status_code == 200:
+        with open(filename, "w") as f:
+            f.write(response.text)
