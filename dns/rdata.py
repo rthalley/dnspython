@@ -646,13 +646,14 @@ _rdata_classes: Dict[Tuple[dns.rdataclass.RdataClass, dns.rdatatype.RdataType], 
     {}
 )
 _module_prefix = "dns.rdtypes"
+_dynamic_load_allowed = True
 
 
-def get_rdata_class(rdclass, rdtype):
+def get_rdata_class(rdclass, rdtype, use_generic=True):
     cls = _rdata_classes.get((rdclass, rdtype))
     if not cls:
         cls = _rdata_classes.get((dns.rdatatype.ANY, rdtype))
-        if not cls:
+        if not cls and _dynamic_load_allowed:
             rdclass_text = dns.rdataclass.to_text(rdclass)
             rdtype_text = dns.rdatatype.to_text(rdtype)
             rdtype_text = rdtype_text.replace("-", "_")
@@ -670,10 +671,34 @@ def get_rdata_class(rdclass, rdtype):
                     _rdata_classes[(rdclass, rdtype)] = cls
                 except ImportError:
                     pass
-    if not cls:
+    if not cls and use_generic:
         cls = GenericRdata
         _rdata_classes[(rdclass, rdtype)] = cls
     return cls
+
+
+def load_all_types(disable_dynamic_load=True):
+    """Load all rdata types for which dnspython has a non-generic implementation.
+
+    Normally dnspython loads DNS rdatatype implementations on demand, but in some
+    specialized cases loading all types at an application-controlled time is preferred.
+
+    If *disable_dynamic_load*, a ``bool``, is ``True`` then dnspython will not attempt
+    to use its dynamic loading mechanism if an unknown type is subsequently encountered,
+    and will simply use the ``GenericRdata`` class.
+    """
+    # Load class IN and ANY types.
+    for rdtype in dns.rdatatype.RdataType:
+        get_rdata_class(dns.rdataclass.IN, rdtype, False)
+    # Load the one non-ANY implementation we have in CH.  Everything
+    # else in CH is an ANY type, and we'll discover those on demand but won't
+    # have to import anything.
+    get_rdata_class(dns.rdataclass.CH, dns.rdatatype.A, False)
+    if disable_dynamic_load:
+        # Now disable dynamic loading so any subsequent unknown type immediately becomes
+        # GenericRdata without a load attempt.
+        global _dynamic_load_allowed
+        _dynamic_load_allowed = False
 
 
 def from_text(
