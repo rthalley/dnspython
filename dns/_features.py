@@ -32,6 +32,9 @@ def _version_check(
     package, minimum = requirement.split(">=")
     try:
         version = importlib.metadata.version(package)
+        # This shouldn't happen, but it apparently can.
+        if version is None:
+            return False
     except Exception:
         return False
     t_version = _tuple_from_text(version)
