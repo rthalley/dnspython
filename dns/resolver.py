@@ -1182,6 +1182,7 @@ class BaseResolver:
     ) -> List[dns.nameserver.Nameserver]:
         enriched_nameservers = []
         if isinstance(nameservers, list):
+            nameservers = [ns for ns in nameservers if ns]
             for nameserver in nameservers:
                 enriched_nameserver: dns.nameserver.Nameserver
                 if isinstance(nameserver, dns.nameserver.Nameserver):
