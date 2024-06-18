@@ -1146,7 +1146,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None):
 #
 
 _protocols_for_socktype = {
-    socket.SOCK_DGRAM: [socket.SOL_UDP],
+    #socket.SOCK_DGRAM: [socket.SOL_UDP],
     socket.SOCK_STREAM: [socket.SOL_TCP],
 }
 
