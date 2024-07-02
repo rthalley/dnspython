@@ -164,6 +164,7 @@ unknown2 3600 IN TYPE999 \# 8 0a0000010a000001
 unknown3 3600 IN A 127.0.0.2
 uri01 3600 IN URI 10 1 "ftp://ftp1.example.com/public"
 uri02 3600 IN URI 10 1 "http://www.example.com/path"
+wallet 3600 IN WALLET "EXAMPLE" "01234567890abcdef"
 wks01 3600 IN WKS 10.0.0.1 6 0 1 2 21 23
 wks02 3600 IN WKS 10.0.0.1 17 0 1 2 53
 wks03 3600 IN WKS 10.0.0.2 6 65535

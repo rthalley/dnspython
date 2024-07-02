@@ -64,6 +64,7 @@ __all__ = [
     "TSIG",
     "TXT",
     "URI",
+    "WALLET",
     "X25",
     "ZONEMD",
 ]
