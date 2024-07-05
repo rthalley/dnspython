@@ -294,11 +294,17 @@ class Message:
             if len(other.question) == 0:
                 return True
         if dns.opcode.is_update(self.flags):
-            # This is assuming the "sender doesn't include anything
-            # from the update", but we don't care to check the other
-            # case, which is that all the sections are returned and
-            # identical.
-            return True
+            if len(other.zone) \
+               == len(other.prerequisite) \
+               == len(update) \
+               == len(additional) \
+               == 0:
+                return True
+            if other.zone == self.zone and \
+               other.prerequisite == self.prerequisite and \
+               other.additional == self.additional:
+                return True
+            return False
         for n in self.question:
             if n not in other.question:
                 return False
@@ -1074,6 +1080,12 @@ class QueryMessage(Message):
         Raises ``dns.exception.FormError`` if the question count is not 1.
         """
         return self.resolve_chaining().canonical_name
+
+    def _copy_sections_for_response(self, query):
+        """Copy the sections required to make a response message - query
+        messages require just query to be copied.
+        """
+        self.question = list(query.question)
 
 
 def _maybe_import_update():
@@ -1866,7 +1878,7 @@ def make_response(
     if recursion_available:
         response.flags |= dns.flags.RA
     response.set_opcode(query.opcode())
-    response.question = list(query.question)
+    response._copy_sections_for_response(query)
     if query.edns >= 0:
         if pad is None:
             # Set response padding per RFC 8467

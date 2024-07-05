@@ -372,6 +372,15 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                 )
         return (rdclass, rdtype, deleting, empty)
 
+    def _copy_sections_for_response(self, update):
+        """Copy the sections required to make a response message - update messages
+        require all sections to be copied.
+        """
+        self.zone = list(update.zone)
+        self.prerequisite = list(update.prerequisite)
+        self.update = list(update.update)
+        self.additional = list(update.additional)
+
 
 # backwards compatibility
 Update = UpdateMessage
