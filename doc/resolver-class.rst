@@ -16,7 +16,7 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
       an IPv4 or IPv6 address, or an https URL.
 
       This field is actually a property, and returns a tuple as of dnspython 2.4.
-      Assigning this this field converts any strings into
+      Assigning this field converts any strings into
       ``dns.nameserver.Nameserver`` instances.
 
    .. attribute:: search
