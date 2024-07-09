@@ -5,6 +5,7 @@ import sys
 
 import pytest
 
+import dns._features
 import dns.asyncbackend
 import dns.asyncquery
 import dns.message
@@ -13,15 +14,14 @@ import dns.rcode
 
 from .util import have_ipv4, have_ipv6, here
 
-have_quic = False
+have_quic = dns._features.have("doq")
 try:
     from .nanonameserver import Server
-
-    have_quic = True
 except ImportError:
     pass
 
 if not have_quic:
+
     class Server(object):
         pass
 
