@@ -482,6 +482,7 @@ def _sign(
     expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
     verify: bool = False,
+    deterministic_signing: Optional[bool] = None,
     policy: Optional[Policy] = None,
     origin: Optional[dns.name.Name] = None,
 ) -> RRSIG:
@@ -589,7 +590,7 @@ def _sign(
         except UnsupportedAlgorithm:
             raise TypeError("Unsupported key algorithm")
 
-    signature = signing_key.sign(data, verify)
+    signature = signing_key.sign(data, verify, deterministic_signing)
 
     return cast(RRSIG, rrsig_template.replace(signature=signature))
 
@@ -950,6 +951,7 @@ def default_rrset_signer(
     lifetime: Optional[int] = None,
     policy: Optional[Policy] = None,
     origin: Optional[dns.name.Name] = None,
+    deterministic_signing: Optional[bool] = None,
 ) -> None:
     """Default RRset signer"""
 
@@ -975,6 +977,7 @@ def default_rrset_signer(
             signer=signer,
             policy=policy,
             origin=origin,
+            deterministic_signing=deterministic_signing,
         )
         txn.add(rrset.name, rrset.ttl, rrsig)
 
@@ -989,6 +992,7 @@ def sign_zone(
     expiration: Optional[Union[datetime, str, int, float]] = None,
     lifetime: Optional[int] = None,
     nsec3: Optional[NSEC3PARAM] = None,
+    deterministic_signing: Optional[bool] = None,
     rrset_signer: Optional[RRsetSigner] = None,
     policy: Optional[Policy] = None,
 ) -> None:
@@ -1081,6 +1085,7 @@ def sign_zone(
                 lifetime=lifetime,
                 policy=policy,
                 origin=zone.origin,
+                deterministic_signing=deterministic_signing,
             )
             return _sign_zone_nsec(zone, _txn, _rrset_signer)
 

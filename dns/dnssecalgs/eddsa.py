@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Optional, Type
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed448, ed25519
@@ -29,8 +29,15 @@ class PublicEDDSA(CryptographyPublicKey):
 class PrivateEDDSA(CryptographyPrivateKey):
     public_cls: Type[PublicEDDSA]
 
-    def sign(self, data: bytes, verify: bool = False) -> bytes:
+    def sign(
+        self,
+        data: bytes,
+        verify: bool = False,
+        deterministic_signing: Optional[bool] = None,
+    ) -> bytes:
         """Sign using a private key per RFC 8080, section 4."""
+        if deterministic_signing is False:
+            raise ValueError("EDDSA is always deterministic")
         signature = self.key.sign(data)
         if verify:
             self.public_key().verify(signature, data)

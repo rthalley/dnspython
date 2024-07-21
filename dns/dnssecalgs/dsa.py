@@ -1,4 +1,5 @@
 import struct
+from typing import Optional
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -68,8 +69,15 @@ class PrivateDSA(CryptographyPrivateKey):
     key_cls = dsa.DSAPrivateKey
     public_cls = PublicDSA
 
-    def sign(self, data: bytes, verify: bool = False) -> bytes:
+    def sign(
+        self,
+        data: bytes,
+        verify: bool = False,
+        deterministic_signing: Optional[bool] = None,
+    ) -> bytes:
         """Sign using a private key per RFC 2536, section 3."""
+        if deterministic_signing is True:
+            raise ValueError("DSA is never deterministic")
         public_dsa_key = self.key.public_key()
         if public_dsa_key.key_size > 1024:
             raise ValueError("DSA key size overflow")

@@ -1397,9 +1397,59 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         )
         self._test_signature(key, dns.dnssec.Algorithm.RSASHA256, abs_soa)
 
+    def testAlwaysDeterministicSignatureRSASHA256(self):  # type: () -> None
+        key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048, backend=default_backend()
+        )
+        with self.assertRaises(ValueError):
+            self._test_signature(
+                key,
+                dns.dnssec.Algorithm.RSASHA256,
+                abs_soa,
+                deterministic_signing=False,
+            )
+
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
         self._test_signature(key, dns.dnssec.Algorithm.ECDSAP256SHA256, abs_soa)
+
+    def testDeterministicSignatureECDSAP256SHA256(self):  # type: () -> None
+        key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+        inception = time.time()
+        rrsigset1 = self._test_signature(
+            key,
+            dns.dnssec.Algorithm.ECDSAP256SHA256,
+            abs_soa,
+            inception=inception,
+            deterministic_signing=True,
+        )
+        rrsigset2 = self._test_signature(
+            key,
+            dns.dnssec.Algorithm.ECDSAP256SHA256,
+            abs_soa,
+            inception=inception,
+            deterministic_signing=True,
+        )
+        assert rrsigset1 == rrsigset2
+
+    def testNonDeterministicSignatureECDSAP256SHA256(self):  # type: () -> None
+        key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+        inception = time.time()
+        rrsigset1 = self._test_signature(
+            key,
+            dns.dnssec.Algorithm.ECDSAP256SHA256,
+            abs_soa,
+            inception=inception,
+            deterministic_signing=False,
+        )
+        rrsigset2 = self._test_signature(
+            key,
+            dns.dnssec.Algorithm.ECDSAP256SHA256,
+            abs_soa,
+            inception=inception,
+            deterministic_signing=False,
+        )
+        assert rrsigset1 != rrsigset2
 
     def testSignatureECDSAP384SHA384(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP384R1(), backend=default_backend())
@@ -1428,7 +1478,16 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         rrsigset = self._test_signature(key, dns.dnssec.Algorithm.ED448, rrset)
         self.assertEqual(rrsigset[0].labels, 2)
 
-    def _test_signature(self, key, algorithm, rrset, signer=None, policy=None):
+    def _test_signature(
+        self,
+        key,
+        algorithm,
+        rrset,
+        signer=None,
+        policy=None,
+        inception=None,
+        deterministic_signing=None,
+    ):
         ttl = 60
         lifetime = 3600
         if isinstance(rrset, tuple):
@@ -1444,9 +1503,11 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             rrset=rrset,
             private_key=key,
             dnskey=dnskey,
+            inception=inception,
             lifetime=lifetime,
             signer=signer,
             verify=True,
+            deterministic_signing=deterministic_signing,
             policy=policy,
         )
         keys = {signer: dnskey_rrset}
