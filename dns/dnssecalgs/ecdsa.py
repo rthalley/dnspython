@@ -58,7 +58,7 @@ class PrivateECDSA(CryptographyPrivateKey):
         """Sign using a private key per RFC 6605, section 4."""
         algorithm = ec.ECDSA(
             self.public_cls.chosen_hash,
-            deterministic_signing=deterministic_signing or False,
+            deterministic_signing=deterministic_signing or True,
         )
         der_signature = self.key.sign(data, algorithm)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
