@@ -12,9 +12,9 @@ import dns.message
 import dns.name
 import dns.opcode
 import dns.query
-import dns.rrset
 import dns.rdataclass
 import dns.rdatatype
+import dns.rrset
 
 
 def main():

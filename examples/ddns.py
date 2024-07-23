@@ -27,9 +27,9 @@
 
 import sys
 
-import dns.update
 import dns.query
 import dns.tsigkeyring
+import dns.update
 
 #
 # Replace the keyname and secret with appropriate values for your

@@ -21,13 +21,13 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """See diff_zones.__doc__ for more information"""
 
-from typing import cast, Union, Any  # pylint: disable=unused-import
+from typing import Any, Union, cast  # pylint: disable=unused-import
 
 __all__ = ["diff_zones", "format_changes_plain", "format_changes_html"]
 
 try:
-    import dns.zone
     import dns.node
+    import dns.zone
 except ImportError:
     raise SystemExit("Please install dnspython")
 

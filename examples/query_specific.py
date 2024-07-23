@@ -3,9 +3,9 @@
 # Two ways of querying a specific nameserver.
 
 import dns.message
+import dns.query
 import dns.rdataclass
 import dns.rdatatype
-import dns.query
 
 # This way is just like nslookup/dig:
 
