@@ -998,7 +998,7 @@ def sign_zone(
     nsec3: Optional[NSEC3PARAM] = None,
     rrset_signer: Optional[RRsetSigner] = None,
     policy: Optional[Policy] = None,
-    deterministic: Optional[bool] = None,
+    deterministic: bool = True,
 ) -> None:
     """Sign zone.
 

@@ -69,7 +69,7 @@ class GenericPrivateKey(ABC):
         self,
         data: bytes,
         verify: bool = False,
-        deterministic: Optional[bool] = None,
+        deterministic: bool = True,
     ) -> bytes:
         """Sign DNSSEC data"""
 
