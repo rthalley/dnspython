@@ -4,14 +4,13 @@
 # really was a NOTIFY, and otherwise handle errors.
 
 import socket
+from typing import cast
 
 import dns.flags
 import dns.message
+import dns.name
 import dns.rdataclass
 import dns.rdatatype
-import dns.name
-
-from typing import cast
 
 address = "127.0.0.1"
 port = 53535

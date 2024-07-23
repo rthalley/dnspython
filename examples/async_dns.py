@@ -2,9 +2,9 @@ import sys
 
 import trio
 
-import dns.message
 import dns.asyncquery
 import dns.asyncresolver
+import dns.message
 
 
 async def main():

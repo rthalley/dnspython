@@ -2,13 +2,14 @@
 
 import copy
 import json
+
 import httpx
 
 import dns.flags
 import dns.message
-import dns.resolver
 import dns.rdataclass
 import dns.rdatatype
+import dns.resolver
 
 # This shows how to convert to/from dnspython's message object and the
 # DNS-over-HTTPS (DoH) JSON form used by Google and Cloudflare, and
