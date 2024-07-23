@@ -526,6 +526,7 @@ def _sign(
 
     *deterministic*, a ``bool``. If ``True``, the default, use deterministic
     (reproducible) signatures when supported by the algorithm used for signing.
+    Currently, this only affects ECDSA.
 
     Raises ``DeniedByPolicy`` if the signature is denied by policy.
     """
@@ -1039,6 +1040,7 @@ def sign_zone(
 
     *deterministic*, a ``bool``. If ``True``, the default, use deterministic
     (reproducible) signatures when supported by the algorithm used for signing.
+    Currently, this only affects ECDSA.
 
     Returns ``None``.
     """
