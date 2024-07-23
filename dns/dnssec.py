@@ -484,7 +484,7 @@ def _sign(
     verify: bool = False,
     policy: Optional[Policy] = None,
     origin: Optional[dns.name.Name] = None,
-    deterministic_signing: Optional[bool] = None,
+    deterministic: Optional[bool] = None,
 ) -> RRSIG:
     """Sign RRset using private key.
 
@@ -524,7 +524,7 @@ def _sign(
     names in the rrset (including its owner name) must be absolute; otherwise the
     specified origin will be used to make names absolute when signing.
 
-    *deterministic_signing*, a ``bool`` or ``None``.  If ``None``, the default,
+    *deterministic*, a ``bool`` or ``None``.  If ``None``, the default,
     deterministic signatures are created when supported.
 
     Raises ``DeniedByPolicy`` if the signature is denied by policy.
@@ -593,7 +593,7 @@ def _sign(
         except UnsupportedAlgorithm:
             raise TypeError("Unsupported key algorithm")
 
-    signature = signing_key.sign(data, verify, deterministic_signing)
+    signature = signing_key.sign(data, verify, deterministic)
 
     return cast(RRSIG, rrsig_template.replace(signature=signature))
 
@@ -954,7 +954,7 @@ def default_rrset_signer(
     lifetime: Optional[int] = None,
     policy: Optional[Policy] = None,
     origin: Optional[dns.name.Name] = None,
-    deterministic_signing: Optional[bool] = None,
+    deterministic: Optional[bool] = None,
 ) -> None:
     """Default RRset signer"""
 
@@ -980,7 +980,7 @@ def default_rrset_signer(
             signer=signer,
             policy=policy,
             origin=origin,
-            deterministic_signing=deterministic_signing,
+            deterministic=deterministic,
         )
         txn.add(rrset.name, rrset.ttl, rrsig)
 
@@ -997,7 +997,7 @@ def sign_zone(
     nsec3: Optional[NSEC3PARAM] = None,
     rrset_signer: Optional[RRsetSigner] = None,
     policy: Optional[Policy] = None,
-    deterministic_signing: Optional[bool] = None,
+    deterministic: Optional[bool] = None,
 ) -> None:
     """Sign zone.
 
@@ -1037,7 +1037,7 @@ def sign_zone(
     function requires two arguments: transaction and RRset. If the not specified,
     ``dns.dnssec.default_rrset_signer`` will be used.
 
-    *deterministic_signing*, a ``bool`` or ``None``.  If ``None``, the default,
+    *deterministic*, a ``bool`` or ``None``.  If ``None``, the default,
     deterministic signatures are created when supported.
 
     Returns ``None``.
@@ -1091,7 +1091,7 @@ def sign_zone(
                 lifetime=lifetime,
                 policy=policy,
                 origin=zone.origin,
-                deterministic_signing=deterministic_signing,
+                deterministic=deterministic,
             )
             return _sign_zone_nsec(zone, _txn, _rrset_signer)
 

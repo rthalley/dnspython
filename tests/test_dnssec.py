@@ -1406,7 +1406,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
                 key,
                 dns.dnssec.Algorithm.RSASHA256,
                 abs_soa,
-                deterministic_signing=False,
+                deterministic=False,
             )
 
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
@@ -1421,14 +1421,14 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             dns.dnssec.Algorithm.ECDSAP256SHA256,
             abs_soa,
             inception=inception,
-            deterministic_signing=True,
+            deterministic=True,
         )
         rrsigset2 = self._test_signature(
             key,
             dns.dnssec.Algorithm.ECDSAP256SHA256,
             abs_soa,
             inception=inception,
-            deterministic_signing=True,
+            deterministic=True,
         )
         assert rrsigset1 == rrsigset2
 
@@ -1440,14 +1440,14 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             dns.dnssec.Algorithm.ECDSAP256SHA256,
             abs_soa,
             inception=inception,
-            deterministic_signing=False,
+            deterministic=False,
         )
         rrsigset2 = self._test_signature(
             key,
             dns.dnssec.Algorithm.ECDSAP256SHA256,
             abs_soa,
             inception=inception,
-            deterministic_signing=False,
+            deterministic=False,
         )
         assert rrsigset1 != rrsigset2
 
@@ -1486,7 +1486,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         signer=None,
         policy=None,
         inception=None,
-        deterministic_signing=None,
+        deterministic=None,
     ):
         ttl = 60
         lifetime = 3600
@@ -1507,7 +1507,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
             lifetime=lifetime,
             signer=signer,
             verify=True,
-            deterministic_signing=deterministic_signing,
+            deterministic=deterministic,
             policy=policy,
         )
         keys = {signer: dnskey_rrset}

@@ -73,10 +73,10 @@ class PrivateDSA(CryptographyPrivateKey):
         self,
         data: bytes,
         verify: bool = False,
-        deterministic_signing: Optional[bool] = None,
+        deterministic: Optional[bool] = None,
     ) -> bytes:
         """Sign using a private key per RFC 2536, section 3."""
-        if deterministic_signing is True:
+        if deterministic is True:
             raise ValueError("DSA is never deterministic")
         public_dsa_key = self.key.public_key()
         if public_dsa_key.key_size > 1024:

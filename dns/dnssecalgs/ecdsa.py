@@ -53,13 +53,13 @@ class PrivateECDSA(CryptographyPrivateKey):
         self,
         data: bytes,
         verify: bool = False,
-        deterministic_signing: Optional[bool] = None,
+        deterministic: Optional[bool] = None,
     ) -> bytes:
         """Sign using a private key per RFC 6605, section 4."""
         algorithm = ec.ECDSA(
             self.public_cls.chosen_hash,
-            deterministic_signing=deterministic_signing
-            or deterministic_signing is None,
+            deterministic_signing=deterministic
+            or deterministic is None,
         )
         der_signature = self.key.sign(data, algorithm)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
