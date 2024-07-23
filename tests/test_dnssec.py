@@ -1397,18 +1397,6 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         )
         self._test_signature(key, dns.dnssec.Algorithm.RSASHA256, abs_soa)
 
-    def testAlwaysDeterministicSignatureRSASHA256(self):  # type: () -> None
-        key = rsa.generate_private_key(
-            public_exponent=65537, key_size=2048, backend=default_backend()
-        )
-        with self.assertRaises(ValueError):
-            self._test_signature(
-                key,
-                dns.dnssec.Algorithm.RSASHA256,
-                abs_soa,
-                deterministic=False,
-            )
-
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
         self._test_signature(key, dns.dnssec.Algorithm.ECDSAP256SHA256, abs_soa)
@@ -1486,7 +1474,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         signer=None,
         policy=None,
         inception=None,
-        deterministic=None,
+        deterministic=True,
     ):
         ttl = 60
         lifetime = 3600

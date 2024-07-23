@@ -33,11 +33,9 @@ class PrivateEDDSA(CryptographyPrivateKey):
         self,
         data: bytes,
         verify: bool = False,
-        deterministic: Optional[bool] = None,
+        deterministic: bool = True,
     ) -> bytes:
         """Sign using a private key per RFC 8080, section 4."""
-        if deterministic is False:
-            raise ValueError("EDDSA is always deterministic")
         signature = self.key.sign(data)
         if verify:
             self.public_key().verify(signature, data)

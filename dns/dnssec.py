@@ -484,7 +484,7 @@ def _sign(
     verify: bool = False,
     policy: Optional[Policy] = None,
     origin: Optional[dns.name.Name] = None,
-    deterministic: Optional[bool] = None,
+    deterministic: bool = True,
 ) -> RRSIG:
     """Sign RRset using private key.
 
@@ -524,8 +524,8 @@ def _sign(
     names in the rrset (including its owner name) must be absolute; otherwise the
     specified origin will be used to make names absolute when signing.
 
-    *deterministic*, a ``bool`` or ``None``.  If ``None``, the default,
-    deterministic signatures are created when supported.
+    *deterministic*, a ``bool``. If ``True``, the default, use deterministic
+    (reproducible) signatures when supported by the algorithm used for signing.
 
     Raises ``DeniedByPolicy`` if the signature is denied by policy.
     """
@@ -954,7 +954,7 @@ def default_rrset_signer(
     lifetime: Optional[int] = None,
     policy: Optional[Policy] = None,
     origin: Optional[dns.name.Name] = None,
-    deterministic: Optional[bool] = None,
+    deterministic: bool = True,
 ) -> None:
     """Default RRset signer"""
 
@@ -1037,8 +1037,8 @@ def sign_zone(
     function requires two arguments: transaction and RRset. If the not specified,
     ``dns.dnssec.default_rrset_signer`` will be used.
 
-    *deterministic*, a ``bool`` or ``None``.  If ``None``, the default,
-    deterministic signatures are created when supported.
+    *deterministic*, a ``bool``. If ``True``, the default, use deterministic
+    (reproducible) signatures when supported by the algorithm used for signing.
 
     Returns ``None``.
     """

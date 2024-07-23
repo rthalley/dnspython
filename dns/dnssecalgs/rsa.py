@@ -61,11 +61,9 @@ class PrivateRSA(CryptographyPrivateKey):
         self,
         data: bytes,
         verify: bool = False,
-        deterministic: Optional[bool] = None,
+        deterministic: bool = True,
     ) -> bytes:
         """Sign using a private key per RFC 3110, section 3."""
-        if deterministic is False:
-            raise ValueError("RSA is always deterministic")
         signature = self.key.sign(data, padding.PKCS1v15(), self.public_cls.chosen_hash)
         if verify:
             self.public_key().verify(signature, data)
