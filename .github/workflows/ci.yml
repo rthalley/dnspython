@@ -16,8 +16,15 @@ on:
   workflow_dispatch:
 
 jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chartboost/ruff-action@v1
+
   build:
 
+    needs: ruff
     runs-on: ${{ matrix.os }}
 
     strategy:
