@@ -22,9 +22,9 @@ print(res.nameservers)
 
 import asyncio
 
-# import trio
-
 import dns.asyncresolver
+
+# import trio
 
 
 async def amain():

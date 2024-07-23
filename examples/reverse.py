@@ -16,11 +16,12 @@
 # If this weren't a demo script, there'd be a way of specifying the
 # origin for each zone instead of constructing it from the filename.
 
-import dns.zone
-import dns.ipv4
 import os.path
 import sys
 from typing import Dict, List  # pylint: disable=unused-import
+
+import dns.ipv4
+import dns.zone
 
 reverse_map = {}  # type: Dict[str, List[str]]
 
