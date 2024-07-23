@@ -1056,6 +1056,9 @@ def sign_zone(
     else:
         cm = zone.writer()
 
+    if zone.origin is None:
+        raise ValueError("no zone origin")
+
     with cm as _txn:
         if add_dnskey:
             if dnskey_ttl is None:
