@@ -52,6 +52,8 @@ class OptionType(dns.enum.IntEnum):
     CHAIN = 13
     #: EDE (extended-dns-error)
     EDE = 15
+    #: REPORTCHANNEL
+    REPORTCHANNEL = 18
 
     @classmethod
     def _maximum(cls):
@@ -462,11 +464,31 @@ class CookieOption(Option):
         return cls(parser.get_bytes(8), parser.get_remaining())
 
 
+class ReportChannelOption(Option):
+    # RFC 9567
+    def __init__(self, agent_domain: dns.name.Name):
+        super().__init__(OptionType.REPORTCHANNEL)
+        self.agent_domain = agent_domain
+
+    def to_wire(self, file: Any = None) -> Optional[bytes]:
+        return self.agent_domain.to_wire(file)
+
+    def to_text(self) -> str:
+        return "REPORTCHANNEL " + self.agent_domain.to_text()
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: Union[OptionType, str], parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_name())
+
+
 _type_to_class: Dict[OptionType, Any] = {
     OptionType.ECS: ECSOption,
     OptionType.EDE: EDEOption,
     OptionType.NSID: NSIDOption,
     OptionType.COOKIE: CookieOption,
+    OptionType.REPORTCHANNEL: ReportChannelOption,
 }
 
 
@@ -545,5 +567,6 @@ KEEPALIVE = OptionType.KEEPALIVE
 PADDING = OptionType.PADDING
 CHAIN = OptionType.CHAIN
 EDE = OptionType.EDE
+REPORTCHANNEL = OptionType.REPORTCHANNEL
 
 ### END generated OptionType constants

@@ -28,7 +28,19 @@ will create a ``dns.edns.ECSOption`` object to represent it.
 
 .. autoclass:: dns.edns.ECSOption
    :members:
-   
+
+.. autoclass:: dns.edns.EDEOption
+   :members:
+
+.. autoclass:: dns.edns.NSIDOption
+   :members:
+
+.. autoclass:: dns.edns.CookieOption
+   :members:
+
+.. autoclass:: dns.edns.ReportChannelOption
+   :members:
+
 .. autofunction:: dns.edns.get_option_class
 .. autofunction:: dns.edns.option_from_wire_parser
 .. autofunction:: dns.edns.option_from_wire
