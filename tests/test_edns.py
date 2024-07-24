@@ -252,6 +252,20 @@ class OptionTestCase(unittest.TestCase):
                 b"12345678", b"abcdefghabcdefghabcdefghabcdefghi"
             )
 
+    def testReportChannelOption(self):
+        agent_domain = dns.name.from_text("agent.example.")
+        expected_wire = b"\x05agent\x07example\x00"
+        opt = dns.edns.ReportChannelOption(agent_domain)
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, expected_wire)
+        self.assertEqual(str(opt), "REPORTCHANNEL agent.example.")
+        opt2 = dns.edns.option_from_wire(
+            dns.edns.OptionType.REPORTCHANNEL, expected_wire, 0, len(expected_wire)
+        )
+        self.assertEqual(opt2.agent_domain, agent_domain)
+
     def test_option_registration(self):
         U32OptionType = 9999
 
