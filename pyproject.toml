@@ -99,12 +99,10 @@ lint.select = [
     "UP",
     # flake8-bugbear
     "B",
-    # flake8-simplify
-    #"SIM",
     # isort
     "I",
 ]
-lint.ignore = ["E501", "E741", "F401", "I001", "SIM102", "B904", "B011"]
+lint.ignore = ["E501", "E741", "F401", "I001", "B904", "B011"]
 lint.exclude = ["tests/*"]
 
 [tool.isort]
