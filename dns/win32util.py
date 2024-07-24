@@ -13,8 +13,8 @@ if sys.platform == "win32":
 
     # Keep pylint quiet on non-windows.
     try:
-        WindowsError is None  # pylint: disable=used-before-assignment
-    except KeyError:
+        _ = WindowsError  # pylint: disable=used-before-assignment
+    except NameError:
         WindowsError = Exception
 
     if dns._features.have("wmi"):
@@ -232,7 +232,7 @@ if sys.platform == "win32":
                                 self._config_fromkey(key, False)
                             finally:
                                 key.Close()
-                        except EnvironmentError:
+                        except OSError:
                             break
                 finally:
                     interfaces.Close()

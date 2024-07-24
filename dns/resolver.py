@@ -1926,7 +1926,7 @@ def _getnameinfo(sockaddr, flags=0):
         family = socket.AF_INET
     tuples = _getaddrinfo(host, port, family, socket.SOCK_STREAM, socket.SOL_TCP, 0)
     if len(tuples) > 1:
-        raise socket.error("sockaddr resolved to multiple addresses")
+        raise OSError("sockaddr resolved to multiple addresses")
     addr = tuples[0][4][0]
     if flags & socket.NI_DGRAM:
         pname = "udp"

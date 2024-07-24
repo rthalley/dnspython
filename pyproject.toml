@@ -90,7 +90,32 @@ path = "dns/version.py"
 expression = "version"
 
 [tool.ruff]
-lint.ignore = ['E741', 'F401']
+lint.select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    #"SIM",
+    # isort
+    "I",
+]
+lint.ignore = [
+    "E501",
+    "E741",
+    "F401",
+    "I001",
+    "SIM102",
+    "B904",
+    "B011",
+    "UP031",
+    "UP032",
+]
+lint.exclude = ["tests/*"]
 
 [tool.isort]
 profile = "black"

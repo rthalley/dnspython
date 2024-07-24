@@ -1601,7 +1601,7 @@ def xfr(
             raise NotImplementedError  # pragma: no cover
 
         def writer(self, replacement: bool = False) -> dns.transaction.Transaction:
-            class DummyTransaction(object):
+            class DummyTransaction:
                 def nop(self, *args, **kw):
                     pass
 
