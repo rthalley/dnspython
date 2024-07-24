@@ -83,6 +83,7 @@ include = ["dns/*.py", "dns/**/*.py", "dns/py.typed"]
 
 [tool.hatch.envs.default]
 features = ["trio", "dnssec", "idna", "doh", "doq", "dev"]
+installer = "uv"
 
 [tool.hatch.version]
 source = "code"
