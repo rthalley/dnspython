@@ -443,13 +443,15 @@ def https(
     )
     if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
-            url = "https://{}:{}{}".format(where, port, path)
+            url = f"https://{where}:{port}{path}"
         elif af == socket.AF_INET6:
-            url = "https://[{}]:{}{}".format(where, port, path)
+            url = f"https://[{where}]:{port}{path}"
     else:
         url = where
 
-    if http_version == HTTPVersion.H3 or (http_version == HTTPVersion.DEFAULT and not have_doh):
+    if http_version == HTTPVersion.H3 or (
+        http_version == HTTPVersion.DEFAULT and not have_doh
+    ):
         if bootstrap_address is None:
             parsed = urllib.parse.urlparse(url)
             resolver = _maybe_get_resolver(resolver)
@@ -533,8 +535,8 @@ def https(
     # status codes
     if response.status_code < 200 or response.status_code > 299:
         raise ValueError(
-            "{} responded with status code {}"
-            "\nResponse body: {}".format(where, response.status_code, response.content)
+            f"{where} responded with status code {response.status_code}"
+            f"\nResponse body: {response.content}"
         )
     r = dns.message.from_wire(
         response.content,

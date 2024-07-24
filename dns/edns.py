@@ -222,7 +222,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             self.addrdata = self.addrdata[:-1] + last
 
     def to_text(self) -> str:
-        return "ECS {}/{} scope/{}".format(self.address, self.srclen, self.scopelen)
+        return f"ECS {self.address}/{self.srclen} scope/{self.scopelen}"
 
     @staticmethod
     def from_text(text: str) -> Option:
@@ -255,10 +255,10 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             ecs_text = tokens[0]
         elif len(tokens) == 2:
             if tokens[0] != optional_prefix:
-                raise ValueError('could not parse ECS from "{}"'.format(text))
+                raise ValueError(f'could not parse ECS from "{text}"')
             ecs_text = tokens[1]
         else:
-            raise ValueError('could not parse ECS from "{}"'.format(text))
+            raise ValueError(f'could not parse ECS from "{text}"')
         n_slashes = ecs_text.count("/")
         if n_slashes == 1:
             address, tsrclen = ecs_text.split("/")
@@ -266,18 +266,16 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         elif n_slashes == 2:
             address, tsrclen, tscope = ecs_text.split("/")
         else:
-            raise ValueError('could not parse ECS from "{}"'.format(text))
+            raise ValueError(f'could not parse ECS from "{text}"')
         try:
             scope = int(tscope)
         except ValueError:
-            raise ValueError(
-                "invalid scope " + '"{}": scope must be an integer'.format(tscope)
-            )
+            raise ValueError("invalid scope " + f'"{tscope}": scope must be an integer')
         try:
             srclen = int(tsrclen)
         except ValueError:
             raise ValueError(
-                "invalid srclen " + '"{}": srclen must be an integer'.format(tsrclen)
+                "invalid srclen " + f'"{tsrclen}": srclen must be an integer'
             )
         return ECSOption(address, srclen, scope)
 

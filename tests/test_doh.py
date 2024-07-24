@@ -248,5 +248,6 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
             )
             self.assertTrue(q.is_response(r))
 
+
 if __name__ == "__main__":
     unittest.main()

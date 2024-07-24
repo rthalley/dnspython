@@ -251,9 +251,7 @@ class Reader:
             # We convert them to syntax errors so that we can emit
             # helpful filename:line info.
             (ty, va) = sys.exc_info()[:2]
-            raise dns.exception.SyntaxError(
-                "caught exception {}: {}".format(str(ty), str(va))
-            )
+            raise dns.exception.SyntaxError(f"caught exception {str(ty)}: {str(va)}")
 
         if not self.default_ttl_known and rdtype == dns.rdatatype.SOA:
             # The pre-RFC2308 and pre-BIND9 behavior inherits the zone default

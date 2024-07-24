@@ -83,7 +83,7 @@ class NXDOMAIN(dns.exception.DNSException):
         else:
             msg = "The DNS query name does not exist"
         qnames = ", ".join(map(str, qnames))
-        return "{}: {}".format(msg, qnames)
+        return f"{msg}: {qnames}"
 
     @property
     def canonical_name(self):
@@ -154,7 +154,7 @@ def _errors_to_text(errors: List[ErrorTuple]) -> List[str]:
     """Turn a resolution errors trace into a list of text."""
     texts = []
     for err in errors:
-        texts.append("Server {} answered {}".format(err[0], err[3]))
+        texts.append(f"Server {err[0]} answered {err[3]}")
     return texts
 
 
@@ -1205,9 +1205,7 @@ class BaseResolver:
                 enriched_nameservers.append(enriched_nameserver)
         else:
             raise ValueError(
-                "nameservers must be a list or tuple (not a {})".format(
-                    type(nameservers)
-                )
+                f"nameservers must be a list or tuple (not a {type(nameservers)})"
             )
         return enriched_nameservers
 

@@ -434,15 +434,11 @@ class Rdata:
                 continue
             if key not in parameters:
                 raise AttributeError(
-                    "'{}' object has no attribute '{}'".format(
-                        self.__class__.__name__, key
-                    )
+                    f"'{self.__class__.__name__}' object has no attribute '{key}'"
                 )
             if key in ("rdclass", "rdtype"):
                 raise AttributeError(
-                    "Cannot overwrite '{}' attribute '{}'".format(
-                        self.__class__.__name__, key
-                    )
+                    f"Cannot overwrite '{self.__class__.__name__}' attribute '{key}'"
                 )
 
         # Construct the parameter list.  For each field, use the value in
