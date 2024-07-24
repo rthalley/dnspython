@@ -164,7 +164,7 @@ if sys.platform == "win32":
                     lm,
                     r"SYSTEM\CurrentControlSet\Control\Network"
                     r"\{4D36E972-E325-11CE-BFC1-08002BE10318}"
-                    r"\%s\Connection" % guid,
+                    rf"\{guid}\Connection",
                 )
 
                 try:
@@ -177,7 +177,7 @@ if sys.platform == "win32":
                         raise ValueError  # pragma: no cover
 
                     device_key = winreg.OpenKey(
-                        lm, r"SYSTEM\CurrentControlSet\Enum\%s" % pnp_id
+                        lm, rf"SYSTEM\CurrentControlSet\Enum\{pnp_id}"
                     )
 
                     try:

@@ -224,7 +224,7 @@ def make_ds(
         if isinstance(algorithm, str):
             algorithm = DSDigest[algorithm.upper()]
     except Exception:
-        raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+        raise UnsupportedAlgorithm(f'unsupported algorithm "{algorithm}"')
     if validating:
         check = policy.ok_to_validate_ds
     else:
@@ -240,7 +240,7 @@ def make_ds(
     elif algorithm == DSDigest.SHA384:
         dshash = hashlib.sha384()
     else:
-        raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+        raise UnsupportedAlgorithm(f'unsupported algorithm "{algorithm}"')
 
     if isinstance(name, str):
         name = dns.name.from_text(name, origin)
@@ -837,7 +837,7 @@ def make_ds_rdataset(
             if isinstance(algorithm, str):
                 algorithm = DSDigest[algorithm.upper()]
         except Exception:
-            raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+            raise UnsupportedAlgorithm(f'unsupported algorithm "{algorithm}"')
         _algorithms.add(algorithm)
 
     if rdataset.rdtype == dns.rdatatype.CDS:

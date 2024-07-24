@@ -59,7 +59,7 @@ def get_algorithm_cls(
     if cls:
         return cls
     raise UnsupportedAlgorithm(
-        'algorithm "%s" not supported by dnspython' % Algorithm.to_text(algorithm)
+        f'algorithm "{Algorithm.to_text(algorithm)}" not supported by dnspython'
     )
 
 

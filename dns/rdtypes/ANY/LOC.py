@@ -44,7 +44,7 @@ def _exponent_of(what, desc):
             exp = i - 1
             break
     if exp is None or exp < 0:
-        raise dns.exception.SyntaxError("%s value out of bounds" % desc)
+        raise dns.exception.SyntaxError(f"{desc} value out of bounds")
     return exp
 
 
@@ -83,10 +83,10 @@ def _encode_size(what, desc):
 def _decode_size(what, desc):
     exponent = what & 0x0F
     if exponent > 9:
-        raise dns.exception.FormError("bad %s exponent" % desc)
+        raise dns.exception.FormError(f"bad {desc} exponent")
     base = (what & 0xF0) >> 4
     if base > 9:
-        raise dns.exception.FormError("bad %s base" % desc)
+        raise dns.exception.FormError(f"bad {desc} base")
     return base * pow(10, exponent)
 
 

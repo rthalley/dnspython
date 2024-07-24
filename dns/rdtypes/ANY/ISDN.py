@@ -40,7 +40,7 @@ class ISDN(dns.rdata.Rdata):
         if self.subaddress:
             return f'"{dns.rdata._escapify(self.address)}" "{dns.rdata._escapify(self.subaddress)}"'
         else:
-            return '"%s"' % dns.rdata._escapify(self.address)
+            return f'"{dns.rdata._escapify(self.address)}"'
 
     @classmethod
     def from_text(

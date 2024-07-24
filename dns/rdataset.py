@@ -160,7 +160,7 @@ class Rdataset(dns.set.Set):
                 return s[:100] + "..."
             return s
 
-        return "[%s]" % ", ".join("<%s>" % maybe_truncate(str(rr)) for rr in self)
+        return "[" + ", ".join(f"<{maybe_truncate(str(rr))}>" for rr in self) + "]"
 
     def __repr__(self):
         if self.covers == 0:

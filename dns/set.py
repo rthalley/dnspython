@@ -44,7 +44,7 @@ class Set:
                 self.add(item)  # lgtm[py/init-calls-subclass]
 
     def __repr__(self):
-        return "dns.set.Set(%s)" % repr(list(self.items.keys()))  # pragma: no cover
+        return f"dns.set.Set({repr(list(self.items.keys()))})"  # pragma: no cover
 
     def add(self, item):
         """Add an item to the set."""

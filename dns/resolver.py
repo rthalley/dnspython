@@ -162,7 +162,7 @@ class LifetimeTimeout(dns.exception.Timeout):
     """The resolution lifetime expired."""
 
     msg = "The resolution lifetime expired."
-    fmt = "%s after {timeout:.3f} seconds: {errors}" % msg[:-1]
+    fmt = f"{msg[:-1]} after {{timeout:.3f}} seconds: {{errors}}"
     supp_kwargs = {"timeout", "errors"}
 
     # We do this as otherwise mypy complains about unexpected keyword argument
@@ -211,7 +211,7 @@ class NoNameservers(dns.exception.DNSException):
     """
 
     msg = "All nameservers failed to answer the query."
-    fmt = "%s {query}: {errors}" % msg[:-1]
+    fmt = f"{msg[:-1]} {{query}}: {{errors}}"
     supp_kwargs = {"request", "errors"}
 
     # We do this as otherwise mypy complains about unexpected keyword argument

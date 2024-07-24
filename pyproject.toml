@@ -104,16 +104,7 @@ lint.select = [
     # isort
     "I",
 ]
-lint.ignore = [
-    "E501",
-    "E741",
-    "F401",
-    "I001",
-    "SIM102",
-    "B904",
-    "B011",
-    "UP031",
-]
+lint.ignore = ["E501", "E741", "F401", "I001", "SIM102", "B904", "B011"]
 lint.exclude = ["tests/*"]
 
 [tool.isort]
