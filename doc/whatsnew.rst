@@ -6,7 +6,35 @@ What's New in dnspython
 2.7.0 (in development)
 ----------------------
 
-* TBD
+* dns.query.https() and dns.asyncquery.https() now support HTTP/3 and the http_version
+  parameter may be used to specify which version to use.
+
+* If the cryptography module is installed, then dnspython will now create deterministic
+  ESDSA signatures by default.  Cryptography, if installed, must be at least version 43.
+  Thanks to Jakob Schlyter for adding the feature.
+
+* The RESINFO and WALLET RdataTypes are now supported.
+
+* The COOKIE and Report-Channel EDNS0 options are now supported.
+
+* All supported RdataTypes can now be imported at a single time rather than lazily on
+  first use by calling dns.rdata.load_all_types().
+
+* The SVCB and HTTPS records now support the ohttp parameter.
+
+* xfr() and inbound_xfr() now share a common implementation.
+
+* Tokens are now supported for QUIC and HTTP/3.
+
+* dns.message.from_wire() now saves the input wire format in the Message's "wire"
+  attribute.  Likewise, dns.message.Message.to_wire() now records the generated
+  wire format in that attribute.
+
+* The dns.message.Message object now has a get_options() helper to retrieve EDNS0
+  options of a specified type, and an extended_errors() helper to retrieve the list
+  of EDE options in a message (if any).
+
+* The minimum supported aioquic version is now 1.0.0.
 
 2.6.1
 -----
