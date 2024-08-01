@@ -48,7 +48,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install cryptography trio idna httpx h2 aioquic mypy pytest pytest-cov ruff
+        python -m pip install cryptography trio idna httpx h2 aioquic mypy pytest ruff
     - name: Typecheck
       run: |
         python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
@@ -57,12 +57,4 @@ jobs:
         ruff check dns
     - name: Test with pytest
       run: |
-        pytest --cov=dns --cov-branch --cov-report=xml:coverage.xml
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        pytest
