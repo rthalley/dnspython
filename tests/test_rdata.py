@@ -672,6 +672,10 @@ class RdataTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text("in", "txt", "")
 
+    def test_empty_TXT_wire(self):
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.TXT, b"", 0, 0)
+
     def test_too_long_TXT(self):
         # hit too long
         with self.assertRaises(dns.exception.SyntaxError):
