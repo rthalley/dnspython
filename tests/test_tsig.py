@@ -1,15 +1,15 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import base64
+import time
 import unittest
 from unittest.mock import Mock
-import time
-import base64
 
+import dns.message
 import dns.rcode
+import dns.rdtypes.ANY.TKEY
 import dns.tsig
 import dns.tsigkeyring
-import dns.message
-import dns.rdtypes.ANY.TKEY
 
 keyring = dns.tsigkeyring.from_text({"keyname.": "NjHwPsMKjdN++dOfE5iAiQ=="})
 
@@ -178,6 +178,28 @@ class TSIGTestCase(unittest.TestCase):
         w = m.to_wire()
         # not raising is passing
         dns.message.from_wire(w, keyring)
+
+    def test_signature_is_invalid(self):
+        m = dns.message.make_query("example", "a")
+        m.use_tsig(keyring, keyname)
+        w = m.to_wire()
+        b = bytearray(w)
+        # corrupt hash
+        b[-7] = (b[-7] + 1) & 0xFF
+        w = bytes(b)
+        with self.assertRaises(dns.tsig.BadSignature):
+            dns.message.from_wire(w, keyring)
+
+    def test_signature_is_invalid_and_ignored(self):
+        m = dns.message.make_query("example", "a")
+        m.use_tsig(keyring, keyname)
+        w = m.to_wire()
+        b = bytearray(w)
+        # corrupt hash
+        b[-7] = (b[-7] + 1) & 0xFF
+        w = bytes(b)
+        m2 = dns.message.from_wire(w, False)
+        self.assertIsNotNone(m2.tsig)
 
     def test_validate_with_bad_keyring(self):
         m = dns.message.make_query("example", "a")

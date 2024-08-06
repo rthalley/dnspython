@@ -1202,9 +1202,9 @@ class _WireReader:
                 if rdtype == dns.rdatatype.OPT:
                     self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
                 elif rdtype == dns.rdatatype.TSIG:
-                    if self.keyring is None:
+                    if self.keyring is None or self.keyring is True:
                         raise UnknownTSIGKey("got signed message without keyring")
-                    if isinstance(self.keyring, dict):
+                    elif isinstance(self.keyring, dict):
                         key = self.keyring.get(absolute_name)
                         if isinstance(key, bytes):
                             key = dns.tsig.Key(absolute_name, key, rd.algorithm)
@@ -1214,18 +1214,19 @@ class _WireReader:
                         key = self.keyring
                     if key is None:
                         raise UnknownTSIGKey(f"key '{name}' unknown")
-                    self.message.keyring = key
-                    self.message.tsig_ctx = dns.tsig.validate(
-                        self.parser.wire,
-                        key,
-                        absolute_name,
-                        rd,
-                        int(time.time()),
-                        self.message.request_mac,
-                        rr_start,
-                        self.message.tsig_ctx,
-                        self.multi,
-                    )
+                    if key:
+                        self.message.keyring = key
+                        self.message.tsig_ctx = dns.tsig.validate(
+                            self.parser.wire,
+                            key,
+                            absolute_name,
+                            rd,
+                            int(time.time()),
+                            self.message.request_mac,
+                            rr_start,
+                            self.message.tsig_ctx,
+                            self.multi,
+                        )
                     self.message.tsig = dns.rrset.from_rdata(absolute_name, 0, rd)
                 else:
                     rrset = self.message.find_rrset(
@@ -1301,8 +1302,10 @@ def from_wire(
 ) -> Message:
     """Convert a DNS wire format message into a message object.
 
-    *keyring*, a ``dns.tsig.Key`` or ``dict``, the key or keyring to use if the message
-    is signed.
+    *keyring*, a ``dns.tsig.Key``, ``dict``, ``bool``, or ``None``, the key or keyring
+    to use if the message is signed.  If ``None`` or ``True``, then trying to decode
+    a message with a TSIG will fail as it cannot be validated.  If ``False``, then
+    TSIG validation is disabled.
 
     *request_mac*, a ``bytes`` or ``None``.  If the message is a response to a
     TSIG-signed request, *request_mac* should be set to the MAC of that request.
