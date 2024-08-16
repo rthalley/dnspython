@@ -1632,7 +1632,9 @@ def inbound_xfr(
         with _make_socket(af, socket.SOCK_DGRAM, source) as s:
             _connect(s, destination, expiration)
             try:
-                for _ in _inbound_xfr(txn_manager, s, query, serial, timeout, expiration):
+                for _ in _inbound_xfr(
+                    txn_manager, s, query, serial, timeout, expiration
+                ):
                     pass
                 return
             except dns.xfr.UseTCP:

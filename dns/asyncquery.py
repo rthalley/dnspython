@@ -873,7 +873,9 @@ async def inbound_xfr(
         )
         async with s:
             try:
-                async for _ in _inbound_xfr(txn_manager, s, query, serial, timeout, expiration):
+                async for _ in _inbound_xfr(
+                    txn_manager, s, query, serial, timeout, expiration
+                ):
                     pass
                 return
             except dns.xfr.UseTCP:
@@ -882,7 +884,7 @@ async def inbound_xfr(
                 pass
 
     s = await backend.make_socket(
-            af, socket.SOCK_STREAM, 0, stuple, dtuple, _timeout(expiration)
+        af, socket.SOCK_STREAM, 0, stuple, dtuple, _timeout(expiration)
     )
     async with s:
         async for _ in _inbound_xfr(txn_manager, s, query, serial, timeout, expiration):
