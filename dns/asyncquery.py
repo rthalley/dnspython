@@ -716,107 +716,6 @@ async def _http3(
     return r
 
 
-async def inbound_xfr(
-    where: str,
-    txn_manager: dns.transaction.TransactionManager,
-    query: Optional[dns.message.Message] = None,
-    port: int = 53,
-    timeout: Optional[float] = None,
-    lifetime: Optional[float] = None,
-    source: Optional[str] = None,
-    source_port: int = 0,
-    udp_mode: UDPMode = UDPMode.NEVER,
-    backend: Optional[dns.asyncbackend.Backend] = None,
-) -> None:
-    """Conduct an inbound transfer and apply it via a transaction from the
-    txn_manager.
-
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
-
-    See :py:func:`dns.query.inbound_xfr()` for the documentation of
-    the other parameters, exceptions, and return type of this method.
-    """
-    if query is None:
-        (query, serial) = dns.xfr.make_query(txn_manager)
-    else:
-        serial = dns.xfr.extract_serial_from_query(query)
-    rdtype = query.question[0].rdtype
-    is_ixfr = rdtype == dns.rdatatype.IXFR
-    origin = txn_manager.from_wire_origin()
-    wire = query.to_wire()
-    af = dns.inet.af_for_address(where)
-    stuple = _source_tuple(af, source, source_port)
-    dtuple = (where, port)
-    (_, expiration) = _compute_times(lifetime)
-    retry = True
-    while retry:
-        retry = False
-        if is_ixfr and udp_mode != UDPMode.NEVER:
-            sock_type = socket.SOCK_DGRAM
-            is_udp = True
-        else:
-            sock_type = socket.SOCK_STREAM
-            is_udp = False
-        if not backend:
-            backend = dns.asyncbackend.get_default_backend()
-        s = await backend.make_socket(
-            af, sock_type, 0, stuple, dtuple, _timeout(expiration)
-        )
-        async with s:
-            if is_udp:
-                await s.sendto(wire, dtuple, _timeout(expiration))
-            else:
-                tcpmsg = struct.pack("!H", len(wire)) + wire
-                await s.sendall(tcpmsg, expiration)
-            with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
-                done = False
-                tsig_ctx = None
-                while not done:
-                    (_, mexpiration) = _compute_times(timeout)
-                    if mexpiration is None or (
-                        expiration is not None and mexpiration > expiration
-                    ):
-                        mexpiration = expiration
-                    if is_udp:
-                        destination = _lltuple((where, port), af)
-                        while True:
-                            timeout = _timeout(mexpiration)
-                            (rwire, from_address) = await s.recvfrom(65535, timeout)
-                            if _matches_destination(
-                                af, from_address, destination, True
-                            ):
-                                break
-                    else:
-                        ldata = await _read_exactly(s, 2, mexpiration)
-                        (l,) = struct.unpack("!H", ldata)
-                        rwire = await _read_exactly(s, l, mexpiration)
-                    is_ixfr = rdtype == dns.rdatatype.IXFR
-                    r = dns.message.from_wire(
-                        rwire,
-                        keyring=query.keyring,
-                        request_mac=query.mac,
-                        xfr=True,
-                        origin=origin,
-                        tsig_ctx=tsig_ctx,
-                        multi=(not is_udp),
-                        one_rr_per_rrset=is_ixfr,
-                    )
-                    try:
-                        done = inbound.process_message(r)
-                    except dns.xfr.UseTCP:
-                        assert is_udp  # should not happen if we used TCP!
-                        if udp_mode == UDPMode.ONLY:
-                            raise
-                        done = True
-                        retry = True
-                        udp_mode = UDPMode.NEVER
-                        continue
-                    tsig_ctx = r.tsig_ctx
-                if not retry and query.keyring and not r.had_tsig:
-                    raise dns.exception.FormError("missing TSIG")
-
-
 async def quic(
     q: dns.message.Message,
     where: str,
@@ -883,3 +782,108 @@ async def quic(
     if not q.is_response(r):
         raise BadResponse
     return r
+
+
+async def _inbound_xfr(
+    txn_manager: dns.transaction.TransactionManager,
+    s: dns.asyncbackend.DatagramSocket,
+    query: dns.message.Message,
+    serial: Optional[int],
+    timeout: Optional[float],
+    expiration: float,
+) -> Any:
+    """Given a socket, does the zone transfer."""
+    rdtype = query.question[0].rdtype
+    is_ixfr = rdtype == dns.rdatatype.IXFR
+    origin = txn_manager.from_wire_origin()
+    wire = query.to_wire()
+    is_udp = s.type == socket.SOCK_DGRAM
+    if is_udp:
+        await s.sendto(wire, None, _timeout(expiration))
+    else:
+        tcpmsg = struct.pack("!H", len(wire)) + wire
+        await s.sendall(tcpmsg, expiration)
+    with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
+        done = False
+        tsig_ctx = None
+        while not done:
+            (_, mexpiration) = _compute_times(timeout)
+            if mexpiration is None or (
+                expiration is not None and mexpiration > expiration
+            ):
+                mexpiration = expiration
+            if is_udp:
+                timeout = _timeout(mexpiration)
+                (rwire, _) = await s.recvfrom(65535, timeout)
+            else:
+                ldata = await _read_exactly(s, 2, mexpiration)
+                (l,) = struct.unpack("!H", ldata)
+                rwire = await _read_exactly(s, l, mexpiration)
+            r = dns.message.from_wire(
+                rwire,
+                keyring=query.keyring,
+                request_mac=query.mac,
+                xfr=True,
+                origin=origin,
+                tsig_ctx=tsig_ctx,
+                multi=(not is_udp),
+                one_rr_per_rrset=is_ixfr,
+            )
+            done = inbound.process_message(r)
+            yield r
+            tsig_ctx = r.tsig_ctx
+        if query.keyring and not r.had_tsig:
+            raise dns.exception.FormError("missing TSIG")
+
+
+async def inbound_xfr(
+    where: str,
+    txn_manager: dns.transaction.TransactionManager,
+    query: Optional[dns.message.Message] = None,
+    port: int = 53,
+    timeout: Optional[float] = None,
+    lifetime: Optional[float] = None,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    udp_mode: UDPMode = UDPMode.NEVER,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+) -> None:
+    """Conduct an inbound transfer and apply it via a transaction from the
+    txn_manager.
+
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
+
+    See :py:func:`dns.query.inbound_xfr()` for the documentation of
+    the other parameters, exceptions, and return type of this method.
+    """
+    if query is None:
+        (query, serial) = dns.xfr.make_query(txn_manager)
+    else:
+        serial = dns.xfr.extract_serial_from_query(query)
+    af = dns.inet.af_for_address(where)
+    stuple = _source_tuple(af, source, source_port)
+    dtuple = (where, port)
+    if not backend:
+        backend = dns.asyncbackend.get_default_backend()
+    (_, expiration) = _compute_times(lifetime)
+    if query.question[0].rdtype == dns.rdatatype.IXFR and udp_mode != UDPMode.NEVER:
+        s = await backend.make_socket(
+            af, socket.SOCK_DGRAM, 0, stuple, dtuple, _timeout(expiration)
+        )
+        async with s:
+            try:
+                async for _ in _inbound_xfr(txn_manager, s, query, serial, timeout, expiration):
+                    pass
+                return
+            except dns.xfr.UseTCP:
+                if udp_mode == UDPMode.ONLY:
+                    raise
+                pass
+
+    s = await backend.make_socket(
+            af, socket.SOCK_STREAM, 0, stuple, dtuple, _timeout(expiration)
+    )
+    async with s:
+        async for _ in _inbound_xfr(txn_manager, s, query, serial, timeout, expiration):
+            pass
