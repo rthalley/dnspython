@@ -24,7 +24,7 @@ import socket
 import struct
 import time
 import urllib.parse
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import dns.asyncbackend
 import dns.exception
@@ -786,7 +786,7 @@ async def quic(
 
 async def _inbound_xfr(
     txn_manager: dns.transaction.TransactionManager,
-    s: dns.asyncbackend.DatagramSocket,
+    s: dns.asyncbackend.Socket,
     query: dns.message.Message,
     serial: Optional[int],
     timeout: Optional[float],
@@ -799,10 +799,12 @@ async def _inbound_xfr(
     wire = query.to_wire()
     is_udp = s.type == socket.SOCK_DGRAM
     if is_udp:
-        await s.sendto(wire, None, _timeout(expiration))
+        udp_sock = cast(dns.asyncbackend.DatagramSocket, s)
+        await udp_sock.sendto(wire, None, _timeout(expiration))
     else:
+        tcp_sock = cast(dns.asyncbackend.StreamSocket, s)
         tcpmsg = struct.pack("!H", len(wire)) + wire
-        await s.sendall(tcpmsg, expiration)
+        await tcp_sock.sendall(tcpmsg, expiration)
     with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
         done = False
         tsig_ctx = None
@@ -814,11 +816,11 @@ async def _inbound_xfr(
                 mexpiration = expiration
             if is_udp:
                 timeout = _timeout(mexpiration)
-                (rwire, _) = await s.recvfrom(65535, timeout)
+                (rwire, _) = await udp_sock.recvfrom(65535, timeout)
             else:
-                ldata = await _read_exactly(s, 2, mexpiration)
+                ldata = await _read_exactly(tcp_sock, 2, mexpiration)
                 (l,) = struct.unpack("!H", ldata)
-                rwire = await _read_exactly(s, l, mexpiration)
+                rwire = await _read_exactly(tcp_sock, l, mexpiration)
             r = dns.message.from_wire(
                 rwire,
                 keyring=query.keyring,
