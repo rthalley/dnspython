@@ -131,7 +131,7 @@ if _have_httpx:
             family=socket.AF_UNSPEC,
             **kwargs,
         ):
-            if resolver is None:
+            if resolver is None and bootstrap_address is None:
                 # pylint: disable=import-outside-toplevel,redefined-outer-name
                 import dns.resolver
 
