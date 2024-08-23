@@ -42,7 +42,7 @@ class _DatagramProtocol:
             if exc is None:
                 # EOF we triggered.  Is there a better way to do this?
                 try:
-                    raise EOFError
+                    raise EOFError('EOF')
                 except EOFError as e:
                     self.recvfrom.set_exception(e)
             else:
