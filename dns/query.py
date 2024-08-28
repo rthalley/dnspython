@@ -131,7 +131,7 @@ if _have_httpx:
             family=socket.AF_UNSPEC,
             **kwargs,
         ):
-            if resolver is None:
+            if resolver is None and bootstrap_address is None:
                 # pylint: disable=import-outside-toplevel,redefined-outer-name
                 import dns.resolver
 
@@ -449,21 +449,23 @@ def https(
     else:
         url = where
 
+    if bootstrap_address is None:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.hostname is None:
+            raise ValueError("no hostname in URL")
+        if dns.inet.is_address(parsed.hostname):
+            bootstrap_address = parsed.hostname
+        if parsed.port is not None:
+            port = parsed.port
+
     if http_version == HTTPVersion.H3 or (
         http_version == HTTPVersion.DEFAULT and not have_doh
     ):
         if bootstrap_address is None:
-            parsed = urllib.parse.urlparse(url)
             resolver = _maybe_get_resolver(resolver)
-            if parsed.hostname is None:
-                raise ValueError("no hostname in URL")
-            if dns.inet.is_address(parsed.hostname):
-                bootstrap_address = parsed.hostname
-            else:
-                answers = resolver.resolve_name(parsed.hostname, family)
-                bootstrap_address = random.choice(list(answers.addresses()))
-            if parsed.port is not None:
-                port = parsed.port
+            assert parsed.hostname is not None  # for mypy
+            answers = resolver.resolve_name(parsed.hostname, family)
+            bootstrap_address = random.choice(list(answers.addresses()))
         return _http3(
             q,
             bootstrap_address,
