@@ -83,10 +83,10 @@ Note that you can install any combination of the above, e.g.:
 
 ### Notices
 
-Python 2.x support ended with the release of 1.16.0.  Dnspython 2.0.0 through
-2.2.x support Python 3.6 and later.  For dnspython 2.3.x, the minimum
-supported Python version is 3.7, and for 2.4.x the minimum supported verison is 3.8.
-We plan to align future support with the lifetime of the Python 3 versions.
+Python 2.x support ended with the release of 1.16.0.  Dnspython 2.6.x supports
+Python 3.8 and later, though support for 3.8 ends on October 14, 2024.
+Dnspython 2.7.x supports Python 3.9 and later.  Future support is aligned with the
+lifetime of the Python 3 versions.
 
 Documentation has moved to
 [dnspython.readthedocs.io](https://dnspython.readthedocs.io).
