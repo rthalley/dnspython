@@ -214,7 +214,7 @@ class Rdata:
         compress: Optional[dns.name.CompressType] = None,
         origin: Optional[dns.name.Name] = None,
         canonicalize: bool = False,
-    ) -> bytes:
+    ) -> Optional[bytes]:
         raise NotImplementedError  # pragma: no cover
 
     def to_wire(
@@ -223,7 +223,7 @@ class Rdata:
         compress: Optional[dns.name.CompressType] = None,
         origin: Optional[dns.name.Name] = None,
         canonicalize: bool = False,
-    ) -> bytes:
+    ) -> Optional[bytes]:
         """Convert an rdata to wire format.
 
         Returns a ``bytes`` or ``None``.
@@ -247,11 +247,11 @@ class Rdata:
             self.rdclass, self.rdtype, self.to_wire(origin=origin)
         )
 
-    def to_digestable(self, origin: Optional[dns.name.Name] = None) -> bytes:
+    def to_digestable(self, origin: Optional[dns.name.Name] = None) -> Optional[bytes]:
         """Convert rdata to a format suitable for digesting in hashes.  This
         is also the DNSSEC canonical form.
 
-        Returns a ``bytes``.
+        Returns a ``bytes`` or ``None``..
         """
 
         return self.to_wire(origin=origin, canonicalize=True)
@@ -630,7 +630,7 @@ class GenericRdata(Rdata):
             raise dns.exception.SyntaxError("generic rdata hex data has wrong length")
         return cls(rdclass, rdtype, data)
 
-    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False) -> None:
         file.write(self.data)
 
     @classmethod
