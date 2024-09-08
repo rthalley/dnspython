@@ -223,10 +223,10 @@ class Rdata:
         compress: Optional[dns.name.CompressType] = None,
         origin: Optional[dns.name.Name] = None,
         canonicalize: bool = False,
-    ) -> bytes:
+    ) -> Optional[bytes]:
         """Convert an rdata to wire format.
 
-        Returns a ``bytes`` or ``None``.
+        Returns a ``bytes`` if no output file was specified, or ``None`` otherwise.
         """
 
         if file:
@@ -253,8 +253,9 @@ class Rdata:
 
         Returns a ``bytes``.
         """
-
-        return self.to_wire(origin=origin, canonicalize=True)
+        wire = self.to_wire(origin=origin, canonicalize=True)
+        assert wire is not None  # for mypy
+        return wire
 
     def __repr__(self):
         covers = self.covers()

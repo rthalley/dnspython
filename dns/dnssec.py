@@ -118,6 +118,7 @@ def key_id(key: Union[DNSKEY, CDNSKEY]) -> int:
     """
 
     rdata = key.to_wire()
+    assert rdata is not None  # for mypy
     if key.algorithm == Algorithm.RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:
@@ -245,9 +246,10 @@ def make_ds(
     if isinstance(name, str):
         name = dns.name.from_text(name, origin)
     wire = name.canonicalize().to_wire()
-    assert wire is not None
+    kwire = key.to_wire(origin=origin)
+    assert wire is not None and kwire is not None  # for mypy
     dshash.update(wire)
-    dshash.update(key.to_wire(origin=origin))
+    dshash.update(kwire)
     digest = dshash.digest()
 
     dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, algorithm) + digest
@@ -634,7 +636,9 @@ def _make_rrsig_signature_data(
     rrname, rdataset = _get_rrname_rdataset(rrset)
 
     data = b""
-    data += rrsig.to_wire(origin=signer)[:18]
+    wire = rrsig.to_wire(origin=signer)
+    assert wire is not None  # for mypy
+    data += wire[:18]
     data += rrsig.signer.to_digestable(signer)
 
     # Derelativize the name before considering labels.
