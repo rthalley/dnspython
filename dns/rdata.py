@@ -214,7 +214,7 @@ class Rdata:
         compress: Optional[dns.name.CompressType] = None,
         origin: Optional[dns.name.Name] = None,
         canonicalize: bool = False,
-    ) -> bytes:
+    ) -> None:
         raise NotImplementedError  # pragma: no cover
 
     def to_wire(
@@ -230,7 +230,12 @@ class Rdata:
         """
 
         if file:
-            return self._to_wire(file, compress, origin, canonicalize)
+            # We call _to_wire() and then return None explicitly instead of
+            # of just returning the None from _to_wire() as mypy's func-returns-value
+            # unhelpfully errors out with "error: "_to_wire" of "Rdata" does not return
+            # a value (it only ever returns None)"
+            self._to_wire(file, compress, origin, canonicalize)
+            return None
         else:
             f = io.BytesIO()
             self._to_wire(f, compress, origin, canonicalize)
