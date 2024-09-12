@@ -597,7 +597,6 @@ async def https(
         raise ValueError("session parameter must be an httpx.AsyncClient")
 
     wire = q.to_wire()
-    transport = None
     headers = {"accept": "application/dns-message"}
 
     h1 = http_version in (HTTPVersion.H1, HTTPVersion.DEFAULT)
@@ -611,20 +610,21 @@ async def https(
     else:
         local_address = source
         local_port = source_port
-    transport = backend.get_transport_class()(
-        local_address=local_address,
-        http1=h1,
-        http2=h2,
-        verify=verify,
-        local_port=local_port,
-        bootstrap_address=bootstrap_address,
-        resolver=resolver,
-        family=family,
-    )
 
     if client:
         cm: contextlib.AbstractAsyncContextManager = NullContext(client)
     else:
+        transport = backend.get_transport_class()(
+            local_address=local_address,
+            http1=h1,
+            http2=h2,
+            verify=verify,
+            local_port=local_port,
+            bootstrap_address=bootstrap_address,
+            resolver=resolver,
+            family=family,
+        )
+
         cm = httpx.AsyncClient(http1=h1, http2=h2, verify=verify, transport=transport)
 
     async with cm as the_client:

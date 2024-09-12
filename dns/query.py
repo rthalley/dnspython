@@ -486,7 +486,6 @@ def https(
         raise ValueError("session parameter must be an httpx.Client")
 
     wire = q.to_wire()
-    transport = None
     headers = {"accept": "application/dns-message"}
 
     h1 = http_version in (HTTPVersion.H1, HTTPVersion.DEFAULT)
@@ -500,20 +499,21 @@ def https(
     else:
         local_address = the_source[0]
         local_port = the_source[1]
-    transport = _HTTPTransport(
-        local_address=local_address,
-        http1=h1,
-        http2=h2,
-        verify=verify,
-        local_port=local_port,
-        bootstrap_address=bootstrap_address,
-        resolver=resolver,
-        family=family,
-    )
 
     if session:
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(session)
     else:
+        transport = _HTTPTransport(
+            local_address=local_address,
+            http1=h1,
+            http2=h2,
+            verify=verify,
+            local_port=local_port,
+            bootstrap_address=bootstrap_address,
+            resolver=resolver,
+            family=family,
+        )
+
         cm = httpx.Client(http1=h1, http2=h2, verify=verify, transport=transport)
     with cm as session:
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
