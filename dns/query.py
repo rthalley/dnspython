@@ -978,7 +978,7 @@ def _net_read(sock, count, expiration):
         try:
             n = sock.recv(count)
             if n == b"":
-                raise EOFError('EOF')
+                raise EOFError("EOF")
             count -= len(n)
             s += n
         except (BlockingIOError, ssl.SSLWantReadError):

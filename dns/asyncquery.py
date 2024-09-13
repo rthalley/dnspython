@@ -342,7 +342,7 @@ async def _read_exactly(sock, count, expiration):
     while count > 0:
         n = await sock.recv(count, _timeout(expiration))
         if n == b"":
-            raise EOFError('EOF')
+            raise EOFError("EOF")
         count = count - len(n)
         s = s + n
     return s
