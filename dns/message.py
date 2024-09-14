@@ -1826,7 +1826,7 @@ def make_query(
     return m
 
 
-class CopyMode:
+class CopyMode(enum.Enum):
     """
     How should sections be copied when making an update response?
     """
