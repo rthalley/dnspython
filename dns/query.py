@@ -449,12 +449,14 @@ def https(
     else:
         url = where
 
+    extensions = {}
     if bootstrap_address is None:
         parsed = urllib.parse.urlparse(url)
         if parsed.hostname is None:
             raise ValueError("no hostname in URL")
         if dns.inet.is_address(parsed.hostname):
             bootstrap_address = parsed.hostname
+            extensions["sni_hostname"] = parsed.hostname
         if parsed.port is not None:
             port = parsed.port
 
@@ -525,12 +527,22 @@ def https(
                     "content-length": str(len(wire)),
                 }
             )
-            response = session.post(url, headers=headers, content=wire, timeout=timeout)
+            response = session.post(
+                url,
+                headers=headers,
+                content=wire,
+                timeout=timeout,
+                extensions=extensions,
+            )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             twire = wire.decode()  # httpx does a repr() if we give it bytes
             response = session.get(
-                url, headers=headers, timeout=timeout, params={"dns": twire}
+                url,
+                headers=headers,
+                timeout=timeout,
+                params={"dns": twire},
+                extensions=extensions,
             )
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH

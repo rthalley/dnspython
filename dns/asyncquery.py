@@ -39,9 +39,9 @@ import dns.transaction
 from dns._asyncbackend import NullContext
 from dns.query import (
     BadResponse,
+    HTTPVersion,
     NoDOH,
     NoDOQ,
-    HTTPVersion,
     UDPMode,
     _check_status,
     _compute_times,
@@ -560,12 +560,14 @@ async def https(
     else:
         url = where
 
+    extensions = {}
     if bootstrap_address is None:
         parsed = urllib.parse.urlparse(url)
         if parsed.hostname is None:
             raise ValueError("no hostname in URL")
         if dns.inet.is_address(parsed.hostname):
             bootstrap_address = parsed.hostname
+            extensions["sni_hostname"] = parsed.hostname
         if parsed.port is not None:
             port = parsed.port
 
@@ -638,13 +640,25 @@ async def https(
                 }
             )
             response = await backend.wait_for(
-                the_client.post(url, headers=headers, content=wire), timeout
+                the_client.post(
+                    url,
+                    headers=headers,
+                    content=wire,
+                    extensions=extensions,
+                ),
+                timeout,
             )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             twire = wire.decode()  # httpx does a repr() if we give it bytes
             response = await backend.wait_for(
-                the_client.get(url, headers=headers, params={"dns": twire}), timeout
+                the_client.get(
+                    url,
+                    headers=headers,
+                    params={"dns": twire},
+                    extensions=extensions,
+                ),
+                timeout,
             )
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
