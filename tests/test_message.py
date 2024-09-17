@@ -233,16 +233,32 @@ class MessageTestCase(unittest.TestCase):
         self.assertTrue(r.flags & dns.flags.RA != 0)
         self.assertEqual(r.edns, 0)
 
-    def test_MakeResponseCopyNothing(self):
+    def _make_copy_query(self):
         q = dns.message.make_query("foo", "A")
+        # These are nonsensical, but all we care about is they get copied.
+        q.answer.append(dns.rrset.from_text("foo", 300, "IN", "A", "10.0.0.1"))
+        q.authority.append(dns.rrset.from_text("foo2", 300, "IN", "A", "10.0.0.2"))
+        q.additional.append(dns.rrset.from_text("foo3", 300, "IN", "A", "10.0.0.3"))
+        return q
+
+    def test_MakeResponseCopyNothing(self):
+        q = self._make_copy_query()
         r = dns.message.make_response(q, copy_mode=dns.message.CopyMode.NOTHING)
         self.assertEqual(len(r.question), 0)
         self.assertEqual(len(r.answer), 0)
         self.assertEqual(len(r.authority), 0)
         self.assertEqual(len(r.additional), 0)
 
+    def test_MakeResponseCopyDefault(self):
+        q = self._make_copy_query()
+        r = dns.message.make_response(q)
+        self.assertTrue(len(r.question) == 1 and q.question[0] == r.question[0])
+        self.assertEqual(len(r.answer), 0)
+        self.assertEqual(len(r.authority), 0)
+        self.assertEqual(len(r.additional), 0)
+
     def test_MakeResponseCopyQuestion(self):
-        q = dns.message.make_query("foo", "A")
+        q = self._make_copy_query()
         r = dns.message.make_response(q, copy_mode=dns.message.CopyMode.QUESTION)
         self.assertTrue(len(r.question) == 1 and q.question[0] == r.question[0])
         self.assertEqual(len(r.answer), 0)
@@ -250,11 +266,7 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(len(r.additional), 0)
 
     def test_MakeResponseCopyEverything(self):
-        q = dns.message.make_query("foo", "A")
-        q.answer.append(dns.rrset.from_text("foo", 300, "IN", "A", "10.0.0.1"))
-        # These are nonsensical, but all we care about is they get copied.
-        q.authority.append(dns.rrset.from_text("foo2", 300, "IN", "A", "10.0.0.2"))
-        q.additional.append(dns.rrset.from_text("foo3", 300, "IN", "A", "10.0.0.3"))
+        q = self._make_copy_query()
         r = dns.message.make_response(q, copy_mode=dns.message.CopyMode.EVERYTHING)
         self.assertTrue(len(r.question) == 1 and q.question == r.question)
         self.assertTrue(len(r.answer) == 1 and q.answer == r.answer)

@@ -1843,7 +1843,7 @@ def make_response(
     fudge: int = 300,
     tsig_error: int = 0,
     pad: Optional[int] = None,
-    copy_mode: CopyMode = CopyMode.QUESTION,
+    copy_mode: Optional[CopyMode] = None,
 ) -> Message:
     """Make a message which is a response for the specified query.
     The message returned is really a response skeleton; it has all of the infrastructure
@@ -1868,8 +1868,10 @@ def make_response(
     message.  If ``None``, add padding following RFC 8467, namely if the request is
     padded, pad the response to 468 otherwise do not pad.
 
-    *copy_mode*, a ``dns.message.CopyMode``, determines how sections are copied.  The
-    default, ``dns.message.CopyMode.QUESTION`` copies only the question section.
+    *copy_mode*, a ``dns.message.CopyMode`` or ``None``, determines how sections are
+    copied.  The default, ``None`` copies sections according to the default for the
+    message's opcode, which is currently ``dns.message.CopyMode.QUESTION`` for all
+    opcodes.   ``dns.message.CopyMode.QUESTION`` copies only the question section.
     ``dns.message.CopyMode.EVERYTHING`` copies all sections other than OPT or TSIG
     records, which are created appropriately if needed. ``dns.message.CopyMode.NOTHING``
     copies no sections; note that this mode is for server testing purposes and is
@@ -1891,6 +1893,8 @@ def make_response(
     if recursion_available:
         response.flags |= dns.flags.RA
     response.set_opcode(opcode)
+    if copy_mode is None:
+        copy_mode = CopyMode.QUESTION
     if copy_mode != CopyMode.NOTHING:
         response.question = list(query.question)
     if copy_mode == CopyMode.EVERYTHING:
