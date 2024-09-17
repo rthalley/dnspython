@@ -51,7 +51,7 @@ information about the changes in this release.
     pip install dist/*.whl
 ```
 
-* To install the latest from the master branch, run `pip install git+https://github.com/rthalley/dnspython.git`
+* To install the latest from the main branch, run `pip install git+https://github.com/rthalley/dnspython.git`
 
 Dnspython's default installation does not depend on any modules other than
 those in the Python standard library.  To use some features, additional modules
