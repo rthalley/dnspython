@@ -3,8 +3,13 @@
 What's New in dnspython
 =======================
 
-2.7.0 (in development)
+2.8.0 (in development)
 ----------------------
+
+* TBD
+
+2.7.0
+-----
 
 * dns.query.https() and dns.asyncquery.https() now support HTTP/3 and the http_version
   parameter may be used to specify which version to use.
