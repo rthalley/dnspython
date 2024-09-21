@@ -45,7 +45,7 @@ import dns.rdtypes.svcbbase
 import dns.reversename
 import dns.tsig
 
-if sys.platform == "win32":  #  pragma: no cover
+if sys.platform == "win32":  # pragma: no cover
     import dns.win32util
 
 
