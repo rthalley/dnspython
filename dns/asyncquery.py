@@ -562,6 +562,7 @@ async def https(
 
     extensions = {}
     if bootstrap_address is None:
+        # pylint: disable=possibly-used-before-assignment
         parsed = urllib.parse.urlparse(url)
         if parsed.hostname is None:
             raise ValueError("no hostname in URL")
@@ -595,8 +596,10 @@ async def https(
 
     if not have_doh:
         raise NoDOH  # pragma: no cover
+    # pylint: disable=possibly-used-before-assignment
     if client and not isinstance(client, httpx.AsyncClient):
         raise ValueError("session parameter must be an httpx.AsyncClient")
+    # pylint: enable=possibly-used-before-assignment
 
     wire = q.to_wire()
     headers = {"accept": "application/dns-message"}
@@ -899,7 +902,6 @@ async def inbound_xfr(
             except dns.xfr.UseTCP:
                 if udp_mode == UDPMode.ONLY:
                     raise
-                pass
 
     s = await backend.make_socket(
         af, socket.SOCK_STREAM, 0, stuple, dtuple, _timeout(expiration)

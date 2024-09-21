@@ -248,7 +248,8 @@ class Rdataset(dns.set.Set):
             # (which is meaningless anyway).
             #
             s.write(
-                f"{ntext}{pad}{dns.rdataclass.to_text(rdclass)} {dns.rdatatype.to_text(self.rdtype)}\n"
+                f"{ntext}{pad}{dns.rdataclass.to_text(rdclass)} "
+                f"{dns.rdatatype.to_text(self.rdtype)}\n"
             )
         else:
             for rd in self:

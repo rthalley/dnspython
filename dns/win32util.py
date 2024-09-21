@@ -44,6 +44,7 @@ if sys.platform == "win32":
     if _have_wmi:
 
         class _WMIGetter(threading.Thread):
+            # pylint: disable=possibly-used-before-assignment
             def __init__(self):
                 super().__init__()
                 self.info = DnsInfo()

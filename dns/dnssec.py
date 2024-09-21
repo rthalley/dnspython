@@ -325,6 +325,7 @@ def _get_rrname_rdataset(
 
 
 def _validate_signature(sig: bytes, data: bytes, key: DNSKEY) -> None:
+    # pylint: disable=possibly-used-before-assignment
     public_cls = get_algorithm_cls_from_dnskey(key).public_cls
     try:
         public_key = public_cls.from_dnskey(key)
@@ -389,6 +390,7 @@ def _validate_rrsig(
 
     data = _make_rrsig_signature_data(rrset, rrsig, origin)
 
+    # pylint: disable=possibly-used-before-assignment
     for candidate_key in candidate_keys:
         if not policy.ok_to_validate(candidate_key):
             continue
@@ -587,6 +589,7 @@ def _sign(
 
     data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template, origin)
 
+    # pylint: disable=possibly-used-before-assignment
     if isinstance(private_key, GenericPrivateKey):
         signing_key = private_key
     else:
@@ -695,6 +698,7 @@ def _make_dnskey(
 
     algorithm = Algorithm.make(algorithm)
 
+    # pylint: disable=possibly-used-before-assignment
     if isinstance(public_key, GenericPublicKey):
         return public_key.to_dnskey(flags=flags, protocol=protocol)
     else:

@@ -184,7 +184,10 @@ class LOC(dns.rdata.Rdata):
             or self.horizontal_precision != _default_hprec
             or self.vertical_precision != _default_vprec
         ):
-            text += f" {self.size / 100.0:0.2f}m {self.horizontal_precision / 100.0:0.2f}m {self.vertical_precision / 100.0:0.2f}m"
+            text += (
+                f" {self.size / 100.0:0.2f}m {self.horizontal_precision / 100.0:0.2f}m"
+                f" {self.vertical_precision / 100.0:0.2f}m"
+            )
         return text
 
     @classmethod

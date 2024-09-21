@@ -26,6 +26,7 @@ AlgorithmPrefix = Optional[Union[bytes, dns.name.Name]]
 
 algorithms: Dict[Tuple[Algorithm, AlgorithmPrefix], Type[GenericPrivateKey]] = {}
 if _have_cryptography:
+    # pylint: disable=possibly-used-before-assignment
     algorithms.update(
         {
             (Algorithm.RSAMD5, None): PrivateRSAMD5,

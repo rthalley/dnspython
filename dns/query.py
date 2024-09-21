@@ -451,6 +451,7 @@ def https(
 
     extensions = {}
     if bootstrap_address is None:
+        # pylint: disable=possibly-used-before-assignment
         parsed = urllib.parse.urlparse(url)
         if parsed.hostname is None:
             raise ValueError("no hostname in URL")
@@ -1158,6 +1159,7 @@ def tcp(
         cm = _make_socket(af, socket.SOCK_STREAM, source)
     with cm as s:
         if not sock:
+            # pylint: disable=possibly-used-before-assignment
             _connect(s, destination, expiration)
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
@@ -1654,7 +1656,6 @@ def inbound_xfr(
             except dns.xfr.UseTCP:
                 if udp_mode == UDPMode.ONLY:
                     raise
-                pass
 
     with _make_socket(af, socket.SOCK_STREAM, source) as s:
         _connect(s, destination, expiration)

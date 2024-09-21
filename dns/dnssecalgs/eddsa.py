@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Type
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed448, ed25519
