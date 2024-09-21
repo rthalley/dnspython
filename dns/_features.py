@@ -88,7 +88,7 @@ _requirements: Dict[str, List[str]] = {
     "dnssec": ["cryptography>=43"],
     "doh": ["httpcore>=1.0.0", "httpx>=0.26.0", "h2>=4.1.0"],
     "doq": ["aioquic>=1.0.0"],
-    "idna": ["idna>=3.6"],
+    "idna": ["idna>=3.7"],
     "trio": ["trio>=0.23"],
     "wmi": ["wmi>=1.5.1"],
     ### END generated requirements
