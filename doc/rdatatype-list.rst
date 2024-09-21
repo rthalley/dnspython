@@ -157,6 +157,8 @@ Rdatatypes
    :annotation: = 103
 .. py:data:: dns.rdatatype.URI
    :annotation: = 256
+.. py:data:: dns.rdatatype.WALLET
+   :annotation: = 262
 .. py:data:: dns.rdatatype.WKS
    :annotation: = 11
 .. py:data:: dns.rdatatype.X25
