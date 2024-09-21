@@ -622,6 +622,13 @@ Universal Types
 
       A ``dns.name.Name``, the target.
 
+.. autoclass:: dns.rdtypes.ANY.WALLET.WALLET
+   :members:
+
+   .. attribute:: strings
+
+      A tuple of ``bytes``, the list of strings.
+
 .. autoclass:: dns.rdtypes.ANY.X25.X25
    :members:
 
