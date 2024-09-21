@@ -34,7 +34,17 @@ What's New in dnspython
   options of a specified type, and an extended_errors() helper to retrieve the list
   of EDE options in a message (if any).
 
+* dns.message.make_response() now has a copy mode which controls how sections are
+  copied.  By default, a copy mode appropriate for the opcode is used.  This is
+  currently dns.message.CopyMode.QUESTION for all opcodes.
+
+* If an IP address is used as the hostname in a URL, the https query code now passes
+  the sni_hostname to httpx as this is required to get httpx to validate the certificate
+  and check for an IP subject alternative name.
+
 * The minimum supported aioquic version is now 1.0.0.
+
+* The minimum supported Python version is now 3.9.
 
 2.6.1
 -----
