@@ -15,7 +15,7 @@ What's New in dnspython
   parameter may be used to specify which version to use.
 
 * If the cryptography module is installed, then dnspython will now create deterministic
-  ESDSA signatures by default.  Cryptography, if installed, must be at least version 43.
+  ECDSA signatures by default.  Cryptography, if installed, must be at least version 43.
   Thanks to Jakob Schlyter for adding the feature.
 
 * The RESINFO and WALLET RdataTypes are now supported.
