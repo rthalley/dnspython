@@ -21,7 +21,7 @@ Read RRSets with name, TTL, and rdclass forced::
   mx 20 b
   ns ns1
   '''
-  rrsets = dns.read_rrsets(input, name='name', ttl=300)
+  rrsets = dns.zonefile.read_rrsets(input, name='name', ttl=300)
 
 Read RRSets with name, TTL, rdclass, and rdtype forced::
 
@@ -29,7 +29,7 @@ Read RRSets with name, TTL, rdclass, and rdtype forced::
   10 a
   20 b
   '''
-  rrsets = dns.read_rrsets(input, name='name', ttl=300, rdtype='mx')
+  rrsets = dns.zonefile.read_rrsets(input, name='name', ttl=300, rdtype='mx')
 
 Note that in this case the length of rrsets will always be one.
 
@@ -40,8 +40,8 @@ default_rdclass)::
   name1 20 MX 10 a.example.
   name2 30 IN MX 20 b
   '''
-  rrsets = dns.read_rrsets(input, origin='example', relativize=True,
-                           rdclass=None)
+  rrsets = dns.zonefile.read_rrsets(input, origin='example', relativize=True,
+                                    rdclass=None)
 
 The dns.zonefile.Reader Class
 =============================
