@@ -704,6 +704,8 @@ async def _http3(
 
     url_parts = urllib.parse.urlparse(url)
     hostname = url_parts.hostname
+    if url_parts.port is not None:
+        port = url_parts.port
 
     q.id = 0
     wire = q.to_wire()
