@@ -19,6 +19,7 @@
 
 import binascii
 
+import dns.exception
 import dns.ipv4
 import dns.ipv6
 import dns.name

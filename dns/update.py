@@ -19,6 +19,8 @@
 
 from typing import Any, List, Optional, Union
 
+import dns.enum
+import dns.exception
 import dns.message
 import dns.name
 import dns.opcode

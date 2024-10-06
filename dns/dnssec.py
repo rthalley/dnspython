@@ -135,16 +135,16 @@ class Policy:
     def __init__(self):
         pass
 
-    def ok_to_sign(self, _: DNSKEY) -> bool:  # pragma: no cover
+    def ok_to_sign(self, key: DNSKEY) -> bool:  # pragma: no cover
         return False
 
-    def ok_to_validate(self, _: DNSKEY) -> bool:  # pragma: no cover
+    def ok_to_validate(self, key: DNSKEY) -> bool:  # pragma: no cover
         return False
 
-    def ok_to_create_ds(self, _: DSDigest) -> bool:  # pragma: no cover
+    def ok_to_create_ds(self, algorithm: DSDigest) -> bool:  # pragma: no cover
         return False
 
-    def ok_to_validate_ds(self, _: DSDigest) -> bool:  # pragma: no cover
+    def ok_to_validate_ds(self, algorithm: DSDigest) -> bool:  # pragma: no cover
         return False
 
 
@@ -587,7 +587,7 @@ def _sign(
         signature=b"",
     )
 
-    data = dns.dnssec._make_rrsig_signature_data(rrset, rrsig_template, origin)
+    data = _make_rrsig_signature_data(rrset, rrsig_template, origin)
 
     # pylint: disable=possibly-used-before-assignment
     if isinstance(private_key, GenericPrivateKey):
@@ -979,7 +979,7 @@ def default_rrset_signer(
         keys = zsks
 
     for private_key, dnskey in keys:
-        rrsig = dns.dnssec.sign(
+        rrsig = sign(
             rrset=rrset,
             private_key=private_key,
             dnskey=dnskey,

@@ -25,6 +25,9 @@ from typing import Any, Dict, Optional, Union
 
 import dns.enum
 import dns.inet
+import dns.ipv4
+import dns.ipv6
+import dns.name
 import dns.rdata
 import dns.wire
 
@@ -444,7 +447,7 @@ class NSIDOption(Option):
 
 class CookieOption(Option):
     def __init__(self, client: bytes, server: bytes):
-        super().__init__(dns.edns.OptionType.COOKIE)
+        super().__init__(OptionType.COOKIE)
         self.client = client
         self.server = server
         if len(client) != 8:
