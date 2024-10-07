@@ -38,6 +38,9 @@ check: test
 type:
 	python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
 
+pyright:
+	pyright dns
+
 lint:
 	pylint dns
 
