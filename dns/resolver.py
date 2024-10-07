@@ -36,10 +36,10 @@ import dns.ipv4
 import dns.ipv6
 import dns.message
 import dns.name
-import dns.rdata
 import dns.nameserver
 import dns.query
 import dns.rcode
+import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 import dns.rdtypes.svcbbase
@@ -298,7 +298,7 @@ class Answer:
     def __len__(self) -> int:
         return self.rrset and len(self.rrset) or 0
 
-    def __iter__(self) -> Iterator[dns.rdata.Rdata]:
+    def __iter__(self) -> Iterator[Any]:
         return self.rrset and iter(self.rrset) or iter(tuple())
 
     def __getitem__(self, i):
