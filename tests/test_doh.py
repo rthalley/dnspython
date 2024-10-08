@@ -18,6 +18,8 @@ import random
 import socket
 import unittest
 
+import dns.exception
+
 try:
     import ssl
 
@@ -88,6 +90,7 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
     def tearDown(self):
         self.session.close()
 
+    @tests.util.retry_on_timeout
     def test_get_request(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query("example.com.", dns.rdatatype.A)
@@ -101,6 +104,7 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
         )
         self.assertTrue(q.is_response(r))
 
+    @tests.util.retry_on_timeout
     def test_post_request(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query("example.com.", dns.rdatatype.A)
@@ -114,6 +118,7 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
         )
         self.assertTrue(q.is_response(r))
 
+    @tests.util.retry_on_timeout
     def test_build_url_from_ip(self):
         self.assertTrue(resolver_v4_addresses or resolver_v6_addresses)
         if resolver_v4_addresses:
@@ -159,12 +164,14 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
     #         )
     #         self.assertTrue(q.is_response(r))
 
+    @tests.util.retry_on_timeout
     def test_new_session(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
         q = dns.message.make_query("example.com.", dns.rdatatype.A)
         r = dns.query.https(q, nameserver_url, timeout=4)
         self.assertTrue(q.is_response(r))
 
+    @tests.util.retry_on_timeout
     def test_resolver(self):
         res = dns.resolver.Resolver(configure=False)
         res.nameservers = ["https://dns.google/dns-query"]
@@ -173,6 +180,7 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
         self.assertTrue("8.8.8.8" in seen)
         self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def test_padded_get(self):
         nameserver_url = random.choice(KNOWN_PAD_AWARE_DOH_RESOLVER_URLS)
         q = dns.message.make_query("example.com.", dns.rdatatype.A, use_edns=0, pad=128)
@@ -194,6 +202,7 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
     "Aioquic cannot be imported; no DNS over HTTP3 (DOH3)",
 )
 class DNSOverHTTP3TestCase(unittest.TestCase):
+    @tests.util.retry_on_timeout
     def testDoH3GetRequest(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
         q = dns.message.make_query("dns.google.", dns.rdatatype.A)
@@ -207,6 +216,7 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
         )
         self.assertTrue(q.is_response(r))
 
+    @tests.util.retry_on_timeout
     def testDoH3PostRequest(self):
         nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
         q = dns.message.make_query("dns.google.", dns.rdatatype.A)
@@ -220,6 +230,7 @@ class DNSOverHTTP3TestCase(unittest.TestCase):
         )
         self.assertTrue(q.is_response(r))
 
+    @tests.util.retry_on_timeout
     def test_build_url_from_ip(self):
         self.assertTrue(resolver_v4_addresses or resolver_v6_addresses)
         if resolver_v4_addresses:

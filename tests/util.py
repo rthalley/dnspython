@@ -16,9 +16,11 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import enum
+import functools
 import inspect
 import os
 
+import dns.exception
 import dns.message
 import dns.name
 import dns.query
@@ -131,3 +133,21 @@ def is_docker() -> bool:
         return os.path.isfile("/.dockerenv")
     except Exception:
         return False
+
+
+def retry_on_timeout(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        bad = True
+        for i in range(3):
+            try:
+                print("TRY", i, "for", f.__name__)
+                f(*args, **kwargs)
+                bad = False
+                break
+            except dns.exception.Timeout:
+                pass
+        if bad:
+            raise dns.exception.Timeout
+
+    return wrapper
