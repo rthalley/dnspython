@@ -86,7 +86,9 @@ class Option:
 
         Returns a ``dns.edns.GenericOption``.
         """
-        return dns.edns.GenericOption(self.otype, self.to_wire())
+        wire = self.to_wire()
+        assert wire is not None  # for mypy
+        return dns.edns.GenericOption(self.otype, wire)
 
     @classmethod
     def from_wire_parser(cls, otype: OptionType, parser: "dns.wire.Parser") -> "Option":
