@@ -302,3 +302,13 @@ class OptionTestCase(unittest.TestCase):
 
         opt = dns.edns.option_from_wire_parser(9999, dns.wire.Parser(wire1))
         self.assertEqual(opt, generic)
+
+    def test_to_generic(self):
+        nsid = dns.edns.NSIDOption(b"testing")
+        assert nsid.to_generic().data == b"testing"
+
+        ecs = dns.edns.ECSOption("1.2.3.0", 24)
+        assert ecs.to_generic().data == b"\x00\x01\x18\x00\x01\x02\x03"
+
+        generic = dns.edns.GenericOption(12345, "foo")
+        assert generic.to_generic() is generic

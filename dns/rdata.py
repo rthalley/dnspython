@@ -639,6 +639,11 @@ class GenericRdata(Rdata):
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.data)
 
+    def to_generic(
+        self, origin: Optional[dns.name.Name] = None
+    ) -> "dns.rdata.GenericRdata":
+        return self
+
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         return cls(rdclass, rdtype, parser.get_remaining())
