@@ -639,7 +639,9 @@ class GenericRdata(Rdata):
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.data)
 
-    def to_generic(self, origin: Optional[dns.name.Name] = None) -> GenericRdata:
+    def to_generic(
+        self, origin: Optional[dns.name.Name] = None
+    ) -> "dns.rdata.GenericRdata":
         return self
 
     @classmethod
