@@ -130,6 +130,9 @@ class RdataTestCase(unittest.TestCase):
             str(ns.to_generic(origin=origin)), r"\# 13 03666f6f076578616d706c6500"
         )
 
+        generic = dns.rdata.from_text("in", "type45678", "\\# 4 00010203")
+        assert generic.to_generic() is generic
+
     def test_txt_unicode(self):
         # TXT records are not defined for Unicode, but if we get
         # Unicode we should convert it to UTF-8 to preserve meaning as
