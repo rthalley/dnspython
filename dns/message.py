@@ -38,6 +38,7 @@ import dns.rdtypes.ANY.OPT
 import dns.rdtypes.ANY.TSIG
 import dns.renderer
 import dns.rrset
+import dns.tokenizer
 import dns.tsig
 import dns.ttl
 import dns.wire
@@ -1091,7 +1092,7 @@ def _message_factory_from_opcode(opcode):
         return QueryMessage
     elif opcode == dns.opcode.UPDATE:
         _maybe_import_update()
-        return dns.update.UpdateMessage
+        return dns.update.UpdateMessage  # pyright: ignore
     else:
         return Message
 
@@ -1421,7 +1422,7 @@ class _TextReader:
         relativize=True,
         relativize_to=None,
     ):
-        self.message = None
+        self.message: Optional[Message] = None
         self.tok = dns.tokenizer.Tokenizer(text, idna_codec=idna_codec)
         self.last_name = None
         self.one_rr_per_rrset = one_rr_per_rrset
@@ -1480,6 +1481,7 @@ class _TextReader:
     def _question_line(self, section_number):
         """Process one line from the text format question section."""
 
+        assert self.message is not None
         section = self.message.sections[section_number]
         token = self.tok.get(want_leading=True)
         if not token.is_whitespace():
@@ -1517,6 +1519,7 @@ class _TextReader:
         additional data sections.
         """
 
+        assert self.message is not None
         section = self.message.sections[section_number]
         # Name
         token = self.tok.get(want_leading=True)
@@ -1910,6 +1913,8 @@ def make_response(
                     pad = 468
         response.use_edns(0, 0, our_payload, query.payload, pad=pad)
     if query.had_tsig:
+        assert query.mac is not None
+        assert query.keyalgorithm is not None
         response.use_tsig(
             query.keyring,
             query.keyname,

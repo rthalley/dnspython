@@ -23,7 +23,11 @@ import random
 import struct
 import time
 
+import dns.edns
 import dns.exception
+import dns.message
+import dns.rdataclass
+import dns.rdatatype
 import dns.tsig
 
 QUESTION = 0

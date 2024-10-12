@@ -74,4 +74,4 @@ def canonicalize(text: Union[str, bytes]) -> str:
     """
     # Note that inet_aton() only accepts canonial form, but we still run through
     # inet_ntoa() to ensure the output is a str.
-    return dns.ipv4.inet_ntoa(dns.ipv4.inet_aton(text))
+    return inet_ntoa(inet_aton(text))
