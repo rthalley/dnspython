@@ -187,6 +187,7 @@ class AsyncTests(unittest.TestCase):
     def async_run(self, afunc):
         return asyncio.run(afunc())
 
+    @tests.util.retry_on_timeout
     def testResolve(self):
         async def run():
             answer = await dns.asyncresolver.resolve("dns.google.", "A")
@@ -196,6 +197,7 @@ class AsyncTests(unittest.TestCase):
         self.assertTrue("8.8.8.8" in seen)
         self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testResolveAddress(self):
         async def run():
             return await dns.asyncresolver.resolve_address("8.8.8.8")
@@ -204,6 +206,7 @@ class AsyncTests(unittest.TestCase):
         dnsgoogle = dns.name.from_text("dns.google.")
         self.assertEqual(answer[0].target, dnsgoogle)
 
+    @tests.util.retry_on_timeout
     def testResolveName(self):
         async def run1():
             return await dns.asyncresolver.resolve_name("dns.google.")
@@ -250,6 +253,7 @@ class AsyncTests(unittest.TestCase):
             with self.assertRaises(dns.resolver.NoAnswer):
                 self.async_run(run5)
 
+    @tests.util.retry_on_timeout
     def testCanonicalNameNoCNAME(self):
         cname = dns.name.from_text("www.google.com")
 
@@ -258,6 +262,7 @@ class AsyncTests(unittest.TestCase):
 
         self.assertEqual(self.async_run(run), cname)
 
+    @tests.util.retry_on_timeout
     def testCanonicalNameCNAME(self):
         name = dns.name.from_text("www.dnspython.org")
         cname = dns.name.from_text("dmfrjf4ips8xa.cloudfront.net")
@@ -270,6 +275,7 @@ class AsyncTests(unittest.TestCase):
     @unittest.skipIf(
         _systemd_resolved_present or _is_docker, "systemd-resolved or docker in use"
     )
+    @tests.util.retry_on_timeout
     def testCanonicalNameDangling(self):
         name = dns.name.from_text("dangling-cname.dnspython.org")
         cname = dns.name.from_text("dangling-target.dnspython.org")
@@ -279,6 +285,7 @@ class AsyncTests(unittest.TestCase):
 
         self.assertEqual(self.async_run(run), cname)
 
+    @tests.util.retry_on_timeout
     def testZoneForName1(self):
         async def run():
             name = dns.name.from_text("www.dnspython.org.")
@@ -288,6 +295,7 @@ class AsyncTests(unittest.TestCase):
         zname = self.async_run(run)
         self.assertEqual(zname, ezname)
 
+    @tests.util.retry_on_timeout
     def testZoneForName2(self):
         async def run():
             name = dns.name.from_text("a.b.www.dnspython.org.")
@@ -297,6 +305,7 @@ class AsyncTests(unittest.TestCase):
         zname = self.async_run(run)
         self.assertEqual(zname, ezname)
 
+    @tests.util.retry_on_timeout
     def testZoneForName3(self):
         async def run():
             name = dns.name.from_text("dnspython.org.")
@@ -317,6 +326,7 @@ class AsyncTests(unittest.TestCase):
 
         self.assertRaises(dns.resolver.NotAbsolute, bad)
 
+    @tests.util.retry_on_timeout
     def testQueryUDP(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -334,6 +344,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue("8.8.8.8" in seen)
             self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testQueryUDPWithSocket(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -358,6 +369,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue("8.8.8.8" in seen)
             self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testQueryTCP(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -375,6 +387,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue("8.8.8.8" in seen)
             self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testQueryTCPWithSocket(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -403,6 +416,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue("8.8.4.4" in seen)
 
     @unittest.skipIf(not _ssl_available, "SSL not available")
+    @tests.util.retry_on_timeout
     def testQueryTLS(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -421,6 +435,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue("8.8.4.4" in seen)
 
     @unittest.skipIf(not _ssl_available, "SSL not available")
+    @tests.util.retry_on_timeout
     def testQueryTLSWithContext(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -443,6 +458,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue("8.8.4.4" in seen)
 
     @unittest.skipIf(not _ssl_available, "SSL not available")
+    @tests.util.retry_on_timeout
     def testQueryTLSWithSocket(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -474,6 +490,7 @@ class AsyncTests(unittest.TestCase):
             self.assertTrue("8.8.8.8" in seen)
             self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testQueryUDPFallback(self):
         for address in query_addresses:
             qname = dns.name.from_text(".")
@@ -485,6 +502,7 @@ class AsyncTests(unittest.TestCase):
             (_, tcp) = self.async_run(run)
             self.assertTrue(tcp)
 
+    @tests.util.retry_on_timeout
     def testQueryUDPFallbackNoFallback(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -496,6 +514,7 @@ class AsyncTests(unittest.TestCase):
             (_, tcp) = self.async_run(run)
             self.assertFalse(tcp)
 
+    @tests.util.retry_on_timeout
     def testUDPReceiveQuery(self):
         async def run():
             async with await self.backend.make_socket(
@@ -536,6 +555,7 @@ class AsyncTests(unittest.TestCase):
         self.assertRaises(dns.exception.Timeout, run)
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
+    @tests.util.retry_on_timeout
     def testDOHGetRequest(self):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
@@ -548,6 +568,7 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
+    @tests.util.retry_on_timeout
     def testDOHPostRequest(self):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH_RESOLVER_URLS)
@@ -560,6 +581,7 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
+    @tests.util.retry_on_timeout
     def testDoH3GetRequest(self):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
@@ -577,6 +599,7 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
+    @tests.util.retry_on_timeout
     def TestDoH3PostRequest(self):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
@@ -594,6 +617,7 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
+    @tests.util.retry_on_timeout
     def TestDoH3QueryIP(self):
         async def run():
             nameserver_ip = "8.8.8.8"
@@ -610,6 +634,7 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
+    @tests.util.retry_on_timeout
     def testResolverDOH(self):
         async def run():
             res = dns.asyncresolver.Resolver(configure=False)
@@ -622,6 +647,7 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    @tests.util.retry_on_timeout
     def testResolveAtAddress(self):
         async def run():
             answer = await dns.asyncresolver.resolve_at("8.8.8.8", "dns.google.", "A")
@@ -632,6 +658,7 @@ class AsyncTests(unittest.TestCase):
         self.async_run(run)
 
     @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    @tests.util.retry_on_timeout
     def testResolveAtName(self):
         async def run():
             answer = await dns.asyncresolver.resolve_at(
@@ -661,6 +688,7 @@ class AsyncioOnlyTests(unittest.TestCase):
     def async_run(self, afunc):
         return asyncio.run(afunc())
 
+    @tests.util.retry_on_timeout
     def testUseAfterTimeout(self):
         # Test #843 fix.
         async def run():

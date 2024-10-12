@@ -66,6 +66,7 @@ keyring = dns.tsigkeyring.from_text({"name": "tDz6cfXXGtNivRpQ98hr6A=="})
 
 @unittest.skipIf(not tests.util.is_internet_reachable(), "Internet not reachable")
 class QueryTests(unittest.TestCase):
+    @tests.util.retry_on_timeout
     def testQueryUDP(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -79,6 +80,7 @@ class QueryTests(unittest.TestCase):
             self.assertTrue("8.8.8.8" in seen)
             self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testQueryUDPWithSocket(self):
         for address in query_addresses:
             with socket.socket(
@@ -96,6 +98,7 @@ class QueryTests(unittest.TestCase):
                 self.assertTrue("8.8.8.8" in seen)
                 self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testQueryTCP(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -109,6 +112,7 @@ class QueryTests(unittest.TestCase):
             self.assertTrue("8.8.8.8" in seen)
             self.assertTrue("8.8.4.4" in seen)
 
+    @tests.util.retry_on_timeout
     def testQueryTCPWithSocket(self):
         for address in query_addresses:
             with socket.socket(
@@ -130,6 +134,7 @@ class QueryTests(unittest.TestCase):
                 self.assertTrue("8.8.4.4" in seen)
 
     @unittest.skipUnless(have_ssl, "No SSL support")
+    @tests.util.retry_on_timeout
     def testQueryTLS(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -144,6 +149,7 @@ class QueryTests(unittest.TestCase):
             self.assertTrue("8.8.4.4" in seen)
 
     @unittest.skipUnless(have_ssl, "No SSL support")
+    @tests.util.retry_on_timeout
     def testQueryTLSWithContext(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -160,6 +166,7 @@ class QueryTests(unittest.TestCase):
             self.assertTrue("8.8.4.4" in seen)
 
     @unittest.skipUnless(have_ssl, "No SSL support")
+    @tests.util.retry_on_timeout
     def testQueryTLSWithSocket(self):
         for address in query_addresses:
             with socket.socket(
@@ -186,6 +193,7 @@ class QueryTests(unittest.TestCase):
                     self.assertTrue("8.8.4.4" in seen)
 
     @unittest.skipUnless(have_ssl, "No SSL support")
+    @tests.util.retry_on_timeout
     def testQueryTLSwithPadding(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -206,6 +214,7 @@ class QueryTests(unittest.TestCase):
                     has_pad = True
             self.assertTrue(has_pad)
 
+    @tests.util.retry_on_timeout
     def testQueryUDPFallback(self):
         for address in query_addresses:
             qname = dns.name.from_text(".")
@@ -213,6 +222,7 @@ class QueryTests(unittest.TestCase):
             (_, tcp) = dns.query.udp_with_fallback(q, address, timeout=4)
             self.assertTrue(tcp)
 
+    @tests.util.retry_on_timeout
     def testQueryUDPFallbackWithSocket(self):
         for address in query_addresses:
             af = dns.inet.af_for_address(address)
@@ -230,6 +240,7 @@ class QueryTests(unittest.TestCase):
                     )
                     self.assertTrue(tcp)
 
+    @tests.util.retry_on_timeout
     def testQueryUDPFallbackNoFallback(self):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
@@ -237,6 +248,7 @@ class QueryTests(unittest.TestCase):
             (_, tcp) = dns.query.udp_with_fallback(q, address, timeout=2)
             self.assertFalse(tcp)
 
+    @tests.util.retry_on_timeout
     def testUDPReceiveQuery(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as listener:
             listener.bind(("127.0.0.1", 0))
