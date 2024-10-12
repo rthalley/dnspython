@@ -26,6 +26,7 @@ import dns.exception
 import dns.name
 import dns.rcode
 import dns.rdataclass
+import dns.rdatatype
 
 
 class BadTime(dns.exception.DNSException):
@@ -221,6 +222,7 @@ def _digest(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=None)
         if request_mac:
             ctx.update(struct.pack("!H", len(request_mac)))
             ctx.update(request_mac)
+    assert ctx is not None  # for type checkers
     ctx.update(struct.pack("!H", rdata.original_id))
     ctx.update(wire[2:])
     if first:
