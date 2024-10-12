@@ -141,7 +141,6 @@ def retry_on_timeout(f):
         bad = True
         for i in range(3):
             try:
-                print("TRY", i, "for", f.__name__)
                 f(*args, **kwargs)
                 bad = False
                 break
