@@ -779,6 +779,7 @@ class LiveResolverTests(unittest.TestCase):
         not (tests.util.have_ipv4() and dns.quic.have_quic),
         "IPv4 not reachable or QUIC not available",
     )
+    @tests.util.retry_on_timeout
     def testQuicNameserver(self):
         res = dns.resolver.Resolver(configure=False)
         res.nameservers = [dns.nameserver.DoQNameserver("94.140.14.14", 784)]
@@ -788,6 +789,7 @@ class LiveResolverTests(unittest.TestCase):
         self.assertIn("94.140.15.15", seen)
 
     @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    @tests.util.retry_on_timeout
     def testResolveAtAddress(self):
         answer = dns.resolver.resolve_at("8.8.8.8", "dns.google.", "A")
         seen = set([rdata.address for rdata in answer])
@@ -795,6 +797,7 @@ class LiveResolverTests(unittest.TestCase):
         self.assertIn("8.8.4.4", seen)
 
     @unittest.skipIf(not tests.util.have_ipv4(), "IPv4 not reachable")
+    @tests.util.retry_on_timeout
     def testResolveAtName(self):
         answer = dns.resolver.resolve_at(
             "dns.google", "dns.google.", "A", family=socket.AF_INET
@@ -803,10 +806,12 @@ class LiveResolverTests(unittest.TestCase):
         self.assertIn("8.8.8.8", seen)
         self.assertIn("8.8.4.4", seen)
 
+    @tests.util.retry_on_timeout
     def testCanonicalNameNoCNAME(self):
         cname = dns.name.from_text("www.google.com")
         self.assertEqual(dns.resolver.canonical_name("www.google.com"), cname)
 
+    @tests.util.retry_on_timeout
     def testCanonicalNameCNAME(self):
         name = dns.name.from_text("www.dnspython.org")
         cname = dns.name.from_text("dmfrjf4ips8xa.cloudfront.net")
@@ -815,6 +820,7 @@ class LiveResolverTests(unittest.TestCase):
     @unittest.skipIf(
         _systemd_resolved_present or _is_docker, "systemd-resolved or docker in use"
     )
+    @tests.util.retry_on_timeout
     def testCanonicalNameDangling(self):
         name = dns.name.from_text("dangling-cname.dnspython.org")
         cname = dns.name.from_text("dangling-target.dnspython.org")
