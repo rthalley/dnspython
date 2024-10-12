@@ -21,6 +21,7 @@ import base64
 import hashlib
 import hmac
 import struct
+from typing import Union
 
 import dns.exception
 import dns.name
@@ -327,7 +328,12 @@ def get_context(key):
 
 
 class Key:
-    def __init__(self, name, secret, algorithm=default_algorithm):
+    def __init__(
+        self,
+        name: Union[dns.name.Name, str],
+        secret: Union[bytes, str],
+        algorithm: Union[dns.name.Name, str] = default_algorithm,
+    ):
         if isinstance(name, str):
             name = dns.name.from_text(name)
         self.name = name

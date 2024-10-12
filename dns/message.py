@@ -35,6 +35,7 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 import dns.rdtypes.ANY.OPT
+import dns.rdtypes.ANY.SOA
 import dns.rdtypes.ANY.TSIG
 import dns.renderer
 import dns.rrset
@@ -530,7 +531,8 @@ class Message:
         # worry about that for now.  We also don't worry if there is an existing padding
         # option, as it is unlikely and probably harmless, as the worst case is that we
         # may add another, and this seems to be legal.
-        for option in self.opt[0].options:
+        opt_rdata = cast(dns.rdtypes.ANY.OPT.OPT, self.opt[0])
+        for option in opt_rdata.options:
             wire = option.to_wire()
             # We add 4 here to account for the option type and length
             size += len(wire) + 4
@@ -754,21 +756,24 @@ class Message:
     @property
     def keyalgorithm(self) -> Optional[dns.name.Name]:
         if self.tsig:
-            return self.tsig[0].algorithm
+            rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            return rdata.algorithm
         else:
             return None
 
     @property
     def mac(self) -> Optional[bytes]:
         if self.tsig:
-            return self.tsig[0].mac
+            rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            return rdata.mac
         else:
             return None
 
     @property
     def tsig_error(self) -> Optional[int]:
         if self.tsig:
-            return self.tsig[0].error
+            rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            return rdata.error
         else:
             return None
 
@@ -858,14 +863,16 @@ class Message:
     @property
     def payload(self) -> int:
         if self.opt:
-            return self.opt[0].payload
+            rdata = cast(dns.rdtypes.ANY.OPT.OPT, self.opt[0])
+            return rdata.payload
         else:
             return 0
 
     @property
     def options(self) -> Tuple:
         if self.opt:
-            return self.opt[0].options
+            rdata = cast(dns.rdtypes.ANY.OPT.OPT, self.opt[0])
+            return rdata.options
         else:
             return ()
 
@@ -1052,7 +1059,8 @@ class QueryMessage(Message):
                     srrset = self.find_rrset(
                         self.authority, auname, question.rdclass, dns.rdatatype.SOA
                     )
-                    min_ttl = min(min_ttl, srrset.ttl, srrset[0].minimum)
+                    srdata = cast(dns.rdtypes.ANY.SOA.SOA, srrset[0])
+                    min_ttl = min(min_ttl, srrset.ttl, srdata.minimum)
                     break
                 except KeyError:
                     try:
@@ -1196,7 +1204,10 @@ class _WireReader:
                 else:
                     with self.parser.restrict_to(rdlen):
                         rd = dns.rdata.from_wire_parser(
-                            rdclass, rdtype, self.parser, self.message.origin
+                            rdclass,  # pyright: ignore
+                            rdtype,
+                            self.parser,
+                            self.message.origin,
                         )
                     covers = rd.covers()
                 if self.message.xfr and rdtype == dns.rdatatype.SOA:
@@ -1204,12 +1215,13 @@ class _WireReader:
                 if rdtype == dns.rdatatype.OPT:
                     self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
                 elif rdtype == dns.rdatatype.TSIG:
+                    trd = cast(dns.rdtypes.ANY.TSIG.TSIG, rd)
                     if self.keyring is None or self.keyring is True:
                         raise UnknownTSIGKey("got signed message without keyring")
                     elif isinstance(self.keyring, dict):
                         key = self.keyring.get(absolute_name)
                         if isinstance(key, bytes):
-                            key = dns.tsig.Key(absolute_name, key, rd.algorithm)
+                            key = dns.tsig.Key(absolute_name, key, trd.algorithm)
                     elif callable(self.keyring):
                         key = self.keyring(self.message, absolute_name)
                     else:
@@ -1234,7 +1246,7 @@ class _WireReader:
                     rrset = self.message.find_rrset(
                         section,
                         name,
-                        rdclass,
+                        rdclass,  # pyright: ignore
                         rdtype,
                         covers,
                         deleting,

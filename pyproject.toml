@@ -120,4 +120,4 @@ ignore_missing_imports = true
 [tool.pyright]
 reportUnsupportedDunderAll = false
 # temporary!
-exclude = ["dns/rdtypes/ANY/*.py", "dns/rdtypes/CH/*.py", "dns/rdtypes/IN/*.py"]
+exclude = ["dns/rdtypes/ANY/*.py", "dns/rdtypes/CH/*.py", "dns/rdtypes/IN/*.py", "dns/quic/*.py" ]

@@ -84,14 +84,14 @@ class Option:
     def to_text(self) -> str:
         raise NotImplementedError  # pragma: no cover
 
-    def to_generic(self) -> "dns.edns.GenericOption":
+    def to_generic(self) -> "GenericOption":
         """Creates a dns.edns.GenericOption equivalent of this rdata.
 
         Returns a ``dns.edns.GenericOption``.
         """
         wire = self.to_wire()
         assert wire is not None  # for mypy
-        return dns.edns.GenericOption(self.otype, wire)
+        return GenericOption(self.otype, wire)
 
     @classmethod
     def from_wire_parser(cls, otype: OptionType, parser: "dns.wire.Parser") -> "Option":
@@ -178,7 +178,7 @@ class GenericOption(Option):  # lgtm[py/missing-equals]
     def to_text(self) -> str:
         return "Generic %d" % self.otype
 
-    def to_generic(self) -> "dns.edns.GenericOption":
+    def to_generic(self) -> "GenericOption":
         return self
 
     @classmethod

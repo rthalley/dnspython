@@ -18,6 +18,8 @@
 import enum
 from typing import Type, TypeVar, Union
 
+import dns.exception
+
 TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 
 
@@ -25,9 +27,9 @@ class IntEnum(enum.IntEnum):
     @classmethod
     def _missing_(cls, value):
         cls._check_value(value)
-        val = int.__new__(cls, value)
+        val = int.__new__(cls, value)  # pyright: ignore
         val._name_ = cls._extra_to_text(value, None) or f"{cls._prefix()}{value}"
-        val._value_ = value
+        val._value_ = value  # pyright: ignore
         return val
 
     @classmethod
@@ -56,7 +58,7 @@ class IntEnum(enum.IntEnum):
             try:
                 return cls(value)
             except ValueError:
-                return value
+                return value  # pyright: ignore
         raise cls._unknown_exception_class()
 
     @classmethod
@@ -112,5 +114,5 @@ class IntEnum(enum.IntEnum):
         return current_text
 
     @classmethod
-    def _unknown_exception_class(cls):
+    def _unknown_exception_class(cls) -> Type[Exception]:
         return ValueError

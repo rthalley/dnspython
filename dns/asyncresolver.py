@@ -25,11 +25,14 @@ import dns._ddr
 import dns.asyncbackend
 import dns.asyncquery
 import dns.exception
+import dns.inet
 import dns.name
+import dns.nameserver
 import dns.query
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver  # lgtm[py/import-and-import-from]
+import dns.reversename
 
 # import some resolver symbols for brevity
 from dns.resolver import NXDOMAIN, NoAnswer, NoRootSOA, NotAbsolute
@@ -426,7 +429,7 @@ async def make_resolver_at(
         answers = await resolver.resolve_name(where, family)
         for address in answers.addresses():
             nameservers.append(dns.nameserver.Do53Nameserver(address, port))
-    res = dns.asyncresolver.Resolver(configure=False)
+    res = Resolver(configure=False)
     res.nameservers = nameservers
     return res
 
