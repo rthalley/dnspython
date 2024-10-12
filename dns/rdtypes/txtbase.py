@@ -21,7 +21,10 @@ from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import dns.exception
 import dns.immutable
+import dns.name
 import dns.rdata
+import dns.rdataclass
+import dns.rdatatype
 import dns.renderer
 import dns.tokenizer
 

@@ -210,7 +210,7 @@ class Rdata:
 
     def _to_wire(
         self,
-        file: Optional[Any],
+        file: Any,
         compress: Optional[dns.name.CompressType] = None,
         origin: Optional[dns.name.Name] = None,
         canonicalize: bool = False,
@@ -241,16 +241,12 @@ class Rdata:
             self._to_wire(f, compress, origin, canonicalize)
             return f.getvalue()
 
-    def to_generic(
-        self, origin: Optional[dns.name.Name] = None
-    ) -> "dns.rdata.GenericRdata":
+    def to_generic(self, origin: Optional[dns.name.Name] = None) -> "GenericRdata":
         """Creates a dns.rdata.GenericRdata equivalent of this rdata.
 
         Returns a ``dns.rdata.GenericRdata``.
         """
-        return dns.rdata.GenericRdata(
-            self.rdclass, self.rdtype, self.to_wire(origin=origin)
-        )
+        return GenericRdata(self.rdclass, self.rdtype, self.to_wire(origin=origin))
 
     def to_digestable(self, origin: Optional[dns.name.Name] = None) -> bytes:
         """Convert rdata to a format suitable for digesting in hashes.  This
@@ -298,6 +294,9 @@ class Rdata:
             In the future, all ordering comparisons for rdata with
             relative names will be disallowed.
         """
+        # the next two lines are for type checkers, so they are bound
+        our = b""
+        their = b""
         try:
             our = self.to_digestable()
             our_relative = False
@@ -620,7 +619,7 @@ class GenericRdata(Rdata):
         relativize: bool = True,
         **kw: Dict[str, Any],
     ) -> str:
-        return r"\# %d " % len(self.data) + _hexify(self.data, **kw)
+        return r"\# %d " % len(self.data) + _hexify(self.data, **kw)  # pyright: ignore
 
     @classmethod
     def from_text(
@@ -639,9 +638,7 @@ class GenericRdata(Rdata):
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.data)
 
-    def to_generic(
-        self, origin: Optional[dns.name.Name] = None
-    ) -> "dns.rdata.GenericRdata":
+    def to_generic(self, origin: Optional[dns.name.Name] = None) -> "GenericRdata":
         return self
 
     @classmethod
@@ -659,7 +656,7 @@ _dynamic_load_allowed = True
 def get_rdata_class(rdclass, rdtype, use_generic=True):
     cls = _rdata_classes.get((rdclass, rdtype))
     if not cls:
-        cls = _rdata_classes.get((dns.rdatatype.ANY, rdtype))
+        cls = _rdata_classes.get((dns.rdataclass.ANY, rdtype))
         if not cls and _dynamic_load_allowed:
             rdclass_text = dns.rdataclass.to_text(rdclass)
             rdtype_text = dns.rdatatype.to_text(rdtype)
@@ -758,6 +755,7 @@ def from_text(
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
+    assert cls is not None  # for type checkers
     with dns.exception.ExceptionWrapper(dns.exception.SyntaxError):
         rdata = None
         if cls != GenericRdata:
@@ -830,6 +828,7 @@ def from_wire_parser(
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
+    assert cls is not None  # for type checkers
     with dns.exception.ExceptionWrapper(dns.exception.FormError):
         return cls.from_wire_parser(rdclass, rdtype, parser, origin)
 
