@@ -1,21 +1,20 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import asyncio
-import time
 
 import pytest
 
 import dns.asyncbackend
 import dns.asyncresolver
-import dns.resolver
 import dns.nameserver
-
+import dns.resolver
 import tests.util
 
 
 @pytest.mark.skipif(
     not tests.util.is_internet_reachable(), reason="Internet not reachable"
 )
+@tests.util.retry_on_timeout
 def test_basic_ddr_sync():
     for nameserver in ["1.1.1.1", "8.8.8.8"]:
         res = dns.resolver.Resolver(configure=False)
@@ -29,6 +28,7 @@ def test_basic_ddr_sync():
 @pytest.mark.skipif(
     not tests.util.is_internet_reachable(), reason="Internet not reachable"
 )
+@tests.util.retry_on_timeout
 def test_basic_ddr_async():
     async def run():
         dns.asyncbackend._default_backend = None
