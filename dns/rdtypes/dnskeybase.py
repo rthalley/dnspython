@@ -52,7 +52,7 @@ class DNSKEYBase(dns.rdata.Rdata):
             self.flags,
             self.protocol,
             self.algorithm,
-            dns.rdata._base64ify(self.key, **kw),
+            dns.rdata._base64ify(self.key, **kw),  # pyright: ignore
         )
 
     @classmethod

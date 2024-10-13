@@ -28,6 +28,7 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
+import dns.rrset
 import dns.tsig
 
 
@@ -353,7 +354,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         # Updates are always one_rr_per_rrset
         return True
 
-    def _parse_rr_header(self, section, name, rdclass, rdtype):
+    def _parse_rr_header(self, section, name, rdclass, rdtype):  # pyright: ignore
         deleting = None
         empty = False
         if section == UpdateSection.ZONE:

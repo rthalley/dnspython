@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import enum
-from typing import Type, TypeVar, Union
+from typing import Any, Optional, Type, TypeVar, Union
 
 import dns.exception
 
@@ -102,11 +102,11 @@ class IntEnum(enum.IntEnum):
         return cls.__name__.lower()
 
     @classmethod
-    def _prefix(cls):
+    def _prefix(cls) -> str:
         return ""
 
     @classmethod
-    def _extra_from_text(cls, text):  # pylint: disable=W0613
+    def _extra_from_text(cls, text) -> Optional[Any]:  # pylint: disable=W0613
         return None
 
     @classmethod

@@ -59,7 +59,9 @@ class DSBase(dns.rdata.Rdata):
             self.key_tag,
             self.algorithm,
             self.digest_type,
-            dns.rdata._hexify(self.digest, chunksize=chunksize, **kw),
+            dns.rdata._hexify(
+                self.digest, chunksize=chunksize, **kw  # pyright: ignore
+            ),
         )
 
     @classmethod
