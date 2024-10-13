@@ -4,7 +4,7 @@
 
 import collections
 import threading
-from typing import Callable, Deque, Optional, Set, Union
+from typing import Callable, Deque, Optional, Set, Union, cast
 
 import dns.exception
 import dns.immutable
@@ -105,7 +105,10 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
                     n = v.nodes.get(oname)
                     if n:
                         rds = n.get_rdataset(self.rdclass, dns.rdatatype.SOA)
-                        if rds and rds[0].serial == serial:
+                        if rds is None:
+                            continue
+                        soa = cast(dns.rdtypes.ANY.SOA.SOA, rds[0])
+                        if rds and soa.serial == serial:
                             version = v
                             break
                 if version is None:
@@ -186,7 +189,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
         # Note our definition of least_kept also ensures we do not try to
         # delete the greatest version.
         if len(self._readers) > 0:
-            least_kept = min(txn.version.id for txn in self._readers)
+            least_kept = min(txn.version.id for txn in self._readers)  # pyright: ignore
         else:
             least_kept = self._versions[-1].id
         while self._versions[0].id < least_kept and self._pruning_policy(
@@ -201,8 +204,8 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
         if max_versions is not None and max_versions < 1:
             raise ValueError("max versions must be at least 1")
         if max_versions is None:
-
-            def policy(zone, _):  # pylint: disable=unused-argument
+            # pylint: disable=unused-argument
+            def policy(zone, _):  # pyright: ignore
                 return False
 
         else:
