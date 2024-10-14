@@ -633,13 +633,13 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
     def __init__(
         self,
         origin: Optional[dns.name.Name] = dns.name.root,
-        relativize=False,
-        rdclass=dns.rdataclass.IN,
+        relativize: bool = False,
+        rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
     ):
         self.origin = origin
         self.relativize = relativize
         self.rdclass = rdclass
-        self.rrsets = []
+        self.rrsets: List[dns.rrset.RRset] = []
 
     def reader(self):  # pragma: no cover
         raise NotImplementedError
@@ -658,7 +658,7 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
             effective = self.origin
         return (self.origin, self.relativize, effective)
 
-    def set_rrsets(self, rrsets):
+    def set_rrsets(self, rrsets: List[dns.rrset.RRset]) -> None:
         self.rrsets = rrsets
 
 

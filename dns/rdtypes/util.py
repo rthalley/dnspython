@@ -35,7 +35,7 @@ class Gateway:
 
     name = ""
 
-    def __init__(self, type, gateway: Optional[Union[str, dns.name.Name]] = None):
+    def __init__(self, type: Any, gateway: Optional[Union[str, dns.name.Name]] = None):
         self.type = dns.rdata.Rdata._as_uint8(type)
         self.gateway = gateway
         self._check()
@@ -130,7 +130,7 @@ class Bitmap:
         last_window = -1
         if windows is None:
             windows = []
-        self.windows = tuple(windows)
+        self.windows = windows
         for window, bitmap in self.windows:
             if not isinstance(window, int):
                 raise ValueError(f"bad {self.type_name} window type")

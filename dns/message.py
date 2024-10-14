@@ -1427,14 +1427,14 @@ class _TextReader:
 
     def __init__(
         self,
-        text,
-        idna_codec,
-        one_rr_per_rrset=False,
-        origin=None,
-        relativize=True,
-        relativize_to=None,
+        text: str,
+        idna_codec: Optional[dns.name.IDNACodec],
+        one_rr_per_rrset: bool = False,
+        origin: Optional[dns.name.Name] = None,
+        relativize: bool = True,
+        relativize_to: Optional[dns.name.Name] = None,
     ):
-        self.message: Optional[Message] = None
+        self.message: Optional[Message] = None  # mypy: ignore
         self.tok = dns.tokenizer.Tokenizer(text, idna_codec=idna_codec)
         self.last_name = None
         self.one_rr_per_rrset = one_rr_per_rrset

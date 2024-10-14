@@ -55,10 +55,7 @@ class IntEnum(enum.IntEnum):
         if text.startswith(prefix) and text[len(prefix) :].isdigit():
             value = int(text[len(prefix) :])
             cls._check_value(value)
-            try:
-                return cls(value)
-            except ValueError:
-                return value  # pyright: ignore
+            return cls(value)
         raise cls._unknown_exception_class()
 
     @classmethod
@@ -106,7 +103,7 @@ class IntEnum(enum.IntEnum):
         return ""
 
     @classmethod
-    def _extra_from_text(cls, text) -> Optional[Any]:  # pylint: disable=W0613
+    def _extra_from_text(cls, text: str) -> Optional[Any]:  # pylint: disable=W0613
         return None
 
     @classmethod
