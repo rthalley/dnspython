@@ -120,6 +120,7 @@ ignore_missing_imports = true
 [tool.pyright]
 reportUnsupportedDunderAll = false
 exclude = [
+    "dns/_*_backend.py",
     "dns/dnssecalgs/*.py",
     "dns/quic/*.py",
     "dns/rdtypes/ANY/*.py",
