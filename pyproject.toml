@@ -125,6 +125,6 @@ exclude = [
     "dns/rdtypes/ANY/*.py",
     "dns/rdtypes/CH/*.py",
     "dns/rdtypes/IN/*.py",
-    "dns/rrset.py",
-    "dns/rdataset.py",
-] # temporary!
+    "examples/*.py",
+    "tests/*.py",
+] # (mostly) temporary!

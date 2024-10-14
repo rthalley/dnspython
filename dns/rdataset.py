@@ -75,7 +75,7 @@ class Rdataset(dns.set.Set):
         self.ttl = ttl
 
     def _clone(self):
-        obj = super()._clone()
+        obj = cast(Rdataset, super()._clone())
         obj.rdclass = self.rdclass
         obj.rdtype = self.rdtype
         obj.covers = self.covers
@@ -97,7 +97,8 @@ class Rdataset(dns.set.Set):
         elif ttl < self.ttl:
             self.ttl = ttl
 
-    def add(  # pylint: disable=arguments-differ,arguments-renamed
+    # pylint: disable=arguments-differ,arguments-renamed
+    def add(  # pyright: ignore
         self, rd: dns.rdata.Rdata, ttl: Optional[int] = None
     ) -> None:
         """Add the specified rdata to the rdataset.
@@ -355,7 +356,7 @@ class Rdataset(dns.set.Set):
         if len(self) == 0:
             return []
         else:
-            return self[0]._processing_order(iter(self))
+            return self[0]._processing_order(iter(self))  # pyright: ignore
 
 
 @dns.immutable.immutable
@@ -410,22 +411,22 @@ class ImmutableRdataset(Rdataset):  # lgtm[py/missing-equals]
         raise TypeError("immutable")
 
     def __copy__(self):
-        return ImmutableRdataset(super().copy())
+        return ImmutableRdataset(super().copy())  # pyright: ignore
 
     def copy(self):
-        return ImmutableRdataset(super().copy())
+        return ImmutableRdataset(super().copy())  # pyright: ignore
 
     def union(self, other):
-        return ImmutableRdataset(super().union(other))
+        return ImmutableRdataset(super().union(other))  # pyright: ignore
 
     def intersection(self, other):
-        return ImmutableRdataset(super().intersection(other))
+        return ImmutableRdataset(super().intersection(other))  # pyright: ignore
 
     def difference(self, other):
-        return ImmutableRdataset(super().difference(other))
+        return ImmutableRdataset(super().difference(other))  # pyright: ignore
 
     def symmetric_difference(self, other):
-        return ImmutableRdataset(super().symmetric_difference(other))
+        return ImmutableRdataset(super().symmetric_difference(other))  # pyright: ignore
 
 
 def from_text_list(

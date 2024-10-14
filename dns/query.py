@@ -38,6 +38,7 @@ import dns.message
 import dns.name
 import dns.quic
 import dns.rcode
+import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 import dns.serial
@@ -78,7 +79,7 @@ if _have_httpx:
             self._family = family
 
         def connect_tcp(
-            self, host, port, timeout, local_address, socket_options=None
+            self, host, port, timeout=None, local_address=None, socket_options=None
         ):  # pylint: disable=signature-differs
             addresses = []
             _, expiration = _compute_times(timeout)
@@ -98,6 +99,8 @@ if _have_httpx:
             for address in addresses:
                 af = dns.inet.af_for_address(address)
                 if local_address is not None or self._local_port != 0:
+                    if local_address is None:
+                        local_address = "0.0.0.0"
                     source = dns.inet.low_level_address_tuple(
                         (local_address, self._local_port), af
                     )
@@ -117,11 +120,11 @@ if _have_httpx:
             raise httpcore.ConnectError
 
         def connect_unix_socket(
-            self, path, timeout, socket_options=None
+            self, path, timeout=None, socket_options=None
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
-    class _HTTPTransport(httpx.HTTPTransport):
+    class _HTTPTransport(httpx.HTTPTransport):  # pyright: ignore
         def __init__(
             self,
             *args,
@@ -144,6 +147,17 @@ if _have_httpx:
 else:
 
     class _HTTPTransport:  # type: ignore
+        def __init__(
+            self,
+            *args,
+            local_port=0,
+            bootstrap_address=None,
+            resolver=None,
+            family=socket.AF_UNSPEC,
+            **kwargs,
+        ):
+            pass
+
         def connect_tcp(self, host, port, timeout, local_address):
             raise NotImplementedError
 
@@ -151,7 +165,7 @@ else:
 have_doh = _have_httpx
 
 try:
-    import ssl
+    import ssl  # pyright: ignore
 except ImportError:  # pragma: no cover
 
     class ssl:  # type: ignore
@@ -163,11 +177,18 @@ except ImportError:  # pragma: no cover
         class WantWriteException(Exception):
             pass
 
+        class SSLWantReadError(Exception):
+            pass
+
+        class SSLWantWriteError(Exception):
+            pass
+
         class SSLContext:
             pass
 
         class SSLSocket:
-            pass
+            def pending(self) -> bool:
+                return False
 
         @classmethod
         def create_default_context(cls, *args, **kwargs):
@@ -226,7 +247,7 @@ def _wait_for(fd, readable, writable, _, expiration):
     if writable:
         events |= selectors.EVENT_WRITE
     if events:
-        sel.register(fd, events)
+        sel.register(fd, events)  # pyright: ignore
     if expiration is None:
         timeout = None
     else:
@@ -338,8 +359,8 @@ def _make_socket(af, type, source, ssl_context=None, server_hostname=None):
 
 
 def _maybe_get_resolver(
-    resolver: Optional["dns.resolver.Resolver"],
-) -> "dns.resolver.Resolver":
+    resolver: Optional["dns.resolver.Resolver"],  # pyright: ignore
+) -> "dns.resolver.Resolver":  # pyright: ignore
     # We need a separate method for this to avoid overriding the global
     # variable "dns" with the as-yet undefined local variable "dns"
     # in https().
@@ -381,7 +402,7 @@ def https(
     post: bool = True,
     bootstrap_address: Optional[str] = None,
     verify: Union[bool, str] = True,
-    resolver: Optional["dns.resolver.Resolver"] = None,
+    resolver: Optional["dns.resolver.Resolver"] = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
@@ -441,13 +462,13 @@ def https(
     (af, _, the_source) = _destination_and_source(
         where, port, source, source_port, False
     )
+    # we bind url and then override as pyright can't figure out all paths bind.
+    url = where
     if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
             url = f"https://{where}:{port}{path}"
         elif af == socket.AF_INET6:
             url = f"https://[{where}]:{port}{path}"
-    else:
-        url = where
 
     extensions = {}
     if bootstrap_address is None:
@@ -466,13 +487,13 @@ def https(
     ):
         if bootstrap_address is None:
             resolver = _maybe_get_resolver(resolver)
-            assert parsed.hostname is not None  # for mypy
-            answers = resolver.resolve_name(parsed.hostname, family)
+            assert parsed.hostname is not None  # pyright: ignore
+            answers = resolver.resolve_name(parsed.hostname, family)  # pyright: ignore
             bootstrap_address = random.choice(list(answers.addresses()))
         return _http3(
             q,
             bootstrap_address,
-            url,
+            url,  # pyright: ignore
             timeout,
             port,
             source,
@@ -485,7 +506,7 @@ def https(
 
     if not have_doh:
         raise NoDOH  # pragma: no cover
-    if session and not isinstance(session, httpx.Client):
+    if session and not isinstance(session, httpx.Client):  # pyright: ignore
         raise ValueError("session parameter must be an httpx.Client")
 
     wire = q.to_wire()
@@ -514,10 +535,12 @@ def https(
             local_port=local_port,
             bootstrap_address=bootstrap_address,
             resolver=resolver,
-            family=family,
+            family=family,  # pyright: ignore
         )
 
-        cm = httpx.Client(http1=h1, http2=h2, verify=verify, transport=transport)
+        cm = httpx.Client(  # pyright: ignore
+            http1=h1, http2=h2, verify=verify, transport=transport  # pyright: ignore
+        )
     with cm as session:
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples
@@ -617,7 +640,7 @@ def _http3(
     q.id = 0
     wire = q.to_wire()
     manager = dns.quic.SyncQuicManager(
-        verify_mode=verify, server_name=hostname, h3=True
+        verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
     )
 
     with manager:
@@ -1162,7 +1185,7 @@ def tcp(
     with cm as s:
         if not sock:
             # pylint: disable=possibly-used-before-assignment
-            _connect(s, destination, expiration)
+            _connect(s, destination, expiration)  # pyright: ignore
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
@@ -1385,14 +1408,18 @@ def quic(
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
         the_connection = connection
     else:
-        manager = dns.quic.SyncQuicManager(verify_mode=verify, server_name=hostname)
+        manager = dns.quic.SyncQuicManager(
+            verify_mode=verify, server_name=hostname  # pyright: ignore
+        )
         the_manager = manager  # for type checking happiness
 
     with manager:
         if not connection:
-            the_connection = the_manager.connect(where, port, source, source_port)
+            the_connection = the_manager.connect(  # pyright: ignore
+                where, port, source, source_port
+            )
         (start, expiration) = _compute_times(timeout)
-        with the_connection.make_stream(timeout) as stream:
+        with the_connection.make_stream(timeout) as stream:  # pyright: ignore
             stream.send(wire, True)
             wire = stream.receive(_remaining(expiration))
         finish = time.time()
@@ -1428,7 +1455,7 @@ def _inbound_xfr(
     query: dns.message.Message,
     serial: Optional[int],
     timeout: Optional[float],
-    expiration: float,
+    expiration: Optional[float],
 ) -> Any:
     """Given a socket, does the zone transfer."""
     rdtype = query.question[0].rdtype
@@ -1444,6 +1471,7 @@ def _inbound_xfr(
     with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
         done = False
         tsig_ctx = None
+        r: Optional[dns.message.Message] = None
         while not done:
             (_, mexpiration) = _compute_times(timeout)
             if mexpiration is None or (
@@ -1469,7 +1497,7 @@ def _inbound_xfr(
             done = inbound.process_message(r)
             yield r
             tsig_ctx = r.tsig_ctx
-        if query.keyring and not r.had_tsig:
+        if query.keyring and r is not None and not r.had_tsig:
             raise dns.exception.FormError("missing TSIG")
 
 
