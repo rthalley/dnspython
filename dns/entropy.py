@@ -20,7 +20,7 @@ import os
 import random
 import threading
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 
 class EntropyPool:
@@ -45,7 +45,7 @@ class EntropyPool:
             self.seeded = False
             self.seed_pid = 0
 
-    def _stir(self, entropy: bytes) -> None:
+    def _stir(self, entropy: Union[bytes, bytearray]) -> None:
         for c in entropy:
             if self.pool_index == self.hash_len:
                 self.pool_index = 0
@@ -53,7 +53,7 @@ class EntropyPool:
             self.pool[self.pool_index] ^= b
             self.pool_index += 1
 
-    def stir(self, entropy: bytes) -> None:
+    def stir(self, entropy: Union[bytes, bytearray]) -> None:
         with self.lock:
             self._stir(entropy)
 

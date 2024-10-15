@@ -24,7 +24,7 @@ import sys
 import threading
 import time
 import warnings
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union, cast
 from urllib.parse import urlparse
 
 import dns._ddr
@@ -42,6 +42,7 @@ import dns.rcode
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdtypes.ANY.PTR
 import dns.rdtypes.svcbbase
 import dns.reversename
 import dns.tsig
@@ -63,7 +64,7 @@ class NXDOMAIN(dns.exception.DNSException):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _check_kwargs(self, qnames, responses=None):
+    def _check_kwargs(self, qnames, responses=None):  # pyright: ignore
         if not isinstance(qnames, (list, tuple, set)):
             raise AttributeError("qnames must be a list, tuple or set")
         if len(qnames) == 0:
@@ -282,24 +283,25 @@ class Answer:
         self.expiration = time.time() + self.chaining_result.minimum_ttl
 
     def __getattr__(self, attr):  # pragma: no cover
-        if attr == "name":
-            return self.rrset.name
-        elif attr == "ttl":
-            return self.rrset.ttl
-        elif attr == "covers":
-            return self.rrset.covers
-        elif attr == "rdclass":
-            return self.rrset.rdclass
-        elif attr == "rdtype":
-            return self.rrset.rdtype
+        if self.rrset is not None:
+            if attr == "name":
+                return self.rrset.name
+            elif attr == "ttl":
+                return self.rrset.ttl
+            elif attr == "covers":
+                return self.rrset.covers
+            elif attr == "rdclass":
+                return self.rrset.rdclass
+            elif attr == "rdtype":
+                return self.rrset.rdtype
         else:
             raise AttributeError(attr)
 
     def __len__(self) -> int:
-        return self.rrset and len(self.rrset) or 0
+        return self.rrset is not None and len(self.rrset) or 0
 
     def __iter__(self) -> Iterator[Any]:
-        return self.rrset and iter(self.rrset) or iter(tuple())
+        return self.rrset is not None and iter(self.rrset) or iter(tuple())
 
     def __getitem__(self, i):
         if self.rrset is None:
@@ -1480,7 +1482,7 @@ class Resolver(BaseResolver):
         try:
             answer = self.resolve(name, raise_on_no_answer=False)
             canonical_name = answer.canonical_name
-        except dns.resolver.NXDOMAIN as e:
+        except NXDOMAIN as e:
             canonical_name = e.canonical_name
         return canonical_name
 
@@ -1655,7 +1657,7 @@ def zone_for_name(
     tcp: bool = False,
     resolver: Optional[Resolver] = None,
     lifetime: Optional[float] = None,
-) -> dns.name.Name:
+) -> dns.name.Name:  # pyright: ignore[reportReturnType]
     """Find the name of the zone which contains the specified name.
 
     *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
@@ -1709,8 +1711,8 @@ def zone_for_name(
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher
-        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer) as e:
-            if isinstance(e, dns.resolver.NXDOMAIN):
+        except (NXDOMAIN, NoAnswer) as e:
+            if isinstance(e, NXDOMAIN):
                 response = e.responses().get(name)
             else:
                 response = e.response()  # pylint: disable=no-value-for-parameter
@@ -1765,7 +1767,7 @@ def make_resolver_at(
     else:
         for address in resolver.resolve_name(where, family).addresses():
             nameservers.append(dns.nameserver.Do53Nameserver(address, port))
-    res = dns.resolver.Resolver(configure=False)
+    res = Resolver(configure=False)
     res.nameservers = nameservers
     return res
 
@@ -1816,12 +1818,12 @@ def resolve_at(
 # running process.
 #
 
-_protocols_for_socktype = {
+_protocols_for_socktype: Dict[Any, List[Any]] = {
     socket.SOCK_DGRAM: [socket.SOL_UDP],
     socket.SOCK_STREAM: [socket.SOL_TCP],
 }
 
-_resolver = None
+_resolver: Optional[Resolver] = None
 _original_getaddrinfo = socket.getaddrinfo
 _original_getnameinfo = socket.getnameinfo
 _original_getfqdn = socket.getfqdn
@@ -1870,10 +1872,11 @@ def _getaddrinfo(
         pass
     # Something needs resolution!
     try:
+        assert _resolver is not None
         answers = _resolver.resolve_name(host, family)
         addrs = answers.addresses_and_families()
         canonical_name = answers.canonical_name().to_text(True)
-    except dns.resolver.NXDOMAIN:
+    except NXDOMAIN:
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
     except Exception:
         # We raise EAI_AGAIN here as the failure may be temporary
@@ -1890,7 +1893,7 @@ def _getaddrinfo(
     except Exception:
         if flags & socket.AI_NUMERICSERV == 0:
             try:
-                port = socket.getservbyname(service)
+                port = socket.getservbyname(service)  # pyright: ignore
             except Exception:
                 pass
     if port is None:
@@ -1906,7 +1909,8 @@ def _getaddrinfo(
         cname = ""
     for addr, af in addrs:
         for socktype in socktypes:
-            for proto in _protocols_for_socktype[socktype]:
+            for sockproto in _protocols_for_socktype[socktype]:
+                proto = int(sockproto)
                 addr_tuple = dns.inet.low_level_address_tuple((addr, port), af)
                 tuples.append((af, socktype, proto, cname, addr_tuple))
     if len(tuples) == 0:
@@ -1934,9 +1938,12 @@ def _getnameinfo(sockaddr, flags=0):
     qname = dns.reversename.from_address(addr)
     if flags & socket.NI_NUMERICHOST == 0:
         try:
+            assert _resolver is not None
             answer = _resolver.resolve(qname, "PTR")
-            hostname = answer.rrset[0].target.to_text(True)
-        except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+            assert answer.rrset is not None
+            rdata = cast(dns.rdtypes.ANY.PTR.PTR, answer.rrset[0])
+            hostname = rdata.target.to_text(True)
+        except (NXDOMAIN, NoAnswer):
             if flags & socket.NI_NAMEREQD:
                 raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
             hostname = addr

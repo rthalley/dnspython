@@ -6,6 +6,7 @@ from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 import dns.exception
 import dns.name
 import dns.node
+import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
@@ -416,12 +417,12 @@ class Transaction:
                 raise TypeError(f"{method}: expected more arguments")
 
     def _add(self, replace, args):
+        if replace:
+            method = "replace()"
+        else:
+            method = "add()"
         try:
             args = collections.deque(args)
-            if replace:
-                method = "replace()"
-            else:
-                method = "add()"
             arg = args.popleft()
             if isinstance(arg, str):
                 arg = dns.name.from_text(arg, None)
@@ -438,6 +439,7 @@ class Transaction:
                 raise TypeError(
                     f"{method} requires a name or RRset as the first argument"
                 )
+            assert rdataset is not None  # for type checkers
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f"{method} has objects of wrong RdataClass")
             if rdataset.rdtype == dns.rdatatype.SOA:
@@ -460,12 +462,12 @@ class Transaction:
             raise TypeError(f"not enough parameters to {method}")
 
     def _delete(self, exact, args):
+        if exact:
+            method = "delete_exact()"
+        else:
+            method = "delete()"
         try:
             args = collections.deque(args)
-            if exact:
-                method = "delete_exact()"
-            else:
-                method = "delete()"
             arg = args.popleft()
             if isinstance(arg, str):
                 arg = dns.name.from_text(arg, None)

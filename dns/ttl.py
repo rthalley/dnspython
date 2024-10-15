@@ -87,6 +87,6 @@ def make(value: Union[int, str]) -> int:
     if isinstance(value, int):
         return value
     elif isinstance(value, str):
-        return dns.ttl.from_text(value)
+        return from_text(value)
     else:
         raise ValueError("cannot convert value to TTL")

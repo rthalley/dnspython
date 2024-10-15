@@ -35,9 +35,11 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 import dns.rdtypes.ANY.OPT
+import dns.rdtypes.ANY.SOA
 import dns.rdtypes.ANY.TSIG
 import dns.renderer
 import dns.rrset
+import dns.tokenizer
 import dns.tsig
 import dns.ttl
 import dns.wire
@@ -529,7 +531,8 @@ class Message:
         # worry about that for now.  We also don't worry if there is an existing padding
         # option, as it is unlikely and probably harmless, as the worst case is that we
         # may add another, and this seems to be legal.
-        for option in self.opt[0].options:
+        opt_rdata = cast(dns.rdtypes.ANY.OPT.OPT, self.opt[0])
+        for option in opt_rdata.options:
             wire = option.to_wire()
             # We add 4 here to account for the option type and length
             size += len(wire) + 4
@@ -753,21 +756,24 @@ class Message:
     @property
     def keyalgorithm(self) -> Optional[dns.name.Name]:
         if self.tsig:
-            return self.tsig[0].algorithm
+            rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            return rdata.algorithm
         else:
             return None
 
     @property
     def mac(self) -> Optional[bytes]:
         if self.tsig:
-            return self.tsig[0].mac
+            rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            return rdata.mac
         else:
             return None
 
     @property
     def tsig_error(self) -> Optional[int]:
         if self.tsig:
-            return self.tsig[0].error
+            rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            return rdata.error
         else:
             return None
 
@@ -857,14 +863,16 @@ class Message:
     @property
     def payload(self) -> int:
         if self.opt:
-            return self.opt[0].payload
+            rdata = cast(dns.rdtypes.ANY.OPT.OPT, self.opt[0])
+            return rdata.payload
         else:
             return 0
 
     @property
     def options(self) -> Tuple:
         if self.opt:
-            return self.opt[0].options
+            rdata = cast(dns.rdtypes.ANY.OPT.OPT, self.opt[0])
+            return rdata.options
         else:
             return ()
 
@@ -1051,7 +1059,8 @@ class QueryMessage(Message):
                     srrset = self.find_rrset(
                         self.authority, auname, question.rdclass, dns.rdatatype.SOA
                     )
-                    min_ttl = min(min_ttl, srrset.ttl, srrset[0].minimum)
+                    srdata = cast(dns.rdtypes.ANY.SOA.SOA, srrset[0])
+                    min_ttl = min(min_ttl, srrset.ttl, srdata.minimum)
                     break
                 except KeyError:
                     try:
@@ -1091,7 +1100,7 @@ def _message_factory_from_opcode(opcode):
         return QueryMessage
     elif opcode == dns.opcode.UPDATE:
         _maybe_import_update()
-        return dns.update.UpdateMessage
+        return dns.update.UpdateMessage  # pyright: ignore
     else:
         return Message
 
@@ -1195,7 +1204,10 @@ class _WireReader:
                 else:
                     with self.parser.restrict_to(rdlen):
                         rd = dns.rdata.from_wire_parser(
-                            rdclass, rdtype, self.parser, self.message.origin
+                            rdclass,  # pyright: ignore
+                            rdtype,
+                            self.parser,
+                            self.message.origin,
                         )
                     covers = rd.covers()
                 if self.message.xfr and rdtype == dns.rdatatype.SOA:
@@ -1203,12 +1215,13 @@ class _WireReader:
                 if rdtype == dns.rdatatype.OPT:
                     self.message.opt = dns.rrset.from_rdata(name, ttl, rd)
                 elif rdtype == dns.rdatatype.TSIG:
+                    trd = cast(dns.rdtypes.ANY.TSIG.TSIG, rd)
                     if self.keyring is None or self.keyring is True:
                         raise UnknownTSIGKey("got signed message without keyring")
                     elif isinstance(self.keyring, dict):
                         key = self.keyring.get(absolute_name)
                         if isinstance(key, bytes):
-                            key = dns.tsig.Key(absolute_name, key, rd.algorithm)
+                            key = dns.tsig.Key(absolute_name, key, trd.algorithm)
                     elif callable(self.keyring):
                         key = self.keyring(self.message, absolute_name)
                     else:
@@ -1233,7 +1246,7 @@ class _WireReader:
                     rrset = self.message.find_rrset(
                         section,
                         name,
-                        rdclass,
+                        rdclass,  # pyright: ignore
                         rdtype,
                         covers,
                         deleting,
@@ -1414,14 +1427,14 @@ class _TextReader:
 
     def __init__(
         self,
-        text,
-        idna_codec,
-        one_rr_per_rrset=False,
-        origin=None,
-        relativize=True,
-        relativize_to=None,
+        text: str,
+        idna_codec: Optional[dns.name.IDNACodec],
+        one_rr_per_rrset: bool = False,
+        origin: Optional[dns.name.Name] = None,
+        relativize: bool = True,
+        relativize_to: Optional[dns.name.Name] = None,
     ):
-        self.message = None
+        self.message: Optional[Message] = None  # mypy: ignore
         self.tok = dns.tokenizer.Tokenizer(text, idna_codec=idna_codec)
         self.last_name = None
         self.one_rr_per_rrset = one_rr_per_rrset
@@ -1480,6 +1493,7 @@ class _TextReader:
     def _question_line(self, section_number):
         """Process one line from the text format question section."""
 
+        assert self.message is not None
         section = self.message.sections[section_number]
         token = self.tok.get(want_leading=True)
         if not token.is_whitespace():
@@ -1517,6 +1531,7 @@ class _TextReader:
         additional data sections.
         """
 
+        assert self.message is not None
         section = self.message.sections[section_number]
         # Name
         token = self.tok.get(want_leading=True)
@@ -1910,6 +1925,8 @@ def make_response(
                     pad = 468
         response.use_edns(0, 0, our_payload, query.payload, pad=pad)
     if query.had_tsig:
+        assert query.mac is not None
+        assert query.keyalgorithm is not None
         response.use_tsig(
             query.keyring,
             query.keyname,

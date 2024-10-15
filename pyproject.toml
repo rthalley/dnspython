@@ -116,3 +116,16 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "wmi"
 ignore_missing_imports = true
+
+[tool.pyright]
+reportUnsupportedDunderAll = false
+exclude = [
+    "dns/_*_backend.py",
+    "dns/dnssecalgs/*.py",
+    "dns/quic/*.py",
+    "dns/rdtypes/ANY/*.py",
+    "dns/rdtypes/CH/*.py",
+    "dns/rdtypes/IN/*.py",
+    "examples/*.py",
+    "tests/*.py",
+] # (mostly) temporary!

@@ -21,11 +21,13 @@ import base64
 import hashlib
 import hmac
 import struct
+from typing import Union
 
 import dns.exception
 import dns.name
 import dns.rcode
 import dns.rdataclass
+import dns.rdatatype
 
 
 class BadTime(dns.exception.DNSException):
@@ -221,6 +223,7 @@ def _digest(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=None)
         if request_mac:
             ctx.update(struct.pack("!H", len(request_mac)))
             ctx.update(request_mac)
+    assert ctx is not None  # for type checkers
     ctx.update(struct.pack("!H", rdata.original_id))
     ctx.update(wire[2:])
     if first:
@@ -325,7 +328,12 @@ def get_context(key):
 
 
 class Key:
-    def __init__(self, name, secret, algorithm=default_algorithm):
+    def __init__(
+        self,
+        name: Union[dns.name.Name, str],
+        secret: Union[bytes, str],
+        algorithm: Union[dns.name.Name, str] = default_algorithm,
+    ):
         if isinstance(name, str):
             name = dns.name.from_text(name)
         self.name = name

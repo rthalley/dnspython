@@ -20,8 +20,10 @@
 from typing import Any, Collection, Dict, Optional, Union, cast
 
 import dns.name
+import dns.rdata
 import dns.rdataclass
 import dns.rdataset
+import dns.rdatatype
 import dns.renderer
 
 
@@ -52,7 +54,7 @@ class RRset(dns.rdataset.Rdataset):
         self.deleting = deleting
 
     def _clone(self):
-        obj = super()._clone()
+        obj = cast(RRset, super()._clone())
         obj.name = self.name
         obj.deleting = self.deleting
         return obj

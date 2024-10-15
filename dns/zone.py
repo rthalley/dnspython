@@ -32,6 +32,7 @@ from typing import (
     Set,
     Tuple,
     Union,
+    cast,
 )
 
 import dns.exception
@@ -698,9 +699,9 @@ class Zone(dns.transaction.TransactionManager):
             for n in names:
                 l = self[n].to_text(
                     n,
-                    origin=self.origin,
-                    relativize=relativize,
-                    want_comments=want_comments,
+                    origin=self.origin,  # pyright: ignore
+                    relativize=relativize,  # pyright: ignore
+                    want_comments=want_comments,  # pyright: ignore
                 )
                 l_b = l.encode(file_enc)
 
@@ -786,14 +787,16 @@ class Zone(dns.transaction.TransactionManager):
                 # an SOA if there is no origin.
                 raise NoSOA
             origin_name = self.origin
-        soa: Optional[dns.rdataset.Rdataset]
+        soa_rds: Optional[dns.rdataset.Rdataset]
         if txn:
-            soa = txn.get(origin_name, dns.rdatatype.SOA)
+            soa_rds = txn.get(origin_name, dns.rdatatype.SOA)
         else:
-            soa = self.get_rdataset(origin_name, dns.rdatatype.SOA)
-        if soa is None:
+            soa_rds = self.get_rdataset(origin_name, dns.rdatatype.SOA)
+        if soa_rds is None:
             raise NoSOA
-        return soa[0]
+        else:
+            soa = cast(dns.rdtypes.ANY.SOA.SOA, soa_rds[0])
+            return soa
 
     def _compute_digest(
         self,
@@ -892,12 +895,12 @@ class Zone(dns.transaction.TransactionManager):
     def _end_write(self, txn):
         pass
 
-    def _commit_version(self, _, version, origin):
+    def _commit_version(self, txn, version, origin):
         self.nodes = version.nodes
         if self.origin is None:
             self.origin = origin
 
-    def _get_next_version_id(self):
+    def _get_next_version_id(self) -> int:
         # Versions are ephemeral and all have id 1
         return 1
 
@@ -1106,67 +1109,83 @@ class Transaction(dns.transaction.Transaction):
 
     def _setup_version(self):
         assert self.version is None
-        factory = self.manager.writable_version_factory
+        factory = self.manager.writable_version_factory  # pyright: ignore
         if factory is None:
             factory = WritableVersion
-        self.version = factory(self.zone, self.replacement)
+        self.version = factory(self.zone, self.replacement)  # pyright: ignore
 
     def _get_rdataset(self, name, rdtype, covers):
+        assert self.version is not None
         return self.version.get_rdataset(name, rdtype, covers)
 
     def _put_rdataset(self, name, rdataset):
         assert not self.read_only
+        assert self.version is not None
         self.version.put_rdataset(name, rdataset)
 
     def _delete_name(self, name):
         assert not self.read_only
+        assert self.version is not None
         self.version.delete_node(name)
 
     def _delete_rdataset(self, name, rdtype, covers):
         assert not self.read_only
+        assert self.version is not None
         self.version.delete_rdataset(name, rdtype, covers)
 
     def _name_exists(self, name):
+        assert self.version is not None
         return self.version.get_node(name) is not None
 
     def _changed(self):
         if self.read_only:
             return False
         else:
+            assert self.version is not None
             return len(self.version.changed) > 0
 
     def _end_transaction(self, commit):
+        assert self.zone is not None
+        assert self.version is not None
         if self.read_only:
-            self.zone._end_read(self)
+            self.zone._end_read(self)  # pyright: ignore
         elif commit and len(self.version.changed) > 0:
             if self.make_immutable:
-                factory = self.manager.immutable_version_factory
+                factory = self.manager.immutable_version_factory  # pyright: ignore
                 if factory is None:
                     factory = ImmutableVersion
                 version = factory(self.version)
             else:
                 version = self.version
-            self.zone._commit_version(self, version, self.version.origin)
+            self.zone._commit_version(  # pyright: ignore
+                self, version, self.version.origin
+            )
+
         else:
             # rollback
-            self.zone._end_write(self)
+            self.zone._end_write(self)  # pyright: ignore
 
     def _set_origin(self, origin):
+        assert self.version is not None
         if self.version.origin is None:
             self.version.origin = origin
 
     def _iterate_rdatasets(self):
+        assert self.version is not None
         for name, node in self.version.items():
             for rdataset in node:
                 yield (name, rdataset)
 
     def _iterate_names(self):
+        assert self.version is not None
         return self.version.keys()
 
     def _get_node(self, name):
+        assert self.version is not None
         return self.version.get_node(name)
 
     def _origin_information(self):
+        assert self.version is not None
         (absolute, relativize, effective) = self.manager.origin_information()
         if absolute is None and self.version.origin is not None:
             # No origin has been committed yet, but we've learned one as part of
@@ -1214,7 +1233,7 @@ def _from_text(
             reader.read()
         except dns.zonefile.UnknownOrigin:
             # for backwards compatibility
-            raise dns.zone.UnknownOrigin
+            raise UnknownOrigin
     # Now that we're done reading, do some basic checking of the zone.
     if check_origin:
         zone.check_origin()

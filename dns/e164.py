@@ -108,7 +108,7 @@ def query(
     for domain in domains:
         if isinstance(domain, str):
             domain = dns.name.from_text(domain)
-        qname = dns.e164.from_e164(number, domain)
+        qname = from_e164(number, domain)
         try:
             return resolver.resolve(qname, "NAPTR")
         except dns.resolver.NXDOMAIN as e:

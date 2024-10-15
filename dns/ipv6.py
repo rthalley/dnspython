@@ -214,4 +214,4 @@ def canonicalize(text: Union[str, bytes]) -> str:
 
     Raises ``dns.exception.SyntaxError`` if the text is not valid.
     """
-    return dns.ipv6.inet_ntoa(dns.ipv6.inet_aton(text))
+    return inet_ntoa(inet_aton(text))

@@ -30,12 +30,18 @@ import dns.exception
 import dns.immutable
 import dns.wire
 
+# Dnspython will never access idna if the import fails, but pyright can't figure
+# that out, so...
+#
+# pyright: reportAttributeAccessIssue = false, reportPossiblyUnboundVariable = false
+
 if dns._features.have("idna"):
     import idna  # type: ignore
 
     have_idna_2008 = True
 else:  # pragma: no cover
     have_idna_2008 = False
+
 
 CompressType = Dict["Name", int]
 

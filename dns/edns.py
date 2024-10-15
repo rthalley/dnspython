@@ -25,6 +25,9 @@ from typing import Any, Dict, Optional, Union
 
 import dns.enum
 import dns.inet
+import dns.ipv4
+import dns.ipv6
+import dns.name
 import dns.rdata
 import dns.wire
 
@@ -81,14 +84,14 @@ class Option:
     def to_text(self) -> str:
         raise NotImplementedError  # pragma: no cover
 
-    def to_generic(self) -> "dns.edns.GenericOption":
+    def to_generic(self) -> "GenericOption":
         """Creates a dns.edns.GenericOption equivalent of this rdata.
 
         Returns a ``dns.edns.GenericOption``.
         """
         wire = self.to_wire()
         assert wire is not None  # for mypy
-        return dns.edns.GenericOption(self.otype, wire)
+        return GenericOption(self.otype, wire)
 
     @classmethod
     def from_wire_parser(cls, otype: OptionType, parser: "dns.wire.Parser") -> "Option":
@@ -175,7 +178,7 @@ class GenericOption(Option):  # lgtm[py/missing-equals]
     def to_text(self) -> str:
         return "Generic %d" % self.otype
 
-    def to_generic(self) -> "dns.edns.GenericOption":
+    def to_generic(self) -> "GenericOption":
         return self
 
     @classmethod
@@ -444,7 +447,7 @@ class NSIDOption(Option):
 
 class CookieOption(Option):
     def __init__(self, client: bytes, server: bytes):
-        super().__init__(dns.edns.OptionType.COOKIE)
+        super().__init__(OptionType.COOKIE)
         self.client = client
         self.server = server
         if len(client) != 8:
