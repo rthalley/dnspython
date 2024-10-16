@@ -1,10 +1,13 @@
 from typing import Dict, Optional, Tuple, Type, Union
 
+import dns._features
 import dns.name
 from dns.dnssecalgs.base import GenericPrivateKey
 from dns.dnssectypes import Algorithm
 from dns.exception import UnsupportedAlgorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
+
+# pyright: reportPossiblyUnboundVariable=false
 
 if dns._features.have("dnssec"):
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1

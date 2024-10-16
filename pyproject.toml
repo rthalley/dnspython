@@ -121,7 +121,6 @@ ignore_missing_imports = true
 reportUnsupportedDunderAll = false
 exclude = [
     "dns/_*_backend.py",
-    "dns/dnssecalgs/*.py",
     "dns/quic/*.py",
     "examples/*.py",
     "tests/*.py",
