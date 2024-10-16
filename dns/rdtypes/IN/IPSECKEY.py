@@ -20,6 +20,7 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.rdata
 import dns.rdtypes.util
 
 
@@ -53,7 +54,7 @@ class IPSECKEY(dns.rdata.Rdata):
             self.gateway_type,
             self.algorithm,
             gateway,
-            dns.rdata._base64ify(self.key, **kw),
+            dns.rdata._base64ify(self.key, **kw),  # pyright: ignore
         )
 
     @classmethod

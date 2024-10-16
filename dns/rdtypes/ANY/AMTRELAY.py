@@ -19,6 +19,7 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.rdata
 import dns.rdtypes.util
 
 

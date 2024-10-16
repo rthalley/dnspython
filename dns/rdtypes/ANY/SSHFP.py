@@ -43,7 +43,9 @@ class SSHFP(dns.rdata.Rdata):
         return "%d %d %s" % (
             self.algorithm,
             self.fp_type,
-            dns.rdata._hexify(self.fingerprint, chunksize=chunksize, **kw),
+            dns.rdata._hexify(
+                self.fingerprint, chunksize=chunksize, **kw  # pyright: ignore
+            ),
         )
 
     @classmethod

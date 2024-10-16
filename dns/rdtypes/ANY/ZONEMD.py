@@ -40,7 +40,9 @@ class ZONEMD(dns.rdata.Rdata):
             self.serial,
             self.scheme,
             self.hash_algorithm,
-            dns.rdata._hexify(self.digest, chunksize=chunksize, **kw),
+            dns.rdata._hexify(
+                self.digest, chunksize=chunksize, **kw  # pyright: ignore
+            ),
         )
 
     @classmethod

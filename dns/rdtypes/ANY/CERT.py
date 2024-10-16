@@ -88,7 +88,7 @@ class CERT(dns.rdata.Rdata):
             certificate_type,
             self.key_tag,
             dns.dnssectypes.Algorithm.to_text(self.algorithm),
-            dns.rdata._base64ify(self.certificate, **kw),
+            dns.rdata._base64ify(self.certificate, **kw),  # pyright: ignore
         )
 
     @classmethod
