@@ -69,6 +69,7 @@ dns.rdataset Exceptions
 dns.resolver Exceptions
 -----------------------
 
+.. autoexception:: dns.resolver.LifetimeTimeout
 .. autoexception:: dns.resolver.NoAnswer
 .. autoexception:: dns.resolver.NoMetaqueries
 .. autoexception:: dns.resolver.NoNameservers
