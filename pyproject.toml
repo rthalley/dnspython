@@ -119,4 +119,4 @@ ignore_missing_imports = true
 
 [tool.pyright]
 reportUnsupportedDunderAll = false
-exclude = ["examples/*.py", "tests/*.py"]
+exclude = ["dns/win32util.py", "examples/*.py", "tests/*.py"]
