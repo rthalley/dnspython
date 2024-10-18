@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-      - 2.6
       - 2.7
     paths:
       - '**.py'
@@ -52,10 +51,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install cryptography trio idna httpx h2 aioquic mypy pytest ruff
+        python -m pip install cryptography trio idna httpx h2 aioquic mypy pytest ruff pyright
     - name: Typecheck
       run: |
         python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
+        pyright dns
     - name: Lint
       run: |
         ruff check dns
