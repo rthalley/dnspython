@@ -8,39 +8,41 @@
 
 ## INTRODUCTION
 
-dnspython is a DNS toolkit for Python. It supports almost all record types. It
-can be used for queries, zone transfers, and dynamic updates. It supports TSIG
-authenticated messages and EDNS0.
+`dnspython` is a DNS toolkit for Python. It supports almost all record types. It
+can be used for queries, zone transfers, and dynamic updates. It supports
+TSIG-authenticated messages and EDNS0.
 
-dnspython provides both high and low level access to DNS. The high level classes
-perform queries for data of a given name, type, and class, and return an answer
-set. The low level classes allow direct manipulation of DNS zones, messages,
-names, and records.
+`dnspython` provides both high- and low-level access to DNS. The high-level
+classes perform queries for data of a given name, type, and class, and return an
+answer set. The low-level classes allow direct manipulation of DNS zones,
+messages, names, and records.
 
-To see a few of the ways dnspython can be used, look in the `examples/`
+To see a few of the ways `dnspython` can be used, look in the `examples/`
 directory.
 
-dnspython is a utility to work with DNS, `/etc/hosts` is thus not used. For
+`dnspython` is a utility to work with DNS, `/etc/hosts` is thus not used. For
 simple forward DNS lookups, it's better to use `socket.getaddrinfo()` or
 `socket.gethostbyname()`.
 
-dnspython originated at Nominum where it was developed
-to facilitate the testing of DNS software.
+`dnspython` originated at Nominum where it was developed to facilitate the
+testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is the development version of dnspython 2.8.0.
+This is the development version of `dnspython` 2.8.0.
 Please read
 [What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
 information about the changes in this release.
 
 ## INSTALLATION
 
-* Many distributions have dnspython packaged for you, so you should
-  check there first.
+* Many distributions have dnspython packaged for you, so you should check there
+  first.
 * To use a wheel downloaded from PyPi, run:
 
+```
     pip install dnspython
+```
 
 * To install from the source code, go into the top-level of the source code
   and run:
@@ -51,11 +53,12 @@ information about the changes in this release.
     pip install dist/*.whl
 ```
 
-* To install the latest from the main branch, run `pip install git+https://github.com/rthalley/dnspython.git`
+* To install the latest from the main branch, run
+`pip install git+https://github.com/rthalley/dnspython.git`
 
-Dnspython's default installation does not depend on any modules other than
+`dnspython`'s default installation does not depend on any modules other than
 those in the Python standard library.  To use some features, additional modules
-must be installed.  For convenience, pip options are defined for the
+must be installed.  For convenience, `pip` options are defined for the
 requirements.
 
 If you want to use DNS-over-HTTPS, run
@@ -83,10 +86,10 @@ Note that you can install any combination of the above, e.g.:
 
 ### Notices
 
-Python 2.x support ended with the release of 1.16.0.  Dnspython 2.6.x supports
+Python 2.x support ended with the release of 1.16.0.  `dnspython` 2.6.x supports
 Python 3.8 and later, though support for 3.8 ends on October 14, 2024.
-Dnspython 2.7.x supports Python 3.9 and later.  Future support is aligned with the
-lifetime of the Python 3 versions.
+`dnspython` 2.7.x supports Python 3.9 and later.  Future support is aligned with
+the lifetime of the Python 3 versions.
 
 Documentation has moved to
 [dnspython.readthedocs.io](https://dnspython.readthedocs.io).
