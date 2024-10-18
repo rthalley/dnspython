@@ -7,6 +7,8 @@ import struct
 import threading
 import time
 
+import aioquic.h3.connection  # type: ignore
+import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
@@ -165,6 +167,7 @@ class SyncQuicConnection(BaseQuicConnection):
                 return
             if isinstance(event, aioquic.quic.events.StreamDataReceived):
                 if self.is_h3():
+                    assert self._h3_conn is not None
                     h3_events = self._h3_conn.handle_event(event)
                     for h3_event in h3_events:
                         if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
@@ -240,11 +243,13 @@ class SyncQuicConnection(BaseQuicConnection):
         with self._lock:
             if self._closed:
                 return
-            self._manager.closed(self._peer[0], self._peer[1])
+            if self._manager is not None:
+                self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
             self._send_wakeup.send(b"\x01")
-        self._worker_thread.join()
+        if self._worker_thread is not None:
+            self._worker_thread.join()
 
 
 class SyncQuicManager(BaseQuicManager):

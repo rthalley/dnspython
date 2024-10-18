@@ -1,6 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import dns._features
 import dns.asyncbackend
@@ -14,8 +14,11 @@ if dns._features.have("doq"):
         AsyncioQuicManager,
         AsyncioQuicStream,
     )
-    from dns.quic._common import AsyncQuicConnection, AsyncQuicManager
-    from dns.quic._sync import SyncQuicConnection, SyncQuicManager, SyncQuicStream
+    from dns.quic._common import AsyncQuicConnection  # pyright: ignore
+    from dns.quic._common import AsyncQuicManager
+    from dns.quic._sync import SyncQuicConnection  # pyright: ignore
+    from dns.quic._sync import SyncQuicStream  # pyright: ignore
+    from dns.quic._sync import SyncQuicManager
 
     have_quic = True
 
@@ -33,7 +36,9 @@ if dns._features.have("doq"):
     # We have a context factory and a manager factory as for trio we need to have
     # a nursery.
 
-    _async_factories = {"asyncio": (null_factory, _asyncio_manager_factory)}
+    _async_factories: Dict[str, Tuple[Any, Any]] = {
+        "asyncio": (null_factory, _asyncio_manager_factory)
+    }
 
     if dns._features.have("trio"):
         import trio
@@ -59,8 +64,6 @@ if dns._features.have("doq"):
 
 else:  # pragma: no cover
     have_quic = False
-
-    from typing import Any
 
     class AsyncQuicStream:  # type: ignore
         pass
