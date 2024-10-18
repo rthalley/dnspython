@@ -18,8 +18,6 @@
 import enum
 from typing import Any, Optional, Type, TypeVar, Union
 
-import dns.exception
-
 TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 
 
