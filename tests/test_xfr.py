@@ -263,6 +263,30 @@ ns2 3600 IN A 10.0.0.2
 @ 3600 IN SOA foo bar 1 2 3 4 5
 """
 
+ixfr_axfr1 = """id 1
+opcode QUERY
+rcode NOERROR
+flags AA
+;QUESTION
+example. IN IXFR
+;ANSWER
+@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns1
+@ 3600 IN NS ns2
+"""
+ixfr_axfr2 = """id 1
+opcode QUERY
+rcode NOERROR
+flags AA
+;QUESTION
+example. IN IXFR
+;ANSWER
+bar.foo 300 IN MX 0 blaz.foo
+ns1 3600 IN A 10.0.0.1
+ns2 3600 IN A 10.0.0.2
+@ 3600 IN SOA foo bar 1 2 3 4 5
+"""
+
 
 def test_basic_axfr():
     z = dns.versioned.Zone("example.")
@@ -389,6 +413,19 @@ def test_ixfr_is_axfr():
     m = dns.message.from_text(ixfr_axfr, origin=z.origin, one_rr_per_rrset=True)
     with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=0xFFFFFFFF) as xfr:
         done = xfr.process_message(m)
+        assert done
+    ez = dns.zone.from_text(base, "example.")
+    assert z == ez
+
+
+def test_ixfr_is_axfr_two_parts():
+    z = dns.versioned.Zone("example.")
+    m1 = dns.message.from_text(ixfr_axfr1, origin=z.origin, one_rr_per_rrset=True)
+    m2 = dns.message.from_text(ixfr_axfr2, origin=z.origin, one_rr_per_rrset=True)
+    with dns.xfr.Inbound(z, dns.rdatatype.IXFR, serial=0xFFFFFFFF) as xfr:
+        done = xfr.process_message(m1)
+        assert not done
+        done = xfr.process_message(m2)
         assert done
     ez = dns.zone.from_text(base, "example.")
     assert z == ez
