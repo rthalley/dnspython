@@ -112,7 +112,7 @@ class TrioQuicConnection(AsyncQuicConnection):
                     # race.
                     interval = 0.0
                 with trio.CancelScope(
-                    deadline=trio.current_time() + interval
+                    deadline=trio.current_time() + interval  # pyright: ignore
                 ) as self._worker_scope:
                     datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
                     self._connection.receive_datagram(datagram, self._peer, time.time())
