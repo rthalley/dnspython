@@ -90,6 +90,10 @@ class Resolver(dns.resolver.BaseResolver):
                 if backoff:
                     await backend.sleep(backoff)
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
+                if timeout <= 0:
+                    raise dns.resolver.LifetimeTimeout(
+                        timeout=timeout, errors=resolution.errors
+                    )
                 try:
                     response = await nameserver.async_query(
                         request,
@@ -258,6 +262,30 @@ class Resolver(dns.resolver.BaseResolver):
                 self.nameservers = nameservers
         except Exception:
             pass
+
+    def _compute_timeout(
+        self,
+        start: float,
+        lifetime: Optional[float] = None,
+        errors: Optional[List[dns.resolver.ErrorTuple]] = None,
+    ) -> float:
+        lifetime = self.lifetime if lifetime is None else lifetime
+        now = time.time()
+        duration = now - start
+        if errors is None:
+            errors = []
+        if duration < 0:
+            if duration < -1:
+                # Time going backwards is bad.  Just give up.
+                raise dns.resolver.LifetimeTimeout(timeout=duration, errors=errors)
+            else:
+                # Time went backwards, but only a little.  This can
+                # happen, e.g. under vmware with older linux kernels.
+                # Pretend it didn't happen.
+                duration = 0
+        if duration >= lifetime:
+            raise dns.resolver.LifetimeTimeout(timeout=duration, errors=errors)
+        return min(lifetime - duration, self.timeout)
 
 
 default_resolver = None
