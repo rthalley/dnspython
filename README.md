@@ -91,3 +91,32 @@ We plan to align future support with the lifetime of the Python 3 versions.
 
 Documentation has moved to
 [dnspython.readthedocs.io](https://dnspython.readthedocs.io).
+
+## REPOSITORY OVERVIEW
+
+This repository is a DNS toolkit for Python, providing various functionalities for DNS queries, zone transfers, dynamic updates, and more.
+
+### Main Code Directory
+
+The main code is located in the `dns` directory, which contains various modules for different DNS functionalities.
+
+### README.md
+
+The `README.md` file provides an introduction to the repository, installation instructions, and additional information about the project.
+
+### Initialization
+
+The `dns/__init__.py` file initializes the DNS toolkit and lists the available modules.
+
+### Key Modules
+
+- `dns/namedict.py`: Contains the `NameDict` class, which is a dictionary whose keys are `dns.name.Name` objects.
+- `dns/opcode.py`: Defines DNS opcodes and related functions.
+- `dns/py.typed`: An empty file indicating that the package is typed.
+- `dns/quic/__init__.py`: Provides support for DNS-over-QUIC if the necessary features are available.
+- `dns/rdtypes/__init__.py`: Defines DNS rdata type classes.
+- `dns/rdtypes/ANY/AVC.py`: Defines the `AVC` record class.
+- `dns/resolver.py`: Contains the `Resolver` class, which is used for DNS resolution.
+- `dns/reversename.py`: Provides functions for converting between IP addresses and reverse map domain names.
+- `dns/rrset.py`: Defines the `RRset` class, which represents a DNS RRset (named rdataset).
+- `dns/zonefile.py`: Contains the `Reader` class for reading DNS zone files and building zone objects.
