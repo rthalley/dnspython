@@ -260,6 +260,25 @@ class QueryTests(unittest.TestCase):
                 (q, _, addr) = dns.query.receive_udp(listener, expiration=expiration)
                 self.assertEqual(addr, sender.getsockname())
 
+    @tests.util.retry_on_timeout
+    def testAsyncQueryTimeout(self):
+        import dns.asyncquery
+        import dns.asyncbackend
+        import asyncio
+
+        async def run():
+            qname = dns.name.from_text("example.com.")
+            q = dns.message.make_query(qname, dns.rdatatype.A)
+            try:
+                await dns.asyncquery.https(q, "http://75.119.137.220", timeout=2)
+            except dns.exception.Timeout:
+                return True
+            return False
+
+        backend = dns.asyncbackend.get_default_backend()
+        result = asyncio.run(run())
+        self.assertTrue(result)
+
 
 # for brevity
 _d_and_s = dns.query._destination_and_source
