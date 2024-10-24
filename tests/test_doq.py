@@ -74,3 +74,14 @@ try:
 
 except ImportError:
     pass
+
+
+@pytest.mark.asyncio
+async def test_resolver_lifetime():
+    import dns.asyncresolver
+
+    resolver = dns.asyncresolver.Resolver()
+    resolver.lifetime = 0.001
+
+    with pytest.raises(dns.resolver.LifetimeTimeout):
+        await resolver.resolve("www.example.com", "A")

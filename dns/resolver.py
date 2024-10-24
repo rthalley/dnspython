@@ -1320,6 +1320,10 @@ class Resolver(BaseResolver):
                 if backoff:
                     time.sleep(backoff)
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
+                if timeout <= 0:
+                    raise LifetimeTimeout(
+                        timeout=timeout, errors=resolution.errors
+                    )
                 try:
                     response = nameserver.query(
                         request,
@@ -1458,7 +1462,9 @@ class Resolver(BaseResolver):
             lifetime=self._compute_timeout(start, lifetime),
             **modified_kwargs,
         )
-        answers = HostAnswers.make(v6=v6, v4=v4, add_empty=not raise_on_no_answer)
+        answers = HostAnswers.make(
+            v6=v6, v4=v4, add_empty=not raise_on_no_answer
+        )
         if not answers:
             raise NoAnswer(response=v6.response)
         return answers
