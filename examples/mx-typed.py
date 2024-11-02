@@ -8,4 +8,4 @@ from dns.rdtypes.ANY.MX import MX
 answers = dns.resolver.resolve("nominum.com", "MX")
 for rdata in answers:
     mx_rdata = cast(MX, rdata)
-    print("Host", rdata.exchange, "has preference", rdata.preference)
+    print("Host", mx_rdata.exchange, "has preference", mx_rdata.preference)
