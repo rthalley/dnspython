@@ -119,7 +119,7 @@ class SyncQuicConnection(BaseQuicConnection):
             count += 1
             try:
                 datagram = self._socket.recv(QUIC_MAX_DATAGRAM)
-            except BlockingIOError:
+            except (BlockingIOError, ConnectionRefusedError):
                 return
             with self._lock:
                 self._connection.receive_datagram(datagram, self._peer, time.time())
