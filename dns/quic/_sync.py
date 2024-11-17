@@ -152,6 +152,10 @@ class SyncQuicConnection(BaseQuicConnection):
                     except BlockingIOError:
                         # we let QUIC handle any lossage
                         pass
+        except Exception:
+            # Eat all exceptions as we have no way to pass them back to the
+            # caller currently.  It might be nice to fix this in the future.
+            pass
         finally:
             with self._lock:
                 self._done = True
