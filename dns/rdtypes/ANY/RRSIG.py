@@ -101,8 +101,8 @@ class RRSIG(dns.rdata.Rdata):
             f"{posixtime_to_sigtime(self.inception)} "
             f"{self.key_tag} "
             f"{self.signer.choose_relativity(origin, relativize)} "
-            f"{dns.rdata._base64ify(self.signature, **kw)}"
-        )  # pyright: ignore
+            f"{dns.rdata._base64ify(self.signature, **kw)}"  # pyright: ignore
+        )
 
     @classmethod
     def from_text(

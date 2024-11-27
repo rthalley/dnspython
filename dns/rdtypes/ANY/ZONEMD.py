@@ -37,8 +37,8 @@ class ZONEMD(dns.rdata.Rdata):
         kw = kw.copy()
         chunksize = kw.pop("chunksize", 128)
         digest = dns.rdata._hexify(
-            self.digest, chunksize=chunksize, **kw
-        )  # pyright: ignore
+            self.digest, chunksize=chunksize, **kw  # pyright: ignore
+        )
         return f"{self.serial} {self.scheme} {self.hash_algorithm} {digest}"
 
     @classmethod

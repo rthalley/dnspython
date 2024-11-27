@@ -56,8 +56,8 @@ class DSBase(dns.rdata.Rdata):
         kw = kw.copy()
         chunksize = kw.pop("chunksize", 128)
         digest = dns.rdata._hexify(
-            self.digest, chunksize=chunksize, **kw
-        )  # pyright: ignore
+            self.digest, chunksize=chunksize, **kw  # pyright: ignore
+        )
         return f"{self.key_tag} {self.algorithm} {self.digest_type} {digest}"
 
     @classmethod

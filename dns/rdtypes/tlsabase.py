@@ -42,8 +42,8 @@ class TLSABase(dns.rdata.Rdata):
         kw = kw.copy()
         chunksize = kw.pop("chunksize", 128)
         cert = dns.rdata._hexify(
-            self.cert, chunksize=chunksize, **kw
-        )  # pyright: ignore
+            self.cert, chunksize=chunksize, **kw  # pyright: ignore
+        )
         return f"{self.usage} {self.selector} {self.mtype} {cert}"
 
     @classmethod
