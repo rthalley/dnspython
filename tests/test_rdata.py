@@ -63,6 +63,20 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(dns.rdatatype.from_text("ttxt"), TTXT)
         self.assertEqual(dns.rdatatype.RdataType.make("ttxt"), TTXT)
 
+    def test_class_registration(self):
+        CTXT = 64003
+        class CTXTImp(dns.rdtypes.txtbase.TXTBase):
+            """Test TXT-like record"""
+
+        dns.rdata.register_type(CTXTImp, CTXT, "CTXT")
+        rdata = dns.rdata.from_text(dns.rdataclass.IN, CTXT, "hello world")
+        self.assertEqual(rdata.strings, (b"hello", b"world"))
+        self.assertEqual(dns.rdatatype.to_text(CTXT), "CTXT")
+        self.assertEqual(dns.rdatatype.from_text("CTXT"), CTXT)
+        self.assertEqual(dns.rdatatype.RdataType.make("CTXT"), CTXT)
+        self.assertEqual(dns.rdatatype.from_text("ctxt"), CTXT)
+        self.assertEqual(dns.rdatatype.RdataType.make("ctxt"), CTXT)
+
     def test_module_reregistration(self):
         def bad():
             TTXTTWO = dns.rdatatype.TXT
