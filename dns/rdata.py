@@ -909,7 +909,7 @@ def register_type(
     existing_cls = get_rdata_class(rdclass, rdtype)
     if existing_cls != GenericRdata or dns.rdatatype.is_metatype(rdtype):
         raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
-    if isinstance(implementation, type) and issubclass(implementation, dns.rdata.Rdata):
+    if isinstance(implementation, type) and issubclass(implementation, Rdata):
         impclass = implementation
     else:
         impclass = getattr(implementation, rdtype_text.replace("-", "_"))
