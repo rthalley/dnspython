@@ -33,7 +33,7 @@ def inet_ntoa(address: bytes) -> str:
 
     if len(address) != 4:
         raise dns.exception.SyntaxError
-    return "%u.%u.%u.%u" % (address[0], address[1], address[2], address[3])
+    return f"{address[0]}.{address[1]}.{address[2]}.{address[3]}"
 
 
 def inet_aton(text: Union[str, bytes]) -> bytes:

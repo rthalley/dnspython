@@ -158,7 +158,7 @@ def _escapify(label: Union[bytes, str]) -> str:
             elif c > 0x20 and c < 0x7F:
                 text += chr(c)
             else:
-                text += "\\%03d" % c
+                text += f"\\{c:03d}"
         return text
 
     # Unicode label mode.  Escape only special characters and values < 0x20
@@ -167,7 +167,7 @@ def _escapify(label: Union[bytes, str]) -> str:
         if uc in _escaped_text:
             text += "\\" + uc
         elif uc <= "\x20":
-            text += "\\%03d" % ord(uc)
+            text += f"\\{ord(uc):03d}"
         else:
             text += uc
     return text

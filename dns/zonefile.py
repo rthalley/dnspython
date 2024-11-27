@@ -553,9 +553,7 @@ class Reader:
             (filename, line_number) = self.tok.where()
             if detail is None:
                 detail = "syntax error"
-            ex = dns.exception.SyntaxError(
-                "%s:%d: %s" % (filename, line_number, detail)
-            )
+            ex = dns.exception.SyntaxError(f"{filename}:{line_number}: {detail}")
             tb = sys.exc_info()[2]
             raise ex.with_traceback(tb) from None
 

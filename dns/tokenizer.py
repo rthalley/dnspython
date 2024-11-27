@@ -98,7 +98,7 @@ class Token:
         return self.ttype != other.ttype or self.value != other.value
 
     def __str__(self):
-        return '%d "%s"' % (self.ttype, self.value)
+        return f'{self.ttype} "{self.value}"'
 
     def unescape(self) -> "Token":
         if not self.has_escape:
@@ -510,9 +510,7 @@ class Tokenizer:
 
         value = self.get_int()
         if value < 0 or value > 255:
-            raise dns.exception.SyntaxError(
-                "%d is not an unsigned 8-bit integer" % value
-            )
+            raise dns.exception.SyntaxError(f"{value} is not an unsigned 8-bit integer")
         return value
 
     def get_uint16(self, base: int = 10) -> int:
@@ -532,7 +530,7 @@ class Tokenizer:
                 )
             else:
                 raise dns.exception.SyntaxError(
-                    "%d is not an unsigned 16-bit integer" % value
+                    f"{value} is not an unsigned 16-bit integer"
                 )
         return value
 
@@ -548,7 +546,7 @@ class Tokenizer:
         value = self.get_int(base=base)
         if value < 0 or value > 4294967295:
             raise dns.exception.SyntaxError(
-                "%d is not an unsigned 32-bit integer" % value
+                f"{value} is not an unsigned 32-bit integer"
             )
         return value
 
@@ -564,7 +562,7 @@ class Tokenizer:
         value = self.get_int(base=base)
         if value < 0 or value > 281474976710655:
             raise dns.exception.SyntaxError(
-                "%d is not an unsigned 48-bit integer" % value
+                f"{value} is not an unsigned 48-bit integer"
             )
         return value
 
@@ -686,7 +684,7 @@ class Tokenizer:
         token = self.get()
         if not token.is_eol_or_eof():
             raise dns.exception.SyntaxError(
-                'expected EOL or EOF, got %d "%s"' % (token.ttype, token.value)
+                f'expected EOL or EOF, got {token.ttype} "{token.value}"'
             )
         return token
 

@@ -107,7 +107,7 @@ def _escapify(qstring):
         elif c >= 0x20 and c < 0x7F:
             text += chr(c)
         else:
-            text += "\\%03d" % c
+            text += f"\\{c:03d}"
     return text
 
 
@@ -619,7 +619,7 @@ class GenericRdata(Rdata):
         relativize: bool = True,
         **kw: Dict[str, Any],
     ) -> str:
-        return r"\# %d " % len(self.data) + _hexify(self.data, **kw)  # pyright: ignore
+        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # pyright: ignore
 
     @classmethod
     def from_text(

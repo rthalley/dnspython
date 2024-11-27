@@ -259,16 +259,11 @@ class Rdataset(dns.set.Set):
                     if rd.rdcomment:
                         extra = f" ;{rd.rdcomment}"
                 s.write(
-                    "%s%s%d %s %s %s%s\n"
-                    % (
-                        ntext,
-                        pad,
-                        self.ttl,
-                        dns.rdataclass.to_text(rdclass),
-                        dns.rdatatype.to_text(self.rdtype),
-                        rd.to_text(origin=origin, relativize=relativize, **kw),
-                        extra,
-                    )
+                    f"{ntext}{pad}{self.ttl} "
+                    f"{dns.rdataclass.to_text(rdclass)} "
+                    f"{dns.rdatatype.to_text(self.rdtype)} "
+                    f"{rd.to_text(origin=origin, relativize=relativize, **kw)}"
+                    f"{extra}\n"
                 )
         #
         # We strip off the final \n for the caller's convenience in printing
