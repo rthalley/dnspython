@@ -891,8 +891,8 @@ def register_type(
 ) -> None:
     """Dynamically register a module to handle an rdatatype.
 
-    *implementation*, a module implementing the type in the usual dnspython
-    way.
+    *implementation*, a subclass of ``dns.rdata.Rdata`` implementing the type,
+    or a module containing such a class named by its text form.
 
     *rdtype*, an ``int``, the rdatatype to register.
 
@@ -909,7 +909,9 @@ def register_type(
     existing_cls = get_rdata_class(rdclass, rdtype)
     if existing_cls != GenericRdata or dns.rdatatype.is_metatype(rdtype):
         raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
-    _rdata_classes[(rdclass, rdtype)] = getattr(
-        implementation, rdtype_text.replace("-", "_")
-    )
+    if isinstance(implementation, type) and issubclass(implementation, Rdata):
+        impclass = implementation
+    else:
+        impclass = getattr(implementation, rdtype_text.replace("-", "_"))
+    _rdata_classes[(rdclass, rdtype)] = impclass
     dns.rdatatype.register_type(rdtype, rdtype_text, is_singleton)
