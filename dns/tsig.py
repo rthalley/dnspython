@@ -302,7 +302,7 @@ def validate(
         elif rdata.error == dns.rcode.BADTRUNC:
             raise PeerBadTruncation
         else:
-            raise PeerError("unknown TSIG error code %d" % rdata.error)
+            raise PeerError(f"unknown TSIG error code {rdata.error}")
     if abs(rdata.time_signed - now) > rdata.fudge:
         raise BadTime
     if key.name != owner:

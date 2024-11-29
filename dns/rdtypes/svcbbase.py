@@ -94,7 +94,7 @@ def _escapify(qstring):
         elif c >= 0x20 and c < 0x7F:
             text += chr(c)
         else:
-            text += "\\%03d" % c
+            text += f"\\{c:03d}"
     return text
 
 
@@ -503,7 +503,7 @@ class SVCBBase(dns.rdata.Rdata):
             space = " "
         else:
             space = ""
-        return "%d %s%s%s" % (self.priority, target, space, " ".join(params))
+        return f"{self.priority} {target}{space}{' '.join(params)}"
 
     @classmethod
     def from_text(

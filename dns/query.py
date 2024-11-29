@@ -1601,7 +1601,7 @@ def xfr(
         rrset = q.find_rrset(
             q.authority, zone, dns.rdataclass.IN, dns.rdatatype.SOA, create=True
         )
-        soa = dns.rdata.from_text("IN", "SOA", ". . %u 0 0 0 0" % serial)
+        soa = dns.rdata.from_text("IN", "SOA", f". . {serial} 0 0 0 0")
         rrset.add(soa, 0)
     if keyring is not None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)

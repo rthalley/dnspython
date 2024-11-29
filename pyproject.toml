@@ -111,7 +111,6 @@ lint.ignore = [
     "B904",
     "B011",
     "UP006",
-    "UP031",
     "UP035",
 ]
 lint.exclude = ["tests/*"]

@@ -51,11 +51,8 @@ class AMTRELAY(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         relay = Relay(self.relay_type, self.relay).to_text(origin, relativize)
-        return "%d %d %d %s" % (
-            self.precedence,
-            self.discovery_optional,
-            self.relay_type,
-            relay,
+        return (
+            f"{self.precedence} {self.discovery_optional:d} {self.relay_type} {relay}"
         )
 
     @classmethod

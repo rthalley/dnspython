@@ -176,7 +176,7 @@ class GenericOption(Option):  # lgtm[py/missing-equals]
             return self.data
 
     def to_text(self) -> str:
-        return "Generic %d" % self.otype
+        return f"Generic {self.otype}"
 
     def to_generic(self) -> "GenericOption":
         return self

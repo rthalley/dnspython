@@ -223,7 +223,7 @@ class Message:
         """
 
         s = io.StringIO()
-        s.write("id %d\n" % self.id)
+        s.write(f"id {self.id}\n")
         s.write(f"opcode {dns.opcode.to_text(self.opcode())}\n")
         s.write(f"rcode {dns.rcode.to_text(self.rcode())}\n")
         s.write(f"flags {dns.flags.to_text(self.flags)}\n")
@@ -231,7 +231,7 @@ class Message:
             s.write(f"edns {self.edns}\n")
             if self.ednsflags != 0:
                 s.write(f"eflags {dns.flags.edns_to_text(self.ednsflags)}\n")
-            s.write("payload %d\n" % self.payload)
+            s.write(f"payload {self.payload}\n")
         for opt in self.options:
             s.write(f"option {opt.to_text()}\n")
         for name, which in self._section_enum.__members__.items():
