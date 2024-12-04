@@ -47,6 +47,9 @@ Core RFCs
 `RFC 3007 <https://tools.ietf.org/html/rfc3007>`_
     Dynamic Updates
 
+`RFC 3597 <https://tools.ietf.org/html/rfc3597>`_
+    Handling of Unknown DNS Resource Record (RR) Types
+
 `RFC 3645 <https://tools.ietf.org/html/rfc3645>`_
     GSS-TSIG.
 
