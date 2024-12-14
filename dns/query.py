@@ -106,9 +106,9 @@ if _have_httpx:
                     )
                 else:
                     source = None
-                sock = _make_socket(af, socket.SOCK_STREAM, source)
-                attempt_expiration = _expiration_for_this_attempt(2.0, expiration)
                 try:
+                    sock = _make_socket(af, socket.SOCK_STREAM, source)
+                    attempt_expiration = _expiration_for_this_attempt(2.0, expiration)
                     _connect(
                         sock,
                         dns.inet.low_level_address_tuple((address, port), af),
