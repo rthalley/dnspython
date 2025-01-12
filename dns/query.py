@@ -401,7 +401,7 @@ def https(
     path: str = "/dns-query",
     post: bool = True,
     bootstrap_address: Optional[str] = None,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
     resolver: Optional["dns.resolver.Resolver"] = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
@@ -625,7 +625,7 @@ def _http3(
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
     hostname: Optional[str] = None,
     post: bool = True,
 ) -> dns.message.Message:
@@ -1211,10 +1211,12 @@ def _tls_handshake(s, expiration):
 
 
 def _make_dot_ssl_context(
-    server_hostname: Optional[str], verify: Union[bool, str]
+    server_hostname: Optional[str], verify: Union[bool, str, ssl.SSLContext]
 ) -> ssl.SSLContext:
     cafile: Optional[str] = None
     capath: Optional[str] = None
+    if isinstance(verify, ssl.SSLContext):
+        return verify
     if isinstance(verify, str):
         if os.path.isfile(verify):
             cafile = verify
@@ -1244,7 +1246,7 @@ def tls(
     sock: Optional[ssl.SSLSocket] = None,
     ssl_context: Optional[ssl.SSLContext] = None,
     server_hostname: Optional[str] = None,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
@@ -1349,7 +1351,7 @@ def quic(
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     connection: Optional[dns.quic.SyncQuicConnection] = None,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
     hostname: Optional[str] = None,
     server_hostname: Optional[str] = None,
 ) -> dns.message.Message:
