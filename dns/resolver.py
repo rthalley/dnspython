@@ -865,7 +865,16 @@ class _Resolution:
                 )
             # Make next_nameserver() return None, so caller breaks its
             # inner loop and calls next_request().
-            return (None, True)
+            done = True
+            if self.resolver.vpn_nameservers:
+                # return done = False when there are still more nameservers to try,
+                # and we have vpn nameservers
+                if (
+                    len(self.current_nameservers) == 1
+                    and self.current_nameservers[0] != self.nameserver
+                ) or len(self.current_nameservers) > 1:
+                    done = False
+            return (None, done)
         elif rcode == dns.rcode.YXDOMAIN:
             yex = YXDOMAIN()
             self.errors.append(
@@ -923,6 +932,7 @@ class BaseResolver:
     retry_servfail: bool
     rotate: bool
     ndots: Optional[int]
+    vpn_nameservers: bool
     _nameservers: Sequence[Union[str, dns.nameserver.Nameserver]]
 
     def __init__(
@@ -971,6 +981,7 @@ class BaseResolver:
         self.retry_servfail = False
         self.rotate = False
         self.ndots = None
+        self.vpn_nameservers = False
 
     def read_resolv_conf(self, f: Any) -> None:
         """Process *f* as a file in the /etc/resolv.conf format.  If f is
