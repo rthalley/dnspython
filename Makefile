@@ -36,7 +36,7 @@ test:
 check: test
 
 type:
-	python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
+	python -m mypy --disallow-incomplete-defs dns
 
 pyright:
 	pyright dns

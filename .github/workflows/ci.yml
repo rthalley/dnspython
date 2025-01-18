@@ -54,7 +54,7 @@ jobs:
         python -m pip install cryptography trio idna httpx h2 aioquic mypy pytest ruff pyright
     - name: Typecheck
       run: |
-        python -m mypy --install-types --non-interactive --disallow-incomplete-defs dns
+        python -m mypy --disallow-incomplete-defs dns
         pyright dns
     - name: Lint
       run: |
