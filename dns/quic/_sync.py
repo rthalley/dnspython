@@ -133,25 +133,27 @@ class SyncQuicConnection(BaseQuicConnection):
 
     def _worker(self):
         try:
-            sel = selectors.DefaultSelector()
-            sel.register(self._socket, selectors.EVENT_READ, self._read)
-            sel.register(self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup)
-            while not self._done:
-                (expiration, interval) = self._get_timer_values(False)
-                items = sel.select(interval)
-                for key, _ in items:
-                    key.data()
-                with self._lock:
-                    self._handle_timer(expiration)
-                self._handle_events()
-                with self._lock:
-                    datagrams = self._connection.datagrams_to_send(time.time())
-                for datagram, _ in datagrams:
-                    try:
-                        self._socket.send(datagram)
-                    except BlockingIOError:
-                        # we let QUIC handle any lossage
-                        pass
+            with selectors.DefaultSelector() as sel:
+                sel.register(self._socket, selectors.EVENT_READ, self._read)
+                sel.register(
+                    self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup
+                )
+                while not self._done:
+                    (expiration, interval) = self._get_timer_values(False)
+                    items = sel.select(interval)
+                    for key, _ in items:
+                        key.data()
+                    with self._lock:
+                        self._handle_timer(expiration)
+                    self._handle_events()
+                    with self._lock:
+                        datagrams = self._connection.datagrams_to_send(time.time())
+                    for datagram, _ in datagrams:
+                        try:
+                            self._socket.send(datagram)
+                        except BlockingIOError:
+                            # we let QUIC handle any lossage
+                            pass
         except Exception:
             # Eat all exceptions as we have no way to pass them back to the
             # caller currently.  It might be nice to fix this in the future.

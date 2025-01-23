@@ -240,22 +240,22 @@ def _wait_for(fd, readable, writable, _, expiration):
 
     if readable and isinstance(fd, ssl.SSLSocket) and fd.pending() > 0:
         return True
-    sel = selectors.DefaultSelector()
-    events = 0
-    if readable:
-        events |= selectors.EVENT_READ
-    if writable:
-        events |= selectors.EVENT_WRITE
-    if events:
-        sel.register(fd, events)  # pyright: ignore
-    if expiration is None:
-        timeout = None
-    else:
-        timeout = expiration - time.time()
-        if timeout <= 0.0:
+    with selectors.DefaultSelector() as sel:
+        events = 0
+        if readable:
+            events |= selectors.EVENT_READ
+        if writable:
+            events |= selectors.EVENT_WRITE
+        if events:
+            sel.register(fd, events)  # pyright: ignore
+        if expiration is None:
+            timeout = None
+        else:
+            timeout = expiration - time.time()
+            if timeout <= 0.0:
+                raise dns.exception.Timeout
+        if not sel.select(timeout):
             raise dns.exception.Timeout
-    if not sel.select(timeout):
-        raise dns.exception.Timeout
 
 
 def _wait_for_readable(s, expiration):
