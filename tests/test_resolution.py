@@ -419,6 +419,21 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertTrue(answer is None)
         self.assertTrue(done)
 
+    def test_query_result_nxdomain_vpn_nameservers(self):
+        self.resolver.vpn_nameservers = True
+        q = dns.message.make_query(self.qname, dns.rdatatype.A)
+        r = self.make_negative_response(q, True)
+        (_, _) = self.resn.next_request()
+        (_, _, _) = self.resn.next_nameserver()
+        (answer, done) = self.resn.query_result(r, None)
+        self.assertTrue(answer is None)
+        self.assertFalse(done)
+
+        (_, _, _) = self.resn.next_nameserver()
+        (answer, done) = self.resn.query_result(r, None)
+        self.assertTrue(answer is None)
+        self.assertTrue(done)
+
     def test_query_result_nxdomain_but_has_answer(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
@@ -429,6 +444,73 @@ class ResolutionTestCase(unittest.TestCase):
         self.assertIsNone(answer)
         self.assertFalse(done)
         self.assertTrue(nameserver not in self.resn.nameservers)
+
+    def test_query_result_nxdomain_on_first_nameserver_answer_on_second(self):
+        self.resolver.vpn_nameservers = True
+        q = dns.message.make_query(self.qname, dns.rdatatype.A)
+        # simulate an nxdomain response from the first nameserver
+        r = self.make_negative_response(q, True)
+        (_, _) = self.resn.next_request()
+        (nameserver, _, _) = self.resn.next_nameserver()
+        (answer, done) = self.resn.query_result(r, None)
+        self.assertIsNone(answer)
+        self.assertFalse(done)
+        self.assertTrue(nameserver not in self.resn.current_nameservers)
+
+        # simulate a successful response from the second nameserver
+        r2 = self.make_address_response(q)
+        (nameserver2, _, _) = self.resn.next_nameserver()
+        (answer2, done) = self.resn.query_result(r2, None)
+        self.assertTrue(answer2 is not None)
+        self.assertTrue(done)
+        self.assertTrue(nameserver2 not in self.resn.current_nameservers)
+
+    def test_query_resets_current_nameservers(self):
+        self.resolver.vpn_nameservers = True
+        # use a relative qname so we have two qnames to try
+        qname = dns.name.from_text("www.dnspython.org", None)
+        # also enable search mode, or we'll only see www.dnspython.org.
+        self.resn = dns.resolver._Resolution(
+            self.resolver, qname, "A", "IN", False, True, True
+        )
+        qname1 = dns.name.from_text("www.dnspython.org.example.")
+        qname2 = dns.name.from_text("www.dnspython.org.")
+        # Arrange to get NXDOMAIN hits on the first of the qnames.
+        self.resolver.cache = dns.resolver.Cache()
+        q1 = dns.message.make_query(qname1, dns.rdatatype.A)
+        r1 = self.make_negative_response(q1, True)
+
+        q2 = dns.message.make_query(qname2, dns.rdatatype.A)
+        r2 = self.make_address_response(q2)
+
+        (_, _) = self.resn.next_request()
+
+        (nameserver1_1, _, _) = self.resn.next_nameserver()
+        (answer1_1, done) = self.resn.query_result(r1, None)
+        self.assertIsNone(answer1_1)
+        self.assertFalse(done)
+        self.assertTrue(nameserver1_1 not in self.resn.current_nameservers)
+
+        (nameserver1_2, _, _) = self.resn.next_nameserver()
+        (answer1_2, done) = self.resn.query_result(r1, None)
+        self.assertIsNone(answer1_2)
+        self.assertTrue(done)
+        self.assertTrue(nameserver1_2 not in self.resn.current_nameservers)
+
+        (_, _) = self.resn.next_request()
+
+        (nameserver2_1, _, _) = self.resn.next_nameserver()
+        (answer2_1, done) = self.resn.query_result(r2, None)
+        self.assertIsNotNone(answer2_1)
+        self.assertTrue(done)
+        self.assertTrue(nameserver2_1 not in self.resn.current_nameservers)
+
+        try:
+            (_, _) = self.resn.next_request()
+            self.assertTrue(False)  # should not happen!
+        except dns.resolver.NXDOMAIN as nx:
+            self.assertTrue(qname1 in nx.qnames())
+            self.assertTrue(qname2 in nx.qnames())
 
     def test_query_result_chain_not_too_long(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
@@ -454,6 +536,30 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_negative_response(q, True)
         (_, _) = self.resn.next_request()
+        (_, _, _) = self.resn.next_nameserver()
+        (answer, done) = self.resn.query_result(r, None)
+        self.assertTrue(answer is None)
+        self.assertTrue(done)
+        cache_answer = self.resolver.cache.get(
+            (self.qname, dns.rdatatype.ANY, dns.rdataclass.IN)
+        )
+        self.assertTrue(cache_answer.response is r)
+
+    def test_query_result_nxdomain_cached_vpn(self):
+        self.resolver.vpn_nameservers = True
+        self.resolver.cache = dns.resolver.Cache()
+        q = dns.message.make_query(self.qname, dns.rdatatype.A)
+        r = self.make_negative_response(q, True)
+        (_, _) = self.resn.next_request()
+        (_, _, _) = self.resn.next_nameserver()
+        (answer, done) = self.resn.query_result(r, None)
+        self.assertTrue(answer is None)
+        self.assertFalse(done)
+        cache_answer = self.resolver.cache.get(
+            (self.qname, dns.rdatatype.ANY, dns.rdataclass.IN)
+        )
+        self.assertTrue(cache_answer.response is r)
+
         (_, _, _) = self.resn.next_nameserver()
         (answer, done) = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
