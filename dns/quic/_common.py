@@ -14,6 +14,7 @@ import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 
+import dns._tls_util
 import dns.inet
 
 QUIC_MAX_DATAGRAM = 2048
@@ -245,7 +246,10 @@ class BaseQuicManager:
                 server_name=server_name,
             )
             if verify_path is not None:
-                conf.load_verify_locations(verify_path)
+                cafile, capath = dns._tls_util.convert_verify_to_cafile_and_capath(
+                    verify_path
+                )
+                conf.load_verify_locations(cafile=cafile, capath=capath)
         self._conf = conf
 
     def _connect(
