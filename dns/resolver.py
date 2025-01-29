@@ -1935,6 +1935,7 @@ def _getnameinfo(sockaddr, flags=0):
         pname = "udp"
     else:
         pname = "tcp"
+    assert isinstance(addr, str)
     qname = dns.reversename.from_address(addr)
     if flags & socket.NI_NUMERICHOST == 0:
         try:
@@ -2014,6 +2015,7 @@ def _gethostbyaddr(ip):
     bin_ip = dns.inet.inet_pton(family, ip)
     for item in tuples:
         addr = item[4][0]
+        assert isinstance(addr, str)
         bin_addr = dns.inet.inet_pton(family, addr)
         if bin_ip == bin_addr:
             addresses.append(addr)
