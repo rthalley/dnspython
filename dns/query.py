@@ -32,6 +32,7 @@ import urllib.parse
 from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import dns._features
+import dns._tls_util
 import dns.exception
 import dns.inet
 import dns.message
@@ -1213,15 +1214,7 @@ def _tls_handshake(s, expiration):
 def _make_dot_ssl_context(
     server_hostname: Optional[str], verify: Union[bool, str]
 ) -> ssl.SSLContext:
-    cafile: Optional[str] = None
-    capath: Optional[str] = None
-    if isinstance(verify, str):
-        if os.path.isfile(verify):
-            cafile = verify
-        elif os.path.isdir(verify):
-            capath = verify
-        else:
-            raise ValueError("invalid verify string")
+    cafile, capath = dns._tls_util.convert_verify_to_cafile_and_capath(verify)
     ssl_context = ssl.create_default_context(cafile=cafile, capath=capath)
     ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
     if server_hostname is None:
