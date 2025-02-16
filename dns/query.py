@@ -402,7 +402,7 @@ def https(
     path: str = "/dns-query",
     post: bool = True,
     bootstrap_address: Optional[str] = None,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
     resolver: Optional["dns.resolver.Resolver"] = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
