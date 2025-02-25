@@ -634,7 +634,8 @@ def _http3(
         raise NoDOH("DNS-over-HTTP3 is not available.")  # pragma: no cover
 
     url_parts = urllib.parse.urlparse(url)
-    hostname = url_parts.hostname
+    if hostname is not None:
+        hostname = url_parts.hostname
     if url_parts.port is not None:
         port = url_parts.port
 
