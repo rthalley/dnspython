@@ -757,6 +757,8 @@ def from_text(
     """
     if isinstance(tok, str):
         tok = dns.tokenizer.Tokenizer(tok, idna_codec=idna_codec)
+    if not isinstance(tok, dns.tokenizer.Tokenizer):
+        raise ValueError("tok must be a string or a Tokenizer")
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
