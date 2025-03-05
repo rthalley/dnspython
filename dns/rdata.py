@@ -22,6 +22,7 @@ import binascii
 import inspect
 import io
 import itertools
+import ipaddress
 import random
 from importlib import import_module
 from typing import Any, Dict, Optional, Tuple, Union
@@ -551,6 +552,8 @@ class Rdata:
             return dns.ipv4.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv4.inet_ntoa(value)
+        elif isinstance(value, ipaddress.IPv4Address):
+            return dns.ipv4.inet_ntoa(value.packed)
         else:
             raise ValueError("not an IPv4 address")
 
@@ -560,6 +563,8 @@ class Rdata:
             return dns.ipv6.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv6.inet_ntoa(value)
+        elif isinstance(value, ipaddress.IPv6Address):
+            return dns.ipv6.inet_ntoa(value.packed)
         else:
             raise ValueError("not an IPv6 address")
 

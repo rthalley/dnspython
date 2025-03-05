@@ -17,6 +17,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import io
+import ipaddress
 import operator
 import pickle
 import struct
@@ -29,6 +30,8 @@ import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
 import dns.rdtypes.ANY.RRSIG
+import dns.rdtypes.IN.A
+import dns.rdtypes.IN.AAAA
 import dns.rdtypes.IN.APL
 import dns.rdtypes.util
 import dns.tokenizer
@@ -895,6 +898,28 @@ class RdataTestCase(unittest.TestCase):
         expected_abs = dns.name.from_text("ck0q2d6ni4i7eqh8na30ns61o48ul8g5.com.")
         self.assertEqual(rdata.next_name(), expected_rel)
         self.assertEqual(rdata.next_name(origin), expected_abs)
+
+    def test_a_rdata_made_multiple_ways(self):
+        r1 = dns.rdtypes.IN.A.A(dns.rdataclass.IN, dns.rdatatype.A, "1.2.3.4")
+        r2 = dns.rdtypes.IN.A.A(dns.rdataclass.IN, dns.rdatatype.A, b"\x01\x02\x03\x04")
+        r3 = dns.rdtypes.IN.A.A(
+            dns.rdataclass.IN, dns.rdatatype.A, ipaddress.ip_address("1.2.3.4")
+        )
+        self.assertEqual(r1, r2)
+        self.assertEqual(r1, r3)
+
+    def test_aaaa_rdata_made_multiple_ways(self):
+        r1 = dns.rdtypes.IN.AAAA.AAAA(dns.rdataclass.IN, dns.rdatatype.AAAA, "::1")
+        r2 = dns.rdtypes.IN.AAAA.AAAA(
+            dns.rdataclass.IN,
+            dns.rdatatype.AAAA,
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01",
+        )
+        r3 = dns.rdtypes.IN.AAAA.AAAA(
+            dns.rdataclass.IN, dns.rdatatype.AAAA, ipaddress.ip_address("::1")
+        )
+        self.assertEqual(r1, r2)
+        self.assertEqual(r1, r3)
 
 
 class UtilTestCase(unittest.TestCase):
