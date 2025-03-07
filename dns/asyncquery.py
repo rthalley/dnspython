@@ -593,6 +593,7 @@ async def https(
             bootstrap_address = random.choice(list(answers.addresses()))
         if client and not isinstance(client, dns.quic.AsyncQuicConnection):  # pyright: ignore
             raise ValueError("client parameter must be a dns.quic.AsyncQuicConnection.")
+        assert client is None or isinstance(client, dns.quic.AsyncQuicConnection)
         return await _http3(
             q,
             bootstrap_address,
