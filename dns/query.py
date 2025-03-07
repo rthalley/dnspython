@@ -491,6 +491,8 @@ def https(
             assert parsed.hostname is not None  # pyright: ignore
             answers = resolver.resolve_name(parsed.hostname, family)  # pyright: ignore
             bootstrap_address = random.choice(list(answers.addresses()))
+        if session and not isinstance(session, dns.quic.SyncQuicConnection):  # pyright: ignore
+            raise ValueError("session parameter must be a dns.quic.SyncQuicConnection.")
         return _http3(
             q,
             bootstrap_address,
@@ -503,6 +505,7 @@ def https(
             ignore_trailing,
             verify=verify,
             post=post,
+            connection=session,
         )
 
     if not have_doh:
@@ -629,6 +632,7 @@ def _http3(
     verify: Union[bool, str] = True,
     hostname: Optional[str] = None,
     post: bool = True,
+    connection: Optional[dns.quic.SyncQuicConnection] = None,
 ) -> dns.message.Message:
     if not dns.quic.have_quic:
         raise NoDOH("DNS-over-HTTP3 is not available.")  # pragma: no cover
@@ -640,14 +644,24 @@ def _http3(
 
     q.id = 0
     wire = q.to_wire()
-    manager = dns.quic.SyncQuicManager(
-        verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
-    )
+    the_connection: dns.quic.SyncQuicConnection
+    the_manager: dns.quic.SyncQuicManager
+    if connection:
+        manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
+        the_connection = connection
+    else:
+        manager = dns.quic.SyncQuicManager(
+            verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
+        )
+        the_manager = manager  # for type checking happiness
 
     with manager:
-        connection = manager.connect(where, port, source, source_port)
+        if not connection:
+            the_connection = the_manager.connect(  # pyright: ignore
+                where, port, source, source_port
+            )
         (start, expiration) = _compute_times(timeout)
-        with connection.make_stream(timeout) as stream:
+        with the_connection.make_stream(timeout) as stream:
             stream.send_h3(url, wire, post)
             wire = stream.receive(_remaining(expiration))
             _check_status(stream.headers(), where, wire)

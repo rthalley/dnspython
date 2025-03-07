@@ -536,7 +536,7 @@ async def https(
     source_port: int = 0,  # pylint: disable=W0613
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    client: Optional["httpx.AsyncClient"] = None,
+    client: Optional["httpx.AsyncClient|dns.quic.AsyncQuicConnection"] = None,
     path: str = "/dns-query",
     post: bool = True,
     verify: Union[bool, str] = True,
@@ -591,6 +591,8 @@ async def https(
                 parsed.hostname, family  # pyright: ignore
             )
             bootstrap_address = random.choice(list(answers.addresses()))
+        if client and not isinstance(client, dns.quic.AsyncQuicConnection):  # pyright: ignore
+            raise ValueError("client parameter must be a dns.quic.AsyncQuicConnection.")
         return await _http3(
             q,
             bootstrap_address,
@@ -603,13 +605,14 @@ async def https(
             ignore_trailing,
             verify=verify,
             post=post,
+            connection=client,
         )
 
     if not have_doh:
         raise NoDOH  # pragma: no cover
     # pylint: disable=possibly-used-before-assignment
     if client and not isinstance(client, httpx.AsyncClient):  # pyright: ignore
-        raise ValueError("session parameter must be an httpx.AsyncClient")
+        raise ValueError("client parameter must be an httpx.AsyncClient")
     # pylint: enable=possibly-used-before-assignment
 
     wire = q.to_wire()
@@ -711,6 +714,7 @@ async def _http3(
     backend: Optional[dns.asyncbackend.Backend] = None,
     hostname: Optional[str] = None,
     post: bool = True,
+    connection: Optional[dns.quic.AsyncQuicConnection] = None,
 ) -> dns.message.Message:
     if not dns.quic.have_quic:
         raise NoDOH("DNS-over-HTTP3 is not available.")  # pragma: no cover
@@ -722,13 +726,22 @@ async def _http3(
 
     q.id = 0
     wire = q.to_wire()
-    (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
+    the_connection: dns.quic.AsyncQuicConnection
+    if connection:
+        cfactory = dns.quic.null_factory
+        mfactory = dns.quic.null_factory
+        the_connection = connection
+    else:
+        (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
 
     async with cfactory() as context:
         async with mfactory(
             context, verify_mode=verify, server_name=hostname, h3=True
         ) as the_manager:
-            the_connection = the_manager.connect(where, port, source, source_port)
+            if not connection:
+                the_connection = the_manager.connect(  # pyright: ignore
+                    where, port, source, source_port
+                )
             (start, expiration) = _compute_times(timeout)
             stream = await the_connection.make_stream(timeout)
             async with stream:
