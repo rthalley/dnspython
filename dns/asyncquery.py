@@ -731,7 +731,6 @@ async def _http3(
     if connection:
         cfactory = dns.quic.null_factory
         mfactory = dns.quic.null_factory
-        the_connection = connection
     else:
         (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
 
@@ -739,12 +738,14 @@ async def _http3(
         async with mfactory(
             context, verify_mode=verify, server_name=hostname, h3=True
         ) as the_manager:
-            if not connection:
+            if connection:
+                the_connection = connection
+            else:
                 the_connection = the_manager.connect(  # pyright: ignore
                     where, port, source, source_port
                 )
             (start, expiration) = _compute_times(timeout)
-            stream = await the_connection.make_stream(timeout)
+            stream = await the_connection.make_stream(timeout)  # pyright: ignore
             async with stream:
                 # note that send_h3() does not need await
                 stream.send_h3(url, wire, post)

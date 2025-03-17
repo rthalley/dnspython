@@ -648,7 +648,6 @@ def _http3(
     the_manager: dns.quic.SyncQuicManager
     if connection:
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
-        the_connection = connection
     else:
         manager = dns.quic.SyncQuicManager(
             verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
@@ -656,12 +655,14 @@ def _http3(
         the_manager = manager  # for type checking happiness
 
     with manager:
-        if not connection:
+        if connection:
+            the_connection = connection
+        else:
             the_connection = the_manager.connect(  # pyright: ignore
                 where, port, source, source_port
             )
         (start, expiration) = _compute_times(timeout)
-        with the_connection.make_stream(timeout) as stream:
+        with the_connection.make_stream(timeout) as stream:  # pyright: ignore
             stream.send_h3(url, wire, post)
             wire = stream.receive(_remaining(expiration))
             _check_status(stream.headers(), where, wire)
