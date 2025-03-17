@@ -22,6 +22,7 @@ import binascii
 import inspect
 import io
 import itertools
+import ipaddress
 import random
 from importlib import import_module
 from typing import Any, Dict, Optional, Tuple, Union
@@ -551,6 +552,8 @@ class Rdata:
             return dns.ipv4.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv4.inet_ntoa(value)
+        elif isinstance(value, ipaddress.IPv4Address):
+            return dns.ipv4.inet_ntoa(value.packed)
         else:
             raise ValueError("not an IPv4 address")
 
@@ -560,6 +563,8 @@ class Rdata:
             return dns.ipv6.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv6.inet_ntoa(value)
+        elif isinstance(value, ipaddress.IPv6Address):
+            return dns.ipv6.inet_ntoa(value.packed)
         else:
             raise ValueError("not an IPv6 address")
 
@@ -752,6 +757,8 @@ def from_text(
     """
     if isinstance(tok, str):
         tok = dns.tokenizer.Tokenizer(tok, idna_codec=idna_codec)
+    if not isinstance(tok, dns.tokenizer.Tokenizer):
+        raise ValueError("tok must be a string or a Tokenizer")
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
