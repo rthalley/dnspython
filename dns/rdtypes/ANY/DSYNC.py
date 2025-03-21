@@ -8,19 +8,19 @@ import dns.rdatatype
 import dns.rdtypes.util
 
 
-schemes = {
-    0: "null",
-    1: "NOTIFY",
-}
+schemes = {1: "NOTIFY"}
 schemes_by_mnemonic = {v: k for k, v in schemes.items()}
 
 
 def _scheme_from_text(scheme):
-    return schemes_by_mnemonic[scheme]
+    try:
+        return int(scheme)
+    except ValueError:
+        return schemes_by_mnemonic[scheme]
 
 
 def _scheme_to_text(scheme):
-    return schemes[scheme]
+    return schemes.get(scheme, str(scheme))
 
 
 @dns.immutable.immutable

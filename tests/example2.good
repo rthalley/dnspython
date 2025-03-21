@@ -47,6 +47,7 @@ dnskey01.example. 3600 IN DNSKEY 512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRu niJD
 dnskey02.example. 3600 IN DNSKEY 257 3 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRu niJDBzC7w0aRyzWZriO6i2odGWWQVucZ qKVsENW91IOW4vqudngPZsY3GvQ/xVA8 /7pyFj6b7Esga60zyGW6LFe9r8n6paHr lG5ojqf0BaqHT+8=
 ds01.example. 3600 IN DS 12345 3 1 123456789abcdef67890123456789abcdef67890
 dsync.example. 3600 IN DSYNC CDS NOTIFY 5300 notify-endpoint.parent.net.
+dsync.example. 3600 IN DSYNC CSYNC 128 443 notify-endpoint.parent.net.
 e.example. 300 IN MX 10 mail.example.
 e.example. 300 IN TXT "one"
 e.example. 300 IN TXT "three"
