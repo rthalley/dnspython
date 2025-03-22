@@ -86,6 +86,7 @@ class RdataType(dns.enum.IntEnum):
     ZONEMD = 63
     SVCB = 64
     HTTPS = 65
+    DSYNC = 66
     SPF = 99
     UNSPEC = 103
     NID = 104
@@ -332,5 +333,6 @@ RESINFO = RdataType.RESINFO
 WALLET = RdataType.WALLET
 TA = RdataType.TA
 DLV = RdataType.DLV
+DSYNC = RdataType.DSYNC
 
 ### END generated RdataType constants
