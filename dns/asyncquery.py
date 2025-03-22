@@ -591,7 +591,9 @@ async def https(
                 parsed.hostname, family  # pyright: ignore
             )
             bootstrap_address = random.choice(list(answers.addresses()))
-        if client and not isinstance(client, dns.quic.AsyncQuicConnection):  # pyright: ignore
+        if client and not isinstance(
+            client, dns.quic.AsyncQuicConnection
+        ):  # pyright: ignore
             raise ValueError("client parameter must be a dns.quic.AsyncQuicConnection.")
         assert client is None or isinstance(client, dns.quic.AsyncQuicConnection)
         return await _http3(
@@ -706,14 +708,13 @@ async def _http3(
     where: str,
     url: str,
     timeout: Optional[float] = None,
-    port: int = 853,
+    port: int = 443,
     source: Optional[str] = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     verify: Union[bool, str] = True,
     backend: Optional[dns.asyncbackend.Backend] = None,
-    hostname: Optional[str] = None,
     post: bool = True,
     connection: Optional[dns.quic.AsyncQuicConnection] = None,
 ) -> dns.message.Message:
@@ -722,6 +723,7 @@ async def _http3(
 
     url_parts = urllib.parse.urlparse(url)
     hostname = url_parts.hostname
+    assert hostname is not None
     if url_parts.port is not None:
         port = url_parts.port
 

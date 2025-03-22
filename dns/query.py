@@ -491,7 +491,9 @@ def https(
             assert parsed.hostname is not None  # pyright: ignore
             answers = resolver.resolve_name(parsed.hostname, family)  # pyright: ignore
             bootstrap_address = random.choice(list(answers.addresses()))
-        if session and not isinstance(session, dns.quic.SyncQuicConnection):  # pyright: ignore
+        if session and not isinstance(
+            session, dns.quic.SyncQuicConnection
+        ):  # pyright: ignore
             raise ValueError("session parameter must be a dns.quic.SyncQuicConnection.")
         return _http3(
             q,
@@ -624,13 +626,12 @@ def _http3(
     where: str,
     url: str,
     timeout: Optional[float] = None,
-    port: int = 853,
+    port: int = 443,
     source: Optional[str] = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     verify: Union[bool, str] = True,
-    hostname: Optional[str] = None,
     post: bool = True,
     connection: Optional[dns.quic.SyncQuicConnection] = None,
 ) -> dns.message.Message:
@@ -639,6 +640,7 @@ def _http3(
 
     url_parts = urllib.parse.urlparse(url)
     hostname = url_parts.hostname
+    assert hostname is not None
     if url_parts.port is not None:
         port = url_parts.port
 
