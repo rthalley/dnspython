@@ -550,6 +550,7 @@ def https(
     with cm as session:
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples
+        assert session is not None
         if post:
             headers.update(
                 {

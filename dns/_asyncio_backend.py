@@ -131,7 +131,7 @@ if dns._features.have("doh"):
     import httpx
 
     _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream
+    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream  # pyright: ignore
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 

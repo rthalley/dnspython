@@ -318,6 +318,10 @@ class Answers(dict):
     """A dict of DNS stub resolver answers, indexed by type."""
 
 
+class EmptyHostAnswers(dns.exception.DNSException):
+    """The HostAnswers has no addresses"""
+
+
 class HostAnswers(Answers):
     """A dict of DNS stub resolver answers to a host name lookup, indexed by
     type.
@@ -364,6 +368,8 @@ class HostAnswers(Answers):
     # Returns the canonical name from this result.
     def canonical_name(self) -> dns.name.Name:
         answer = self.get(dns.rdatatype.AAAA, self.get(dns.rdatatype.A))
+        if answer is None:
+            raise EmptyHostAnswers
         return answer.canonical_name
 
 
