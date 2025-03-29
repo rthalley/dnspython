@@ -68,6 +68,7 @@ class RdataTestCase(unittest.TestCase):
 
     def test_class_registration(self):
         CTXT = 64003
+
         class CTXTImp(dns.rdtypes.txtbase.TXTBase):
             """Test TXT-like record"""
 

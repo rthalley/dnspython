@@ -266,4 +266,6 @@ svcb05                  SVCB 16 foo.example.org. ohttp
 https01                 HTTPS 0 svc
 https02                 HTTPS 1 . port=8002 ech="abcd"
 resinfo                 RESINFO qnamemin exterr=15,16,17 infourl=https://resolver.example.com/guide
-wallet					WALLET EXAMPLE 01234567890abcdef
+wallet                  WALLET EXAMPLE 01234567890abcdef
+dsync                   DSYNC CDS NOTIFY 5300 notify-endpoint.parent.net.
+dsync                   DSYNC CSYNC 128 443 notify-endpoint.parent.net.
