@@ -7,6 +7,7 @@ import dns.zone
 soa_answer = dns.resolver.resolve("dnspython.org", "SOA")
 master_answer = dns.resolver.resolve(soa_answer[0].mname, "A")
 
-z = dns.zone.from_xfr(dns.query.xfr(master_answer[0].address, "dnspython.org"))
+z = dns.zone.Zone("dnspython.org")
+dns.query.inbound_xfr(master_answer[0].address, z)
 for n in sorted(z.nodes.keys()):
     print(z[n].to_text(n))
