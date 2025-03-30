@@ -713,7 +713,7 @@ async def _http3(
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
     backend: Optional[dns.asyncbackend.Backend] = None,
     post: bool = True,
     connection: Optional[dns.quic.AsyncQuicConnection] = None,

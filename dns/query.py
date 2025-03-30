@@ -632,7 +632,7 @@ def _http3(
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
     post: bool = True,
     connection: Optional[dns.quic.SyncQuicConnection] = None,
 ) -> dns.message.Message:
