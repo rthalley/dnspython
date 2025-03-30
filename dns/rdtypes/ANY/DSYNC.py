@@ -45,11 +45,9 @@ class DSYNC(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
-        return "%s %s %d %s" % (
-            dns.rdatatype.to_text(self.rrtype),
-            Scheme.to_text(self.scheme),
-            self.port,
-            target,
+        return (
+            f"{dns.rdatatype.to_text(self.rrtype)} {Scheme.to_text(self.scheme)} "
+            f"{self.port} {target}"
         )
 
     @classmethod
