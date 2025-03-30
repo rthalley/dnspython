@@ -539,7 +539,7 @@ async def https(
     client: Optional["httpx.AsyncClient|dns.quic.AsyncQuicConnection"] = None,
     path: str = "/dns-query",
     post: bool = True,
-    verify: Union[bool, str] = True,
+    verify: Union[bool, str, ssl.SSLContext] = True,
     bootstrap_address: Optional[str] = None,
     resolver: Optional["dns.asyncresolver.Resolver"] = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
