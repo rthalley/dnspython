@@ -1031,6 +1031,15 @@ class UtilTestCase(unittest.TestCase):
             dns.rdatatype.RdataType.make("NSAP-PTR"), dns.rdatatype.NSAP_PTR
         )
 
+    def test_bad_DSYNC_text(self):
+        bad_dsync = [
+            "DSYNC CDS NOTIFY 5300 notify-endpoint.parent.net."
+            "DSYNC CDS 256 5300 notify-endpoint.parent.net."
+        ]
+        for text in bad_dsync:
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.rdata.from_text("in", "dsync", text)
+
 
 Rdata = dns.rdata.Rdata
 
