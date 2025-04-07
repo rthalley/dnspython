@@ -133,7 +133,11 @@ class Rdata:
 
     __slots__ = ["rdclass", "rdtype", "rdcomment"]
 
-    def __init__(self, rdclass, rdtype):
+    def __init__(
+        self,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+    ) -> None:
         """Initialize an rdata.
 
         *rdclass*, an ``int`` is the rdataclass of the Rdata.
@@ -614,7 +618,12 @@ class GenericRdata(Rdata):
 
     __slots__ = ["data"]
 
-    def __init__(self, rdclass, rdtype, data):
+    def __init__(
+        self,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+        data: bytes,
+    ) -> None:
         super().__init__(rdclass, rdtype)
         self.data = data
 
