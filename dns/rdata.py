@@ -21,8 +21,8 @@ import base64
 import binascii
 import inspect
 import io
-import itertools
 import ipaddress
+import itertools
 import random
 from importlib import import_module
 from typing import Any, Dict, Optional, Tuple, Union
@@ -251,7 +251,9 @@ class Rdata:
 
         Returns a ``dns.rdata.GenericRdata``.
         """
-        return GenericRdata(self.rdclass, self.rdtype, self.to_wire(origin=origin))
+        wire = self.to_wire(origin=origin)
+        assert wire is not None  # for type checkers
+        return GenericRdata(self.rdclass, self.rdtype, wire)
 
     def to_digestable(self, origin: Optional[dns.name.Name] = None) -> bytes:
         """Convert rdata to a format suitable for digesting in hashes.  This
