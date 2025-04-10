@@ -1837,7 +1837,8 @@ def make_query(
     kwargs["edns"] = use_edns
     kwargs["pad"] = pad
     m.use_edns(**kwargs)
-    m.want_dnssec(want_dnssec)
+    if want_dnssec:
+        m.want_dnssec(want_dnssec)
     return m
 
 
