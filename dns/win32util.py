@@ -241,8 +241,6 @@ if sys.platform == "win32":
         def _config_nameservers(self, nameservers):
             """Override the nameservers retrieved from the registry.
             """
-            nameservers = []
-
             # Load the IP Helper library  
             # # https://learn.microsoft.com/en-us/windows/win32/api/iphlpapi/nf-iphlpapi-getadaptersaddresses
             IPHLPAPI = ctypes.WinDLL('Iphlpapi.dll')  
@@ -349,12 +347,12 @@ if sys.platform == "win32":
                         ip = format_ipv6(sockaddr.contents)  
                         
                     if ip:  
-                        nameservers.append(ip)
+                        if ip not in self.info.nameservers:
+                            self.info.nameservers.append(ip)
                         
                     current_dns_server = current_dns_server.contents.Next  
         
                 current_adapter = current_adapter.contents.Next  
-            return nameservers
 
     _getter_class: Any
     if _prefer_ctypes:
