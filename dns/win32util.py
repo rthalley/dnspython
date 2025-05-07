@@ -354,6 +354,7 @@ if sys.platform == "win32":
                     current_dns_server = current_dns_server.contents.Next  
         
                 current_adapter = current_adapter.contents.Next  
+            return nameservers
 
     _getter_class: Any
     if _prefer_ctypes:
