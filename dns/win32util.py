@@ -16,7 +16,6 @@ if sys.platform == "win32":
     import winreg  # pylint: disable=import-error
     import ctypes  
     import ctypes.wintypes as wintypes  
-    import ipaddress
 
     # Keep pylint quiet on non-windows.
     try:
@@ -255,15 +254,21 @@ if sys.platform == "win32":
             IF_TYPE_SOFTWARE_LOOPBACK = 24  
             
             # Define necessary structures  
-            class SOCKADDR(ctypes.Structure):  
+            class SOCKADDRV4(ctypes.Structure):  
                 _fields_ = [  
                     ("sa_family", wintypes.USHORT),  
                     ("sa_data", ctypes.c_ubyte * 14)  
                 ]  
+
+            class SOCKADDRV6(ctypes.Structure):  
+                _fields_ = [  
+                    ("sa_family", wintypes.USHORT),  
+                    ("sa_data", ctypes.c_ubyte * 16)  
+                ]  
             
             class SOCKET_ADDRESS(ctypes.Structure):  
                 _fields_ = [  
-                    ("lpSockaddr", ctypes.POINTER(SOCKADDR)),  
+                    ("lpSockaddr", ctypes.POINTER(SOCKADDRV4)),  
                     ("iSockaddrLength", wintypes.INT)  
                 ]  
             
@@ -305,7 +310,8 @@ if sys.platform == "win32":
                 return ".".join(map(str, sockaddr_in.sa_data[2:6]))  
             
             def format_ipv6(sockaddr_in6):  
-                return str(ipaddress.IPv6Address(sockaddr_in6.sa_data))
+                parts = [sockaddr_in6.sa_data[i] << 8 | sockaddr_in6.sa_data[i+1] for i in range(0, 16, 2)]  
+                return ":".join(f"{part:04x}" for part in parts)  
             
             buffer_size = ctypes.c_ulong(15000)  
             while True:  
@@ -344,6 +350,7 @@ if sys.platform == "win32":
                     if sockaddr_family == AF_INET:  # IPv4  
                         ip = format_ipv4(sockaddr.contents)  
                     elif sockaddr_family == AF_INET6:  # IPv6  
+                        sockaddr = ctypes.cast(sockaddr, ctypes.POINTER(SOCKADDRV6))
                         ip = format_ipv6(sockaddr.contents)  
                         
                     if ip:  
