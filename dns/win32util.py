@@ -9,7 +9,7 @@ if sys.platform == "win32":
     import dns.name
 
     _prefer_wmi = True
-    # TODO: How to configure this?
+    # TODO: How to configure
     _prefer_ctypes = os.environ.get('DNSPYTHON_PREFER_CTYPES') is not None
     _prefer_ctypes = True
 
@@ -327,7 +327,10 @@ if sys.platform == "win32":
             
             current_adapter = adapter_addresses  
             while current_adapter:  
+                # Skip non-operational adapters.
                 oper_status = current_adapter.contents.OperStatus  
+                if oper_status != 1:
+                    continue  
 
                 # Exclude loopback adapters.
                 if current_adapter.contents.IfType == IF_TYPE_SOFTWARE_LOOPBACK: 
