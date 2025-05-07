@@ -327,10 +327,7 @@ if sys.platform == "win32":
             
             current_adapter = adapter_addresses  
             while current_adapter:  
-
-                friendly_name = ctypes.wstring_at(current_adapter.contents.FriendlyName)  
                 oper_status = current_adapter.contents.OperStatus  
-                oper_status_str = "Operational" if oper_status == 1 else "Non-Operational"  
 
                 # Exclude loopback adapters.
                 if current_adapter.contents.IfType == IF_TYPE_SOFTWARE_LOOPBACK: 
