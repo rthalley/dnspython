@@ -367,6 +367,3 @@ if sys.platform == "win32":
         """Extract resolver configuration."""
         getter = _getter_class()
         return getter.get()
-
-    info = get_dns_info()
-    print(info.nameservers)
