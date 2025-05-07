@@ -1,3 +1,4 @@
+import os
 import sys
 
 import dns._features
@@ -8,8 +9,13 @@ if sys.platform == "win32":
     import dns.name
 
     _prefer_wmi = True
+    # TODO: How to configure this?
+    _prefer_ctypes = os.environ.get('DNSPYTHON_PREFER_CTYPES') is not None
+    _prefer_ctypes = True
 
     import winreg  # pylint: disable=import-error
+    import ctypes  
+    import ctypes.wintypes as wintypes  
 
     # Keep pylint quiet on non-windows.
     try:
@@ -230,7 +236,128 @@ if sys.platform == "win32":
                 lm.Close()
             return self.info
 
+    class _CtypesGetter(_RegistryGetter):
+
+        def _config_nameservers(self, nameservers):
+            """Override the nameservers retrieved from the registry.
+            """
+            nameservers = []
+
+            # Load the IP Helper library  
+            # # https://learn.microsoft.com/en-us/windows/win32/api/iphlpapi/nf-iphlpapi-getadaptersaddresses
+            IPHLPAPI = ctypes.WinDLL('Iphlpapi.dll')  
+
+            # Constants  
+            AF_UNSPEC = 0  
+            ERROR_SUCCESS = 0  
+            GAA_FLAG_INCLUDE_PREFIX = 0x00000010  
+            AF_INET = 2  
+            AF_INET6 = 23  
+            IF_TYPE_SOFTWARE_LOOPBACK = 24  
+            
+            # Define necessary structures  
+            class SOCKADDR(ctypes.Structure):  
+                _fields_ = [  
+                    ("sa_family", wintypes.USHORT),  
+                    ("sa_data", ctypes.c_ubyte * 14)  
+                ]  
+            
+            class SOCKET_ADDRESS(ctypes.Structure):  
+                _fields_ = [  
+                    ("lpSockaddr", ctypes.POINTER(SOCKADDR)),  
+                    ("iSockaddrLength", wintypes.INT)  
+                ]  
+            
+            class IP_ADAPTER_DNS_SERVER_ADDRESS(ctypes.Structure):  
+                pass  # Forward declaration  
+            
+            IP_ADAPTER_DNS_SERVER_ADDRESS._fields_ = [  
+                ("Length", wintypes.ULONG),  
+                ("Reserved", wintypes.DWORD),  
+                ("Next", ctypes.POINTER(IP_ADAPTER_DNS_SERVER_ADDRESS)),  
+                ("Address", SOCKET_ADDRESS)  
+            ]  
+            
+            class IP_ADAPTER_ADDRESSES(ctypes.Structure):  
+                pass  # Forward declaration  
+            
+            IP_ADAPTER_ADDRESSES._fields_ = [  
+                ("Length", wintypes.ULONG),  
+                ("IfIndex", wintypes.DWORD),  
+                ("Next", ctypes.POINTER(IP_ADAPTER_ADDRESSES)),  
+                ("AdapterName", ctypes.c_char_p),  
+                ("FirstUnicastAddress", ctypes.POINTER(SOCKET_ADDRESS)),  
+                ("FirstAnycastAddress", ctypes.POINTER(SOCKET_ADDRESS)),  
+                ("FirstMulticastAddress", ctypes.POINTER(SOCKET_ADDRESS)),  
+                ("FirstDnsServerAddress", ctypes.POINTER(IP_ADAPTER_DNS_SERVER_ADDRESS)),  
+                ("DnsSuffix", wintypes.LPWSTR),  
+                ("Description", wintypes.LPWSTR),  
+                ("FriendlyName", wintypes.LPWSTR),  
+                ("PhysicalAddress", ctypes.c_ubyte * 8),  
+                ("PhysicalAddressLength", wintypes.ULONG),  
+                ("Flags", wintypes.ULONG),  
+                ("Mtu", wintypes.ULONG),  
+                ("IfType", wintypes.ULONG),  
+                ("OperStatus", ctypes.c_uint), 
+                # Remaining types removed for brevity.
+            ]  
+            
+            def format_ipv4(sockaddr_in):  
+                return ".".join(map(str, sockaddr_in.sa_data[2:6]))  
+            
+            def format_ipv6(sockaddr_in6):  
+                parts = [sockaddr_in6.sa_data[i] << 8 | sockaddr_in6.sa_data[i+1] for i in range(0, 14, 2)]  
+                return ":".join(f"{part:04x}" for part in parts)  
+            
+            buffer_size = ctypes.c_ulong(15000)  
+            while True:  
+                buffer = ctypes.create_string_buffer(buffer_size.value)  
+                
+                ret_val = IPHLPAPI.GetAdaptersAddresses(  
+                    AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, None, buffer, ctypes.byref(buffer_size)  
+                )  
+                
+                if ret_val == ERROR_SUCCESS:  
+                    break  
+                elif ret_val != 0x6F:  # ERROR_BUFFER_OVERFLOW  
+                    print(f"Error retrieving adapter information: {ret_val}")  
+                    return  
+            
+            adapter_addresses = ctypes.cast(buffer, ctypes.POINTER(IP_ADAPTER_ADDRESSES))  
+            
+            current_adapter = adapter_addresses  
+            while current_adapter:  
+
+                friendly_name = ctypes.wstring_at(current_adapter.contents.FriendlyName)  
+                oper_status = current_adapter.contents.OperStatus  
+                oper_status_str = "Operational" if oper_status == 1 else "Non-Operational"  
+
+                # Exclude loopback adapters.
+                if current_adapter.contents.IfType == IF_TYPE_SOFTWARE_LOOPBACK: 
+                    current_adapter = current_adapter.contents.Next  
+                    continue
+
+                current_dns_server = current_adapter.contents.FirstDnsServerAddress  
+                while current_dns_server:  
+                    sockaddr = current_dns_server.contents.Address.lpSockaddr  
+                    sockaddr_family = sockaddr.contents.sa_family  
+                        
+                    ip = None  
+                    if sockaddr_family == AF_INET:  # IPv4  
+                        ip = format_ipv4(sockaddr.contents)  
+                    elif sockaddr_family == AF_INET6:  # IPv6  
+                        ip = format_ipv6(sockaddr.contents)  
+                        
+                    if ip:  
+                        nameservers.append(ip)
+                        
+                    current_dns_server = current_dns_server.contents.Next  
+        
+                current_adapter = current_adapter.contents.Next  
+
     _getter_class: Any
+    if _prefer_ctypes:
+        _getter_class = _CtypesGetter
     if _have_wmi and _prefer_wmi:
         _getter_class = _WMIGetter
     else:
@@ -240,3 +367,6 @@ if sys.platform == "win32":
         """Extract resolver configuration."""
         getter = _getter_class()
         return getter.get()
+
+    info = get_dns_info()
+    print(info.nameservers)
