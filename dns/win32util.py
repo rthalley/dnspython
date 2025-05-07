@@ -358,7 +358,7 @@ if sys.platform == "win32":
     _getter_class: Any
     if _prefer_ctypes:
         _getter_class = _CtypesGetter
-    if _have_wmi and _prefer_wmi:
+    elif _have_wmi and _prefer_wmi:
         _getter_class = _WMIGetter
     else:
         _getter_class = _RegistryGetter
