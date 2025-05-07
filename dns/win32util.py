@@ -16,6 +16,7 @@ if sys.platform == "win32":
     import winreg  # pylint: disable=import-error
     import ctypes  
     import ctypes.wintypes as wintypes  
+    import ipaddress
 
     # Keep pylint quiet on non-windows.
     try:
@@ -304,8 +305,7 @@ if sys.platform == "win32":
                 return ".".join(map(str, sockaddr_in.sa_data[2:6]))  
             
             def format_ipv6(sockaddr_in6):  
-                parts = [sockaddr_in6.sa_data[i] << 8 | sockaddr_in6.sa_data[i+1] for i in range(0, 14, 2)]  
-                return ":".join(f"{part:04x}" for part in parts)  
+                return str(ipaddress.IPv6Address(sockaddr_in6.sa_data))
             
             buffer_size = ctypes.c_ulong(15000)  
             while True:  
