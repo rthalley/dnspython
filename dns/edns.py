@@ -328,7 +328,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
 
 
 class EDECode(dns.enum.IntEnum):
-    """DNS EDE codes"""
+    """Extended DNS Error (EDE) codes"""
 
     OTHER = 0
     UNSUPPORTED_DNSKEY_ALGORITHM = 1
