@@ -265,6 +265,7 @@ class Tokenizer:
         self.file = f
         self.ungotten_char: str | None = None
         self.ungotten_token: Token | None = None
+        self.last_token: Token | None = None
         self.multiline = 0
         self.quoting = False
         self.eof = False
@@ -448,7 +449,8 @@ class Tokenizer:
             if self.multiline:
                 raise dns.exception.SyntaxError("unbalanced parentheses")
             ttype = EOF
-        return Token(ttype, token, has_escape)
+        self.last_token = Token(ttype, token, has_escape)
+        return self.last_token
 
     def unget(self, token: Token) -> None:
         """Unget a token.
