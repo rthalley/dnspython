@@ -324,9 +324,6 @@ if sys.platform == "win32":
                         
             class IP_ADAPTER_ADDRESSES(ctypes.Structure):  
                 pass  # Forward declaration  
-
-            class IP_ADAPTER_ADDRESSES(ctypes.Structure):  
-                pass  # Forward declaration  
             
             IP_ADAPTER_ADDRESSES._fields_ = [  
                 ("Length", wintypes.ULONG),  
@@ -374,7 +371,6 @@ if sys.platform == "win32":
             
             current_adapter = adapter_addresses  
             while current_adapter:  
-                addapter = current_adapter.contents
 
                 # Skip non-operational adapters.
                 oper_status = current_adapter.contents.OperStatus  
