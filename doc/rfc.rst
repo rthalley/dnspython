@@ -35,6 +35,9 @@ Core RFCs
 `RFC 1996 <https://tools.ietf.org/html/rfc1996>`_
     The NOTIFY protocol.
 
+`RFC 2136 <https://tools.ietf.org/html/rfc2136>`_
+    Dynamic Updates in the Domain Name System (DNS UPDATE)
+
 `RFC 2181 <https://tools.ietf.org/html/rfc2181>`_
     Clarifications to the specification.
 

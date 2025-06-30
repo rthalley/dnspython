@@ -9,6 +9,8 @@ treated much like Rdata.  For example, if dnspython encounters the EDNS
 ``ECS`` option code when parsing a DNS wire format message, it
 will create a ``dns.edns.ECSOption`` object to represent it.
 
+.. autoclass:: dns.edns.OptionType
+
 .. autodata:: dns.edns.NSID
 .. autodata:: dns.edns.DAU
 .. autodata:: dns.edns.DHU
@@ -28,6 +30,8 @@ will create a ``dns.edns.ECSOption`` object to represent it.
 
 .. autoclass:: dns.edns.ECSOption
    :members:
+
+.. autoclass:: dns.edns.EDECode
 
 .. autoclass:: dns.edns.EDEOption
    :members:

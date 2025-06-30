@@ -19,3 +19,6 @@ Miscellaneous Utilities
 
 .. automodule:: dns.version
    :members:
+
+.. automodule:: dns.wire
+   :members:

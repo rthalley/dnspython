@@ -33,6 +33,8 @@ import dns.wire
 
 
 class OptionType(dns.enum.IntEnum):
+    """EDNS option type codes"""
+
     #: NSID
     NSID = 3
     #: DAU
@@ -326,6 +328,8 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
 
 
 class EDECode(dns.enum.IntEnum):
+    """Extended DNS Error (EDE) codes"""
+
     OTHER = 0
     UNSUPPORTED_DNSKEY_ALGORITHM = 1
     UNSUPPORTED_DS_DIGEST_TYPE = 2
