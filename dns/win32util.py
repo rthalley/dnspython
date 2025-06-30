@@ -417,7 +417,7 @@ if sys.platform == "win32":
         global _config_method
         _config_method = method
 
-    def get_dns_info():
+    def get_dns_info() -> DnsInfo:
         """Extract resolver configuration."""
         if _config_method == ConfigMethod.Win32:
             getter = _Win32Getter()
