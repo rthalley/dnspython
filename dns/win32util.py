@@ -412,7 +412,6 @@ if sys.platform == "win32":
             registry_getter = _RegistryGetter()
             info = registry_getter.get()
             self.info.search = info.search
-            raise ValueError("Making sure we hit this point")
             return self.info
 
     def set_config_method(method: ConfigMethod) -> None:
