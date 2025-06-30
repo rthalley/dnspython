@@ -3,15 +3,12 @@ import sys
 
 import dns._features
 
+
 if sys.platform == "win32":
     from typing import Any
+    from enum import IntEnum
 
     import dns.name
-
-    _prefer_wmi = True
-    # TODO: How to configure
-    _prefer_ctypes = os.environ.get('DNSPYTHON_PREFER_CTYPES') is not None
-    _prefer_ctypes = True
 
     import winreg  # pylint: disable=import-error
     import ctypes  
@@ -23,23 +20,10 @@ if sys.platform == "win32":
     except NameError:
         WindowsError = Exception
 
-    if dns._features.have("wmi"):
-        import threading
-
-        import pythoncom  # pylint: disable=import-error
-        import wmi  # pylint: disable=import-error
-
-        _have_wmi = True
-    else:
-        _have_wmi = False
-
-    def _config_domain(domain):
-        # Sometimes DHCP servers add a '.' prefix to the default domain, and
-        # Windows just stores such values in the registry (see #687).
-        # Check for this and fix it.
-        if domain.startswith("."):
-            domain = domain[1:]
-        return dns.name.from_text(domain)
+    class ConfigMethod(IntEnum):
+        Registry = 1
+        WMI = 2
+        Win32 = 3
 
     class DnsInfo:
         def __init__(self):
@@ -47,7 +31,16 @@ if sys.platform == "win32":
             self.nameservers = []
             self.search = []
 
-    if _have_wmi:
+    _config_method = ConfigMethod.Registry
+
+    if dns._features.have("wmi"):
+        import threading
+
+        import pythoncom  # pylint: disable=import-error
+        import wmi  # pylint: disable=import-error
+
+        # Prefer WMI by default if wmi is installed.
+        _config_method = ConfigMethod.WMI
 
         class _WMIGetter(threading.Thread):
             # pylint: disable=possibly-used-before-assignment
@@ -80,8 +73,15 @@ if sys.platform == "win32":
                 self.join()
                 return self.info
 
+        def _config_domain(domain):
+            # Sometimes DHCP servers add a '.' prefix to the default domain, and
+            # Windows just stores such values in the registry (see #687).
+            # Check for this and fix it.
+            if domain.startswith("."):
+                domain = domain[1:]
+            return dns.name.from_text(domain)
+    
     else:
-
         class _WMIGetter:  # type: ignore
             pass
 
@@ -236,10 +236,10 @@ if sys.platform == "win32":
                 lm.Close()
             return self.info
 
-    class _CtypesGetter(_RegistryGetter):
+    class _Win32Getter(_RegistryGetter):
 
-        def _config_nameservers(self, nameservers):
-            """Override the nameservers retrieved from the registry.
+        def get(self):
+            """Get the attributes using the Windows API.
             """
             # Load the IP Helper library  
             # # https://learn.microsoft.com/en-us/windows/win32/api/iphlpapi/nf-iphlpapi-getadaptersaddresses
@@ -281,7 +281,50 @@ if sys.platform == "win32":
                 ("Next", ctypes.POINTER(IP_ADAPTER_DNS_SERVER_ADDRESS)),  
                 ("Address", SOCKET_ADDRESS)  
             ]  
+
+            class IF_LUID(ctypes.Structure):  
+                _fields_ = [  
+                    ("Value", ctypes.c_ulonglong)  
+                ]  
             
+            
+            class NET_IF_NETWORK_GUID(ctypes.Structure):  
+                _fields_ = [  
+                    ("Value", ctypes.c_ubyte * 16)  
+                ]  
+            
+            
+            class IP_ADAPTER_PREFIX_XP(ctypes.Structure):  
+                pass  # Left undefined here for simplicity  
+            
+            
+            class IP_ADAPTER_GATEWAY_ADDRESS_LH(ctypes.Structure):  
+                pass  # Left undefined here for simplicity  
+            
+            
+            class IP_ADAPTER_DNS_SUFFIX(ctypes.Structure):  
+                _fields_ = [("String", ctypes.c_wchar * 256), ("Next", ctypes.POINTER(ctypes.c_void_p))]  
+            
+            
+            class IP_ADAPTER_UNICAST_ADDRESS_LH(ctypes.Structure):  
+                pass  # Left undefined here for simplicity  
+            
+            
+            class IP_ADAPTER_MULTICAST_ADDRESS_XP(ctypes.Structure):  
+                pass  # Left undefined here for simplicity  
+            
+            
+            class IP_ADAPTER_ANYCAST_ADDRESS_XP(ctypes.Structure):  
+                pass  # Left undefined here for simplicity  
+            
+            
+            class IP_ADAPTER_DNS_SERVER_ADDRESS_XP(ctypes.Structure):  
+                pass  # Left undefined here for simplicity  
+            
+                        
+            class IP_ADAPTER_ADDRESSES(ctypes.Structure):  
+                pass  # Forward declaration  
+
             class IP_ADAPTER_ADDRESSES(ctypes.Structure):  
                 pass  # Forward declaration  
             
@@ -302,8 +345,8 @@ if sys.platform == "win32":
                 ("Flags", wintypes.ULONG),  
                 ("Mtu", wintypes.ULONG),  
                 ("IfType", wintypes.ULONG),  
-                ("OperStatus", ctypes.c_uint), 
-                # Remaining types removed for brevity.
+                ("OperStatus", ctypes.c_uint),  
+                # Remaining fields removed for brevity  
             ]  
             
             def format_ipv4(sockaddr_in):  
@@ -331,6 +374,8 @@ if sys.platform == "win32":
             
             current_adapter = adapter_addresses  
             while current_adapter:  
+                addapter = current_adapter.contents
+
                 # Skip non-operational adapters.
                 oper_status = current_adapter.contents.OperStatus  
                 if oper_status != 1:
@@ -338,8 +383,13 @@ if sys.platform == "win32":
 
                 # Exclude loopback adapters.
                 if current_adapter.contents.IfType == IF_TYPE_SOFTWARE_LOOPBACK: 
-                    current_adapter = current_adapter.contents.Next  
+                    current_adapter = current_adapter.contents.Next
                     continue
+
+                # Get the domain from the DnsSuffix attribute.
+                dns_suffix = current_adapter.contents.DnsSuffix  
+                if dns_suffix: 
+                    self.info.domain = dns_suffix 
 
                 current_dns_server = current_adapter.contents.FirstDnsServerAddress  
                 while current_dns_server:  
@@ -361,15 +411,22 @@ if sys.platform == "win32":
         
                 current_adapter = current_adapter.contents.Next  
 
-    _getter_class: Any
-    if _prefer_ctypes:
-        _getter_class = _CtypesGetter
-    elif _have_wmi and _prefer_wmi:
-        _getter_class = _WMIGetter
-    else:
-        _getter_class = _RegistryGetter
+            # Use the registry getter to get the search info, since it is set at the system level.
+            registry_getter = _RegistryGetter()
+            info = registry_getter.get()
+            self.info.search = info.search
+            return self.info
+
+    def set_config_method(method: ConfigMethod):
+        nonlocal _config_method
+        _config_method = method
 
     def get_dns_info():
         """Extract resolver configuration."""
-        getter = _getter_class()
+        if _config_method == ConfigMethod.Win32:
+            getter = _Win32Getter()
+        elif _config_method == ConfigMethod.WMI:
+            getter = _WMIGetter()
+        else:
+            getter = _RegistryGetter()
         return getter.get()
