@@ -413,8 +413,8 @@ if sys.platform == "win32":
             self.info.search = info.search
             return self.info
 
-    def set_config_method(method: ConfigMethod):
-        nonlocal _config_method
+    def set_config_method(method: ConfigMethod) -> None:
+        global _config_method
         _config_method = method
 
     def get_dns_info():
