@@ -72,19 +72,20 @@ if sys.platform == "win32":
                 self.start()
                 self.join()
                 return self.info
-
-        def _config_domain(domain):
-            # Sometimes DHCP servers add a '.' prefix to the default domain, and
-            # Windows just stores such values in the registry (see #687).
-            # Check for this and fix it.
-            if domain.startswith("."):
-                domain = domain[1:]
-            return dns.name.from_text(domain)
     
     else:
         class _WMIGetter:  # type: ignore
             pass
 
+
+    def _config_domain(domain):
+        # Sometimes DHCP servers add a '.' prefix to the default domain, and
+        # Windows just stores such values in the registry (see #687).
+        # Check for this and fix it.
+        if domain.startswith("."):
+            domain = domain[1:]
+        return dns.name.from_text(domain)
+        
     class _RegistryGetter:
         def __init__(self):
             self.info = DnsInfo()
