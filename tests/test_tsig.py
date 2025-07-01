@@ -366,3 +366,15 @@ example. 300 IN SOA . . 1 2 3 4 5
 
     def test_multi_with_pad(self):
         self._test_multi(468)
+
+    def test_make_response_to_unverified(self):
+        # Ensure that we can make a response to an unverified query that
+        # contained a TSIG.
+        q1 = dns.message.make_query("example", "a")
+        q1.use_tsig(keyring, keyname)
+        wire = q1.to_wire()
+
+        q2 = dns.message.from_wire(wire, keyring=False)
+        m = dns.message.make_response(q2)
+
+        self.assertIsNone(m.tsig)

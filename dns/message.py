@@ -1925,7 +1925,7 @@ def make_response(
                 if option.otype == dns.edns.OptionType.PADDING:
                     pad = 468
         response.use_edns(0, 0, our_payload, query.payload, pad=pad)
-    if query.had_tsig:
+    if query.had_tsig and query.keyring:
         assert query.mac is not None
         assert query.keyalgorithm is not None
         response.use_tsig(
