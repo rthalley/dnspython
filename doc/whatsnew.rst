@@ -6,7 +6,9 @@ What's New in dnspython
 2.8.0 (in development)
 ----------------------
 
-* TBD
+* dns/win32util.py now supports explicitly setting the configuration method used to get 
+  system dns info, using the set_config_method() function.   There is a new configuration
+  method that uses the Win32 API, which can be set using set_config_method(ConfigMethod.Win32).
 
 2.7.0
 -----
