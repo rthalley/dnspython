@@ -239,6 +239,9 @@ class Message:
             for rrset in self.section_from_number(which):
                 s.write(rrset.to_text(origin, relativize, **kw))
                 s.write("\n")
+        if self.tsig is not None:
+            s.write(self.tsig.to_text(origin, relativize, **kw))
+            s.write("\n")
         #
         # We strip off the final \n so the caller can print the result without
         # doing weird things to get around eccentricities in Python print
