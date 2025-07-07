@@ -650,10 +650,10 @@ class Message:
                 )
                 self.tsig.clear()
                 self.tsig.add(new_tsig)
+                if multi:
+                    self.tsig_ctx = ctx
             r.add_rrset(dns.renderer.ADDITIONAL, self.tsig)
             r.write_header()
-            if multi:
-                self.tsig_ctx = ctx
         wire = r.get_wire()
         self.wire = wire
         if prepend_length:
