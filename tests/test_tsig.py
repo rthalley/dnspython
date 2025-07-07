@@ -378,3 +378,27 @@ example. 300 IN SOA . . 1 2 3 4 5
         m = dns.message.make_response(q2)
 
         self.assertIsNone(m.tsig)
+
+    def test_render_message_with_existing_tsig(self):
+        q1 = dns.message.make_query("example", "a")
+        q1.use_tsig(keyring, keyname)
+        wire = q1.to_wire()
+
+        # The TSIG record parsed from wire format is rendered if
+        # it is not verified.
+        q2 = dns.message.from_wire(wire, keyring=False)
+        self.assertEqual(q2.to_wire(), wire)
+
+        # The TSIG record parsed from wire format is rendered if
+        # it is verified.
+        q3 = dns.message.from_wire(wire, keyring=keyring)
+        self.assertEqual(q3.to_wire(), wire)
+
+        # A new TSIG record is generated if we call use_tsig().
+        #
+        # Note that this specifies a new key because if the same key were used,
+        # the same TSIG record might be generated, and the wire format would
+        # be identical.
+        q4 = dns.message.from_wire(wire, keyring=keyring)
+        q4.use_tsig(dns.tsig.Key(keyname, "abcd"))
+        self.assertNotEqual(q4.to_wire(), wire)
