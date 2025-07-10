@@ -157,6 +157,7 @@ class Message:
         self.pad = 0
         self.keyring: Any = None
         self.tsig: Optional[dns.rrset.RRset] = None
+        self.want_tsig_sign = False
         self.request_mac = b""
         self.xfr = False
         self.origin: Optional[dns.name.Name] = None
@@ -637,21 +638,22 @@ class Message:
             r.add_opt(self.opt, self.pad, opt_reserve, tsig_reserve)
         r.write_header()
         if self.tsig is not None:
-            (new_tsig, ctx) = dns.tsig.sign(
-                r.get_wire(),
-                self.keyring,
-                self.tsig[0],
-                int(time.time()),
-                self.request_mac,
-                tsig_ctx,
-                multi,
-            )
-            self.tsig.clear()
-            self.tsig.add(new_tsig)
+            if self.want_tsig_sign:
+                (new_tsig, ctx) = dns.tsig.sign(
+                    r.get_wire(),
+                    self.keyring,
+                    self.tsig[0],
+                    int(time.time()),
+                    self.request_mac,
+                    tsig_ctx,
+                    multi,
+                )
+                self.tsig.clear()
+                self.tsig.add(new_tsig)
+                if multi:
+                    self.tsig_ctx = ctx
             r.add_rrset(dns.renderer.ADDITIONAL, self.tsig)
             r.write_header()
-            if multi:
-                self.tsig_ctx = ctx
         wire = r.get_wire()
         self.wire = wire
         if prepend_length:
@@ -687,9 +689,6 @@ class Message:
     ) -> None:
         """When sending, a TSIG signature using the specified key
         should be added.
-
-        *key*, a ``dns.tsig.Key`` is the key to use.  If a key is specified,
-        the *keyring* and *algorithm* fields are not used.
 
         *keyring*, a ``dict``, ``callable`` or ``dns.tsig.Key``, is either
         the TSIG keyring or key to use.
@@ -748,6 +747,7 @@ class Message:
             tsig_error,
             other_data,
         )
+        self.want_tsig_sign = True
 
     @property
     def keyname(self) -> Optional[dns.name.Name]:
