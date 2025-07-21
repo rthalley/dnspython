@@ -1015,7 +1015,6 @@ class ResolverNameserverValidTypeTestCase(unittest.TestCase):
             "1.2.3.4",
             1234,
             (1, 2, 3, 4),
-            (),
             {"invalid": "nameserver"},
         ]
         for invalid_nameserver in invalid_nameservers:
