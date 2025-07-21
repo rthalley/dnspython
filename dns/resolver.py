@@ -1190,7 +1190,7 @@ class BaseResolver:
         default_port: int,
     ) -> List[dns.nameserver.Nameserver]:
         enriched_nameservers = []
-        if isinstance(nameservers, (list,tuple)):
+        if isinstance(nameservers, (list, tuple)):
             for nameserver in nameservers:
                 enriched_nameserver: dns.nameserver.Nameserver
                 if isinstance(nameserver, dns.nameserver.Nameserver):
