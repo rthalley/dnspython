@@ -1190,7 +1190,7 @@ class BaseResolver:
         default_port: int,
     ) -> List[dns.nameserver.Nameserver]:
         enriched_nameservers = []
-        if isinstance(nameservers, list):
+        if isinstance(nameservers, (list, tuple)):
             for nameserver in nameservers:
                 enriched_nameserver: dns.nameserver.Nameserver
                 if isinstance(nameserver, dns.nameserver.Nameserver):
@@ -1229,7 +1229,7 @@ class BaseResolver:
         self, nameservers: Sequence[Union[str, dns.nameserver.Nameserver]]
     ) -> None:
         """
-        *nameservers*, a ``list`` of nameservers, where a nameserver is either
+        *nameservers*, a ``list`` or ``tuple`` of nameservers, where a nameserver is either
         a string interpretable as a nameserver, or a ``dns.nameserver.Nameserver``
         instance.
 
