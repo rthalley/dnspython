@@ -932,7 +932,7 @@ class BaseResolver:
     _nameservers: Sequence[Union[str, dns.nameserver.Nameserver]]
 
     def __init__(
-        self, filename: str = "/etc/resolv.conf", configure: bool = True
+        self, filename: str = "/etc/resolv.conf", configure: bool = True, ignoreInvalidLabels: bool = False
     ) -> None:
         """*filename*, a ``str`` or file object, specifying a file
         in standard /etc/resolv.conf format.  This parameter is meaningful
@@ -950,7 +950,7 @@ class BaseResolver:
             if sys.platform == "win32":  # pragma: no cover
                 self.read_registry()
             elif filename:
-                self.read_resolv_conf(filename)
+                self.read_resolv_conf(filename, ignoreInvalidLabels)
 
     def reset(self) -> None:
         """Reset all resolver configuration to the defaults."""
@@ -978,7 +978,7 @@ class BaseResolver:
         self.rotate = False
         self.ndots = None
 
-    def read_resolv_conf(self, f: Any) -> None:
+    def read_resolv_conf(self, f: Any, ignoreInvalidLabels: bool = False) -> None:
         """Process *f* as a file in the /etc/resolv.conf format.  If f is
         a ``str``, it is used as the name of the file to open; otherwise it
         is treated as the file itself.
@@ -1023,8 +1023,14 @@ class BaseResolver:
                 elif tokens[0] == "search":
                     # the last search wins
                     self.search = []
-                    for suffix in tokens[1:]:
-                        self.search.append(dns.name.from_text(suffix))
+                    try:
+                        for suffix in tokens[1:]:
+                            self.search.append(dns.name.from_text(suffix))
+                    except:
+                        if ignoreInvalidLabels:
+                            self.search = []
+                        else:
+                            raise
                     # We don't set domain as it is not used if
                     # len(self.search) > 0
                 elif tokens[0] == "options":
