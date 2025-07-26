@@ -537,7 +537,7 @@ class Reader:
                                 self.default_ttl_known,
                             )
                         )
-                        self.current_file = open(filename, "rt", encoding="utf-8")
+                        self.current_file = open(filename, encoding="utf-8")
                         self.tok = dns.tokenizer.Tokenizer(self.current_file, filename)
                         self.current_origin = new_origin
                     elif c == "$GENERATE":

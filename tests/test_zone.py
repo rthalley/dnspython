@@ -320,8 +320,8 @@ def make_xfr(zone):
 
 
 def compare_files(test_name, a_name, b_name):
-    with open(a_name, "rt", encoding="utf-8") as a:
-        with open(b_name, "rt", encoding="utf-8") as b:
+    with open(a_name, encoding="utf-8") as a:
+        with open(b_name, encoding="utf-8") as b:
             differences = list(difflib.unified_diff(a.readlines(), b.readlines()))
             if len(differences) == 0:
                 return True

@@ -303,11 +303,11 @@ class SVCBTestCase(unittest.TestCase):
     def test_svcb_spec_test_vectors(self):
         text_file = here("svcb_test_vectors.text")
         text_tokenizer = Tokenizer(
-            open(text_file, "rt", encoding="utf-8"), filename=text_file
+            open(text_file, encoding="utf-8"), filename=text_file
         )
         generic_file = here("svcb_test_vectors.generic")
         generic_tokenizer = Tokenizer(
-            open(generic_file, "rt", encoding="utf-8"), filename=generic_file
+            open(generic_file, encoding="utf-8"), filename=generic_file
         )
 
         while True:
