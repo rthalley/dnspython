@@ -1148,7 +1148,7 @@ def _sign_zone_nsec(
             if rrset_signer:
                 rrset_signer(txn, rrset)
 
-    rrsig_ttl = zone.get_soa().minimum
+    rrsig_ttl = zone.get_soa(txn).minimum
     delegation = None
     last_secure = None
 
