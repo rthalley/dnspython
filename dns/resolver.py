@@ -998,7 +998,7 @@ class BaseResolver:
         nameservers = []
         if isinstance(f, str):
             try:
-                cm: contextlib.AbstractContextManager = open(f)
+                cm: contextlib.AbstractContextManager = open(f, "rt", encoding="utf-8")
             except OSError:
                 # /etc/resolv.conf doesn't exist, can't be read, etc.
                 raise NoResolverConfiguration(f"cannot open {f}")

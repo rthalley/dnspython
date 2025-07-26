@@ -1378,7 +1378,7 @@ def from_file(
     if isinstance(f, str):
         if filename is None:
             filename = f
-        cm: contextlib.AbstractContextManager = open(f)
+        cm: contextlib.AbstractContextManager = open(f, "rt", encoding="utf-8")
     else:
         cm = contextlib.nullcontext(f)
     with cm as f:

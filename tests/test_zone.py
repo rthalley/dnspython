@@ -320,8 +320,8 @@ def make_xfr(zone):
 
 
 def compare_files(test_name, a_name, b_name):
-    with open(a_name, "r") as a:
-        with open(b_name, "r") as b:
+    with open(a_name, "rt", encoding="utf-8") as a:
+        with open(b_name, "rt", encoding="utf-8") as b:
             differences = list(difflib.unified_diff(a.readlines(), b.readlines()))
             if len(differences) == 0:
                 return True
@@ -377,7 +377,7 @@ class ZoneTestCase(unittest.TestCase):
     def testToFileTextual(self):
         z = dns.zone.from_file(here("example"), "example")
         try:
-            f = open(here("example3-textual.out"), "w")
+            f = open(here("example3-textual.out"), "wt", encoding="utf-8")
             z.to_file(f)
             f.close()
             ok = compare_files(
@@ -421,7 +421,7 @@ class ZoneTestCase(unittest.TestCase):
         ok = False
         try:
             text_zone = z.to_text(nl="\x0a")
-            f = open(here("example3.out"), "w")
+            f = open(here("example3.out"), "wt", encoding="utf-8")
             f.write(text_zone)
             f.close()
             ok = compare_files(
@@ -435,7 +435,7 @@ class ZoneTestCase(unittest.TestCase):
     def testToFileTextualWithOrigin(self):
         z = dns.zone.from_file(here("example"), "example")
         try:
-            f = open(here("example4-textual.out"), "w")
+            f = open(here("example4-textual.out"), "wt", encoding="utf-8")
             z.to_file(f, want_origin=True)
             f.close()
             ok = compare_files(
