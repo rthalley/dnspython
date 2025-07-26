@@ -23,6 +23,7 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
+import dns.win32util
 import pytest
 
 import dns.e164
@@ -996,6 +997,11 @@ class ResolverMiscTestCase(unittest.TestCase):
             self.assertEqual(n, dns.win32util._config_domain("home"))
             self.assertEqual(n, dns.win32util._config_domain(".home"))
 
+        def test_set_config_method(self):
+            from dns.win32util import set_config_method, ConfigMethod
+            self.assertNotEqual(dns.win32util._config_method, dns.win32util.ConfigMethod.Win32)
+            dns.win32util.set_config_method(dns.win32util.ConfigMethod.Win32)
+            self.assertEqual(dns.win32util._config_method, dns.win32util.ConfigMethod.Win32)
 
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
     def test_set_nameservers_to_list(self):
