@@ -1,0 +1,255 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+# A derivative of a dnspython VersionedZone and related classes, using a BTreeDict and
+# a separate per-version delegation index.  These additions let us
+#
+# 1) Do efficient CoW versioning (useful for future online updates).
+# 2) Maintain sort order
+# 3) Allow delegations to be found easily
+# 4) Handle glue
+# 5) Add Node flags ORIGIN, DELEGATION, and GLUE whenever relevant.  The ORIIGN
+#    flag is set at the origin node, the DELEGATION FLAG is set at delegation
+#    points, and the GLUE flag is set on nodes beneath delegation points.
+
+import enum
+from typing import Callable, MutableMapping, Optional, Tuple, cast
+
+import dns.btree
+import dns.immutable
+import dns.name
+import dns.node
+import dns.rdataclass
+import dns.rdataset
+import dns.rdatatype
+import dns.versioned
+import dns.zone
+
+
+class NodeFlags(enum.IntFlag):
+    ORIGIN = 0x01
+    DELEGATION = 0x02
+    GLUE = 0x04
+
+
+class Node(dns.node.Node):
+    __slots__ = ["flags", "id"]
+
+    def __init__(self, flags: NodeFlags = 0):  # type: ignore
+        super().__init__()
+        self.flags = flags
+        self.id = 0
+
+    def is_delegation(self):
+        return (self.flags & NodeFlags.DELEGATION) != 0
+
+    def is_glue(self):
+        return (self.flags & NodeFlags.GLUE) != 0
+
+    def is_origin(self):
+        return (self.flags & NodeFlags.ORIGIN) != 0
+
+    def is_origin_or_glue(self):
+        return (self.flags & (NodeFlags.ORIGIN | NodeFlags.GLUE)) != 0
+
+
+@dns.immutable.immutable
+class ImmutableNode(Node):
+    def __init__(self, node: Node):
+        super().__init__()
+        self.id = node.id
+        self.rdatasets = tuple(  # type: ignore
+            [dns.rdataset.ImmutableRdataset(rds) for rds in node.rdatasets]
+        )
+        self.flags = node.flags
+
+    def find_rdataset(
+        self,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+        covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
+        create: bool = False,
+    ) -> dns.rdataset.Rdataset:
+        if create:
+            raise TypeError("immutable")
+        return super().find_rdataset(rdclass, rdtype, covers, False)
+
+    def get_rdataset(
+        self,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+        covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
+        create: bool = False,
+    ) -> Optional[dns.rdataset.Rdataset]:
+        if create:
+            raise TypeError("immutable")
+        return super().get_rdataset(rdclass, rdtype, covers, False)
+
+    def delete_rdataset(
+        self,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+        covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
+    ) -> None:
+        raise TypeError("immutable")
+
+    def replace_rdataset(self, replacement: dns.rdataset.Rdataset) -> None:
+        raise TypeError("immutable")
+
+    def is_immutable(self) -> bool:
+        return True
+
+
+class Delegations(dns.btree.BTreeSet[dns.name.Name]):
+    def get_delegation(
+        self, name: dns.name.Name
+    ) -> Tuple[Optional[dns.name.Name], bool]:
+        """Get the delegation applicable to *name*, if it exists.
+
+        If there delegation, then return a tuple consisting of the name of
+        the delegation point, and a boolean which is `True` if the name is a proper
+        subdomain of the delegation point, and `False` if it is equal to the delegation
+        point.
+        """
+        cursor = self.cursor()
+        cursor.seek(name, before=False)
+        prev = cursor.prev()
+        if prev is None:
+            return None, False
+        cut = prev.key()
+        reln, _, _ = name.fullcompare(cut)
+        is_subdomain = reln == dns.name.NameRelation.SUBDOMAIN
+        if is_subdomain or reln == dns.name.NameRelation.EQUAL:
+            return cut, is_subdomain
+        else:
+            return None, False
+
+    def is_glue(self, name: dns.name.Name) -> bool:
+        """Is *name* glue, i.e. is it beneath a delegation?"""
+        cursor = self.cursor()
+        cursor.seek(name, before=False)
+        cut, is_subdomain = self.get_delegation(name)
+        if cut is None:
+            return False
+        return is_subdomain
+
+
+class WritableVersion(dns.zone.WritableVersion):
+    def __init__(self, zone: dns.zone.Zone, replacement: bool = False):
+        super().__init__(zone, True)
+        if not replacement:
+            assert isinstance(zone, dns.versioned.Zone)
+            version = zone._versions[-1]
+            self.nodes: dns.btree.BTreeDict[dns.name.Name, Node] = dns.btree.BTreeDict(
+                original=version.nodes  # type: ignore
+            )
+            self.delegations = Delegations(original=version.delegations)  # type: ignore
+        else:
+            self.delegations = Delegations()
+
+    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
+        node = super()._maybe_cow(name)
+        if name == self.zone.origin:
+            node.flags |= NodeFlags.ORIGIN  # type: ignore
+        elif self.delegations.is_glue(name):
+            node.flags |= NodeFlags.GLUE  # type: ignore
+        return node
+
+    def update_glue_flag(self, name: dns.name.Name, is_glue: bool) -> None:
+        cursor = self.nodes.cursor()  # type: ignore
+        cursor.seek(name, False)
+        updates = []
+        while True:
+            elt = cursor.next()
+            if elt is None:
+                break
+            ename = elt.key()
+            if not ename.is_subdomain(name):
+                break
+            node = cast(dns.node.Node, elt.value())
+            if ename not in self.changed:
+                new_node = self.zone.node_factory()
+                new_node.id = self.id  # type: ignore
+                new_node.rdatasets.extend(node.rdatasets)
+                self.changed.add(ename)
+                node = new_node
+            assert isinstance(node, Node)
+            if is_glue:
+                node.flags |= NodeFlags.GLUE
+            else:
+                node.flags &= ~NodeFlags.GLUE
+            # We don't update node here as any insertion could disturb the
+            # btree and invalidate our cursor.  We could use the cursor in a
+            # with block and avoid this, but it would do a lot of parking and
+            # unparking so the deferred update mode may still be better.
+            updates.append((ename, node))
+        for ename, node in updates:
+            self.nodes[ename] = node
+
+    def delete_node(self, name: dns.name.Name) -> None:
+        name = self._validate_name(name)
+        node = self.nodes.get(name)
+        if node is not None:
+            if node.is_delegation():  # type: ignore
+                self.delegations.discard(name)
+                self.update_glue_flag(name, False)
+            del self.nodes[name]
+            self.changed.add(name)
+
+    def put_rdataset(
+        self, name: dns.name.Name, rdataset: dns.rdataset.Rdataset
+    ) -> None:
+        node = self._maybe_cow(name)
+        if (
+            rdataset.rdtype == dns.rdatatype.NS and not node.is_origin_or_glue()  # type: ignore
+        ):
+            node.flags |= NodeFlags.DELEGATION  # type: ignore
+            if name not in self.delegations:
+                self.delegations.add(name)
+                self.update_glue_flag(name, True)
+        node.replace_rdataset(rdataset)
+
+    def delete_rdataset(
+        self,
+        name: dns.name.Name,
+        rdtype: dns.rdatatype.RdataType,
+        covers: dns.rdatatype.RdataType,
+    ) -> None:
+        node = self._maybe_cow(name)
+        if rdtype == dns.rdatatype.NS and name in self.delegations:  # type: ignore
+            node.flags &= ~NodeFlags.DELEGATION  # type: ignore
+            self.delegations.discard(name)  # type: ignore
+            self.update_glue_flag(name, False)
+        node.delete_rdataset(self.zone.rdclass, rdtype, covers)
+        if len(node) == 0:
+            del self.nodes[name]
+
+
+@dns.immutable.immutable
+class ImmutableVersion(dns.zone.Version):
+    def __init__(self, version: dns.zone.WritableVersion):
+        assert isinstance(version, WritableVersion)
+        super().__init__(version.zone, True)
+        self.id = version.id
+        self.origin = version.origin
+        for name in version.changed:
+            node = version.nodes.get(name)
+            if node:
+                version.nodes[name] = ImmutableNode(node)
+        # the cast below is for mypy
+        self.nodes = cast(MutableMapping[dns.name.Name, dns.node.Node], version.nodes)
+        self.nodes.make_immutable()  # type: ignore
+        self.delegations = version.delegations
+        self.delegations.make_immutable()
+
+
+class Zone(dns.versioned.Zone):
+    node_factory: Callable[[], dns.node.Node] = Node  # type: ignore
+    map_factory: Callable[[], MutableMapping[dns.name.Name, dns.node.Node]] = (
+        dns.btree.BTreeDict[dns.name.Name, Node]  # type: ignore
+    )
+    writable_version_factory: Optional[
+        Callable[[], dns.zone.WritableVersion]
+    ] = WritableVersion  # type: ignore
+    immutable_version_factory: Optional[
+        Callable[[], dns.zone.ImmutableVersion]
+    ] = ImmutableVersion  # type: ignore
