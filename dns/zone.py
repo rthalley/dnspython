@@ -131,8 +131,10 @@ class Zone(dns.transaction.TransactionManager):
 
     node_factory: Callable[[], dns.node.Node] = dns.node.Node
     map_factory: Callable[[], MutableMapping[dns.name.Name, dns.node.Node]] = dict
-    writable_version_factory: Optional[Callable[[], "WritableVersion"]] = None
-    immutable_version_factory: Optional[Callable[[], "ImmutableVersion"]] = None
+    # We only require the version types as "Version" to allow for flexibility, as
+    # only the version protocol matters
+    writable_version_factory: Optional[Callable[["Zone", bool], "Version"]] = None
+    immutable_version_factory: Optional[Callable[["Version"], "Version"]] = None
 
     __slots__ = ["rdclass", "origin", "nodes", "relativize"]
 
@@ -1074,7 +1076,11 @@ class WritableVersion(Version):
 
 @dns.immutable.immutable
 class ImmutableVersion(Version):
-    def __init__(self, version: WritableVersion):
+    def __init__(self, version: Version):
+        if not isinstance(version, WritableVersion):
+            raise ValueError(
+                "a dns.zone.ImmutableVersion requires a dns.zone.WritableVersion"
+            )
         # We tell super() that it's a replacement as we don't want it
         # to copy the nodes, as we're about to do that with an
         # immutable Dict.

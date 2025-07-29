@@ -34,8 +34,13 @@ class NodeFlags(enum.IntFlag):
 class Node(dns.node.Node):
     __slots__ = ["flags", "id"]
 
-    def __init__(self, flags: NodeFlags = 0):  # type: ignore
+    def __init__(self, flags: Optional[NodeFlags] = None):
         super().__init__()
+        if flags is None:
+            # We allow optional flags rather than a default
+            # as pyright doesn't like assigning a literal 0
+            # to flags.
+            flags = NodeFlags(0)
         self.flags = flags
         self.id = 0
 
@@ -226,8 +231,12 @@ class WritableVersion(dns.zone.WritableVersion):
 
 @dns.immutable.immutable
 class ImmutableVersion(dns.zone.Version):
-    def __init__(self, version: dns.zone.WritableVersion):
-        assert isinstance(version, WritableVersion)
+    def __init__(self, version: dns.zone.Version):
+        if not isinstance(version, WritableVersion):
+            raise ValueError(
+                "a dns.btreezone.ImmutableVersion requires a "
+                "dns.btreezone.WritableVersion"
+            )
         super().__init__(version.zone, True)
         self.id = version.id
         self.origin = version.origin
@@ -243,13 +252,14 @@ class ImmutableVersion(dns.zone.Version):
 
 
 class Zone(dns.versioned.Zone):
-    node_factory: Callable[[], dns.node.Node] = Node  # type: ignore
-    map_factory: Callable[[], MutableMapping[dns.name.Name, dns.node.Node]] = (
-        dns.btree.BTreeDict[dns.name.Name, Node]  # type: ignore
+    node_factory: Callable[[], dns.node.Node] = Node
+    map_factory: Callable[[], MutableMapping[dns.name.Name, dns.node.Node]] = cast(
+        Callable[[], MutableMapping[dns.name.Name, dns.node.Node]],
+        dns.btree.BTreeDict[dns.name.Name, Node],
     )
     writable_version_factory: Optional[
-        Callable[[], dns.zone.WritableVersion]
-    ] = WritableVersion  # type: ignore
+        Callable[[dns.zone.Zone, bool], dns.zone.Version]
+    ] = WritableVersion
     immutable_version_factory: Optional[
-        Callable[[], dns.zone.ImmutableVersion]
-    ] = ImmutableVersion  # type: ignore
+        Callable[[dns.zone.Version], dns.zone.Version]
+    ] = ImmutableVersion
