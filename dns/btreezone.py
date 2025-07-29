@@ -7,7 +7,7 @@
 # 2) Maintain sort order
 # 3) Allow delegations to be found easily
 # 4) Handle glue
-# 5) Add Node flags ORIGIN, DELEGATION, and GLUE whenever relevant.  The ORIIGN
+# 5) Add Node flags ORIGIN, DELEGATION, and GLUE whenever relevant.  The ORIGIN
 #    flag is set at the origin node, the DELEGATION FLAG is set at delegation
 #    points, and the GLUE flag is set on nodes beneath delegation points.
 
