@@ -151,13 +151,24 @@ class WritableVersion(dns.zone.WritableVersion):
         else:
             self.delegations = Delegations()
 
-    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
-        node = super()._maybe_cow(name)
-        if name == self.zone.origin:
-            node.flags |= NodeFlags.ORIGIN  # type: ignore
+    def _is_origin(self, name: dns.name.Name) -> bool:
+        # Assumes name has already been validated (and thus adjusted to the right
+        # relativity too)
+        if self.zone.relativize:
+            return name == dns.name.empty
+        else:
+            return name == self.zone.origin
+
+    def _maybe_cow_with_name(
+        self, name: dns.name.Name
+    ) -> Tuple[dns.node.Node, dns.name.Name]:
+        (node, name) = super()._maybe_cow_with_name(name)
+        node = cast(Node, node)
+        if self._is_origin(name):
+            node.flags |= NodeFlags.ORIGIN
         elif self.delegations.is_glue(name):
-            node.flags |= NodeFlags.GLUE  # type: ignore
-        return node
+            node.flags |= NodeFlags.GLUE
+        return (node, name)
 
     def update_glue_flag(self, name: dns.name.Name, is_glue: bool) -> None:
         cursor = self.nodes.cursor()  # type: ignore
@@ -203,7 +214,7 @@ class WritableVersion(dns.zone.WritableVersion):
     def put_rdataset(
         self, name: dns.name.Name, rdataset: dns.rdataset.Rdataset
     ) -> None:
-        node = self._maybe_cow(name)
+        (node, name) = self._maybe_cow_with_name(name)
         if (
             rdataset.rdtype == dns.rdatatype.NS and not node.is_origin_or_glue()  # type: ignore
         ):
@@ -219,7 +230,7 @@ class WritableVersion(dns.zone.WritableVersion):
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType,
     ) -> None:
-        node = self._maybe_cow(name)
+        (node, name) = self._maybe_cow_with_name(name)
         if rdtype == dns.rdatatype.NS and name in self.delegations:  # type: ignore
             node.flags &= ~NodeFlags.DELEGATION  # type: ignore
             self.delegations.discard(name)  # type: ignore

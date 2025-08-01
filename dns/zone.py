@@ -1028,7 +1028,9 @@ class WritableVersion(Version):
         self.origin = zone.origin
         self.changed: Set[dns.name.Name] = set()
 
-    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
+    def _maybe_cow_with_name(
+        self, name: dns.name.Name
+    ) -> Tuple[dns.node.Node, dns.name.Name]:
         name = self._validate_name(name)
         node = self.nodes.get(name)
         if node is None or name not in self.changed:
@@ -1046,9 +1048,12 @@ class WritableVersion(Version):
                 new_node.rdatasets.extend(node.rdatasets)
             self.nodes[name] = new_node
             self.changed.add(name)
-            return new_node
+            return (new_node, name)
         else:
-            return node
+            return (node, name)
+
+    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
+        return self._maybe_cow_with_name(name)[0]
 
     def delete_node(self, name: dns.name.Name) -> None:
         name = self._validate_name(name)
