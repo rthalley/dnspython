@@ -73,9 +73,16 @@ def do_test_obscure_and_expose(relativize: bool):
     assert not n.is_glue()
     assert not n.is_origin()
     assert not n.is_origin_or_glue()
+    sub2_name = z._validate_name("sub2")
+    with z.reader() as txn:
+        version = cast(dns.btreezone.ImmutableVersion, txn.version)
+        assert sub2_name not in version.delegations
     rds = dns.rdataset.from_text("in", "ns", 300, "ns1.sub2", "ns2.sub2")
     with z.writer() as txn:
         txn.replace("sub2", rds)
+    with z.reader() as txn:
+        version = cast(dns.btreezone.ImmutableVersion, txn.version)
+        assert sub2_name in version.delegations
     n = cast(Node, z.get_node("ns1.sub2"))
     assert not n.is_delegation()
     assert n.is_glue()
@@ -84,6 +91,9 @@ def do_test_obscure_and_expose(relativize: bool):
     with z.writer() as txn:
         txn.delete("sub2")
         txn.delete("ns2.sub2")  # for other coverage purposes!
+    with z.reader() as txn:
+        version = cast(dns.btreezone.ImmutableVersion, txn.version)
+        assert sub2_name not in version.delegations
     n = cast(Node, z.get_node("ns1.sub2"))
     assert not n.is_delegation()
     assert not n.is_glue()
@@ -93,6 +103,9 @@ def do_test_obscure_and_expose(relativize: bool):
     rds = dns.rdataset.from_text("in", "ns", 300, "ns1.sub2", "ns2.sub2")
     with z.writer() as txn:
         txn.replace("sub2", rds)
+    with z.reader() as txn:
+        version = cast(dns.btreezone.ImmutableVersion, txn.version)
+        assert sub2_name in version.delegations
     n = cast(Node, z.get_node("ns1.sub2"))
     assert not n.is_delegation()
     assert n.is_glue()
@@ -100,6 +113,9 @@ def do_test_obscure_and_expose(relativize: bool):
     assert n.is_origin_or_glue()
     with z.writer() as txn:
         txn.delete("sub2", "NS")
+    with z.reader() as txn:
+        version = cast(dns.btreezone.ImmutableVersion, txn.version)
+        assert sub2_name not in version.delegations
     n = cast(Node, z.get_node("ns1.sub2"))
     assert not n.is_delegation()
     assert not n.is_glue()
@@ -113,3 +129,32 @@ def test_obscure_and_expose_absolute():
 
 def test_obscure_and_expose_relative():
     do_test_obscure_and_expose(True)
+
+
+def do_test_delegations(relativize: bool):
+    z = make_example(simple_zone, relativize=relativize)
+    with z.reader() as txn:
+        version = cast(dns.btreezone.ImmutableVersion, txn.version)
+        name = z._validate_name("a.b.c.sub.example.")
+        delegation, is_glue = version.delegations.get_delegation(name)
+        assert delegation == z._validate_name("sub.example.")
+        assert is_glue
+        assert version.delegations.is_glue(name)
+        name = z._validate_name("sub.example.")
+        delegation, is_glue = version.delegations.get_delegation(name)
+        assert delegation == z._validate_name("sub.example.")
+        assert not is_glue
+        assert not version.delegations.is_glue(name)
+        name = z._validate_name("text.example.")
+        delegation, is_glue = version.delegations.get_delegation(name)
+        assert delegation is None
+        assert not is_glue
+        assert not version.delegations.is_glue(name)
+
+
+def test_delegations_absolute():
+    do_test_delegations(False)
+
+
+def test_delegations_relative():
+    do_test_delegations(True)
