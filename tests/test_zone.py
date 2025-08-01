@@ -23,6 +23,7 @@ import unittest
 from io import BytesIO, StringIO
 from typing import cast
 
+import dns.btreezone
 import dns.exception
 import dns.message
 import dns.name
@@ -1172,9 +1173,11 @@ class ZoneTestCase(unittest.TestCase):
 
 
 class VersionedZoneTestCase(unittest.TestCase):
+    zone_factory = dns.versioned.Zone
+
     def testUseTransaction(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         with self.assertRaises(dns.versioned.UseTransaction):
             z.find_node("not_there", True)
@@ -1191,7 +1194,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testImmutableNodes(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         node = z.find_node("@")
         with self.assertRaises(TypeError):
@@ -1205,7 +1208,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testSelectDefaultPruningPolicy(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         z.set_pruning_policy(None)
         self.assertEqual(z._pruning_policy, z._default_pruning_policy)
@@ -1219,28 +1222,28 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testCannotSpecifyBothSerialAndVersionIdToReader(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         with self.assertRaises(ValueError):
             z.reader(1, 1)
 
     def testUnknownVersion(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         with self.assertRaises(KeyError):
             z.reader(99999)
 
     def testUnknownSerial(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         with self.assertRaises(KeyError):
             z.reader(serial=99999)
 
     def testNoRelativizeReader(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=False, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=False, zone_factory=self.zone_factory
         )
         with z.reader(serial=1) as txn:
             rds = txn.get("example.", "soa")
@@ -1248,7 +1251,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testNoRelativizeReaderOriginInText(self):
         z = dns.zone.from_text(
-            example_text, relativize=False, zone_factory=dns.versioned.Zone
+            example_text, relativize=False, zone_factory=self.zone_factory
         )
         with z.reader(serial=1) as txn:
             rds = txn.get("example.", "soa")
@@ -1256,7 +1259,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testNoRelativizeReaderAbsoluteGet(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=False, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=False, zone_factory=self.zone_factory
         )
         with z.reader(serial=1) as txn:
             rds = txn.get(dns.name.empty, "soa")
@@ -1264,7 +1267,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testCnameAndOtherDataAddOther(self):
         z = dns.zone.from_text(
-            example_cname, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_cname, "example.", relativize=True, zone_factory=self.zone_factory
         )
         rds = dns.rdataset.from_text("in", "a", 300, "10.0.0.1")
         with z.writer() as txn:
@@ -1290,7 +1293,7 @@ class VersionedZoneTestCase(unittest.TestCase):
             example_other_data,
             "example.",
             relativize=True,
-            zone_factory=dns.versioned.Zone,
+            zone_factory=self.zone_factory,
         )
         rds = dns.rdataset.from_text("in", "cname", 300, "www")
         with z.writer() as txn:
@@ -1305,7 +1308,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testGetSoa(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         soa = z.get_soa()
         self.assertTrue(soa.rdtype, dns.rdatatype.SOA)
@@ -1313,7 +1316,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testGetSoaTxn(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         with z.reader(serial=1) as txn:
             soa = z.get_soa(txn)
@@ -1327,7 +1330,7 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testGetRdataset1(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         rds = z.get_rdataset("@", "soa")
         exrds = dns.rdataset.from_text("IN", "SOA", 300, "foo bar 1 2 3 4 5")
@@ -1335,10 +1338,14 @@ class VersionedZoneTestCase(unittest.TestCase):
 
     def testGetRdataset2(self):
         z = dns.zone.from_text(
-            example_text, "example.", relativize=True, zone_factory=dns.versioned.Zone
+            example_text, "example.", relativize=True, zone_factory=self.zone_factory
         )
         rds = z.get_rdataset("@", "loc")
         self.assertTrue(rds is None)
+
+
+class BTreeZoneTestCase(VersionedZoneTestCase):
+    zone_factory = dns.btreezone.Zone
 
 
 if __name__ == "__main__":

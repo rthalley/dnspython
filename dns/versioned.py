@@ -41,7 +41,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
         "_readers",
     ]
 
-    node_factory = Node
+    node_factory: Callable[[], dns.node.Node] = Node
 
     def __init__(
         self,

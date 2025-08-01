@@ -131,8 +131,10 @@ class Zone(dns.transaction.TransactionManager):
 
     node_factory: Callable[[], dns.node.Node] = dns.node.Node
     map_factory: Callable[[], MutableMapping[dns.name.Name, dns.node.Node]] = dict
-    writable_version_factory: Optional[Callable[[], "WritableVersion"]] = None
-    immutable_version_factory: Optional[Callable[[], "ImmutableVersion"]] = None
+    # We only require the version types as "Version" to allow for flexibility, as
+    # only the version protocol matters
+    writable_version_factory: Optional[Callable[["Zone", bool], "Version"]] = None
+    immutable_version_factory: Optional[Callable[["Version"], "Version"]] = None
 
     __slots__ = ["rdclass", "origin", "nodes", "relativize"]
 
@@ -1026,7 +1028,9 @@ class WritableVersion(Version):
         self.origin = zone.origin
         self.changed: Set[dns.name.Name] = set()
 
-    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
+    def _maybe_cow_with_name(
+        self, name: dns.name.Name
+    ) -> Tuple[dns.node.Node, dns.name.Name]:
         name = self._validate_name(name)
         node = self.nodes.get(name)
         if node is None or name not in self.changed:
@@ -1044,9 +1048,12 @@ class WritableVersion(Version):
                 new_node.rdatasets.extend(node.rdatasets)
             self.nodes[name] = new_node
             self.changed.add(name)
-            return new_node
+            return (new_node, name)
         else:
-            return node
+            return (node, name)
+
+    def _maybe_cow(self, name: dns.name.Name) -> dns.node.Node:
+        return self._maybe_cow_with_name(name)[0]
 
     def delete_node(self, name: dns.name.Name) -> None:
         name = self._validate_name(name)
@@ -1074,7 +1081,11 @@ class WritableVersion(Version):
 
 @dns.immutable.immutable
 class ImmutableVersion(Version):
-    def __init__(self, version: WritableVersion):
+    def __init__(self, version: Version):
+        if not isinstance(version, WritableVersion):
+            raise ValueError(
+                "a dns.zone.ImmutableVersion requires a dns.zone.WritableVersion"
+            )
         # We tell super() that it's a replacement as we don't want it
         # to copy the nodes, as we're about to do that with an
         # immutable Dict.
