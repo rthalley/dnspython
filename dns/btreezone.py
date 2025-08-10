@@ -294,22 +294,22 @@ class ImmutableVersion(dns.zone.Version):
         point.  The other data in the ``Bounds`` object is useful for making on-the-fly
         DNSSEC signatures.
 
-        The left bound of a name is the name itself (if in the zone), or the greatest
-        predecessor of the name.
+        The left bound of *name* is *name* itself if it is in the zone, or the greatest
+        predecessor which is in the zone.
 
-        The right bound of a name is the least successor of the name, or ``None`` if
-        the name is the greatest name in the zone.
+        The right bound of *name* is the least successor of *name*, or ``None`` if
+        no name in the zone is greater than *name*.
 
-        The closest encloser of a name is *name* itself, if *name* is in the zone;
+        The closest encloser of *name* is *name* itself, if *name* is in the zone;
         otherwise it is the name with the largest number of labels in common with
         *name* that is in the zone, either explicitly or by the implied existence
         of empty non-terminals.
 
-        The bounds *is_equal* field is ``True`` if and only if the name is equal to
+        The bounds *is_equal* field is ``True`` if and only if *name* is equal to
         its left bound.
 
         The bounds *is_delegation* field is ``True`` if and only if the left bound is a
-        zonecut.
+        delegation point.
         """
         assert self.origin is not None
         # validate the origin because we may need to relativize
