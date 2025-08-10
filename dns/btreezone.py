@@ -12,6 +12,7 @@
 #    points, and the GLUE flag is set on nodes beneath delegation points.
 
 import enum
+from dataclasses import dataclass
 from typing import Callable, MutableMapping, Optional, Tuple, cast
 
 import dns.btree
@@ -240,6 +241,30 @@ class WritableVersion(dns.zone.WritableVersion):
             del self.nodes[name]
 
 
+@dataclass(frozen=True)
+class Bounds:
+    name: dns.name.Name
+    left: dns.name.Name
+    right: Optional[dns.name.Name]
+    closest_encloser: dns.name.Name
+    is_equal: bool
+    is_delegation: bool
+
+    def __str__(self):
+        if self.is_equal:
+            op = "="
+        else:
+            op = "<"
+        if self.is_delegation:
+            zonecut = " zonecut"
+        else:
+            zonecut = ""
+        return (
+            f"{self.left} {op} {self.name} < {self.right}{zonecut}; "
+            f"{self.closest_encloser}"
+        )
+
+
 @dns.immutable.immutable
 class ImmutableVersion(dns.zone.Version):
     def __init__(self, version: dns.zone.Version):
@@ -260,6 +285,74 @@ class ImmutableVersion(dns.zone.Version):
         self.nodes.make_immutable()  # type: ignore
         self.delegations = version.delegations
         self.delegations.make_immutable()
+
+    def bounds(self, name: dns.name.Name | str) -> Bounds:
+        """Return the 'bounds' of *name* in its zone.
+
+        The bounds information is useful when making an authoritative response, as
+        it can be used to determine whether the query name is at or beneath a delegation
+        point.  The other data in the ``Bounds`` object is useful for making on-the-fly
+        DNSSEC signatures.
+
+        The left bound of a name is the name itself (if in the zone), or the greatest
+        predecessor of the name.
+
+        The right bound of a name is the least successor of the name, or ``None`` if
+        the name is the greatest name in the zone.
+
+        The closest encloser of a name is *name* itself, if *name* is in the zone;
+        otherwise it is the name with the largest number of labels in common with
+        *name* that is in the zone, either explicitly or by the implied existence
+        of empty non-terminals.
+
+        The bounds *is_equal* field is ``True`` if and only if the name is equal to
+        its left bound.
+
+        The bounds *is_delegation* field is ``True`` if and only if the left bound is a
+        zonecut.
+        """
+        assert self.origin is not None
+        # validate the origin because we may need to relativize
+        origin = self.zone._validate_name(self.origin)
+        name = self.zone._validate_name(name)
+        cut, _ = self.delegations.get_delegation(name)
+        if cut is not None:
+            target = cut
+            is_delegation = True
+        else:
+            target = name
+            is_delegation = False
+        c = cast(dns.btree.BTreeDict, self.nodes).cursor()
+        c.seek(target, False)
+        left = c.prev()
+        assert left is not None
+        c.next()  # skip over left
+        while True:
+            right = c.next()
+            if right is None or not right.value().is_glue():
+                break
+        left_comparison = left.key().fullcompare(name)
+        if right is not None:
+            right_key = right.key()
+            right_comparison = right_key.fullcompare(name)
+        else:
+            right_comparison = (
+                dns.name.NAMERELN_COMMONANCESTOR,
+                -1,
+                len(origin),
+            )
+            right_key = None
+        closest_encloser = dns.name.Name(
+            name[-max(left_comparison[2], right_comparison[2]) :]
+        )
+        return Bounds(
+            name,
+            left.key(),
+            right_key,
+            closest_encloser,
+            left_comparison[0] == dns.name.NameRelation.EQUAL,
+            is_delegation,
+        )
 
 
 class Zone(dns.versioned.Zone):

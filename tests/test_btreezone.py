@@ -14,6 +14,9 @@ $TTL 300
 @ ns ns2
 ns1 a 10.0.0.1
 ns2 a 10.0.0.2
+a txt "a"
+c.b.a txt "cba"
+b txt "b"
 sub ns ns1.sub
 sub ns ns2.sub
 ns1.sub a 10.0.0.3
@@ -21,6 +24,7 @@ ns2.sub a 10.0.0.4
 ns1.sub2 a 10.0.0.5
 ns2.sub2 a 10.0.0.6
 text txt "here to be after sub2"
+z txt "z"
 """
 
 
@@ -158,3 +162,75 @@ def test_delegations_absolute():
 
 def test_delegations_relative():
     do_test_delegations(True)
+
+
+def do_test_bounds(relativize: bool):
+    z = make_example(simple_zone, relativize=relativize)
+    with z.reader() as txn:
+        version = cast(dns.btreezone.ImmutableVersion, txn.version)
+        # tuple is (name, left, right, closest, is_equal, is_delegation)
+        tests = [
+            ("example.", "example.", "a.example.", "example.", True, False),
+            ("a.z.example.", "z.example.", None, "z.example.", False, False),
+            (
+                "a.b.a.example.",
+                "a.example.",
+                "c.b.a.example.",
+                "b.a.example.",
+                False,
+                False,
+            ),
+            (
+                "d.b.a.example.",
+                "c.b.a.example.",
+                "b.example.",
+                "b.a.example.",
+                False,
+                False,
+            ),
+            (
+                "d.c.b.a.example.",
+                "c.b.a.example.",
+                "b.example.",
+                "c.b.a.example.",
+                False,
+                False,
+            ),
+            (
+                "sub.example.",
+                "sub.example.",
+                "ns1.sub2.example.",
+                "sub.example.",
+                True,
+                True,
+            ),
+            (
+                "ns1.sub.example.",
+                "sub.example.",
+                "ns1.sub2.example.",
+                "sub.example.",
+                False,
+                True,
+            ),
+        ]
+        for name, left, right, closest, is_equal, is_delegation in tests:
+            name = z._validate_name(name)
+            left = z._validate_name(left)
+            if right is not None:
+                right = z._validate_name(right)
+            closest = z._validate_name(closest)
+            bounds = version.bounds(name)
+            print(bounds)
+            assert bounds.left == left
+            assert bounds.right == right
+            assert bounds.closest_encloser == closest
+            assert bounds.is_equal == is_equal
+            assert bounds.is_delegation == is_delegation
+
+
+def test_bounds_absolute():
+    do_test_bounds(False)
+
+
+def test_bounds_relative():
+    do_test_bounds(True)
