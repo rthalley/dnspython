@@ -13,7 +13,7 @@
 
 import enum
 from dataclasses import dataclass
-from typing import Callable, MutableMapping, Optional, Tuple, cast
+from typing import Callable, MutableMapping, Optional, Tuple, Union, cast
 
 import dns.btree
 import dns.immutable
@@ -286,7 +286,7 @@ class ImmutableVersion(dns.zone.Version):
         self.delegations = version.delegations
         self.delegations.make_immutable()
 
-    def bounds(self, name: dns.name.Name | str) -> Bounds:
+    def bounds(self, name: Union[dns.name.Name, str]) -> Bounds:
         """Return the 'bounds' of *name* in its zone.
 
         The bounds information is useful when making an authoritative response, as
