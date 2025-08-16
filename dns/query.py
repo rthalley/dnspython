@@ -1317,7 +1317,7 @@ def make_ssl_context(
             ssl_context.verify_mode = ssl.CERT_NONE  # type: ignore
         if alpns is not None:
             ssl_context.set_alpn_protocols(alpns)
-        return ssl_context
+        return ssl_context  # type: ignore
     else:
         raise Exception("ssl is not available")
 
