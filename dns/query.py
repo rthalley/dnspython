@@ -46,12 +46,8 @@ import dns.xfr
 
 try:
     import ssl
-
-    have_ssl = True
 except ImportError:
     import dns._no_ssl as ssl  # type: ignore
-
-    have_ssl = False
 
 
 def _remaining(expiration):
@@ -1306,20 +1302,17 @@ def make_ssl_context(
     *aplns* is ``None`` or a list of TLS ALPN (Application Layer Protocol Negotiation)
     strings to use in negotiation.  For DNS-over-TLS, the right value is `["dot"]`.
     """
-    if have_ssl:
-        cafile, capath = dns._tls_util.convert_verify_to_cafile_and_capath(verify)
-        ssl_context = ssl.create_default_context(cafile=cafile, capath=capath)
-        # the pyright ignores below are because it gets confused between the
-        # _no_ssl compatibility types and the real ones.
-        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2  # type: ignore
-        ssl_context.check_hostname = check_hostname
-        if verify is False:
-            ssl_context.verify_mode = ssl.CERT_NONE  # type: ignore
-        if alpns is not None:
-            ssl_context.set_alpn_protocols(alpns)
-        return ssl_context  # type: ignore
-    else:
-        raise Exception("ssl is not available")
+    cafile, capath = dns._tls_util.convert_verify_to_cafile_and_capath(verify)
+    ssl_context = ssl.create_default_context(cafile=cafile, capath=capath)
+    # the pyright ignores below are because it gets confused between the
+    # _no_ssl compatibility types and the real ones.
+    ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2  # type: ignore
+    ssl_context.check_hostname = check_hostname
+    if verify is False:
+        ssl_context.verify_mode = ssl.CERT_NONE  # type: ignore
+    if alpns is not None:
+        ssl_context.set_alpn_protocols(alpns)
+    return ssl_context  # type: ignore
 
 
 # for backwards compatibility
