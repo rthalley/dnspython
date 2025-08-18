@@ -32,8 +32,6 @@ import dns.inet
 import dns.message
 import dns.name
 import dns.quic
-import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
 import dns.transaction
 import dns.tsig
@@ -47,12 +45,16 @@ from dns.query import (
     UDPMode,
     _check_status,
     _compute_times,
-    _make_dot_ssl_context,
     _matches_destination,
     _remaining,
     have_doh,
-    ssl,
+    make_ssl_context,
 )
+
+try:
+    import ssl
+except ImportError:
+    import dns._no_ssl as ssl  # type: ignore
 
 if have_doh:
     import httpx
@@ -476,9 +478,7 @@ async def tls(
         cm: contextlib.AbstractAsyncContextManager = NullContext(sock)
     else:
         if ssl_context is None:
-            ssl_context = _make_dot_ssl_context(
-                server_hostname, verify
-            )  # pyright: ignore
+            ssl_context = make_ssl_context(verify, server_hostname is not None, ["dot"])
         af = dns.inet.af_for_address(where)
         stuple = _source_tuple(af, source, source_port)
         dtuple = (where, port)
@@ -648,7 +648,7 @@ async def https(
         )
 
         cm = httpx.AsyncClient(  # pyright: ignore
-            http1=h1, http2=h2, verify=verify, transport=transport
+            http1=h1, http2=h2, verify=verify, transport=transport  # type: ignore
         )
 
     async with cm as the_client:
