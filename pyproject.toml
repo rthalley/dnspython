@@ -31,25 +31,25 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
-    "black>=23.1.0",
+    "black>=25.1.0",
     "coverage>=7.0",
-    "hypercorn>=0.16.0",
+    "hypercorn>=0.17.0",
     "flake8>=7",
-    "mypy>=1.8",
+    "mypy>=1.17",
     "pylint>=3",
-    "pytest>=7.4",
-    "pytest-cov>=4.1.0",
-    "quart-trio>=0.11.0",
-    "sphinx>=7.2.0",
-    "sphinx-rtd-theme>=2.0.0",
-    "twine>=4.0.0",
-    "wheel>=0.42.0",
+    "pytest>=8.4",
+    "pytest-cov>=6.2.0",
+    "quart-trio>=0.12.0",
+    "sphinx>=8.2.0",
+    "sphinx-rtd-theme>=3.0.0",
+    "twine>=6.1.0",
+    "wheel>=0.45.0",
 ]
-dnssec = ["cryptography>=43"]
-doh = ["httpcore>=1.0.0", "httpx>=0.26.0", "h2>=4.1.0"]
-doq = ["aioquic>=1.0.0"]
-idna = ["idna>=3.7"]
-trio = ["trio>=0.23"]
+dnssec = ["cryptography>=45"]
+doh = ["httpcore>=1.0.0", "httpx>=0.28.0", "h2>=4.2.0"]
+doq = ["aioquic>=1.2.0"]
+idna = ["idna>=3.10"]
+trio = ["trio>=0.30"]
 wmi = ["wmi>=1.5.1; platform_system=='Windows'"]
 
 [project.urls]
