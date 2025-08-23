@@ -310,6 +310,7 @@ CSYNC = RdataType.CSYNC
 ZONEMD = RdataType.ZONEMD
 SVCB = RdataType.SVCB
 HTTPS = RdataType.HTTPS
+DSYNC = RdataType.DSYNC
 SPF = RdataType.SPF
 UNSPEC = RdataType.UNSPEC
 NID = RdataType.NID
@@ -333,6 +334,5 @@ RESINFO = RdataType.RESINFO
 WALLET = RdataType.WALLET
 TA = RdataType.TA
 DLV = RdataType.DLV
-DSYNC = RdataType.DSYNC
 
 ### END generated RdataType constants
