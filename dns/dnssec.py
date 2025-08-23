@@ -28,7 +28,6 @@ from datetime import datetime
 from typing import Callable, Dict, List, Set, Tuple, Union, cast
 
 import dns._features
-import dns.exception
 import dns.name
 import dns.node
 import dns.rdata
@@ -39,12 +38,8 @@ import dns.rrset
 import dns.transaction
 import dns.zone
 from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
-from dns.exception import (  # pylint: disable=W0611
-    AlgorithmKeyMismatch,
-    DeniedByPolicy,
-    UnsupportedAlgorithm,
-    ValidationFailure,
-)
+from dns.exception import AlgorithmKeyMismatch as AlgorithmKeyMismatch
+from dns.exception import DeniedByPolicy, UnsupportedAlgorithm, ValidationFailure
 from dns.rdtypes.ANY.CDNSKEY import CDNSKEY
 from dns.rdtypes.ANY.CDS import CDS
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
@@ -1196,7 +1191,6 @@ def _need_pyca(*args, **kwargs):
 
 if dns._features.have("dnssec"):
     from cryptography.exceptions import InvalidSignature
-    from cryptography.hazmat.primitives.asymmetric import dsa  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import ec  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import ed448  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=W0611
