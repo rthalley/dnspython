@@ -201,6 +201,26 @@ Universal Types
 
       A ``bytes``, the digest of the key.
 
+.. autoclass:: dns.rdtypes.ANY.DSYNC.DSYNC
+   :members:
+
+   .. attribute:: rrtype
+
+      A ``dns.rdatatype.RdataType``, the type this DSYNC record will notify about.
+
+   .. attribute:: scheme
+
+      A ``dns.rdtypes.ANY.DSYNC.Scheme`` the scheme to use, typically
+      ``dns.rdtypes.ANY.DSYNC.Scheme.NOTIFY``.
+
+   .. attribute:: port
+
+      An ``int``, the port to notify.
+
+   .. attribute:: target
+
+      A ``dns.name.Name``, the hostname of the notification receiver.
+
 .. autoclass:: dns.rdtypes.ANY.EUI48.EUI48
    :members:
 
