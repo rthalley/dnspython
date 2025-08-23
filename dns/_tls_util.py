@@ -1,14 +1,14 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import os
-from typing import Optional, Tuple, Union
+from typing import Tuple
 
 
 def convert_verify_to_cafile_and_capath(
-    verify: Union[bool, str],
-) -> Tuple[Optional[str], Optional[str]]:
-    cafile: Optional[str] = None
-    capath: Optional[str] = None
+    verify: bool | str,
+) -> Tuple[str | None, str | None]:
+    cafile: str | None = None
+    capath: str | None = None
     if isinstance(verify, str):
         if os.path.isfile(verify):
             cafile = verify

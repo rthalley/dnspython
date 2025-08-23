@@ -20,7 +20,7 @@
 import io
 import random
 import struct
-from typing import Any, Collection, Dict, List, Optional, Union, cast
+from typing import Any, Collection, Dict, List, cast
 
 import dns.exception
 import dns.immutable
@@ -99,7 +99,7 @@ class Rdataset(dns.set.Set):
 
     # pylint: disable=arguments-differ,arguments-renamed
     def add(  # pyright: ignore
-        self, rd: dns.rdata.Rdata, ttl: Optional[int] = None
+        self, rd: dns.rdata.Rdata, ttl: int | None = None
     ) -> None:
         """Add the specified rdata to the rdataset.
 
@@ -198,10 +198,10 @@ class Rdataset(dns.set.Set):
 
     def to_text(
         self,
-        name: Optional[dns.name.Name] = None,
-        origin: Optional[dns.name.Name] = None,
+        name: dns.name.Name | None = None,
+        origin: dns.name.Name | None = None,
         relativize: bool = True,
-        override_rdclass: Optional[dns.rdataclass.RdataClass] = None,
+        override_rdclass: dns.rdataclass.RdataClass | None = None,
         want_comments: bool = False,
         **kw: Dict[str, Any],
     ) -> str:
@@ -274,9 +274,9 @@ class Rdataset(dns.set.Set):
         self,
         name: dns.name.Name,
         file: Any,
-        compress: Optional[dns.name.CompressType] = None,
-        origin: Optional[dns.name.Name] = None,
-        override_rdclass: Optional[dns.rdataclass.RdataClass] = None,
+        compress: dns.name.CompressType | None = None,
+        origin: dns.name.Name | None = None,
+        override_rdclass: dns.rdataclass.RdataClass | None = None,
         want_shuffle: bool = True,
     ) -> int:
         """Convert the rdataset to wire format.
@@ -313,7 +313,7 @@ class Rdataset(dns.set.Set):
             file.write(struct.pack("!HHIH", self.rdtype, rdclass, 0, 0))
             return 1
         else:
-            l: Union[Rdataset, List[dns.rdata.Rdata]]
+            l: Rdataset | List[dns.rdata.Rdata]
             if want_shuffle:
                 l = list(self)
                 random.shuffle(l)
@@ -425,14 +425,14 @@ class ImmutableRdataset(Rdataset):  # lgtm[py/missing-equals]
 
 
 def from_text_list(
-    rdclass: Union[dns.rdataclass.RdataClass, str],
-    rdtype: Union[dns.rdatatype.RdataType, str],
+    rdclass: dns.rdataclass.RdataClass | str,
+    rdtype: dns.rdatatype.RdataType | str,
     ttl: int,
     text_rdatas: Collection[str],
-    idna_codec: Optional[dns.name.IDNACodec] = None,
-    origin: Optional[dns.name.Name] = None,
+    idna_codec: dns.name.IDNACodec | None = None,
+    origin: dns.name.Name | None = None,
     relativize: bool = True,
-    relativize_to: Optional[dns.name.Name] = None,
+    relativize_to: dns.name.Name | None = None,
 ) -> Rdataset:
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified list of rdatas in text format.
@@ -465,8 +465,8 @@ def from_text_list(
 
 
 def from_text(
-    rdclass: Union[dns.rdataclass.RdataClass, str],
-    rdtype: Union[dns.rdatatype.RdataType, str],
+    rdclass: dns.rdataclass.RdataClass | str,
+    rdtype: dns.rdatatype.RdataType | str,
     ttl: int,
     *text_rdatas: Any,
 ) -> Rdataset:

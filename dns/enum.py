@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import enum
-from typing import Any, Optional, Type, TypeVar, Union
+from typing import Any, Type, TypeVar
 
 TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 
@@ -69,7 +69,7 @@ class IntEnum(enum.IntEnum):
         return text
 
     @classmethod
-    def make(cls: Type[TIntEnum], value: Union[int, str]) -> TIntEnum:
+    def make(cls: Type[TIntEnum], value: int | str) -> TIntEnum:
         """Convert text or a value into an enumerated type, if possible.
 
         *value*, the ``int`` or ``str`` to convert.
@@ -101,7 +101,7 @@ class IntEnum(enum.IntEnum):
         return ""
 
     @classmethod
-    def _extra_from_text(cls, text: str) -> Optional[Any]:  # pylint: disable=W0613
+    def _extra_from_text(cls, text: str) -> Any | None:  # pylint: disable=W0613
         return None
 
     @classmethod

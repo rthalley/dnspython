@@ -130,7 +130,7 @@ class _Node(Generic[KT, ET]):
             child = self.maybe_cow_child(i)
             return child._get_node(key)
 
-    def get(self, key: KT) -> Optional[ET]:
+    def get(self, key: KT) -> ET | None:
         """Get the element associated with *key* or return ``None``"""
         i, equal = self.search_in_node(key)
         if equal:
@@ -158,7 +158,7 @@ class _Node(Generic[KT, ET]):
             if not left.try_right_steal(self, index - 1):
                 break
 
-    def insert_nonfull(self, element: ET, in_order: bool) -> Optional[ET]:
+    def insert_nonfull(self, element: ET, in_order: bool) -> ET | None:
         assert not self.is_maximal()
         while True:
             key = element.key()
@@ -292,8 +292,8 @@ class _Node(Generic[KT, ET]):
             left.merge(parent, index - 1)
 
     def delete(
-        self, key: KT, parent: Optional["_Node[KT, ET]"], exact: Optional[ET]
-    ) -> Optional[ET]:
+        self, key: KT, parent: Optional["_Node[KT, ET]"], exact: ET | None
+    ) -> ET | None:
         """Delete an element matching *key* if it exists.  If *exact* is not ``None``
         then it must be an exact match with that element.  The Node must not be
         minimal unless it is the root."""
@@ -388,7 +388,7 @@ class Cursor(Generic[KT, ET]):
 
     def __init__(self, btree: "BTree[KT, ET]"):
         self.btree = btree
-        self.current_node: Optional[_Node] = None
+        self.current_node: _Node | None = None
         # The current index is the element index within the current node, or
         # if there is no current node then it is 0 on the left boundary and 1
         # on the right boundary.
@@ -397,7 +397,7 @@ class Cursor(Generic[KT, ET]):
         self.increasing = True
         self.parents: list[tuple[_Node, int]] = []
         self.parked = False
-        self.parking_key: Optional[KT] = None
+        self.parking_key: KT | None = None
         self.parking_key_read = False
 
     def _seek_least(self) -> None:
@@ -451,7 +451,7 @@ class Cursor(Generic[KT, ET]):
             self.parked = False
             self.parking_key = None
 
-    def prev(self) -> Optional[ET]:
+    def prev(self) -> ET | None:
         """Get the previous element, or return None if on the left boundary."""
         self._maybe_unpark()
         self.parking_key = None
@@ -491,7 +491,7 @@ class Cursor(Generic[KT, ET]):
                     self.current_index = 0
                     return None
 
-    def next(self) -> Optional[ET]:
+    def next(self) -> ET | None:
         """Get the next element, or return None if on the right boundary."""
         self._maybe_unpark()
         self.parking_key = None
@@ -662,7 +662,7 @@ class BTree(Generic[KT, ET]):
     # delete_key() so that BTreeDict can be a proper MutableMapping and supply the
     # rest of the standard mapping API.
 
-    def insert_element(self, elt: ET, in_order: bool = False) -> Optional[ET]:
+    def insert_element(self, elt: ET, in_order: bool = False) -> ET | None:
         """Insert the element into the BTree.
 
         If *in_order* is ``True``, then extra work will be done to make left siblings
@@ -685,13 +685,13 @@ class BTree(Generic[KT, ET]):
             self.size += 1
         return oelt
 
-    def get_element(self, key: KT) -> Optional[ET]:
+    def get_element(self, key: KT) -> ET | None:
         """Get the element matching *key* from the BTree, or return ``None`` if it
         does not exist.
         """
         return self.root.get(key)
 
-    def _delete(self, key: KT, exact: Optional[ET]) -> Optional[ET]:
+    def _delete(self, key: KT, exact: ET | None) -> ET | None:
         self._check_mutable_and_park()
         cloned = self.root.maybe_cow(self.creator)
         if cloned:
@@ -708,14 +708,14 @@ class BTree(Generic[KT, ET]):
                     self.root = self.root.children[0]
         return elt
 
-    def delete_key(self, key: KT) -> Optional[ET]:
+    def delete_key(self, key: KT) -> ET | None:
         """Delete the element matching *key* from the BTree.
 
         Returns the matching element or ``None`` if it does not exist.
         """
         return self._delete(key, None)
 
-    def delete_exact(self, element: ET) -> Optional[ET]:
+    def delete_exact(self, element: ET) -> ET | None:
         """Delete *element* from the BTree.
 
         Returns the matching element or ``None`` if it was not in the BTree.
@@ -791,7 +791,7 @@ class BTreeDict(Generic[KT, VT], BTree[KT, KV[KT, VT]], MutableMapping[KT, VT]):
         self,
         *,
         t: int = DEFAULT_T,
-        original: Optional[BTree] = None,
+        original: BTree | None = None,
         in_order: bool = False,
     ):
         super().__init__(t=t, original=original)
@@ -833,7 +833,7 @@ class BTreeSet(BTree, Generic[KT], MutableSet[KT]):
         self,
         *,
         t: int = DEFAULT_T,
-        original: Optional[BTree] = None,
+        original: BTree | None = None,
         in_order: bool = False,
     ):
         super().__init__(t=t, original=original)

@@ -7,10 +7,9 @@ import socket
 import struct
 import time
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 import aioquic.h3.connection  # type: ignore
-import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 
@@ -218,7 +217,7 @@ class BaseQuicConnection:
 
 
 class AsyncQuicConnection(BaseQuicConnection):
-    async def make_stream(self, timeout: Optional[float] = None) -> Any:
+    async def make_stream(self, timeout: float | None = None) -> Any:
         pass
 
 

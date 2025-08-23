@@ -111,10 +111,6 @@ lint.ignore = [
     "B011",
     "UP006",
     "UP035",
-    # these three are about post-3.9 type syntax and should be revisited after 2.8
-    "UP045",
-    "UP007",
-    "UP038",
 ]
 lint.exclude = ["tests/*"]
 
