@@ -8,6 +8,15 @@ import tomllib
 with open("pyproject.toml", "rb") as pp:
     pyproject = tomllib.load(pp)
 
+
+def maybe_simplify(dep: str):
+    i = dep.find(";")
+    if i >= 0:
+        return dep[:i]
+    else:
+        return dep
+
+
 FEATURES = "dns/_features.py"
 NEW_FEATURES = FEATURES + ".new"
 skip = False
@@ -20,6 +29,7 @@ with open(FEATURES, "r") as input:
                 for name, deps in pyproject["project"]["optional-dependencies"].items():
                     if name == "dev":
                         continue
+                    deps = [maybe_simplify(dep) for dep in deps]
                     print(
                         f"    {repr(name)}: {repr(deps)},",
                         file=output,
