@@ -41,6 +41,8 @@ Rdatatypes
    :annotation: = 48
 .. py:data:: dns.rdatatype.DS
    :annotation: = 43
+.. py:data:: dns.rdatatype.DSYNC
+   :annotation: = 66
 .. py:data:: dns.rdatatype.EUI48
    :annotation: = 108
 .. py:data:: dns.rdatatype.EUI64
