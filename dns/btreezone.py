@@ -13,7 +13,7 @@
 
 import enum
 from dataclasses import dataclass
-from typing import Callable, MutableMapping, Optional, Tuple, Union, cast
+from typing import Callable, MutableMapping, Tuple, cast
 
 import dns.btree
 import dns.immutable
@@ -35,7 +35,7 @@ class NodeFlags(enum.IntFlag):
 class Node(dns.node.Node):
     __slots__ = ["flags", "id"]
 
-    def __init__(self, flags: Optional[NodeFlags] = None):
+    def __init__(self, flags: NodeFlags | None = None):
         super().__init__()
         if flags is None:
             # We allow optional flags rather than a default
@@ -85,7 +85,7 @@ class ImmutableNode(Node):
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
         create: bool = False,
-    ) -> Optional[dns.rdataset.Rdataset]:
+    ) -> dns.rdataset.Rdataset | None:
         if create:
             raise TypeError("immutable")
         return super().get_rdataset(rdclass, rdtype, covers, False)
@@ -106,9 +106,7 @@ class ImmutableNode(Node):
 
 
 class Delegations(dns.btree.BTreeSet[dns.name.Name]):
-    def get_delegation(
-        self, name: dns.name.Name
-    ) -> Tuple[Optional[dns.name.Name], bool]:
+    def get_delegation(self, name: dns.name.Name) -> Tuple[dns.name.Name | None, bool]:
         """Get the delegation applicable to *name*, if it exists.
 
         If there delegation, then return a tuple consisting of the name of
@@ -245,7 +243,7 @@ class WritableVersion(dns.zone.WritableVersion):
 class Bounds:
     name: dns.name.Name
     left: dns.name.Name
-    right: Optional[dns.name.Name]
+    right: dns.name.Name | None
     closest_encloser: dns.name.Name
     is_equal: bool
     is_delegation: bool
@@ -286,7 +284,7 @@ class ImmutableVersion(dns.zone.Version):
         self.delegations = version.delegations
         self.delegations.make_immutable()
 
-    def bounds(self, name: Union[dns.name.Name, str]) -> Bounds:
+    def bounds(self, name: dns.name.Name | str) -> Bounds:
         """Return the 'bounds' of *name* in its zone.
 
         The bounds information is useful when making an authoritative response, as
@@ -361,9 +359,9 @@ class Zone(dns.versioned.Zone):
         Callable[[], MutableMapping[dns.name.Name, dns.node.Node]],
         dns.btree.BTreeDict[dns.name.Name, Node],
     )
-    writable_version_factory: Optional[
-        Callable[[dns.zone.Zone, bool], dns.zone.Version]
-    ] = WritableVersion
-    immutable_version_factory: Optional[
-        Callable[[dns.zone.Version], dns.zone.Version]
-    ] = ImmutableVersion
+    writable_version_factory: (
+        Callable[[dns.zone.Zone, bool], dns.zone.Version] | None
+    ) = WritableVersion
+    immutable_version_factory: Callable[[dns.zone.Version], dns.zone.Version] | None = (
+        ImmutableVersion
+    )

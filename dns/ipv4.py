@@ -18,7 +18,6 @@
 """IPv4 helper functions."""
 
 import struct
-from typing import Union
 
 import dns.exception
 
@@ -36,7 +35,7 @@ def inet_ntoa(address: bytes) -> str:
     return f"{address[0]}.{address[1]}.{address[2]}.{address[3]}"
 
 
-def inet_aton(text: Union[str, bytes]) -> bytes:
+def inet_aton(text: str | bytes) -> bytes:
     """Convert an IPv4 address in text form to binary form.
 
     *text*, a ``str`` or ``bytes``, the IPv4 address in textual form.
@@ -64,7 +63,7 @@ def inet_aton(text: Union[str, bytes]) -> bytes:
         raise dns.exception.SyntaxError
 
 
-def canonicalize(text: Union[str, bytes]) -> str:
+def canonicalize(text: str | bytes) -> str:
     """Verify that *address* is a valid text form IPv4 address and return its
     canonical text form.
 

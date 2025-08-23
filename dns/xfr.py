@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from typing import Any, List, Optional, Tuple, Union, cast
+from typing import Any, List, Tuple, cast
 
 import dns.edns
 import dns.exception
@@ -62,7 +62,7 @@ class Inbound:
         self,
         txn_manager: dns.transaction.TransactionManager,
         rdtype: dns.rdatatype.RdataType = dns.rdatatype.AXFR,
-        serial: Optional[int] = None,
+        serial: int | None = None,
         is_udp: bool = False,
     ):
         """Initialize an inbound zone transfer.
@@ -78,7 +78,7 @@ class Inbound:
         XFR.
         """
         self.txn_manager = txn_manager
-        self.txn: Optional[dns.transaction.Transaction] = None
+        self.txn: dns.transaction.Transaction | None = None
         self.rdtype = rdtype
         if rdtype == dns.rdatatype.IXFR:
             if serial is None:
@@ -93,7 +93,7 @@ class Inbound:
         self.serial = serial
         self.is_udp = is_udp
         (_, _, self.origin) = txn_manager.origin_information()
-        self.soa_rdataset: Optional[dns.rdataset.Rdataset] = None
+        self.soa_rdataset: dns.rdataset.Rdataset | None = None
         self.done = False
         self.expecting_SOA = False
         self.delete_mode = False
@@ -260,16 +260,16 @@ class Inbound:
 
 def make_query(
     txn_manager: dns.transaction.TransactionManager,
-    serial: Optional[int] = 0,
-    use_edns: Optional[Union[int, bool]] = None,
-    ednsflags: Optional[int] = None,
-    payload: Optional[int] = None,
-    request_payload: Optional[int] = None,
-    options: Optional[List[dns.edns.Option]] = None,
+    serial: int | None = 0,
+    use_edns: int | bool | None = None,
+    ednsflags: int | None = None,
+    payload: int | None = None,
+    request_payload: int | None = None,
+    options: List[dns.edns.Option] | None = None,
     keyring: Any = None,
-    keyname: Optional[dns.name.Name] = None,
-    keyalgorithm: Union[dns.name.Name, str] = dns.tsig.default_algorithm,
-) -> Tuple[dns.message.QueryMessage, Optional[int]]:
+    keyname: dns.name.Name | None = None,
+    keyalgorithm: dns.name.Name | str = dns.tsig.default_algorithm,
+) -> Tuple[dns.message.QueryMessage, int | None]:
     """Make an AXFR or IXFR query.
 
     *txn_manager* is a ``dns.transaction.TransactionManager``, typically a
@@ -333,7 +333,7 @@ def make_query(
     return (q, serial)
 
 
-def extract_serial_from_query(query: dns.message.Message) -> Optional[int]:
+def extract_serial_from_query(query: dns.message.Message) -> int | None:
     """Extract the SOA serial number from query if it is an IXFR and return
     it, otherwise return None.
 

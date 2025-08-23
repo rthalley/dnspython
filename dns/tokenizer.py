@@ -19,7 +19,7 @@
 
 import io
 import sys
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Tuple
 
 import dns.exception
 import dns.name
@@ -54,7 +54,7 @@ class Token:
         ttype: int,
         value: Any = "",
         has_escape: bool = False,
-        comment: Optional[str] = None,
+        comment: str | None = None,
     ):
         """Initialize a token instance."""
 
@@ -231,8 +231,8 @@ class Tokenizer:
     def __init__(
         self,
         f: Any = sys.stdin,
-        filename: Optional[str] = None,
-        idna_codec: Optional[dns.name.IDNACodec] = None,
+        filename: str | None = None,
+        idna_codec: dns.name.IDNACodec | None = None,
     ):
         """Initialize a tokenizer instance.
 
@@ -263,8 +263,8 @@ class Tokenizer:
                 else:
                     filename = "<file>"
         self.file = f
-        self.ungotten_char: Optional[str] = None
-        self.ungotten_token: Optional[Token] = None
+        self.ungotten_char: str | None = None
+        self.ungotten_token: Token | None = None
         self.multiline = 0
         self.quoting = False
         self.eof = False
@@ -566,7 +566,7 @@ class Tokenizer:
             )
         return value
 
-    def get_string(self, max_length: Optional[int] = None) -> str:
+    def get_string(self, max_length: int | None = None) -> str:
         """Read the next token and interpret it as a string.
 
         Raises dns.exception.SyntaxError if not a string.
@@ -596,7 +596,7 @@ class Tokenizer:
             raise dns.exception.SyntaxError("expecting an identifier")
         return token.value
 
-    def get_remaining(self, max_tokens: Optional[int] = None) -> List[Token]:
+    def get_remaining(self, max_tokens: int | None = None) -> List[Token]:
         """Return the remaining tokens on the line, until an EOL or EOF is seen.
 
         max_tokens: If not None, stop after this number of tokens.
@@ -643,9 +643,9 @@ class Tokenizer:
     def as_name(
         self,
         token: Token,
-        origin: Optional[dns.name.Name] = None,
+        origin: dns.name.Name | None = None,
         relativize: bool = False,
-        relativize_to: Optional[dns.name.Name] = None,
+        relativize_to: dns.name.Name | None = None,
     ) -> dns.name.Name:
         """Try to interpret the token as a DNS name.
 
@@ -660,9 +660,9 @@ class Tokenizer:
 
     def get_name(
         self,
-        origin: Optional[dns.name.Name] = None,
+        origin: dns.name.Name | None = None,
         relativize: bool = False,
-        relativize_to: Optional[dns.name.Name] = None,
+        relativize_to: dns.name.Name | None = None,
     ) -> dns.name.Name:
         """Read the next token and interpret it as a DNS name.
 

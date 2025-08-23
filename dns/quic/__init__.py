@@ -6,19 +6,15 @@ import dns._features
 import dns.asyncbackend
 
 if dns._features.have("doq"):
-    import aioquic.quic.configuration  # type: ignore
-
     from dns._asyncbackend import NullContext
-    from dns.quic._asyncio import (
-        AsyncioQuicConnection,
-        AsyncioQuicManager,
-        AsyncioQuicStream,
-    )
+    from dns.quic._asyncio import AsyncioQuicConnection as AsyncioQuicConnection
+    from dns.quic._asyncio import AsyncioQuicManager
+    from dns.quic._asyncio import AsyncioQuicStream as AsyncioQuicStream
     from dns.quic._common import AsyncQuicConnection  # pyright: ignore
-    from dns.quic._common import AsyncQuicManager
+    from dns.quic._common import AsyncQuicManager as AsyncQuicManager
     from dns.quic._sync import SyncQuicConnection  # pyright: ignore
     from dns.quic._sync import SyncQuicStream  # pyright: ignore
-    from dns.quic._sync import SyncQuicManager
+    from dns.quic._sync import SyncQuicManager as SyncQuicManager
 
     have_quic = True
 
@@ -43,11 +39,11 @@ if dns._features.have("doq"):
     if dns._features.have("trio"):
         import trio
 
-        from dns.quic._trio import (  # pylint: disable=ungrouped-imports
-            TrioQuicConnection,
-            TrioQuicManager,
-            TrioQuicStream,
+        from dns.quic._trio import (
+            TrioQuicConnection as TrioQuicConnection,  # pylint: disable=ungrouped-imports
         )
+        from dns.quic._trio import TrioQuicManager
+        from dns.quic._trio import TrioQuicStream as TrioQuicStream
 
         def _trio_context_factory():
             return trio.open_nursery()

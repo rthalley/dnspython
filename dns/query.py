@@ -28,7 +28,7 @@ import socket
 import struct
 import time
 import urllib.parse
-from typing import Any, Callable, Dict, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, Optional, Tuple, cast
 
 import dns._features
 import dns._tls_util
@@ -169,7 +169,7 @@ have_doh = _have_httpx
 
 
 def default_socket_factory(
-    af: Union[socket.AddressFamily, int],
+    af: socket.AddressFamily | int,
     kind: socket.SocketKind,
     proto: int,
 ) -> socket.socket:
@@ -179,7 +179,7 @@ def default_socket_factory(
 # Function used to create a socket.  Can be overridden if needed in special
 # situations.
 socket_factory: Callable[
-    [Union[socket.AddressFamily, int], socket.SocketKind, int], socket.socket
+    [socket.AddressFamily | int, socket.SocketKind, int], socket.socket
 ] = default_socket_factory
 
 
@@ -322,9 +322,9 @@ def _destination_and_source(
 
 
 def make_socket(
-    af: Union[socket.AddressFamily, int],
+    af: socket.AddressFamily | int,
     type: socket.SocketKind,
-    source: Optional[Any] = None,
+    source: Any | None = None,
 ) -> socket.socket:
     """Make a socket.
 
@@ -355,11 +355,11 @@ def make_socket(
 
 
 def make_ssl_socket(
-    af: Union[socket.AddressFamily, int],
+    af: socket.AddressFamily | int,
     type: socket.SocketKind,
     ssl_context: ssl.SSLContext,
-    server_hostname: Optional[Union[dns.name.Name, str]] = None,
-    source: Optional[Any] = None,
+    server_hostname: dns.name.Name | str | None = None,
+    source: Any | None = None,
 ) -> ssl.SSLSocket:
     """Make a socket.
 
@@ -443,17 +443,17 @@ class HTTPVersion(enum.IntEnum):
 def https(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 443,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    session: Optional[Any] = None,
+    session: Any | None = None,
     path: str = "/dns-query",
     post: bool = True,
-    bootstrap_address: Optional[str] = None,
-    verify: Union[bool, str, ssl.SSLContext] = True,
+    bootstrap_address: str | None = None,
+    verify: bool | str | ssl.SSLContext = True,
     resolver: Optional["dns.resolver.Resolver"] = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
@@ -677,15 +677,15 @@ def _http3(
     q: dns.message.Message,
     where: str,
     url: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 443,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    verify: Union[bool, str, ssl.SSLContext] = True,
+    verify: bool | str | ssl.SSLContext = True,
     post: bool = True,
-    connection: Optional[dns.quic.SyncQuicConnection] = None,
+    connection: dns.quic.SyncQuicConnection | None = None,
 ) -> dns.message.Message:
     if not dns.quic.have_quic:
         raise NoDOH("DNS-over-HTTP3 is not available.")  # pragma: no cover
@@ -763,9 +763,9 @@ def _udp_send(sock, data, destination, expiration):
 
 def send_udp(
     sock: Any,
-    what: Union[dns.message.Message, bytes],
+    what: dns.message.Message | bytes,
     destination: Any,
-    expiration: Optional[float] = None,
+    expiration: float | None = None,
 ) -> Tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
@@ -792,16 +792,16 @@ def send_udp(
 
 def receive_udp(
     sock: Any,
-    destination: Optional[Any] = None,
-    expiration: Optional[float] = None,
+    destination: Any | None = None,
+    expiration: float | None = None,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
-    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
-    request_mac: Optional[bytes] = b"",
+    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
     raise_on_truncation: bool = False,
     ignore_errors: bool = False,
-    query: Optional[dns.message.Message] = None,
+    query: dns.message.Message | None = None,
 ) -> Any:
     """Read a DNS message from a UDP socket.
 
@@ -899,15 +899,15 @@ def receive_udp(
 def udp(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 53,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     raise_on_truncation: bool = False,
-    sock: Optional[Any] = None,
+    sock: Any | None = None,
     ignore_errors: bool = False,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
@@ -991,15 +991,15 @@ def udp(
 def udp_with_fallback(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 53,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    udp_sock: Optional[Any] = None,
-    tcp_sock: Optional[Any] = None,
+    udp_sock: Any | None = None,
+    tcp_sock: Any | None = None,
     ignore_errors: bool = False,
 ) -> Tuple[dns.message.Message, bool]:
     """Return the response to the query, trying UDP first and falling back
@@ -1115,8 +1115,8 @@ def _net_write(sock, data, expiration):
 
 def send_tcp(
     sock: Any,
-    what: Union[dns.message.Message, bytes],
-    expiration: Optional[float] = None,
+    what: dns.message.Message | bytes,
+    expiration: float | None = None,
 ) -> Tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
@@ -1145,10 +1145,10 @@ def send_tcp(
 
 def receive_tcp(
     sock: Any,
-    expiration: Optional[float] = None,
+    expiration: float | None = None,
     one_rr_per_rrset: bool = False,
-    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
-    request_mac: Optional[bytes] = b"",
+    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
 ) -> Tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
@@ -1204,13 +1204,13 @@ def _connect(s, address, expiration):
 def tcp(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 53,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    sock: Optional[Any] = None,
+    sock: Any | None = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
 
@@ -1283,9 +1283,9 @@ def _tls_handshake(s, expiration):
 
 
 def make_ssl_context(
-    verify: Union[bool, str] = True,
+    verify: bool | str = True,
     check_hostname: bool = True,
-    alpns: Optional[list[str]] = None,
+    alpns: list[str] | None = None,
 ) -> ssl.SSLContext:
     """Make an SSL context
 
@@ -1317,7 +1317,7 @@ def make_ssl_context(
 
 # for backwards compatibility
 def _make_dot_ssl_context(
-    server_hostname: Optional[str], verify: Union[bool, str]
+    server_hostname: str | None, verify: bool | str
 ) -> ssl.SSLContext:
     return make_ssl_context(verify, server_hostname is not None, ["dot"])
 
@@ -1325,16 +1325,16 @@ def _make_dot_ssl_context(
 def tls(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 853,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    sock: Optional[ssl.SSLSocket] = None,
-    ssl_context: Optional[ssl.SSLContext] = None,
-    server_hostname: Optional[str] = None,
-    verify: Union[bool, str] = True,
+    sock: ssl.SSLSocket | None = None,
+    ssl_context: ssl.SSLContext | None = None,
+    server_hostname: str | None = None,
+    verify: bool | str = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
@@ -1433,16 +1433,16 @@ def tls(
 def quic(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 853,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    connection: Optional[dns.quic.SyncQuicConnection] = None,
-    verify: Union[bool, str] = True,
-    hostname: Optional[str] = None,
-    server_hostname: Optional[str] = None,
+    connection: dns.quic.SyncQuicConnection | None = None,
+    verify: bool | str = True,
+    hostname: str | None = None,
+    server_hostname: str | None = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-QUIC.
 
@@ -1542,11 +1542,11 @@ class UDPMode(enum.IntEnum):
 
 def _inbound_xfr(
     txn_manager: dns.transaction.TransactionManager,
-    s: Union[socket.socket, ssl.SSLSocket],
+    s: socket.socket | ssl.SSLSocket,
     query: dns.message.Message,
-    serial: Optional[int],
-    timeout: Optional[float],
-    expiration: Optional[float],
+    serial: int | None,
+    timeout: float | None,
+    expiration: float | None,
 ) -> Any:
     """Given a socket, does the zone transfer."""
     rdtype = query.question[0].rdtype
@@ -1562,7 +1562,7 @@ def _inbound_xfr(
     with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
         done = False
         tsig_ctx = None
-        r: Optional[dns.message.Message] = None
+        r: dns.message.Message | None = None
         while not done:
             (_, mexpiration) = _compute_times(timeout)
             if mexpiration is None or (
@@ -1594,20 +1594,20 @@ def _inbound_xfr(
 
 def xfr(
     where: str,
-    zone: Union[dns.name.Name, str],
-    rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.AXFR,
-    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
-    timeout: Optional[float] = None,
+    zone: dns.name.Name | str,
+    rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.AXFR,
+    rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
+    timeout: float | None = None,
     port: int = 53,
-    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
-    keyname: Optional[Union[dns.name.Name, str]] = None,
+    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    keyname: dns.name.Name | str | None = None,
     relativize: bool = True,
-    lifetime: Optional[float] = None,
-    source: Optional[str] = None,
+    lifetime: float | None = None,
+    source: str | None = None,
     source_port: int = 0,
     serial: int = 0,
     use_udp: bool = False,
-    keyalgorithm: Union[dns.name.Name, str] = dns.tsig.default_algorithm,
+    keyalgorithm: dns.name.Name | str = dns.tsig.default_algorithm,
 ) -> Any:
     """Return a generator for the responses to a zone transfer.
 
@@ -1713,11 +1713,11 @@ def xfr(
 def inbound_xfr(
     where: str,
     txn_manager: dns.transaction.TransactionManager,
-    query: Optional[dns.message.Message] = None,
+    query: dns.message.Message | None = None,
     port: int = 53,
-    timeout: Optional[float] = None,
-    lifetime: Optional[float] = None,
-    source: Optional[str] = None,
+    timeout: float | None = None,
+    lifetime: float | None = None,
+    source: str | None = None,
     source_port: int = 0,
     udp_mode: UDPMode = UDPMode.NEVER,
 ) -> None:
