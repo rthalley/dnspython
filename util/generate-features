@@ -21,7 +21,7 @@ with open(FEATURES, "r") as input:
                     if name == "dev":
                         continue
                     print(
-                        f"    {repr(name)}: {repr(deps)},".replace("'", '"'),
+                        f"    {repr(name)}: {repr(deps)},",
                         file=output,
                     )
                 skip = True

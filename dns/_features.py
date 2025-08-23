@@ -90,6 +90,6 @@ _requirements: Dict[str, List[str]] = {
     "doq": ["aioquic>=1.2.0"],
     "idna": ["idna>=3.10"],
     "trio": ["trio>=0.30"],
-    "wmi": ["wmi>=1.5.1; platform_system=="Windows""],
+    "wmi": ["wmi>=1.5.1; platform_system=='Windows'"],
     ### END generated requirements
 }
