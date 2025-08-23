@@ -1,15 +1,12 @@
-import os
 import sys
 
 import dns._features
-import dns.name
 
 if sys.platform == "win32":
     import ctypes
     import ctypes.wintypes as wintypes
     import winreg  # pylint: disable=import-error
     from enum import IntEnum
-    from typing import Any
 
     import dns.name
 
