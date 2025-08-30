@@ -1,4 +1,4 @@
-from typing import Any, Optional, Type
+from typing import Any, Type
 
 from cryptography.hazmat.primitives import serialization
 
@@ -50,12 +50,12 @@ class CryptographyPrivateKey(GenericPrivateKey):
 
     @classmethod
     def from_pem(
-        cls, private_pem: bytes, password: Optional[bytes] = None
+        cls, private_pem: bytes, password: bytes | None = None
     ) -> "GenericPrivateKey":
         key = serialization.load_pem_private_key(private_pem, password=password)
         return cls(key=key)
 
-    def to_pem(self, password: Optional[bytes] = None) -> bytes:
+    def to_pem(self, password: bytes | None = None) -> bytes:
         encryption_algorithm: serialization.KeySerializationEncryption
         if password:
             encryption_algorithm = serialization.BestAvailableEncryption(password)

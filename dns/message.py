@@ -21,7 +21,7 @@ import contextlib
 import enum
 import io
 import time
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Tuple, cast
 
 import dns.edns
 import dns.entropy
@@ -133,11 +133,11 @@ IndexKeyType = Tuple[
     dns.name.Name,
     dns.rdataclass.RdataClass,
     dns.rdatatype.RdataType,
-    Optional[dns.rdatatype.RdataType],
-    Optional[dns.rdataclass.RdataClass],
+    dns.rdatatype.RdataType | None,
+    dns.rdataclass.RdataClass | None,
 ]
 IndexType = Dict[IndexKeyType, dns.rrset.RRset]
-SectionType = Union[int, str, List[dns.rrset.RRset]]
+SectionType = int | str | List[dns.rrset.RRset]
 
 
 class Message:
@@ -145,27 +145,27 @@ class Message:
 
     _section_enum = MessageSection
 
-    def __init__(self, id: Optional[int] = None):
+    def __init__(self, id: int | None = None):
         if id is None:
             self.id = dns.entropy.random_16()
         else:
             self.id = id
         self.flags = 0
         self.sections: List[List[dns.rrset.RRset]] = [[], [], [], []]
-        self.opt: Optional[dns.rrset.RRset] = None
+        self.opt: dns.rrset.RRset | None = None
         self.request_payload = 0
         self.pad = 0
         self.keyring: Any = None
-        self.tsig: Optional[dns.rrset.RRset] = None
+        self.tsig: dns.rrset.RRset | None = None
         self.want_tsig_sign = False
         self.request_mac = b""
         self.xfr = False
-        self.origin: Optional[dns.name.Name] = None
-        self.tsig_ctx: Optional[Any] = None
+        self.origin: dns.name.Name | None = None
+        self.tsig_ctx: Any | None = None
         self.index: IndexType = {}
         self.errors: List[MessageError] = []
         self.time = 0.0
-        self.wire: Optional[bytes] = None
+        self.wire: bytes | None = None
 
     @property
     def question(self) -> List[dns.rrset.RRset]:
@@ -211,7 +211,7 @@ class Message:
 
     def to_text(
         self,
-        origin: Optional[dns.name.Name] = None,
+        origin: dns.name.Name | None = None,
         relativize: bool = True,
         **kw: Dict[str, Any],
     ) -> str:
@@ -352,10 +352,10 @@ class Message:
         rdclass: dns.rdataclass.RdataClass,
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
-        deleting: Optional[dns.rdataclass.RdataClass] = None,
+        deleting: dns.rdataclass.RdataClass | None = None,
         create: bool = False,
         force_unique: bool = False,
-        idna_codec: Optional[dns.name.IDNACodec] = None,
+        idna_codec: dns.name.IDNACodec | None = None,
     ) -> dns.rrset.RRset:
         """Find the RRset with the given attributes in the specified section.
 
@@ -437,11 +437,11 @@ class Message:
         rdclass: dns.rdataclass.RdataClass,
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
-        deleting: Optional[dns.rdataclass.RdataClass] = None,
+        deleting: dns.rdataclass.RdataClass | None = None,
         create: bool = False,
         force_unique: bool = False,
-        idna_codec: Optional[dns.name.IDNACodec] = None,
-    ) -> Optional[dns.rrset.RRset]:
+        idna_codec: dns.name.IDNACodec | None = None,
+    ) -> dns.rrset.RRset | None:
         """Get the RRset with the given attributes in the specified section.
 
         If the RRset is not found, None is returned.
@@ -560,10 +560,10 @@ class Message:
 
     def to_wire(
         self,
-        origin: Optional[dns.name.Name] = None,
+        origin: dns.name.Name | None = None,
         max_size: int = 0,
         multi: bool = False,
-        tsig_ctx: Optional[Any] = None,
+        tsig_ctx: Any | None = None,
         prepend_length: bool = False,
         prefer_truncation: bool = False,
         **kw: Dict[str, Any],
@@ -680,12 +680,12 @@ class Message:
     def use_tsig(
         self,
         keyring: Any,
-        keyname: Optional[Union[dns.name.Name, str]] = None,
+        keyname: dns.name.Name | str | None = None,
         fudge: int = 300,
-        original_id: Optional[int] = None,
+        original_id: int | None = None,
         tsig_error: int = 0,
         other_data: bytes = b"",
-        algorithm: Union[dns.name.Name, str] = dns.tsig.default_algorithm,
+        algorithm: dns.name.Name | str = dns.tsig.default_algorithm,
     ) -> None:
         """When sending, a TSIG signature using the specified key
         should be added.
@@ -750,14 +750,14 @@ class Message:
         self.want_tsig_sign = True
 
     @property
-    def keyname(self) -> Optional[dns.name.Name]:
+    def keyname(self) -> dns.name.Name | None:
         if self.tsig:
             return self.tsig.name
         else:
             return None
 
     @property
-    def keyalgorithm(self) -> Optional[dns.name.Name]:
+    def keyalgorithm(self) -> dns.name.Name | None:
         if self.tsig:
             rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
             return rdata.algorithm
@@ -765,7 +765,7 @@ class Message:
             return None
 
     @property
-    def mac(self) -> Optional[bytes]:
+    def mac(self) -> bytes | None:
         if self.tsig:
             rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
             return rdata.mac
@@ -773,7 +773,7 @@ class Message:
             return None
 
     @property
-    def tsig_error(self) -> Optional[int]:
+    def tsig_error(self) -> int | None:
         if self.tsig:
             rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
             return rdata.error
@@ -791,11 +791,11 @@ class Message:
 
     def use_edns(
         self,
-        edns: Optional[Union[int, bool]] = 0,
+        edns: int | bool | None = 0,
         ednsflags: int = 0,
         payload: int = DEFAULT_EDNS_PAYLOAD,
-        request_payload: Optional[int] = None,
-        options: Optional[List[dns.edns.Option]] = None,
+        request_payload: int | None = None,
+        options: List[dns.edns.Option] | None = None,
         pad: int = 0,
     ) -> None:
         """Configure EDNS behavior.
@@ -985,7 +985,7 @@ class ChainingResult:
     def __init__(
         self,
         canonical_name: dns.name.Name,
-        answer: Optional[dns.rrset.RRset],
+        answer: dns.rrset.RRset | None,
         minimum_ttl: int,
         cnames: List[dns.rrset.RRset],
     ):
@@ -1305,11 +1305,11 @@ class _WireReader:
 
 def from_wire(
     wire: bytes,
-    keyring: Optional[Any] = None,
-    request_mac: Optional[bytes] = b"",
+    keyring: Any | None = None,
+    request_mac: bytes | None = b"",
     xfr: bool = False,
-    origin: Optional[dns.name.Name] = None,
-    tsig_ctx: Optional[Union[dns.tsig.HMACTSig, dns.tsig.GSSTSig]] = None,
+    origin: dns.name.Name | None = None,
+    tsig_ctx: dns.tsig.HMACTSig | dns.tsig.GSSTSig | None = None,
     multi: bool = False,
     question_only: bool = False,
     one_rr_per_rrset: bool = False,
@@ -1431,13 +1431,13 @@ class _TextReader:
     def __init__(
         self,
         text: str,
-        idna_codec: Optional[dns.name.IDNACodec],
+        idna_codec: dns.name.IDNACodec | None,
         one_rr_per_rrset: bool = False,
-        origin: Optional[dns.name.Name] = None,
+        origin: dns.name.Name | None = None,
         relativize: bool = True,
-        relativize_to: Optional[dns.name.Name] = None,
+        relativize_to: dns.name.Name | None = None,
     ):
-        self.message: Optional[Message] = None  # mypy: ignore
+        self.message: Message | None = None  # mypy: ignore
         self.tok = dns.tokenizer.Tokenizer(text, idna_codec=idna_codec)
         self.last_name = None
         self.one_rr_per_rrset = one_rr_per_rrset
@@ -1665,11 +1665,11 @@ class _TextReader:
 
 def from_text(
     text: str,
-    idna_codec: Optional[dns.name.IDNACodec] = None,
+    idna_codec: dns.name.IDNACodec | None = None,
     one_rr_per_rrset: bool = False,
-    origin: Optional[dns.name.Name] = None,
+    origin: dns.name.Name | None = None,
     relativize: bool = True,
-    relativize_to: Optional[dns.name.Name] = None,
+    relativize_to: dns.name.Name | None = None,
 ) -> Message:
     """Convert the text format message into a message object.
 
@@ -1713,7 +1713,7 @@ def from_text(
 
 def from_file(
     f: Any,
-    idna_codec: Optional[dns.name.IDNACodec] = None,
+    idna_codec: dns.name.IDNACodec | None = None,
     one_rr_per_rrset: bool = False,
 ) -> Message:
     """Read the next text format message from the specified file.
@@ -1747,17 +1747,17 @@ def from_file(
 
 
 def make_query(
-    qname: Union[dns.name.Name, str],
-    rdtype: Union[dns.rdatatype.RdataType, str],
-    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
-    use_edns: Optional[Union[int, bool]] = None,
+    qname: dns.name.Name | str,
+    rdtype: dns.rdatatype.RdataType | str,
+    rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
+    use_edns: int | bool | None = None,
     want_dnssec: bool = False,
-    ednsflags: Optional[int] = None,
-    payload: Optional[int] = None,
-    request_payload: Optional[int] = None,
-    options: Optional[List[dns.edns.Option]] = None,
-    idna_codec: Optional[dns.name.IDNACodec] = None,
-    id: Optional[int] = None,
+    ednsflags: int | None = None,
+    payload: int | None = None,
+    request_payload: int | None = None,
+    options: List[dns.edns.Option] | None = None,
+    idna_codec: dns.name.IDNACodec | None = None,
+    id: int | None = None,
     flags: int = dns.flags.RD,
     pad: int = 0,
 ) -> QueryMessage:
@@ -1861,8 +1861,8 @@ def make_response(
     our_payload: int = 8192,
     fudge: int = 300,
     tsig_error: int = 0,
-    pad: Optional[int] = None,
-    copy_mode: Optional[CopyMode] = None,
+    pad: int | None = None,
+    copy_mode: CopyMode | None = None,
 ) -> Message:
     """Make a message which is a response for the specified query.
     The message returned is really a response skeleton; it has all of the infrastructure

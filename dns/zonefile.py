@@ -19,7 +19,7 @@
 
 import re
 import sys
-from typing import Any, Iterable, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Iterable, List, Set, Tuple, cast
 
 import dns.exception
 import dns.grange
@@ -68,9 +68,9 @@ def _check_cname_and_other_data(txn, name, rdataset):
 
 SavedStateType = Tuple[
     dns.tokenizer.Tokenizer,
-    Optional[dns.name.Name],  # current_origin
-    Optional[dns.name.Name],  # last_name
-    Optional[Any],  # current_file
+    dns.name.Name | None,  # current_origin
+    dns.name.Name | None,  # last_name
+    Any | None,  # current_file
     int,  # last_ttl
     bool,  # last_ttl_known
     int,  # default_ttl
@@ -94,12 +94,12 @@ class Reader:
         rdclass: dns.rdataclass.RdataClass,
         txn: dns.transaction.Transaction,
         allow_include: bool = False,
-        allow_directives: Union[bool, Iterable[str]] = True,
-        force_name: Optional[dns.name.Name] = None,
-        force_ttl: Optional[int] = None,
-        force_rdclass: Optional[dns.rdataclass.RdataClass] = None,
-        force_rdtype: Optional[dns.rdatatype.RdataType] = None,
-        default_ttl: Optional[int] = None,
+        allow_directives: bool | Iterable[str] = True,
+        force_name: dns.name.Name | None = None,
+        force_ttl: int | None = None,
+        force_rdclass: dns.rdataclass.RdataClass | None = None,
+        force_rdtype: dns.rdatatype.RdataType | None = None,
+        default_ttl: int | None = None,
     ):
         self.tok = tok
         (self.zone_origin, self.relativize, _) = txn.manager.origin_information()
@@ -118,7 +118,7 @@ class Reader:
         self.zone_rdclass = rdclass
         self.txn = txn
         self.saved_state: List[SavedStateType] = []
-        self.current_file: Optional[Any] = None
+        self.current_file: Any | None = None
         self.allowed_directives: Set[str]
         if allow_directives is True:
             self.allowed_directives = {"$GENERATE", "$ORIGIN", "$TTL"}
@@ -515,7 +515,7 @@ class Reader:
                         token = self.tok.get()
                         filename = token.value
                         token = self.tok.get()
-                        new_origin: Optional[dns.name.Name]
+                        new_origin: dns.name.Name | None
                         if token.is_identifier():
                             new_origin = dns.name.from_text(
                                 token.value, self.current_origin, self.tok.idna_codec
@@ -630,7 +630,7 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
 class RRSetsReaderManager(dns.transaction.TransactionManager):
     def __init__(
         self,
-        origin: Optional[dns.name.Name] = dns.name.root,
+        origin: dns.name.Name | None = dns.name.root,
         relativize: bool = False,
         rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
     ):
@@ -662,14 +662,14 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
 
 def read_rrsets(
     text: Any,
-    name: Optional[Union[dns.name.Name, str]] = None,
-    ttl: Optional[int] = None,
-    rdclass: Optional[Union[dns.rdataclass.RdataClass, str]] = dns.rdataclass.IN,
-    default_rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
-    rdtype: Optional[Union[dns.rdatatype.RdataType, str]] = None,
-    default_ttl: Optional[Union[int, str]] = None,
-    idna_codec: Optional[dns.name.IDNACodec] = None,
-    origin: Optional[Union[dns.name.Name, str]] = dns.name.root,
+    name: dns.name.Name | str | None = None,
+    ttl: int | None = None,
+    rdclass: dns.rdataclass.RdataClass | str | None = dns.rdataclass.IN,
+    default_rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
+    rdtype: dns.rdatatype.RdataType | str | None = None,
+    default_ttl: int | str | None = None,
+    idna_codec: dns.name.IDNACodec | None = None,
+    origin: dns.name.Name | str | None = dns.name.root,
     relativize: bool = False,
 ) -> List[dns.rrset.RRset]:
     """Read one or more rrsets from the specified text, possibly subject

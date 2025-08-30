@@ -18,7 +18,7 @@
 import collections
 import random
 import struct
-from typing import Any, Iterable, List, Optional, Tuple, Union
+from typing import Any, Iterable, List, Tuple
 
 import dns.exception
 import dns.ipv4
@@ -35,7 +35,7 @@ class Gateway:
 
     name = ""
 
-    def __init__(self, type: Any, gateway: Optional[Union[str, dns.name.Name]] = None):
+    def __init__(self, type: Any, gateway: str | dns.name.Name | None = None):
         self.type = dns.rdata.Rdata._as_uint8(type)
         self.gateway = gateway
         self._check()
@@ -126,7 +126,7 @@ class Bitmap:
 
     type_name = ""
 
-    def __init__(self, windows: Optional[Iterable[Tuple[int, bytes]]] = None):
+    def __init__(self, windows: Iterable[Tuple[int, bytes]] | None = None):
         last_window = -1
         if windows is None:
             windows = []
