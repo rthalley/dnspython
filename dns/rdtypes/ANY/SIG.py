@@ -29,5 +29,5 @@ from dns.rdtypes.rrsigbase import (  # noqa: F401  lgtm[py/unused-import]
 
 
 @dns.immutable.immutable
-class RRSIG(dns.rdtypes.rrsigbase.RRSIGBase):
-    """RRSIG record"""
+class SIG(dns.rdtypes.rrsigbase.RRSIGBase):
+    """SIG record"""

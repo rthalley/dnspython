@@ -16,18 +16,16 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.immutable
-import dns.rdtypes.rrsigbase  # lgtm[py/import-and-import-from]
+import dns.rdtypes.dnskeybase  # lgtm[py/import-and-import-from]
 
 # pylint: disable=unused-import
-from dns.rdtypes.rrsigbase import (  # noqa: F401  lgtm[py/unused-import]
-    BadSigTime,
-    posixtime_to_sigtime,
-    sigtime_to_posixtime,
+from dns.rdtypes.dnskeybase import (  # noqa: F401  lgtm[py/unused-import]
+    ZONE,
 )
 
 # pylint: enable=unused-import
 
 
 @dns.immutable.immutable
-class RRSIG(dns.rdtypes.rrsigbase.RRSIGBase):
-    """RRSIG record"""
+class KEY(dns.rdtypes.dnskeybase.DNSKEYBase):
+    """KEY record"""
