@@ -3,12 +3,25 @@
 What's New in dnspython
 =======================
 
-2.8.0 (in development)
-----------------------
+2.8.0
+-----
+
+* dns/btreezone.py provides another zone versioned implementation built on top of a
+  B-tree.  It maintains DNSSEC sort order, labels nodes as delegation points or glue,
+  and can find the "bounds" of a name (useful for DNSSEC responses).
+
+* dns/query.py now provides make_socket(), make_ssl_socket(), and make_ssl_context()
+  to make using persistent connections with the query code easier.
 
 * dns/win32util.py now supports explicitly setting the configuration method used to get
   system dns info, using the set_config_method() function.   There is a new configuration
-  method that uses the Win32 API, which can be set using set_config_method(ConfigMethod.Win32).
+  method that uses the Win32 API, which can be set using
+  set_config_method(ConfigMethod.Win32).  We are considering making the Win32 API
+  the default in the future as we believe it to be the most accurate.  Any feedback on
+  it compared to the other methods is welcome.
+
+* The DSYNC record is now supported.  This type is still in draft stage at the IETF
+  and is subject to change.
 
 * The minimum supported Python version is now 3.10.
 
