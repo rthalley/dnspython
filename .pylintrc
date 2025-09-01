@@ -36,6 +36,7 @@ disable=
     use-implicit-booleaness-not-comparison-to-zero,  # I often prefer non-implicit booleaness.
     use-implicit-booleaness-not-comparison-to-string,
     unused-argument,
+    useless-import-alias,
 
 [REPORTS]
 

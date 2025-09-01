@@ -39,9 +39,8 @@ if dns._features.have("doq"):
     if dns._features.have("trio"):
         import trio
 
-        from dns.quic._trio import (
-            TrioQuicConnection as TrioQuicConnection,  # pylint: disable=ungrouped-imports
-        )
+        # pylint: disable=ungrouped-imports
+        from dns.quic._trio import TrioQuicConnection as TrioQuicConnection
         from dns.quic._trio import TrioQuicManager
         from dns.quic._trio import TrioQuicStream as TrioQuicStream
 

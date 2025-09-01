@@ -2,6 +2,8 @@ import sys
 
 import dns._features
 
+# pylint: disable=W0612,W0613,C0301
+
 if sys.platform == "win32":
     import ctypes
     import ctypes.wintypes as wintypes
