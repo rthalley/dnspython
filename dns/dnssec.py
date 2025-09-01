@@ -17,6 +17,7 @@
 
 """Common DNSSEC-related functions and constants."""
 
+# pylint: disable=unused-import
 
 import base64
 import contextlib
