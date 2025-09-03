@@ -40,12 +40,12 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
-    - name: Update project
-      run: python3 util/make-test-project
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.x"
+    - name: Update project
+      run: python3 ./util/make-test-project
     - name: Install pypa/build
       run: >-
         python3 -m
