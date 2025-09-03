@@ -51,6 +51,9 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
+    - name: rename
+      run:
+        ls dist | sed -e 's/dnspython-\(.*\)/mv dist\/dnspython-\1 dist\/dnspython-test-\1/' | sh
     - name: Publish distribution to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
