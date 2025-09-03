@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+# since someone else is using the "dnspython" name on test.pypi.org, we rename
+# project to dnspython_test for testing purposes.
+
 import os
 
-PROJECT = 'pyproject.toml'
-NEW_PROJECT = 'pyproject.toml-new'
+PROJECT = "pyproject.toml"
+NEW_PROJECT = "pyproject.toml-new"
 
-with open(PROJECT, 'rt') as f:
-    with open(NEW_PROJECT, 'wt') as nf:
+with open(PROJECT, "rt") as f:
+    with open(NEW_PROJECT, "wt") as nf:
         for l in f.readlines():
             l = l.rstrip()
             if l == 'name = "dnspython"':
