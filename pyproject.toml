@@ -3,7 +3,7 @@ requires = ["hatchling>=1.21.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dnspython_test"
+name = "dnspython"
 description = "DNS toolkit"
 authors = [{ name = "Bob Halley", email = "halley@dnspython.org" }]
 license = { text = "ISC" }
