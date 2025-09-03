@@ -57,7 +57,7 @@ jobs:
         import os
         os.chdir("dist")
         for f in os.listdir("."):
-        if f.startswith('dnspython-'):
+          if f.startswith('dnspython-'):
             nf = f.replace("dnspython-", "dnspython_test-")
             os.rename(f, nf)
         EOF
