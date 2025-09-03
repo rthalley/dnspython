@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import os
+
+PROJECT = 'pyproject.toml'
+NEW_PROJECT = 'pyproject.toml-new'
+
+with open(PROJECT, 'rt') as f:
+    with open(NEW_PROJECT, 'wt') as nf:
+        for l in f.readlines():
+            l = l.rstrip()
+            if l == 'name = "dnspython"':
+                print('name = "dnspython_test"', file=nf)
+            else:
+                print(l, file=nf)
+
+os.rename(NEW_PROJECT, PROJECT)
