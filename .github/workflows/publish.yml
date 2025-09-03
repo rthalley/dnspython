@@ -32,10 +32,38 @@ jobs:
         name: python-package-distributions
         path: dist/
 
+  build-test:
+    name: Build distribution
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - name: Update project
+      run: sed -i '' 's/"dnspython"/"dnspython_test"/g' pyproject.toml
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+    - name: Install pypa/build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Build a binary wheel and a source tarball
+      run: python3 -m build
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+
   publish-to-testpypi:
     name: Publish Python distribution to TestPyPI
     needs:
-    - build
+    - build-test
     runs-on: ubuntu-latest
 
     environment:
@@ -51,16 +79,6 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    - name: rename
-      run: |
-        python3 << 'EOF'
-        import os
-        os.chdir("dist")
-        for f in os.listdir("."):
-          if f.startswith('dnspython-'):
-            nf = f.replace("dnspython-", "dnspython_test-")
-            os.rename(f, nf)
-        EOF
     - name: Publish distribution to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
