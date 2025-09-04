@@ -1,9 +1,5 @@
 name: Publish
 on:
-  push:
-    branches:
-      - main
-      - 2.8
   workflow_dispatch:
 jobs:
   build:
