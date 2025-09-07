@@ -29,9 +29,9 @@ testing of DNS software.
 
 ## ABOUT THIS RELEASE
 
-This is of `dnspython` 2.8.0rc1.
+This is of `dnspython` 2.8.0.
 Please read
-[What's New](https://dnspython.readthedocs.io/en/latest/whatsnew.html) for
+[What's New](https://dnspython.readthedocs.io/en/stable/whatsnew.html) for
 information about the changes in this release.
 
 ## INSTALLATION
@@ -87,7 +87,7 @@ Note that you can install any combination of the above, e.g.:
 ### Notices
 
 Python 2.x support ended with the release of 1.16.0.  `dnspython` supports Python 3.10
-and later.  Future support  is aligned with the lifetime of the Python 3 versions.
+and later.  Future support is aligned with the lifetime of the Python 3 versions.
 
 Documentation has moved to
 [dnspython.readthedocs.io](https://dnspython.readthedocs.io).
