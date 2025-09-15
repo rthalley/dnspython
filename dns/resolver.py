@@ -283,7 +283,7 @@ class Answer:
         self.expiration = time.time() + self.chaining_result.minimum_ttl
 
     def __getattr__(self, attr):  # pragma: no cover
-        if self.rrset is not None:
+        if attr != "rrset" and self.rrset is not None:
             if attr == "name":
                 return self.rrset.name
             elif attr == "ttl":
