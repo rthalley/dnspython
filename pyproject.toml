@@ -39,8 +39,8 @@ dev = [
     "pytest>=8.4",
     "pytest-cov>=6.2.0",
     "quart-trio>=0.12.0",
-    "sphinx>=8.2.0",
-    "sphinx-rtd-theme>=3.0.0",
+    "sphinx>=8.2.0 ; python_full_version >= '3.11'",
+    "sphinx-rtd-theme>=3.0.0 ; python_full_version >= '3.11'",
     "twine>=6.1.0",
     "wheel>=0.45.0",
 ]
@@ -127,3 +127,4 @@ ignore_missing_imports = true
 [tool.pyright]
 reportUnsupportedDunderAll = false
 exclude = ["dns/win32util.py", "examples/*.py", "tests/*.py"]
+
