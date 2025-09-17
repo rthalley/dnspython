@@ -558,10 +558,7 @@ class Tokenizer:
         Returns a string.
         """
 
-        token = self.get().unescape()
-        if not token.is_identifier():
-            raise dns.exception.SyntaxError("expecting an identifier")
-        return token.value
+        return self.as_identifier(self.get().unescape())
 
     def get_remaining(self, max_tokens: int | None = None) -> List[Token]:
         """Return the remaining tokens on the line, until an EOL or EOF is seen.
@@ -716,6 +713,18 @@ class Tokenizer:
             raise dns.exception.SyntaxError("expecting a string")
         if max_length and len(token.value) > max_length:
             raise dns.exception.SyntaxError("string too long")
+        return token.value
+
+    def as_identifier(self, token: Token) -> str:
+        """Try to interpret the token as an identifier.
+
+        Raises dns.exception.SyntaxError if not an identifier.
+
+        Returns a string.
+        """
+
+        if not token.is_identifier():
+            raise dns.exception.SyntaxError("expecting an identifier")
         return token.value
 
     def get_name(
