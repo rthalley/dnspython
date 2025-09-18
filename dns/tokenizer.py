@@ -491,13 +491,7 @@ class Tokenizer:
 
         Returns an int.
         """
-
-        token = self.get().unescape()
-        if not token.is_identifier():
-            raise dns.exception.SyntaxError("expecting an identifier")
-        if not token.value.isdigit():
-            raise dns.exception.SyntaxError("expecting an integer")
-        return int(token.value, base)
+        return self.as_int(self.get().unescape(), base)
 
     def get_uint8(self) -> int:
         """Read the next token and interpret it as an 8-bit unsigned
@@ -508,10 +502,8 @@ class Tokenizer:
         Returns an int.
         """
 
-        value = self.get_int()
-        if value < 0 or value > 255:
-            raise dns.exception.SyntaxError(f"{value} is not an unsigned 8-bit integer")
-        return value
+
+        return self.as_uint8(self.get().unescape())
 
     def get_uint16(self, base: int = 10) -> int:
         """Read the next token and interpret it as a 16-bit unsigned
@@ -522,17 +514,7 @@ class Tokenizer:
         Returns an int.
         """
 
-        value = self.get_int(base=base)
-        if value < 0 or value > 65535:
-            if base == 8:
-                raise dns.exception.SyntaxError(
-                    f"{value:o} is not an octal unsigned 16-bit integer"
-                )
-            else:
-                raise dns.exception.SyntaxError(
-                    f"{value} is not an unsigned 16-bit integer"
-                )
-        return value
+        return self.as_uint16(self.get().unescape(), base)
 
     def get_uint32(self, base: int = 10) -> int:
         """Read the next token and interpret it as a 32-bit unsigned
@@ -543,12 +525,7 @@ class Tokenizer:
         Returns an int.
         """
 
-        value = self.get_int(base=base)
-        if value < 0 or value > 4294967295:
-            raise dns.exception.SyntaxError(
-                f"{value} is not an unsigned 32-bit integer"
-            )
-        return value
+        return self.as_uint32(self.get().unescape(), base)
 
     def get_uint48(self, base: int = 10) -> int:
         """Read the next token and interpret it as a 48-bit unsigned
@@ -559,12 +536,7 @@ class Tokenizer:
         Returns an int.
         """
 
-        value = self.get_int(base=base)
-        if value < 0 or value > 281474976710655:
-            raise dns.exception.SyntaxError(
-                f"{value} is not an unsigned 48-bit integer"
-            )
-        return value
+        return self.as_uint48(self.get().unescape(), base)
 
     def get_string(self, max_length: int | None = None) -> str:
         """Read the next token and interpret it as a string.
@@ -576,12 +548,7 @@ class Tokenizer:
         Returns a string.
         """
 
-        token = self.get().unescape()
-        if not (token.is_identifier() or token.is_quoted_string()):
-            raise dns.exception.SyntaxError("expecting a string")
-        if max_length and len(token.value) > max_length:
-            raise dns.exception.SyntaxError("string too long")
-        return token.value
+        return self.as_string(self.get().unescape(), max_length)
 
     def get_identifier(self) -> str:
         """Read the next token, which should be an identifier.
@@ -591,10 +558,7 @@ class Tokenizer:
         Returns a string.
         """
 
-        token = self.get().unescape()
-        if not token.is_identifier():
-            raise dns.exception.SyntaxError("expecting an identifier")
-        return token.value
+        return self.as_identifier(self.get().unescape())
 
     def get_remaining(self, max_tokens: int | None = None) -> List[Token]:
         """Return the remaining tokens on the line, until an EOL or EOF is seen.
@@ -657,6 +621,111 @@ class Tokenizer:
             raise dns.exception.SyntaxError("expecting an identifier")
         name = dns.name.from_text(token.value, origin, self.idna_codec)
         return name.choose_relativity(relativize_to or origin, relativize)
+
+    def as_int(self, token: Token, base: int = 10) -> int:
+        """Try to interpret the token as an unsigned integer.
+
+        Raises dns.exception.SyntaxError if not an unsigned integer.
+
+        Returns an int.
+        """
+
+        if not token.is_identifier():
+            raise dns.exception.SyntaxError("expecting an identifier")
+        if not token.value.isdigit():
+            raise dns.exception.SyntaxError("expecting an integer")
+        return int(token.value, base)
+
+    def as_uint8(self, token: Token) -> int:
+        """Try to interpret the token as an unsigned 8-bit integer.
+
+        Raises dns.exception.SyntaxError if not 8-bit unsigned integer.
+
+        Returns an int.
+        """
+
+        value = self.as_int(token=token)
+        if value < 0 or value > 255:
+            raise dns.exception.SyntaxError(f"{value} is not an unsigned 8-bit integer")
+        return value
+
+    def as_uint16(self, token: Token, base: int = 10) -> int:
+        """Try to interpret the token as an unsigned 16-bit integer.
+
+        Raises dns.exception.SyntaxError if not a 16-bit unsigned integer.
+
+        Returns an int.
+        """
+
+        value = self.as_int(token=token, base=base)
+        if value < 0 or value > 65535:
+            if base == 8:
+                raise dns.exception.SyntaxError(
+                    f"{value:o} is not an octal unsigned 16-bit integer"
+                )
+            else:
+                raise dns.exception.SyntaxError(
+                    f"{value} is not an unsigned 16-bit integer"
+                )
+        return value
+
+    def as_uint32(self, token: Token, base: int = 10) -> int:
+        """Try to interpret the token as an unsigned 32-bit integer.
+
+        Raises dns.exception.SyntaxError if not a 32-bit unsigned integer.
+
+        Returns an int.
+        """
+
+        value = self.as_int(token=token, base=base)
+        if value < 0 or value > 4294967295:
+            raise dns.exception.SyntaxError(
+                f"{value} is not an unsigned 32-bit integer"
+            )
+        return value
+
+    def as_uint48(self, token: Token, base: int = 10) -> int:
+        """Try to interpret the token as an unsigned 48-bit integer.
+
+        Raises dns.exception.SyntaxError if not a 48-bit unsigned integer.
+
+        Returns an int.
+        """
+
+        value = self.as_int(token=token, base=base)
+        if value < 0 or value > 281474976710655:
+            raise dns.exception.SyntaxError(
+                f"{value} is not an unsigned 48-bit integer"
+            )
+        return value
+
+    def as_string(self, token: Token, max_length: int | None = None) -> str:
+        """Try to interpret the token as a string.
+
+        Raises dns.exception.SyntaxError if not a string.
+        Raises dns.exception.SyntaxError if token value length
+        exceeds max_length (if specified).
+
+        Returns a string.
+        """
+
+        if not (token.is_identifier() or token.is_quoted_string()):
+            raise dns.exception.SyntaxError("expecting a string")
+        if max_length and len(token.value) > max_length:
+            raise dns.exception.SyntaxError("string too long")
+        return token.value
+
+    def as_identifier(self, token: Token) -> str:
+        """Try to interpret the token as an identifier.
+
+        Raises dns.exception.SyntaxError if not an identifier.
+
+        Returns a string.
+        """
+
+        if not token.is_identifier():
+            raise dns.exception.SyntaxError("expecting an identifier")
+        return token.value
 
     def get_name(
         self,
