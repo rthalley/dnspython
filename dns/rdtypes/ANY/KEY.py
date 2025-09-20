@@ -77,6 +77,9 @@ class LegacyFlag(dns.enum.IntEnum):
     SIG15 = 0x000F
 
 
+DNS_KEYFLAG_TYPEMASK = LegacyFlag.NOAUTH | LegacyFlag.NOCONF
+
+
 @dns.immutable.immutable
 class KEY(dns.rdtypes.dnskeybase.DNSKEYBase):
     """KEY record"""
@@ -85,11 +88,11 @@ class KEY(dns.rdtypes.dnskeybase.DNSKEYBase):
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
     ):
+        token = tok.get()
         try:
-            flags = tok.get_uint16()
+            flags = tok.as_uint16(token)
         except dns.exception.SyntaxError:
-            tok.unget(tok.last_token)
-            flags_str = tok.get().value
+            flags_str = tok.as_string(token)
             try:
                 flags = 0
                 for mnemonic in flags_str.split("|"):
@@ -97,11 +100,11 @@ class KEY(dns.rdtypes.dnskeybase.DNSKEYBase):
             except KeyError:
                 raise dns.exception.SyntaxError(f"Invalid flags: {flags_str}")
 
+        token = tok.get()
         try:
-            protocol = tok.get_uint8()
+            protocol = tok.as_uint8(token)
         except dns.exception.SyntaxError:
-            tok.unget(tok.last_token)
-            protocol_str = tok.get_string()
+            protocol_str = tok.as_string(token)
             try:
                 protocol = Protocol[protocol_str].value
             except KeyError:
@@ -111,7 +114,7 @@ class KEY(dns.rdtypes.dnskeybase.DNSKEYBase):
 
         # RFC 2535 section 7.1 says "Note that if the type flags field has the
         # NOKEY value, nothing appears after the algorithm octet."
-        if flags != LegacyFlag.NOKEY:
+        if (flags & DNS_KEYFLAG_TYPEMASK) != LegacyFlag.NOKEY:
             b64 = tok.concatenate_remaining_identifiers().encode()
             key = base64.b64decode(b64)
         else:
