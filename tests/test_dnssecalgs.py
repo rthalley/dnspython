@@ -42,6 +42,20 @@ try:
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
+try:
+    from cryptography.hazmat.backends import default_backend
+except ImportError:
+    pass  # Cryptography ImportError already handled in dns.dnssec
+
+    def default_backend():
+        raise NotImplementedError
+
+
+if dns.dnssec._have_pyca:
+    have_deterministic = default_backend().ecdsa_deterministic_supported()
+else:
+    have_deterministic = False
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECAlgorithm(unittest.TestCase):
@@ -92,6 +106,7 @@ class DNSSECAlgorithm(unittest.TestCase):
             k = PrivateDSA.generate(2048)
             k.sign(b"hello")
 
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def test_ecdsa(self):
         self._test_dnssec_alg(PrivateECDSAP256SHA256)
         self._test_dnssec_alg(PrivateECDSAP384SHA384)

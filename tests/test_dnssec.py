@@ -44,7 +44,16 @@ try:
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
+    def default_backend():
+        raise NotImplementedError
+
+
 # pylint: disable=line-too-long
+
+if dns.dnssec._have_pyca:
+    have_deterministic = default_backend().ecdsa_deterministic_supported()
+else:
+    have_deterministic = False
 
 abs_dnspython_org = dns.name.from_text("dnspython.org")
 
@@ -1092,19 +1101,18 @@ class DNSSECMiscTestCase(unittest.TestCase):
 
     def test_sign_zone_initially_empty(self):
         zone = dns.zone.Zone("example.")
-        soa = dns.rdataset.from_text("IN", "SOA", 3600,
-                                     "ns.example. hostmaster.example. 1 2 3 4 5")
+        soa = dns.rdataset.from_text(
+            "IN", "SOA", 3600, "ns.example. hostmaster.example. 1 2 3 4 5"
+        )
         privkey = ed25519.Ed25519PrivateKey.generate()
-        dnskey = dns.dnssec.make_dnskey(privkey.public_key(),
-                                        dns.dnssec.ED25519)
+        dnskey = dns.dnssec.make_dnskey(privkey.public_key(), dns.dnssec.ED25519)
         with zone.writer() as txn:
             txn.add(dns.name.empty, soa)
-            dns.dnssec.sign_zone(zone, txn=txn, keys=[(privkey, dnskey)],
-                                 lifetime=3600)
+            dns.dnssec.sign_zone(zone, txn=txn, keys=[(privkey, dnskey)], lifetime=3600)
 
         self.assertIsNotNone(zone.find_rdataset(dns.name.empty, "SOA"))
-        self.assertIsNotNone(zone.find_rdataset(dns.name.empty, "RRSIG",
-                                                covers="SOA"))
+        self.assertIsNotNone(zone.find_rdataset(dns.name.empty, "RRSIG", covers="SOA"))
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMakeDSTestCase(unittest.TestCase):
@@ -1412,10 +1420,12 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         )
         self._test_signature(key, dns.dnssec.Algorithm.RSASHA256, abs_soa)
 
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
         self._test_signature(key, dns.dnssec.Algorithm.ECDSAP256SHA256, abs_soa)
 
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def testDeterministicSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
         inception = time.time()
@@ -1454,6 +1464,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         )
         assert rrsigset1 != rrsigset2
 
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def testSignatureECDSAP384SHA384(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP384R1(), backend=default_backend())
         self._test_signature(key, dns.dnssec.Algorithm.ECDSAP384SHA384, abs_soa)
