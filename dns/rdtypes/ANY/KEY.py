@@ -22,12 +22,6 @@ import dns.exception
 import dns.immutable
 import dns.rdtypes.dnskeybase  # lgtm[py/import-and-import-from]
 
-# pylint: disable=unused-import
-from dns.rdtypes.dnskeybase import (  # noqa: F401  lgtm[py/unused-import]
-    ZONE,
-)
-
-# pylint: enable=unused-import
 
 
 class Protocol(dns.enum.IntEnum):

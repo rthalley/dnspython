@@ -105,7 +105,7 @@ class RRSIGBase(dns.rdata.Rdata):
             posixtime_to_sigtime(self.inception),
             self.key_tag,
             self.signer.choose_relativity(origin, relativize),
-            dns.rdata._base64ify(self.signature, **kw),
+            dns.rdata._base64ify(self.signature, **kw),# pyright: ignore
         )
 
     @classmethod
@@ -156,4 +156,4 @@ class RRSIGBase(dns.rdata.Rdata):
         header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()
-        return cls(rdclass, rdtype, *header, signer, signature)
+        return cls(rdclass, rdtype, *header, signer, signature)# pyright: ignore
