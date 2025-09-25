@@ -36,6 +36,7 @@ dev = [
     "flake8>=7",
     "mypy>=1.17",
     "pylint>=3",
+    "pyright>=1.1.405",
     "pytest>=8.4",
     "pytest-cov>=6.2.0",
     "quart-trio>=0.12.0",
@@ -127,4 +128,3 @@ ignore_missing_imports = true
 [tool.pyright]
 reportUnsupportedDunderAll = false
 exclude = ["dns/win32util.py", "examples/*.py", "tests/*.py"]
-
