@@ -40,6 +40,7 @@ dev = [
     "pytest>=8.4",
     "pytest-cov>=6.2.0",
     "quart-trio>=0.12.0",
+    "ruff>=0.13.2"
     "sphinx>=8.2.0 ; python_version >= '3.11'",
     "sphinx-rtd-theme>=3.0.0 ; python_full_version >= '3.11'",
     "twine>=6.1.0",
