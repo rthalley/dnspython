@@ -26,6 +26,7 @@ __all__ = [
     "euibase",
     "mxbase",
     "nsbase",
+    "rrsigbase",
     "svcbbase",
     "tlsabase",
     "txtbase",

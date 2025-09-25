@@ -28,7 +28,6 @@ import dns.rdatatype
 
 
 class BadSigTime(dns.exception.DNSException):
-
     """Time in DNS SIG or RRSIG resource record cannot be parsed."""
 
 
@@ -52,7 +51,6 @@ def posixtime_to_sigtime(what):
 
 @dns.immutable.immutable
 class RRSIGBase(dns.rdata.Rdata):
-
     """Base class for rdata that is like a RRSIG record"""
 
     __slots__ = [
@@ -96,16 +94,14 @@ class RRSIGBase(dns.rdata.Rdata):
         return self.type_covered
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return "%s %d %d %d %s %s %d %s %s" % (
-            dns.rdatatype.to_text(self.type_covered),
-            self.algorithm,
-            self.labels,
-            self.original_ttl,
-            posixtime_to_sigtime(self.expiration),
-            posixtime_to_sigtime(self.inception),
-            self.key_tag,
-            self.signer.choose_relativity(origin, relativize),
-            dns.rdata._base64ify(self.signature, **kw),# pyright: ignore
+        ctext = dns.rdatatype.to_text(self.type_covered)
+        expiration = posixtime_to_sigtime(self.expiration)
+        inception = posixtime_to_sigtime(self.inception)
+        signer = self.signer.choose_relativity(origin, relativize)
+        sig = dns.rdata._base64ify(self.signature, **kw)  # pyright: ignore
+        return (
+            f"{ctext} {self.algorithm} {self.labels} {self.original_ttl} "
+            + f"{expiration} {inception} {self.key_tag} {signer} {sig}"
         )
 
     @classmethod
@@ -156,4 +152,4 @@ class RRSIGBase(dns.rdata.Rdata):
         header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()
-        return cls(rdclass, rdtype, *header, signer, signature)# pyright: ignore
+        return cls(rdclass, rdtype, *header, signer, signature)  # pyright: ignore
