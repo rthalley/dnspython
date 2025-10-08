@@ -1,0 +1,3 @@
+#!/bin/sh
+
+uv sync  --extra dnssec --extra doh --extra doq --extra idna --extra trio --extra dev
