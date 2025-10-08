@@ -8,6 +8,12 @@ What's New in dnspython
 
 TBD
 
+* The socket type parameter to socket.getaddrinfo used to be called "socktype" in
+  Python 2, but was renamed to "type" in Python 3.  We applied this change on
+  the python3 branch almost a decade ago, but it was lost in the "single code base,
+  only Python 3" update, also quite some time ago.  It is now renamed to "type"
+  (again) so it matches the Python 3 code it is overriding.
+
 2.8.0
 -----
 

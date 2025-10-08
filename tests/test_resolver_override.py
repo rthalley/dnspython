@@ -155,7 +155,7 @@ class OverrideSystemResolverTestCase(unittest.TestCase):
         infos = socket.getaddrinfo(
             service=53,
             family=socket.AF_INET,
-            socktype=socket.SOCK_DGRAM,
+            type=socket.SOCK_DGRAM,
             proto=socket.IPPROTO_UDP,
         )
         self.assertEqual(len(infos), 1)

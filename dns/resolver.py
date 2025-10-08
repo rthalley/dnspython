@@ -1839,7 +1839,7 @@ _original_gethostbyaddr = socket.gethostbyaddr
 
 
 def _getaddrinfo(
-    host=None, service=None, family=socket.AF_UNSPEC, socktype=0, proto=0, flags=0
+    host=None, service=None, family=socket.AF_UNSPEC, type=0, proto=0, flags=0
 ):
     if flags & socket.AI_NUMERICHOST != 0:
         # Short circuit directly into the system's getaddrinfo().  We're
@@ -1847,7 +1847,7 @@ def _getaddrinfo(
         # because dns.query.* needs to call getaddrinfo() for IPv6 scoping
         # reasons.  We will also do this short circuit below if we
         # discover that the host is an address literal.
-        return _original_getaddrinfo(host, service, family, socktype, proto, flags)
+        return _original_getaddrinfo(host, service, family, type, proto, flags)
     if flags & (socket.AI_ADDRCONFIG | socket.AI_V4MAPPED) != 0:
         # Not implemented.  We raise a gaierror as opposed to a
         # NotImplementedError as it helps callers handle errors more
@@ -1867,13 +1867,13 @@ def _getaddrinfo(
     # Is host None or an address literal?  If so, use the system's
     # getaddrinfo().
     if host is None:
-        return _original_getaddrinfo(host, service, family, socktype, proto, flags)
+        return _original_getaddrinfo(host, service, family, type, proto, flags)
     try:
         # We don't care about the result of af_for_address(), we're just
         # calling it so it raises an exception if host is not an IPv4 or
         # IPv6 address.
         dns.inet.af_for_address(host)
-        return _original_getaddrinfo(host, service, family, socktype, proto, flags)
+        return _original_getaddrinfo(host, service, family, type, proto, flags)
     except Exception:
         pass
     # Something needs resolution!
@@ -1905,20 +1905,20 @@ def _getaddrinfo(
     if port is None:
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
     tuples = []
-    if socktype == 0:
+    if type == 0:
         socktypes = [socket.SOCK_DGRAM, socket.SOCK_STREAM]
     else:
-        socktypes = [socktype]
+        socktypes = [type]
     if flags & socket.AI_CANONNAME != 0:
         cname = canonical_name
     else:
         cname = ""
     for addr, af in addrs:
-        for socktype in socktypes:
-            for sockproto in _protocols_for_socktype[socktype]:
+        for type in socktypes:
+            for sockproto in _protocols_for_socktype[type]:
                 proto = int(sockproto)
                 addr_tuple = dns.inet.low_level_address_tuple((addr, port), af)
-                tuples.append((af, socktype, proto, cname, addr_tuple))
+                tuples.append((af, type, proto, cname, addr_tuple))
     if len(tuples) == 0:
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
     return tuples
