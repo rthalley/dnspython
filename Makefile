@@ -41,12 +41,6 @@ type:
 pyright:
 	pyright dns
 
-lint:
-	pylint dns
-
-flake:
-	flake8 dns
-
 ruff:
 	ruff check dns
 
