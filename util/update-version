@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import os
+
+from dns.version import MAJOR, MICRO, MINOR, RELEASELEVEL, version
+
+
+def update(pathname, edit):
+    new_pathname = pathname + ".new"
+    with open(pathname, "rt") as old:
+        with open(new_pathname, "wt") as new:
+            for l in old.readlines():
+                l = l.rstrip()
+                nl = edit(l)
+                print(nl, file=new)
+    os.rename(new_pathname, pathname)
+
+
+def edit_project(line):
+    if line.startswith("version = "):
+        return f'version = "{version}"'
+    else:
+        return line
+
+
+def edit_readme(line):
+    if line.startswith(
+        "This is the development version of `dnspython` "
+    ) or line.startswith("This is `dnspython` "):
+        if RELEASELEVEL == 0:
+            extra = "the development version of "
+            readme_version = f"{MAJOR}.{MINOR}.{MICRO}"
+        else:
+            extra = ""
+            readme_version = version
+        return f"This is {extra}`dnspython` {readme_version}."
+    else:
+        return line
+
+
+def edit_sphinx_conf(line):
+    if line.startswith("version = "):
+        return f'version = "{MAJOR}.{MINOR}"'
+    elif line.startswith("release = "):
+        return f'release = "{MAJOR}.{MINOR}.{MICRO}"'
+    else:
+        return line
+
+
+update("pyproject.toml", edit_project)
+update("README.md", edit_readme)
+update("doc/conf.py", edit_sphinx_conf)

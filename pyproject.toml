@@ -1,6 +1,9 @@
 [build-system]
 requires = ["hatchling>=1.21.0"]
 build-backend = "hatchling.build"
+# You can also use "uv" instead
+#requires = ["uv_build>=0.9.1,<0.10.0"]
+#build-backend = "uv_build"
 
 [project]
 name = "dnspython"
@@ -26,7 +29,7 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
-dynamic = ["version"]
+version = "2.9.0dev0"
 
 [project.optional-dependencies]
 dev = [
@@ -84,12 +87,32 @@ include = ["dns/*.py", "dns/**/*.py", "dns/py.typed"]
 
 [tool.hatch.envs.default]
 features = ["trio", "dnssec", "idna", "doh", "doq", "dev"]
-#installer = "uv"
 
-[tool.hatch.version]
-source = "code"
-path = "dns/version.py"
-expression = "version"
+[tool.uv.build-backend]
+module-name = "dns"
+module-root = ""
+source-include = [
+    "/dns/*.py",
+    "/dns/**/*.py",
+    "/dns/py.typed",
+    "/examples/*.txt",
+    "/examples/*.py",
+    "/tests/*.txt",
+    "/tests/*.py",
+    "/tests/*.good",
+    "/tests/example",
+    "/tests/query",
+    "/tests/*.pickle",
+    "/tests/*.text",
+    "/tests/*.generic",
+    "/tests/tls/*.crt",
+    "/tests/tls/*.pem",
+    "/util/**",
+]
+source-exclude = [
+    ".pytest_cache",
+    ".DS_Store",
+]
 
 [tool.ruff]
 lint.select = [
