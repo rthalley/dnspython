@@ -31,8 +31,7 @@ TBD
   the default in the future as we believe it to be the most accurate.  Any feedback on
   it compared to the other methods is welcome.
 
-* The DSYNC record is now supported.  This type is still in draft stage at the IETF
-  and is subject to change.
+* The DSYNC record (RFC 9859) is now supported.
 
 * The minimum supported Python version is now 3.10.
 
