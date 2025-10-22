@@ -3,7 +3,7 @@
 import collections.abc
 from typing import Any, Callable
 
-from dns._immutable_ctx import immutable
+from dns._immutable_ctx import immutable as immutable  # export
 
 
 @immutable
