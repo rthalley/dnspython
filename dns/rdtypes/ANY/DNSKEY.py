@@ -20,6 +20,7 @@ import dns.rdtypes.dnskeybase  # lgtm[py/import-and-import-from]
 
 # pylint: disable=unused-import
 from dns.rdtypes.dnskeybase import (  # noqa: F401  lgtm[py/unused-import]
+    ADT,
     REVOKE,
     SEP,
     ZONE,
