@@ -27,6 +27,8 @@ __all__ = [
     "CERT",
     "CNAME",
     "CSYNC",
+    "DELEG",
+    "DELEGI",
     "DLV",
     "DNAME",
     "DNSKEY",
