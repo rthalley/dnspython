@@ -109,6 +109,9 @@ class RdataType(dns.enum.IntEnum):
     WALLET = 262
     TA = 32768
     DLV = 32769
+    # Temporary DELEG values
+    DELEG = 61440
+    DELEGI = 65433
 
     @classmethod
     def _maximum(cls):
@@ -334,5 +337,7 @@ RESINFO = RdataType.RESINFO
 WALLET = RdataType.WALLET
 TA = RdataType.TA
 DLV = RdataType.DLV
+DELEG = RdataType.DELEG
+DELEGI = RdataType.DELEGI
 
 ### END generated RdataType constants

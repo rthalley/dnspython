@@ -36,6 +36,9 @@ cname02 3600 IN CNAME cname-target
 cname03 3600 IN CNAME .
 csync0 3600 IN CSYNC 12345 0 A MX RRSIG NSEC TYPE1234
 d 300 IN A 73.80.65.49
+deleg 3600 IN DELEG server-ipv4="1.2.3.4" server-ipv6="1:2:3:4:5:6:7:8"
+deleg 3600 IN DELEG include-delegi="delegi.example."
+deleg 3600 IN DELEG server-name="a.example.com.,b.example.com."
 dhcid01 3600 IN DHCID AAIBY2/AuCccgoJbsaxcQc9TUapptP69 lOjxfNuVAA2kjEA=
 dhcid02 3600 IN DHCID AAEBOSD+XR3Os/0LozeXVqcNc7FwCfQd WL3b/NaiUDlW2No=
 dhcid03 3600 IN DHCID AAABxLmlskllE0MVjd57zHcWmEH3pCQ6 VytcKD//7es/deY=
