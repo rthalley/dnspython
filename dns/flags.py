@@ -50,6 +50,8 @@ class EDNSFlag(enum.IntFlag):
     DO = 0x8000
     #: Compact nonexistence, restore NXDOMAIN requested
     CO = 0x4000
+    #: DELEG aware
+    DE = 0x2000
 
 
 # Flags Mask (excludes opcode and rcode)
@@ -149,5 +151,6 @@ CD = Flag.CD
 
 DO = EDNSFlag.DO
 CO = EDNSFlag.CO
+DE = EDNSFlag.DE
 
 ### END generated EDNSFlag constants
