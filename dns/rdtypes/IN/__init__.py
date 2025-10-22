@@ -21,6 +21,8 @@ __all__ = [
     "A",
     "AAAA",
     "APL",
+    "DELEG",
+    "DELEGPARAM",
     "DHCID",
     "HTTPS",
     "IPSECKEY",
