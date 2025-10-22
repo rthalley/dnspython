@@ -31,10 +31,6 @@ class DelegInfoKey(dns.enum.IntEnum):
     SERVER_IPV6 = 2
     SERVER_NAME = 3
     INCLUDE_DELEGI = 4
-    ALPN = 65280
-    DOHPATH = 65281
-    PORT = 65282
-    HOSTNAME = 65283
 
     @classmethod
     def _maximum(cls):
@@ -297,87 +293,11 @@ class NameSetInfo(DelegInfo):
             name.to_wire(file, None, None, False)
 
 
-@dns.immutable.immutable
-class ALPNInfo(DelegInfo):
-    def __init__(self, ids):
-        self.ids = dns.rdata.Rdata._as_tuple(
-            ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False)
-        )
-
-    @classmethod
-    def from_value(cls, value):
-        return cls(_split(_unescape(value)))
-
-    def to_text(self):
-        value = ",".join([_escapify(id) for id in self.ids])
-        return '"' + dns.rdata._escapify(value.encode()) + '"'
-
-    @classmethod
-    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
-        ids = []
-        while parser.remaining() > 0:
-            id = parser.get_counted_bytes()
-            ids.append(id)
-        return cls(ids)
-
-    def to_wire(self, file, origin=None):  # pylint: disable=W0613
-        for id in self.ids:
-            file.write(struct.pack("!B", len(id)))
-            file.write(id)
-
-
-@dns.immutable.immutable
-class PortInfo(DelegInfo):
-    def __init__(self, port):
-        self.port = dns.rdata.Rdata._as_uint16(port)
-
-    @classmethod
-    def from_value(cls, value):
-        value = int(value)
-        return cls(value)
-
-    def to_text(self):
-        return f'"{self.port}"'
-
-    @classmethod
-    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
-        port = parser.get_uint16()
-        return cls(port)
-
-    def to_wire(self, file, origin=None):  # pylint: disable=W0613
-        file.write(struct.pack("!H", self.port))
-
-
-@dns.immutable.immutable
-class NameInfo(DelegInfo):
-    def __init__(self, name):
-        self.name = dns.rdata.Rdata._as_name(_bytes_as_string(name))
-
-    @classmethod
-    def from_value(cls, value):
-        return cls(_unescape(value))
-
-    def to_text(self):
-        value = self.name.to_text()
-        return '"' + dns.rdata._escapify(value.encode()) + '"'
-
-    @classmethod
-    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
-        name = parser.get_name()
-        return cls(name)
-
-    def to_wire(self, file, origin=None):  # pylint: disable=W0613
-        self.name.to_wire(file, None, None, False)
-
-
 _class_for_key: Dict[DelegInfoKey, Any] = {
     DelegInfoKey.SERVER_IPV4: ServerIPv4Info,
     DelegInfoKey.SERVER_IPV6: ServerIPv6Info,
     DelegInfoKey.SERVER_NAME: NameSetInfo,
     DelegInfoKey.INCLUDE_DELEGI: NameSetInfo,
-    DelegInfoKey.ALPN: ALPNInfo,
-    DelegInfoKey.PORT: PortInfo,
-    DelegInfoKey.HOSTNAME: NameInfo,
 }
 
 
