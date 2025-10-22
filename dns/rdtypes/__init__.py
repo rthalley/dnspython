@@ -21,6 +21,7 @@ __all__ = [
     "ANY",
     "IN",
     "CH",
+    "delegbase",
     "dnskeybase",
     "dsbase",
     "euibase",
