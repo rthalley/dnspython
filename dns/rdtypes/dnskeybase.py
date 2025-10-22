@@ -31,6 +31,7 @@ __all__ = ["SEP", "REVOKE", "ZONE"]  # noqa: F822
 
 class Flag(enum.IntFlag):
     SEP = 0x0001
+    ADT = 0x0002
     REVOKE = 0x0080
     ZONE = 0x0100
 
@@ -114,6 +115,7 @@ class DNSKEYBase(dns.rdata.Rdata):
 ### BEGIN generated Flag constants
 
 SEP = Flag.SEP
+ADT = Flag.ADT
 REVOKE = Flag.REVOKE
 ZONE = Flag.ZONE
 

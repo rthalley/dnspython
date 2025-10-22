@@ -269,3 +269,6 @@ resinfo                 RESINFO qnamemin exterr=15,16,17 infourl=https://resolve
 wallet                  WALLET EXAMPLE 01234567890abcdef
 dsync                   DSYNC CDS NOTIFY 5300 notify-endpoint.parent.net.
 dsync                   DSYNC CSYNC 128 443 notify-endpoint.parent.net.
+deleg					DELEG server-ipv4=1.2.3.4 server-ipv6=1:2:3:4:5:6:7:8
+deleg					DELEG include-delegi=delegi.example.
+deleg					DELEG server-name=a.example.com.,b.example.com.
