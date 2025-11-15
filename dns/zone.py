@@ -34,7 +34,6 @@ from typing import (
 )
 
 import dns.exception
-import dns.grange
 import dns.immutable
 import dns.name
 import dns.node
@@ -47,7 +46,6 @@ import dns.rdtypes.ANY.ZONEMD
 import dns.rrset
 import dns.tokenizer
 import dns.transaction
-import dns.ttl
 import dns.zonefile
 from dns.zonetypes import DigestHashAlgorithm, DigestScheme, _digest_hashers
 

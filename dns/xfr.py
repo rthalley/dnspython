@@ -92,7 +92,10 @@ class Inbound:
             raise ValueError("rdtype is not IXFR or AXFR")
         self.serial = serial
         self.is_udp = is_udp
-        (_, _, self.origin) = txn_manager.origin_information()
+        (_, _, origin) = txn_manager.origin_information()
+        if origin is None:
+            raise ValueError("transaction manager must supply an origin for XFRs")
+        self.origin = origin
         self.soa_rdataset: dns.rdataset.Rdataset | None = None
         self.done = False
         self.expecting_SOA = False
@@ -232,6 +235,12 @@ class Inbound:
                 # Note we are falling through into the code below
                 # so whatever rdataset this was gets written.
                 #
+            # Ignore glue that is not a subdomain of the origin.  For pathological
+            # cases it would be good if we could keep it in some side location, but
+            # dnspython zones don't have a place or an API for that, so we just ignore
+            # it at this time.
+            if not name.is_subdomain(self.origin):
+                continue
             # Add or remove the data
             if self.delete_mode:
                 self.txn.delete_exact(name, rdataset)

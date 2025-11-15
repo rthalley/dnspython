@@ -84,6 +84,22 @@ example. IN AXFR
 @ 3600 IN SOA foo bar 1 2 3 4 7
 """
 
+axfr_with_nonsubdomain_glue = """id 1
+opcode QUERY
+rcode NOERROR
+flags AA
+;QUESTION
+example. IN AXFR
+;ANSWER
+@ 3600 IN SOA foo bar 1 2 3 4 5
+bar.foo 300 IN MX 0 blaz.foo
+ns1 3600 IN A 10.0.0.1
+ns2 3600 IN A 10.0.0.2
+sub 300 IN NS ns1.other.
+ns1.other. 300 IN A 1.2.3.4
+@ 3600 IN SOA foo bar 1 2 3 4 5
+"""
+
 ixfr = """id 1
 opcode QUERY
 rcode NOERROR
@@ -274,6 +290,7 @@ example. IN IXFR
 @ 3600 IN NS ns1
 @ 3600 IN NS ns2
 """
+
 ixfr_axfr2 = """id 1
 opcode QUERY
 rcode NOERROR
@@ -329,6 +346,15 @@ def test_axfr_unexpected_origin():
     with dns.xfr.Inbound(z, dns.rdatatype.AXFR) as xfr:
         with pytest.raises(dns.exception.FormError):
             xfr.process_message(m)
+
+
+def test_axfr_with_non_subdomain_glue():
+    z = dns.versioned.Zone("example.")
+    m = dns.message.from_text(
+        axfr_with_nonsubdomain_glue, origin=z.origin, one_rr_per_rrset=True
+    )
+    with dns.xfr.Inbound(z, dns.rdatatype.AXFR) as xfr:
+        xfr.process_message(m)
 
 
 def test_basic_ixfr():
