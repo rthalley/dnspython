@@ -1360,8 +1360,8 @@ class Resolver(BaseResolver):
 
         This method calls resolve() with ``search=True``, and is
         provided for backwards compatibility with prior versions of
-        dnspython.  See the documentation for the resolve() method for
-        further details.
+        dnspython.  See the documentation for the
+        :py:func:`dns.resolver.Resolver.resolve()` method for further details.
         """
         warnings.warn(
             "please use dns.resolver.Resolver.resolve() instead",
@@ -1596,8 +1596,8 @@ def query(
 
     This method calls resolve() with ``search=True``, and is
     provided for backwards compatibility with prior versions of
-    dnspython.  See the documentation for the resolve() method for
-    further details.
+    dnspython.  See the documentation for the
+    :py:func:`dns.resolver.resolve()` method for further details.
     """
     warnings.warn(
         "please use dns.resolver.resolve() instead", DeprecationWarning, stacklevel=2
