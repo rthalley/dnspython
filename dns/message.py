@@ -1780,8 +1780,8 @@ def make_query(
     default is ``None``.  If ``None``, EDNS will be enabled only if other
     parameters (*ednsflags*, *payload*, *request_payload*, or *options*) are
     set.
-    See the description of dns.message.Message.use_edns() for the possible
-    values for use_edns and their meanings.
+    See the description of :py:func:`dns.message.Message.use_edns()` for the
+    possible values for use_edns and their meanings.
 
     *want_dnssec*, a ``bool``.  If ``True``, DNSSEC data is desired.
 
