@@ -188,7 +188,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
         # Note our definition of least_kept also ensures we do not try to
         # delete the greatest version.
         if len(self._readers) > 0:
-            least_kept = min(txn.version.id for txn in self._readers)  # pyright: ignore
+            least_kept = min(txn.version.id for txn in self._readers)  # type: ignore
         else:
             least_kept = self._versions[-1].id
         while self._versions[0].id < least_kept and self._pruning_policy(
@@ -204,7 +204,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
             raise ValueError("max versions must be at least 1")
         if max_versions is None:
             # pylint: disable=unused-argument
-            def policy(zone, _):  # pyright: ignore
+            def policy(zone, _):  # type: ignore
                 return False
 
         else:

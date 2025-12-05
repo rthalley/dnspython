@@ -98,9 +98,7 @@ class Rdataset(dns.set.Set):
             self.ttl = ttl
 
     # pylint: disable=arguments-differ,arguments-renamed
-    def add(  # pyright: ignore
-        self, rd: dns.rdata.Rdata, ttl: int | None = None
-    ) -> None:
+    def add(self, rd: dns.rdata.Rdata, ttl: int | None = None) -> None:  # type: ignore
         """Add the specified rdata to the rdataset.
 
         If the optional *ttl* parameter is supplied, then
@@ -351,7 +349,7 @@ class Rdataset(dns.set.Set):
         if len(self) == 0:
             return []
         else:
-            return self[0]._processing_order(iter(self))  # pyright: ignore
+            return self[0]._processing_order(iter(self))  # type: ignore
 
 
 @dns.immutable.immutable
@@ -406,22 +404,22 @@ class ImmutableRdataset(Rdataset):  # lgtm[py/missing-equals]
         raise TypeError("immutable")
 
     def __copy__(self):
-        return ImmutableRdataset(super().copy())  # pyright: ignore
+        return ImmutableRdataset(super().copy())  # type: ignore
 
     def copy(self):
-        return ImmutableRdataset(super().copy())  # pyright: ignore
+        return ImmutableRdataset(super().copy())  # type: ignore
 
     def union(self, other):
-        return ImmutableRdataset(super().union(other))  # pyright: ignore
+        return ImmutableRdataset(super().union(other))  # type: ignore
 
     def intersection(self, other):
-        return ImmutableRdataset(super().intersection(other))  # pyright: ignore
+        return ImmutableRdataset(super().intersection(other))  # type: ignore
 
     def difference(self, other):
-        return ImmutableRdataset(super().difference(other))  # pyright: ignore
+        return ImmutableRdataset(super().difference(other))  # type: ignore
 
     def symmetric_difference(self, other):
-        return ImmutableRdataset(super().symmetric_difference(other))  # pyright: ignore
+        return ImmutableRdataset(super().symmetric_difference(other))  # type: ignore
 
 
 def from_text_list(

@@ -25,9 +25,9 @@ class IntEnum(enum.IntEnum):
     @classmethod
     def _missing_(cls, value):
         cls._check_value(value)
-        val = int.__new__(cls, value)  # pyright: ignore
+        val = int.__new__(cls, value)  # type: ignore
         val._name_ = cls._extra_to_text(value, None) or f"{cls._prefix()}{value}"
-        val._value_ = value  # pyright: ignore
+        val._value_ = value  # type: ignore
         return val
 
     @classmethod

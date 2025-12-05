@@ -64,7 +64,7 @@ class PrivateRSA(CryptographyPrivateKey):
     ) -> bytes:
         """Sign using a private key per RFC 3110, section 3."""
         signature = self.key.sign(
-            data, padding.PKCS1v15(), self.public_cls.chosen_hash  # pyright: ignore
+            data, padding.PKCS1v15(), self.public_cls.chosen_hash  # type: ignore
         )
         if verify:
             self.public_key().verify(signature, data)

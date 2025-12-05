@@ -143,13 +143,13 @@ class LOC(dns.rdata.Rdata):
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
         _check_coordinate_list(latitude, -90, 90)
-        self.latitude = tuple(latitude)  # pyright: ignore
+        self.latitude = tuple(latitude)  # type: ignore
         if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
         _check_coordinate_list(longitude, -180, 180)
-        self.longitude = tuple(longitude)  # pyright: ignore
+        self.longitude = tuple(longitude)  # type: ignore
         self.altitude = float(altitude)
         self.size = float(size)
         self.horizontal_precision = float(hprec)

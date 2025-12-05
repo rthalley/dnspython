@@ -615,7 +615,7 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
                 )
                 rrset.update(rdataset)
                 rrsets.append(rrset)
-            self.manager.set_rrsets(rrsets)  # pyright: ignore
+            self.manager.set_rrsets(rrsets)  # type: ignore
 
     def _set_origin(self, origin):
         pass

@@ -219,7 +219,7 @@ class Renderer:
                 pad = b""
             options = list(opt_rdata.options)
             options.append(dns.edns.GenericOption(dns.edns.OptionType.PADDING, pad))
-            opt = dns.message.Message._make_opt(  # pyright: ignore
+            opt = dns.message.Message._make_opt(  # type: ignore
                 ttl, opt_rdata.rdclass, options
             )
             self.was_padded = True
@@ -231,9 +231,7 @@ class Renderer:
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
         ednsflags |= edns << 16
-        opt = dns.message.Message._make_opt(  # pyright: ignore
-            ednsflags, payload, options
-        )
+        opt = dns.message.Message._make_opt(ednsflags, payload, options)  # type: ignore
         self.add_opt(opt)
 
     def add_tsig(
@@ -255,7 +253,7 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(  # pyright: ignore
+        tsig = dns.message.Message._make_tsig(  # type: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
         (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
@@ -287,7 +285,7 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(  # pyright: ignore
+        tsig = dns.message.Message._make_tsig(  # type: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
         (tsig, ctx) = dns.tsig.sign(

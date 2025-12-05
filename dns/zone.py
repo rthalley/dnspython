@@ -697,9 +697,9 @@ class Zone(dns.transaction.TransactionManager):
             for n in names:
                 l = self[n].to_text(
                     n,
-                    origin=self.origin,  # pyright: ignore
-                    relativize=relativize,  # pyright: ignore
-                    want_comments=want_comments,  # pyright: ignore
+                    origin=self.origin,  # type: ignore
+                    relativize=relativize,  # type: ignore
+                    want_comments=want_comments,  # type: ignore
                 )
                 l_b = l.encode(file_enc)
 
@@ -1116,10 +1116,10 @@ class Transaction(dns.transaction.Transaction):
 
     def _setup_version(self):
         assert self.version is None
-        factory = self.manager.writable_version_factory  # pyright: ignore
+        factory = self.manager.writable_version_factory  # type: ignore
         if factory is None:
             factory = WritableVersion
-        self.version = factory(self.zone, self.replacement)  # pyright: ignore
+        self.version = factory(self.zone, self.replacement)  # type: ignore
 
     def _get_rdataset(self, name, rdtype, covers):
         assert self.version is not None
@@ -1155,22 +1155,22 @@ class Transaction(dns.transaction.Transaction):
         assert self.zone is not None
         assert self.version is not None
         if self.read_only:
-            self.zone._end_read(self)  # pyright: ignore
+            self.zone._end_read(self)  # type: ignore
         elif commit and len(self.version.changed) > 0:
             if self.make_immutable:
-                factory = self.manager.immutable_version_factory  # pyright: ignore
+                factory = self.manager.immutable_version_factory  # type: ignore
                 if factory is None:
                     factory = ImmutableVersion
                 version = factory(self.version)
             else:
                 version = self.version
-            self.zone._commit_version(  # pyright: ignore
+            self.zone._commit_version(  # type: ignore
                 self, version, self.version.origin
             )
 
         else:
             # rollback
-            self.zone._end_write(self)  # pyright: ignore
+            self.zone._end_write(self)  # type: ignore
 
     def _set_origin(self, origin):
         assert self.version is not None

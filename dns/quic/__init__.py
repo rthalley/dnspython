@@ -10,10 +10,10 @@ if dns._features.have("doq"):
     from dns.quic._asyncio import AsyncioQuicConnection as AsyncioQuicConnection
     from dns.quic._asyncio import AsyncioQuicManager
     from dns.quic._asyncio import AsyncioQuicStream as AsyncioQuicStream
-    from dns.quic._common import AsyncQuicConnection  # pyright: ignore
+    from dns.quic._common import AsyncQuicConnection  # type: ignore
     from dns.quic._common import AsyncQuicManager as AsyncQuicManager
-    from dns.quic._sync import SyncQuicConnection  # pyright: ignore
-    from dns.quic._sync import SyncQuicStream  # pyright: ignore
+    from dns.quic._sync import SyncQuicConnection  # type: ignore
+    from dns.quic._sync import SyncQuicStream  # type: ignore
     from dns.quic._sync import SyncQuicManager as SyncQuicManager
 
     have_quic = True

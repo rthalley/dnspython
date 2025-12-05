@@ -247,10 +247,10 @@ def weighted_processing_order(iterable):
                 if weight > r:
                     break
                 r -= weight
-            total -= weight  # pyright: ignore[reportPossiblyUnboundVariable]
+            total -= weight  # type: ignore
             # pylint: disable=undefined-loop-variable
-            ordered.append(rdata)  # pyright: ignore[reportPossiblyUnboundVariable]
-            del rdatas[n]  # pyright: ignore[reportPossiblyUnboundVariable]
+            ordered.append(rdata)  # type: ignore
+            del rdatas[n]  # type: ignore
         ordered.append(rdatas[0])
     return ordered
 

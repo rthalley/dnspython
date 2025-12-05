@@ -635,7 +635,7 @@ class GenericRdata(Rdata):
         relativize: bool = True,
         **kw: Dict[str, Any],
     ) -> str:
-        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # pyright: ignore
+        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # type: ignore
 
     @classmethod
     def from_text(

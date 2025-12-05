@@ -354,7 +354,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         # Updates are always one_rr_per_rrset
         return True
 
-    def _parse_rr_header(self, section, name, rdclass, rdtype):  # pyright: ignore
+    def _parse_rr_header(self, section, name, rdclass, rdtype):  # type: ignore
         deleting = None
         empty = False
         if section == UpdateSection.ZONE:

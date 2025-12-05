@@ -127,7 +127,7 @@ if _have_httpx:
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
-    class _HTTPTransport(httpx.HTTPTransport):  # pyright: ignore
+    class _HTTPTransport(httpx.HTTPTransport):  # type: ignore
         def __init__(
             self,
             *args,
@@ -230,7 +230,7 @@ def _wait_for(fd, readable, writable, _, expiration):
         if writable:
             events |= selectors.EVENT_WRITE
         if events:
-            sel.register(fd, events)  # pyright: ignore
+            sel.register(fd, events)  # type: ignore
         if expiration is None:
             timeout = None
         else:
@@ -411,8 +411,8 @@ def _make_socket(
 
 
 def _maybe_get_resolver(
-    resolver: Optional["dns.resolver.Resolver"],  # pyright: ignore
-) -> "dns.resolver.Resolver":  # pyright: ignore
+    resolver: Optional["dns.resolver.Resolver"],  # type: ignore
+) -> "dns.resolver.Resolver":  # type: ignore
     # We need a separate method for this to avoid overriding the global
     # variable "dns" with the as-yet undefined local variable "dns"
     # in https().
@@ -454,7 +454,7 @@ def https(
     post: bool = True,
     bootstrap_address: str | None = None,
     verify: bool | str | ssl.SSLContext = True,
-    resolver: Optional["dns.resolver.Resolver"] = None,  # pyright: ignore
+    resolver: Optional["dns.resolver.Resolver"] = None,  # type: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
@@ -539,17 +539,17 @@ def https(
     ):
         if bootstrap_address is None:
             resolver = _maybe_get_resolver(resolver)
-            assert parsed.hostname is not None  # pyright: ignore
-            answers = resolver.resolve_name(parsed.hostname, family)  # pyright: ignore
+            assert parsed.hostname is not None  # type: ignore
+            answers = resolver.resolve_name(parsed.hostname, family)  # type: ignore
             bootstrap_address = random.choice(list(answers.addresses()))
         if session and not isinstance(
             session, dns.quic.SyncQuicConnection
-        ):  # pyright: ignore
+        ):  # type: ignore
             raise ValueError("session parameter must be a dns.quic.SyncQuicConnection.")
         return _http3(
             q,
             bootstrap_address,
-            url,  # pyright: ignore
+            url,  # type: ignore
             timeout,
             port,
             source,
@@ -563,7 +563,7 @@ def https(
 
     if not have_doh:
         raise NoDOH  # pragma: no cover
-    if session and not isinstance(session, httpx.Client):  # pyright: ignore
+    if session and not isinstance(session, httpx.Client):  # type: ignore
         raise ValueError("session parameter must be an httpx.Client")
 
     wire = q.to_wire()
@@ -592,7 +592,7 @@ def https(
             local_port=local_port,
             bootstrap_address=bootstrap_address,
             resolver=resolver,
-            family=family,  # pyright: ignore
+            family=family,  # type: ignore
         )
 
         cm = httpx.Client(  # type: ignore
@@ -704,7 +704,7 @@ def _http3(
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
     else:
         manager = dns.quic.SyncQuicManager(
-            verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
+            verify_mode=verify, server_name=hostname, h3=True  # type: ignore
         )
         the_manager = manager  # for type checking happiness
 
@@ -712,11 +712,11 @@ def _http3(
         if connection:
             the_connection = connection
         else:
-            the_connection = the_manager.connect(  # pyright: ignore
+            the_connection = the_manager.connect(  # type: ignore
                 where, port, source, source_port
             )
         (start, expiration) = _compute_times(timeout)
-        with the_connection.make_stream(timeout) as stream:  # pyright: ignore
+        with the_connection.make_stream(timeout) as stream:  # type: ignore
             stream.send_h3(url, wire, post)
             wire = stream.receive(_remaining(expiration))
             _check_status(stream.headers(), where, wire)
@@ -1257,7 +1257,7 @@ def tcp(
     with cm as s:
         if not sock:
             # pylint: disable=possibly-used-before-assignment
-            _connect(s, destination, expiration)  # pyright: ignore
+            _connect(s, destination, expiration)  # type: ignore
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
@@ -1500,17 +1500,17 @@ def quic(
         the_connection = connection
     else:
         manager = dns.quic.SyncQuicManager(
-            verify_mode=verify, server_name=hostname  # pyright: ignore
+            verify_mode=verify, server_name=hostname  # type: ignore
         )
         the_manager = manager  # for type checking happiness
 
     with manager:
         if not connection:
-            the_connection = the_manager.connect(  # pyright: ignore
+            the_connection = the_manager.connect(  # type: ignore
                 where, port, source, source_port
             )
         (start, expiration) = _compute_times(timeout)
-        with the_connection.make_stream(timeout) as stream:  # pyright: ignore
+        with the_connection.make_stream(timeout) as stream:  # type: ignore
             stream.send(wire, True)
             wire = stream.receive(_remaining(expiration))
         finish = time.time()

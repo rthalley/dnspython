@@ -55,15 +55,15 @@ class PrivateECDSA(CryptographyPrivateKey):
     ) -> bytes:
         """Sign using a private key per RFC 6605, section 4."""
         algorithm = ec.ECDSA(
-            self.public_cls.chosen_hash,  # pyright: ignore
+            self.public_cls.chosen_hash,  # type: ignore
             deterministic_signing=deterministic,
         )
         der_signature = self.key.sign(data, algorithm)
         dsa_r, dsa_s = utils.decode_dss_signature(der_signature)
         signature = int.to_bytes(
-            dsa_r, length=self.public_cls.octets, byteorder="big"  # pyright: ignore
+            dsa_r, length=self.public_cls.octets, byteorder="big"  # type: ignore
         ) + int.to_bytes(
-            dsa_s, length=self.public_cls.octets, byteorder="big"  # pyright: ignore
+            dsa_s, length=self.public_cls.octets, byteorder="big"  # type: ignore
         )
         if verify:
             self.public_key().verify(signature, data)
@@ -73,7 +73,7 @@ class PrivateECDSA(CryptographyPrivateKey):
     def generate(cls) -> "PrivateECDSA":
         return cls(
             key=ec.generate_private_key(
-                curve=cls.public_cls.curve, backend=default_backend()  # pyright: ignore
+                curve=cls.public_cls.curve, backend=default_backend()  # type: ignore
             ),
         )
 

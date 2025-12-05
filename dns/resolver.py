@@ -64,7 +64,7 @@ class NXDOMAIN(dns.exception.DNSException):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _check_kwargs(self, qnames, responses=None):  # pyright: ignore
+    def _check_kwargs(self, qnames, responses=None):  # type: ignore
         if not isinstance(qnames, list | tuple | set):
             raise AttributeError("qnames must be a list, tuple or set")
         if len(qnames) == 0:
@@ -1663,7 +1663,7 @@ def zone_for_name(
     tcp: bool = False,
     resolver: Resolver | None = None,
     lifetime: float | None = None,
-) -> dns.name.Name:  # pyright: ignore[reportReturnType]
+) -> dns.name.Name:  # type: ignore[reportReturnType]
     """Find the name of the zone which contains the specified name.
 
     *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
@@ -1899,7 +1899,7 @@ def _getaddrinfo(
     except Exception:
         if flags & socket.AI_NUMERICSERV == 0:
             try:
-                port = socket.getservbyname(service)  # pyright: ignore
+                port = socket.getservbyname(service)  # type: ignore
             except Exception:
                 pass
     if port is None:
