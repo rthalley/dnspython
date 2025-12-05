@@ -152,7 +152,7 @@ class Reader:
 
     def _rr_line(self):
         """Process one line from a DNS zone file."""
-        token = None
+        token: dns.tokenizer.Token
         # Name
         if self.force_name is not None:
             name = self.force_name
@@ -190,7 +190,6 @@ class Reader:
                 ttl = dns.ttl.from_text(token.value)
                 self.last_ttl = ttl
                 self.last_ttl_known = True
-                token = None
             except dns.ttl.BadTTL:
                 self.tok.unget(token)
 
@@ -212,12 +211,10 @@ class Reader:
         if ttl is None:
             # support for <class> <ttl> <type> syntax
             token = self._get_identifier()
-            ttl = None
             try:
                 ttl = dns.ttl.from_text(token.value)
                 self.last_ttl = ttl
                 self.last_ttl_known = True
-                token = None
             except dns.ttl.BadTTL:
                 if self.default_ttl_known:
                     ttl = self.default_ttl
