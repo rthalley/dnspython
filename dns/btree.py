@@ -839,8 +839,8 @@ class BTreeSet(BTree, Generic[KT], MutableSet[KT]):
         super().__init__(t=t, original=original)
         self.in_order = in_order
 
-    def __contains__(self, key: Any) -> bool:
-        return self.get_element(key) is not None
+    def __contains__(self, x: object) -> bool:
+        return self.get_element(x) is not None
 
     def add(self, value: KT) -> None:
         elt = Member(value)
