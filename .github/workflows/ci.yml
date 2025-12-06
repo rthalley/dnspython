@@ -55,7 +55,6 @@ jobs:
     - name: Typecheck
       run: |
         pyright dns
-        ty check dns
     - name: Lint
       run: |
         ruff check dns
