@@ -143,7 +143,7 @@ if _have_httpx:
 
                 resolver = dns.resolver.Resolver()
             super().__init__(*args, **kwargs)
-            self._pool._network_backend = _NetworkBackend(
+            self._pool._network_backend = _NetworkBackend(  # type: ignore
                 resolver, local_port, bootstrap_address, family
             )
 

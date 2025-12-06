@@ -40,7 +40,7 @@ class _SVCBInfo:
     def make_tls_context(self):
         ssl = dns.query.ssl
         ctx = ssl.create_default_context()
-        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2  # type: ignore
         return ctx
 
     def ddr_tls_check_sync(self, lifetime):

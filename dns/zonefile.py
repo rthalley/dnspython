@@ -150,9 +150,10 @@ class Reader:
             raise dns.exception.SyntaxError
         return token
 
-    def _rr_line(self):
+    def _rr_line(self) -> None:
         """Process one line from a DNS zone file."""
         token: dns.tokenizer.Token
+        name: dns.name.Name | None
         # Name
         if self.force_name is not None:
             name = self.force_name

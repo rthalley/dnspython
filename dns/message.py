@@ -1430,7 +1430,7 @@ class _TextReader:
 
     def __init__(
         self,
-        text: str,
+        text: Any,
         idna_codec: dns.name.IDNACodec | None,
         one_rr_per_rrset: bool = False,
         origin: dns.name.Name | None = None,
@@ -1742,7 +1742,8 @@ def from_file(
     else:
         cm = contextlib.nullcontext(f)
     with cm as f:
-        return from_text(f, idna_codec, one_rr_per_rrset)
+        reader = _TextReader(f, idna_codec, one_rr_per_rrset)
+        return reader.read()
     assert False  # for mypy  lgtm[py/unreachable-statement]
 
 

@@ -159,7 +159,7 @@ class Zone(dns.transaction.TransactionManager):
                 raise ValueError("origin parameter must be convertible to a DNS name")
             if not origin.is_absolute():
                 raise ValueError("origin parameter must be an absolute name")
-        self.origin = origin
+        self.origin: dns.name.Name | None = origin
         self.rdclass = rdclass
         self.nodes: MutableMapping[dns.name.Name, dns.node.Node] = self.map_factory()
         self.relativize = relativize
@@ -686,8 +686,8 @@ class Zone(dns.transaction.TransactionManager):
                     f.write(l_b)
                     f.write(nl_b)
                 except TypeError:  # textual mode
-                    f.write(l)
-                    f.write(nl)
+                    f.write(l)  # type: ignore
+                    f.write(nl)  # type: ignore
 
             if sorted:
                 names = list(self.keys())
@@ -707,8 +707,8 @@ class Zone(dns.transaction.TransactionManager):
                     f.write(l_b)
                     f.write(nl_b)
                 except TypeError:  # textual mode
-                    f.write(l)
-                    f.write(nl)
+                    f.write(l)  # type: ignore
+                    f.write(nl)  # type: ignore
 
     def to_text(
         self,
@@ -1104,15 +1104,21 @@ class ImmutableVersion(Version):
 
 
 class Transaction(dns.transaction.Transaction):
-    def __init__(self, zone, replacement, version=None, make_immutable=False):
+    def __init__(
+        self,
+        zone: Zone,
+        replacement: bool,
+        version: Version | None = None,
+        make_immutable: bool = False,
+    ):
         read_only = version is not None
         super().__init__(zone, replacement, read_only)
         self.version = version
         self.make_immutable = make_immutable
 
     @property
-    def zone(self):
-        return self.manager
+    def zone(self) -> Zone:
+        return cast(Zone, self.manager)
 
     def _setup_version(self):
         assert self.version is None
@@ -1128,17 +1134,20 @@ class Transaction(dns.transaction.Transaction):
     def _put_rdataset(self, name, rdataset):
         assert not self.read_only
         assert self.version is not None
-        self.version.put_rdataset(name, rdataset)
+        version = cast(WritableVersion, self.version)
+        version.put_rdataset(name, rdataset)
 
     def _delete_name(self, name):
         assert not self.read_only
         assert self.version is not None
-        self.version.delete_node(name)
+        version = cast(WritableVersion, self.version)
+        version.delete_node(name)
 
     def _delete_rdataset(self, name, rdtype, covers):
         assert not self.read_only
         assert self.version is not None
-        self.version.delete_rdataset(name, rdtype, covers)
+        version = cast(WritableVersion, self.version)
+        version.delete_rdataset(name, rdtype, covers)
 
     def _name_exists(self, name):
         assert self.version is not None
@@ -1149,14 +1158,15 @@ class Transaction(dns.transaction.Transaction):
             return False
         else:
             assert self.version is not None
-            return len(self.version.changed) > 0
+            version = cast(WritableVersion, self.version)
+            return len(version.changed) > 0
 
     def _end_transaction(self, commit):
         assert self.zone is not None
         assert self.version is not None
         if self.read_only:
             self.zone._end_read(self)  # type: ignore
-        elif commit and len(self.version.changed) > 0:
+        elif commit and len(cast(WritableVersion, self.version).changed) > 0:
             if self.make_immutable:
                 factory = self.manager.immutable_version_factory  # type: ignore
                 if factory is None:
@@ -1191,7 +1201,9 @@ class Transaction(dns.transaction.Transaction):
         assert self.version is not None
         return self.version.get_node(name)
 
-    def _origin_information(self):
+    def _origin_information(
+        self,
+    ) -> Tuple[dns.name.Name | None, bool, dns.name.Name | None]:
         assert self.version is not None
         (absolute, relativize, effective) = self.manager.origin_information()
         if absolute is None and self.version.origin is not None:

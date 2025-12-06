@@ -1005,6 +1005,7 @@ class BaseResolver:
         else:
             cm = contextlib.nullcontext(f)
         with cm as f:
+            assert f is not None
             for l in f:
                 if len(l) == 0 or l[0] == "#" or l[0] == ";":
                     continue
@@ -2047,12 +2048,12 @@ def override_system_resolver(resolver: Resolver | None = None) -> None:
         resolver = get_default_resolver()
     global _resolver
     _resolver = resolver
-    socket.getaddrinfo = _getaddrinfo
-    socket.getnameinfo = _getnameinfo
-    socket.getfqdn = _getfqdn
-    socket.gethostbyname = _gethostbyname
-    socket.gethostbyname_ex = _gethostbyname_ex
-    socket.gethostbyaddr = _gethostbyaddr
+    socket.getaddrinfo = _getaddrinfo  # type: ignore
+    socket.getnameinfo = _getnameinfo  # type: ignore
+    socket.getfqdn = _getfqdn  # type: ignore
+    socket.gethostbyname = _gethostbyname  # type: ignore
+    socket.gethostbyname_ex = _gethostbyname_ex  # type: ignore
+    socket.gethostbyaddr = _gethostbyaddr  # type: ignore
 
 
 def restore_system_resolver() -> None:
@@ -2060,9 +2061,9 @@ def restore_system_resolver() -> None:
 
     global _resolver
     _resolver = None
-    socket.getaddrinfo = _original_getaddrinfo
-    socket.getnameinfo = _original_getnameinfo
-    socket.getfqdn = _original_getfqdn
-    socket.gethostbyname = _original_gethostbyname
-    socket.gethostbyname_ex = _original_gethostbyname_ex
-    socket.gethostbyaddr = _original_gethostbyaddr
+    socket.getaddrinfo = _original_getaddrinfo  # type: ignore
+    socket.getnameinfo = _original_getnameinfo  # type: ignore
+    socket.getfqdn = _original_getfqdn  # type: ignore
+    socket.gethostbyname = _original_gethostbyname  # type: ignore
+    socket.gethostbyname_ex = _original_gethostbyname_ex  # type: ignore
+    socket.gethostbyaddr = _original_gethostbyaddr  # type: ignore

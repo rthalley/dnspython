@@ -35,11 +35,18 @@ test:
 
 check: test
 
-type:
+mypy:
 	python -m mypy --disallow-incomplete-defs dns
 
 pyright:
 	pyright dns
+
+ty:
+	ty check dns
+
+type:
+	pyright dns
+	ty check dns
 
 ruff:
 	ruff check dns
