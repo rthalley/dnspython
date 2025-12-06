@@ -764,9 +764,9 @@ class Name:
 
         l = len(self.labels)
         if depth == 0:
-            return (self, dns.name.empty)
+            return (self, empty)
         elif depth == l:
-            return (dns.name.empty, self)
+            return (empty, self)
         elif depth < 0 or depth > l:
             raise ValueError("depth must be >= 0 and <= the length of the name")
         return (Name(self[:-depth]), Name(self[-depth:]))
@@ -1228,8 +1228,8 @@ def _absolute_successor(name: Name, origin: Name, prefix_ok: bool) -> Name:
             new_labels = [least_significant_label + _MINIMAL_OCTET]
             new_labels.extend(name.labels[1:])
             try:
-                return dns.name.Name(new_labels)
-            except dns.name.NameTooLong:
+                return Name(new_labels)
+            except NameTooLong:
                 pass
         # We can't extend the label either, so we'll try to increment the least
         # signficant non-maximal byte in it.

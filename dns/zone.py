@@ -626,7 +626,7 @@ class Zone(dns.transaction.TransactionManager):
         f: Any,
         sorted: bool = True,
         relativize: bool = True,
-        nl: str | None = None,
+        nl: str | bytes | None = None,
         want_comments: bool = False,
         want_origin: bool = False,
     ) -> None:
@@ -644,7 +644,7 @@ class Zone(dns.transaction.TransactionManager):
         names in the output will be relativized to the zone's origin
         if possible.
 
-        *nl*, a ``str`` or None.  The end of line string.  If not
+        *nl*, a ``str``, ``bytes``, or None.  The end of line string.  If not
         ``None``, the output will use the platform's native
         end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
 
@@ -662,6 +662,7 @@ class Zone(dns.transaction.TransactionManager):
         else:
             cm = contextlib.nullcontext(f)
         with cm as f:
+            assert f is not None
             # must be in this way, f.encoding may contain None, or even
             # attribute may not be there
             file_enc = getattr(f, "encoding", None)
