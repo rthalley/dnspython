@@ -44,9 +44,7 @@ pyright:
 ty:
 	ty check dns
 
-type:
-	pyright dns
-	ty check dns
+type: pyright ty
 
 ruff:
 	ruff check dns
