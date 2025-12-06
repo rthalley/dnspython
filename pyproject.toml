@@ -37,7 +37,6 @@ dev = [
     "black>=25.1.0",
     "coverage>=7.0",
     "hypercorn>=0.17.0",
-    "mypy>=1.17",
     "pyright>=1.1.405",
     "pytest>=8.4",
     "pytest-cov>=6.2.0",
