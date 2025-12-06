@@ -7,7 +7,7 @@ insertion.
 """
 
 from collections.abc import MutableMapping, MutableSet
-from typing import Any, Callable, Generic, Optional, Tuple, TypeVar, cast
+from typing import Callable, Generic, Optional, Tuple, TypeVar, cast
 
 DEFAULT_T = 127
 
