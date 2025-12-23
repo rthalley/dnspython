@@ -20,7 +20,8 @@
 import io
 import random
 import struct
-from typing import Any, Collection, Dict, List, cast
+from collections.abc import Collection
+from typing import Any, cast
 
 import dns.exception
 import dns.immutable
@@ -201,7 +202,7 @@ class Rdataset(dns.set.Set):
         relativize: bool = True,
         override_rdclass: dns.rdataclass.RdataClass | None = None,
         want_comments: bool = False,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> str:
         """Convert the rdataset into DNS zone file format.
 
@@ -311,7 +312,7 @@ class Rdataset(dns.set.Set):
             file.write(struct.pack("!HHIH", self.rdtype, rdclass, 0, 0))
             return 1
         else:
-            l: Rdataset | List[dns.rdata.Rdata]
+            l: Rdataset | list[dns.rdata.Rdata]
             if want_shuffle:
                 l = list(self)
                 random.shuffle(l)
@@ -337,7 +338,7 @@ class Rdataset(dns.set.Set):
             return True
         return False
 
-    def processing_order(self) -> List[dns.rdata.Rdata]:
+    def processing_order(self) -> list[dns.rdata.Rdata]:
         """Return rdatas in a valid processing order according to the type's
         specification.  For example, MX records are in preference order from
         lowest to highest preferences, with items of the same preference

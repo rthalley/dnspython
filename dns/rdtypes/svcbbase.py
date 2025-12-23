@@ -3,14 +3,13 @@
 import base64
 import enum
 import struct
-from typing import Any, Dict
+from typing import Any
 
 import dns.enum
 import dns.exception
 import dns.immutable
 import dns.ipv4
 import dns.ipv6
-import dns.name
 import dns.rdata
 import dns.rdtypes.util
 import dns.renderer
@@ -428,7 +427,7 @@ class OHTTPParam(Param):
         raise NotImplementedError  # pragma: no cover
 
 
-_class_for_key: Dict[ParamKey, Any] = {
+_class_for_key: dict[ParamKey, Any] = {
     ParamKey.MANDATORY: MandatoryParam,
     ParamKey.ALPN: ALPNParam,
     ParamKey.NO_DEFAULT_ALPN: NoDefaultALPNParam,

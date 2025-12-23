@@ -17,7 +17,7 @@
 
 """DNS Dynamic Update Support"""
 
-from typing import Any, List
+from typing import Any
 
 import dns.enum
 import dns.exception
@@ -93,7 +93,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
             self.use_tsig(keyring, keyname, algorithm=keyalgorithm)
 
     @property
-    def zone(self) -> List[dns.rrset.RRset]:
+    def zone(self) -> list[dns.rrset.RRset]:
         """The zone section."""
         return self.sections[0]
 
@@ -102,7 +102,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         self.sections[0] = v
 
     @property
-    def prerequisite(self) -> List[dns.rrset.RRset]:
+    def prerequisite(self) -> list[dns.rrset.RRset]:
         """The prerequisite section."""
         return self.sections[1]
 
@@ -111,7 +111,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         self.sections[1] = v
 
     @property
-    def update(self) -> List[dns.rrset.RRset]:
+    def update(self) -> list[dns.rrset.RRset]:
         """The update section."""
         return self.sections[2]
 

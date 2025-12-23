@@ -2,7 +2,7 @@
 
 import contextlib
 import struct
-from typing import Iterator, Optional, Tuple
+from collections.abc import Iterator
 
 import dns.exception
 import dns.name
@@ -57,10 +57,10 @@ class Parser:
     def get_uint48(self) -> int:
         return int.from_bytes(self.get_bytes(6), "big")
 
-    def get_struct(self, format: str) -> Tuple:
+    def get_struct(self, format: str) -> tuple:
         return struct.unpack(format, self.get_bytes(struct.calcsize(format)))
 
-    def get_name(self, origin: Optional["dns.name.Name"] = None) -> "dns.name.Name":
+    def get_name(self, origin: "dns.name.Name | None" = None) -> "dns.name.Name":
         name = dns.name.from_wire_parser(self)
         if origin:
             name = name.relativize(origin)

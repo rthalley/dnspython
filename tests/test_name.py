@@ -456,14 +456,14 @@ class NameTestCase(unittest.TestCase):
     def testToWire1(self):
         n = dns.name.from_text("FOO.bar")
         f = BytesIO()
-        compress = {}  # type: Dict[dns.name.Name,int]
+        compress = {}  # type: dict[dns.name.Name,int]
         n.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b"\x03FOO\x03bar\x00")
 
     def testToWire2(self):
         n = dns.name.from_text("FOO.bar")
         f = BytesIO()
-        compress = {}  # type: Dict[dns.name.Name,int]
+        compress = {}  # type: dict[dns.name.Name,int]
         n.to_wire(f, compress)
         n.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b"\x03FOO\x03bar\x00\xc0\x00")
@@ -472,7 +472,7 @@ class NameTestCase(unittest.TestCase):
         n1 = dns.name.from_text("FOO.bar")
         n2 = dns.name.from_text("foo.bar")
         f = BytesIO()
-        compress = {}  # type: Dict[dns.name.Name,int]
+        compress = {}  # type: dict[dns.name.Name,int]
         n1.to_wire(f, compress)
         n2.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b"\x03FOO\x03bar\x00\xc0\x00")
@@ -481,7 +481,7 @@ class NameTestCase(unittest.TestCase):
         n1 = dns.name.from_text("FOO.bar")
         n2 = dns.name.from_text("a.foo.bar")
         f = BytesIO()
-        compress = {}  # type: Dict[dns.name.Name,int]
+        compress = {}  # type: dict[dns.name.Name,int]
         n1.to_wire(f, compress)
         n2.to_wire(f, compress)
         self.assertEqual(f.getvalue(), b"\x03FOO\x03bar\x00\x01\x61\xc0\x00")
@@ -490,7 +490,7 @@ class NameTestCase(unittest.TestCase):
         n1 = dns.name.from_text("FOO.bar")
         n2 = dns.name.from_text("a.foo.bar")
         f = BytesIO()
-        compress = {}  # type: Dict[dns.name.Name,int]
+        compress = {}  # type: dict[dns.name.Name,int]
         n1.to_wire(f, compress)
         n2.to_wire(f, None)
         self.assertEqual(f.getvalue(), b"\x03FOO\x03bar\x00\x01\x61\x03foo\x03bar\x00")
@@ -518,7 +518,7 @@ class NameTestCase(unittest.TestCase):
         def bad():
             n = dns.name.from_text("FOO.bar", None)
             f = BytesIO()
-            compress = {}  # type: Dict[dns.name.Name,int]
+            compress = {}  # type: dict[dns.name.Name,int]
             n.to_wire(f, compress)
 
         self.assertRaises(dns.name.NeedAbsoluteNameOrOrigin, bad)
@@ -526,7 +526,7 @@ class NameTestCase(unittest.TestCase):
     def testGiantCompressionTable(self):
         # Only the first 16KiB of a message can have compression pointers.
         f = BytesIO()
-        compress = {}  # type: Dict[dns.name.Name,int]
+        compress = {}  # type: dict[dns.name.Name,int]
         # exactly 16 bytes encoded
         n = dns.name.from_text("0000000000.com.")
         n.to_wire(f, compress)

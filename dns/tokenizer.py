@@ -19,7 +19,7 @@
 
 import io
 import sys
-from typing import Any, List, Tuple
+from typing import Any
 
 import dns.exception
 import dns.name
@@ -294,7 +294,7 @@ class Tokenizer:
             self.ungotten_char = None
         return c
 
-    def where(self) -> Tuple[str, int]:
+    def where(self) -> tuple[str, int]:
         """Return the current location in the input.
 
         Returns a (string, int) tuple.  The first item is the filename of
@@ -502,7 +502,6 @@ class Tokenizer:
         Returns an int.
         """
 
-
         return self.as_uint8(self.get().unescape())
 
     def get_uint16(self, base: int = 10) -> int:
@@ -560,7 +559,7 @@ class Tokenizer:
 
         return self.as_identifier(self.get().unescape())
 
-    def get_remaining(self, max_tokens: int | None = None) -> List[Token]:
+    def get_remaining(self, max_tokens: int | None = None) -> list[Token]:
         """Return the remaining tokens on the line, until an EOL or EOF is seen.
 
         max_tokens: If not None, stop after this number of tokens.

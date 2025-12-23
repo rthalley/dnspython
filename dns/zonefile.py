@@ -19,7 +19,8 @@
 
 import re
 import sys
-from typing import Any, Iterable, List, Set, Tuple, cast
+from collections.abc import Iterable
+from typing import Any, cast
 
 import dns.exception
 import dns.grange
@@ -66,7 +67,7 @@ def _check_cname_and_other_data(txn, name, rdataset):
     # adding the rdataset is ok
 
 
-SavedStateType = Tuple[
+SavedStateType = tuple[
     dns.tokenizer.Tokenizer,
     dns.name.Name | None,  # current_origin
     dns.name.Name | None,  # last_name
@@ -117,9 +118,9 @@ class Reader:
         self.last_name = self.current_origin
         self.zone_rdclass = rdclass
         self.txn = txn
-        self.saved_state: List[SavedStateType] = []
+        self.saved_state: list[SavedStateType] = []
         self.current_file: Any | None = None
-        self.allowed_directives: Set[str]
+        self.allowed_directives: set[str]
         if allow_directives is True:
             self.allowed_directives = {"$GENERATE", "$ORIGIN", "$TTL"}
             if allow_include:
@@ -272,7 +273,7 @@ class Reader:
 
         self.txn.add(name, ttl, rd)
 
-    def _parse_modify(self, side: str) -> Tuple[str, str, int, int, str]:
+    def _parse_modify(self, side: str) -> tuple[str, str, int, int, str]:
         # Here we catch everything in '{' '}' in a group so we can replace it
         # with ''.
         is_generate1 = re.compile(r"^.*\$({(\+|-?)(\d+),(\d+),(.)}).*$")
@@ -635,7 +636,7 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
         self.origin = origin
         self.relativize = relativize
         self.rdclass = rdclass
-        self.rrsets: List[dns.rrset.RRset] = []
+        self.rrsets: list[dns.rrset.RRset] = []
 
     def reader(self):  # pragma: no cover
         raise NotImplementedError
@@ -654,7 +655,7 @@ class RRSetsReaderManager(dns.transaction.TransactionManager):
             effective = self.origin
         return (self.origin, self.relativize, effective)
 
-    def set_rrsets(self, rrsets: List[dns.rrset.RRset]) -> None:
+    def set_rrsets(self, rrsets: list[dns.rrset.RRset]) -> None:
         self.rrsets = rrsets
 
 
@@ -669,7 +670,7 @@ def read_rrsets(
     idna_codec: dns.name.IDNACodec | None = None,
     origin: dns.name.Name | str | None = dns.name.root,
     relativize: bool = False,
-) -> List[dns.rrset.RRset]:
+) -> list[dns.rrset.RRset]:
     """Read one or more rrsets from the specified text, possibly subject
     to restrictions.
 

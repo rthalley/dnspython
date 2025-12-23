@@ -17,14 +17,14 @@
 
 """DNS RRsets (an RRset is a named rdataset)"""
 
-from typing import Any, Collection, Dict, cast
+from collections.abc import Collection
+from typing import Any, cast
 
 import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
-import dns.renderer
 
 
 class RRset(dns.rdataset.Rdataset):
@@ -133,7 +133,7 @@ class RRset(dns.rdataset.Rdataset):
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> str:
         """Convert the RRset into DNS zone file format.
 
@@ -160,7 +160,7 @@ class RRset(dns.rdataset.Rdataset):
         file: Any,
         compress: dns.name.CompressType | None = None,  # type: ignore
         origin: dns.name.Name | None = None,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> int:
         """Convert the RRset to wire format.
 

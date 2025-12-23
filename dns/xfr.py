@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from typing import Any, List, Tuple, cast
+from typing import Any, cast
 
 import dns.edns
 import dns.exception
@@ -27,13 +27,10 @@ import dns.rdataset
 import dns.rdatatype
 import dns.rdtypes
 import dns.rdtypes.ANY
-import dns.rdtypes.ANY.SMIMEA
 import dns.rdtypes.ANY.SOA
-import dns.rdtypes.svcbbase
 import dns.serial
 import dns.transaction
 import dns.tsig
-import dns.zone
 
 
 class TransferError(dns.exception.DNSException):
@@ -274,11 +271,11 @@ def make_query(
     ednsflags: int | None = None,
     payload: int | None = None,
     request_payload: int | None = None,
-    options: List[dns.edns.Option] | None = None,
+    options: list[dns.edns.Option] | None = None,
     keyring: Any = None,
     keyname: dns.name.Name | None = None,
     keyalgorithm: dns.name.Name | str = dns.tsig.default_algorithm,
-) -> Tuple[dns.message.QueryMessage, int | None]:
+) -> tuple[dns.message.QueryMessage, int | None]:
     """Make an AXFR or IXFR query.
 
     *txn_manager* is a ``dns.transaction.TransactionManager``, typically a

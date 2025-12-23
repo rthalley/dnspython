@@ -18,7 +18,8 @@
 import collections
 import random
 import struct
-from typing import Any, Iterable, List, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 import dns.exception
 import dns.ipv4
@@ -126,7 +127,7 @@ class Bitmap:
 
     type_name = ""
 
-    def __init__(self, windows: Iterable[Tuple[int, bytes]] | None = None):
+    def __init__(self, windows: Iterable[tuple[int, bytes]] | None = None):
         last_window = -1
         if windows is None:
             windows = []
@@ -167,7 +168,7 @@ class Bitmap:
         return cls.from_rdtypes(rdtypes)
 
     @classmethod
-    def from_rdtypes(cls, rdtypes: List[dns.rdatatype.RdataType]) -> "Bitmap":
+    def from_rdtypes(cls, rdtypes: list[dns.rdatatype.RdataType]) -> "Bitmap":
         rdtypes = sorted(rdtypes)
         window = 0
         octets = 0

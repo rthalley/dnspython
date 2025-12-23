@@ -1,5 +1,3 @@
-from typing import Dict, Tuple, Type
-
 import dns._features
 import dns.name
 from dns.dnssecalgs.base import GenericPrivateKey
@@ -27,7 +25,7 @@ else:
 
 AlgorithmPrefix = bytes | dns.name.Name | None
 
-algorithms: Dict[Tuple[Algorithm, AlgorithmPrefix], Type[GenericPrivateKey]] = {}
+algorithms: dict[tuple[Algorithm, AlgorithmPrefix], type[GenericPrivateKey]] = {}
 if _have_cryptography:
     # pylint: disable=possibly-used-before-assignment
     algorithms.update(
@@ -49,7 +47,7 @@ if _have_cryptography:
 
 def get_algorithm_cls(
     algorithm: int | str, prefix: AlgorithmPrefix = None
-) -> Type[GenericPrivateKey]:
+) -> type[GenericPrivateKey]:
     """Get Private Key class from Algorithm.
 
     *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
@@ -67,7 +65,7 @@ def get_algorithm_cls(
     )
 
 
-def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[GenericPrivateKey]:
+def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> type[GenericPrivateKey]:
     """Get Private Key class from DNSKEY.
 
     *dnskey*, a ``DNSKEY`` to get Algorithm class for.
@@ -87,7 +85,7 @@ def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[GenericPrivateKey]:
 
 def register_algorithm_cls(
     algorithm: int | str,
-    algorithm_cls: Type[GenericPrivateKey],
+    algorithm_cls: type[GenericPrivateKey],
     name: dns.name.Name | str | None = None,
     oid: bytes | None = None,
 ) -> None:

@@ -19,12 +19,11 @@
 
 import socket
 import time
-from typing import Any, Dict, List
+from typing import Any
 
 import dns._ddr
 import dns.asyncbackend
 import dns.asyncquery
-import dns.exception
 import dns.inet
 import dns.name
 import dns.nameserver
@@ -130,7 +129,7 @@ class Resolver(dns.resolver.BaseResolver):
         # We make a modified kwargs for type checking happiness, as otherwise
         # we get a legit warning about possibly having rdtype and rdclass
         # in the kwargs more than once.
-        modified_kwargs: Dict[str, Any] = {}
+        modified_kwargs: dict[str, Any] = {}
         modified_kwargs.update(kwargs)
         modified_kwargs["rdtype"] = dns.rdatatype.PTR
         modified_kwargs["rdclass"] = dns.rdataclass.IN
@@ -161,7 +160,7 @@ class Resolver(dns.resolver.BaseResolver):
         # We make a modified kwargs for type checking happiness, as otherwise
         # we get a legit warning about possibly having rdtype and rdclass
         # in the kwargs more than once.
-        modified_kwargs: Dict[str, Any] = {}
+        modified_kwargs: dict[str, Any] = {}
         modified_kwargs.update(kwargs)
         modified_kwargs.pop("rdtype", None)
         modified_kwargs["rdclass"] = dns.rdataclass.IN
@@ -422,7 +421,7 @@ async def make_resolver_at(
     """
     if resolver is None:
         resolver = get_default_resolver()
-    nameservers: List[str | dns.nameserver.Nameserver] = []
+    nameservers: list[str | dns.nameserver.Nameserver] = []
     if isinstance(where, str) and dns.inet.is_address(where):
         nameservers.append(dns.nameserver.Do53Nameserver(where, port))
     else:

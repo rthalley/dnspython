@@ -24,7 +24,8 @@ import sys
 import threading
 import time
 import warnings
-from typing import Any, Dict, Iterator, List, Sequence, Tuple, cast
+from collections.abc import Iterator, Sequence
+from typing import Any, cast
 from urllib.parse import urlparse
 
 import dns._ddr
@@ -143,7 +144,7 @@ class YXDOMAIN(dns.exception.DNSException):
     """The DNS query name is too long after DNAME substitution."""
 
 
-ErrorTuple = Tuple[
+ErrorTuple = tuple[
     str | None,
     bool,
     int,
@@ -152,7 +153,7 @@ ErrorTuple = Tuple[
 ]
 
 
-def _errors_to_text(errors: List[ErrorTuple]) -> List[str]:
+def _errors_to_text(errors: list[ErrorTuple]) -> list[str]:
     """Turn a resolution errors trace into a list of text."""
     texts = []
     for err in errors:
@@ -345,7 +346,7 @@ class HostAnswers(Answers):
     # filtering by address family.
     def addresses_and_families(
         self, family: int = socket.AF_UNSPEC
-    ) -> Iterator[Tuple[str, int]]:
+    ) -> Iterator[tuple[str, int]]:
         if family == socket.AF_UNSPEC:
             yield from self.addresses_and_families(socket.AF_INET6)
             yield from self.addresses_and_families(socket.AF_INET)
@@ -419,7 +420,7 @@ class CacheBase:
             return self.statistics.clone()
 
 
-CacheKey = Tuple[dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass]
+CacheKey = tuple[dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataClass]
 
 
 class Cache(CacheBase):
@@ -431,7 +432,7 @@ class Cache(CacheBase):
         """
 
         super().__init__()
-        self.data: Dict[CacheKey, Answer] = {}
+        self.data: dict[CacheKey, Answer] = {}
         self.cleaning_interval = cleaning_interval
         self.next_cleaning: float = time.time() + self.cleaning_interval
 
@@ -538,7 +539,7 @@ class LRUCache(CacheBase):
         """
 
         super().__init__()
-        self.data: Dict[CacheKey, LRUCacheNode] = {}
+        self.data: dict[CacheKey, LRUCacheNode] = {}
         self.set_max_size(max_size)
         self.sentinel: LRUCacheNode = LRUCacheNode(None, None)
         self.sentinel.prev = self.sentinel
@@ -670,12 +671,12 @@ class _Resolution:
         self.rdclass = rdclass
         self.tcp = tcp
         self.raise_on_no_answer = raise_on_no_answer
-        self.nxdomain_responses: Dict[dns.name.Name, dns.message.QueryMessage] = {}
+        self.nxdomain_responses: dict[dns.name.Name, dns.message.QueryMessage] = {}
         # Initialize other things to help analysis tools
         self.qname = dns.name.empty
-        self.nameservers: List[dns.nameserver.Nameserver] = []
-        self.current_nameservers: List[dns.nameserver.Nameserver] = []
-        self.errors: List[ErrorTuple] = []
+        self.nameservers: list[dns.nameserver.Nameserver] = []
+        self.current_nameservers: list[dns.nameserver.Nameserver] = []
+        self.errors: list[ErrorTuple] = []
         self.nameserver: dns.nameserver.Nameserver | None = None
         self.tcp_attempt = False
         self.retry_with_tcp = False
@@ -684,7 +685,7 @@ class _Resolution:
 
     def next_request(
         self,
-    ) -> Tuple[dns.message.QueryMessage | None, Answer | None]:
+    ) -> tuple[dns.message.QueryMessage | None, Answer | None]:
         """Get the next request to send, and check the cache.
 
         Returns a (request, answer) tuple.  At most one of request or
@@ -757,7 +758,7 @@ class _Resolution:
         #
         raise NXDOMAIN(qnames=self.qnames_to_try, responses=self.nxdomain_responses)
 
-    def next_nameserver(self) -> Tuple[dns.nameserver.Nameserver, bool, float]:
+    def next_nameserver(self) -> tuple[dns.nameserver.Nameserver, bool, float]:
         if self.retry_with_tcp:
             assert self.nameserver is not None
             assert not self.nameserver.is_always_max_size()
@@ -780,7 +781,7 @@ class _Resolution:
 
     def query_result(
         self, response: dns.message.Message | None, ex: Exception | None
-    ) -> Tuple[Answer | None, bool]:
+    ) -> tuple[Answer | None, bool]:
         #
         # returns an (answer: Answer, end_loop: bool) tuple.
         #
@@ -911,9 +912,9 @@ class BaseResolver:
     # pylint: disable=attribute-defined-outside-init
 
     domain: dns.name.Name
-    nameserver_ports: Dict[str, int]
+    nameserver_ports: dict[str, int]
     port: int
-    search: List[dns.name.Name]
+    search: list[dns.name.Name]
     use_search_by_default: bool
     timeout: float
     lifetime: float
@@ -922,7 +923,7 @@ class BaseResolver:
     keyalgorithm: dns.name.Name | str
     edns: int
     ednsflags: int
-    ednsoptions: List[dns.edns.Option] | None
+    ednsoptions: list[dns.edns.Option] | None
     payload: int
     cache: Any
     flags: int | None
@@ -1065,7 +1066,7 @@ class BaseResolver:
         self,
         start: float,
         lifetime: float | None = None,
-        errors: List[ErrorTuple] | None = None,
+        errors: list[ErrorTuple] | None = None,
     ) -> float:
         lifetime = self.lifetime if lifetime is None else lifetime
         now = time.time()
@@ -1087,7 +1088,7 @@ class BaseResolver:
 
     def _get_qnames_to_try(
         self, qname: dns.name.Name, search: bool | None
-    ) -> List[dns.name.Name]:
+    ) -> list[dns.name.Name]:
         # This is a separate method so we can unit test the search
         # rules without requiring the Internet.
         if search is None:
@@ -1147,7 +1148,7 @@ class BaseResolver:
         edns: int | bool | None = 0,
         ednsflags: int = 0,
         payload: int = dns.message.DEFAULT_EDNS_PAYLOAD,
-        options: List[dns.edns.Option] | None = None,
+        options: list[dns.edns.Option] | None = None,
     ) -> None:
         """Configure EDNS behavior.
 
@@ -1187,9 +1188,9 @@ class BaseResolver:
     def _enrich_nameservers(
         cls,
         nameservers: Sequence[str | dns.nameserver.Nameserver],
-        nameserver_ports: Dict[str, int],
+        nameserver_ports: dict[str, int],
         default_port: int,
-    ) -> List[dns.nameserver.Nameserver]:
+    ) -> list[dns.nameserver.Nameserver]:
         enriched_nameservers = []
         if isinstance(nameservers, list | tuple):
             for nameserver in nameservers:
@@ -1397,7 +1398,7 @@ class Resolver(BaseResolver):
         # We make a modified kwargs for type checking happiness, as otherwise
         # we get a legit warning about possibly having rdtype and rdclass
         # in the kwargs more than once.
-        modified_kwargs: Dict[str, Any] = {}
+        modified_kwargs: dict[str, Any] = {}
         modified_kwargs.update(kwargs)
         modified_kwargs["rdtype"] = dns.rdatatype.PTR
         modified_kwargs["rdclass"] = dns.rdataclass.IN
@@ -1428,7 +1429,7 @@ class Resolver(BaseResolver):
         # We make a modified kwargs for type checking happiness, as otherwise
         # we get a legit warning about possibly having rdtype and rdclass
         # in the kwargs more than once.
-        modified_kwargs: Dict[str, Any] = {}
+        modified_kwargs: dict[str, Any] = {}
         modified_kwargs.update(kwargs)
         modified_kwargs.pop("rdtype", None)
         modified_kwargs["rdclass"] = dns.rdataclass.IN
@@ -1768,7 +1769,7 @@ def make_resolver_at(
     """
     if resolver is None:
         resolver = get_default_resolver()
-    nameservers: List[str | dns.nameserver.Nameserver] = []
+    nameservers: list[str | dns.nameserver.Nameserver] = []
     if isinstance(where, str) and dns.inet.is_address(where):
         nameservers.append(dns.nameserver.Do53Nameserver(where, port))
     else:
@@ -1825,7 +1826,7 @@ def resolve_at(
 # running process.
 #
 
-_protocols_for_socktype: Dict[Any, List[Any]] = {
+_protocols_for_socktype: dict[Any, list[Any]] = {
     socket.SOCK_DGRAM: [socket.SOL_UDP],
     socket.SOCK_STREAM: [socket.SOL_TCP],
 }

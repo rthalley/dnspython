@@ -21,7 +21,7 @@ import binascii
 import math
 import socket
 import struct
-from typing import Any, Dict
+from typing import Any
 
 import dns.enum
 import dns.inet
@@ -502,7 +502,7 @@ class ReportChannelOption(Option):
         return cls(parser.get_name())
 
 
-_type_to_class: Dict[OptionType, Any] = {
+_type_to_class: dict[OptionType, Any] = {
     OptionType.ECS: ECSOption,
     OptionType.EDE: EDEOption,
     OptionType.NSID: NSIDOption,

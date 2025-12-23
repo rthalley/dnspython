@@ -21,7 +21,8 @@ import copy
 import encodings.idna  # type: ignore
 import functools
 import struct
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple
+from collections.abc import Callable, Iterable
+from typing import Any
 
 import dns._features
 import dns.enum
@@ -42,7 +43,7 @@ else:  # pragma: no cover
     have_idna_2008 = False
 
 
-CompressType = Dict["Name", int]
+CompressType = dict["Name", int]
 
 
 class NameRelation(dns.enum.IntEnum):
@@ -317,7 +318,7 @@ IDNA_2008_Transitional = IDNA2008Codec(True, True, False, False)
 IDNA_2008 = IDNA_2008_Practical
 
 
-def _validate_labels(labels: Tuple[bytes, ...]) -> None:
+def _validate_labels(labels: tuple[bytes, ...]) -> None:
     """Check for empty labels in the middle of a label sequence,
     labels that are too long, and for too many labels.
 
@@ -420,7 +421,7 @@ class Name:
                 h += (h << 3) + c
         return h
 
-    def fullcompare(self, other: "Name") -> Tuple[NameRelation, int, int]:
+    def fullcompare(self, other: "Name") -> tuple[NameRelation, int, int]:
         """Compare two names, returning a 3-tuple
         ``(relation, order, nlabels)``.
 
@@ -626,7 +627,7 @@ class Name:
             idna_codec = IDNA_2003_Practical
         return ".".join([idna_codec.decode(x) for x in l])
 
-    def to_digestable(self, origin: Optional["Name"] = None) -> bytes:
+    def to_digestable(self, origin: "Name | None" = None) -> bytes:
         """Convert name to a format suitable for digesting in hashes.
 
         The name is canonicalized and converted to uncompressed wire
@@ -651,7 +652,7 @@ class Name:
         self,
         file: Any | None = None,
         compress: CompressType | None = None,
-        origin: Optional["Name"] = None,
+        origin: "Name | None" = None,
         canonicalize: bool = False,
     ) -> bytes | None:
         """Convert name to wire format, possibly compressing it.
@@ -751,7 +752,7 @@ class Name:
     def __sub__(self, other):
         return self.relativize(other)
 
-    def split(self, depth: int) -> Tuple["Name", "Name"]:
+    def split(self, depth: int) -> tuple["Name", "Name"]:
         """Split a name into a prefix and suffix names at the specified depth.
 
         *depth* is an ``int`` specifying the number of labels in the suffix
@@ -819,7 +820,7 @@ class Name:
             return self
 
     def choose_relativity(
-        self, origin: Optional["Name"] = None, relativize: bool = True
+        self, origin: "Name | None" = None, relativize: bool = True
     ) -> "Name":
         """Return a name with the relativity desired by the caller.
 
@@ -1105,7 +1106,7 @@ def from_wire_parser(parser: "dns.wire.Parser") -> Name:
     return Name(labels)
 
 
-def from_wire(message: bytes, current: int) -> Tuple[Name, int]:
+def from_wire(message: bytes, current: int) -> tuple[Name, int]:
     """Convert possibly compressed wire format into a Name.
 
     *message* is a ``bytes`` containing an entire DNS message in DNS

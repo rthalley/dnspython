@@ -28,7 +28,8 @@ import socket
 import struct
 import time
 import urllib.parse
-from typing import Any, Callable, Dict, Optional, Tuple, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 import dns._features
 import dns._tls_util
@@ -411,7 +412,7 @@ def _make_socket(
 
 
 def _maybe_get_resolver(
-    resolver: Optional["dns.resolver.Resolver"],  # type: ignore
+    resolver: "dns.resolver.Resolver | None",  # type: ignore
 ) -> "dns.resolver.Resolver":  # type: ignore
     # We need a separate method for this to avoid overriding the global
     # variable "dns" with the as-yet undefined local variable "dns"
@@ -454,7 +455,7 @@ def https(
     post: bool = True,
     bootstrap_address: str | None = None,
     verify: bool | str | ssl.SSLContext = True,
-    resolver: Optional["dns.resolver.Resolver"] = None,  # type: ignore
+    resolver: "dns.resolver.Resolver | None" = None,  # type: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
@@ -766,7 +767,7 @@ def send_udp(
     what: dns.message.Message | bytes,
     destination: Any,
     expiration: float | None = None,
-) -> Tuple[int, float]:
+) -> tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
     *sock*, a ``socket``.
@@ -796,7 +797,7 @@ def receive_udp(
     expiration: float | None = None,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
-    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    keyring: dict[dns.name.Name, dns.tsig.Key] | None = None,
     request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
     raise_on_truncation: bool = False,
@@ -1001,7 +1002,7 @@ def udp_with_fallback(
     udp_sock: Any | None = None,
     tcp_sock: Any | None = None,
     ignore_errors: bool = False,
-) -> Tuple[dns.message.Message, bool]:
+) -> tuple[dns.message.Message, bool]:
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
@@ -1117,7 +1118,7 @@ def send_tcp(
     sock: Any,
     what: dns.message.Message | bytes,
     expiration: float | None = None,
-) -> Tuple[int, float]:
+) -> tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
     *sock*, a ``socket``.
@@ -1147,10 +1148,10 @@ def receive_tcp(
     sock: Any,
     expiration: float | None = None,
     one_rr_per_rrset: bool = False,
-    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    keyring: dict[dns.name.Name, dns.tsig.Key] | None = None,
     request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
-) -> Tuple[dns.message.Message, float]:
+) -> tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``socket``.
@@ -1494,7 +1495,7 @@ def quic(
     q.id = 0
     wire = q.to_wire()
     the_connection: dns.quic.SyncQuicConnection
-    the_manager: dns.quic.SyncQuicManager # type: ignore
+    the_manager: dns.quic.SyncQuicManager  # type: ignore
     if connection:
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
         the_connection = connection
@@ -1599,7 +1600,7 @@ def xfr(
     rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
     timeout: float | None = None,
     port: int = 53,
-    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    keyring: dict[dns.name.Name, dns.tsig.Key] | None = None,
     keyname: dns.name.Name | str | None = None,
     relativize: bool = True,
     lifetime: float | None = None,

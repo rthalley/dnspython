@@ -17,7 +17,7 @@
 
 """DNS E.164 helpers."""
 
-from typing import Iterable
+from collections.abc import Iterable
 
 import dns.exception
 import dns.name

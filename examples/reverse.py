@@ -23,7 +23,7 @@ from typing import Dict, List  # pylint: disable=unused-import
 import dns.ipv4
 import dns.zone
 
-reverse_map = {}  # type: Dict[str, List[str]]
+reverse_map = {}  # type: dict[str, list[str]]
 
 for filename in sys.argv[1:]:
     zone = dns.zone.from_file(filename, os.path.basename(filename), relativize=False)

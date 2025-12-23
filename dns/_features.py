@@ -3,10 +3,9 @@
 import importlib.metadata
 import itertools
 import string
-from typing import Dict, List, Tuple
 
 
-def _tuple_from_text(version: str) -> Tuple:
+def _tuple_from_text(version: str) -> tuple:
     text_parts = version.split(".")
     int_parts = []
     for text_part in text_parts:
@@ -44,7 +43,7 @@ def _version_check(
     return True
 
 
-_cache: Dict[str, bool] = {}
+_cache: dict[str, bool] = {}
 
 
 def have(feature: str) -> bool:
@@ -83,7 +82,7 @@ def force(feature: str, enabled: bool) -> None:
     _cache[feature] = enabled
 
 
-_requirements: Dict[str, List[str]] = {
+_requirements: dict[str, list[str]] = {
     ### BEGIN generated requirements
     "dnssec": ["cryptography>=45"],
     "doh": ["httpcore>=1.0.0", "httpx>=0.28.0", "h2>=4.2.0"],

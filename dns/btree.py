@@ -6,8 +6,8 @@ copy-on-write node updates, cursors, and optional space optimization for mostly-
 insertion.
 """
 
-from collections.abc import MutableMapping, MutableSet
-from typing import Callable, Generic, Optional, Tuple, TypeVar, cast
+from collections.abc import Callable, MutableMapping, MutableSet
+from typing import Generic, TypeVar, cast
 
 DEFAULT_T = 127
 
@@ -114,7 +114,7 @@ class _Node(Generic[KT, ET]):
         else:
             return child
 
-    def _get_node(self, key: KT) -> Tuple[Optional["_Node[KT, ET]"], int]:
+    def _get_node(self, key: KT) -> tuple["_Node[KT, ET] | None", int]:
         """Get the node associated with key and its index, doing
         copy-on-write if we have to descend.
 
@@ -292,7 +292,7 @@ class _Node(Generic[KT, ET]):
             left.merge(parent, index - 1)
 
     def delete(
-        self, key: KT, parent: Optional["_Node[KT, ET]"], exact: ET | None
+        self, key: KT, parent: "_Node[KT, ET] | None", exact: ET | None
     ) -> ET | None:
         """Delete an element matching *key* if it exists.  If *exact* is not ``None``
         then it must be an exact match with that element.  The Node must not be
@@ -354,7 +354,7 @@ class _Node(Generic[KT, ET]):
             for child in self.children:
                 child._visit_preorder_by_node(visit)
 
-    def maybe_cow(self, creator: _Creator) -> Optional["_Node[KT, ET]"]:
+    def maybe_cow(self, creator: _Creator) -> "_Node[KT, ET] | None":
         """Return a clone of this Node if it was not created by *creator*, or ``None``
         otherwise (i.e. copy for copy-on-write if we haven't already copied it)."""
         if self.creator is not creator:
@@ -613,7 +613,7 @@ class Immutable(Exception):
 class BTree(Generic[KT, ET]):
     """An in-memory BTree with copy-on-write and cursors."""
 
-    def __init__(self, *, t: int = DEFAULT_T, original: Optional["BTree"] = None):
+    def __init__(self, *, t: int = DEFAULT_T, original: "BTree | None" = None):
         """Create a BTree.
 
         If *original* is not ``None``, then the BTree is shallow-cloned from

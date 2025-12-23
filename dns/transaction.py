@@ -1,7 +1,8 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import collections
-from typing import Any, Callable, Iterator, List, Tuple
+from collections.abc import Callable, Iterator
+from typing import Any
 
 import dns.exception
 import dns.name
@@ -32,7 +33,7 @@ class TransactionManager:
 
     def origin_information(
         self,
-    ) -> Tuple[dns.name.Name | None, bool, dns.name.Name | None]:
+    ) -> tuple[dns.name.Name | None, bool, dns.name.Name | None]:
         """Returns a tuple
 
             (absolute_origin, relativize, effective_origin)
@@ -115,15 +116,15 @@ class Transaction:
         self.replacement = replacement
         self.read_only = read_only
         self._ended = False
-        self._check_put_rdataset: List[CheckPutRdatasetType] = []
-        self._check_delete_rdataset: List[CheckDeleteRdatasetType] = []
-        self._check_delete_name: List[CheckDeleteNameType] = []
+        self._check_put_rdataset: list[CheckPutRdatasetType] = []
+        self._check_delete_rdataset: list[CheckDeleteRdatasetType] = []
+        self._check_delete_name: list[CheckDeleteNameType] = []
 
     #
     # This is the high level API
     #
     # Note that we currently use non-immutable types in the return type signature to
-    # avoid covariance problems, e.g. if the caller has a List[Rdataset], mypy will be
+    # avoid covariance problems, e.g. if the caller has a list[Rdataset], mypy will be
     # unhappy if we return an ImmutableRdataset.
 
     def get(
@@ -359,7 +360,7 @@ class Transaction:
 
     def iterate_rdatasets(
         self,
-    ) -> Iterator[Tuple[dns.name.Name, dns.rdataset.Rdataset]]:
+    ) -> Iterator[tuple[dns.name.Name, dns.rdataset.Rdataset]]:
         """Iterate all the rdatasets in the transaction, returning
         (`dns.name.Name`, `dns.rdataset.Rdataset`) tuples.
 

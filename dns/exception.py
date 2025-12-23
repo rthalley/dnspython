@@ -22,9 +22,6 @@ always be subclasses of ``DNSException``.
 """
 
 
-from typing import Set
-
-
 class DNSException(Exception):
     """Abstract base class shared by all dnspython exceptions.
 
@@ -49,7 +46,7 @@ class DNSException(Exception):
     """
 
     msg: str | None = None  # non-parametrized message
-    supp_kwargs: Set[str] = set()  # accepted parameters for _fmt_kwargs (sanity check)
+    supp_kwargs: set[str] = set()  # accepted parameters for _fmt_kwargs (sanity check)
     fmt: str | None = None  # message parametrized with results from _fmt_kwargs
 
     def __init__(self, *args, **kwargs):

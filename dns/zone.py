@@ -21,17 +21,8 @@ import contextlib
 import io
 import os
 import struct
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Iterator,
-    List,
-    MutableMapping,
-    Set,
-    Tuple,
-    cast,
-)
+from collections.abc import Callable, Iterable, Iterator, MutableMapping
+from typing import Any, cast
 
 import dns.exception
 import dns.immutable
@@ -560,7 +551,7 @@ class Zone(dns.transaction.TransactionManager):
         self,
         rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.ANY,
         covers: dns.rdatatype.RdataType | str = dns.rdatatype.NONE,
-    ) -> Iterator[Tuple[dns.name.Name, dns.rdataset.Rdataset]]:
+    ) -> Iterator[tuple[dns.name.Name, dns.rdataset.Rdataset]]:
         """Return a generator which yields (name, rdataset) tuples for
         all rdatasets in the zone which have the specified *rdtype*
         and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
@@ -592,7 +583,7 @@ class Zone(dns.transaction.TransactionManager):
         self,
         rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.ANY,
         covers: dns.rdatatype.RdataType | str = dns.rdatatype.NONE,
-    ) -> Iterator[Tuple[dns.name.Name, int, dns.rdata.Rdata]]:
+    ) -> Iterator[tuple[dns.name.Name, int, dns.rdata.Rdata]]:
         """Return a generator which yields (name, ttl, rdata) tuples for
         all rdatas in the zone which have the specified *rdtype*
         and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
@@ -845,7 +836,7 @@ class Zone(dns.transaction.TransactionManager):
     def verify_digest(
         self, zonemd: dns.rdtypes.ANY.ZONEMD.ZONEMD | None = None
     ) -> None:
-        digests: dns.rdataset.Rdataset | List[dns.rdtypes.ANY.ZONEMD.ZONEMD]
+        digests: dns.rdataset.Rdataset | list[dns.rdtypes.ANY.ZONEMD.ZONEMD]
         if zonemd:
             digests = [zonemd]
         else:
@@ -875,7 +866,7 @@ class Zone(dns.transaction.TransactionManager):
 
     def origin_information(
         self,
-    ) -> Tuple[dns.name.Name | None, bool, dns.name.Name | None]:
+    ) -> tuple[dns.name.Name | None, bool, dns.name.Name | None]:
         effective: dns.name.Name | None
         if self.relativize:
             effective = dns.name.empty
@@ -1023,11 +1014,11 @@ class WritableVersion(Version):
         # We have to copy the zone origin as it may be None in the first
         # version, and we don't want to mutate the zone until we commit.
         self.origin = zone.origin
-        self.changed: Set[dns.name.Name] = set()
+        self.changed: set[dns.name.Name] = set()
 
     def _maybe_cow_with_name(
         self, name: dns.name.Name
-    ) -> Tuple[dns.node.Node, dns.name.Name]:
+    ) -> tuple[dns.node.Node, dns.name.Name]:
         name = self._validate_name(name)
         node = self.nodes.get(name)
         if node is None or name not in self.changed:
@@ -1204,7 +1195,7 @@ class Transaction(dns.transaction.Transaction):
 
     def _origin_information(
         self,
-    ) -> Tuple[dns.name.Name | None, bool, dns.name.Name | None]:
+    ) -> tuple[dns.name.Name | None, bool, dns.name.Name | None]:
         assert self.version is not None
         (absolute, relativize, effective) = self.manager.origin_information()
         if absolute is None and self.version.origin is not None:

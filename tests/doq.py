@@ -95,7 +95,7 @@ class Connection:
     def __init__(self, listener, cid, peer, retry_cid=None):
         self.original_cid: bytes = cid
         self.listener = listener
-        self.cids: Set[bytes] = set()
+        self.cids: set[bytes] = set()
         self.cids.add(cid)
         self.listener.connections[cid] = self
         self.peer = peer
@@ -116,7 +116,7 @@ class Connection:
         self.worker_scope = None
         self.streams = {}
 
-    def get_timer_values(self, now: float) -> Tuple[float, float]:
+    def get_timer_values(self, now: float) -> tuple[float, float]:
         expiration = self.quic_connection.get_timer()
         if expiration is None:
             expiration = now + 3600  # arbitrary "big" value

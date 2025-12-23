@@ -25,8 +25,9 @@ import functools
 import hashlib
 import struct
 import time
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable, Dict, List, Set, Tuple, Union, cast
+from typing import Union, cast
 
 import dns._features
 import dns.name
@@ -292,8 +293,8 @@ def make_cds(
 
 
 def _find_candidate_keys(
-    keys: Dict[dns.name.Name, dns.rdataset.Rdataset | dns.node.Node], rrsig: RRSIG
-) -> List[DNSKEY] | None:
+    keys: dict[dns.name.Name, dns.rdataset.Rdataset | dns.node.Node], rrsig: RRSIG
+) -> list[DNSKEY] | None:
     value = keys.get(rrsig.signer)
     if isinstance(value, dns.node.Node):
         rdataset = value.get_rdataset(dns.rdataclass.IN, dns.rdatatype.DNSKEY)
@@ -312,8 +313,8 @@ def _find_candidate_keys(
 
 
 def _get_rrname_rdataset(
-    rrset: dns.rrset.RRset | Tuple[dns.name.Name, dns.rdataset.Rdataset],
-) -> Tuple[dns.name.Name, dns.rdataset.Rdataset]:
+    rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
+) -> tuple[dns.name.Name, dns.rdataset.Rdataset]:
     if isinstance(rrset, tuple):
         return rrset[0], rrset[1]
     else:
@@ -331,9 +332,9 @@ def _validate_signature(sig: bytes, data: bytes, key: DNSKEY) -> None:
 
 
 def _validate_rrsig(
-    rrset: dns.rrset.RRset | Tuple[dns.name.Name, dns.rdataset.Rdataset],
+    rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
     rrsig: RRSIG,
-    keys: Dict[dns.name.Name, dns.node.Node | dns.rdataset.Rdataset],
+    keys: dict[dns.name.Name, dns.node.Node | dns.rdataset.Rdataset],
     origin: dns.name.Name | None = None,
     now: float | None = None,
     policy: Policy | None = None,
@@ -401,9 +402,9 @@ def _validate_rrsig(
 
 
 def _validate(
-    rrset: dns.rrset.RRset | Tuple[dns.name.Name, dns.rdataset.Rdataset],
-    rrsigset: dns.rrset.RRset | Tuple[dns.name.Name, dns.rdataset.Rdataset],
-    keys: Dict[dns.name.Name, dns.node.Node | dns.rdataset.Rdataset],
+    rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
+    rrsigset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
+    keys: dict[dns.name.Name, dns.node.Node | dns.rdataset.Rdataset],
     origin: dns.name.Name | None = None,
     now: float | None = None,
     policy: Policy | None = None,
@@ -474,7 +475,7 @@ def _validate(
 
 
 def _sign(
-    rrset: dns.rrset.RRset | Tuple[dns.name.Name, dns.rdataset.Rdataset],
+    rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
     private_key: PrivateKey,
     signer: dns.name.Name,
     dnskey: DNSKEY,
@@ -601,7 +602,7 @@ def _sign(
 
 
 def _make_rrsig_signature_data(
-    rrset: dns.rrset.RRset | Tuple[dns.name.Name, dns.rdataset.Rdataset],
+    rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
     rrsig: RRSIG,
     origin: dns.name.Name | None = None,
 ) -> bytes:
@@ -802,8 +803,8 @@ def nsec3_hash(
 
 
 def make_ds_rdataset(
-    rrset: dns.rrset.RRset | Tuple[dns.name.Name, dns.rdataset.Rdataset],
-    algorithms: Set[DSDigest | str],
+    rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
+    algorithms: set[DSDigest | str],
     origin: dns.name.Name | None = None,
 ) -> dns.rdataset.Rdataset:
     """Create a DS record from DNSKEY/CDNSKEY/CDS.
@@ -952,8 +953,8 @@ def default_rrset_signer(
     txn: dns.transaction.Transaction,
     rrset: dns.rrset.RRset,
     signer: dns.name.Name,
-    ksks: List[Tuple[PrivateKey, DNSKEY]],
-    zsks: List[Tuple[PrivateKey, DNSKEY]],
+    ksks: list[tuple[PrivateKey, DNSKEY]],
+    zsks: list[tuple[PrivateKey, DNSKEY]],
     inception: datetime | str | int | float | None = None,
     expiration: datetime | str | int | float | None = None,
     lifetime: int | None = None,
@@ -993,7 +994,7 @@ def default_rrset_signer(
 def sign_zone(
     zone: dns.zone.Zone,
     txn: dns.transaction.Transaction | None = None,
-    keys: List[Tuple[PrivateKey, DNSKEY]] | None = None,
+    keys: list[tuple[PrivateKey, DNSKEY]] | None = None,
     add_dnskey: bool = True,
     dnskey_ttl: int | None = None,
     inception: datetime | str | int | float | None = None,

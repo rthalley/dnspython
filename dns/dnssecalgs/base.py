@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod  # pylint: disable=no-name-in-module
-from typing import Any, Type
+from typing import Any
 
 import dns.rdataclass
 import dns.rdatatype
@@ -58,7 +58,7 @@ class GenericPublicKey(ABC):
 
 
 class GenericPrivateKey(ABC):
-    public_cls: Type[GenericPublicKey]
+    public_cls: type[GenericPublicKey]
 
     @abstractmethod
     def __init__(self, key: Any) -> None:

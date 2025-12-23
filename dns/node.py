@@ -19,7 +19,7 @@
 
 import enum
 import io
-from typing import Any, Dict
+from typing import Any
 
 import dns.immutable
 import dns.name
@@ -90,7 +90,7 @@ class Node:
         # the set of rdatasets, represented as a list.
         self.rdatasets = []
 
-    def to_text(self, name: dns.name.Name, **kw: Dict[str, Any]) -> str:
+    def to_text(self, name: dns.name.Name, **kw: dict[str, Any]) -> str:
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments

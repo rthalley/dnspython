@@ -25,7 +25,7 @@ import ipaddress
 import itertools
 import random
 from importlib import import_module
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import dns.exception
 import dns.immutable
@@ -204,7 +204,7 @@ class Rdata:
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> str:
         """Convert an rdata to text format.
 
@@ -633,7 +633,7 @@ class GenericRdata(Rdata):
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> str:
         return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # type: ignore
 
@@ -662,7 +662,7 @@ class GenericRdata(Rdata):
         return cls(rdclass, rdtype, parser.get_remaining())
 
 
-_rdata_classes: Dict[Tuple[dns.rdataclass.RdataClass, dns.rdatatype.RdataType], Any] = (
+_rdata_classes: dict[tuple[dns.rdataclass.RdataClass, dns.rdatatype.RdataType], Any] = (
     {}
 )
 _module_prefix = "dns.rdtypes"

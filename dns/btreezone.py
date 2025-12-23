@@ -12,8 +12,9 @@
 #    points, and the GLUE flag is set on nodes beneath delegation points.
 
 import enum
+from collections.abc import Callable, MutableMapping
 from dataclasses import dataclass
-from typing import Callable, MutableMapping, Tuple, cast
+from typing import cast
 
 import dns.btree
 import dns.immutable
@@ -106,7 +107,7 @@ class ImmutableNode(Node):
 
 
 class Delegations(dns.btree.BTreeSet[dns.name.Name]):
-    def get_delegation(self, name: dns.name.Name) -> Tuple[dns.name.Name | None, bool]:
+    def get_delegation(self, name: dns.name.Name) -> tuple[dns.name.Name | None, bool]:
         """Get the delegation applicable to *name*, if it exists.
 
         If there delegation, then return a tuple consisting of the name of
@@ -160,7 +161,7 @@ class WritableVersion(dns.zone.WritableVersion):
 
     def _maybe_cow_with_name(
         self, name: dns.name.Name
-    ) -> Tuple[dns.node.Node, dns.name.Name]:
+    ) -> tuple[dns.node.Node, dns.name.Name]:
         (node, name) = super()._maybe_cow_with_name(name)
         node = cast(Node, node)
         if self._is_origin(name):

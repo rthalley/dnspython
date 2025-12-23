@@ -1,6 +1,6 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import dns._features
 import dns.asyncbackend
@@ -32,7 +32,7 @@ if dns._features.have("doq"):
     # We have a context factory and a manager factory as for trio we need to have
     # a nursery.
 
-    _async_factories: Dict[str, Tuple[Any, Any]] = {
+    _async_factories: dict[str, tuple[Any, Any]] = {
         "asyncio": (null_factory, _asyncio_manager_factory)
     }
 
@@ -75,4 +75,4 @@ else:  # pragma: no cover
             raise NotImplementedError
 
 
-Headers = List[Tuple[bytes, bytes]]
+Headers = list[tuple[bytes, bytes]]

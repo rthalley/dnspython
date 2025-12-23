@@ -17,12 +17,10 @@
 
 """DNS GENERATE range conversion."""
 
-from typing import Tuple
-
 import dns.exception
 
 
-def from_text(text: str) -> Tuple[int, int, int]:
+def from_text(text: str) -> tuple[int, int, int]:
     """Convert the text form of a range in a ``$GENERATE`` statement to an
     integer.
 

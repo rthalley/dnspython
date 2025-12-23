@@ -4,7 +4,8 @@
 
 import collections
 import threading
-from typing import Callable, Deque, Set, cast
+from collections.abc import Callable
+from typing import cast
 
 import dns.exception
 import dns.name
@@ -65,7 +66,7 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
         the default policy, which retains one version is used.
         """
         super().__init__(origin, rdclass, relativize)
-        self._versions: Deque[Version] = collections.deque()
+        self._versions: collections.deque[Version] = collections.deque()
         self._version_lock = threading.Lock()
         if pruning_policy is None:
             self._pruning_policy = self._default_pruning_policy
@@ -73,8 +74,8 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
             self._pruning_policy = pruning_policy
         self._write_txn: Transaction | None = None
         self._write_event: threading.Event | None = None
-        self._write_waiters: Deque[threading.Event] = collections.deque()
-        self._readers: Set[Transaction] = set()
+        self._write_waiters: collections.deque[threading.Event] = collections.deque()
+        self._readers: set[Transaction] = set()
         self._commit_version_unlocked(
             None, WritableVersion(self, replacement=True), origin
         )

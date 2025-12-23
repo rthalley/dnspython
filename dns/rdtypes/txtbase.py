@@ -17,7 +17,8 @@
 
 """TXT-like base class."""
 
-from typing import Any, Dict, Iterable, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 import dns.exception
 import dns.immutable
@@ -50,7 +51,7 @@ class TXTBase(dns.rdata.Rdata):
         *strings*, a tuple of ``bytes``
         """
         super().__init__(rdclass, rdtype)
-        self.strings: Tuple[bytes] = self._as_tuple(
+        self.strings: tuple[bytes] = self._as_tuple(
             strings, lambda x: self._as_bytes(x, True, 255)
         )
         if len(self.strings) == 0:
@@ -60,7 +61,7 @@ class TXTBase(dns.rdata.Rdata):
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> str:
         txt = ""
         prefix = ""

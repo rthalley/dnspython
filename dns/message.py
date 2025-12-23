@@ -21,7 +21,7 @@ import contextlib
 import enum
 import io
 import time
-from typing import Any, Dict, List, Tuple, cast
+from typing import Any, cast
 
 import dns.edns
 import dns.entropy
@@ -128,7 +128,7 @@ class MessageError:
 DEFAULT_EDNS_PAYLOAD = 1232
 MAX_CHAIN = 16
 
-IndexKeyType = Tuple[
+IndexKeyType = tuple[
     int,
     dns.name.Name,
     dns.rdataclass.RdataClass,
@@ -136,8 +136,8 @@ IndexKeyType = Tuple[
     dns.rdatatype.RdataType | None,
     dns.rdataclass.RdataClass | None,
 ]
-IndexType = Dict[IndexKeyType, dns.rrset.RRset]
-SectionType = int | str | List[dns.rrset.RRset]
+IndexType = dict[IndexKeyType, dns.rrset.RRset]
+SectionType = int | str | list[dns.rrset.RRset]
 
 
 class Message:
@@ -151,7 +151,7 @@ class Message:
         else:
             self.id = id
         self.flags = 0
-        self.sections: List[List[dns.rrset.RRset]] = [[], [], [], []]
+        self.sections: list[list[dns.rrset.RRset]] = [[], [], [], []]
         self.opt: dns.rrset.RRset | None = None
         self.request_payload = 0
         self.pad = 0
@@ -163,12 +163,12 @@ class Message:
         self.origin: dns.name.Name | None = None
         self.tsig_ctx: Any | None = None
         self.index: IndexType = {}
-        self.errors: List[MessageError] = []
+        self.errors: list[MessageError] = []
         self.time = 0.0
         self.wire: bytes | None = None
 
     @property
-    def question(self) -> List[dns.rrset.RRset]:
+    def question(self) -> list[dns.rrset.RRset]:
         """The question section."""
         return self.sections[0]
 
@@ -177,7 +177,7 @@ class Message:
         self.sections[0] = v
 
     @property
-    def answer(self) -> List[dns.rrset.RRset]:
+    def answer(self) -> list[dns.rrset.RRset]:
         """The answer section."""
         return self.sections[1]
 
@@ -186,7 +186,7 @@ class Message:
         self.sections[1] = v
 
     @property
-    def authority(self) -> List[dns.rrset.RRset]:
+    def authority(self) -> list[dns.rrset.RRset]:
         """The authority section."""
         return self.sections[2]
 
@@ -195,7 +195,7 @@ class Message:
         self.sections[2] = v
 
     @property
-    def additional(self) -> List[dns.rrset.RRset]:
+    def additional(self) -> list[dns.rrset.RRset]:
         """The additional data section."""
         return self.sections[3]
 
@@ -213,7 +213,7 @@ class Message:
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> str:
         """Convert the message to text.
 
@@ -314,7 +314,7 @@ class Message:
                 return False
         return True
 
-    def section_number(self, section: List[dns.rrset.RRset]) -> int:
+    def section_number(self, section: list[dns.rrset.RRset]) -> int:
         """Return the "section number" of the specified section for use
         in indexing.
 
@@ -330,7 +330,7 @@ class Message:
                 return self._section_enum(i)
         raise ValueError("unknown section")
 
-    def section_from_number(self, number: int) -> List[dns.rrset.RRset]:
+    def section_from_number(self, number: int) -> list[dns.rrset.RRset]:
         """Return the section list associated with the specified section
         number.
 
@@ -566,7 +566,7 @@ class Message:
         tsig_ctx: Any | None = None,
         prepend_length: bool = False,
         prefer_truncation: bool = False,
-        **kw: Dict[str, Any],
+        **kw: dict[str, Any],
     ) -> bytes:
         """Return a string containing the message in DNS compressed wire
         format.
@@ -795,7 +795,7 @@ class Message:
         ednsflags: int = 0,
         payload: int = DEFAULT_EDNS_PAYLOAD,
         request_payload: int | None = None,
-        options: List[dns.edns.Option] | None = None,
+        options: list[dns.edns.Option] | None = None,
         pad: int = 0,
     ) -> None:
         """Configure EDNS behavior.
@@ -872,7 +872,7 @@ class Message:
             return 0
 
     @property
-    def options(self) -> Tuple:
+    def options(self) -> tuple:
         if self.opt:
             rdata = cast(dns.rdtypes.ANY.OPT.OPT, self.opt[0])
             return rdata.options
@@ -926,13 +926,13 @@ class Message:
         self.flags &= 0x87FF
         self.flags |= dns.opcode.to_flags(opcode)
 
-    def get_options(self, otype: dns.edns.OptionType) -> List[dns.edns.Option]:
+    def get_options(self, otype: dns.edns.OptionType) -> list[dns.edns.Option]:
         """Return the list of options of the specified type."""
         return [option for option in self.options if option.otype == otype]
 
-    def extended_errors(self) -> List[dns.edns.EDEOption]:
+    def extended_errors(self) -> list[dns.edns.EDEOption]:
         """Return the list of Extended DNS Error (EDE) options in the message"""
-        return cast(List[dns.edns.EDEOption], self.get_options(dns.edns.OptionType.EDE))
+        return cast(list[dns.edns.EDEOption], self.get_options(dns.edns.OptionType.EDE))
 
     def _get_one_rr_per_rrset(self, value):
         # What the caller picked is fine.
@@ -987,7 +987,7 @@ class ChainingResult:
         canonical_name: dns.name.Name,
         answer: dns.rrset.RRset | None,
         minimum_ttl: int,
-        cnames: List[dns.rrset.RRset],
+        cnames: list[dns.rrset.RRset],
     ):
         self.canonical_name = canonical_name
         self.answer = answer
@@ -1756,7 +1756,7 @@ def make_query(
     ednsflags: int | None = None,
     payload: int | None = None,
     request_payload: int | None = None,
-    options: List[dns.edns.Option] | None = None,
+    options: list[dns.edns.Option] | None = None,
     idna_codec: dns.name.IDNACodec | None = None,
     id: int | None = None,
     flags: int = dns.flags.RD,
@@ -1827,7 +1827,7 @@ def make_query(
     # only pass keywords on to use_edns if they have been set to a
     # non-None value.  Setting a field will turn EDNS on if it hasn't
     # been configured.
-    kwargs: Dict[str, Any] = {}
+    kwargs: dict[str, Any] = {}
     if ednsflags is not None:
         kwargs["ednsflags"] = ednsflags
     if payload is not None:

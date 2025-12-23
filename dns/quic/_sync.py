@@ -7,10 +7,7 @@ import struct
 import threading
 import time
 
-import aioquic.h3.connection  # type: ignore
 import aioquic.h3.events  # type: ignore
-import aioquic.quic.configuration  # type: ignore
-import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
 
 import dns.exception

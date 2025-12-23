@@ -19,7 +19,6 @@
 
 import binascii
 import re
-from typing import List
 
 import dns.exception
 import dns.ipv4
@@ -164,7 +163,7 @@ def inet_aton(text: str | bytes, ignore_scope: bool = False) -> bytes:
     if l > 8:
         raise dns.exception.SyntaxError
     seen_empty = False
-    canonical: List[bytes] = []
+    canonical: list[bytes] = []
     for c in chunks:
         if c == b"":
             if seen_empty:

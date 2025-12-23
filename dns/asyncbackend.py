@@ -1,7 +1,5 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Dict
-
 import dns.exception
 
 # pylint: disable=unused-import
@@ -16,7 +14,7 @@ from dns._asyncbackend import (  # noqa: F401  lgtm[py/unused-import]
 
 _default_backend = None
 
-_backends: Dict[str, Backend] = {}
+_backends: dict[str, Backend] = {}
 
 # Allow sniffio import to be disabled for testing purposes
 _no_sniffio = False

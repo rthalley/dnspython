@@ -24,7 +24,7 @@ import socket
 import struct
 import time
 import urllib.parse
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, cast
 
 import dns.asyncbackend
 import dns.exception
@@ -93,7 +93,7 @@ async def send_udp(
     what: dns.message.Message | bytes,
     destination: Any,
     expiration: float | None = None,
-) -> Tuple[int, float]:
+) -> tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
     *sock*, a ``dns.asyncbackend.DatagramSocket``.
@@ -124,7 +124,7 @@ async def receive_udp(
     expiration: float | None = None,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
-    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    keyring: dict[dns.name.Name, dns.tsig.Key] | None = None,
     request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
     raise_on_truncation: bool = False,
@@ -259,7 +259,7 @@ async def udp_with_fallback(
     tcp_sock: dns.asyncbackend.StreamSocket | None = None,
     backend: dns.asyncbackend.Backend | None = None,
     ignore_errors: bool = False,
-) -> Tuple[dns.message.Message, bool]:
+) -> tuple[dns.message.Message, bool]:
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
@@ -317,7 +317,7 @@ async def send_tcp(
     sock: dns.asyncbackend.StreamSocket,
     what: dns.message.Message | bytes,
     expiration: float | None = None,
-) -> Tuple[int, float]:
+) -> tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
     *sock*, a ``dns.asyncbackend.StreamSocket``.
@@ -356,10 +356,10 @@ async def receive_tcp(
     sock: dns.asyncbackend.StreamSocket,
     expiration: float | None = None,
     one_rr_per_rrset: bool = False,
-    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    keyring: dict[dns.name.Name, dns.tsig.Key] | None = None,
     request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
-) -> Tuple[dns.message.Message, float]:
+) -> tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
     *sock*, a ``dns.asyncbackend.StreamSocket``.
@@ -514,7 +514,7 @@ async def tls(
 
 
 def _maybe_get_resolver(
-    resolver: Optional["dns.asyncresolver.Resolver"],  # type: ignore
+    resolver: "dns.asyncresolver.Resolver | None",  # type: ignore
 ) -> "dns.asyncresolver.Resolver":  # type: ignore
     # We need a separate method for this to avoid overriding the global
     # variable "dns" with the as-yet undefined local variable "dns"
@@ -536,12 +536,12 @@ async def https(
     source_port: int = 0,  # pylint: disable=W0613
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    client: Optional["httpx.AsyncClient|dns.quic.AsyncQuicConnection"] = None,
+    client: "httpx.AsyncClient|dns.quic.AsyncQuicConnection | None" = None,
     path: str = "/dns-query",
     post: bool = True,
     verify: bool | str | ssl.SSLContext = True,
     bootstrap_address: str | None = None,
-    resolver: Optional["dns.asyncresolver.Resolver"] = None,  # type: ignore
+    resolver: "dns.asyncresolver.Resolver | None" = None,  # type: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
