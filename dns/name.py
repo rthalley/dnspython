@@ -28,7 +28,7 @@ import dns._features
 import dns.enum
 import dns.exception
 import dns.immutable
-import dns.wire
+import dns.wirebase
 
 # Dnspython will never access idna if the import fails, but pyright can't figure
 # that out, so...
@@ -356,9 +356,8 @@ def _maybe_convert_to_binary(label: bytes | str) -> bytes:
 
     if isinstance(label, bytes):
         return label
-    if isinstance(label, str):
+    else:
         return label.encode()
-    raise ValueError  # pragma: no cover
 
 
 @dns.immutable.immutable
@@ -743,7 +742,7 @@ class Name:
 
         return len(self.labels)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: Any) -> Any:
         return self.labels[index]
 
     def __add__(self, other):
@@ -798,7 +797,7 @@ class Name:
         Returns a ``dns.name.Name``.
         """
 
-        if origin is not None and self.is_subdomain(origin):
+        if self.is_subdomain(origin):
             return Name(self[: -len(origin)])
         else:
             return self
@@ -1070,13 +1069,10 @@ def from_text(
     return Name(labels)
 
 
-# we need 'dns.wire.Parser' quoted as dns.name and dns.wire depend on each other.
-
-
-def from_wire_parser(parser: "dns.wire.Parser") -> Name:
+def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
     """Convert possibly compressed wire format into a Name.
 
-    *parser* is a dns.wire.Parser.
+    *parser* is a dns.wirebase.Parser.
 
     Raises ``dns.name.BadPointer`` if a compression pointer did not
     point backwards in the message.
@@ -1125,9 +1121,7 @@ def from_wire(message: bytes, current: int) -> tuple[Name, int]:
     which were consumed reading it.
     """
 
-    if not isinstance(message, bytes):
-        raise ValueError("input to from_wire() must be a byte string")
-    parser = dns.wire.Parser(message, current)
+    parser = dns.wirebase.Parser(message, current)
     name = from_wire_parser(parser)
     return (name, parser.current - current)
 

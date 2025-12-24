@@ -63,6 +63,7 @@ __all__ = [
     "version",
     "versioned",
     "wire",
+    "wirebase",
     "xfr",
     "zone",
     "zonetypes",
