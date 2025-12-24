@@ -29,9 +29,9 @@ import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
-import dns.renderer
 import dns.set
 import dns.ttl
+from dns._render_util import prefixed_length
 
 # define SimpleSet here for backwards compatibility
 SimpleSet = dns.set.Set
@@ -321,7 +321,7 @@ class Rdataset(dns.set.Set):
             for rd in l:
                 name.to_wire(file, compress, origin)
                 file.write(struct.pack("!HHI", self.rdtype, rdclass, self.ttl))
-                with dns.renderer.prefixed_length(file, 2):
+                with prefixed_length(file, 2):
                     rd.to_wire(file, compress, origin)
             return len(self)
 

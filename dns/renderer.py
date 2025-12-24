@@ -25,11 +25,16 @@ import time
 
 import dns.edns
 import dns.exception
+import dns.name
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdtypes.ANY.OPT
+import dns.rdtypes.ANY.TSIG
+import dns.rrset
 import dns.tsig
+from dns._render_util import prefixed_length as prefixed_length  # type: ignore
 
-# Note we can't import dns.message for cicularity reasons
+DEFAULT_EDNS_PAYLOAD = 1232
 
 QUESTION = 0
 ANSWER = 1
@@ -37,22 +42,24 @@ AUTHORITY = 2
 ADDITIONAL = 3
 
 
-@contextlib.contextmanager
-def prefixed_length(output, length_length):
-    output.write(b"\00" * length_length)
-    start = output.tell()
-    yield
-    end = output.tell()
-    length = end - start
-    if length > 0:
-        try:
-            output.seek(start - length_length)
-            try:
-                output.write(length.to_bytes(length_length, "big"))
-            except OverflowError:
-                raise dns.exception.FormError
-        finally:
-            output.seek(end)
+def _make_opt(flags=0, payload=DEFAULT_EDNS_PAYLOAD, options=None):
+    opt = dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT, options or ())
+    return dns.rrset.from_rdata(dns.name.root, int(flags), opt)
+
+
+def _make_tsig(keyname, algorithm, time_signed, fudge, mac, original_id, error, other):
+    tsig = dns.rdtypes.ANY.TSIG.TSIG(
+        dns.rdataclass.ANY,
+        dns.rdatatype.TSIG,
+        algorithm,
+        time_signed,
+        fudge,
+        mac,
+        original_id,
+        error,
+        other,
+    )
+    return dns.rrset.from_rdata(keyname, 0, tsig)
 
 
 class Renderer:
@@ -219,9 +226,7 @@ class Renderer:
                 pad = b""
             options = list(opt_rdata.options)
             options.append(dns.edns.GenericOption(dns.edns.OptionType.PADDING, pad))
-            opt = dns.message.Message._make_opt(  # type: ignore
-                ttl, opt_rdata.rdclass, options
-            )
+            opt = _make_opt(ttl, opt_rdata.rdclass, options)  # type: ignore
             self.was_padded = True
         self.add_rrset(ADDITIONAL, opt)
 
@@ -231,7 +236,7 @@ class Renderer:
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
         ednsflags |= edns << 16
-        opt = dns.message.Message._make_opt(ednsflags, payload, options)  # type: ignore
+        opt = _make_opt(ednsflags, payload, options)  # type: ignore
         self.add_opt(opt)
 
     def add_tsig(
@@ -253,7 +258,7 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(  # type: ignore
+        tsig = _make_tsig(  # type: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
         (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
@@ -285,7 +290,7 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(  # type: ignore
+        tsig = _make_tsig(  # type: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
         (tsig, ctx) = dns.tsig.sign(

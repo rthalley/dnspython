@@ -1068,18 +1068,6 @@ class NameTestCase(unittest.TestCase):
 
         self.assertRaises(dns.name.BadEscape, bad2)
 
-    def testFromUnicodeNotString(self):
-        def bad():
-            dns.name.from_unicode(b"123")  # type: ignore
-
-        self.assertRaises(ValueError, bad)
-
-    def testFromUnicodeBadOrigin(self):
-        def bad():
-            dns.name.from_unicode("example", 123)  # type: ignore
-
-        self.assertRaises(ValueError, bad)
-
     def testFromUnicodeEmptyLabel(self):
         def bad():
             dns.name.from_unicode("a..b.example")
@@ -1088,18 +1076,6 @@ class NameTestCase(unittest.TestCase):
 
     def testFromUnicodeEmptyName(self):
         self.assertEqual(dns.name.from_unicode("@", None), dns.name.empty)
-
-    def testFromTextNotString(self):
-        def bad():
-            dns.name.from_text(123)  # type: ignore
-
-        self.assertRaises(ValueError, bad)
-
-    def testFromTextBadOrigin(self):
-        def bad():
-            dns.name.from_text("example", 123)  # type: ignore
-
-        self.assertRaises(ValueError, bad)
 
     def testBadPunycode(self):
         c = dns.name.IDNACodec()

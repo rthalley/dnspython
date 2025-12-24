@@ -918,10 +918,6 @@ def from_unicode(
     Returns a ``dns.name.Name``.
     """
 
-    if not isinstance(text, str):
-        raise ValueError("input to from_unicode() must be a unicode string")
-    if not (origin is None or isinstance(origin, Name)):
-        raise ValueError("origin must be a Name or None")
     labels = []
     label = ""
     escaping = False
@@ -1014,10 +1010,6 @@ def from_text(
         # then it's still "all ASCII" even though the domain name has
         # codepoints > 127.
         text = text.encode("ascii")
-    if not isinstance(text, bytes):
-        raise ValueError("input to from_text() must be a string")
-    if not (origin is None or isinstance(origin, Name)):
-        raise ValueError("origin must be a Name or None")
     labels = []
     label = b""
     escaping = False

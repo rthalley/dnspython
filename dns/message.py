@@ -125,7 +125,7 @@ class MessageError:
         self.offset = offset
 
 
-DEFAULT_EDNS_PAYLOAD = 1232
+DEFAULT_EDNS_PAYLOAD = dns.renderer.DEFAULT_EDNS_PAYLOAD
 MAX_CHAIN = 16
 
 IndexKeyType = tuple[
@@ -664,18 +664,9 @@ class Message:
     def _make_tsig(
         keyname, algorithm, time_signed, fudge, mac, original_id, error, other
     ):
-        tsig = dns.rdtypes.ANY.TSIG.TSIG(
-            dns.rdataclass.ANY,
-            dns.rdatatype.TSIG,
-            algorithm,
-            time_signed,
-            fudge,
-            mac,
-            original_id,
-            error,
-            other,
+        return dns.renderer._make_tsig(
+            keyname, algorithm, time_signed, fudge, mac, original_id, error, other
         )
-        return dns.rrset.from_rdata(keyname, 0, tsig)
 
     def use_tsig(
         self,
@@ -786,8 +777,7 @@ class Message:
 
     @staticmethod
     def _make_opt(flags=0, payload=DEFAULT_EDNS_PAYLOAD, options=None):
-        opt = dns.rdtypes.ANY.OPT.OPT(payload, dns.rdatatype.OPT, options or ())
-        return dns.rrset.from_rdata(dns.name.root, int(flags), opt)
+        return dns.renderer._make_opt(flags, payload, options)
 
     def use_edns(
         self,
