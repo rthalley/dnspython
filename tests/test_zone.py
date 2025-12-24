@@ -1171,6 +1171,21 @@ class ZoneTestCase(unittest.TestCase):
         with self.assertRaises(KeyError):
             z.replace_rdataset(too_long_relative, rds)
 
+    def testImmutableNodes(self):
+        z = dns.zone.from_text(example_text, "example.", relativize=True)
+        node = dns.node.ImmutableNode(z.find_node("@"))
+        self.assertTrue(node.is_immutable)
+        with self.assertRaises(TypeError):
+            node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.RP, create=True)
+        node.find_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
+        with self.assertRaises(TypeError):
+            node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.RP, create=True)
+        node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
+        with self.assertRaises(TypeError):
+            node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
+        with self.assertRaises(TypeError):
+            node.replace_rdataset(None)
+
 
 class VersionedZoneTestCase(unittest.TestCase):
     zone_factory = dns.versioned.Zone

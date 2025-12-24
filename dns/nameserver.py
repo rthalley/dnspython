@@ -11,19 +11,19 @@ class Nameserver:
         pass
 
     def __str__(self):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def kind(self) -> str:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def is_always_max_size(self) -> bool:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def answer_nameserver(self) -> str:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def answer_port(self) -> int:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def query(
         self,
@@ -35,7 +35,7 @@ class Nameserver:
         one_rr_per_rrset: bool = False,
         ignore_trailing: bool = False,
     ) -> dns.message.Message:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     async def async_query(
         self,
@@ -48,7 +48,7 @@ class Nameserver:
         one_rr_per_rrset: bool = False,
         ignore_trailing: bool = False,
     ) -> dns.message.Message:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
 
 class AddressAndPortNameserver(Nameserver):
@@ -58,7 +58,7 @@ class AddressAndPortNameserver(Nameserver):
         self.port = port
 
     def kind(self) -> str:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def is_always_max_size(self) -> bool:
         return False

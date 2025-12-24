@@ -111,7 +111,7 @@ class Node:
         return s.getvalue()[:-1]
 
     def __repr__(self):
-        return "<DNS node " + str(id(self)) + ">"
+        return "<DNS node " + str(id(self)) + ">"  # pragma: no cover
 
     def __eq__(self, other):
         #
@@ -126,7 +126,7 @@ class Node:
         return True
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        return not self.__eq__(other)  # pragma: no cover
 
     def __len__(self):
         return len(self.rdatasets)
@@ -278,7 +278,7 @@ class Node:
         """
 
         if not isinstance(replacement, dns.rdataset.Rdataset):
-            raise ValueError("replacement is not an rdataset")
+            raise ValueError("replacement is not an rdataset")  # pragma: no cover
         if isinstance(replacement, dns.rrset.RRset):
             # RRsets are not good replacements as the match() method
             # is not compatible.

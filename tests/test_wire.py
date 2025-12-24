@@ -1,10 +1,12 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import io
 import unittest
 
 import dns.exception
 import dns.wire
 import dns.name
+import dns._render_util
 
 
 class BinaryTestCase(unittest.TestCase):
@@ -85,3 +87,16 @@ class BinaryTestCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             with p.restrict_to(5):
                 raise NotImplementedError
+
+    def test_prefixed_length(self):
+        out = io.BytesIO()
+        with dns._render_util.prefixed_length(out, 1):
+            out.write(b"hello")
+        value = out.getvalue()
+        self.assertEqual(value, b"\x05hello")
+
+    def test_prefixed_length_overflow(self):
+        out = io.BytesIO()
+        with self.assertRaises(dns.exception.FormError):
+            with dns._render_util.prefixed_length(out, 1):
+                out.write(b"x" * 256)
