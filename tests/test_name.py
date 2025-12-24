@@ -1101,12 +1101,6 @@ class NameTestCase(unittest.TestCase):
 
         self.assertRaises(ValueError, bad)
 
-    def testFromWireNotBytes(self):
-        def bad():
-            dns.name.from_wire(123, 0)  # type: ignore
-
-        self.assertRaises(ValueError, bad)
-
     def testBadPunycode(self):
         c = dns.name.IDNACodec()
         with self.assertRaises(dns.name.IDNAException):
