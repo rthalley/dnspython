@@ -63,7 +63,7 @@ async def _maybe_wait_for(awaitable, timeout):
         return await awaitable
 
 
-class DatagramSocket(dns._asyncbackend.DatagramSocket):
+class _DatagramSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, family, transport, protocol):
         super().__init__(family, socket.SOCK_DGRAM)
         self.transport = transport
@@ -98,7 +98,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         raise NotImplementedError
 
 
-class StreamSocket(dns._asyncbackend.StreamSocket):
+class _StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, af, reader, writer):
         super().__init__(af, socket.SOCK_STREAM)
         self.reader = reader
@@ -240,7 +240,7 @@ class Backend(dns._asyncbackend.Backend):
                 proto=proto,
                 remote_addr=destination,
             )
-            return DatagramSocket(af, transport, protocol)
+            return _DatagramSocket(af, transport, protocol)
         elif socktype == socket.SOCK_STREAM:
             if destination is None:
                 # This shouldn't happen, but we check to make code analysis software
@@ -258,7 +258,7 @@ class Backend(dns._asyncbackend.Backend):
                 ),
                 timeout,
             )
-            return StreamSocket(af, r, w)
+            return _StreamSocket(af, r, w)
         raise NotImplementedError(
             "unsupported socket " + f"type {socktype}"
         )  # pragma: no cover
