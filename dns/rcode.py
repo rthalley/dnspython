@@ -139,6 +139,29 @@ def to_text(value: Rcode, tsig: bool = False) -> str:
     return Rcode.to_text(value)
 
 
+def from_exception(e: Exception) -> Rcode:
+    """Get rcode for exception"""
+    if isinstance(e, dns.exception.FormError):
+        return Rcode.FORMERR
+    elif isinstance(e, dns.exception.SyntaxError):
+        return Rcode.SERVFAIL
+    elif isinstance(e, dns.exception.UnexpectedEnd):
+        return Rcode.BADTRUNC
+    elif isinstance(e, dns.exception.TooBig):
+        return Rcode.BADTRUNC
+    elif isinstance(e, dns.exception.Timeout):
+        return Rcode.SERVFAIL
+    elif isinstance(e, dns.exception.UnsupportedAlgorithm):
+        return Rcode.BADALG
+    elif isinstance(e, dns.exception.AlgorithmKeyMismatch):
+        return Rcode.BADALG
+    elif isinstance(e, dns.exception.ValidationFailure):
+        return Rcode.SERVFAIL
+    elif isinstance(e, dns.exception.DeniedByPolicy):
+        return Rcode.REFUSED
+    return Rcode.SERVFAIL
+
+
 ### BEGIN generated Rcode constants
 
 NOERROR = Rcode.NOERROR
