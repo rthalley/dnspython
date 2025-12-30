@@ -263,6 +263,32 @@ class Backend(dns._asyncbackend.Backend):
             "unsupported socket " + f"type {socktype}"
         )  # pragma: no cover
 
+    async def make_server(
+        self,
+        client_connected_cb,
+        af,
+        socktype,
+        addr,
+    ):
+        if socktype == socket.SOCK_DGRAM:
+            raise NotImplementedError(
+                "server not necessary for datagram, use make_socket() instead"
+            )  # pragma: no cover
+        elif socktype == socket.SOCK_STREAM:
+            async def handle_tcp(r, w):
+                sock_tcp = _StreamSocket(af, r, w)
+                await client_connected_cb(sock_tcp)
+            hostname, port = addr
+            return await asyncio.start_server(
+                handle_tcp,
+                host=hostname,
+                port=port,
+                family=af,
+            )
+        raise NotImplementedError(
+            "unsupported socket " + f"type {socktype}"
+        )  # pragma: no cover
+
     async def sleep(self, interval):
         await asyncio.sleep(interval)
 

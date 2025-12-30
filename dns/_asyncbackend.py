@@ -87,6 +87,15 @@ class Backend:  # pragma: no cover
     ):
         raise NotImplementedError
 
+    async def make_server(
+        self,
+        client_connected_cb,
+        af,
+        socktype,
+        addr,
+    ):
+        raise NotImplementedError
+
     def datagram_connection_required(self):
         return False
 
