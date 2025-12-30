@@ -158,6 +158,7 @@ async def receive_udp(
                 one_rr_per_rrset=one_rr_per_rrset,
                 ignore_trailing=ignore_trailing,
                 raise_on_truncation=raise_on_truncation,
+                continue_on_error=ignore_errors,
             )
         except dns.message.Truncated as e:
             # See the comment in query.py for details.
@@ -359,6 +360,7 @@ async def receive_tcp(
     keyring: dict[dns.name.Name, dns.tsig.Key] | None = None,
     request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
+    ignore_errors: bool = False,
 ) -> tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
@@ -378,6 +380,7 @@ async def receive_tcp(
         request_mac=request_mac,
         one_rr_per_rrset=one_rr_per_rrset,
         ignore_trailing=ignore_trailing,
+        continue_on_error=ignore_errors,
     )
     return (r, received_time)
 
