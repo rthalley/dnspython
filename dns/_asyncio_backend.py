@@ -21,7 +21,7 @@ def _get_running_loop():
         return asyncio.get_event_loop()
 
 
-class _DatagramProtocol:
+class _DatagramProtocol(asyncio.DatagramProtocol):
     def __init__(self):
         self.transport = None
         self.recvfrom = None
