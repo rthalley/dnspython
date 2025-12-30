@@ -65,6 +65,20 @@ class StreamSocket(Socket):  # pragma: no cover
         raise NotImplementedError
 
 
+class Server:  # pragma: no cover
+    async def serve_forever(self):
+        raise NotImplementedError
+
+    async def close(self):
+        raise NotImplementedError
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.close()
+
+
 class NullTransport:
     async def connect_tcp(self, host, port, timeout, local_address):
         raise NotImplementedError
@@ -89,7 +103,7 @@ class Backend:  # pragma: no cover
 
     async def make_server(
         self,
-        client_connected_cb,
+        socket_created_cb,
         af,
         socktype,
         addr,

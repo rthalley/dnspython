@@ -21,13 +21,21 @@ def _get_running_loop():
         return asyncio.get_event_loop()
 
 
-class _DatagramProtocol(asyncio.DatagramProtocol):
+class _BaseDatagramProtocol(asyncio.DatagramProtocol):
     def __init__(self):
         self.transport = None
-        self.recvfrom = None
 
     def connection_made(self, transport):
         self.transport = transport
+
+    def close(self):
+        if self.transport is not None:
+            self.transport.close()
+
+
+class _SocketDatagramProtocol(_BaseDatagramProtocol):
+    def __init__(self):
+        self.recvfrom = None
 
     def datagram_received(self, data, addr):
         if self.recvfrom and not self.recvfrom.done():
@@ -48,9 +56,19 @@ class _DatagramProtocol(asyncio.DatagramProtocol):
             else:
                 self.recvfrom.set_exception(exc)
 
-    def close(self):
-        if self.transport is not None:
-            self.transport.close()
+
+class _ServerDatagramProtocol(_BaseDatagramProtocol):
+    def __init__(self, datagram_received_cb, serving_future):
+        self.datagram_received_cb = datagram_received_cb
+        self.serving = serving_future
+
+    def datagram_received(self, data, addr):
+        if self.datagram_received_cb:
+            asyncio.ensure_future(self.datagram_received_cb(addr, self.transport, self, data))
+
+    def connection_lost(self, exc):
+        if self.serving and not self.serving.done():
+            self.serving.set_result(True)
 
 
 async def _maybe_wait_for(awaitable, timeout):
@@ -63,7 +81,7 @@ async def _maybe_wait_for(awaitable, timeout):
         return await awaitable
 
 
-class _DatagramSocket(dns._asyncbackend.DatagramSocket):
+class _BaseDatagramSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, family, transport, protocol):
         super().__init__(family, socket.SOCK_DGRAM)
         self.transport = transport
@@ -73,17 +91,6 @@ class _DatagramSocket(dns._asyncbackend.DatagramSocket):
         # no timeout for asyncio sendto
         self.transport.sendto(what, destination)
         return len(what)
-
-    async def recvfrom(self, size, timeout):
-        # ignore size as there's no way I know to tell protocol about it
-        done = _get_running_loop().create_future()
-        try:
-            assert self.protocol.recvfrom is None
-            self.protocol.recvfrom = done
-            await _maybe_wait_for(done, timeout)
-            return done.result()
-        finally:
-            self.protocol.recvfrom = None
 
     async def close(self):
         self.protocol.close()
@@ -96,6 +103,34 @@ class _DatagramSocket(dns._asyncbackend.DatagramSocket):
 
     async def getpeercert(self, timeout):
         raise NotImplementedError
+
+
+class _SocketDatagramSocket(_BaseDatagramSocket):
+    async def recvfrom(self, size, timeout):
+        # ignore size as there's no way I know to tell protocol about it
+        done = _get_running_loop().create_future()
+        try:
+            assert self.protocol.recvfrom is None
+            self.protocol.recvfrom = done
+            await _maybe_wait_for(done, timeout)
+            return done.result()
+        finally:
+            self.protocol.recvfrom = None
+
+
+class _ServerDatagramSocket(_BaseDatagramSocket):
+    def __init__(self, family, transport, protocol, addr, data):
+        super().__init__(family, transport, protocol)
+        self.addr = addr
+        self.data = data
+
+    async def recvfrom(self, size, timeout):
+        if self.data is None:
+            raise EOFError("EOF")
+        # data always contains exactly one messaage
+        result = (self.data, self.addr)
+        self.data = None
+        return result
 
 
 class _StreamSocket(dns._asyncbackend.StreamSocket):
@@ -122,6 +157,30 @@ class _StreamSocket(dns._asyncbackend.StreamSocket):
 
     async def getpeercert(self, timeout):
         return self.writer.get_extra_info("peercert")
+
+
+class DatagramServer(dns._asyncbackend.Server):
+    def __init__(self, transport, protocol):
+        self.transport = transport
+        self.protocol = protocol
+
+    async def serve_forever(self):
+        await self.protocol.serving
+
+    async def close(self):
+        if self.transport:
+            self.transport.close()
+
+
+class StreamServer(dns._asyncbackend.Server):
+    def __init__(self, server):
+        self.server = server
+
+    async def serve_forever(self):
+        await self.server.serve_forever()
+
+    async def close(self):
+        await self.server.close()
 
 
 if dns._features.have("doh"):
@@ -234,13 +293,13 @@ class Backend(dns._asyncbackend.Backend):
                 # proper fix for [#637].
                 source = (dns.inet.any_for_af(af), 0)
             transport, protocol = await loop.create_datagram_endpoint(
-                _DatagramProtocol,  # type: ignore
+                _SocketDatagramProtocol,  # type: ignore
                 local_addr=source,
                 family=af,
                 proto=proto,
                 remote_addr=destination,
             )
-            return _DatagramSocket(af, transport, protocol)
+            return _SocketDatagramSocket(af, transport, protocol)
         elif socktype == socket.SOCK_STREAM:
             if destination is None:
                 # This shouldn't happen, but we check to make code analysis software
@@ -265,19 +324,35 @@ class Backend(dns._asyncbackend.Backend):
 
     async def make_server(
         self,
-        client_connected_cb,
+        socket_created_cb,
         af,
         socktype,
         addr,
     ):
+        loop = _get_running_loop()
         if socktype == socket.SOCK_DGRAM:
-            raise NotImplementedError(
-                "server not necessary for datagram, use make_socket() instead"
-            )  # pragma: no cover
+            if _is_win32 and addr is None:
+                # Win32 wants explicit binding before recvfrom().  This is the
+                # proper fix for [#637].
+                addr = (dns.inet.any_for_af(af), 0)
+
+            async def handle_udp(addr, transport, protocol, data):
+                sock_udp = _ServerDatagramSocket(af, transport, protocol, addr, data)
+                await socket_created_cb(sock_udp)
+
+            done = loop.create_future()
+            transport, protocol = await loop.create_datagram_endpoint(
+                lambda: _ServerDatagramProtocol(handle_udp, done),
+                local_addr=addr,
+                family=af,
+            )
+            return DatagramServer(transport, protocol)
         elif socktype == socket.SOCK_STREAM:
+
             async def handle_tcp(r, w):
                 sock_tcp = _StreamSocket(af, r, w)
-                await client_connected_cb(sock_tcp)
+                await socket_created_cb(sock_tcp)
+
             hostname, port = addr
             return await asyncio.start_server(
                 handle_tcp,

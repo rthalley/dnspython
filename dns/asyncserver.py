@@ -46,12 +46,7 @@ async def udp_serve(
     ignore_errors: bool = False,
     backend: dns.asyncbackend.Backend | None = None,
 ) -> None:
-    if not backend:
-        backend = dns.asyncbackend.get_default_backend()
-    af = dns.inet.af_for_address(host)
-    addr = (host, port)
-    sock = await backend.make_socket(af, socket.SOCK_DGRAM, 0, addr)
-    while True:
+    async def handle_udp(sock: dns.asyncbackend.DatagramSocket):
         try:
             (m, _, from_address) = await dns.asyncquery.receive_udp(
                 sock,
@@ -69,6 +64,13 @@ async def udp_serve(
             await dns.asyncquery.send_udp(sock, wire, from_address)
         except:
             pass
+
+    if not backend:
+        backend = dns.asyncbackend.get_default_backend()
+    af = dns.inet.af_for_address(host)
+    addr = (host, port)
+    server = await backend.make_server(handle_udp, af, socket.SOCK_DGRAM, addr)
+    await server.serve_forever()
 
 
 async def tcp_serve(
