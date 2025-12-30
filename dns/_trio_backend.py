@@ -241,6 +241,30 @@ class Backend(dns._asyncbackend.Backend):
             "unsupported socket " + f"type {socktype}"
         )  # pragma: no cover
 
+    async def serve(
+        self,
+        client_connected_cb,
+        af,
+        socktype,
+        addr,
+    ):
+        if socktype == socket.SOCK_DGRAM:
+            sock = await self.make_socket(af, socket.SOCK_DGRAM, 0, addr)
+            await client_connected_cb(sock)
+        elif socktype == socket.SOCK_STREAM:
+            async def handle_tcp(stream):
+                sock_tcp = StreamSocket(af, stream)
+                await client_connected_cb(sock_tcp)
+            hostname, port = addr
+            await trio.serve_tcp(
+                handle_tcp,
+                host=hostname,
+                port=port,
+            )
+        raise NotImplementedError(
+            "unsupported socket " + f"type {socktype}"
+        )  # pragma: no cover
+
     async def sleep(self, interval):
         await trio.sleep(interval)
 
