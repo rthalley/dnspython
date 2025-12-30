@@ -235,7 +235,7 @@ class Backend(dns._asyncbackend.Backend):
                 source = (dns.inet.any_for_af(af), 0)
             transport, protocol = await loop.create_datagram_endpoint(
                 _DatagramProtocol,  # type: ignore
-                source,
+                local_addr=source,
                 family=af,
                 proto=proto,
                 remote_addr=destination,
