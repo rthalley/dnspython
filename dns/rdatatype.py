@@ -93,6 +93,7 @@ class RdataType(dns.enum.IntEnum):
     LP = 107
     EUI48 = 108
     EUI64 = 109
+    NXNAME = 128
     TKEY = 249
     TSIG = 250
     IXFR = 251
@@ -199,7 +200,7 @@ def is_metatype(rdtype: RdataType) -> bool:
     *rdtype* is a ``dns.rdatatype.RdataType``.
 
     The currently defined metatypes are TKEY, TSIG, IXFR, AXFR, MAILA,
-    MAILB, ANY, and OPT.
+    MAILB, ANY, OPT, and NXNAME.
 
     Returns a ``bool``.
     """
@@ -317,6 +318,7 @@ L64 = RdataType.L64
 LP = RdataType.LP
 EUI48 = RdataType.EUI48
 EUI64 = RdataType.EUI64
+NXNAME = RdataType.NXNAME
 TKEY = RdataType.TKEY
 TSIG = RdataType.TSIG
 IXFR = RdataType.IXFR

@@ -120,6 +120,9 @@ DNSSEC RFCs
 `RFC 9157 <https://tools.ietf.org/html/rfc9157>`_
     Revised IANA Considerations for DNSSEC.
 
+`RFC 9824 <https://tools.ietf.org/html/rfc9824>`_
+    Compact Denial of Existence in DNSSEC
+
 Misc RFCs
 ---------
 
