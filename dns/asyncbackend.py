@@ -5,6 +5,7 @@ import dns.exception
 # pylint: disable=unused-import
 from dns._asyncbackend import (  # noqa: F401  lgtm[py/unused-import]
     Backend,
+    CancelledError,
     DatagramSocket,
     Socket,
     StreamSocket,

@@ -3,6 +3,8 @@
 # This is a nullcontext for both sync and async.  3.7 has a nullcontext,
 # but it is only for sync use.
 
+import dns.exception
+
 
 class NullContext:
     def __init__(self, enter_result=None):
@@ -68,6 +70,10 @@ class StreamSocket(Socket):  # pragma: no cover
 class NullTransport:
     async def connect_tcp(self, host, port, timeout, local_address):
         raise NotImplementedError
+
+
+class CancelledError(dns.exception.DNSException):
+    pass
 
 
 class Backend:  # pragma: no cover

@@ -170,6 +170,8 @@ async def receive_udp(
                 continue
             else:
                 raise
+        except dns.asyncbackend.CancelledError:
+            break
         except Exception:
             if ignore_errors:
                 continue
