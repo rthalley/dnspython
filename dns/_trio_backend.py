@@ -35,18 +35,24 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         self.socket = sock
 
     async def sendto(self, what, destination, timeout):
-        with _maybe_timeout(timeout):
-            if destination is None:
-                return await self.socket.send(what)
-            else:
-                return await self.socket.sendto(what, destination)
+        try:
+            with _maybe_timeout(timeout):
+                if destination is None:
+                    return await self.socket.send(what)
+                else:
+                    return await self.socket.sendto(what, destination)
+        except trio.Cancelled as e:
+            raise dns._asyncbackend.CancelledError() from e
         raise dns.exception.Timeout(
             timeout=timeout
         )  # pragma: no cover  lgtm[py/unreachable-statement]
 
     async def recvfrom(self, size, timeout):
-        with _maybe_timeout(timeout):
-            return await self.socket.recvfrom(size)
+        try:
+            with _maybe_timeout(timeout):
+                return await self.socket.recvfrom(size)
+        except trio.Cancelled as e:
+            raise dns._asyncbackend.CancelledError() from e
         raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):
@@ -69,13 +75,19 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
         self.tls = tls
 
     async def sendall(self, what, timeout):
-        with _maybe_timeout(timeout):
-            return await self.stream.send_all(what)
+        try:
+            with _maybe_timeout(timeout):
+                return await self.stream.send_all(what)
+        except trio.Cancelled as e:
+            raise dns._asyncbackend.CancelledError() from e
         raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def recv(self, size, timeout):
-        with _maybe_timeout(timeout):
-            return await self.stream.receive_some(size)
+        try:
+            with _maybe_timeout(timeout):
+                return await self.stream.receive_some(size)
+        except trio.Cancelled as e:
+            raise dns._asyncbackend.CancelledError() from e
         raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):
