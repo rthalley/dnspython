@@ -76,7 +76,7 @@ async def main():
     port = 8053
 
     logging.basicConfig(level=logging.INFO)
-    logging.info("Starting servers at {hostname}:{port}")
+    logging.info(f"Starting servers at {hostname}:{port}")
     loop = asyncio.get_event_loop()
 
     # Start UDP server
