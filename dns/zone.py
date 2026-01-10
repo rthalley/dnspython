@@ -676,11 +676,13 @@ class Zone(dns.transaction.TransactionManager):
                 l = "$ORIGIN " + self.origin.to_text()
                 l_b = l.encode(file_enc)
                 try:
-                    f.write(l_b)  # pyright: ignore
-                    f.write(nl_b)  # pyright: ignore
+                    bout = cast(BinaryIO, output)
+                    bout.write(l_b)
+                    bout.write(nl_b)
                 except TypeError:  # textual mode
-                    f.write(l)  # pyright: ignore
-                    f.write(nl)  # pyright: ignore
+                    tout = cast(TextIO, output)
+                    tout.write(l)
+                    tout.write(nl)
 
             if sorted:
                 names = list(self.keys())
@@ -695,13 +697,14 @@ class Zone(dns.transaction.TransactionManager):
                     want_comments=want_comments,  # pyright: ignore
                 )
                 l_b = l.encode(file_enc)
-
                 try:
-                    f.write(l_b)  # pyright: ignore
-                    f.write(nl_b)  # pyright: ignore
+                    bout = cast(BinaryIO, output)
+                    bout.write(l_b)
+                    bout.write(nl_b)
                 except TypeError:  # textual mode
-                    f.write(l)  # pyright: ignore
-                    f.write(nl)  # pyright: ignore
+                    tout = cast(TextIO, output)
+                    tout.write(l)
+                    tout.write(nl)
 
     def to_text(
         self,
