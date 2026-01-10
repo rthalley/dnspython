@@ -437,7 +437,7 @@ class Rdata:
         """
 
         # Get the constructor parameters.
-        parameters = inspect.signature(self.__init__).parameters  # type: ignore
+        parameters = inspect.signature(self.__init__).parameters  # pyright: ignore
 
         # Ensure that all of the arguments correspond to valid fields.
         # Don't allow rdclass or rdtype to be changed, though.
@@ -635,7 +635,7 @@ class GenericRdata(Rdata):
         relativize: bool = True,
         **kw: dict[str, Any],
     ) -> str:
-        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # type: ignore
+        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # pyright: ignore
 
     @classmethod
     def from_text(

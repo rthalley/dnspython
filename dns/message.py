@@ -1093,7 +1093,7 @@ def _message_factory_from_opcode(opcode):
         return QueryMessage
     elif opcode == dns.opcode.UPDATE:
         _maybe_import_update()
-        return dns.update.UpdateMessage  # type: ignore
+        return dns.update.UpdateMessage  # pyright: ignore
     else:
         return Message
 
@@ -1197,7 +1197,7 @@ class _WireReader:
                 else:
                     with self.parser.restrict_to(rdlen):
                         rd = dns.rdata.from_wire_parser(
-                            rdclass,  # type: ignore
+                            rdclass,  # pyright: ignore
                             rdtype,
                             self.parser,
                             self.message.origin,
@@ -1239,7 +1239,7 @@ class _WireReader:
                     rrset = self.message.find_rrset(
                         section,
                         name,
-                        rdclass,  # type: ignore
+                        rdclass,  # pyright: ignore
                         rdtype,
                         covers,
                         deleting,

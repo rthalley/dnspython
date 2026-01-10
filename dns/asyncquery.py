@@ -54,7 +54,7 @@ from dns.query import (
 try:
     import ssl
 except ImportError:
-    import dns._no_ssl as ssl  # type: ignore
+    import dns._no_ssl as ssl  # pyright: ignore
 
 if have_doh:
     import httpx
@@ -224,9 +224,9 @@ async def udp(
             dtuple = None
         cm = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple, dtuple)
     async with cm as s:
-        await send_udp(s, wire, destination, expiration)  # type: ignore
+        await send_udp(s, wire, destination, expiration)  # pyright: ignore
         (r, received_time, _) = await receive_udp(
-            s,  # type: ignore
+            s,  # pyright: ignore
             destination,
             expiration,
             ignore_unexpected,
@@ -431,9 +431,9 @@ async def tcp(
             af, socket.SOCK_STREAM, 0, stuple, dtuple, timeout
         )
     async with cm as s:
-        await send_tcp(s, wire, expiration)  # type: ignore
+        await send_tcp(s, wire, expiration)  # pyright: ignore
         (r, received_time) = await receive_tcp(
-            s,  # type: ignore
+            s,  # pyright: ignore
             expiration,
             one_rr_per_rrset,
             q.keyring,
@@ -517,8 +517,8 @@ async def tls(
 
 
 def _maybe_get_resolver(
-    resolver: "dns.asyncresolver.Resolver | None",  # type: ignore
-) -> "dns.asyncresolver.Resolver":  # type: ignore
+    resolver: "dns.asyncresolver.Resolver | None",  # pyright: ignore
+) -> "dns.asyncresolver.Resolver":  # pyright: ignore
     # We need a separate method for this to avoid overriding the global
     # variable "dns" with the as-yet undefined local variable "dns"
     # in https().
@@ -544,7 +544,7 @@ async def https(
     post: bool = True,
     verify: bool | str | ssl.SSLContext = True,
     bootstrap_address: str | None = None,
-    resolver: "dns.asyncresolver.Resolver | None" = None,  # type: ignore
+    resolver: "dns.asyncresolver.Resolver | None" = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
@@ -589,14 +589,14 @@ async def https(
     ):
         if bootstrap_address is None:
             resolver = _maybe_get_resolver(resolver)
-            assert parsed.hostname is not None  # type: ignore
-            answers = await resolver.resolve_name(  # type: ignore
-                parsed.hostname, family  # type: ignore
+            assert parsed.hostname is not None  # pyright: ignore
+            answers = await resolver.resolve_name(  # pyright: ignore
+                parsed.hostname, family  # pyright: ignore
             )
             bootstrap_address = random.choice(list(answers.addresses()))
         if client and not isinstance(
             client, dns.quic.AsyncQuicConnection
-        ):  # type: ignore
+        ):  # pyright: ignore
             raise ValueError("client parameter must be a dns.quic.AsyncQuicConnection.")
         assert client is None or isinstance(client, dns.quic.AsyncQuicConnection)
         return await _http3(
@@ -617,7 +617,7 @@ async def https(
     if not have_doh:
         raise NoDOH  # pragma: no cover
     # pylint: disable=possibly-used-before-assignment
-    if client and not isinstance(client, httpx.AsyncClient):  # type: ignore
+    if client and not isinstance(client, httpx.AsyncClient):  # pyright: ignore
         raise ValueError("client parameter must be an httpx.AsyncClient")
     # pylint: enable=possibly-used-before-assignment
 
@@ -650,7 +650,7 @@ async def https(
             family=family,
         )
 
-        cm = httpx.AsyncClient(  # type: ignore
+        cm = httpx.AsyncClient(  # pyright: ignore
             http1=h1, http2=h2, verify=verify, transport=transport  # type: ignore
         )
 
@@ -665,7 +665,7 @@ async def https(
                 }
             )
             response = await backend.wait_for(
-                the_client.post(  # type: ignore
+                the_client.post(  # pyright: ignore
                     url,
                     headers=headers,
                     content=wire,
@@ -677,7 +677,7 @@ async def https(
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             twire = wire.decode()  # httpx does a repr() if we give it bytes
             response = await backend.wait_for(
-                the_client.get(  # type: ignore
+                the_client.get(  # pyright: ignore
                     url,
                     headers=headers,
                     params={"dns": twire},
@@ -746,7 +746,7 @@ async def _http3(
             if connection:
                 the_connection = connection
             else:
-                the_connection = the_manager.connect(  # type: ignore
+                the_connection = the_manager.connect(  # pyright: ignore
                     where, port, source, source_port
                 )
             (start, expiration) = _compute_times(timeout)
@@ -818,7 +818,7 @@ async def quic(
             server_name=server_hostname,
         ) as the_manager:
             if not connection:
-                the_connection = the_manager.connect(  # type: ignore
+                the_connection = the_manager.connect(  # pyright: ignore
                     where, port, source, source_port
                 )
             (start, expiration) = _compute_times(timeout)
@@ -873,11 +873,11 @@ async def _inbound_xfr(
                 mexpiration = expiration
             if is_udp:
                 timeout = _timeout(mexpiration)
-                (rwire, _) = await udp_sock.recvfrom(65535, timeout)  # type: ignore
+                (rwire, _) = await udp_sock.recvfrom(65535, timeout)  # pyright: ignore
             else:
-                ldata = await _read_exactly(tcp_sock, 2, mexpiration)  # type: ignore
+                ldata = await _read_exactly(tcp_sock, 2, mexpiration)  # pyright: ignore
                 (l,) = struct.unpack("!H", ldata)
-                rwire = await _read_exactly(tcp_sock, l, mexpiration)  # type: ignore
+                rwire = await _read_exactly(tcp_sock, l, mexpiration)  # pyright: ignore
             r = dns.message.from_wire(
                 rwire,
                 keyring=query.keyring,
@@ -932,13 +932,13 @@ async def inbound_xfr(
         )
         async with s:
             try:
-                async for _ in _inbound_xfr(  # type: ignore
+                async for _ in _inbound_xfr(  # pyright: ignore
                     txn_manager,
                     s,
                     query,
                     serial,
                     timeout,
-                    expiration,  # type: ignore
+                    expiration,  # pyright: ignore
                 ):
                     pass
                 return
@@ -950,7 +950,7 @@ async def inbound_xfr(
         af, socket.SOCK_STREAM, 0, stuple, dtuple, _timeout(expiration)
     )
     async with s:
-        async for _ in _inbound_xfr(  # type: ignore
-            txn_manager, s, query, serial, timeout, expiration  # type: ignore
+        async for _ in _inbound_xfr(  # pyright: ignore
+            txn_manager, s, query, serial, timeout, expiration  # pyright: ignore
         ):
             pass

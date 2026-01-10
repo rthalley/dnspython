@@ -1206,8 +1206,8 @@ if dns._features.have("dnssec"):
     )
     from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
 
-    validate = _validate  # type: ignore
-    validate_rrsig = _validate_rrsig  # type: ignore
+    validate = _validate  # pyright: ignore
+    validate_rrsig = _validate_rrsig  # pyright: ignore
     sign = _sign
     make_dnskey = _make_dnskey
     make_cdnskey = _make_cdnskey

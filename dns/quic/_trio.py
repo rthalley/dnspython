@@ -5,8 +5,8 @@ import ssl
 import struct
 import time
 
-import aioquic.h3.events  # type: ignore
-import aioquic.quic.events  # type: ignore
+import aioquic.h3.events  # pyright: ignore
+import aioquic.quic.events  # pyright: ignore
 import trio
 
 import dns.exception
@@ -109,7 +109,7 @@ class TrioQuicConnection(AsyncQuicConnection):
                     # race.
                     interval = 0.0
                 with trio.CancelScope(
-                    deadline=trio.current_time() + interval  # type: ignore
+                    deadline=trio.current_time() + interval  # pyright: ignore
                 ) as self._worker_scope:
                     datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
                     self._connection.receive_datagram(datagram, self._peer, time.time())

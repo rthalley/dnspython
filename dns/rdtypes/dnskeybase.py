@@ -48,7 +48,7 @@ class DNSKEYBase(dns.rdata.Rdata):
         self.key = self._as_bytes(key)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        key = dns.rdata._base64ify(self.key, **kw)  # type: ignore
+        key = dns.rdata._base64ify(self.key, **kw)  # pyright: ignore
         return f"{self.flags} {self.protocol} {self.algorithm} {key}"
 
     @classmethod

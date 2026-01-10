@@ -52,7 +52,7 @@ class PublicDSA(CryptographyPublicKey):
         keyptr = keyptr[octets:]
         dsa_y = keyptr[0:octets]
         return cls(
-            key=dsa.DSAPublicNumbers(  # type: ignore
+            key=dsa.DSAPublicNumbers(  # pyright: ignore
                 int.from_bytes(dsa_y, "big"),
                 dsa.DSAParameterNumbers(
                     int.from_bytes(dsa_p, "big"),

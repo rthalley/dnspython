@@ -22,7 +22,7 @@ import io
 import os
 import struct
 from collections.abc import Callable, Iterable, Iterator, MutableMapping
-from typing import Any, cast
+from typing import Any, BinaryIO, TextIO, cast
 
 import dns.exception
 import dns.immutable
@@ -652,8 +652,7 @@ class Zone(dns.transaction.TransactionManager):
             cm: contextlib.AbstractContextManager = open(f, "wb")
         else:
             cm = contextlib.nullcontext(f)
-        with cm as f:
-            assert f is not None
+        with cm as output:
             # must be in this way, f.encoding may contain None, or even
             # attribute may not be there
             file_enc = getattr(f, "encoding", None)
@@ -669,17 +668,19 @@ class Zone(dns.transaction.TransactionManager):
             else:
                 nl_b = nl
                 nl = nl.decode()
+            assert nl is not None
+            assert nl_b is not None
 
             if want_origin:
                 assert self.origin is not None
                 l = "$ORIGIN " + self.origin.to_text()
                 l_b = l.encode(file_enc)
                 try:
-                    f.write(l_b)
-                    f.write(nl_b)
+                    f.write(l_b)  # pyright: ignore
+                    f.write(nl_b)  # pyright: ignore
                 except TypeError:  # textual mode
-                    f.write(l)  # type: ignore
-                    f.write(nl)  # type: ignore
+                    f.write(l)  # pyright: ignore
+                    f.write(nl)  # pyright: ignore
 
             if sorted:
                 names = list(self.keys())
@@ -689,18 +690,18 @@ class Zone(dns.transaction.TransactionManager):
             for n in names:
                 l = self[n].to_text(
                     n,
-                    origin=self.origin,  # type: ignore
-                    relativize=relativize,  # type: ignore
-                    want_comments=want_comments,  # type: ignore
+                    origin=self.origin,  # pyright: ignore
+                    relativize=relativize,  # pyright: ignore
+                    want_comments=want_comments,  # pyright: ignore
                 )
                 l_b = l.encode(file_enc)
 
                 try:
-                    f.write(l_b)
-                    f.write(nl_b)
+                    f.write(l_b)  # pyright: ignore
+                    f.write(nl_b)  # pyright: ignore
                 except TypeError:  # textual mode
-                    f.write(l)  # type: ignore
-                    f.write(nl)  # type: ignore
+                    f.write(l)  # pyright: ignore
+                    f.write(nl)  # pyright: ignore
 
     def to_text(
         self,
@@ -1029,7 +1030,7 @@ class WritableVersion(Version):
                 # test.  Now we use the changed set as this works with both
                 # regular zones and versioned zones.
                 #
-                # We ignore the mypy error as this is safe but it doesn't see it.
+                # We ignore the type error as this is safe but checkers have trouble.
                 new_node.id = self.id  # type: ignore
             if node is not None:
                 # moo!  copy on write!
@@ -1092,7 +1093,7 @@ class ImmutableVersion(Version):
         # we ignore the mypy error.
         self.nodes = dns.immutable.Dict(
             version.nodes, True, self.zone.map_factory
-        )  # type: ignore
+        )  # pyright: ignore
 
 
 class Transaction(dns.transaction.Transaction):
@@ -1117,7 +1118,7 @@ class Transaction(dns.transaction.Transaction):
         factory = self.manager.writable_version_factory  # type: ignore
         if factory is None:
             factory = WritableVersion
-        self.version = factory(self.zone, self.replacement)  # type: ignore
+        self.version = factory(self.zone, self.replacement)  # pyright: ignore
 
     def _get_rdataset(self, name, rdtype, covers):
         assert self.version is not None
@@ -1157,7 +1158,7 @@ class Transaction(dns.transaction.Transaction):
         assert self.zone is not None
         assert self.version is not None
         if self.read_only:
-            self.zone._end_read(self)  # type: ignore
+            self.zone._end_read(self)  # pyright: ignore
         elif commit and len(cast(WritableVersion, self.version).changed) > 0:
             if self.make_immutable:
                 factory = self.manager.immutable_version_factory  # type: ignore
@@ -1166,13 +1167,13 @@ class Transaction(dns.transaction.Transaction):
                 version = factory(self.version)
             else:
                 version = self.version
-            self.zone._commit_version(  # type: ignore
+            self.zone._commit_version(  # pyright: ignore
                 self, version, self.version.origin
             )
 
         else:
             # rollback
-            self.zone._end_write(self)  # type: ignore
+            self.zone._end_write(self)  # pyright: ignore
 
     def _set_origin(self, origin):
         assert self.version is not None

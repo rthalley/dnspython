@@ -64,7 +64,7 @@ class ImmutableNode(Node):
     def __init__(self, node: Node):
         super().__init__()
         self.id = node.id
-        self.rdatasets = tuple(  # type: ignore
+        self.rdatasets = tuple(  # pyright: ignore
             [dns.rdataset.ImmutableRdataset(rds) for rds in node.rdatasets]
         )
         self.flags = node.flags
@@ -171,7 +171,7 @@ class WritableVersion(dns.zone.WritableVersion):
         return (node, name)
 
     def update_glue_flag(self, name: dns.name.Name, is_glue: bool) -> None:
-        cursor = self.nodes.cursor()  # type: ignore
+        cursor = self.nodes.cursor()  # pyright: ignore
         cursor.seek(name, False)
         updates = []
         while True:
@@ -205,7 +205,7 @@ class WritableVersion(dns.zone.WritableVersion):
         name = self._validate_name(name)
         node = self.nodes.get(name)
         if node is not None:
-            if node.is_delegation():  # type: ignore
+            if node.is_delegation():  # pyright: ignore
                 self.delegations.discard(name)
                 self.update_glue_flag(name, False)
             del self.nodes[name]
@@ -216,7 +216,8 @@ class WritableVersion(dns.zone.WritableVersion):
     ) -> None:
         (node, name) = self._maybe_cow_with_name(name)
         if (
-            rdataset.rdtype == dns.rdatatype.NS and not node.is_origin_or_glue()  # type: ignore
+            rdataset.rdtype == dns.rdatatype.NS
+            and not node.is_origin_or_glue()  # type: ignore
         ):
             node.flags |= NodeFlags.DELEGATION  # type: ignore
             if name not in self.delegations:
@@ -231,9 +232,9 @@ class WritableVersion(dns.zone.WritableVersion):
         covers: dns.rdatatype.RdataType,
     ) -> None:
         (node, name) = self._maybe_cow_with_name(name)
-        if rdtype == dns.rdatatype.NS and name in self.delegations:  # type: ignore
+        if rdtype == dns.rdatatype.NS and name in self.delegations:  # pyright: ignore
             node.flags &= ~NodeFlags.DELEGATION  # type: ignore
-            self.delegations.discard(name)  # type: ignore
+            self.delegations.discard(name)  # pyright: ignore
             self.update_glue_flag(name, False)
         node.delete_rdataset(self.zone.rdclass, rdtype, covers)
         if len(node) == 0:
@@ -279,7 +280,6 @@ class ImmutableVersion(dns.zone.Version):
             node = version.nodes.get(name)
             if node:
                 version.nodes[name] = ImmutableNode(node)
-        # the cast below is for mypy
         self.nodes = cast(MutableMapping[dns.name.Name, dns.node.Node], version.nodes)
         self.nodes.make_immutable()  # type: ignore
         self.delegations = version.delegations

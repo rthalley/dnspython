@@ -134,7 +134,7 @@ class Inbound:
             if rdataset.rdtype != dns.rdatatype.SOA:
                 raise dns.exception.FormError("first RRset is not an SOA")
             answer_index = 1
-            self.soa_rdataset = rdataset.copy()  # type: ignore
+            self.soa_rdataset = rdataset.copy()  # pyright: ignore
             if self.incremental:
                 assert self.soa_rdataset is not None
                 soa = cast(dns.rdtypes.ANY.SOA.SOA, self.soa_rdataset[0])

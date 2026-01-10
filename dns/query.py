@@ -48,7 +48,7 @@ import dns.xfr
 try:
     import ssl
 except ImportError:
-    import dns._no_ssl as ssl  # type: ignore
+    import dns._no_ssl as ssl  # pyright: ignore
 
 
 def _remaining(expiration):
@@ -128,7 +128,7 @@ if _have_httpx:
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
-    class _HTTPTransport(httpx.HTTPTransport):  # type: ignore
+    class _HTTPTransport(httpx.HTTPTransport):  # pyright: ignore
         def __init__(
             self,
             *args,
@@ -150,7 +150,7 @@ if _have_httpx:
 
 else:
 
-    class _HTTPTransport:  # type: ignore
+    class _HTTPTransport:  # pyright: ignore
         def __init__(
             self,
             *args,
@@ -231,7 +231,7 @@ def _wait_for(fd, readable, writable, _, expiration):
         if writable:
             events |= selectors.EVENT_WRITE
         if events:
-            sel.register(fd, events)  # type: ignore
+            sel.register(fd, events)  # pyright: ignore
         if expiration is None:
             timeout = None
         else:
@@ -412,8 +412,8 @@ def _make_socket(
 
 
 def _maybe_get_resolver(
-    resolver: "dns.resolver.Resolver | None",  # type: ignore
-) -> "dns.resolver.Resolver":  # type: ignore
+    resolver: "dns.resolver.Resolver | None",  # pyright: ignore
+) -> "dns.resolver.Resolver":  # pyright: ignore
     # We need a separate method for this to avoid overriding the global
     # variable "dns" with the as-yet undefined local variable "dns"
     # in https().
@@ -455,7 +455,7 @@ def https(
     post: bool = True,
     bootstrap_address: str | None = None,
     verify: bool | str | ssl.SSLContext = True,
-    resolver: "dns.resolver.Resolver | None" = None,  # type: ignore
+    resolver: "dns.resolver.Resolver | None" = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
@@ -540,17 +540,15 @@ def https(
     ):
         if bootstrap_address is None:
             resolver = _maybe_get_resolver(resolver)
-            assert parsed.hostname is not None  # type: ignore
-            answers = resolver.resolve_name(parsed.hostname, family)  # type: ignore
+            assert parsed.hostname is not None  # pyright: ignore
+            answers = resolver.resolve_name(parsed.hostname, family)  # pyright: ignore
             bootstrap_address = random.choice(list(answers.addresses()))
-        if session and not isinstance(
-            session, dns.quic.SyncQuicConnection
-        ):  # type: ignore
+        if session and not isinstance(session, dns.quic.SyncQuicConnection):
             raise ValueError("session parameter must be a dns.quic.SyncQuicConnection.")
         return _http3(
             q,
             bootstrap_address,
-            url,  # type: ignore
+            url,  # pyright: ignore
             timeout,
             port,
             source,
@@ -564,7 +562,7 @@ def https(
 
     if not have_doh:
         raise NoDOH  # pragma: no cover
-    if session and not isinstance(session, httpx.Client):  # type: ignore
+    if session and not isinstance(session, httpx.Client):  # pyright: ignore
         raise ValueError("session parameter must be an httpx.Client")
 
     wire = q.to_wire()
@@ -593,10 +591,10 @@ def https(
             local_port=local_port,
             bootstrap_address=bootstrap_address,
             resolver=resolver,
-            family=family,  # type: ignore
+            family=family,  # pyright: ignore
         )
 
-        cm = httpx.Client(  # type: ignore
+        cm = httpx.Client(  # pyright: ignore
             http1=h1, http2=h2, verify=verify, transport=transport  # type: ignore
         )
     with cm as session:
@@ -705,7 +703,7 @@ def _http3(
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
     else:
         manager = dns.quic.SyncQuicManager(  # type: ignore
-            verify_mode=verify, server_name=hostname, h3=True  # type: ignore
+            verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
         )
         the_manager = manager  # for type checking happiness
 
@@ -713,7 +711,7 @@ def _http3(
         if connection:
             the_connection = connection
         else:
-            the_connection = the_manager.connect(  # type: ignore
+            the_connection = the_manager.connect(  # pyright: ignore
                 where, port, source, source_port
             )
         (start, expiration) = _compute_times(timeout)
@@ -1258,7 +1256,7 @@ def tcp(
     with cm as s:
         if not sock:
             # pylint: disable=possibly-used-before-assignment
-            _connect(s, destination, expiration)  # type: ignore
+            _connect(s, destination, expiration)  # pyright: ignore
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
@@ -1313,7 +1311,7 @@ def make_ssl_context(
         ssl_context.verify_mode = ssl.CERT_NONE  # type: ignore
     if alpns is not None:
         ssl_context.set_alpn_protocols(alpns)
-    return ssl_context  # type: ignore
+    return ssl_context  # pyright: ignore
 
 
 # for backwards compatibility
@@ -1501,13 +1499,13 @@ def quic(
         the_connection = connection
     else:
         manager = dns.quic.SyncQuicManager(  # type: ignore
-            verify_mode=verify, server_name=hostname  # type: ignore
+            verify_mode=verify, server_name=hostname  # pyright: ignore
         )
         the_manager = manager  # for type checking happiness
 
     with manager:
         if not connection:
-            the_connection = the_manager.connect(  # type: ignore
+            the_connection = the_manager.connect(  # pyright: ignore
                 where, port, source, source_port
             )
         (start, expiration) = _compute_times(timeout)

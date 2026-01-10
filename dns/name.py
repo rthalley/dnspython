@@ -18,7 +18,7 @@
 """DNS Names."""
 
 import copy
-import encodings.idna  # type: ignore
+import encodings.idna  # pyright: ignore
 import functools
 import struct
 from collections.abc import Callable, Iterable
@@ -36,7 +36,7 @@ import dns.wirebase
 # pyright: reportAttributeAccessIssue = false, reportPossiblyUnboundVariable = false
 
 if dns._features.have("idna"):
-    import idna  # type: ignore
+    import idna  # pyright: ignore
 
     have_idna_2008 = True
 else:  # pragma: no cover

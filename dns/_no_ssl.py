@@ -30,10 +30,10 @@ class SSLContext:
         self.check_hostname: bool = False
         self.verify_mode: int = CERT_NONE
 
-    def wrap_socket(self, *args, **kwargs) -> "SSLSocket":  # type: ignore
+    def wrap_socket(self, *args, **kwargs) -> "SSLSocket":  # pyright: ignore
         raise Exception("no ssl support")  # pylint: disable=broad-exception-raised
 
-    def set_alpn_protocols(self, *args, **kwargs):  # type: ignore
+    def set_alpn_protocols(self, *args, **kwargs):  # pyright: ignore
         raise Exception("no ssl support")  # pylint: disable=broad-exception-raised
 
 
@@ -57,5 +57,5 @@ class SSLSocket:
         return False
 
 
-def create_default_context(*args, **kwargs) -> SSLContext:  # type: ignore
+def create_default_context(*args, **kwargs) -> SSLContext:  # pyright: ignore
     raise Exception("no ssl support")  # pylint: disable=broad-exception-raised

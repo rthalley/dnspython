@@ -350,7 +350,7 @@ class Rdataset(dns.set.Set):
         if len(self) == 0:
             return []
         else:
-            return self[0]._processing_order(iter(self))  # type: ignore
+            return self[0]._processing_order(iter(self))  # pyright: ignore
 
 
 @dns.immutable.immutable
@@ -405,22 +405,22 @@ class ImmutableRdataset(Rdataset):  # lgtm[py/missing-equals]
         raise TypeError("immutable")
 
     def __copy__(self):
-        return ImmutableRdataset(super().copy())  # type: ignore
+        return ImmutableRdataset(super().copy())  # pyright: ignore
 
     def copy(self):
-        return ImmutableRdataset(super().copy())  # type: ignore
+        return ImmutableRdataset(super().copy())  # pyright: ignore
 
     def union(self, other):
-        return ImmutableRdataset(super().union(other))  # type: ignore
+        return ImmutableRdataset(super().union(other))  # pyright: ignore
 
     def intersection(self, other):
-        return ImmutableRdataset(super().intersection(other))  # type: ignore
+        return ImmutableRdataset(super().intersection(other))  # pyright: ignore
 
     def difference(self, other):
-        return ImmutableRdataset(super().difference(other))  # type: ignore
+        return ImmutableRdataset(super().difference(other))  # pyright: ignore
 
     def symmetric_difference(self, other):
-        return ImmutableRdataset(super().symmetric_difference(other))  # type: ignore
+        return ImmutableRdataset(super().symmetric_difference(other))  # pyright: ignore
 
 
 def from_text_list(

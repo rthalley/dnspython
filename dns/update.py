@@ -47,7 +47,7 @@ class UpdateSection(dns.enum.IntEnum):
 
 class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
     # ignore the mypy error here as we mean to use a different enum
-    _section_enum = UpdateSection  # type: ignore
+    _section_enum = UpdateSection  # pyright: ignore
 
     def __init__(
         self,
@@ -240,7 +240,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                         rd = dns.rdata.from_text(
                             self.zone_rdclass,
                             rdtype,
-                            s,  # type: ignore[arg-type]
+                            s,  # pyright: ignore[arg-type]
                             self.origin,
                         )
                         self._add_rr(name, 0, rd, dns.rdataclass.NONE)
@@ -299,7 +299,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
             if not isinstance(args[0], dns.rdataset.Rdataset):
                 # Add a 0 TTL
                 largs = list(args)
-                largs.insert(0, 0)  # type: ignore[arg-type]
+                largs.insert(0, 0)  # pyright: ignore[arg-type]
                 self._add(False, self.prerequisite, name, *largs)
             else:
                 self._add(False, self.prerequisite, name, *args)
@@ -354,7 +354,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         # Updates are always one_rr_per_rrset
         return True
 
-    def _parse_rr_header(self, section, name, rdclass, rdtype):  # type: ignore
+    def _parse_rr_header(self, section, name, rdclass, rdtype):  # pyright: ignore
         deleting = None
         empty = False
         if section == UpdateSection.ZONE:

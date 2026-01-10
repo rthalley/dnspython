@@ -106,7 +106,7 @@ class Node:
         s = io.StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                s.write(rds.to_text(name, **kw))  # type: ignore[arg-type]
+                s.write(rds.to_text(name, **kw))  # pyright: ignore[arg-type]
                 s.write("\n")
         return s.getvalue()[:-1]
 

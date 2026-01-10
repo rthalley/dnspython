@@ -5,7 +5,7 @@
 import socket
 
 import trio
-import trio.socket  # type: ignore
+import trio.socket  # pyright: ignore
 
 import dns._asyncbackend
 import dns._features
@@ -186,7 +186,7 @@ if dns._features.have("doh"):
             )
 
 else:
-    _HTTPTransport = dns._asyncbackend.NullTransport  # type: ignore
+    _HTTPTransport = dns._asyncbackend.NullTransport  # pyright: ignore
 
 
 class Backend(dns._asyncbackend.Backend):

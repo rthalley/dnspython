@@ -6,8 +6,8 @@ import ssl
 import struct
 import time
 
-import aioquic.h3.events  # type: ignore
-import aioquic.quic.events  # type: ignore
+import aioquic.h3.events  # pyright: ignore
+import aioquic.quic.events  # pyright: ignore
 
 import dns.asyncbackend
 import dns.exception

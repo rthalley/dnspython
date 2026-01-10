@@ -1665,7 +1665,7 @@ def zone_for_name(
     tcp: bool = False,
     resolver: Resolver | None = None,
     lifetime: float | None = None,
-) -> dns.name.Name:  # type: ignore[reportReturnType]
+) -> dns.name.Name:  # pyright: ignore
     """Find the name of the zone which contains the specified name.
 
     *name*, an absolute ``dns.name.Name`` or ``str``, the query name.
@@ -2062,9 +2062,9 @@ def restore_system_resolver() -> None:
 
     global _resolver
     _resolver = None
-    socket.getaddrinfo = _original_getaddrinfo  # type: ignore
-    socket.getnameinfo = _original_getnameinfo  # type: ignore
-    socket.getfqdn = _original_getfqdn  # type: ignore
-    socket.gethostbyname = _original_gethostbyname  # type: ignore
-    socket.gethostbyname_ex = _original_gethostbyname_ex  # type: ignore
-    socket.gethostbyaddr = _original_gethostbyaddr  # type: ignore
+    socket.getaddrinfo = _original_getaddrinfo  # pyright: ignore
+    socket.getnameinfo = _original_getnameinfo  # pyright: ignore
+    socket.getfqdn = _original_getfqdn  # pyright: ignore
+    socket.gethostbyname = _original_gethostbyname  # pyright: ignore
+    socket.gethostbyname_ex = _original_gethostbyname_ex  # pyright: ignore
+    socket.gethostbyaddr = _original_gethostbyaddr  # pyright: ignore

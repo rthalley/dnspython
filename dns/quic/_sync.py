@@ -7,8 +7,8 @@ import struct
 import threading
 import time
 
-import aioquic.h3.events  # type: ignore
-import aioquic.quic.events  # type: ignore
+import aioquic.h3.events  # pyright: ignore
+import aioquic.quic.events  # pyright: ignore
 
 import dns.exception
 import dns.inet

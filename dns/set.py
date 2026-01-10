@@ -84,7 +84,7 @@ class Set:
         """
 
         if hasattr(self, "_clone_class"):
-            cls = self._clone_class  # type: ignore
+            cls = self._clone_class  # pyright: ignore
         else:
             cls = self.__class__
         obj = cls.__new__(cls)

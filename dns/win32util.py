@@ -73,7 +73,7 @@ if sys.platform == "win32":
 
     else:
 
-        class _WMIGetter:  # type: ignore
+        class _WMIGetter:  # pyright: ignore
             pass
 
     def _config_domain(domain):

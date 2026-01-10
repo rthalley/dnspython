@@ -614,7 +614,8 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
                 )
                 rrset.update(rdataset)
                 rrsets.append(rrset)
-            self.manager.set_rrsets(rrsets)  # type: ignore
+            manager = cast(RRSetsReaderManager, self.manager)
+            manager.set_rrsets(rrsets)
 
     def _set_origin(self, origin):
         pass

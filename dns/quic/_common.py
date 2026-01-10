@@ -9,9 +9,9 @@ import time
 import urllib.parse
 from typing import Any
 
-import aioquic.h3.connection  # type: ignore
-import aioquic.quic.configuration  # type: ignore
-import aioquic.quic.connection  # type: ignore
+import aioquic.h3.connection  # pyright: ignore
+import aioquic.quic.configuration  # pyright: ignore
+import aioquic.quic.connection  # pyright: ignore
 
 import dns._tls_util
 import dns.inet

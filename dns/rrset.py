@@ -93,7 +93,7 @@ class RRset(dns.rdataset.Rdataset):
             return False
         return super().__eq__(other)
 
-    def match(self, *args: Any, **kwargs: Any) -> bool:  # type: ignore[override]
+    def match(self, *args: Any, **kwargs: Any) -> bool:
         """Does this rrset match the specified attributes?
 
         Behaves as :py:func:`full_match()` if the first argument is a
@@ -106,9 +106,9 @@ class RRset(dns.rdataset.Rdataset):
         compatibility.)
         """
         if isinstance(args[0], dns.name.Name):
-            return self.full_match(*args, **kwargs)  # type: ignore[arg-type]
+            return self.full_match(*args, **kwargs)
         else:
-            return super().match(*args, **kwargs)  # type: ignore[arg-type]
+            return super().match(*args, **kwargs)
 
     def full_match(
         self,
@@ -129,7 +129,7 @@ class RRset(dns.rdataset.Rdataset):
 
     # pylint: disable=arguments-differ
 
-    def to_text(  # type: ignore[override]
+    def to_text(  # type: ignore
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
@@ -155,10 +155,10 @@ class RRset(dns.rdataset.Rdataset):
             self.name, origin, relativize, self.deleting, **kw  # type: ignore
         )
 
-    def to_wire(  # type: ignore[override]
+    def to_wire(  # type: ignore
         self,
         file: Any,
-        compress: dns.name.CompressType | None = None,  # type: ignore
+        compress: dns.name.CompressType | None = None,
         origin: dns.name.Name | None = None,
         **kw: dict[str, Any],
     ) -> int:

@@ -120,7 +120,7 @@ if dns._features.have("doh"):
     import httpx
 
     _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream  # type: ignore
+    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream  # pyright: ignore
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
@@ -198,7 +198,7 @@ if dns._features.have("doh"):
             )
 
 else:
-    _HTTPTransport = dns._asyncbackend.NullTransport  # type: ignore
+    _HTTPTransport = dns._asyncbackend.NullTransport  # pyright: ignore
 
 
 class Backend(dns._asyncbackend.Backend):
@@ -223,7 +223,7 @@ class Backend(dns._asyncbackend.Backend):
                 # proper fix for [#637].
                 source = (dns.inet.any_for_af(af), 0)
             transport, protocol = await loop.create_datagram_endpoint(
-                _DatagramProtocol,  # type: ignore
+                _DatagramProtocol,  # pyright: ignore
                 local_addr=source,
                 family=af,
                 proto=proto,
