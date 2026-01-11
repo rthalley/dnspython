@@ -42,7 +42,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
                 else:
                     return await self.socket.sendto(what, destination)
         except trio.Cancelled as e:
-            raise dns._asyncbackend.CancelledError() from e
+            raise dns._asyncbackend.createCancelledError(e) from e
         raise dns.exception.Timeout(
             timeout=timeout
         )  # pragma: no cover  lgtm[py/unreachable-statement]
@@ -52,7 +52,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
             with _maybe_timeout(timeout):
                 return await self.socket.recvfrom(size)
         except trio.Cancelled as e:
-            raise dns._asyncbackend.CancelledError() from e
+            raise dns._asyncbackend.createCancelledError(e) from e
         raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):
@@ -79,7 +79,7 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
             with _maybe_timeout(timeout):
                 return await self.stream.send_all(what)
         except trio.Cancelled as e:
-            raise dns._asyncbackend.CancelledError() from e
+            raise dns._asyncbackend.createCancelledError(e) from e
         raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def recv(self, size, timeout):
@@ -87,7 +87,7 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
             with _maybe_timeout(timeout):
                 return await self.stream.receive_some(size)
         except trio.Cancelled as e:
-            raise dns._asyncbackend.CancelledError() from e
+            raise dns._asyncbackend.createCancelledError(e) from e
         raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):

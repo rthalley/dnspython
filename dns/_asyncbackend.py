@@ -76,6 +76,14 @@ class CancelledError(dns.exception.DNSException):
     pass
 
 
+def createCancelledError(e):
+    class ActualCancelledError(type(e), CancelledError):
+        pass
+
+    e.__class__ = ActualCancelledError
+    return e
+
+
 class Backend:  # pragma: no cover
     def name(self) -> str:
         return "unknown"

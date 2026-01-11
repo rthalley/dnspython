@@ -69,13 +69,12 @@ class _DatagramSocket(dns._asyncbackend.DatagramSocket):
 
     async def recvfrom(self, size, timeout):
         # ignore size as there's no way I know to tell protocol about it
-        try:
-            pkg = await _maybe_wait_for(self.protocol.recvq.get(), timeout)
-            if isinstance(pkg, BaseException):
-                raise pkg
-            return pkg
-        except asyncio.exceptions.CancelledError as e:
-            raise dns._asyncbackend.CancelledError() from e
+        pkg = await _maybe_wait_for(self.protocol.recvq.get(), timeout)
+        if isinstance(pkg, BaseException):
+            if isinstance(pkg, asyncio.exceptions.CancelledError):
+                raise dns._asyncbackend.createCancelledError(pkg) from pkg
+            raise pkg
+        return pkg
 
     async def close(self):
         self.protocol.close()
@@ -101,13 +100,13 @@ class _StreamSocket(dns._asyncbackend.StreamSocket):
             self.writer.write(what)
             return await _maybe_wait_for(self.writer.drain(), timeout)
         except asyncio.exceptions.CancelledError as e:
-            raise dns._asyncbackend.CancelledError() from e
+            raise dns._asyncbackend.createCancelledError(e) from e
 
     async def recv(self, size, timeout):
         try:
             return await _maybe_wait_for(self.reader.read(size), timeout)
         except asyncio.exceptions.CancelledError as e:
-            raise dns._asyncbackend.CancelledError() from e
+            raise dns._asyncbackend.createCancelledError(e) from e
 
     async def close(self):
         self.writer.close()
