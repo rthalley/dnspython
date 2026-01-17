@@ -370,7 +370,7 @@ class ImmutableRdataset(Rdataset):  # lgtm[py/missing-equals]
     def update_ttl(self, ttl):
         raise TypeError("immutable")
 
-    def add(self, rd, ttl=None):  # type: ignore
+    def add(self, rd, ttl=None):  # pyright: ignore
         raise TypeError("immutable")
 
     def union_update(self, other):
