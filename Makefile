@@ -22,7 +22,6 @@ clean:
 	rm -rf htmlcov .coverage
 	rm -rf .pytest_cache
 	rm -rf .ruff_cache
-	rm -rf .mypy_cache
 	rm -rf doc/_build
 	rm -rf dist
 	rm -rf build
@@ -34,9 +33,6 @@ test:
 	pytest
 
 check: test
-
-mypy:
-	python -m mypy --disallow-incomplete-defs dns
 
 pyright:
 	pyright dns
