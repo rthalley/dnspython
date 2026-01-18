@@ -46,6 +46,8 @@ class Flag(enum.IntFlag):
 class EDNSFlag(enum.IntFlag):
     #: DNSSEC answer OK
     DO = 0x8000
+    #: Compact nonexistence, restore NXDOMAIN requested
+    CO = 0x4000
 
 
 def _from_text(text: str, enum_class: Any) -> int:
@@ -119,5 +121,6 @@ CD = Flag.CD
 ### BEGIN generated EDNSFlag constants
 
 DO = EDNSFlag.DO
+CO = EDNSFlag.CO
 
 ### END generated EDNSFlag constants
