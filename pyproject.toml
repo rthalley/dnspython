@@ -110,14 +110,6 @@ lint.exclude = ["tests/*"]
 [tool.isort]
 profile = "black"
 
-[[tool.mypy.overrides]]
-module = "pythoncom"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "wmi"
-ignore_missing_imports = true
-
 [tool.pyright]
 reportUnsupportedDunderAll = false
 exclude = ["dns/win32util.py", "examples/*.py", "tests/*.py"]
