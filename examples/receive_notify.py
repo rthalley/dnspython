@@ -18,7 +18,7 @@ port = 53535
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind((address, port))
 while True:
-    (wire, address) = s.recvfrom(512)
+    wire, address = s.recvfrom(512)
     notify = dns.message.from_wire(wire)
 
     try:

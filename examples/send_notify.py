@@ -2,6 +2,7 @@
 """
 Minimalistic RFC 1996-like NOTIFY sender.
 """
+
 import argparse
 import ipaddress
 import socket

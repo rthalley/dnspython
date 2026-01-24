@@ -164,9 +164,7 @@ if sys.platform == "win32":
 
                 try:
                     # The PnpInstanceID points to a key inside Enum
-                    (pnp_id, ttype) = winreg.QueryValueEx(
-                        connection_key, "PnpInstanceID"
-                    )
+                    pnp_id, ttype = winreg.QueryValueEx(connection_key, "PnpInstanceID")
 
                     if ttype != winreg.REG_SZ:
                         raise ValueError  # pragma: no cover
@@ -177,7 +175,7 @@ if sys.platform == "win32":
 
                     try:
                         # Get ConfigFlags for this device
-                        (flags, ttype) = winreg.QueryValueEx(device_key, "ConfigFlags")
+                        flags, ttype = winreg.QueryValueEx(device_key, "ConfigFlags")
 
                         if ttype != winreg.REG_DWORD:
                             raise ValueError  # pragma: no cover

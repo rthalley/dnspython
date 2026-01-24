@@ -999,9 +999,15 @@ class ResolverMiscTestCase(unittest.TestCase):
 
         def test_set_config_method(self):
             from dns.win32util import set_config_method, ConfigMethod
-            self.assertNotEqual(dns.win32util._config_method, dns.win32util.ConfigMethod.Win32)
+
+            self.assertNotEqual(
+                dns.win32util._config_method, dns.win32util.ConfigMethod.Win32
+            )
             dns.win32util.set_config_method(dns.win32util.ConfigMethod.Win32)
-            self.assertEqual(dns.win32util._config_method, dns.win32util.ConfigMethod.Win32)
+            self.assertEqual(
+                dns.win32util._config_method, dns.win32util.ConfigMethod.Win32
+            )
+
 
 class ResolverNameserverValidTypeTestCase(unittest.TestCase):
     def test_set_nameservers_to_list(self):

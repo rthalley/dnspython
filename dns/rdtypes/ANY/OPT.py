@@ -65,7 +65,7 @@ class OPT(dns.rdata.Rdata):
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         options = []
         while parser.remaining() > 0:
-            (otype, olen) = parser.get_struct("!HH")
+            otype, olen = parser.get_struct("!HH")
             with parser.restrict_to(olen):
                 opt = dns.edns.option_from_wire_parser(otype, parser)
             options.append(opt)

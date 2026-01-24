@@ -20,7 +20,6 @@ import dns.rdatatype
 import dns.tsigkeyring
 import dns.update
 
-
 KEYRING = dns.tsigkeyring.from_text({"keyname.": "NjHwPsMKjdN++dOfE5iAiQ=="})
 
 TEST_ZONES = {
@@ -41,11 +40,15 @@ async def handle_nsupdate(data, addr):
     msg = dns.message.from_wire(data, keyring=KEYRING)
     try:
         if msg.opcode() != dns.opcode.UPDATE:
-            raise NotImplementedError("Opcode %s not implemented" % dns.opcode.to_text(msg.opcode()))
+            raise NotImplementedError(
+                "Opcode %s not implemented" % dns.opcode.to_text(msg.opcode())
+            )
         update_msg = typing.cast(dns.update.UpdateMessage, msg)
         zone = update_msg.zone[0].name
         if not msg.had_tsig or msg.keyname not in TEST_ZONES[zone]:
-            raise dns.exception.DeniedByPolicy(f"Key {msg.keyname} not allowed for zone {zone}")
+            raise dns.exception.DeniedByPolicy(
+                f"Key {msg.keyname} not allowed for zone {zone}"
+            )
         for r in update_msg.update:
             if r.deleting:
                 if r.deleting == dns.rdataclass.ANY and r.rdtype == dns.rdatatype.ANY:
@@ -91,7 +94,9 @@ async def main():
             result = await handle_nsupdate(data, addr)
             self.transport.sendto(result, addr)
 
-    transport, _protocol = await loop.create_datagram_endpoint(lambda: DatagramProtocol(), local_addr=(hostname, port))
+    transport, _protocol = await loop.create_datagram_endpoint(
+        lambda: DatagramProtocol(), local_addr=(hostname, port)
+    )
 
     # Start TCP server
     class StreamReaderProtocol(asyncio.StreamReaderProtocol):

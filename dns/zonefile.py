@@ -103,7 +103,7 @@ class Reader:
         default_ttl: int | None = None,
     ):
         self.tok = tok
-        (self.zone_origin, self.relativize, _) = txn.manager.origin_information()
+        self.zone_origin, self.relativize, _ = txn.manager.origin_information()
         self.current_origin = self.zone_origin
         self.last_ttl = 0
         self.last_ttl_known = False
@@ -252,7 +252,7 @@ class Reader:
             # correct, but it is correct almost all of the time.
             # We convert them to syntax errors so that we can emit
             # helpful filename:line info.
-            (ty, va) = sys.exc_info()[:2]
+            ty, va = sys.exc_info()[:2]
             raise dns.exception.SyntaxError(f"caught exception {str(ty)}: {str(va)}")
 
         if not self.default_ttl_known and rdtype == dns.rdatatype.SOA:
@@ -451,7 +451,7 @@ class Reader:
                 # correct, but it is correct almost all of the time.
                 # We convert them to syntax errors so that we can emit
                 # helpful filename:line info.
-                (ty, va) = sys.exc_info()[:2]
+                ty, va = sys.exc_info()[:2]
                 raise dns.exception.SyntaxError(
                     f"caught exception {str(ty)}: {str(va)}"
                 )
@@ -549,7 +549,7 @@ class Reader:
                 self.tok.unget(token)
                 self._rr_line()
         except dns.exception.SyntaxError as detail:
-            (filename, line_number) = self.tok.where()
+            filename, line_number = self.tok.where()
             if detail is None:
                 detail = "syntax error"
             ex = dns.exception.SyntaxError(f"{filename}:{line_number}: {detail}")

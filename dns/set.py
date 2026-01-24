@@ -67,7 +67,7 @@ class Set:
 
     def pop(self):
         """Remove an arbitrary item from the set."""
-        (k, _) = self.items.popitem()
+        k, _ = self.items.popitem()
         return k
 
     def _clone(self) -> "Set":

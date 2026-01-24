@@ -63,6 +63,6 @@ class CSYNC(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (serial, flags) = parser.get_struct("!IH")
+        serial, flags = parser.get_struct("!IH")
         bitmap = Bitmap.from_wire_parser(parser)
         return cls(rdclass, rdtype, serial, flags, bitmap)

@@ -75,7 +75,7 @@ class HIP(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (lh, algorithm, lk) = parser.get_struct("!BBH")
+        lh, algorithm, lk = parser.get_struct("!BBH")
         hit = parser.get_bytes(lh)
         key = parser.get_bytes(lk)
         servers = []

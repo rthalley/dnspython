@@ -28,7 +28,6 @@ import dns.rdatatype
 import dns.rrset
 import dns.zone
 
-
 example_text = """$TTL 1h
 $ORIGIN 0.0.192.IN-ADDR.ARPA.
 $GENERATE 1-2 0 CNAME SERVER$.EXAMPLE.

@@ -62,7 +62,7 @@ class URI(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (priority, weight) = parser.get_struct("!HH")
+        priority, weight = parser.get_struct("!HH")
         target = parser.get_remaining()
         if len(target) == 0:
             raise dns.exception.FormError("URI target may not be empty")

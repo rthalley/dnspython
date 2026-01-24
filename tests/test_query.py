@@ -219,7 +219,7 @@ class QueryTests(unittest.TestCase):
         for address in query_addresses:
             qname = dns.name.from_text(".")
             q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
-            (_, tcp) = dns.query.udp_with_fallback(q, address, timeout=4)
+            _, tcp = dns.query.udp_with_fallback(q, address, timeout=4)
             self.assertTrue(tcp)
 
     @tests.util.retry_on_timeout
@@ -235,7 +235,7 @@ class QueryTests(unittest.TestCase):
                     tcp_s.setblocking(0)
                     qname = dns.name.from_text(".")
                     q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
-                    (_, tcp) = dns.query.udp_with_fallback(
+                    _, tcp = dns.query.udp_with_fallback(
                         q, address, udp_sock=udp_s, tcp_sock=tcp_s, timeout=4
                     )
                     self.assertTrue(tcp)
@@ -245,7 +245,7 @@ class QueryTests(unittest.TestCase):
         for address in query_addresses:
             qname = dns.name.from_text("dns.google.")
             q = dns.message.make_query(qname, dns.rdatatype.A)
-            (_, tcp) = dns.query.udp_with_fallback(q, address, timeout=2)
+            _, tcp = dns.query.udp_with_fallback(q, address, timeout=2)
             self.assertFalse(tcp)
 
     @tests.util.retry_on_timeout
@@ -257,7 +257,7 @@ class QueryTests(unittest.TestCase):
                 q = dns.message.make_query("dns.google", dns.rdatatype.A)
                 dns.query.send_udp(sender, q, listener.getsockname())
                 expiration = time.time() + 2
-                (q, _, addr) = dns.query.receive_udp(listener, expiration=expiration)
+                q, _, addr = dns.query.receive_udp(listener, expiration=expiration)
                 self.assertEqual(addr, sender.getsockname())
 
 
@@ -267,45 +267,45 @@ _d_and_s = dns.query._destination_and_source
 
 class DestinationAndSourceTests(unittest.TestCase):
     def test_af_inferred_from_where(self):
-        (af, d, s) = _d_and_s("1.2.3.4", 53, None, 0)
+        af, d, s = _d_and_s("1.2.3.4", 53, None, 0)
         self.assertEqual(af, socket.AF_INET)
 
     def test_af_inferred_from_where(self):
-        (af, d, s) = _d_and_s("1::2", 53, None, 0)
+        af, d, s = _d_and_s("1::2", 53, None, 0)
         self.assertEqual(af, socket.AF_INET6)
 
     def test_af_inferred_from_source(self):
-        (af, d, s) = _d_and_s("https://example/dns-query", 443, "1.2.3.4", 0, False)
+        af, d, s = _d_and_s("https://example/dns-query", 443, "1.2.3.4", 0, False)
         self.assertEqual(af, socket.AF_INET)
 
     def test_af_mismatch(self):
         def bad():
-            (af, d, s) = _d_and_s("1::2", 53, "1.2.3.4", 0)
+            af, d, s = _d_and_s("1::2", 53, "1.2.3.4", 0)
 
         self.assertRaises(ValueError, bad)
 
     def test_source_port_but_no_af_inferred(self):
         def bad():
-            (af, d, s) = _d_and_s("https://example/dns-query", 443, None, 12345, False)
+            af, d, s = _d_and_s("https://example/dns-query", 443, None, 12345, False)
 
         self.assertRaises(ValueError, bad)
 
     def test_where_must_be_an_address(self):
         def bad():
-            (af, d, s) = _d_and_s("not a valid address", 53, "1.2.3.4", 0)
+            af, d, s = _d_and_s("not a valid address", 53, "1.2.3.4", 0)
 
         self.assertRaises(ValueError, bad)
 
     def test_destination_is_none_of_where_url(self):
-        (af, d, s) = _d_and_s("https://example/dns-query", 443, None, 0, False)
+        af, d, s = _d_and_s("https://example/dns-query", 443, None, 0, False)
         self.assertEqual(d, None)
 
     def test_v4_wildcard_source_set(self):
-        (af, d, s) = _d_and_s("1.2.3.4", 53, None, 12345)
+        af, d, s = _d_and_s("1.2.3.4", 53, None, 12345)
         self.assertEqual(s, ("0.0.0.0", 12345))
 
     def test_v6_wildcard_source_set(self):
-        (af, d, s) = _d_and_s("1::2", 53, None, 12345)
+        af, d, s = _d_and_s("1::2", 53, None, 12345)
         self.assertEqual(s, ("::", 12345, 0, 0))
 
 
@@ -629,7 +629,7 @@ class TsigTests(unittest.TestCase):
 class LowLevelWaitTests(unittest.TestCase):
     def test_wait_for(self):
         try:
-            (l, r) = socket.socketpair()
+            l, r = socket.socketpair()
             # already expired
             with self.assertRaises(dns.exception.Timeout):
                 dns.query._wait_for(l, True, True, True, 0)
@@ -727,7 +727,7 @@ class IgnoreErrors(unittest.TestCase):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             with mock_udp_recv(wire1, from1, wire2, from2):
-                (r, when) = dns.query.receive_udp(
+                r, when = dns.query.receive_udp(
                     s,
                     ("127.0.0.1", 53),
                     time.time() + 2,
@@ -774,7 +774,7 @@ class IgnoreErrors(unittest.TestCase):
         bad_r_wire = bad_r.to_wire()
 
         def bad():
-            (r, wire) = self.mock_receive(
+            r, wire = self.mock_receive(
                 bad_r_wire,
                 ("127.0.0.1", 53),
                 self.good_r_wire,

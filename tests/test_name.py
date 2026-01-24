@@ -549,7 +549,7 @@ class NameTestCase(unittest.TestCase):
 
     def testSplit1(self):
         n = dns.name.from_text("foo.bar.")
-        (prefix, suffix) = n.split(2)
+        prefix, suffix = n.split(2)
         ep = dns.name.from_text("foo", None)
         es = dns.name.from_text("bar.", None)
         self.assertEqual(prefix, ep)
@@ -557,7 +557,7 @@ class NameTestCase(unittest.TestCase):
 
     def testSplit2(self):
         n = dns.name.from_text("foo.bar.")
-        (prefix, suffix) = n.split(1)
+        prefix, suffix = n.split(1)
         ep = dns.name.from_text("foo.bar", None)
         es = dns.name.from_text(".", None)
         self.assertEqual(prefix, ep)
@@ -565,7 +565,7 @@ class NameTestCase(unittest.TestCase):
 
     def testSplit3(self):
         n = dns.name.from_text("foo.bar.")
-        (prefix, suffix) = n.split(0)
+        prefix, suffix = n.split(0)
         ep = dns.name.from_text("foo.bar.", None)
         es = dns.name.from_text("", None)
         self.assertEqual(prefix, ep)
@@ -573,7 +573,7 @@ class NameTestCase(unittest.TestCase):
 
     def testSplit4(self):
         n = dns.name.from_text("foo.bar.")
-        (prefix, suffix) = n.split(3)
+        prefix, suffix = n.split(3)
         ep = dns.name.from_text("", None)
         es = dns.name.from_text("foo.bar.", None)
         self.assertEqual(prefix, ep)
@@ -679,8 +679,8 @@ class NameTestCase(unittest.TestCase):
 
     def testFromWire1(self):
         w = b"\x03foo\x00\xc0\x00"
-        (n1, cused1) = dns.name.from_wire(w, 0)
-        (n2, cused2) = dns.name.from_wire(w, cused1)
+        n1, cused1 = dns.name.from_wire(w, 0)
+        n2, cused2 = dns.name.from_wire(w, cused1)
         en1 = dns.name.from_text("foo.")
         en2 = en1
         ecused1 = 5
@@ -693,11 +693,11 @@ class NameTestCase(unittest.TestCase):
     def testFromWire2(self):
         w = b"\x03foo\x00\x01a\xc0\x00\x01b\xc0\x05"
         current = 0
-        (n1, cused1) = dns.name.from_wire(w, current)
+        n1, cused1 = dns.name.from_wire(w, current)
         current += cused1
-        (n2, cused2) = dns.name.from_wire(w, current)
+        n2, cused2 = dns.name.from_wire(w, current)
         current += cused2
-        (n3, cused3) = dns.name.from_wire(w, current)
+        n3, cused3 = dns.name.from_wire(w, current)
         en1 = dns.name.from_text("foo.")
         en2 = dns.name.from_text("a.foo.")
         en3 = dns.name.from_text("b.a.foo.")

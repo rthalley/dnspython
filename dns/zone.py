@@ -1201,7 +1201,7 @@ class Transaction(dns.transaction.Transaction):
         self,
     ) -> tuple[dns.name.Name | None, bool, dns.name.Name | None]:
         assert self.version is not None
-        (absolute, relativize, effective) = self.manager.origin_information()
+        absolute, relativize, effective = self.manager.origin_information()
         if absolute is None and self.version.origin is not None:
             # No origin has been committed yet, but we've learned one as part of
             # this txn.  Use it.

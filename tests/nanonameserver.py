@@ -197,7 +197,7 @@ class Server(threading.Thread):
                 udp_socket.close()
 
     def __enter__(self):
-        (self.left, self.right) = socket.socketpair()
+        self.left, self.right = socket.socketpair()
         # We're making the sockets now so they can be sent to by the
         # caller immediately (i.e. no race with the listener starting
         # in the thread).
@@ -318,7 +318,7 @@ class Server(threading.Thread):
             local = self.addresses[connection_type]
             while True:
                 try:
-                    (wire, peer) = await sock.recvfrom(65535)
+                    wire, peer = await sock.recvfrom(65535)
                     for wire in self.handle_wire(wire, peer, local, connection_type):
                         await sock.sendto(wire, peer)
                 except Exception as e:

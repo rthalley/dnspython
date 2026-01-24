@@ -110,7 +110,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             self._socket_created.set()
             async with self._socket:
                 while not self._done:
-                    (datagram, address) = await self._socket.recvfrom(
+                    datagram, address = await self._socket.recvfrom(
                         QUIC_MAX_DATAGRAM, None
                     )
                     if address[0] != self._peer[0] or address[1] != self._peer[1]:
@@ -145,7 +145,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                 assert address == self._peer
                 assert self._socket is not None
                 await self._socket.sendto(datagram, self._peer, None)
-            (expiration, interval) = self._get_timer_values()
+            expiration, interval = self._get_timer_values()
             try:
                 await asyncio.wait_for(self._wait_for_wake_timer(), interval)
             except Exception:
@@ -254,7 +254,7 @@ class AsyncioQuicManager(AsyncQuicManager):
     def connect(
         self, address, port=853, source=None, source_port=0, want_session_ticket=True
     ):
-        (connection, start) = self._connect(
+        connection, start = self._connect(
             address, port, source, source_port, want_session_ticket
         )
         if start:

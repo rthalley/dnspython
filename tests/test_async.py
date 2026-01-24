@@ -499,7 +499,7 @@ class AsyncTests(unittest.TestCase):
                 q = dns.message.make_query(qname, dns.rdatatype.DNSKEY)
                 return await dns.asyncquery.udp_with_fallback(q, address, timeout=4)
 
-            (_, tcp) = self.async_run(run)
+            _, tcp = self.async_run(run)
             self.assertTrue(tcp)
 
     @tests.util.retry_on_timeout
@@ -511,7 +511,7 @@ class AsyncTests(unittest.TestCase):
                 q = dns.message.make_query(qname, dns.rdatatype.A)
                 return await dns.asyncquery.udp_with_fallback(q, address, timeout=2)
 
-            (_, tcp) = self.async_run(run)
+            _, tcp = self.async_run(run)
             self.assertFalse(tcp)
 
     @tests.util.retry_on_timeout
@@ -528,12 +528,12 @@ class AsyncTests(unittest.TestCase):
                     q = dns.message.make_query("dns.google", dns.rdatatype.A)
                     await dns.asyncquery.send_udp(sender, q, listener_address)
                     expiration = time.time() + 2
-                    (_, _, recv_address) = await dns.asyncquery.receive_udp(
+                    _, _, recv_address = await dns.asyncquery.receive_udp(
                         listener, expiration=expiration
                     )
                     return (sender_address, recv_address)
 
-        (sender_address, recv_address) = self.async_run(run)
+        sender_address, recv_address = self.async_run(run)
         self.assertEqual(sender_address, recv_address)
 
     def testUDPReceiveTimeout(self):
@@ -795,7 +795,7 @@ class IgnoreErrors(unittest.TestCase):
         if good_r is None:
             good_r = self.good_r
         s = MockSock(wire1, from1, wire2, from2)
-        (r, when, _) = await dns.asyncquery.receive_udp(
+        r, when, _ = await dns.asyncquery.receive_udp(
             s,
             ("127.0.0.1", 53),
             time.time() + 2,
@@ -867,7 +867,7 @@ class IgnoreErrors(unittest.TestCase):
         bad_r_wire = bad_r.to_wire()
 
         async def abad():
-            (r, wire) = await self.mock_receive(
+            r, wire = await self.mock_receive(
                 bad_r_wire,
                 ("127.0.0.1", 53),
                 self.good_r_wire,

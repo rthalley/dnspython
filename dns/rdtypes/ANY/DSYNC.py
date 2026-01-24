@@ -67,6 +67,6 @@ class DSYNC(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (rrtype, scheme, port) = parser.get_struct("!HBH")
+        rrtype, scheme, port = parser.get_struct("!HBH")
         target = parser.get_name(origin)
         return cls(rdclass, rdtype, rrtype, scheme, port, target)

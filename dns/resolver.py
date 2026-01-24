@@ -1313,7 +1313,7 @@ class Resolver(BaseResolver):
         )
         start = time.time()
         while True:
-            (request, answer) = resolution.next_request()
+            request, answer = resolution.next_request()
             # Note we need to say "if answer is not None" and not just
             # "if answer" because answer implements __len__, and python
             # will call that.  We want to return if we have an answer
@@ -1324,7 +1324,7 @@ class Resolver(BaseResolver):
             assert request is not None  # needed for type checking
             done = False
             while not done:
-                (nameserver, tcp, backoff) = resolution.next_nameserver()
+                nameserver, tcp, backoff = resolution.next_nameserver()
                 if backoff:
                     time.sleep(backoff)
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
@@ -1337,9 +1337,9 @@ class Resolver(BaseResolver):
                         max_size=tcp,
                     )
                 except Exception as ex:
-                    (_, done) = resolution.query_result(None, ex)
+                    _, done = resolution.query_result(None, ex)
                     continue
-                (answer, done) = resolution.query_result(response, None)
+                answer, done = resolution.query_result(response, None)
                 # Note we need to say "if answer is not None" and not just
                 # "if answer" because answer implements __len__, and python
                 # will call that.  We want to return if we have an answer
@@ -1727,7 +1727,7 @@ def zone_for_name(
             if response:
                 for rrs in response.authority:
                     if rrs.rdtype == dns.rdatatype.SOA and rrs.rdclass == rdclass:
-                        (nr, _, _) = rrs.name.fullcompare(name)
+                        nr, _, _ = rrs.name.fullcompare(name)
                         if nr == dns.name.NAMERELN_SUPERDOMAIN:
                             # We're doing a proper superdomain check as
                             # if the name were equal we ought to have gotten
@@ -1973,7 +1973,7 @@ def _getfqdn(name=None):
     if name is None:
         name = socket.gethostname()
     try:
-        (name, _, _) = _gethostbyaddr(name)
+        name, _, _ = _gethostbyaddr(name)
         # Python's version checks aliases too, but our gethostbyname
         # ignores them, so we do so here as well.
     except Exception:  # pragma: no cover
@@ -2010,7 +2010,7 @@ def _gethostbyaddr(ip):
             raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
         sockaddr = (ip, 80)
         family = socket.AF_INET
-    (name, _) = _getnameinfo(sockaddr, socket.NI_NAMEREQD)
+    name, _ = _getnameinfo(sockaddr, socket.NI_NAMEREQD)
     aliases = []
     addresses = []
     tuples = _getaddrinfo(

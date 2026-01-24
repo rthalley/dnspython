@@ -440,7 +440,7 @@ _class_for_key: dict[ParamKey, Any] = {
 
 
 def _validate_and_define(params, key, value):
-    (key, force_generic) = _validate_key(_unescape(key))
+    key, force_generic = _validate_key(_unescape(key))
     if key in params:
         raise SyntaxError(f'duplicate key "{key:d}"')
     cls = _class_for_key.get(key, GenericParam)

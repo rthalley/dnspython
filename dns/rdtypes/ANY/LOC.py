@@ -200,7 +200,7 @@ class LOC(dns.rdata.Rdata):
             latitude[1] = int(t)
             t = tok.get_string()
             if "." in t:
-                (seconds, milliseconds) = t.split(".")
+                seconds, milliseconds = t.split(".")
                 if not seconds.isdigit():
                     raise dns.exception.SyntaxError("bad latitude seconds value")
                 latitude[2] = int(seconds)
@@ -229,7 +229,7 @@ class LOC(dns.rdata.Rdata):
             longitude[1] = int(t)
             t = tok.get_string()
             if "." in t:
-                (seconds, milliseconds) = t.split(".")
+                seconds, milliseconds = t.split(".")
                 if not seconds.isdigit():
                     raise dns.exception.SyntaxError("bad longitude seconds value")
                 longitude[2] = int(seconds)

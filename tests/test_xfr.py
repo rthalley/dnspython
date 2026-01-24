@@ -635,25 +635,25 @@ keyname = dns.name.from_text("keyname")
 
 def test_make_query_basic():
     z = dns.versioned.Zone("example.")
-    (q, s) = dns.xfr.make_query(z)
+    q, s = dns.xfr.make_query(z)
     assert q.question[0].rdtype == dns.rdatatype.AXFR
     assert s is None
-    (q, s) = dns.xfr.make_query(z, serial=None)
+    q, s = dns.xfr.make_query(z, serial=None)
     assert q.question[0].rdtype == dns.rdatatype.AXFR
     assert s is None
-    (q, s) = dns.xfr.make_query(z, serial=10)
+    q, s = dns.xfr.make_query(z, serial=10)
     assert q.question[0].rdtype == dns.rdatatype.IXFR
     assert q.authority[0].rdtype == dns.rdatatype.SOA
     assert q.authority[0][0].serial == 10
     assert s == 10
     with z.writer() as txn:
         txn.add("@", 300, dns.rdata.from_text("in", "soa", ". . 1 2 3 4 5"))
-    (q, s) = dns.xfr.make_query(z)
+    q, s = dns.xfr.make_query(z)
     assert q.question[0].rdtype == dns.rdatatype.IXFR
     assert q.authority[0].rdtype == dns.rdatatype.SOA
     assert q.authority[0][0].serial == 1
     assert s == 1
-    (q, s) = dns.xfr.make_query(z, keyring=keyring, keyname=keyname)
+    q, s = dns.xfr.make_query(z, keyring=keyring, keyname=keyname)
     assert q.question[0].rdtype == dns.rdatatype.IXFR
     assert q.authority[0].rdtype == dns.rdatatype.SOA
     assert q.authority[0][0].serial == 1
@@ -673,11 +673,11 @@ def test_make_query_bad_serial():
 
 def test_extract_serial_from_query():
     z = dns.versioned.Zone("example.")
-    (q, s) = dns.xfr.make_query(z)
+    q, s = dns.xfr.make_query(z)
     xs = dns.xfr.extract_serial_from_query(q)
     assert s is None
     assert s == xs
-    (q, s) = dns.xfr.make_query(z, serial=10)
+    q, s = dns.xfr.make_query(z, serial=10)
     xs = dns.xfr.extract_serial_from_query(q)
     assert s == 10
     assert s == xs

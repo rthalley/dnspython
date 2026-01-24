@@ -686,15 +686,13 @@ class MessageTestCase(unittest.TestCase):
             r.resolve_chaining()
 
     def test_resolve_chaining_no_infinite_loop(self):
-        r = dns.message.from_text(
-            """id 1
+        r = dns.message.from_text("""id 1
 flags QR
 ;QUESTION
 www.example. IN CNAME
 ;AUTHORITY
 example. 300 IN SOA . . 1 2 3 4 5
-"""
-        )
+""")
         # passing is not going into an infinite loop in this call
         result = r.resolve_chaining()
         self.assertEqual(result.canonical_name, dns.name.from_text("www.example."))
@@ -703,144 +701,114 @@ example. 300 IN SOA . . 1 2 3 4 5
 
     def test_bad_text_questions(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 ;QUESTION
 example.
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 ;QUESTION
 example. IN
-"""
-            )
+""")
         with self.assertRaises(dns.rdatatype.UnknownRdatatype):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 ;QUESTION
 example. INA
-"""
-            )
+""")
         with self.assertRaises(dns.rdatatype.UnknownRdatatype):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 ;QUESTION
 example. IN BOGUS
-"""
-            )
+""")
 
     def test_bad_text_rrs(self):
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;QUESTION
 example. IN A
 ;ANSWER
 example.
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;QUESTION
 example. IN A
 ;ANSWER
 example. IN
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;QUESTION
 example. IN A
 ;ANSWER
 example. 300
-"""
-            )
+""")
         with self.assertRaises(dns.rdatatype.UnknownRdatatype):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;QUESTION
 example. IN A
 ;ANSWER
 example. 30a IN A
-"""
-            )
+""")
         with self.assertRaises(dns.rdatatype.UnknownRdatatype):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;QUESTION
 example. IN A
 ;ANSWER
 example. 300 INA A
-"""
-            )
+""")
         with self.assertRaises(dns.exception.UnexpectedEnd):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;QUESTION
 example. IN A
 ;ANSWER
 example. 300 IN A
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 opcode UPDATE
 ;ZONE
 example. IN SOA
 ;UPDATE
 example. 300 IN A
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 opcode UPDATE
 ;ZONE
 example. IN SOA
 ;UPDATE
 example. 300 NONE A
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 opcode UPDATE
 ;ZONE
 example. IN SOA
 ;PREREQ
 example. 300 NONE A 10.0.0.1
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;ANSWER
             300 IN A 10.0.0.1
-"""
-            )
+""")
         with self.assertRaises(dns.exception.SyntaxError):
-            dns.message.from_text(
-                """id 1
+            dns.message.from_text("""id 1
 flags QR
 ;QUESTION
             IN SOA
-"""
-            )
+""")
 
     def test_from_wire_makes_Flag(self):
         m = dns.message.from_wire(goodwire)
@@ -848,8 +816,7 @@ flags QR
         self.assertEqual(m.flags, dns.flags.Flag.RD)
 
     def test_continue_on_error(self):
-        good_message = dns.message.from_text(
-            """id 1234
+        good_message = dns.message.from_text("""id 1234
 opcode QUERY
 rcode NOERROR
 flags QR AA RD
@@ -859,8 +826,7 @@ www.dnspython.org. IN SOA
 www.dnspython.org. 300 IN SOA . . 1 2 3 4 4294967295
 www.dnspython.org. 300 IN A 1.2.3.4
 www.dnspython.org. 300 IN AAAA ::1
-"""
-        )
+""")
         wire = good_message.to_wire()
         # change ANCOUNT to 255
         bad_wire = wire[:6] + b"\x00\xff" + wire[8:]
@@ -871,8 +837,7 @@ www.dnspython.org. 300 IN AAAA ::1
         print(m.errors)
         self.assertEqual(str(m.errors[0].exception), "IPv6 addresses are 16 bytes long")
         self.assertEqual(str(m.errors[1].exception), "DNS message is malformed.")
-        expected_message = dns.message.from_text(
-            """id 1234
+        expected_message = dns.message.from_text("""id 1234
 opcode QUERY
 rcode NOERROR
 flags QR AA RD
@@ -881,8 +846,7 @@ www.dnspython.org. IN SOA
 ;ANSWER
 www.dnspython.org. 300 IN SOA . . 1 2 3 4 4294967295
 www.dnspython.org. 300 IN A 1.2.3.4
-"""
-        )
+""")
         self.assertEqual(m, expected_message)
 
     def test_padding_basic(self):

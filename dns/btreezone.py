@@ -162,7 +162,7 @@ class WritableVersion(dns.zone.WritableVersion):
     def _maybe_cow_with_name(
         self, name: dns.name.Name
     ) -> tuple[dns.node.Node, dns.name.Name]:
-        (node, name) = super()._maybe_cow_with_name(name)
+        node, name = super()._maybe_cow_with_name(name)
         node = cast(Node, node)
         if self._is_origin(name):
             node.flags |= NodeFlags.ORIGIN
@@ -214,7 +214,7 @@ class WritableVersion(dns.zone.WritableVersion):
     def put_rdataset(
         self, name: dns.name.Name, rdataset: dns.rdataset.Rdataset
     ) -> None:
-        (node, name) = self._maybe_cow_with_name(name)
+        node, name = self._maybe_cow_with_name(name)
         if (
             rdataset.rdtype == dns.rdatatype.NS
             and not node.is_origin_or_glue()  # type: ignore
@@ -231,7 +231,7 @@ class WritableVersion(dns.zone.WritableVersion):
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType,
     ) -> None:
-        (node, name) = self._maybe_cow_with_name(name)
+        node, name = self._maybe_cow_with_name(name)
         if rdtype == dns.rdatatype.NS and name in self.delegations:  # pyright: ignore
             node.flags &= ~NodeFlags.DELEGATION  # type: ignore
             self.delegations.discard(name)  # pyright: ignore

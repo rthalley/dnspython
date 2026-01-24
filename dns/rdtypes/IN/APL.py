@@ -107,9 +107,9 @@ class APL(dns.rdata.Rdata):
                 item = item[1:]
             else:
                 negation = False
-            (family, rest) = item.split(":", 1)
+            family, rest = item.split(":", 1)
             family = int(family)
-            (address, prefix) = rest.split("/", 1)
+            address, prefix = rest.split("/", 1)
             prefix = int(prefix)
             item = APLItem(family, negation, address, prefix)
             items.append(item)

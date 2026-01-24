@@ -74,7 +74,7 @@ class Resolver(dns.resolver.BaseResolver):
             backend = dns.asyncbackend.get_default_backend()
         start = time.time()
         while True:
-            (request, answer) = resolution.next_request()
+            request, answer = resolution.next_request()
             # Note we need to say "if answer is not None" and not just
             # "if answer" because answer implements __len__, and python
             # will call that.  We want to return if we have an answer
@@ -85,7 +85,7 @@ class Resolver(dns.resolver.BaseResolver):
             assert request is not None  # needed for type checking
             done = False
             while not done:
-                (nameserver, tcp, backoff) = resolution.next_nameserver()
+                nameserver, tcp, backoff = resolution.next_nameserver()
                 if backoff:
                     await backend.sleep(backoff)
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
@@ -99,9 +99,9 @@ class Resolver(dns.resolver.BaseResolver):
                         backend=backend,
                     )
                 except Exception as ex:
-                    (_, done) = resolution.query_result(None, ex)
+                    _, done = resolution.query_result(None, ex)
                     continue
-                (answer, done) = resolution.query_result(response, None)
+                answer, done = resolution.query_result(response, None)
                 # Note we need to say "if answer is not None" and not just
                 # "if answer" because answer implements __len__, and python
                 # will call that.  We want to return if we have an answer

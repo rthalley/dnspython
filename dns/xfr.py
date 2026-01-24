@@ -89,7 +89,7 @@ class Inbound:
             raise ValueError("rdtype is not IXFR or AXFR")
         self.serial = serial
         self.is_udp = is_udp
-        (_, _, origin) = txn_manager.origin_information()
+        _, _, origin = txn_manager.origin_information()
         if origin is None:
             raise ValueError("transaction manager must supply an origin for XFRs")
         self.origin = origin
@@ -295,7 +295,7 @@ def make_query(
 
     Returns a `(query, serial)` tuple.
     """
-    (zone_origin, _, origin) = txn_manager.origin_information()
+    zone_origin, _, origin = txn_manager.origin_information()
     if zone_origin is None:
         raise ValueError("no zone origin")
     if serial is None:

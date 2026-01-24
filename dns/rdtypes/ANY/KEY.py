@@ -23,7 +23,6 @@ import dns.immutable
 import dns.rdtypes.dnskeybase  # lgtm[py/import-and-import-from]
 
 
-
 class Protocol(dns.enum.IntEnum):
     NONE = 0
     TLS = 1

@@ -31,7 +31,7 @@ version = "2.9.0dev0"
 
 [project.optional-dependencies]
 dev = [
-    "black>=25.12.0",
+    "black>=26.1",
     "coverage>=7.0",
     "hypercorn>=0.18.0",
     "pyright>=1.1.407",

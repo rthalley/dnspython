@@ -31,7 +31,7 @@ def _validate_float_string(what):
     if what.isdigit():
         return
     try:
-        (left, right) = what.split(b".")
+        left, right = what.split(b".")
     except ValueError:
         raise dns.exception.FormError
     if left == b"" and right == b"":

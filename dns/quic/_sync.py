@@ -103,7 +103,7 @@ class SyncQuicConnection(BaseQuicConnection):
                 self._socket.close()
                 raise
         self._socket.connect(self._peer)
-        (self._send_wakeup, self._receive_wakeup) = socket.socketpair()
+        self._send_wakeup, self._receive_wakeup = socket.socketpair()
         self._receive_wakeup.setblocking(False)
         self._socket.setblocking(False)
         self._handshake_complete = threading.Event()
@@ -136,7 +136,7 @@ class SyncQuicConnection(BaseQuicConnection):
                     self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup
                 )
                 while not self._done:
-                    (expiration, interval) = self._get_timer_values(False)
+                    expiration, interval = self._get_timer_values(False)
                     items = sel.select(interval)
                     for key, _ in items:
                         key.data()
@@ -272,7 +272,7 @@ class SyncQuicManager(BaseQuicManager):
         want_token=True,
     ):
         with self._lock:
-            (connection, start) = self._connect(
+            connection, start = self._connect(
                 address, port, source, source_port, want_session_ticket, want_token
             )
             if start:

@@ -505,7 +505,7 @@ class Name:
         Returns a ``bool``.
         """
 
-        (nr, _, _) = self.fullcompare(other)
+        nr, _, _ = self.fullcompare(other)
         if nr == NameRelation.SUBDOMAIN or nr == NameRelation.EQUAL:
             return True
         return False
@@ -519,7 +519,7 @@ class Name:
         Returns a ``bool``.
         """
 
-        (nr, _, _) = self.fullcompare(other)
+        nr, _, _ = self.fullcompare(other)
         if nr == NameRelation.SUPERDOMAIN or nr == NameRelation.EQUAL:
             return True
         return False

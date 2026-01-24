@@ -110,7 +110,7 @@ class NSEC3(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (algorithm, flags, iterations) = parser.get_struct("!BBH")
+        algorithm, flags, iterations = parser.get_struct("!BBH")
         salt = parser.get_counted_bytes()
         next = parser.get_counted_bytes()
         bitmap = Bitmap.from_wire_parser(parser)

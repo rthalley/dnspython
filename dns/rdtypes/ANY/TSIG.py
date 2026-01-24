@@ -145,7 +145,7 @@ class TSIG(dns.rdata.Rdata):
         time_signed = parser.get_uint48()
         fudge = parser.get_uint16()
         mac = parser.get_counted_bytes(2)
-        (original_id, error) = parser.get_struct("!HH")
+        original_id, error = parser.get_struct("!HH")
         other = parser.get_counted_bytes(2)
         return cls(
             rdclass,

@@ -144,7 +144,7 @@ async def receive_udp(
 
     wire = b""
     while True:
-        (wire, from_address) = await sock.recvfrom(65535, _timeout(expiration))
+        wire, from_address = await sock.recvfrom(65535, _timeout(expiration))
         if not _matches_destination(
             sock.family, from_address, destination, ignore_unexpected
         ):
@@ -209,7 +209,7 @@ async def udp(
     parameters, exceptions, and return type of this method.
     """
     wire = q.to_wire()
-    (begin_time, expiration) = _compute_times(timeout)
+    begin_time, expiration = _compute_times(timeout)
     af = dns.inet.af_for_address(where)
     destination = _lltuple((where, port), af)
     if sock:
@@ -225,7 +225,7 @@ async def udp(
         cm = await backend.make_socket(af, socket.SOCK_DGRAM, 0, stuple, dtuple)
     async with cm as s:
         await send_udp(s, wire, destination, expiration)  # pyright: ignore
-        (r, received_time, _) = await receive_udp(
+        r, received_time, _ = await receive_udp(
             s,  # pyright: ignore
             destination,
             expiration,
@@ -412,7 +412,7 @@ async def tcp(
     """
 
     wire = q.to_wire()
-    (begin_time, expiration) = _compute_times(timeout)
+    begin_time, expiration = _compute_times(timeout)
     if sock:
         # Verify that the socket is connected, as if it's not connected,
         # it's not writable, and the polling in send_tcp() will time out or
@@ -432,7 +432,7 @@ async def tcp(
         )
     async with cm as s:
         await send_tcp(s, wire, expiration)  # pyright: ignore
-        (r, received_time) = await receive_tcp(
+        r, received_time = await receive_tcp(
             s,  # pyright: ignore
             expiration,
             one_rr_per_rrset,
@@ -476,7 +476,7 @@ async def tls(
     See :py:func:`dns.query.tls()` for the documentation of the other
     parameters, exceptions, and return type of this method.
     """
-    (begin_time, expiration) = _compute_times(timeout)
+    begin_time, expiration = _compute_times(timeout)
     if sock:
         cm: contextlib.AbstractAsyncContextManager = NullContext(sock)
     else:
@@ -737,7 +737,7 @@ async def _http3(
         cfactory = dns.quic.null_factory  # type: ignore
         mfactory = dns.quic.null_factory  # type: ignore
     else:
-        (cfactory, mfactory) = dns.quic.factories_for_backend(backend)  # type: ignore
+        cfactory, mfactory = dns.quic.factories_for_backend(backend)  # type: ignore
 
     async with cfactory() as context:
         async with mfactory(
@@ -749,7 +749,7 @@ async def _http3(
                 the_connection = the_manager.connect(  # pyright: ignore
                     where, port, source, source_port
                 )
-            (start, expiration) = _compute_times(timeout)
+            start, expiration = _compute_times(timeout)
             stream = await the_connection.make_stream(timeout)  # type: ignore
             async with stream:
                 # note that send_h3() does not need await
@@ -809,7 +809,7 @@ async def quic(
         mfactory = dns.quic.null_factory  # type: ignore
         the_connection = connection
     else:
-        (cfactory, mfactory) = dns.quic.factories_for_backend(backend)  # type: ignore
+        cfactory, mfactory = dns.quic.factories_for_backend(backend)  # type: ignore
 
     async with cfactory() as context:
         async with mfactory(
@@ -821,7 +821,7 @@ async def quic(
                 the_connection = the_manager.connect(  # pyright: ignore
                     where, port, source, source_port
                 )
-            (start, expiration) = _compute_times(timeout)
+            start, expiration = _compute_times(timeout)
             stream = await the_connection.make_stream(timeout)  # type: ignore
             async with stream:
                 await stream.send(wire, True)
@@ -866,14 +866,14 @@ async def _inbound_xfr(
         tsig_ctx = None
         r: dns.message.Message | None = None
         while not done:
-            (_, mexpiration) = _compute_times(timeout)
+            _, mexpiration = _compute_times(timeout)
             if mexpiration is None or (
                 expiration is not None and mexpiration > expiration
             ):
                 mexpiration = expiration
             if is_udp:
                 timeout = _timeout(mexpiration)
-                (rwire, _) = await udp_sock.recvfrom(65535, timeout)  # pyright: ignore
+                rwire, _ = await udp_sock.recvfrom(65535, timeout)  # pyright: ignore
             else:
                 ldata = await _read_exactly(tcp_sock, 2, mexpiration)  # pyright: ignore
                 (l,) = struct.unpack("!H", ldata)
@@ -917,7 +917,7 @@ async def inbound_xfr(
     the other parameters, exceptions, and return type of this method.
     """
     if query is None:
-        (query, serial) = dns.xfr.make_query(txn_manager)
+        query, serial = dns.xfr.make_query(txn_manager)
     else:
         serial = dns.xfr.extract_serial_from_query(query)
     af = dns.inet.af_for_address(where)
@@ -925,7 +925,7 @@ async def inbound_xfr(
     dtuple = (where, port)
     if not backend:
         backend = dns.asyncbackend.get_default_backend()
-    (_, expiration) = _compute_times(lifetime)
+    _, expiration = _compute_times(lifetime)
     if query.question[0].rdtype == dns.rdatatype.IXFR and udp_mode != UDPMode.NEVER:
         s = await backend.make_socket(
             af, socket.SOCK_DGRAM, 0, stuple, dtuple, _timeout(expiration)

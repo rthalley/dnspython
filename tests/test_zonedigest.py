@@ -12,8 +12,7 @@ import dns.zone
 class ZoneDigestTestCase(unittest.TestCase):
     # Examples from RFC 8976, fixed per errata.
 
-    simple_example = textwrap.dedent(
-        """
+    simple_example = textwrap.dedent("""
         example.      86400  IN  SOA     ns1 admin 2018031900 (
                                          1800 900 604800 86400 )
                       86400  IN  NS      ns1
@@ -27,11 +26,9 @@ class ZoneDigestTestCase(unittest.TestCase):
                                          777f98b8e730044c )
         ns1           3600   IN  A       203.0.113.63
         ns2           3600   IN  AAAA    2001:db8::63
-    """
-    )
+    """)
 
-    complex_example = textwrap.dedent(
-        """
+    complex_example = textwrap.dedent("""
         example.      86400  IN  SOA     ns1 admin 2018031900 (
                                          1800 900 604800 86400 )
                       86400  IN  NS      ns1
@@ -66,11 +63,9 @@ class ZoneDigestTestCase(unittest.TestCase):
                                          6f77656420627574
                                          2069676e6f726564
                                          2e20616c6c6f7765 )
-    """
-    )
+    """)
 
-    multiple_digests_example = textwrap.dedent(
-        """
+    multiple_digests_example = textwrap.dedent("""
         example.      86400  IN  SOA     ns1 admin 2018031900 (
                                          1800 900 604800 86400 )
         example.      86400  IN  NS      ns1.example.
@@ -104,8 +99,7 @@ class ZoneDigestTestCase(unittest.TestCase):
         ns1.example.  3600   IN  A       203.0.113.63
         ns2.example.  86400  IN  TXT     "This example has multiple digests"
         NS2.EXAMPLE.  3600   IN  AAAA    2001:db8::63
-    """
-    )
+    """)
 
     def _get_zonemd(self, zone):
         return zone.get_rdataset(zone.origin, "ZONEMD")
@@ -180,16 +174,14 @@ class ZoneDigestTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text("IN", "ZONEMD", "100 1 0 " + self.sha384_hash)
 
-    sorting_zone = textwrap.dedent(
-        """
+    sorting_zone = textwrap.dedent("""
     @  86400  IN  SOA     ns1 admin 2018031900 (
                                      1800 900 604800 86400 )
               86400  IN  NS      ns1
               86400  IN  NS      ns2
               86400  IN  RP      n1.example. a.
               86400  IN  RP      n1. b.
-    """
-    )
+    """)
 
     def test_relative_zone_sorting(self):
         z1 = dns.zone.from_text(self.sorting_zone, "example.", relativize=True)

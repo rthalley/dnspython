@@ -60,7 +60,7 @@ class SRV(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (priority, weight, port) = parser.get_struct("!HHH")
+        priority, weight, port = parser.get_struct("!HHH")
         target = parser.get_name(origin)
         return cls(rdclass, rdtype, priority, weight, port, target)
 

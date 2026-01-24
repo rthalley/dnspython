@@ -64,7 +64,7 @@ class TransactionManager:
 
     def from_wire_origin(self) -> dns.name.Name | None:
         """Origin to use in from_wire() calls."""
-        (absolute_origin, relativize, _) = self.origin_information()
+        absolute_origin, relativize, _ = self.origin_information()
         if relativize:
             return absolute_origin
         else:
@@ -444,7 +444,7 @@ class Transaction:
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f"{method} has objects of wrong RdataClass")
             if rdataset.rdtype == dns.rdatatype.SOA:
-                (_, _, origin) = self._origin_information()
+                _, _, origin = self._origin_information()
                 if name != origin:
                     raise ValueError(f"{method} has non-origin SOA")
             self._raise_if_not_empty(method, args)

@@ -163,7 +163,7 @@ def low_level_address_tuple(high_tuple: tuple[str, int], af: int | None = None) 
             return (addrpart, port, 0, socket.if_nametoindex(scope))
         except AttributeError:  # pragma: no cover  (we can't really test this)
             ai_flags = socket.AI_NUMERICHOST
-            ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
+            (*_, tup), *_ = socket.getaddrinfo(address, port, flags=ai_flags)
             return tup
     else:
         raise NotImplementedError(f"unknown address family {af}")

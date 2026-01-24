@@ -261,7 +261,7 @@ class Renderer:
         tsig = _make_tsig(  # pyright: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
-        (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
+        tsig, _ = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
         self._write_tsig(tsig, keyname)
 
     def add_multi_tsig(
@@ -293,7 +293,7 @@ class Renderer:
         tsig = _make_tsig(  # pyright: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
-        (tsig, ctx) = dns.tsig.sign(
+        tsig, ctx = dns.tsig.sign(
             s, key, tsig[0], int(time.time()), request_mac, ctx, True
         )
         self._write_tsig(tsig, keyname)

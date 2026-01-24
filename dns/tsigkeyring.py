@@ -37,7 +37,7 @@ def from_text(textring: dict[str, Any]) -> dict[dns.name.Name, Any]:
         if isinstance(value, str):
             keyring[kname] = dns.tsig.Key(kname, value).secret
         else:
-            (algorithm, secret) = value
+            algorithm, secret = value
             keyring[kname] = dns.tsig.Key(kname, secret, algorithm)
     return keyring
 

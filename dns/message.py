@@ -639,7 +639,7 @@ class Message:
         r.write_header()
         if self.tsig is not None:
             if self.want_tsig_sign:
-                (new_tsig, ctx) = dns.tsig.sign(
+                new_tsig, ctx = dns.tsig.sign(
                     r.get_wire(),
                     self.keyring,
                     self.tsig[0],
@@ -895,7 +895,7 @@ class Message:
 
         *rcode*, a ``dns.rcode.Rcode``, is the rcode to set.
         """
-        (value, evalue) = dns.rcode.to_flags(rcode)
+        value, evalue = dns.rcode.to_flags(rcode)
         self.flags &= 0xFFF0
         self.flags |= value
         self.ednsflags &= 0x00FFFFFF
@@ -1145,8 +1145,8 @@ class _WireReader:
         section = self.message.sections[section_number]
         for _ in range(qcount):
             qname = self.parser.get_name(self.message.origin)
-            (rdtype, rdclass) = self.parser.get_struct("!HH")
-            (rdclass, rdtype, _, _) = self.message._parse_rr_header(
+            rdtype, rdclass = self.parser.get_struct("!HH")
+            rdclass, rdtype, _, _ = self.message._parse_rr_header(
                 section_number, qname, rdclass, rdtype
             )
             self.message.find_rrset(
@@ -1173,7 +1173,7 @@ class _WireReader:
                 name = absolute_name.relativize(self.message.origin)
             else:
                 name = absolute_name
-            (rdtype, rdclass, ttl, rdlen) = self.parser.get_struct("!HHIH")
+            rdtype, rdclass, ttl, rdlen = self.parser.get_struct("!HHIH")
             if rdtype in (dns.rdatatype.OPT, dns.rdatatype.TSIG):
                 (
                     rdclass,
@@ -1184,7 +1184,7 @@ class _WireReader:
                     section_number, count, i, name, rdclass, rdtype
                 )
             else:
-                (rdclass, rdtype, deleting, empty) = self.message._parse_rr_header(
+                rdclass, rdtype, deleting, empty = self.message._parse_rr_header(
                     section_number, name, rdclass, rdtype
                 )
             rdata_start = self.parser.current
@@ -1263,9 +1263,7 @@ class _WireReader:
 
         if self.parser.remaining() < 12:
             raise ShortHeader
-        (id, flags, qcount, ancount, aucount, adcount) = self.parser.get_struct(
-            "!HHHHHH"
-        )
+        id, flags, qcount, ancount, aucount, adcount = self.parser.get_struct("!HHHHHH")
         factory = _message_factory_from_opcode(dns.opcode.from_flags(flags))
         self.message = factory(id=id)
         self.message.flags = dns.flags.Flag(flags)
@@ -1511,7 +1509,7 @@ class _TextReader:
             rdclass = dns.rdataclass.IN
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
-        (rdclass, rdtype, _, _) = self.message._parse_rr_header(
+        rdclass, rdtype, _, _ = self.message._parse_rr_header(
             section_number, name, rdclass, rdtype
         )
         self.message.find_rrset(
@@ -1560,7 +1558,7 @@ class _TextReader:
             rdclass = dns.rdataclass.IN
         # Type
         rdtype = dns.rdatatype.from_text(token.value)
-        (rdclass, rdtype, deleting, empty) = self.message._parse_rr_header(
+        rdclass, rdtype, deleting, empty = self.message._parse_rr_header(
             section_number, name, rdclass, rdtype
         )
         token = self.tok.get()

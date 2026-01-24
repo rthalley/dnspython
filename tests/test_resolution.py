@@ -25,7 +25,7 @@ class ResolutionTestCase(unittest.TestCase):
         )
 
     def test_next_request_abs(self):
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertTrue(answer is None)
         self.assertEqual(request.question[0].name, self.qname)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
@@ -36,17 +36,17 @@ class ResolutionTestCase(unittest.TestCase):
         self.resn = dns.resolver._Resolution(
             self.resolver, qname, "A", "IN", False, True, True
         )
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertTrue(answer is None)
         self.assertEqual(request.question[0].name, self.qname)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertTrue(answer is None)
         self.assertEqual(request.question[0].name, abs_qname_1)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
 
         def bad():
-            (request, answer) = self.resn.next_request()
+            request, answer = self.resn.next_request()
 
         self.assertRaises(dns.resolver.NXDOMAIN, bad)
 
@@ -56,21 +56,21 @@ class ResolutionTestCase(unittest.TestCase):
         self.resn = dns.resolver._Resolution(
             self.resolver, qname, "A", "IN", False, True, False
         )
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertTrue(answer is None)
         self.assertEqual(request.question[0].name, self.qname)
         self.assertEqual(request.question[0].rdtype, dns.rdatatype.A)
 
         def bad():
-            (request, answer) = self.resn.next_request()
+            request, answer = self.resn.next_request()
 
         self.assertRaises(dns.resolver.NXDOMAIN, bad)
 
     def test_next_request_exhaust_causes_nxdomain(self):
         def bad():
-            (request, answer) = self.resn.next_request()
+            request, answer = self.resn.next_request()
 
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertRaises(dns.resolver.NXDOMAIN, bad)
 
     def make_address_response(self, q):
@@ -133,7 +133,7 @@ class ResolutionTestCase(unittest.TestCase):
         self.resolver.cache.put(
             (self.qname, dns.rdatatype.A, dns.rdataclass.IN), cache_answer
         )
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertTrue(request is None)
         self.assertTrue(answer is cache_answer)
 
@@ -152,14 +152,14 @@ class ResolutionTestCase(unittest.TestCase):
         )
 
         def bad():
-            (request, answer) = self.resn.next_request()
+            request, answer = self.resn.next_request()
 
         self.assertRaises(dns.resolver.NoAnswer, bad)
         # If raise_on_no_answer is False, we should get a cache hit.
         self.resn = dns.resolver._Resolution(
             self.resolver, self.qname, "A", "IN", False, False, False
         )
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertTrue(request is None)
         self.assertTrue(answer is cache_answer)
 
@@ -181,7 +181,7 @@ class ResolutionTestCase(unittest.TestCase):
             (qname1, dns.rdatatype.ANY, dns.rdataclass.IN), cache_answer
         )
         try:
-            (request, answer) = self.resn.next_request()
+            request, answer = self.resn.next_request()
             self.assertTrue(False)  # should not happen!
         except dns.resolver.NXDOMAIN as nx:
             self.assertTrue(nx.response(qname1) is r1)
@@ -214,7 +214,7 @@ class ResolutionTestCase(unittest.TestCase):
             (qname2, dns.rdatatype.ANY, dns.rdataclass.IN), cache_answer
         )
         try:
-            (request, answer) = self.resn.next_request()
+            request, answer = self.resn.next_request()
             self.assertTrue(False)  # should not happen!
         except dns.resolver.NXDOMAIN as nx:
             self.assertTrue(nx.response(qname1) is r1)
@@ -251,69 +251,69 @@ class ResolutionTestCase(unittest.TestCase):
         self.resolver.keyring = dns.tsigkeyring.from_text(
             {"keyname.": "NjHwPsMKjdN++dOfE5iAiQ=="}
         )
-        (keyname, secret) = next(iter(self.resolver.keyring.items()))
+        keyname, secret = next(iter(self.resolver.keyring.items()))
         self.resolver.keyname = dns.name.from_text("keyname.")
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertFalse(request is None)
         self.assertEqual(request.keyring.name, keyname)
         self.assertEqual(request.keyring.secret, secret)
 
     def test_next_request_flags(self):
         self.resolver.flags = dns.flags.RD | dns.flags.CD
-        (request, answer) = self.resn.next_request()
+        request, answer = self.resn.next_request()
         self.assertFalse(request is None)
         self.assertEqual(request.flags, self.resolver.flags)
 
     def test_next_nameserver_udp(self):
-        (request, answer) = self.resn.next_request()
-        (nameserver1, tcp, backoff) = self.resn.next_nameserver()
+        request, answer = self.resn.next_request()
+        nameserver1, tcp, backoff = self.resn.next_nameserver()
         self.assertEqual(nameserver1.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver2, tcp, backoff) = self.resn.next_nameserver()
+        nameserver2, tcp, backoff = self.resn.next_nameserver()
         self.assertTrue(nameserver2 != nameserver1)
         self.assertEqual(nameserver2.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver3, tcp, backoff) = self.resn.next_nameserver()
+        nameserver3, tcp, backoff = self.resn.next_nameserver()
         self.assertTrue(nameserver3 is nameserver1)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.1)
-        (nameserver4, tcp, backoff) = self.resn.next_nameserver()
+        nameserver4, tcp, backoff = self.resn.next_nameserver()
         self.assertTrue(nameserver4 is nameserver2)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver5, tcp, backoff) = self.resn.next_nameserver()
+        nameserver5, tcp, backoff = self.resn.next_nameserver()
         self.assertTrue(nameserver5 is nameserver1)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.2)
 
     def test_next_nameserver_retry_with_tcp(self):
-        (request, answer) = self.resn.next_request()
-        (nameserver1, tcp, backoff) = self.resn.next_nameserver()
+        request, answer = self.resn.next_request()
+        nameserver1, tcp, backoff = self.resn.next_nameserver()
         self.assertEqual(nameserver1.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
         self.resn.retry_with_tcp = True
-        (nameserver2, tcp, backoff) = self.resn.next_nameserver()
+        nameserver2, tcp, backoff = self.resn.next_nameserver()
         self.assertTrue(nameserver2 is nameserver1)
         self.assertTrue(tcp)
         self.assertEqual(backoff, 0.0)
-        (nameserver3, tcp, backoff) = self.resn.next_nameserver()
+        nameserver3, tcp, backoff = self.resn.next_nameserver()
         self.assertTrue(nameserver3 != nameserver1)
         self.assertEqual(nameserver3.port, 53)
         self.assertFalse(tcp)
         self.assertEqual(backoff, 0.0)
 
     def test_next_nameserver_no_nameservers(self):
-        (request, answer) = self.resn.next_request()
-        (nameserver, _, _) = self.resn.next_nameserver()
+        request, answer = self.resn.next_request()
+        nameserver, _, _ = self.resn.next_nameserver()
         self.resn.nameservers.remove(nameserver)
-        (nameserver, _, _) = self.resn.next_nameserver()
+        nameserver, _, _ = self.resn.next_nameserver()
         self.resn.nameservers.remove(nameserver)
 
         def bad():
-            (nameserver, _, _) = self.resn.next_nameserver()
+            nameserver, _, _ = self.resn.next_nameserver()
 
         self.assertRaises(dns.resolver.NoNameservers, bad)
 
@@ -321,8 +321,8 @@ class ResolutionTestCase(unittest.TestCase):
         # A query to a nameserver that always supports a maximum size query
         # always counts as a "tcp attempt" for the state machine
         self.resolver.nameservers = ["https://127.0.0.1:443/bogus"]
-        (_, _) = self.resn.next_request()
-        (nameserver, tcp_attempt, _) = self.resn.next_nameserver()
+        _, _ = self.resn.next_request()
+        nameserver, tcp_attempt, _ = self.resn.next_nameserver()
         print(nameserver)
         assert tcp_attempt
 
@@ -331,7 +331,7 @@ class ResolutionTestCase(unittest.TestCase):
         new_nameservers = list(self.resolver.nameservers[:])
         new_nameservers.extend(["10.0.0.3", "10.0.0.4"])
         self.resolver.nameservers = new_nameservers
-        (request, _) = self.resn.next_request()
+        request, _ = self.resn.next_request()
         exceptions = [
             dns.exception.FormError(),
             EOFError(),
@@ -339,13 +339,13 @@ class ResolutionTestCase(unittest.TestCase):
             dns.message.Truncated(),
         ]
         for i in range(4):
-            (nameserver, _, _) = self.resn.next_nameserver()
+            nameserver, _, _ = self.resn.next_nameserver()
             if i == 3:
                 # Truncated is only bad if we're doing TCP, make it look
                 # like that's the case
                 self.resn.tcp_attempt = True
             self.assertTrue(nameserver in self.resn.nameservers)
-            (answer, done) = self.resn.query_result(None, exceptions[i])
+            answer, done = self.resn.query_result(None, exceptions[i])
             self.assertTrue(answer is None)
             self.assertFalse(done)
             self.assertFalse(nameserver in self.resn.nameservers)
@@ -355,19 +355,19 @@ class ResolutionTestCase(unittest.TestCase):
         # except for the exceptions tested in
         # test_query_result_nameserver_removing_exceptions(), we should
         # not remove any nameservers and just continue resolving.
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
         nameservers = self.resn.nameservers[:]
-        (answer, done) = self.resn.query_result(None, dns.exception.Timeout())
+        answer, done = self.resn.query_result(None, dns.exception.Timeout())
         self.assertTrue(answer is None)
         self.assertFalse(done)
         self.assertEqual(nameservers, self.resn.nameservers)
 
     def test_query_result_retry_with_tcp(self):
-        (request, _) = self.resn.next_request()
-        (nameserver, tcp, _) = self.resn.next_nameserver()
+        request, _ = self.resn.next_request()
+        nameserver, tcp, _ = self.resn.next_nameserver()
         self.assertFalse(tcp)
-        (answer, done) = self.resn.query_result(None, dns.message.Truncated())
+        answer, done = self.resn.query_result(None, dns.message.Truncated())
         self.assertTrue(answer is None)
         self.assertFalse(done)
         self.assertTrue(self.resn.retry_with_tcp)
@@ -378,9 +378,9 @@ class ResolutionTestCase(unittest.TestCase):
     def test_query_result_no_error_with_data(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertFalse(answer is None)
         self.assertTrue(done)
         self.assertEqual(answer.qname, self.qname)
@@ -390,9 +390,9 @@ class ResolutionTestCase(unittest.TestCase):
         self.resolver.cache = dns.resolver.Cache()
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertFalse(answer is None)
         cache_answer = self.resolver.cache.get(
             (self.qname, dns.rdatatype.A, dns.rdataclass.IN)
@@ -402,20 +402,20 @@ class ResolutionTestCase(unittest.TestCase):
     def test_query_result_no_error_no_data(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_negative_response(q)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
 
         def bad():
-            (answer, done) = self.resn.query_result(r, None)
+            answer, done = self.resn.query_result(r, None)
 
         self.assertRaises(dns.resolver.NoAnswer, bad)
 
     def test_query_result_nxdomain(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_negative_response(q, True)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertTrue(done)
 
@@ -423,9 +423,9 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.NXDOMAIN)
-        (_, _) = self.resn.next_request()
-        (nameserver, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        nameserver, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertIsNone(answer)
         self.assertFalse(done)
         self.assertTrue(nameserver not in self.resn.nameservers)
@@ -433,18 +433,18 @@ class ResolutionTestCase(unittest.TestCase):
     def test_query_result_chain_not_too_long(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_long_chain_response(q, 15)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertIsNotNone(answer)
         self.assertTrue(done)
 
     def test_query_result_chain_too_long(self):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_long_chain_response(q, 16)
-        (_, _) = self.resn.next_request()
-        (nameserver, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        nameserver, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertIsNone(answer)
         self.assertFalse(done)
         self.assertTrue(nameserver not in self.resn.nameservers)
@@ -453,9 +453,9 @@ class ResolutionTestCase(unittest.TestCase):
         self.resolver.cache = dns.resolver.Cache()
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_negative_response(q, True)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertTrue(done)
         cache_answer = self.resolver.cache.get(
@@ -467,11 +467,11 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.YXDOMAIN)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
 
         def bad():
-            (answer, done) = self.resn.query_result(r, None)
+            answer, done = self.resn.query_result(r, None)
 
         self.assertRaises(dns.resolver.YXDOMAIN, bad)
 
@@ -479,9 +479,9 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.SERVFAIL)
-        (_, _) = self.resn.next_request()
-        (nameserver, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        nameserver, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertFalse(done)
         self.assertTrue(nameserver not in self.resn.nameservers)
@@ -491,10 +491,10 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.SERVFAIL)
-        (_, _) = self.resn.next_request()
-        (_, _, _) = self.resn.next_nameserver()
+        _, _ = self.resn.next_request()
+        _, _, _ = self.resn.next_nameserver()
         nameservers = self.resn.nameservers[:]
-        (answer, done) = self.resn.query_result(r, None)
+        answer, done = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertFalse(done)
         self.assertEqual(nameservers, self.resn.nameservers)
@@ -503,9 +503,9 @@ class ResolutionTestCase(unittest.TestCase):
         q = dns.message.make_query(self.qname, dns.rdatatype.A)
         r = self.make_address_response(q)
         r.set_rcode(dns.rcode.REFUSED)
-        (_, _) = self.resn.next_request()
-        (nameserver, _, _) = self.resn.next_nameserver()
-        (answer, done) = self.resn.query_result(r, None)
+        _, _ = self.resn.next_request()
+        nameserver, _, _ = self.resn.next_nameserver()
+        answer, done = self.resn.query_result(r, None)
         self.assertTrue(answer is None)
         self.assertFalse(done)
         self.assertTrue(nameserver not in self.resn.nameservers)

@@ -512,9 +512,7 @@ def https(
     Returns a ``dns.message.Message``.
     """
 
-    (af, _, the_source) = _destination_and_source(
-        where, port, source, source_port, False
-    )
+    af, _, the_source = _destination_and_source(where, port, source, source_port, False)
     # we bind url and then override as pyright can't figure out all paths bind.
     url = where
     if af is not None and dns.inet.is_address(where):
@@ -714,7 +712,7 @@ def _http3(
             the_connection = the_manager.connect(  # pyright: ignore
                 where, port, source, source_port
             )
-        (start, expiration) = _compute_times(timeout)
+        start, expiration = _compute_times(timeout)
         with the_connection.make_stream(timeout) as stream:  # type: ignore
             stream.send_h3(url, wire, post)
             wire = stream.receive(_remaining(expiration))
@@ -853,7 +851,7 @@ def receive_udp(
 
     wire = b""
     while True:
-        (wire, from_address) = _udp_recv(sock, 65535, expiration)
+        wire, from_address = _udp_recv(sock, 65535, expiration)
         if not _matches_destination(
             sock.family, from_address, destination, ignore_unexpected
         ):
@@ -952,10 +950,10 @@ def udp(
     """
 
     wire = q.to_wire()
-    (af, destination, source) = _destination_and_source(
+    af, destination, source = _destination_and_source(
         where, port, source, source_port, True
     )
-    (begin_time, expiration) = _compute_times(timeout)
+    begin_time, expiration = _compute_times(timeout)
     if sock:
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(sock)
     else:
@@ -963,7 +961,7 @@ def udp(
         cm = make_socket(af, socket.SOCK_DGRAM, source)
     with cm as s:
         send_udp(s, wire, destination, expiration)
-        (r, received_time) = receive_udp(
+        r, received_time = receive_udp(
             s,
             destination,
             expiration,
@@ -1244,11 +1242,11 @@ def tcp(
     """
 
     wire = q.to_wire()
-    (begin_time, expiration) = _compute_times(timeout)
+    begin_time, expiration = _compute_times(timeout)
     if sock:
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(sock)
     else:
-        (af, destination, source) = _destination_and_source(
+        af, destination, source = _destination_and_source(
             where, port, source, source_port, True
         )
         assert af is not None
@@ -1258,7 +1256,7 @@ def tcp(
             # pylint: disable=possibly-used-before-assignment
             _connect(s, destination, expiration)  # pyright: ignore
         send_tcp(s, wire, expiration)
-        (r, received_time) = receive_tcp(
+        r, received_time = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
         )
         r.time = received_time - begin_time
@@ -1399,8 +1397,8 @@ def tls(
         )
 
     wire = q.to_wire()
-    (begin_time, expiration) = _compute_times(timeout)
-    (af, destination, source) = _destination_and_source(
+    begin_time, expiration = _compute_times(timeout)
+    af, destination, source = _destination_and_source(
         where, port, source, source_port, True
     )
     assert af is not None  # where must be an address
@@ -1417,7 +1415,7 @@ def tls(
         _connect(s, destination, expiration)
         _tls_handshake(s, expiration)
         send_tcp(s, wire, expiration)
-        (r, received_time) = receive_tcp(
+        r, received_time = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
         )
         r.time = received_time - begin_time
@@ -1508,7 +1506,7 @@ def quic(
             the_connection = the_manager.connect(  # pyright: ignore
                 where, port, source, source_port
             )
-        (start, expiration) = _compute_times(timeout)
+        start, expiration = _compute_times(timeout)
         with the_connection.make_stream(timeout) as stream:  # type: ignore
             stream.send(wire, True)
             wire = stream.receive(_remaining(expiration))
@@ -1563,13 +1561,13 @@ def _inbound_xfr(
         tsig_ctx = None
         r: dns.message.Message | None = None
         while not done:
-            (_, mexpiration) = _compute_times(timeout)
+            _, mexpiration = _compute_times(timeout)
             if mexpiration is None or (
                 expiration is not None and mexpiration > expiration
             ):
                 mexpiration = expiration
             if is_udp:
-                (rwire, _) = _udp_recv(s, 65535, mexpiration)
+                rwire, _ = _udp_recv(s, 65535, mexpiration)
             else:
                 ldata = _net_read(s, 2, mexpiration)
                 (l,) = struct.unpack("!H", ldata)
@@ -1695,11 +1693,11 @@ def xfr(
         rrset.add(soa, 0)
     if keyring is not None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
-    (af, destination, source) = _destination_and_source(
+    af, destination, source = _destination_and_source(
         where, port, source, source_port, True
     )
     assert af is not None
-    (_, expiration) = _compute_times(lifetime)
+    _, expiration = _compute_times(lifetime)
     tm = DummyTransactionManager(zone, relativize)
     if use_udp and rdtype != dns.rdatatype.IXFR:
         raise ValueError("cannot do a UDP AXFR")
@@ -1757,15 +1755,15 @@ def inbound_xfr(
     Raises on errors.
     """
     if query is None:
-        (query, serial) = dns.xfr.make_query(txn_manager)
+        query, serial = dns.xfr.make_query(txn_manager)
     else:
         serial = dns.xfr.extract_serial_from_query(query)
 
-    (af, destination, source) = _destination_and_source(
+    af, destination, source = _destination_and_source(
         where, port, source, source_port, True
     )
     assert af is not None
-    (_, expiration) = _compute_times(lifetime)
+    _, expiration = _compute_times(lifetime)
     if query.question[0].rdtype == dns.rdatatype.IXFR and udp_mode != UDPMode.NEVER:
         with make_socket(af, socket.SOCK_DGRAM, source) as s:
             _connect(s, destination, expiration)

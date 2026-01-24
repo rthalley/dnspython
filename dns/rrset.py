@@ -171,7 +171,7 @@ class RRset(dns.rdataset.Rdataset):
         """
 
         return super().to_wire(
-            self.name, file, compress, origin, self.deleting, **kw  # type:ignore
+            self.name, file, compress, origin, self.deleting, **kw  # type: ignore
         )
 
     # pylint: enable=arguments-differ

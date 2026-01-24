@@ -108,6 +108,6 @@ class CERT(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (certificate_type, key_tag, algorithm) = parser.get_struct("!HHB")
+        certificate_type, key_tag, algorithm = parser.get_struct("!HHB")
         certificate = parser.get_remaining()
         return cls(rdclass, rdtype, certificate_type, key_tag, algorithm, certificate)
