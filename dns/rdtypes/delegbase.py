@@ -27,6 +27,7 @@ class UnknownDelegInfoKey(dns.exception.DNSException):
 class DelegInfoKey(dns.enum.IntEnum):
     """DelegInfoKey"""
 
+    MANDATORY = 0
     SERVER_IPV4 = 1
     SERVER_IPV6 = 2
     SERVER_NAME = 3
@@ -213,6 +214,45 @@ class GenericInfo(DelegInfo):
 
 
 @dns.immutable.immutable
+class MandatoryInfo(DelegInfo):
+    def __init__(self, keys):
+        # check for duplicates
+        keys = sorted([_validate_key(key)[0] for key in keys])
+        prior_k = None
+        for k in keys:
+            if k == prior_k:
+                raise ValueError(f"duplicate key {k:d}")
+            prior_k = k
+            if k == DelegInfoKey.MANDATORY:
+                raise ValueError("listed the mandatory key as mandatory")
+        self.keys = tuple(keys)
+
+    @classmethod
+    def from_value(cls, value):
+        keys = [k.encode() for k in value.split(",")]
+        return cls(keys)
+
+    def to_text(self):
+        return '"' + ",".join([key_to_text(key) for key in self.keys]) + '"'
+
+    @classmethod
+    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
+        keys = []
+        last_key = -1
+        while parser.remaining() > 0:
+            key = parser.get_uint16()
+            if key < last_key:
+                raise dns.exception.FormError("manadatory keys not ascending")
+            last_key = key
+            keys.append(key)
+        return cls(keys)
+
+    def to_wire(self, file, origin=None):  # pylint: disable=W0613
+        for key in self.keys:
+            file.write(struct.pack("!H", key))
+
+
+@dns.immutable.immutable
 class ServerIPv4Info(DelegInfo):
     def __init__(self, addresses):
         self.addresses = dns.rdata.Rdata._as_tuple(
@@ -315,6 +355,7 @@ class NameSetInfo(DelegInfo):
 
 
 _class_for_key: Dict[DelegInfoKey, Any] = {
+    DelegInfoKey.MANDATORY: MandatoryInfo,
     DelegInfoKey.SERVER_IPV4: ServerIPv4Info,
     DelegInfoKey.SERVER_IPV6: ServerIPv6Info,
     DelegInfoKey.SERVER_NAME: NameSetInfo,
@@ -344,7 +385,7 @@ def _validate_and_define(infos, key, value):
 class DelegBase(dns.rdata.Rdata):
     """Base class for DELEG-like records"""
 
-    # see: draft-ietf-deleg-03.txt
+    # see: draft-ietf-deleg-06.txt
 
     __slots__ = ["infos"]
 
@@ -354,6 +395,15 @@ class DelegBase(dns.rdata.Rdata):
             k = DelegInfoKey.make(k)
             if not isinstance(v, DelegInfo) and v is not None:
                 raise ValueError(f"{k:d} not a DelegInfo")
+        # Make sure any parameter listed as mandatory is present in the
+        # record.
+        mandatory = infos.get(DelegInfoKey.MANDATORY)
+        if mandatory:
+            for key in mandatory.keys:
+                # Note we have to say "not in" as we have None as a value
+                # so a get() and a not None test would be wrong.
+                if key not in infos:
+                    raise ValueError(f"key {key:d} declared mandatory but not present")
         have_v4 = infos.get(DelegInfoKey.SERVER_IPV4)
         have_v6 = infos.get(DelegInfoKey.SERVER_IPV6)
         have_server_name = infos.get(DelegInfoKey.SERVER_NAME)
