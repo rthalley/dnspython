@@ -199,8 +199,7 @@ def from_text_list(
     the specified list of rdatas in text format.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder to use; if ``None``, the default IDNA 2003
-    encoder/decoder is used.
+    encoder/decoder to use; if ``None``, the default encoder/decoder is used.
 
     *origin*, a ``dns.name.Name`` (or ``None``), the
     origin to use for relative names.
@@ -255,8 +254,7 @@ def from_rdata_list(
     the specified list of rdata objects.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder to use; if ``None``, the default IDNA 2003
-    encoder/decoder is used.
+    encoder/decoder to use; if ``None``, the default IDNA encoder/decoder is used.
 
     Returns a ``dns.rrset.RRset`` object.
 

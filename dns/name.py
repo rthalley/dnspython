@@ -24,24 +24,15 @@ import struct
 from collections.abc import Callable, Iterable
 from typing import Any
 
+import idna
+
 import dns._features
 import dns.enum
 import dns.exception
 import dns.immutable
 import dns.wirebase
 
-# Dnspython will never access idna if the import fails, but pyright can't figure
-# that out, so...
-#
-# pyright: reportAttributeAccessIssue = false, reportPossiblyUnboundVariable = false
-
-if dns._features.have("idna"):
-    import idna  # pyright: ignore
-
-    have_idna_2008 = True
-else:  # pragma: no cover
-    have_idna_2008 = False
-
+have_idna_2008 = True  # This is here for backwards compatibility
 
 CompressType = dict["Name", int]
 
@@ -279,8 +270,6 @@ class IDNA2008Codec(IDNACodec):
             if len(encoded) > 63:
                 raise LabelTooLong
             return encoded
-        if not have_idna_2008:
-            raise NoIDNA2008
         try:
             if self.uts_46:
                 # pylint: disable=possibly-used-before-assignment
@@ -297,8 +286,6 @@ class IDNA2008Codec(IDNACodec):
             return super().decode(label)
         if label == b"":
             return ""
-        if not have_idna_2008:
-            raise NoIDNA2008
         try:
             ulabel = idna.ulabel(label)
             if self.uts_46:
@@ -316,6 +303,7 @@ IDNA_2008_UTS_46 = IDNA2008Codec(True, False, False, False)
 IDNA_2008_Strict = IDNA2008Codec(False, False, False, True)
 IDNA_2008_Transitional = IDNA2008Codec(True, True, False, False)
 IDNA_2008 = IDNA_2008_Practical
+DEFAULT_IDNA = IDNA_2008_Practical
 
 
 def _validate_labels(labels: tuple[bytes, ...]) -> None:
@@ -605,11 +593,7 @@ class Name:
         dot (denoting the root label) for absolute names.  The default
         is False.
         *idna_codec* specifies the IDNA encoder/decoder.  If None, the
-        dns.name.IDNA_2003_Practical encoder/decoder is used.
-        The IDNA_2003_Practical decoder does
-        not impose any policy, it just decodes punycode, so if you
-        don't want checking for compliance, you can use this decoder
-        for IDNA2008 as well.
+        dns.name.DEFAULT_IDNA encoder/decoder is used.
 
         Returns a ``str``.
         """
@@ -623,7 +607,7 @@ class Name:
         else:
             l = self.labels
         if idna_codec is None:
-            idna_codec = IDNA_2003_Practical
+            idna_codec = DEFAULT_IDNA
         return ".".join([idna_codec.decode(x) for x in l])
 
     def to_digestable(self, origin: "Name | None" = None) -> bytes:
@@ -912,7 +896,7 @@ def from_unicode(
     append to non-absolute names.  The default is the root name.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    encoder/decoder.  If ``None``, the dns.name.DEFAULT_IDNA encoder/decoder
     is used.
 
     Returns a ``dns.name.Name``.
@@ -924,7 +908,7 @@ def from_unicode(
     edigits = 0
     total = 0
     if idna_codec is None:
-        idna_codec = IDNA_2003
+        idna_codec = DEFAULT_IDNA
     if text == "@":
         text = ""
     if text:
@@ -991,7 +975,7 @@ def from_text(
     append to non-absolute names.  The default is the root name.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    encoder/decoder.  If ``None``, the dns.name.DEFAULT_IDNA encoder/decoder
     is used.
 
     Returns a ``dns.name.Name``.

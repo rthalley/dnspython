@@ -67,10 +67,6 @@ If you want to use DNS-over-HTTPS, run
 If you want to use DNSSEC functionality, run
 `pip install dnspython[dnssec]`.
 
-If you want to use internationalized domain names (IDNA)
-functionality, you must run
-`pip install dnspython[idna]`
-
 If you want to use the Trio asynchronous I/O package, run
 `pip install dnspython[trio]`.
 

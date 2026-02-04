@@ -804,14 +804,11 @@ class NameTestCase(unittest.TestCase):
         e = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2003)
         self.assertEqual(str(e), "xn--knigsgsschen-lcb0w.")
 
-    def testFromUnicodeIDNA2003Default(self):
+    def testFromUnicodeIDNA2008Default(self):
         t = "Königsgäßchen"
         e = dns.name.from_unicode(t)
-        self.assertEqual(str(e), "xn--knigsgsschen-lcb0w.")
+        self.assertEqual(str(e), "xn--knigsgchen-b4a3dun.")
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testFromUnicodeIDNA2008(self):
         t = "Königsgäßchen"
 
@@ -826,9 +823,6 @@ class NameTestCase(unittest.TestCase):
         e2 = dns.name.from_unicode(t, idna_codec=c2)
         self.assertEqual(str(e2), "xn--knigsgsschen-lcb0w.")
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testFromUnicodeIDNA2008Mixed(self):
         # the IDN rules for names are very restrictive, disallowing
         # practical names like '_sip._tcp.Königsgäßchen'.  Dnspython
@@ -875,18 +869,12 @@ class NameTestCase(unittest.TestCase):
         s = n.to_unicode()
         self.assertEqual(s, "foo.bar.")
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testToUnicode4(self):
         n = dns.name.from_text("ドメイン.テスト", idna_codec=dns.name.IDNA_2008)
         s = n.to_unicode()
         self.assertEqual(str(n), "xn--eckwd4c7c.xn--zckzah.")
         self.assertEqual(s, "ドメイン.テスト.")
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testToUnicode5(self):
         # Exercise UTS 46 remapping in decode.  This doesn't normally happen
         # as you can see from us having to instantiate the codec as
@@ -895,9 +883,6 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text("xn--gro-7ka.com")
         self.assertEqual(n.to_unicode(idna_codec=codec), "gross.com.")
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testToUnicode6(self):
         # Test strict 2008 decoding without UTS 46
         n = dns.name.from_text("xn--gro-7ka.com")
@@ -938,9 +923,6 @@ class NameTestCase(unittest.TestCase):
             dns.name.LabelTooLong, lambda: dns.name.IDNA_2003.encode("x" * 64)
         )
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testIDNA2008Misc(self):
         self.assertEqual(dns.name.IDNA_2008.encode(""), b"")
         self.assertRaises(
@@ -1086,29 +1068,10 @@ class NameTestCase(unittest.TestCase):
         c = dns.name.IDNA_2003_Strict
         self.assertEqual(c.decode(b""), "")
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testRootLabel2008StrictDecode(self):
         c = dns.name.IDNA_2008_Strict
         self.assertEqual(c.decode(b""), "")
 
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
-    def testCodecNotFoundRaises(self):
-        dns.name.have_idna_2008 = False
-        with self.assertRaises(dns.name.NoIDNA2008):
-            c = dns.name.IDNA2008Codec()
-            c.encode("Königsgäßchen")
-        with self.assertRaises(dns.name.NoIDNA2008):
-            c = dns.name.IDNA2008Codec(strict_decode=True)
-            c.decode(b"xn--eckwd4c7c.xn--zckzah.")
-        dns.name.have_idna_2008 = True
-
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
     def testBadPunycodeStrict2008(self):
         c = dns.name.IDNA2008Codec(strict_decode=True)
         with self.assertRaises(dns.name.IDNAException):
@@ -1145,9 +1108,11 @@ class NameTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             del n.labels
 
-    def testUnicodeEscapify(self):
-        n = dns.name.from_unicode("Königsgäßchen;\ttext")
-        self.assertEqual(n.to_unicode(), "königsgässchen\\;\\009text.")
+    def testUnicodeEscapify2003(self):
+        n = dns.name.from_unicode("Königsgäßchen;\ttext", idna_codec=dns.name.IDNA_2003)
+        self.assertEqual(
+            n.to_unicode(idna_codec=dns.name.IDNA_2003), "königsgässchen\\;\\009text."
+        )
 
     def test_pickle(self):
         n1 = dns.name.from_text("foo.example")
