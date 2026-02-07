@@ -57,10 +57,20 @@ class RRsetTestCase(unittest.TestCase):
 
     def testCodec2003(self):
         r1 = dns.rrset.from_text_list(
-            "Königsgäßchen", 30, "in", "ns", ["Königsgäßchen"]
+            "Königsgäßchen",
+            30,
+            "in",
+            "ns",
+            ["Königsgäßchen"],
+            idna_codec=dns.name.IDNA_2003,
         )
         r2 = dns.rrset.from_text_list(
-            "xn--knigsgsschen-lcb0w", 30, "in", "ns", ["xn--knigsgsschen-lcb0w"]
+            "xn--knigsgsschen-lcb0w",
+            30,
+            "in",
+            "ns",
+            ["xn--knigsgsschen-lcb0w"],
+            idna_codec=dns.name.IDNA_2003,
         )
         self.assertEqual(r1, r2)
 

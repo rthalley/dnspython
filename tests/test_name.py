@@ -804,11 +804,6 @@ class NameTestCase(unittest.TestCase):
         e = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2003)
         self.assertEqual(str(e), "xn--knigsgsschen-lcb0w.")
 
-    def testFromUnicodeIDNA2003Default(self):
-        t = "Königsgäßchen"
-        e = dns.name.from_unicode(t)
-        self.assertEqual(str(e), "xn--knigsgsschen-lcb0w.")
-
     @unittest.skipUnless(
         dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
     )
@@ -1145,9 +1140,18 @@ class NameTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             del n.labels
 
-    def testUnicodeEscapify(self):
-        n = dns.name.from_unicode("Königsgäßchen;\ttext")
+    def testUnicodeEscapify2003(self):
+        n = dns.name.from_unicode("Königsgäßchen;\ttext", idna_codec=dns.name.IDNA_2003)
         self.assertEqual(n.to_unicode(), "königsgässchen\\;\\009text.")
+
+    @unittest.skipUnless(
+        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
+    )
+    def testUnicodeEscapify2008(self):
+        def bad():
+            dns.name.from_unicode("Königsgäßchen;\ttext", idna_codec=dns.name.IDNA_2008)
+
+        self.assertRaises(dns.name.IDNAException, bad)
 
     def test_pickle(self):
         n1 = dns.name.from_text("foo.example")

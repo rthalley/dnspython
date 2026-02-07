@@ -316,6 +316,15 @@ IDNA_2008_UTS_46 = IDNA2008Codec(True, False, False, False)
 IDNA_2008_Strict = IDNA2008Codec(False, False, False, True)
 IDNA_2008_Transitional = IDNA2008Codec(True, True, False, False)
 IDNA_2008 = IDNA_2008_Practical
+if have_idna_2008:
+    IDNA_DEFAULT = IDNA_2008_Practical
+else:
+    IDNA_DEFAULT = IDNA_2003_Practical
+
+
+def set_default_idna_codec(idna_codec: IDNACodec):
+    global IDNA_DEFAULT
+    IDNA_DEFAULT = idna_codec
 
 
 def _validate_labels(labels: tuple[bytes, ...]) -> None:
@@ -605,11 +614,7 @@ class Name:
         dot (denoting the root label) for absolute names.  The default
         is False.
         *idna_codec* specifies the IDNA encoder/decoder.  If None, the
-        dns.name.IDNA_2003_Practical encoder/decoder is used.
-        The IDNA_2003_Practical decoder does
-        not impose any policy, it just decodes punycode, so if you
-        don't want checking for compliance, you can use this decoder
-        for IDNA2008 as well.
+        dns.name.IDNA_DEFAULT encoder/decoder is used.
 
         Returns a ``str``.
         """
@@ -623,7 +628,7 @@ class Name:
         else:
             l = self.labels
         if idna_codec is None:
-            idna_codec = IDNA_2003_Practical
+            idna_codec = IDNA_DEFAULT
         return ".".join([idna_codec.decode(x) for x in l])
 
     def to_digestable(self, origin: "Name | None" = None) -> bytes:
@@ -924,7 +929,7 @@ def from_unicode(
     edigits = 0
     total = 0
     if idna_codec is None:
-        idna_codec = IDNA_2003
+        idna_codec = IDNA_DEFAULT
     if text == "@":
         text = ""
     if text:
