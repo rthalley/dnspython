@@ -252,7 +252,8 @@ class IDNA2008Codec(IDNACodec):
 
         *transitional* is a ``bool``: If True, use the
         "transitional" mode described in Unicode Technical Standard
-        #46.  The default is False.
+        #46.  The default is False.  This setting has no effect
+        in idna 3.11 and later as transitional support has been removed.
 
         *allow_pure_ascii* is a ``bool``.  If True, then a label which
         consists of only ASCII characters is allowed.  This is less
@@ -323,6 +324,7 @@ else:
 
 
 def set_default_idna_codec(idna_codec: IDNACodec):
+    """Set the default IDNA codec."""
     global IDNA_DEFAULT
     IDNA_DEFAULT = idna_codec
 

@@ -6,15 +6,20 @@ International Domain Name CODECs
 Representing non-ASCII text in the DNS is a complex and evolving
 topic.  Generally speaking, Unicode is converted into an ASCII-only,
 case-insensitive form called "Punycode" by complex rules.  There are
-two standard specifications for this process, "IDNA 2003", which is
-widely used, and the revised and not fully compatible standard "IDNA
-2008".  There are also varying degrees of strictness that can be applied
+two standard specifications for this process, "IDNA 2008", which is
+widely used, and the older not fully compatible standard "IDNA
+2003".  There are also varying degrees of strictness that can be applied
 in encoding and decoding.  Explaining the standards in detail is
 out of scope for this document; Unicode Technical Standard #46
 https://unicode.org/reports/tr46/ is a good place to start learning more.
 
 Dnspython provides "codecs" to implement International Domain Name policy
 according to the user's desire.
+
+The default codec to use for all of dnspython can be set by calling
+py:func:`dns.name.set_default_idna_codec()`.  The default default codec is
+``dns.name.IDNA_2008_Practical`` if the ``idna`` module is installed, and
+``dns.name.IDNA_2003_Practical`` otherwise.
 
 .. autoclass:: dns.name.IDNACodec
    :members:
@@ -58,8 +63,17 @@ according to the user's desire.
 
    The "UTS 46" codec encodes using IDNA 2008 rules with UTS 46
    compatibility processing in the "transitional mode" and decodes
-   punycode without checking for IDNA 2008 compliance.
+   punycode without checking for IDNA 2008 compliance.  This codec
+   is the same as ``dns.name.IDNA_2008_UTS_46`` in idna 3.11 and
+   later as transitional support has been removed.
+
 
 .. data:: dns.name.IDNA_2008
 
    A synonym for ``dns.name.IDNA_2008_Practical``.
+
+.. data:: dns.name.IDNA_DEFAULT
+
+   The default IDNA codec.
+
+.. autofunction:: dns.name.set_default_idna_codec
