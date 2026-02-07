@@ -1297,7 +1297,7 @@ def from_text(
     ``check_origin()`` method.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    encoder/decoder.  If ``None``, the default IDNA encoder/decoder
     is used.
 
     *allow_directives*, a ``bool`` or an iterable of `str`.  If ``True``, the default,

@@ -224,7 +224,7 @@ class Tokenizer:
     filename: A filename that will be returned by the where() method.
 
     idna_codec: A dns.name.IDNACodec, specifies the IDNA
-    encoder/decoder.  If None, the default IDNA 2003
+    encoder/decoder.  If None, the default IDNA
     encoder/decoder is used.
     """
 
@@ -244,7 +244,7 @@ class Tokenizer:
         will return.
 
         idna_codec: A dns.name.IDNACodec, specifies the IDNA
-        encoder/decoder.  If None, the default IDNA 2003
+        encoder/decoder.  If None, the default IDNA
         encoder/decoder is used.
         """
 
@@ -273,7 +273,7 @@ class Tokenizer:
         assert filename is not None
         self.filename = filename
         if idna_codec is None:
-            self.idna_codec: dns.name.IDNACodec = dns.name.IDNA_2003
+            self.idna_codec: dns.name.IDNACodec = dns.name.IDNA_DEFAULT
         else:
             self.idna_codec = idna_codec
 

@@ -917,7 +917,7 @@ def from_unicode(
     append to non-absolute names.  The default is the root name.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    encoder/decoder.  If ``None``, the default IDNA encoder/decoder
     is used.
 
     Returns a ``dns.name.Name``.
@@ -996,7 +996,7 @@ def from_text(
     append to non-absolute names.  The default is the root name.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+    encoder/decoder.  If ``None``, the default IDNA encoder/decoder
     is used.
 
     Returns a ``dns.name.Name``.
