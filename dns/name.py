@@ -322,6 +322,11 @@ else:
     IDNA_DEFAULT = IDNA_2003_Practical
 
 
+def set_default_idna_codec(idna_codec: IDNACodec):
+    global IDNA_DEFAULT
+    IDNA_DEFAULT = idna_codec
+
+
 def _validate_labels(labels: tuple[bytes, ...]) -> None:
     """Check for empty labels in the middle of a label sequence,
     labels that are too long, and for too many labels.
