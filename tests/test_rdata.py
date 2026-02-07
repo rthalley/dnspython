@@ -183,7 +183,10 @@ class RdataTestCase(unittest.TestCase):
 
     def test_unicode_idna2003_in_rdata(self):
         rdata = dns.rdata.from_text(
-            dns.rdataclass.IN, dns.rdatatype.NS, "Königsgäßchen"
+            dns.rdataclass.IN,
+            dns.rdatatype.NS,
+            "Königsgäßchen",
+            idna_codec=dns.name.IDNA_2003,
         )
         self.assertEqual(str(rdata.target), "xn--knigsgsschen-lcb0w")
 

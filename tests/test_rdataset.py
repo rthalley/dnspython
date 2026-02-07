@@ -12,7 +12,9 @@ import dns.rdatatype
 
 class RdatasetTestCase(unittest.TestCase):
     def testCodec2003(self):
-        r1 = dns.rdataset.from_text_list("in", "ns", 30, ["Königsgäßchen"])
+        r1 = dns.rdataset.from_text_list(
+            "in", "ns", 30, ["Königsgäßchen"], idna_codec=dns.name.IDNA_2003
+        )
         r2 = dns.rdataset.from_text_list("in", "ns", 30, ["xn--knigsgsschen-lcb0w"])
         self.assertEqual(r1, r2)
 

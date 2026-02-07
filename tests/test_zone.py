@@ -168,7 +168,9 @@ $ORIGIN example.
 """
 
 include_text = """$INCLUDE "%s"
-""" % here("example")
+""" % here(
+    "example"
+)
 
 bad_directive_text = """$FOO bar
 $ORIGIN example.
@@ -983,7 +985,9 @@ class ZoneTestCase(unittest.TestCase):
         self.assertEqual(z1_rel, z2_rel)
 
     def testCodec2003(self):
-        z = dns.zone.from_text(codec_text, "example.", relativize=True)
+        z = dns.zone.from_text(
+            codec_text, "example.", relativize=True, idna_codec=dns.name.IDNA_2003
+        )
         n2003 = dns.name.from_text("xn--knigsgsschen-lcb0w", None)
         n2008 = dns.name.from_text("xn--knigsgchen-b4a3dun", None)
         self.assertTrue(n2003 in z)
