@@ -18,30 +18,37 @@
 """DNS Names."""
 
 import copy
-import encodings.idna  # pyright: ignore
 import functools
 import struct
 from collections.abc import Callable, Iterable
 from typing import Any
 
 import dns._features
+import dns._name_util
 import dns.enum
 import dns.exception
+import dns.idnacodecs
 import dns.immutable
 import dns.wirebase
 
-# Dnspython will never access idna if the import fails, but pyright can't figure
-# that out, so...
-#
-# pyright: reportAttributeAccessIssue = false, reportPossiblyUnboundVariable = false
+# Backwarks compatibility for exported codecs
+from dns.idnacodecs import IDNA_2003 as IDNA_2003
+from dns.idnacodecs import IDNA_2008 as IDNA_2008
+from dns.idnacodecs import IDNA_2008_UTS_46 as IDNA_2008_UTS_46
+from dns.idnacodecs import IDNA2003Codec as IDNA2003Codec
+from dns.idnacodecs import IDNA2008Codec as IDNA2008Codec
+from dns.idnacodecs import IDNA_2003_Practical as IDNA_2003_Practical
+from dns.idnacodecs import IDNA_2003_Strict as IDNA_2003_Strict
+from dns.idnacodecs import IDNA_2008_Practical as IDNA_2008_Practical
+from dns.idnacodecs import IDNA_2008_Strict as IDNA_2008_Strict
+from dns.idnacodecs import IDNA_2008_Transitional as IDNA_2008_Transitional
+from dns.idnacodecs import IDNACodec as IDNACodec
+from dns.idnacodecs import IDNAException as IDNAException
+from dns.idnacodecs import NoIDNA2008 as NoIDNA2008
+from dns.idnacodecs import have_idna_2008 as have_idna_2008
 
-if dns._features.have("idna"):
-    import idna  # pyright: ignore
-
-    have_idna_2008 = True
-else:  # pragma: no cover
-    have_idna_2008 = False
-
+# This comment exists to prevent black from grouping these imports with those above.
+from dns.textstyle import DEFAULT_TEXTSTYLE, TextStyle
 
 CompressType = dict["Name", int]
 
@@ -72,12 +79,16 @@ class NameRelation(dns.enum.IntEnum):
         return cls.__name__  # pragma: no cover
 
 
-# Backwards compatibility
+# Namereln ackwards compatibility
 NAMERELN_NONE = NameRelation.NONE
 NAMERELN_SUPERDOMAIN = NameRelation.SUPERDOMAIN
 NAMERELN_SUBDOMAIN = NameRelation.SUBDOMAIN
 NAMERELN_EQUAL = NameRelation.EQUAL
 NAMERELN_COMMONANCESTOR = NameRelation.COMMONANCESTOR
+
+# export backward compatibility
+LabelTooLong = dns.exception.LabelTooLong
+is_all_ascii = dns._name_util.is_all_ascii
 
 
 class EmptyLabel(dns.exception.SyntaxError):
@@ -105,10 +116,6 @@ class NameTooLong(dns.exception.FormError):
     """A DNS name is > 255 octets long."""
 
 
-class LabelTooLong(dns.exception.SyntaxError):
-    """A DNS label is > 63 octets long."""
-
-
 class AbsoluteConcatenation(dns.exception.DNSException):
     """An attempt was made to append anything other than the
     empty name to an absolute DNS name."""
@@ -119,214 +126,8 @@ class NoParent(dns.exception.DNSException):
     or the empty name."""
 
 
-class NoIDNA2008(dns.exception.DNSException):
-    """IDNA 2008 processing was requested but the idna module is not
-    available."""
-
-
-class IDNAException(dns.exception.DNSException):
-    """IDNA processing raised an exception."""
-
-    supp_kwargs = {"idna_exception"}
-    fmt = "IDNA processing exception: {idna_exception}"
-
-    # We do this as otherwise mypy complains about unexpected keyword argument
-    # idna_exception
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
 class NeedSubdomainOfOrigin(dns.exception.DNSException):
     """An absolute name was provided that is not a subdomain of the specified origin."""
-
-
-_escaped = b'"().;\\@$'
-_escaped_text = '"().;\\@$'
-
-
-def _escapify(label: bytes | str) -> str:
-    """Escape the characters in label which need it.
-    @returns: the escaped string
-    @rtype: string"""
-    if isinstance(label, bytes):
-        # Ordinary DNS label mode.  Escape special characters and values
-        # < 0x20 or > 0x7f.
-        text = ""
-        for c in label:
-            if c in _escaped:
-                text += "\\" + chr(c)
-            elif c > 0x20 and c < 0x7F:
-                text += chr(c)
-            else:
-                text += f"\\{c:03d}"
-        return text
-
-    # Unicode label mode.  Escape only special characters and values < 0x20
-    text = ""
-    for uc in label:
-        if uc in _escaped_text:
-            text += "\\" + uc
-        elif uc <= "\x20":
-            text += f"\\{ord(uc):03d}"
-        else:
-            text += uc
-    return text
-
-
-class IDNACodec:
-    """Abstract base class for IDNA encoder/decoders."""
-
-    def __init__(self):
-        pass
-
-    def is_idna(self, label: bytes) -> bool:
-        return label.lower().startswith(b"xn--")
-
-    def encode(self, label: str) -> bytes:
-        raise NotImplementedError  # pragma: no cover
-
-    def decode(self, label: bytes) -> str:
-        # We do not apply any IDNA policy on decode.
-        if self.is_idna(label):
-            try:
-                slabel = label[4:].decode("punycode")
-                return _escapify(slabel)
-            except Exception as e:
-                raise IDNAException(idna_exception=e)
-        else:
-            return _escapify(label)
-
-
-class IDNA2003Codec(IDNACodec):
-    """IDNA 2003 encoder/decoder."""
-
-    def __init__(self, strict_decode: bool = False):
-        """Initialize the IDNA 2003 encoder/decoder.
-
-        *strict_decode* is a ``bool``. If `True`, then IDNA2003 checking
-        is done when decoding.  This can cause failures if the name
-        was encoded with IDNA2008.  The default is `False`.
-        """
-
-        super().__init__()
-        self.strict_decode = strict_decode
-
-    def encode(self, label: str) -> bytes:
-        """Encode *label*."""
-
-        if label == "":
-            return b""
-        try:
-            return encodings.idna.ToASCII(label)
-        except UnicodeError:
-            raise LabelTooLong
-
-    def decode(self, label: bytes) -> str:
-        """Decode *label*."""
-        if not self.strict_decode:
-            return super().decode(label)
-        if label == b"":
-            return ""
-        try:
-            return _escapify(encodings.idna.ToUnicode(label))
-        except Exception as e:
-            raise IDNAException(idna_exception=e)
-
-
-class IDNA2008Codec(IDNACodec):
-    """IDNA 2008 encoder/decoder."""
-
-    def __init__(
-        self,
-        uts_46: bool = False,
-        transitional: bool = False,
-        allow_pure_ascii: bool = False,
-        strict_decode: bool = False,
-    ):
-        """Initialize the IDNA 2008 encoder/decoder.
-
-        *uts_46* is a ``bool``.  If True, apply Unicode IDNA
-        compatibility processing as described in Unicode Technical
-        Standard #46 (https://unicode.org/reports/tr46/).
-        If False, do not apply the mapping.  The default is False.
-
-        *transitional* is a ``bool``: If True, use the
-        "transitional" mode described in Unicode Technical Standard
-        #46.  The default is False.  This setting has no effect
-        in idna 3.11 and later as transitional support has been removed.
-
-        *allow_pure_ascii* is a ``bool``.  If True, then a label which
-        consists of only ASCII characters is allowed.  This is less
-        strict than regular IDNA 2008, but is also necessary for mixed
-        names, e.g. a name with starting with "_sip._tcp." and ending
-        in an IDN suffix which would otherwise be disallowed.  The
-        default is False.
-
-        *strict_decode* is a ``bool``: If True, then IDNA2008 checking
-        is done when decoding.  This can cause failures if the name
-        was encoded with IDNA2003.  The default is False.
-        """
-        super().__init__()
-        self.uts_46 = uts_46
-        self.transitional = transitional
-        self.allow_pure_ascii = allow_pure_ascii
-        self.strict_decode = strict_decode
-
-    def encode(self, label: str) -> bytes:
-        if label == "":
-            return b""
-        if self.allow_pure_ascii and is_all_ascii(label):
-            encoded = label.encode("ascii")
-            if len(encoded) > 63:
-                raise LabelTooLong
-            return encoded
-        if not have_idna_2008:
-            raise NoIDNA2008
-        try:
-            if self.uts_46:
-                # pylint: disable=possibly-used-before-assignment
-                label = idna.uts46_remap(label, False, self.transitional)
-            return idna.alabel(label)
-        except idna.IDNAError as e:
-            if e.args[0] == "Label too long":
-                raise LabelTooLong
-            else:
-                raise IDNAException(idna_exception=e)
-
-    def decode(self, label: bytes) -> str:
-        if not self.strict_decode:
-            return super().decode(label)
-        if label == b"":
-            return ""
-        if not have_idna_2008:
-            raise NoIDNA2008
-        try:
-            ulabel = idna.ulabel(label)
-            if self.uts_46:
-                ulabel = idna.uts46_remap(ulabel, False, self.transitional)
-            return _escapify(ulabel)
-        except (idna.IDNAError, UnicodeError) as e:
-            raise IDNAException(idna_exception=e)
-
-
-IDNA_2003_Practical = IDNA2003Codec(False)
-IDNA_2003_Strict = IDNA2003Codec(True)
-IDNA_2003 = IDNA_2003_Practical
-IDNA_2008_Practical = IDNA2008Codec(True, False, True, False)
-IDNA_2008_UTS_46 = IDNA2008Codec(True, False, False, False)
-IDNA_2008_Strict = IDNA2008Codec(False, False, False, True)
-IDNA_2008_Transitional = IDNA2008Codec(True, True, False, False)
-IDNA_2008 = IDNA_2008_Practical
-if have_idna_2008:
-    IDNA_DEFAULT = IDNA_2008_Practical
-else:
-    IDNA_DEFAULT = IDNA_2003_Practical
-
-
-def set_default_idna_codec(idna_codec: IDNACodec):
-    """Set the default IDNA codec."""
-    global IDNA_DEFAULT
-    IDNA_DEFAULT = idna_codec
 
 
 def _validate_labels(labels: tuple[bytes, ...]) -> None:
@@ -584,16 +385,25 @@ class Name:
     def __str__(self):
         return self.to_text(False)
 
-    def to_text(self, omit_final_dot: bool = False) -> str:
+    def to_text(
+        self, omit_final_dot: bool = False, style: TextStyle | None = None
+    ) -> str:
         """Convert name to DNS text format.
 
         *omit_final_dot* is a ``bool``.  If True, don't emit the final
         dot (denoting the root label) for absolute names.  The default
         is False.
 
+        *style*, a ``dns.textstyle.TextStyle`` or ``None`` (the default).
+        Specify style options to use when converting to text format.
+
         Returns a ``str``.
         """
 
+        if style is None:
+            style = DEFAULT_TEXTSTYLE
+        if style.idna_codec is not None:
+            return self.to_unicode(omit_final_dot, style=style)
         if len(self.labels) == 0:
             return "@"
         if len(self.labels) == 1 and self.labels[0] == b"":
@@ -602,11 +412,14 @@ class Name:
             l = self.labels[:-1]
         else:
             l = self.labels
-        s = ".".join(map(_escapify, l))
+        s = ".".join(map(dns._name_util.escapify, l))
         return s
 
     def to_unicode(
-        self, omit_final_dot: bool = False, idna_codec: IDNACodec | None = None
+        self,
+        omit_final_dot: bool = False,
+        idna_codec: IDNACodec | None = None,
+        style: TextStyle | None = None,
     ) -> str:
         """Convert name to Unicode text format.
 
@@ -616,11 +429,15 @@ class Name:
         dot (denoting the root label) for absolute names.  The default
         is False.
         *idna_codec* specifies the IDNA encoder/decoder.  If None, the
-        dns.name.IDNA_DEFAULT encoder/decoder is used.
+        dns.idnacodecs.IDNA_DEFAULT encoder/decoder is used.
+        *style*, a ``dns.textstyle.TextStyle`` or ``None`` (the default).
+        Specify style options to use when converting to text format.
 
         Returns a ``str``.
         """
 
+        if style is not None and idna_codec is not None:
+            style = style.replace(idna_codec=idna_codec)
         if len(self.labels) == 0:
             return "@"
         if len(self.labels) == 1 and self.labels[0] == b"":
@@ -629,8 +446,10 @@ class Name:
             l = self.labels[:-1]
         else:
             l = self.labels
+        if style is not None:
+            idna_codec = style.idna_codec
         if idna_codec is None:
-            idna_codec = IDNA_DEFAULT
+            idna_codec = dns.idnacodecs.IDNA_DEFAULT
         return ".".join([idna_codec.decode(x) for x in l])
 
     def to_digestable(self, origin: "Name | None" = None) -> bytes:
@@ -931,7 +750,7 @@ def from_unicode(
     edigits = 0
     total = 0
     if idna_codec is None:
-        idna_codec = IDNA_DEFAULT
+        idna_codec = dns.idnacodecs.IDNA_DEFAULT
     if text == "@":
         text = ""
     if text:
@@ -978,13 +797,6 @@ def from_unicode(
     return Name(labels)
 
 
-def is_all_ascii(text: str) -> bool:
-    for c in text:
-        if ord(c) > 0x7F:
-            return False
-    return True
-
-
 def from_text(
     text: bytes | str,
     origin: Name | None = root,
@@ -1005,7 +817,7 @@ def from_text(
     """
 
     if isinstance(text, str):
-        if not is_all_ascii(text):
+        if not dns._name_util.is_all_ascii(text):
             # Some codepoint in the input text is > 127, so IDNA applies.
             return from_unicode(text, origin, idna_codec)
         # The input is all ASCII, so treat this like an ordinary non-IDNA

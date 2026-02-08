@@ -14,7 +14,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import base64
 import binascii
 import struct
@@ -23,6 +22,7 @@ import dns.exception
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -40,15 +40,18 @@ class HIP(dns.rdata.Rdata):
         self.key = self._as_bytes(key, True)
         self.servers = self._as_tuple(servers, self._as_name)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
         hit = binascii.hexlify(self.hit).decode()
         key = base64.b64encode(self.key).replace(b"\n", b"").decode()
         text = ""
         servers = []
         for server in self.servers:
-            servers.append(server.choose_relativity(origin, relativize))
+            server = server.choose_relativity(origin, relativize)
+            servers.append(server.to_text(False, style))
         if len(servers) > 0:
-            text += " " + " ".join(x.to_unicode() for x in servers)
+            text += " " + " ".join(servers)
         return f"{self.algorithm} {hit} {key}{text}"
 
     @classmethod

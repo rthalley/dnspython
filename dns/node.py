@@ -27,6 +27,7 @@ import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
 import dns.rrset
+from dns.textstyle import TextStyle
 
 _cname_types = {
     dns.rdatatype.CNAME,
@@ -90,7 +91,12 @@ class Node:
         # the set of rdatasets, represented as a list.
         self.rdatasets = []
 
-    def to_text(self, name: dns.name.Name, **kw: dict[str, Any]) -> str:
+    def to_text(
+        self,
+        name: dns.name.Name,
+        style: TextStyle | None = None,
+        **kw: dict[str, Any],
+    ) -> str:
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
@@ -99,6 +105,9 @@ class Node:
         *name*, a ``dns.name.Name``, the owner name of the
         rdatasets.
 
+        *style*, a ``dns.textstyle.TextStyle`` or ``None`` (the default).
+        Specify style options to use when converting to text format.
+
         Returns a ``str``.
 
         """
@@ -106,7 +115,9 @@ class Node:
         s = io.StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                s.write(rds.to_text(name, **kw))  # pyright: ignore[arg-type]
+                s.write(
+                    rds.to_text(name, style=style, **kw)
+                )  # pyright: ignore[arg-type]
                 s.write("\n")
         return s.getvalue()[:-1]
 

@@ -38,6 +38,7 @@ import dns.rrset
 import dns.tokenizer
 import dns.transaction
 import dns.zonefile
+from dns.textstyle import TextStyle
 from dns.zonetypes import DigestHashAlgorithm, DigestScheme, _digest_hashers
 
 
@@ -620,6 +621,7 @@ class Zone(dns.transaction.TransactionManager):
         nl: str | bytes | None = None,
         want_comments: bool = False,
         want_origin: bool = False,
+        style: TextStyle | None = None,
     ) -> None:
         """Write a zone to a file.
 
@@ -646,6 +648,9 @@ class Zone(dns.transaction.TransactionManager):
         *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
         the start of the file.  If ``False``, the default, do not emit
         one.
+
+        *style*, a ``dns.textstyle.TextStyle`` or ``None`` (the default).
+        Specify style options to use when converting to text format.
         """
 
         if isinstance(f, str):
@@ -692,6 +697,7 @@ class Zone(dns.transaction.TransactionManager):
             for n in names:
                 l = self[n].to_text(
                     n,
+                    style,
                     origin=self.origin,  # pyright: ignore
                     relativize=relativize,  # pyright: ignore
                     want_comments=want_comments,  # pyright: ignore
@@ -713,6 +719,7 @@ class Zone(dns.transaction.TransactionManager):
         nl: str | None = None,
         want_comments: bool = False,
         want_origin: bool = False,
+        style: TextStyle | None = None,
     ) -> str:
         """Return a zone's text as though it were written to a file.
 
@@ -737,10 +744,15 @@ class Zone(dns.transaction.TransactionManager):
         the start of the output.  If ``False``, the default, do not emit
         one.
 
+        *style*, a ``dns.textstyle.TextStyle`` or ``None`` (the default).
+        Specify style options to use when converting to text format.
+
         Returns a ``str``.
         """
         temp_buffer = io.StringIO()
-        self.to_file(temp_buffer, sorted, relativize, nl, want_comments, want_origin)
+        self.to_file(
+            temp_buffer, sorted, relativize, nl, want_comments, want_origin, style
+        )
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
         return return_value

@@ -22,6 +22,7 @@ import dns.dnssectypes
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -52,12 +53,11 @@ class DSBase(dns.rdata.Rdata):
             if self.digest_type == 0:  # reserved, RFC 3658 Sec. 2.4
                 raise ValueError("digest type 0 is reserved")
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        digest = dns.rdata._hexify(
-            self.digest, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        style = dns.rdata._get_chunk_style_compat(style, **kw)
+        digest = dns.rdata._hexify(self.digest, style)
         return f"{self.key_tag} {self.algorithm} {self.digest_type} {digest}"
 
     @classmethod

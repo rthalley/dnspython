@@ -28,6 +28,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.renderer
 import dns.tokenizer
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -61,12 +62,20 @@ class TXTBase(dns.rdata.Rdata):
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
+        style: TextStyle | None = None,
         **kw: dict[str, Any],
     ) -> str:
         txt = ""
         prefix = ""
         for s in self.strings:
-            txt += f'{prefix}"{dns.rdata._escapify(s)}"'
+            if style is not None and style.txt_is_utf8:
+                try:
+                    us = s.decode()
+                    txt += f'{prefix}"{dns.rdata._escapify_unicode(us)}"'
+                except Exception:
+                    txt += f'{prefix}"{dns.rdata._escapify(s)}"'
+            else:
+                txt += f'{prefix}"{dns.rdata._escapify(s)}"'
             prefix = " "
         return txt
 

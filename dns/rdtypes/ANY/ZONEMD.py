@@ -7,6 +7,7 @@ import dns.immutable
 import dns.rdata
 import dns.rdatatype
 import dns.zonetypes
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -33,12 +34,11 @@ class ZONEMD(dns.rdata.Rdata):
         if hasher and hasher().digest_size != len(self.digest):
             raise ValueError("digest length inconsistent with hash algorithm")
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        digest = dns.rdata._hexify(
-            self.digest, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        style = dns.rdata._get_chunk_style_compat(style, **kw)
+        digest = dns.rdata._hexify(self.digest, style)
         return f"{self.serial} {self.scheme} {self.hash_algorithm} {digest}"
 
     @classmethod

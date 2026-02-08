@@ -14,13 +14,13 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import struct
 
 import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -43,9 +43,11 @@ class SOA(dns.rdata.Rdata):
         self.expire = self._as_ttl(expire)
         self.minimum = self._as_ttl(minimum)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        mname = self.mname.choose_relativity(origin, relativize)
-        rname = self.rname.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        mname = self.mname.choose_relativity(origin, relativize).to_text(False, style)
+        rname = self.rname.choose_relativity(origin, relativize).to_text(False, style)
         return f"{mname} {rname} {self.serial} {self.refresh} {self.retry} {self.expire} {self.minimum}"
 
     @classmethod

@@ -13,12 +13,13 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import binascii
+import heapq
 
 import dns.exception
 import dns.immutable
 import dns.rdata
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -42,8 +43,14 @@ class EUIBase(dns.rdata.Rdata):
                 f"EUI{self.byte_len * 8} rdata has to have {self.byte_len} bytes"
             )
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        return dns.rdata._hexify(self.eui, chunksize=2, separator=b"-", **kw)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        # force hex style for EUIBase
+        if style is None:
+            style = TextStyle()
+        style = style.replace(hex_chunk_size=2, hex_chunk_separator=b"-")
+        return dns.rdata._hexify(self.eui, style)
 
     @classmethod
     def from_text(

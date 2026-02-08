@@ -24,6 +24,7 @@ import dns.immutable
 import dns.name
 import dns.rdata
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -37,9 +38,12 @@ class MXBase(dns.rdata.Rdata):
         self.preference = self._as_uint16(preference)
         self.exchange = self._as_name(exchange)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
         exchange = self.exchange.choose_relativity(origin, relativize)
-        return f"{self.preference} {exchange}"
+        exchange_text = exchange.to_text(False, style)
+        return f"{self.preference} {exchange_text}"
 
     @classmethod
     def from_text(

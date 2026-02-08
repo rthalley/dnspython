@@ -14,7 +14,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import struct
 
 import dns.exception
@@ -22,6 +21,7 @@ import dns.immutable
 import dns.name
 import dns.rdata
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 def _write_string(file, s):
@@ -50,8 +50,12 @@ class NAPTR(dns.rdata.Rdata):
         self.preference = self._as_uint16(preference)
         self.replacement = self._as_name(replacement)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        replacement = self.replacement.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        replacement = self.replacement.choose_relativity(origin, relativize).to_text(
+            False, style
+        )
         return (
             f"{self.order} {self.preference} "
             f'"{dns.rdata._escapify(self.flags)}" '

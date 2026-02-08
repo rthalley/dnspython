@@ -21,6 +21,7 @@ import struct
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -38,12 +39,11 @@ class TLSABase(dns.rdata.Rdata):
         self.mtype = self._as_uint8(mtype)
         self.cert = self._as_bytes(cert)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        cert = dns.rdata._hexify(
-            self.cert, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        style = dns.rdata._get_chunk_style_compat(style, **kw)
+        cert = dns.rdata._hexify(self.cert, style)
         return f"{self.usage} {self.selector} {self.mtype} {cert}"
 
     @classmethod

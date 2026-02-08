@@ -24,6 +24,7 @@ from io import BytesIO
 from typing import Dict  # pylint: disable=unused-import
 
 import dns.e164
+import dns.idnacodecs
 import dns.name
 import dns.reversename
 
@@ -1092,6 +1093,7 @@ class NameTestCase(unittest.TestCase):
         dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
     )
     def testCodecNotFoundRaises(self):
+        dns.idnacodecs.have_idna_2008 = False
         dns.name.have_idna_2008 = False
         with self.assertRaises(dns.name.NoIDNA2008):
             c = dns.name.IDNA2008Codec()
@@ -1099,6 +1101,7 @@ class NameTestCase(unittest.TestCase):
         with self.assertRaises(dns.name.NoIDNA2008):
             c = dns.name.IDNA2008Codec(strict_decode=True)
             c.decode(b"xn--eckwd4c7c.xn--zckzah.")
+        dns.idnacodecs.have_idna_2008 = True
         dns.name.have_idna_2008 = True
 
     @unittest.skipUnless(

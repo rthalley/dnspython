@@ -5,6 +5,7 @@ import struct
 import dns.immutable
 import dns.rdata
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -21,7 +22,8 @@ class L64(dns.rdata.Rdata):
         if isinstance(locator64, bytes):
             if len(locator64) != 8:
                 raise ValueError("invalid locator64")
-            self.locator64 = dns.rdata._hexify(locator64, 4, b":")
+            style = TextStyle(hex_chunk_separator=b":", hex_chunk_size=4)
+            self.locator64 = dns.rdata._hexify(locator64, style)
         else:
             dns.rdtypes.util.parse_formatted_hex(locator64, 4, 4, ":")
             self.locator64 = locator64

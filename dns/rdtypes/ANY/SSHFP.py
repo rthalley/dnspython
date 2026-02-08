@@ -21,6 +21,7 @@ import struct
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -37,12 +38,11 @@ class SSHFP(dns.rdata.Rdata):
         self.fp_type = self._as_uint8(fp_type)
         self.fingerprint = self._as_bytes(fingerprint, True)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        fingerprint = dns.rdata._hexify(
-            self.fingerprint, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        style = dns.rdata._get_chunk_style_compat(style, **kw)
+        fingerprint = dns.rdata._hexify(self.fingerprint, style)
         return f"{self.algorithm} {self.fp_type} {fingerprint}"
 
     @classmethod

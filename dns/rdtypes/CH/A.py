@@ -14,12 +14,12 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import struct
 
 import dns.immutable
 import dns.rdata
 import dns.rdtypes.mxbase
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -36,8 +36,10 @@ class A(dns.rdata.Rdata):
         self.domain = self._as_name(domain)
         self.address = self._as_uint16(address)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        domain = self.domain.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        domain = self.domain.choose_relativity(origin, relativize).to_text(False, style)
         return f"{domain} {self.address:o}"
 
     @classmethod

@@ -22,6 +22,7 @@ import sys
 from typing import Any
 
 import dns.exception
+import dns.idnacodecs
 import dns.name
 import dns.ttl
 
@@ -273,7 +274,7 @@ class Tokenizer:
         assert filename is not None
         self.filename = filename
         if idna_codec is None:
-            self.idna_codec: dns.name.IDNACodec = dns.name.IDNA_DEFAULT
+            self.idna_codec: dns.name.IDNACodec = dns.idnacodecs.IDNA_DEFAULT
         else:
             self.idna_codec = idna_codec
 

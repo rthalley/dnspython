@@ -21,6 +21,7 @@ import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -33,9 +34,11 @@ class NSBase(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.target = self._as_name(target)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
         target = self.target.choose_relativity(origin, relativize)
-        return str(target)
+        return target.to_text(False, style)
 
     @classmethod
     def from_text(

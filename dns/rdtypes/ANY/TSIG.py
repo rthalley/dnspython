@@ -14,7 +14,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import base64
 import struct
 
@@ -22,6 +21,7 @@ import dns.exception
 import dns.immutable
 import dns.rcode
 import dns.rdata
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -80,8 +80,12 @@ class TSIG(dns.rdata.Rdata):
         self.error = dns.rcode.Rcode.make(error)
         self.other = self._as_bytes(other)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        algorithm = self.algorithm.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        algorithm = self.algorithm.choose_relativity(origin, relativize).to_text(
+            False, style
+        )
         error = dns.rcode.to_text(self.error, True)
         text = (
             f"{algorithm} {self.time_signed} {self.fudge} "

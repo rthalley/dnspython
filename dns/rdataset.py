@@ -32,6 +32,7 @@ import dns.rdatatype
 import dns.set
 import dns.ttl
 from dns._render_util import prefixed_length
+from dns.textstyle import TextStyle
 
 # define SimpleSet here for backwards compatibility
 SimpleSet = dns.set.Set
@@ -202,6 +203,7 @@ class Rdataset(dns.set.Set):
         relativize: bool = True,
         override_rdclass: dns.rdataclass.RdataClass | None = None,
         want_comments: bool = False,
+        style: TextStyle | None = None,
         **kw: dict[str, Any],
     ) -> str:
         """Convert the rdataset into DNS zone file format.
@@ -227,11 +229,14 @@ class Rdataset(dns.set.Set):
 
         *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
         which have them.  The default is ``False``.
+
+        *style*, a ``dns.textstyle.TextStyle`` or ``None`` (the default).
+        Specify style options to use when converting to text format.
         """
 
         if name is not None:
             name = name.choose_relativity(origin, relativize)
-            ntext = str(name)
+            ntext = name.to_text(False, style)
             pad = " "
         else:
             ntext = ""

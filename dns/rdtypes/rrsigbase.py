@@ -25,6 +25,7 @@ import dns.exception
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
+from dns.textstyle import TextStyle
 
 
 class BadSigTime(dns.exception.DNSException):
@@ -93,15 +94,18 @@ class RRSIGBase(dns.rdata.Rdata):
     def covers(self):
         return self.type_covered
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
         ctext = dns.rdatatype.to_text(self.type_covered)
         expiration = posixtime_to_sigtime(self.expiration)
         inception = posixtime_to_sigtime(self.inception)
         signer = self.signer.choose_relativity(origin, relativize)
+        signer_text = signer.to_text(False, style)
         sig = dns.rdata._base64ify(self.signature, **kw)  # pyright: ignore
         return (
             f"{ctext} {self.algorithm} {self.labels} {self.original_ttl} "
-            + f"{expiration} {inception} {self.key_tag} {signer} {sig}"
+            + f"{expiration} {inception} {self.key_tag} {signer_text} {sig}"
         )
 
     @classmethod

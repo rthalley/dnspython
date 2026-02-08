@@ -5,6 +5,7 @@ import struct
 import dns.immutable
 import dns.rdata
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -21,7 +22,8 @@ class NID(dns.rdata.Rdata):
         if isinstance(nodeid, bytes):
             if len(nodeid) != 8:
                 raise ValueError("invalid nodeid")
-            self.nodeid = dns.rdata._hexify(nodeid, 4, b":")
+            style = TextStyle(hex_chunk_separator=b":", hex_chunk_size=4)
+            self.nodeid = dns.rdata._hexify(nodeid, style)
         else:
             dns.rdtypes.util.parse_formatted_hex(nodeid, 4, 4, ":")
             self.nodeid = nodeid

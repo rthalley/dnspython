@@ -1,9 +1,9 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 import struct
 
 import dns.immutable
 import dns.rdata
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -19,8 +19,10 @@ class LP(dns.rdata.Rdata):
         self.preference = self._as_uint16(preference)
         self.fqdn = self._as_name(fqdn)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        fqdn = self.fqdn.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        fqdn = self.fqdn.choose_relativity(origin, relativize).to_text(False, style)
         return f"{self.preference} {fqdn}"
 
     @classmethod

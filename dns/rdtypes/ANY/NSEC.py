@@ -14,13 +14,13 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
 import dns.rdatatype
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -41,10 +41,13 @@ class NSEC(dns.rdata.Rdata):
             windows = Bitmap(windows)
         self.windows = tuple(windows.windows)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
         next = self.next.choose_relativity(origin, relativize)
+        next_text = next.to_text(False, style)
         text = Bitmap(self.windows).to_text()
-        return f"{next}{text}"
+        return f"{next_text}{text}"
 
     @classmethod
     def from_text(

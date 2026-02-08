@@ -37,6 +37,7 @@ import dns.rdatatype
 import dns.tokenizer
 import dns.ttl
 import dns.wire
+from dns.textstyle import TextStyle
 
 _chunksize = 32
 
@@ -72,12 +73,14 @@ def _wordbreak(data, chunksize=_chunksize, separator=b" "):
 # pylint: disable=unused-argument
 
 
-def _hexify(data, chunksize=_chunksize, separator=b" ", **kw):
+def _hexify(data, style: TextStyle):
     """Convert a binary string into its hex encoding, broken up into chunks
     of chunksize characters separated by a separator.
     """
 
-    return _wordbreak(binascii.hexlify(data), chunksize, separator)
+    return _wordbreak(
+        binascii.hexlify(data), style.hex_chunk_size, style.hex_chunk_separator
+    )
 
 
 def _base64ify(data, chunksize=_chunksize, separator=b" ", **kw):
@@ -90,7 +93,18 @@ def _base64ify(data, chunksize=_chunksize, separator=b" ", **kw):
 
 # pylint: enable=unused-argument
 
-__escaped = b'"\\'
+
+def _get_chunk_style_compat(style: TextStyle | None = None, **kw) -> TextStyle:
+    if style is None:
+        style = TextStyle()
+    chunksize = kw.get("chunksize")
+    if chunksize is not None:
+        style = style.replace(chunksize=chunksize)
+    return style
+
+
+_escaped = b'"\\'
+_unicode_escaped = '"\\'
 
 
 def _escapify(qstring):
@@ -103,12 +117,26 @@ def _escapify(qstring):
 
     text = ""
     for c in qstring:
-        if c in __escaped:
+        if c in _escaped:
             text += "\\" + chr(c)
         elif c >= 0x20 and c < 0x7F:
             text += chr(c)
         else:
             text += f"\\{c:03d}"
+    return text
+
+
+def _escapify_unicode(qstring):
+    """Escape the characters in a Unicode quoted string which need it."""
+
+    text = ""
+    for c in qstring:
+        if c in _unicode_escaped:
+            text += "\\" + c
+        elif ord(c) >= 0x20:
+            text += c
+        else:
+            text += f"\\{ord(c):03d}"
     return text
 
 
@@ -633,9 +661,11 @@ class GenericRdata(Rdata):
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
+        style: TextStyle | None = None,
         **kw: dict[str, Any],
     ) -> str:
-        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # pyright: ignore
+        style = _get_chunk_style_compat(style, **kw)
+        return rf"\# {len(self.data)} " + _hexify(self.data, style)  # pyright: ignore
 
     @classmethod
     def from_text(

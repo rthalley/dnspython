@@ -14,7 +14,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import struct
 
 import dns.exception
@@ -22,6 +21,7 @@ import dns.immutable
 import dns.name
 import dns.rdata
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -38,9 +38,13 @@ class PX(dns.rdata.Rdata):
         self.map822 = self._as_name(map822)
         self.mapx400 = self._as_name(mapx400)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        map822 = self.map822.choose_relativity(origin, relativize)
-        mapx400 = self.mapx400.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        map822 = self.map822.choose_relativity(origin, relativize).to_text(False, style)
+        mapx400 = self.mapx400.choose_relativity(origin, relativize).to_text(
+            False, style
+        )
         return f"{self.preference} {map822} {mapx400}"
 
     @classmethod

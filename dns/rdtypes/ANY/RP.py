@@ -14,11 +14,11 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -34,9 +34,11 @@ class RP(dns.rdata.Rdata):
         self.mbox = self._as_name(mbox)
         self.txt = self._as_name(txt)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        mbox = self.mbox.choose_relativity(origin, relativize)
-        txt = self.txt.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        mbox = self.mbox.choose_relativity(origin, relativize).to_text(False, style)
+        txt = self.txt.choose_relativity(origin, relativize).to_text(False, style)
         return f"{str(mbox)} {str(txt)}"
 
     @classmethod

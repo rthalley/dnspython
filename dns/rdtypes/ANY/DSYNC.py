@@ -1,5 +1,4 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 import struct
 
 import dns.enum
@@ -8,6 +7,7 @@ import dns.immutable
 import dns.rdata
 import dns.rdatatype
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 class UnknownScheme(dns.exception.DNSException):
@@ -43,8 +43,10 @@ class DSYNC(dns.rdata.Rdata):
         self.port = self._as_uint16(port)
         self.target = self._as_name(target)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        target = self.target.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        target = self.target.choose_relativity(origin, relativize).to_text(False, style)
         return (
             f"{dns.rdatatype.to_text(self.rrtype)} {Scheme.to_text(self.scheme)} "
             f"{self.port} {target}"

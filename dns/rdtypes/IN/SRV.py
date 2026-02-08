@@ -14,7 +14,6 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
 import struct
 
 import dns.exception
@@ -22,6 +21,7 @@ import dns.immutable
 import dns.name
 import dns.rdata
 import dns.rdtypes.util
+from dns.textstyle import TextStyle
 
 
 @dns.immutable.immutable
@@ -39,8 +39,10 @@ class SRV(dns.rdata.Rdata):
         self.port = self._as_uint16(port)
         self.target = self._as_name(target)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        target = self.target.choose_relativity(origin, relativize)
+    def to_text(
+        self, origin=None, relativize=True, style: TextStyle | None = None, **kw
+    ):
+        target = self.target.choose_relativity(origin, relativize).to_text(False, style)
         return f"{self.priority} {self.weight} {self.port} {target}"
 
     @classmethod
