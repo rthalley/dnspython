@@ -127,6 +127,7 @@ class ZoneStyle(dns.node.NodeStyle):
     sorted: bool = True
     nl: str | None = None
     want_origin: bool = False
+    use_unicode_directive: bool = True
 
 
 class Zone(dns.transaction.TransactionManager):
@@ -178,6 +179,7 @@ class Zone(dns.transaction.TransactionManager):
         self.rdclass = rdclass
         self.nodes: MutableMapping[dns.name.Name, dns.node.Node] = self.map_factory()
         self.relativize = relativize
+        self.unicode: set[str] = set()
 
     def __eq__(self, other):
         """Two zones are equal if they have the same origin, class, and
@@ -685,6 +687,16 @@ class Zone(dns.transaction.TransactionManager):
             style = ZoneStyle.from_keywords(kw)
         return self.to_styled_file(style, f)
 
+    def _write_line(self, output, l, l_b, nl, nl_b):
+        try:
+            bout = cast(BinaryIO, output)
+            bout.write(l_b)
+            bout.write(nl_b)
+        except TypeError:  # textual mode
+            tout = cast(TextIO, output)
+            tout.write(l)
+            tout.write(nl)
+
     def to_styled_file(
         self,
         style: ZoneStyle,
@@ -696,6 +708,15 @@ class Zone(dns.transaction.TransactionManager):
         as the name of a file to open.
         """
 
+        # Apply style items we learned from $UNICODE when we loaded the zone (if any).
+        if style.use_unicode_directive:
+            style = style.replace()  # clone
+            if "2008" in self.unicode:
+                style.idna_codec = dns.name.IDNA_2008_Practical
+            elif "2003" in self.unicode:
+                style.idna_codec = dns.name.IDNA_2003_Practical
+            if "TXT" in self.unicode:
+                style.txt_is_utf8 = True
         if isinstance(f, str):
             cm: contextlib.AbstractContextManager = open(f, "wb")
         else:
@@ -720,20 +741,17 @@ class Zone(dns.transaction.TransactionManager):
             assert nl is not None
             assert nl_b is not None
 
+            if style.use_unicode_directive and len(self.unicode) > 0:
+                l = "$UNICODE " + " ".join(sorted(self.unicode))
+                l_b = l.encode(file_enc)
+                self._write_line(output, l, l_b, nl, nl_b)
             if style.want_origin:
                 assert self.origin is not None
                 # Ensure we don't relativize the origin to the origin in $ORIGIN!
                 origin_style = style.replace(origin=None)
                 l = "$ORIGIN " + self.origin.to_styled_text(origin_style)
                 l_b = l.encode(file_enc)
-                try:
-                    bout = cast(BinaryIO, output)
-                    bout.write(l_b)
-                    bout.write(nl_b)
-                except TypeError:  # textual mode
-                    tout = cast(TextIO, output)
-                    tout.write(l)
-                    tout.write(nl)
+                self._write_line(output, l, l_b, nl, nl_b)
 
             if style.sorted:
                 names = list(self.keys())
@@ -743,14 +761,7 @@ class Zone(dns.transaction.TransactionManager):
             for n in names:
                 l = self[n].to_styled_text(style, n)
                 l_b = l.encode(file_enc)
-                try:
-                    bout = cast(BinaryIO, output)
-                    bout.write(l_b)
-                    bout.write(nl_b)
-                except TypeError:  # textual mode
-                    tout = cast(TextIO, output)
-                    tout.write(l)
-                    tout.write(nl)
+                self._write_line(output, l, l_b, nl, nl_b)
 
     def to_text(
         self,
@@ -1301,6 +1312,7 @@ def _from_text(
         )
         try:
             reader.read()
+            zone.unicode = txn.unicode
         except dns.zonefile.UnknownOrigin:
             # for backwards compatibility
             raise UnknownOrigin

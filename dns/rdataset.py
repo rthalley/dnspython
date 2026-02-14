@@ -58,6 +58,9 @@ class RdatasetStyle(dns.rdata.RdataStyle):
     omit_ttl: bool = False
     want_generic: bool = False
     truncate_crypto: bool = False
+    dedup_names: bool = False
+    # State
+    last_name: dns.name.Name | None = None
 
 
 # Guidance for truncating crypto rdata
@@ -273,7 +276,11 @@ class Rdataset(dns.set.Set):
         """Convert the rdataset into DNS zone file format."""
 
         if name is not None:
-            ntext = f"{name.to_styled_text(style)} "
+            if style.dedup_names and style.last_name == name:
+                ntext = "    "
+            else:
+                ntext = f"{name.to_styled_text(style)} "
+            style.last_name = name
         else:
             ntext = ""
         s = io.StringIO()
@@ -333,6 +340,8 @@ class Rdataset(dns.set.Set):
                 s.write(
                     f"{ntext}{ttl}{rdclass_text}{rdtype_text} {rdata_text}{extra}\n"
                 )
+                if style.dedup_names:
+                    ntext = "    "
         #
         # We strip off the final \n for the caller's convenience in printing
         #

@@ -24,3 +24,6 @@ tree.  Nodes are primarily used in ``Zone`` objects.
 
 .. autoclass:: dns.node.Node
    :members:
+
+.. autoclass:: dns.node.RdatasetStyle
+   :members:

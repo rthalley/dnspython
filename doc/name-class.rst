@@ -27,3 +27,6 @@ The dns.name.Name Class and Predefined Names
 
 .. autoclass:: dns.name.NameRelation
    :members:
+
+.. autoclass:: dns.name.NameStyle
+   :members:
