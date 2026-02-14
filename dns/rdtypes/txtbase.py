@@ -57,16 +57,19 @@ class TXTBase(dns.rdata.Rdata):
         if len(self.strings) == 0:
             raise ValueError("the list of strings must not be empty")
 
-    def to_text(
-        self,
-        origin: dns.name.Name | None = None,
-        relativize: bool = True,
-        **kw: dict[str, Any],
-    ) -> str:
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         txt = ""
         prefix = ""
         for s in self.strings:
-            txt += f'{prefix}"{dns.rdata._escapify(s)}"'
+            if style is not None and style.txt_is_utf8:
+                try:
+                    us = s.decode()
+                    element = dns.rdata._escapify_unicode(us)
+                except Exception:
+                    element = dns.rdata._escapify(s)
+            else:
+                element = dns.rdata._escapify(s)
+            txt += f'{prefix}"{element}"'
             prefix = " "
         return txt
 

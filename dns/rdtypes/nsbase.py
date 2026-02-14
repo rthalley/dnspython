@@ -31,11 +31,10 @@ class NSBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, target):
         super().__init__(rdclass, rdtype)
-        self.target = self._as_name(target)
+        self.target: dns.name.Name = self._as_name(target)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        target = self.target.choose_relativity(origin, relativize)
-        return str(target)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        return self.target.to_styled_text(style)
 
     @classmethod
     def from_text(
