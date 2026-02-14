@@ -125,7 +125,7 @@ def _base64ify(data, chunksize=_chunksize, separator=b" ", **kw):
     of chunksize characters separated by a separator.
     """
     return _styled_base64ify(
-        data, RdataStyle(hex_chunk_separator=separator, hex_chunk_size=chunksize)
+        data, RdataStyle(base64_chunk_separator=separator, base64_chunk_size=chunksize)
     )
 
 
