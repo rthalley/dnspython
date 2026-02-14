@@ -39,6 +39,7 @@ import dns.rdatatype
 import dns.rrset
 import dns.transaction
 import dns.zone
+from dns._dnssec_util import key_id as key_id
 from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
 from dns.exception import AlgorithmKeyMismatch as AlgorithmKeyMismatch
 from dns.exception import DeniedByPolicy, UnsupportedAlgorithm, ValidationFailure
@@ -104,28 +105,6 @@ def to_timestamp(value: datetime | str | float | int) -> int:
         return value
     else:
         raise TypeError("Unsupported timestamp type")
-
-
-def key_id(key: DNSKEY | CDNSKEY) -> int:
-    """Return the key id (a 16-bit number) for the specified key.
-
-    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``
-
-    Returns an ``int`` between 0 and 65535
-    """
-
-    rdata = key.to_wire()
-    assert rdata is not None  # for mypy
-    if key.algorithm == Algorithm.RSAMD5:
-        return (rdata[-3] << 8) + rdata[-2]
-    else:
-        total = 0
-        for i in range(len(rdata) // 2):
-            total += (rdata[2 * i] << 8) + rdata[2 * i + 1]
-        if len(rdata) % 2 != 0:
-            total += rdata[len(rdata) - 1] << 8
-        total += (total >> 16) & 0xFFFF
-        return total & 0xFFFF
 
 
 class Policy:

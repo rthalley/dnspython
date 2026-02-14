@@ -32,6 +32,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.set
 import dns.ttl
+from dns._dnssec_util import key_id
 from dns._render_util import prefixed_length
 
 # define SimpleSet here for backwards compatibility
@@ -53,6 +54,26 @@ class RdatasetStyle(dns.rdata.RdataStyle):
 
     override_rdclass: dns.rdataclass.RdataClass | None = None
     want_comments: bool = False
+    omit_rdclass: bool = False
+    omit_ttl: bool = False
+    want_generic: bool = False
+    truncate_crypto: bool = False
+
+
+# Guidance for truncating crypto rdata
+_crypto_keep_first_n = {
+    dns.rdatatype.DNSKEY: 3,
+    dns.rdatatype.CDNSKEY: 3,
+    dns.rdatatype.RRSIG: 8,
+    dns.rdatatype.DS: 3,
+    dns.rdatatype.CDS: 3,
+    dns.rdatatype.ZONEMD: 3,
+    dns.rdatatype.OPENPGPKEY: 0,
+    dns.rdatatype.TLSA: 3,
+    dns.rdatatype.SMIMEA: 3,
+    dns.rdatatype.IPSECKEY: 4,
+    dns.rdatatype.HIP: 2,
+}
 
 
 class Rdataset(dns.set.Set):
@@ -252,39 +273,64 @@ class Rdataset(dns.set.Set):
         """Convert the rdataset into DNS zone file format."""
 
         if name is not None:
-            ntext = name.to_styled_text(style)
-            pad = " "
+            ntext = f"{name.to_styled_text(style)} "
         else:
             ntext = ""
-            pad = ""
         s = io.StringIO()
         if style.override_rdclass is not None:
             rdclass = style.override_rdclass
         else:
             rdclass = self.rdclass
+        if style.omit_rdclass:
+            rdclass_text = ""
+        elif style.want_generic:
+            rdclass_text = f"CLASS{rdclass} "
+        else:
+            rdclass_text = f"{dns.rdataclass.to_text(rdclass)} "
+        if style.want_generic:
+            rdtype_text = f"TYPE{self.rdtype} "
+        else:
+            rdtype_text = f"{dns.rdatatype.to_text(self.rdtype)} "
         if len(self) == 0:
             #
             # Empty rdatasets are used for the question section, and in
             # some dynamic updates, so we don't need to print out the TTL
             # (which is meaningless anyway).
             #
-            s.write(
-                f"{ntext}{pad}{dns.rdataclass.to_text(rdclass)} "
-                f"{dns.rdatatype.to_text(self.rdtype)}\n"
-            )
+            s.write(f"{ntext}{rdclass_text}{rdtype_text}\n")
         else:
+            if style.omit_ttl:
+                ttl = ""
+            else:
+                ttl = f"{self.ttl} "
             for rd in self:
                 extra = ""
                 if style.want_comments:
                     if rd.rdcomment:
                         extra = f" ;{rd.rdcomment}"
-                s.write(
-                    f"{ntext}{pad}{self.ttl} "
-                    f"{dns.rdataclass.to_text(rdclass)} "
-                    f"{dns.rdatatype.to_text(self.rdtype)} "
-                    f"{rd.to_styled_text(style)}"
-                    f"{extra}\n"
-                )
+                if style.want_generic:
+                    rdata_text = rd.to_generic().to_styled_text(style)
+                elif style.truncate_crypto:
+                    rdata_text = rd.to_styled_text(style)
+                    keep = _crypto_keep_first_n.get(rd.rdtype)
+                    kept_after = ""
+                    if keep is not None:
+                        if keep > 0:
+                            kept = " ".join(rdata_text.split(" ")[:keep]) + " "
+                        else:
+                            kept = ""
+                        if rd.rdtype == dns.rdatatype.DNSKEY:
+                            remark = f"[key id = {key_id(rd)}]"
+                        else:
+                            remark = "[omitted]"
+                        if rd.rdtype == dns.rdatatype.HIP:
+                            kept_after = " ".join(rdata_text.split(" ")[keep + 1 :])
+                            if len(kept_after) > 0:
+                                kept_after = " " + kept_after
+                        rdata_text = kept + remark + kept_after
+                else:
+                    rdata_text = rd.to_styled_text(style)
+                s.write(f"{ntext}{ttl}{rdclass_text}{rdtype_text}{rdata_text}{extra}\n")
         #
         # We strip off the final \n for the caller's convenience in printing
         #

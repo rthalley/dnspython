@@ -16,7 +16,6 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import struct
-from collections.abc import Iterable
 
 import dns.exception
 import dns.immutable
