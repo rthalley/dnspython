@@ -715,8 +715,8 @@ class Zone(dns.transaction.TransactionManager):
                 nl_b = style.nl.encode(file_enc)
                 nl = style.nl
             else:
-                nl_b = nl
-                nl = nl.decode()
+                nl_b = style.nl
+                nl = style.nl.decode()
             assert nl is not None
             assert nl_b is not None
 
