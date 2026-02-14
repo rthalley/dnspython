@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.immutable
+import dns.name
 import dns.rdtypes.mxbase
 
 
@@ -35,11 +36,11 @@ class AFSDB(dns.rdtypes.mxbase.UncompressedDowncasingMX):
     # good.
 
     @property
-    def subtype(self):
+    def subtype(self) -> int:
         "the AFSDB subtype"
         return self.preference
 
     @property
-    def hostname(self):
+    def hostname(self) -> dns.name.Name:
         "the AFSDB hostname"
         return self.exchange

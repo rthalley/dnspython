@@ -38,9 +38,9 @@ class PX(dns.rdata.Rdata):
         self.map822 = self._as_name(map822)
         self.mapx400 = self._as_name(mapx400)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        map822 = self.map822.choose_relativity(origin, relativize)
-        mapx400 = self.mapx400.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        map822 = self.map822.to_styled_text(style)
+        mapx400 = self.mapx400.to_styled_text(style)
         return f"{self.preference} {map822} {mapx400}"
 
     @classmethod

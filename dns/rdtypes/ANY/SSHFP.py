@@ -37,12 +37,8 @@ class SSHFP(dns.rdata.Rdata):
         self.fp_type = self._as_uint8(fp_type)
         self.fingerprint = self._as_bytes(fingerprint, True)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        fingerprint = dns.rdata._hexify(
-            self.fingerprint, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        fingerprint = dns.rdata._styled_hexify(self.fingerprint, style)
         return f"{self.algorithm} {self.fp_type} {fingerprint}"
 
     @classmethod

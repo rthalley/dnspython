@@ -26,8 +26,9 @@ clean:
 	rm -rf dist
 	rm -rf build
 
+.PHONY: doc
 doc:
-	cd doc; make html
+	make -C doc html
 
 test:
 	pytest

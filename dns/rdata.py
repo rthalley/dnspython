@@ -16,9 +16,9 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS rdata."""
-
 import base64
 import binascii
+import dataclasses
 import inspect
 import io
 import ipaddress
@@ -57,11 +57,55 @@ class NoRelativeRdataOrdering(dns.exception.DNSException):
     """
 
 
-def _wordbreak(data, chunksize=_chunksize, separator=b" "):
+@dataclasses.dataclass(frozen=True)
+class RdataStyle(dns.name.NameStyle):
+    """Rdata text styles
+
+    An ``RdataStyle`` is also a :py:class:`dns.name.NameStyle`; see that class
+    for a description of its options.
+
+    If *txt_is_utf8* is ``True``, then TXT-like records will be treated
+    as UTF-8 if they decode successfully, and the output string may contain any
+    Unicode codepoint.  If ``False``, the default, then TXT-like records are
+    treated according to RFC 1035 rules.
+
+    *base64_chunk_size*, an ``int`` with default 32, specifies the chunk size for
+    text representations that break base64 strings into chunks.
+
+    *base64_chunk_separator*, a ``str`` with default ``" "``, specifies the
+    chunk separator for text representations that break base64 strings into chunks.
+
+    *hex_chunk_size*, an ``int`` with default 128, specifies the chunk size for
+    text representations that break hex strings into chunks.
+
+    *hex_chunk_separator*, a ``str`` with default ``" "``, specifies the
+    chunk separator for text representations that break hex strings into chunks.
+
+    *truncate_crypto*, a ``bool``.  The default is ``False``.  If ``True``, then
+    output of crypto types (e.g. DNSKEY) is altered to be readable
+    by humans in a debugging context, but the crypto content will be removed.
+    A sample use would be a "dig" application where you wanted to see how many
+    DNSKEYs there were, and what key ids they had, without seeing the actual
+    public key data.  Use of this option will lose information.
+    """
+
+    txt_is_utf8: bool = False
+    base64_chunk_size: int = 32
+    base64_chunk_separator: str = " "
+    hex_chunk_size: int = 128
+    hex_chunk_separator: str = " "
+    truncate_crypto: bool = False
+
+
+def _wordbreak(
+    data: bytes, chunksize: int = _chunksize, separator: bytes | str = b" "
+) -> str:
     """Break a binary string into chunks of chunksize characters separated by
     a space.
     """
 
+    if isinstance(separator, str):
+        separator = separator.encode()
     if not chunksize:
         return data.decode()
     return separator.join(
@@ -72,25 +116,60 @@ def _wordbreak(data, chunksize=_chunksize, separator=b" "):
 # pylint: disable=unused-argument
 
 
-def _hexify(data, chunksize=_chunksize, separator=b" ", **kw):
+def _hexify(data, chunksize=_chunksize, separator: bytes | str = " ", **kw):
     """Convert a binary string into its hex encoding, broken up into chunks
     of chunksize characters separated by a separator.
     """
+    if isinstance(separator, bytes):
+        separator = separator.decode()
+    return _styled_hexify(
+        data, RdataStyle(hex_chunk_separator=separator, hex_chunk_size=chunksize)
+    )
 
-    return _wordbreak(binascii.hexlify(data), chunksize, separator)
+
+def _styled_hexify(data, style: RdataStyle, is_crypto: bool = False):
+    """Convert a binary string into its hex encoding, broken up into chunks
+    of characters separated by a separator.
+    """
+
+    if style.truncate_crypto and is_crypto:
+        return "[omitted]"
+    return _wordbreak(
+        binascii.hexlify(data),
+        style.hex_chunk_size,
+        style.hex_chunk_separator,
+    )
 
 
-def _base64ify(data, chunksize=_chunksize, separator=b" ", **kw):
+def _base64ify(data, chunksize=_chunksize, separator: bytes | str = " ", **kw):
     """Convert a binary string into its base64 encoding, broken up into chunks
     of chunksize characters separated by a separator.
     """
+    if isinstance(separator, bytes):
+        separator = separator.decode()
+    return _styled_base64ify(
+        data, RdataStyle(base64_chunk_separator=separator, base64_chunk_size=chunksize)
+    )
 
-    return _wordbreak(base64.b64encode(data), chunksize, separator)
+
+def _styled_base64ify(data, style: RdataStyle, is_crypto: bool = False):
+    """Convert a binary string into its base64 encoding, broken up into chunks
+    of characters separated by a separator.
+    """
+
+    if style.truncate_crypto and is_crypto:
+        return "[omitted]"
+    return _wordbreak(
+        base64.b64encode(data),
+        style.base64_chunk_size,
+        style.base64_chunk_separator,
+    )
 
 
 # pylint: enable=unused-argument
 
-__escaped = b'"\\'
+_escaped = b'"\\'
+_unicode_escaped = '"\\'
 
 
 def _escapify(qstring):
@@ -103,12 +182,26 @@ def _escapify(qstring):
 
     text = ""
     for c in qstring:
-        if c in __escaped:
+        if c in _escaped:
             text += "\\" + chr(c)
         elif c >= 0x20 and c < 0x7F:
             text += chr(c)
         else:
             text += f"\\{c:03d}"
+    return text
+
+
+def _escapify_unicode(qstring):
+    """Escape the characters in a Unicode quoted string which need it."""
+
+    text = ""
+    for c in qstring:
+        if c in _unicode_escaped:
+            text += "\\" + c
+        elif ord(c) >= 0x20:
+            text += c
+        else:
+            text += f"\\{ord(c):03d}"
     return text
 
 
@@ -132,6 +225,8 @@ class Rdata:
     """Base class for all DNS rdata types."""
 
     __slots__ = ["rdclass", "rdtype", "rdcomment"]
+
+    _crypto_keep_first_n: int | None = None
 
     def __init__(
         self,
@@ -204,9 +299,28 @@ class Rdata:
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: dict[str, Any],
+        style: RdataStyle | None = None,
+        **kw: Any,
     ) -> str:
         """Convert an rdata to text format.
+
+        *style*, a :py:class:`dns.rdata.RdataStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters.
+
+        Returns a ``str``.
+        """
+        if style is None:
+            kw = kw.copy()
+            kw["origin"] = origin
+            kw["relativize"] = relativize
+            style = RdataStyle.from_keywords(kw)
+        return self.to_styled_text(style)
+
+    def to_styled_text(self, style: RdataStyle) -> str:
+        """Convert an rdata to styled text format.
+
+        See the documentation for :py:class:`dns.rdata.RdataStyle` for a description
+        of the style parameters.
 
         Returns a ``str``.
         """
@@ -629,13 +743,11 @@ class GenericRdata(Rdata):
         super().__init__(rdclass, rdtype)
         self.data = data
 
-    def to_text(
+    def to_styled_text(
         self,
-        origin: dns.name.Name | None = None,
-        relativize: bool = True,
-        **kw: dict[str, Any],
+        style: RdataStyle,
     ) -> str:
-        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # pyright: ignore
+        return rf"\# {len(self.data)} " + _styled_hexify(self.data, style)
 
     @classmethod
     def from_text(

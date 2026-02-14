@@ -53,6 +53,7 @@ __all__ = [
     "rrset",
     "serial",
     "set",
+    "style",
     "tokenizer",
     "transaction",
     "tsig",

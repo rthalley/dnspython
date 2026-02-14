@@ -3,6 +3,7 @@
 import struct
 
 import dns.immutable
+import dns.name
 import dns.rdata
 
 
@@ -16,12 +17,11 @@ class LP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, preference, fqdn):
         super().__init__(rdclass, rdtype)
-        self.preference = self._as_uint16(preference)
-        self.fqdn = self._as_name(fqdn)
+        self.preference: int = self._as_uint16(preference)
+        self.fqdn: dns.name.Name = self._as_name(fqdn)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        fqdn = self.fqdn.choose_relativity(origin, relativize)
-        return f"{self.preference} {fqdn}"
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        return f"{self.preference} {self.fqdn.to_styled_text(style)}"
 
     @classmethod
     def from_text(

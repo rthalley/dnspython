@@ -287,6 +287,68 @@ web a 10.0.0.4
     rrsig NSEC 1 3 3600 20200101000000 20030101000000 2143 foo MxFcby9k/yvedMfQgKzhH5er0Mu/vILz 45IkskceFGgiWCn/GxHhai6VAuHAoNUz 4YoU1tVfSCSqQYn6//11U6Nld80jEeC8 aTrO+KKmCaY=
 """
 
+example_unicode = """$UNICODE 2008 TXT
+$ORIGIN example.
+$TTL 300
+@               SOA     ns1.example. hostmaster.example. 1 2 3 4 5
+                NS      ns1.example.
+                NS      ns2.example.
+                MX      10 boîte-aux-lettres
+ns1     60      A       10.53.0.1
+        60      A       10.53.1.1
+ns2     60      A       10.53.0.2
+élèves          TXT "Je peux manger du verre, ça me fait pas mal."
+                TXT "Puedo comer vidrio, no me hace daño."
+                TXT "ὕαλον ϕαγεῖν δύναμαι· τοῦτο οὔ με βλάπτει."
+                TXT "Я могу есть стекло, оно мне не вредит."
+                TXT "मैं काँच खा सकता हूँ और मुझे उससे कोई चोट नहीं पहुंचती."
+                TXT "أنا قادر على أكل الزجاج و هذا لا يؤلمني."
+                TXT "我能吞下玻璃而不伤身体。"
+                TXT "私はガラスを食べられます。それは私を傷つけません。"
+                TXT "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요"
+"""
+
+example_unicode_expected = """$UNICODE 2008 TXT
+$ORIGIN example.
+@ 300 SOA ns1 hostmaster 1 2 3 4 5
+    300 NS ns1
+    300 NS ns2
+    300 MX 10 boîte-aux-lettres
+ns1 60 A 10.53.0.1
+    60 A 10.53.1.1
+ns2 60 A 10.53.0.2
+élèves 300 TXT "Je peux manger du verre, ça me fait pas mal."
+    300 TXT "Puedo comer vidrio, no me hace daño."
+    300 TXT "ὕαλον ϕαγεῖν δύναμαι· τοῦτο οὔ με βλάπτει."
+    300 TXT "Я могу есть стекло, оно мне не вредит."
+    300 TXT "मैं काँच खा सकता हूँ और मुझे उससे कोई चोट नहीं पहुंचती."
+    300 TXT "أنا قادر على أكل الزجاج و هذا لا يؤلمني."
+    300 TXT "我能吞下玻璃而不伤身体。"
+    300 TXT "私はガラスを食べられます。それは私を傷つけません。"
+    300 TXT "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요"
+"""
+
+example_unicode_justified = """$UNICODE 2008 TXT
+$ORIGIN example.
+$TTL 300
+@                 SOA      ns1 hostmaster 1 2 3 4 5
+                  NS       ns1
+                  NS       ns2
+                  MX       10 boîte-aux-lettres
+ns1        60     A        10.53.0.1
+           60     A        10.53.1.1
+ns2        60     A        10.53.0.2
+élèves            TXT      "Je peux manger du verre, ça me fait pas mal."
+                  TXT      "Puedo comer vidrio, no me hace daño."
+                  TXT      "ὕαλον ϕαγεῖν δύναμαι· τοῦτο οὔ με βλάπτει."
+                  TXT      "Я могу есть стекло, оно мне не вредит."
+                  TXT      "मैं काँच खा सकता हूँ और मुझे उससे कोई चोट नहीं पहुंचती."
+                  TXT      "أنا قادر على أكل الزجاج و هذا لا يؤلمني."
+                  TXT      "我能吞下玻璃而不伤身体。"
+                  TXT      "私はガラスを食べられます。それは私を傷つけません。"
+                  TXT      "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요"
+"""
+
 _keep_output = True
 
 
@@ -1187,6 +1249,38 @@ class ZoneTestCase(unittest.TestCase):
             node.delete_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
         with self.assertRaises(TypeError):
             node.replace_rdataset(None)
+
+    def testUnicodeThereAndBack(self):
+        z1 = dns.zone.from_text(example_unicode, "example")
+        s = dns.zone.ZoneStyle(
+            deduplicate_names=True, omit_rdclass=True, want_origin=True
+        )
+        t1 = z1.to_styled_text(s)
+        self.assertEqual(t1, example_unicode_expected)
+        z2 = dns.zone.from_text(t1, "example")
+        self.assertEqual(z1, z2)
+        z1.unicode = set()
+        t2 = z1.to_text()
+        z3 = dns.zone.from_text(t2, "example.")
+        self.assertEqual(z1, z3)
+
+    def testJustificationAndDefaultTTL(self):
+        z1 = dns.zone.from_text(example_unicode, "example")
+        s = dns.zone.ZoneStyle(
+            deduplicate_names=True,
+            omit_rdclass=True,
+            want_origin=True,
+            default_ttl=300,
+            name_just=-10,
+            ttl_just=4,
+            rdclass_just=-4,
+            rdtype_just=-8,
+        )
+        t1 = z1.to_styled_text(s)
+        print(t1)
+        print("-------")
+        print(example_unicode_justified)
+        self.assertEqual(t1, example_unicode_justified)
 
 
 class VersionedZoneTestCase(unittest.TestCase):

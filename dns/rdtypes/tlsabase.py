@@ -17,10 +17,13 @@
 
 import binascii
 import struct
+from typing import TypeVar
 
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
+
+T = TypeVar("T", bound="TLSABase")
 
 
 @dns.immutable.immutable
@@ -33,23 +36,25 @@ class TLSABase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, usage, selector, mtype, cert):
         super().__init__(rdclass, rdtype)
-        self.usage = self._as_uint8(usage)
-        self.selector = self._as_uint8(selector)
-        self.mtype = self._as_uint8(mtype)
-        self.cert = self._as_bytes(cert)
+        self.usage: int = self._as_uint8(usage)
+        self.selector: int = self._as_uint8(selector)
+        self.mtype: int = self._as_uint8(mtype)
+        self.cert: bytes = self._as_bytes(cert)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        cert = dns.rdata._hexify(
-            self.cert, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        cert = dns.rdata._styled_hexify(self.cert, style, True)
         return f"{self.usage} {self.selector} {self.mtype} {cert}"
 
     @classmethod
     def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+        cls: type[T],
+        rdclass,
+        rdtype,
+        tok,
+        origin=None,
+        relativize=True,
+        relativize_to=None,
+    ) -> T:
         usage = tok.get_uint8()
         selector = tok.get_uint8()
         mtype = tok.get_uint8()
@@ -63,7 +68,7 @@ class TLSABase(dns.rdata.Rdata):
         file.write(self.cert)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         header = parser.get_struct("BBB")
         cert = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2], cert)

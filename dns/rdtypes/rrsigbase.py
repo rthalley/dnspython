@@ -19,10 +19,12 @@ import base64
 import calendar
 import struct
 import time
+from typing import TypeVar
 
 import dns.dnssectypes
 import dns.exception
 import dns.immutable
+import dns.name
 import dns.rdata
 import dns.rdatatype
 
@@ -47,6 +49,9 @@ def sigtime_to_posixtime(what):
 
 def posixtime_to_sigtime(what):
     return time.strftime("%Y%m%d%H%M%S", time.gmtime(what))
+
+
+T = TypeVar("T", bound="RRSIGBase")
 
 
 @dns.immutable.immutable
@@ -80,25 +85,27 @@ class RRSIGBase(dns.rdata.Rdata):
         signature,
     ):
         super().__init__(rdclass, rdtype)
-        self.type_covered = self._as_rdatatype(type_covered)
-        self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
-        self.labels = self._as_uint8(labels)
-        self.original_ttl = self._as_ttl(original_ttl)
-        self.expiration = self._as_uint32(expiration)
-        self.inception = self._as_uint32(inception)
-        self.key_tag = self._as_uint16(key_tag)
-        self.signer = self._as_name(signer)
-        self.signature = self._as_bytes(signature)
+        self.type_covered: dns.rdatatype.RdataType = self._as_rdatatype(type_covered)
+        self.algorithm: dns.dnssectypes.Algorithm = dns.dnssectypes.Algorithm.make(
+            algorithm
+        )
+        self.labels: int = self._as_uint8(labels)
+        self.original_ttl: int = self._as_ttl(original_ttl)
+        self.expiration: int = self._as_uint32(expiration)
+        self.inception: int = self._as_uint32(inception)
+        self.key_tag: int = self._as_uint16(key_tag)
+        self.signer: dns.name.Name = self._as_name(signer)
+        self.signature: bytes = self._as_bytes(signature)
 
     def covers(self):
         return self.type_covered
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         ctext = dns.rdatatype.to_text(self.type_covered)
         expiration = posixtime_to_sigtime(self.expiration)
         inception = posixtime_to_sigtime(self.inception)
-        signer = self.signer.choose_relativity(origin, relativize)
-        sig = dns.rdata._base64ify(self.signature, **kw)  # pyright: ignore
+        signer = self.signer.to_styled_text(style)
+        sig = dns.rdata._styled_base64ify(self.signature, style, True)
         return (
             f"{ctext} {self.algorithm} {self.labels} {self.original_ttl} "
             + f"{expiration} {inception} {self.key_tag} {signer} {sig}"
@@ -106,8 +113,14 @@ class RRSIGBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+        cls: type[T],
+        rdclass,
+        rdtype,
+        tok,
+        origin=None,
+        relativize=True,
+        relativize_to=None,
+    ) -> T:
         type_covered = dns.rdatatype.from_text(tok.get_string())
         algorithm = dns.dnssectypes.Algorithm.from_text(tok.get_string())
         labels = tok.get_int()
@@ -148,7 +161,7 @@ class RRSIGBase(dns.rdata.Rdata):
         file.write(self.signature)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()

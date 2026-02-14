@@ -33,12 +33,8 @@ class ZONEMD(dns.rdata.Rdata):
         if hasher and hasher().digest_size != len(self.digest):
             raise ValueError("digest length inconsistent with hash algorithm")
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        digest = dns.rdata._hexify(
-            self.digest, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        digest = dns.rdata._styled_hexify(self.digest, style, True)
         return f"{self.serial} {self.scheme} {self.hash_algorithm} {digest}"
 
     @classmethod

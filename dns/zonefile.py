@@ -122,7 +122,7 @@ class Reader:
         self.current_file: Any | None = None
         self.allowed_directives: set[str]
         if allow_directives is True:
-            self.allowed_directives = {"$GENERATE", "$ORIGIN", "$TTL"}
+            self.allowed_directives = {"$GENERATE", "$ORIGIN", "$TTL", "$UNICODE"}
             if allow_include:
                 self.allowed_directives.add("$INCLUDE")
         elif allow_directives is False:
@@ -541,6 +541,18 @@ class Reader:
                         self.current_origin = new_origin
                     elif c == "$GENERATE":
                         self._generate_line()
+                    elif c == "$UNICODE":
+                        while True:
+                            token = self.tok.get()
+                            if token.is_eol_or_eof():
+                                break
+                            if not token.is_identifier():
+                                raise dns.exception.SyntaxError("bad $UNICODE")
+                            self.txn.add_unicode(token.value)
+                            if token.value == "2008":
+                                self.tok.idna_codec = dns.name.IDNA_2008_Practical
+                            elif token.value == "2003":
+                                self.tok.idna_codec = dns.name.IDNA_2003_Practical
                     else:
                         raise dns.exception.SyntaxError(
                             f"Unknown zone file directive '{c}'"

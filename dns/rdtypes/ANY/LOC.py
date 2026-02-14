@@ -155,7 +155,7 @@ class LOC(dns.rdata.Rdata):
         self.horizontal_precision = float(hprec)
         self.vertical_precision = float(vprec)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle):
         if self.latitude[4] > 0:
             lat_hemisphere = "N"
         else:

@@ -19,6 +19,7 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.name
 import dns.rdata
 import dns.rdtypes.util
 
@@ -27,7 +28,7 @@ class Relay(dns.rdtypes.util.Gateway):
     name = "AMTRELAY relay"
 
     @property
-    def relay(self):
+    def relay(self) -> str | dns.name.Name | None:
         return self.gateway
 
 
@@ -44,13 +45,13 @@ class AMTRELAY(dns.rdata.Rdata):
     ):
         super().__init__(rdclass, rdtype)
         relay = Relay(relay_type, relay)
-        self.precedence = self._as_uint8(precedence)
-        self.discovery_optional = self._as_bool(discovery_optional)
-        self.relay_type = relay.type
-        self.relay = relay.relay
+        self.precedence: int = self._as_uint8(precedence)
+        self.discovery_optional: bool = self._as_bool(discovery_optional)
+        self.relay_type: int = relay.type
+        self.relay: str | dns.name.Name | None = relay.relay
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        relay = Relay(self.relay_type, self.relay).to_text(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        relay = Relay(self.relay_type, self.relay).to_styled_text(style)
         return (
             f"{self.precedence} {self.discovery_optional:d} {self.relay_type} {relay}"
         )
@@ -58,7 +59,7 @@ class AMTRELAY(dns.rdata.Rdata):
     @classmethod
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+    ) -> "AMTRELAY":
         precedence = tok.get_uint8()
         discovery_optional = tok.get_uint8()
         if discovery_optional > 1:
@@ -79,7 +80,7 @@ class AMTRELAY(dns.rdata.Rdata):
         Relay(self.relay_type, self.relay).to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "AMTRELAY":
         precedence, relay_type = parser.get_struct("!BB")
         discovery_optional = bool(relay_type >> 7)
         relay_type &= 0x7F

@@ -17,11 +17,14 @@
 
 import binascii
 import struct
+from typing import TypeVar
 
 import dns.dnssectypes
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
+
+T = TypeVar("T", bound="DSBase")
 
 
 @dns.immutable.immutable
@@ -52,18 +55,20 @@ class DSBase(dns.rdata.Rdata):
             if self.digest_type == 0:  # reserved, RFC 3658 Sec. 2.4
                 raise ValueError("digest type 0 is reserved")
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        kw = kw.copy()
-        chunksize = kw.pop("chunksize", 128)
-        digest = dns.rdata._hexify(
-            self.digest, chunksize=chunksize, **kw  # pyright: ignore
-        )
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        digest = dns.rdata._styled_hexify(self.digest, style, True)
         return f"{self.key_tag} {self.algorithm} {self.digest_type} {digest}"
 
     @classmethod
     def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+        cls: type[T],
+        rdclass,
+        rdtype,
+        tok,
+        origin=None,
+        relativize=True,
+        relativize_to=None,
+    ) -> T:
         key_tag = tok.get_uint16()
         algorithm = tok.get_string()
         digest_type = tok.get_uint8()
@@ -77,7 +82,7 @@ class DSBase(dns.rdata.Rdata):
         file.write(self.digest)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         header = parser.get_struct("!HBB")
         digest = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)

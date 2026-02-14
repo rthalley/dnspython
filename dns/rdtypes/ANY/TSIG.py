@@ -80,8 +80,8 @@ class TSIG(dns.rdata.Rdata):
         self.error = dns.rcode.Rcode.make(error)
         self.other = self._as_bytes(other)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        algorithm = self.algorithm.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        algorithm = self.algorithm.to_styled_text(style)
         error = dns.rcode.to_text(self.error, True)
         text = (
             f"{algorithm} {self.time_signed} {self.fudge} "

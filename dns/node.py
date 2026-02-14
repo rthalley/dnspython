@@ -17,6 +17,7 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
+import dataclasses
 import enum
 import io
 from typing import Any
@@ -42,6 +43,19 @@ _neutral_types = {
 
 def _matches_type_or_its_signature(rdtypes, rdtype, covers):
     return rdtype in rdtypes or (rdtype == dns.rdatatype.RRSIG and covers in rdtypes)
+
+
+@dataclasses.dataclass(frozen=True)
+class NodeStyle(dns.rdataset.RdatasetStyle):
+    """Node text styles.
+
+    A ``NodeStyle`` is also a :py:class:`dns.name.NameStyle` and a
+    :py:class:`dns.rdata.RdataStyle`, and a :py:class:`dns.rdataset.RdatasetStyle`.
+    See those classes for a description of their options.
+
+    There are currently no node-specific style options, but if that changes they
+    will be documented here.
+    """
 
 
 @enum.unique
@@ -90,7 +104,9 @@ class Node:
         # the set of rdatasets, represented as a list.
         self.rdatasets = []
 
-    def to_text(self, name: dns.name.Name, **kw: dict[str, Any]) -> str:
+    def to_text(
+        self, name: dns.name.Name, style: NodeStyle | None = None, **kw: Any
+    ) -> str:
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
@@ -99,15 +115,36 @@ class Node:
         *name*, a ``dns.name.Name``, the owner name of the
         rdatasets.
 
-        Returns a ``str``.
+        *style*, a :py:class:`dns.node.NodeStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters except *name*.
 
+        Returns a ``str``.
+        """
+        if style is None:
+            style = NodeStyle.from_keywords(kw)
+        return self.to_styled_text(style, name)
+
+    def to_styled_text(self, style: NodeStyle, name: dns.name.Name) -> str:
+        """Convert a node to text format.
+
+        Each rdataset at the node is printed.
+
+        *name*, a ``dns.name.Name``, the owner name of the
+        rdatasets.
+
+        See the documentation for :py:class:`dns.node.NodeStyle` for a description
+        of the style parameters.
+
+        Returns a ``str``.
         """
 
         s = io.StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                s.write(rds.to_text(name, **kw))  # pyright: ignore[arg-type]
+                s.write(rds.to_styled_text(style, name))
                 s.write("\n")
+                if style.deduplicate_names and not style.first_name_is_duplicate:
+                    style = style.replace(first_name_is_duplicate=True)
         return s.getvalue()[:-1]
 
     def __repr__(self):
