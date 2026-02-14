@@ -18,7 +18,6 @@
 """TXT-like base class."""
 
 from collections.abc import Iterable
-from typing import Any
 
 import dns.exception
 import dns.immutable

@@ -27,9 +27,6 @@ import random
 from importlib import import_module
 from typing import Any
 
-import sphinx
-from coverage.files import sep
-
 import dns.exception
 import dns.immutable
 import dns.ipv4
@@ -138,7 +135,7 @@ def _styled_base64ify(data, style: "RdataStyle"):
     """
 
     return _wordbreak(
-        binascii.hexlify(data), style.base64_chunk_size, style.base64_chunk_separator
+        base64.b64encode(data), style.base64_chunk_size, style.base64_chunk_separator
     )
 
 

@@ -96,7 +96,7 @@ class Node:
         # the set of rdatasets, represented as a list.
         self.rdatasets = []
 
-    def to_text(self, name: dns.name.Name, **kw: dict[str, Any]) -> str:
+    def to_text(self, name: dns.name.Name, **kw: Any) -> str:
         """Convert a node to text format.
 
         Each rdataset at the node is printed.  Any keyword arguments
@@ -108,11 +108,26 @@ class Node:
         Returns a ``str``.
 
         """
+        style = kw.get("style")
+        if style is None:
+            style = NodeStyle.from_keywords(kw)
+        return self.to_styled_text(style, name)
+
+    def to_styled_text(self, style: NodeStyle, name: dns.name.Name) -> str:
+        """Convert a node to text format.
+
+        Each rdataset at the node is printed.
+
+        *name*, a ``dns.name.Name``, the owner name of the
+        rdatasets.
+
+        Returns a ``str``.
+        """
 
         s = io.StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                s.write(rds.to_text(name, **kw))  # pyright: ignore[arg-type]
+                s.write(rds.to_styled_text(style, name))
                 s.write("\n")
         return s.getvalue()[:-1]
 
