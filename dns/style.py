@@ -10,6 +10,9 @@ T = TypeVar("T", bound="BaseStyle")
 class BaseStyle:
     """All text styles"""
 
+    def replace(self: T, /, **changes) -> T:
+        return dataclasses.replace(self, **changes)
+
     @classmethod
     def from_keywords(cls: type[T], kw: dict[str, Any]) -> T:
         ok_kw: dict[str, Any] = {}

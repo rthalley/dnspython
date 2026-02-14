@@ -644,6 +644,7 @@ class Zone(dns.transaction.TransactionManager):
         nl: str | bytes | None = None,
         want_comments: bool = False,
         want_origin: bool = False,
+        style: ZoneStyle | None = None,
     ) -> None:
         """Write a zone to a file.
 
@@ -671,6 +672,29 @@ class Zone(dns.transaction.TransactionManager):
         the start of the file.  If ``False``, the default, do not emit
         one.
         """
+        if style is None:
+            kw = {}
+            kw["sorted"] = sorted
+            kw["relativize"] = relativize
+            if relativize:
+                assert self.origin is not None
+                kw["origin"] = self.origin
+            kw["nl"] = nl
+            kw["want_comments"] = want_comments
+            kw["want_origin"] = want_origin
+            style = ZoneStyle.from_keywords(kw)
+        return self.to_styled_file(style, f)
+
+    def to_styled_file(
+        self,
+        style: ZoneStyle,
+        f: Any,
+    ) -> None:
+        """Write a zone to a styled file.
+
+        *f*, a file or `str`.  If *f* is a string, it is treated
+        as the name of a file to open.
+        """
 
         if isinstance(f, str):
             cm: contextlib.AbstractContextManager = open(f, "wb")
@@ -683,21 +707,24 @@ class Zone(dns.transaction.TransactionManager):
             if file_enc is None:
                 file_enc = "utf-8"
 
-            if nl is None:
+            if style.nl is None:
                 # binary mode, '\n' is not enough
                 nl_b = os.linesep.encode(file_enc)
                 nl = "\n"
-            elif isinstance(nl, str):
-                nl_b = nl.encode(file_enc)
+            elif isinstance(style.nl, str):
+                nl_b = style.nl.encode(file_enc)
+                nl = style.nl
             else:
                 nl_b = nl
                 nl = nl.decode()
             assert nl is not None
             assert nl_b is not None
 
-            if want_origin:
+            if style.want_origin:
                 assert self.origin is not None
-                l = "$ORIGIN " + self.origin.to_text()
+                # ensure we don't relativize the origin to the origin!
+                origin_style = style.replace(origin=None)
+                l = "$ORIGIN " + self.origin.to_styled_text(origin_style)
                 l_b = l.encode(file_enc)
                 try:
                     bout = cast(BinaryIO, output)
@@ -708,18 +735,13 @@ class Zone(dns.transaction.TransactionManager):
                     tout.write(l)
                     tout.write(nl)
 
-            if sorted:
+            if style.sorted:
                 names = list(self.keys())
                 names.sort()
             else:
                 names = self.keys()
             for n in names:
-                l = self[n].to_text(
-                    n,
-                    origin=self.origin,  # pyright: ignore
-                    relativize=relativize,  # pyright: ignore
-                    want_comments=want_comments,  # pyright: ignore
-                )
+                l = self[n].to_styled_text(style, n)
                 l_b = l.encode(file_enc)
                 try:
                     bout = cast(BinaryIO, output)
@@ -737,6 +759,7 @@ class Zone(dns.transaction.TransactionManager):
         nl: str | None = None,
         want_comments: bool = False,
         want_origin: bool = False,
+        style: ZoneStyle | None = None,
     ) -> str:
         """Return a zone's text as though it were written to a file.
 
@@ -765,6 +788,14 @@ class Zone(dns.transaction.TransactionManager):
         """
         temp_buffer = io.StringIO()
         self.to_file(temp_buffer, sorted, relativize, nl, want_comments, want_origin)
+        return_value = temp_buffer.getvalue()
+        temp_buffer.close()
+        return return_value
+
+    def to_styled_text(self, style: ZoneStyle):
+        """Return a zone's styled text as though it were written to a file."""
+        temp_buffer = io.StringIO()
+        self.to_styled_file(style, temp_buffer)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
         return return_value
