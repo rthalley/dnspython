@@ -46,6 +46,13 @@ class IncompatibleTypes(dns.exception.DNSException):
     """An attempt was made to add DNS RR data of an incompatible type."""
 
 
+class RdatasetStyle(dns.rdata.RdataStyle):
+    """Rdataset text styles"""
+
+    override_rdclass: dns.rdataclass.RdataClass | None = None
+    want_comments: bool = False
+
+
 class Rdataset(dns.set.Set):
     """A DNS rdataset."""
 

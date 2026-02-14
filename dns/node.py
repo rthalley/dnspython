@@ -17,6 +17,7 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
+import dataclasses
 import enum
 import io
 from typing import Any
@@ -42,6 +43,11 @@ _neutral_types = {
 
 def _matches_type_or_its_signature(rdtypes, rdtype, covers):
     return rdtype in rdtypes or (rdtype == dns.rdatatype.RRSIG and covers in rdtypes)
+
+
+@dataclasses.dataclass
+class NodeStyle(dns.rdataset.RdatasetStyle):
+    """Node text styles."""
 
 
 @enum.unique

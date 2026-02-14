@@ -18,6 +18,7 @@
 """DNS Zones."""
 
 import contextlib
+import dataclasses
 import io
 import os
 import struct
@@ -103,6 +104,29 @@ def _validate_name(
             # derelativized name.
             name = abs_name
     return name
+
+
+@dataclasses.dataclass
+class ZoneStyle(dns.node.NodeStyle):
+    """Zone text styles
+
+    *sorted*, a ``bool``.  If True, the default, then the file
+    will be written with the names sorted in DNSSEC order from
+    least to greatest.  Otherwise the names will be written in
+    whatever order they happen to have in the zone's dictionary.
+
+    *nl*, a ``str`` or ``None`` (the default).  The end of line string,
+    or if ``None``, the output will use the platform's native
+    end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
+
+    *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
+    the start of the output.  If ``False``, the default, do not emit
+    one.
+    """
+
+    sorted: bool = True
+    nl: str | None = None
+    want_origin: bool = False
 
 
 class Zone(dns.transaction.TransactionManager):

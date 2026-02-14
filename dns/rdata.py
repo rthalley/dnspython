@@ -16,9 +16,9 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS rdata."""
-
 import base64
 import binascii
+import dataclasses
 import inspect
 import io
 import ipaddress
@@ -26,6 +26,9 @@ import itertools
 import random
 from importlib import import_module
 from typing import Any
+
+import sphinx
+from coverage.files import sep
 
 import dns.exception
 import dns.immutable
@@ -57,6 +60,35 @@ class NoRelativeRdataOrdering(dns.exception.DNSException):
     """
 
 
+@dataclasses.dataclass
+class RdataStyle(dns.name.NameStyle):
+    """Rdata text styles
+
+    If *txt_is_utf8* is ``True``, then TXT-like records will be treated
+    as UTF-8 if they decode successfully, and the output string may contain any
+    Unicode codepoint.  If ``False``, the default, then TXT-like records are
+    treated according to RFC 1035 rules.
+
+    *base64_chunk_size*, an ``int`` with default 32, specifies the chunk size for
+    text representations that break base64 strings into chunks.
+
+    *base64_chunk_separator*, a ``bytes`` with default ``b" "``, specifies the
+    chunk separator for text representations that break base64 strings into chunks.
+
+    *hex_chunk_size*, an ``int`` with default 128, specifies the chunk size for
+    text representations that break hex strings into chunks.
+
+    *hex_chunk_separator*, a ``bytes`` with default ``b" "``, specifies the
+    chunk separator for text representations that break hex strings into chunks.
+    """
+
+    txt_is_utf8: bool = False
+    base64_chunk_size: int = 32
+    base64_chunk_separator: bytes = b" "
+    hex_chunk_size: int = 128
+    hex_chunk_separator: bytes = b" "
+
+
 def _wordbreak(data, chunksize=_chunksize, separator=b" "):
     """Break a binary string into chunks of chunksize characters separated by
     a space.
@@ -76,21 +108,44 @@ def _hexify(data, chunksize=_chunksize, separator=b" ", **kw):
     """Convert a binary string into its hex encoding, broken up into chunks
     of chunksize characters separated by a separator.
     """
+    return _styled_hexify(
+        data, RdataStyle(hex_chunk_separator=separator, hex_chunk_size=chunksize)
+    )
 
-    return _wordbreak(binascii.hexlify(data), chunksize, separator)
+
+def _styled_hexify(data, style: "RdataStyle"):
+    """Convert a binary string into its hex encoding, broken up into chunks
+    of characters separated by a separator.
+    """
+
+    return _wordbreak(
+        binascii.hexlify(data), style.hex_chunk_size, style.hex_chunk_separator
+    )
 
 
 def _base64ify(data, chunksize=_chunksize, separator=b" ", **kw):
     """Convert a binary string into its base64 encoding, broken up into chunks
     of chunksize characters separated by a separator.
     """
+    return _styled_base64ify(
+        data, RdataStyle(hex_chunk_separator=separator, hex_chunk_size=chunksize)
+    )
 
-    return _wordbreak(base64.b64encode(data), chunksize, separator)
+
+def _styled_base64ify(data, style: "RdataStyle"):
+    """Convert a binary string into its base64 encoding, broken up into chunks
+    of characters separated by a separator.
+    """
+
+    return _wordbreak(
+        binascii.hexlify(data), style.base64_chunk_size, style.base64_chunk_separator
+    )
 
 
 # pylint: enable=unused-argument
 
-__escaped = b'"\\'
+_escaped = b'"\\'
+_unicode_escaped = '"\\'
 
 
 def _escapify(qstring):
@@ -103,12 +158,26 @@ def _escapify(qstring):
 
     text = ""
     for c in qstring:
-        if c in __escaped:
+        if c in _escaped:
             text += "\\" + chr(c)
         elif c >= 0x20 and c < 0x7F:
             text += chr(c)
         else:
             text += f"\\{c:03d}"
+    return text
+
+
+def _escapify_unicode(qstring):
+    """Escape the characters in a Unicode quoted string which need it."""
+
+    text = ""
+    for c in qstring:
+        if c in _unicode_escaped:
+            text += "\\" + c
+        elif ord(c) >= 0x20:
+            text += c
+        else:
+            text += f"\\{ord(c):03d}"
     return text
 
 
@@ -204,9 +273,21 @@ class Rdata:
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: dict[str, Any],
+        **kw: Any,
     ) -> str:
         """Convert an rdata to text format.
+
+        Returns a ``str``.
+        """
+        style = kw.get("style")
+        if style is None:
+            kw["origin"] = origin
+            kw["relativize"] = relativize
+            style = RdataStyle.from_keywords(kw)
+        return self.to_styled_text(style)
+
+    def to_styled_text(self, style: RdataStyle) -> str:
+        """Convert an rdata to styled text format.
 
         Returns a ``str``.
         """
@@ -629,13 +710,11 @@ class GenericRdata(Rdata):
         super().__init__(rdclass, rdtype)
         self.data = data
 
-    def to_text(
+    def to_styled_text(
         self,
-        origin: dns.name.Name | None = None,
-        relativize: bool = True,
-        **kw: dict[str, Any],
+        style: RdataStyle,
     ) -> str:
-        return rf"\# {len(self.data)} " + _hexify(self.data, **kw)  # pyright: ignore
+        return rf"\# {len(self.data)} " + _styled_hexify(self.data, style)
 
     @classmethod
     def from_text(
