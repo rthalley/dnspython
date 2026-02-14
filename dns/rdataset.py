@@ -17,6 +17,7 @@
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
 
+import dataclasses
 import io
 import random
 import struct
@@ -46,6 +47,7 @@ class IncompatibleTypes(dns.exception.DNSException):
     """An attempt was made to add DNS RR data of an incompatible type."""
 
 
+@dataclasses.dataclass
 class RdatasetStyle(dns.rdata.RdataStyle):
     """Rdataset text styles"""
 
@@ -209,7 +211,7 @@ class Rdataset(dns.set.Set):
         relativize: bool = True,
         override_rdclass: dns.rdataclass.RdataClass | None = None,
         want_comments: bool = False,
-        **kw: dict[str, Any],
+        **kw: Any,
     ) -> str:
         """Convert the rdataset into DNS zone file format.
 
@@ -235,17 +237,29 @@ class Rdataset(dns.set.Set):
         *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
         which have them.  The default is ``False``.
         """
+        style = kw.get("style")
+        if style is None:
+            kw["origin"] = origin
+            kw["relativize"] = relativize
+            kw["override_rdclass"] = override_rdclass
+            kw["want_comments"] = want_comments
+            style = RdatasetStyle.from_keywords(kw)
+        return self.to_styled_text(style, name)
+
+    def to_styled_text(
+        self, style: RdatasetStyle, name: dns.name.Name | None = None
+    ) -> str:
+        """Convert the rdataset into DNS zone file format."""
 
         if name is not None:
-            name = name.choose_relativity(origin, relativize)
-            ntext = str(name)
+            ntext = name.to_styled_text(style)
             pad = " "
         else:
             ntext = ""
             pad = ""
         s = io.StringIO()
-        if override_rdclass is not None:
-            rdclass = override_rdclass
+        if style.override_rdclass is not None:
+            rdclass = style.override_rdclass
         else:
             rdclass = self.rdclass
         if len(self) == 0:
@@ -261,14 +275,14 @@ class Rdataset(dns.set.Set):
         else:
             for rd in self:
                 extra = ""
-                if want_comments:
+                if style.want_comments:
                     if rd.rdcomment:
                         extra = f" ;{rd.rdcomment}"
                 s.write(
                     f"{ntext}{pad}{self.ttl} "
                     f"{dns.rdataclass.to_text(rdclass)} "
                     f"{dns.rdatatype.to_text(self.rdtype)} "
-                    f"{rd.to_text(origin=origin, relativize=relativize, **kw)}"
+                    f"{rd.to_styled_text(style)}"
                     f"{extra}\n"
                 )
         #
