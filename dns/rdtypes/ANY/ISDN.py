@@ -33,10 +33,10 @@ class ISDN(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address, subaddress):
         super().__init__(rdclass, rdtype)
-        self.address = self._as_bytes(address, True, 255)
-        self.subaddress = self._as_bytes(subaddress, True, 255)
+        self.address: bytes = self._as_bytes(address, True, 255)
+        self.subaddress: bytes = self._as_bytes(subaddress, True, 255)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         if self.subaddress:
             return (
                 f'"{dns.rdata._escapify(self.address)}" '

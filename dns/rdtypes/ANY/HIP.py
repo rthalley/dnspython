@@ -21,6 +21,7 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.name
 import dns.rdata
 import dns.rdatatype
 
@@ -35,20 +36,21 @@ class HIP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
         super().__init__(rdclass, rdtype)
-        self.hit = self._as_bytes(hit, True, 255)
-        self.algorithm = self._as_uint8(algorithm)
-        self.key = self._as_bytes(key, True)
-        self.servers = self._as_tuple(servers, self._as_name)
+        self.hit: bytes = self._as_bytes(hit, True, 255)
+        self.algorithm: int = self._as_uint8(algorithm)
+        self.key: bytes = self._as_bytes(key, True)
+        self.servers: tuple[dns.name.Name] = self._as_tuple(servers, self._as_name)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        # These two are not styled.
         hit = binascii.hexlify(self.hit).decode()
         key = base64.b64encode(self.key).replace(b"\n", b"").decode()
         text = ""
         servers = []
         for server in self.servers:
-            servers.append(server.choose_relativity(origin, relativize))
+            servers.append(server.to_styled_text(style))
         if len(servers) > 0:
-            text += " " + " ".join(x.to_unicode() for x in servers)
+            text += " " + " ".join(servers)
         return f"{self.algorithm} {hit} {key}{text}"
 
     @classmethod

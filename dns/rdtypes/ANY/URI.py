@@ -41,7 +41,7 @@ class URI(dns.rdata.Rdata):
         if len(self.target) == 0:
             raise dns.exception.SyntaxError("URI target cannot be empty")
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return f'{self.priority} {self.weight} "{self.target.decode()}"'
 
     @classmethod

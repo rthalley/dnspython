@@ -32,7 +32,7 @@ class A(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.address = self._as_ipv4_address(address)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return self.address
 
     @classmethod

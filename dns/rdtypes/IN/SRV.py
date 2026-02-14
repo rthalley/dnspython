@@ -39,8 +39,8 @@ class SRV(dns.rdata.Rdata):
         self.port = self._as_uint16(port)
         self.target = self._as_name(target)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        target = self.target.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        target = self.target.to_styled_text(style)
         return f"{self.priority} {self.weight} {self.port} {target}"
 
     @classmethod

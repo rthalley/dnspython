@@ -477,7 +477,7 @@ class SVCBBase(dns.rdata.Rdata):
             k = ParamKey.make(k)
             if not isinstance(v, Param) and v is not None:
                 raise ValueError(f"{k:d} not a Param")
-        self.params: dns.immutable.Dict[ParamKey, Param] = dns.immutable.Dict(params)
+        self.params: dns.immutable.Dict = dns.immutable.Dict(params)
         # Make sure any parameter listed as mandatory is present in the
         # record.
         mandatory = params.get(ParamKey.MANDATORY)

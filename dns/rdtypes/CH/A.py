@@ -36,8 +36,8 @@ class A(dns.rdata.Rdata):
         self.domain = self._as_name(domain)
         self.address = self._as_uint16(address)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        domain = self.domain.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        domain = self.domain.to_styled_text(style)
         return f"{domain} {self.address:o}"
 
     @classmethod

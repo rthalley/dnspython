@@ -41,10 +41,9 @@ class NSEC(dns.rdata.Rdata):
             windows = Bitmap(windows)
         self.windows = tuple(windows.windows)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        next = self.next.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         text = Bitmap(self.windows).to_text()
-        return f"{next}{text}"
+        return f"{self.next.to_styled_text(style)}{text}"
 
     @classmethod
     def from_text(

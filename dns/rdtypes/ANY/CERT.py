@@ -51,14 +51,14 @@ _ctype_by_name = {
 }
 
 
-def _ctype_from_text(what):
+def _ctype_from_text(what: str) -> int:
     v = _ctype_by_name.get(what)
     if v is not None:
         return v
     return int(what)
 
 
-def _ctype_to_text(what):
+def _ctype_to_text(what: int) -> str:
     v = _ctype_by_value.get(what)
     if v is not None:
         return v
@@ -77,15 +77,15 @@ class CERT(dns.rdata.Rdata):
         self, rdclass, rdtype, certificate_type, key_tag, algorithm, certificate
     ):
         super().__init__(rdclass, rdtype)
-        self.certificate_type = self._as_uint16(certificate_type)
-        self.key_tag = self._as_uint16(key_tag)
-        self.algorithm = self._as_uint8(algorithm)
-        self.certificate = self._as_bytes(certificate)
+        self.certificate_type: int = self._as_uint16(certificate_type)
+        self.key_tag: int = self._as_uint16(key_tag)
+        self.algorithm: int = self._as_uint8(algorithm)
+        self.certificate: bytes = self._as_bytes(certificate)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         certificate_type = _ctype_to_text(self.certificate_type)
         algorithm = dns.dnssectypes.Algorithm.to_text(self.algorithm)
-        certificate = dns.rdata._base64ify(self.certificate, **kw)  # pyright: ignore
+        certificate = dns.rdata._styled_base64ify(self.certificate, style)
         return f"{certificate_type} {self.key_tag} {algorithm} {certificate}"
 
     @classmethod

@@ -35,7 +35,8 @@ class NSAP(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.address = self._as_bytes(address)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        # Not styled
         return f"0x{binascii.hexlify(self.address).decode()}"
 
     @classmethod

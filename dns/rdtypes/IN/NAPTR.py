@@ -50,8 +50,8 @@ class NAPTR(dns.rdata.Rdata):
         self.preference = self._as_uint16(preference)
         self.replacement = self._as_name(replacement)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        replacement = self.replacement.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        replacement = self.replacement.to_styled_text(style)
         return (
             f"{self.order} {self.preference} "
             f'"{dns.rdata._escapify(self.flags)}" '

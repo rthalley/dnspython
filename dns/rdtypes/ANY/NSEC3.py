@@ -69,11 +69,12 @@ class NSEC3(dns.rdata.Rdata):
         next = next.rstrip("=")
         return next
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         next = self._next_text()
         if self.salt == b"":
             salt = "-"
         else:
+            # Not styled
             salt = binascii.hexlify(self.salt).decode()
         text = Bitmap(self.windows).to_text()
         return f"{self.algorithm} {self.flags} {self.iterations} {salt} {next}{text}"

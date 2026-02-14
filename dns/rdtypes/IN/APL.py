@@ -92,7 +92,7 @@ class APL(dns.rdata.Rdata):
                 raise ValueError("item not an APLItem")
         self.items = tuple(items)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return " ".join(map(str, self.items))
 
     @classmethod

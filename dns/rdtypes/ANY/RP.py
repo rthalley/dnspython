@@ -34,10 +34,10 @@ class RP(dns.rdata.Rdata):
         self.mbox = self._as_name(mbox)
         self.txt = self._as_name(txt)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        mbox = self.mbox.choose_relativity(origin, relativize)
-        txt = self.txt.choose_relativity(origin, relativize)
-        return f"{str(mbox)} {str(txt)}"
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        mbox = self.mbox.to_styled_text(style)
+        txt = self.txt.to_styled_text(style)
+        return f"{mbox} {txt}"
 
     @classmethod
     def from_text(

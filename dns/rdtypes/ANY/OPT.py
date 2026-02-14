@@ -58,7 +58,7 @@ class OPT(dns.rdata.Rdata):
             file.write(struct.pack("!HH", opt.otype, len(owire)))
             file.write(owire)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return " ".join(opt.to_text() for opt in self.options)
 
     @classmethod

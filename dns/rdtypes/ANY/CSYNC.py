@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import struct
+from collections.abc import Iterable
 
 import dns.exception
 import dns.immutable
@@ -38,13 +39,13 @@ class CSYNC(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, serial, flags, windows):
         super().__init__(rdclass, rdtype)
-        self.serial = self._as_uint32(serial)
-        self.flags = self._as_uint16(flags)
+        self.serial: int = self._as_uint32(serial)
+        self.flags: int = self._as_uint16(flags)
         if not isinstance(windows, Bitmap):
             windows = Bitmap(windows)
         self.windows = tuple(windows.windows)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         text = Bitmap(self.windows).to_text()
         return f"{self.serial} {self.flags}{text}"
 

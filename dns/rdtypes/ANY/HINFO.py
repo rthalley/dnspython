@@ -33,10 +33,10 @@ class HINFO(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, cpu, os):
         super().__init__(rdclass, rdtype)
-        self.cpu = self._as_bytes(cpu, True, 255)
-        self.os = self._as_bytes(os, True, 255)
+        self.cpu: bytes = self._as_bytes(cpu, True, 255)
+        self.os: bytes = self._as_bytes(os, True, 255)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return f'"{dns.rdata._escapify(self.cpu)}" "{dns.rdata._escapify(self.os)}"'
 
     @classmethod
