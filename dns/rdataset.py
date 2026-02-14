@@ -288,9 +288,9 @@ class Rdataset(dns.set.Set):
         else:
             rdclass_text = f"{dns.rdataclass.to_text(rdclass)} "
         if style.want_generic:
-            rdtype_text = f"TYPE{self.rdtype} "
+            rdtype_text = f"TYPE{self.rdtype}"
         else:
-            rdtype_text = f"{dns.rdatatype.to_text(self.rdtype)} "
+            rdtype_text = f"{dns.rdatatype.to_text(self.rdtype)}"
         if len(self) == 0:
             #
             # Empty rdatasets are used for the question section, and in
@@ -330,7 +330,9 @@ class Rdataset(dns.set.Set):
                         rdata_text = kept + remark + kept_after
                 else:
                     rdata_text = rd.to_styled_text(style)
-                s.write(f"{ntext}{ttl}{rdclass_text}{rdtype_text}{rdata_text}{extra}\n")
+                s.write(
+                    f"{ntext}{ttl}{rdclass_text}{rdtype_text} {rdata_text}{extra}\n"
+                )
         #
         # We strip off the final \n for the caller's convenience in printing
         #
