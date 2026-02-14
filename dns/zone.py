@@ -722,7 +722,7 @@ class Zone(dns.transaction.TransactionManager):
 
             if style.want_origin:
                 assert self.origin is not None
-                # ensure we don't relativize the origin to the origin!
+                # Ensure we don't relativize the origin to the origin in $ORIGIN!
                 origin_style = style.replace(origin=None)
                 l = "$ORIGIN " + self.origin.to_styled_text(origin_style)
                 l_b = l.encode(file_enc)
