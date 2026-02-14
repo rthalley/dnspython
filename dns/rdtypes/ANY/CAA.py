@@ -33,19 +33,19 @@ class CAA(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, flags, tag, value):
         super().__init__(rdclass, rdtype)
-        self.flags = self._as_uint8(flags)
-        self.tag = self._as_bytes(tag, True, 255)
+        self.flags: int = self._as_uint8(flags)
+        self.tag: bytes = self._as_bytes(tag, True, 255)
         if not tag.isalnum():
             raise ValueError("tag is not alphanumeric")
-        self.value = self._as_bytes(value)
+        self.value: bytes = self._as_bytes(value)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return f'{self.flags} {dns.rdata._escapify(self.tag)} "{dns.rdata._escapify(self.value)}"'
 
     @classmethod
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+    ) -> "CAA":
         flags = tok.get_uint8()
         tag = tok.get_string().encode()
         value = tok.get_string().encode()
@@ -60,7 +60,7 @@ class CAA(dns.rdata.Rdata):
         file.write(self.value)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "CAA":
         flags = parser.get_uint8()
         tag = parser.get_counted_bytes()
         value = parser.get_remaining()

@@ -18,12 +18,15 @@
 """MX-like base classes."""
 
 import struct
+from typing import TypeVar
 
 import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
 import dns.rdtypes.util
+
+T = TypeVar("T", bound="MXBase")
 
 
 @dns.immutable.immutable
@@ -42,8 +45,14 @@ class MXBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+        cls: type[T],
+        rdclass,
+        rdtype,
+        tok,
+        origin=None,
+        relativize=True,
+        relativize_to=None,
+    ) -> T:
         preference = tok.get_uint16()
         exchange = tok.get_name(origin, relativize, relativize_to)
         return cls(rdclass, rdtype, preference, exchange)
@@ -54,7 +63,7 @@ class MXBase(dns.rdata.Rdata):
         self.exchange.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin)
         return cls(rdclass, rdtype, preference, exchange)

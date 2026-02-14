@@ -35,23 +35,23 @@ class SOA(dns.rdata.Rdata):
         self, rdclass, rdtype, mname, rname, serial, refresh, retry, expire, minimum
     ):
         super().__init__(rdclass, rdtype)
-        self.mname = self._as_name(mname)
-        self.rname = self._as_name(rname)
-        self.serial = self._as_uint32(serial)
-        self.refresh = self._as_ttl(refresh)
-        self.retry = self._as_ttl(retry)
-        self.expire = self._as_ttl(expire)
-        self.minimum = self._as_ttl(minimum)
+        self.mname: dns.name.Name = self._as_name(mname)
+        self.rname: dns.name.Name = self._as_name(rname)
+        self.serial: int = self._as_uint32(serial)
+        self.refresh: int = self._as_ttl(refresh)
+        self.retry: int = self._as_ttl(retry)
+        self.expire: int = self._as_ttl(expire)
+        self.minimum: int = self._as_ttl(minimum)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        mname = self.mname.choose_relativity(origin, relativize)
-        rname = self.rname.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        mname = self.mname.to_styled_text(style)
+        rname = self.rname.to_styled_text(style)
         return f"{mname} {rname} {self.serial} {self.refresh} {self.retry} {self.expire} {self.minimum}"
 
     @classmethod
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+    ) -> "SOA":
         mname = tok.get_name(origin, relativize, relativize_to)
         rname = tok.get_name(origin, relativize, relativize_to)
         serial = tok.get_uint32()
@@ -72,7 +72,7 @@ class SOA(dns.rdata.Rdata):
         file.write(five_ints)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "SOA":
         mname = parser.get_name(origin)
         rname = parser.get_name(origin)
         return cls(rdclass, rdtype, mname, rname, *parser.get_struct("!IIIII"))

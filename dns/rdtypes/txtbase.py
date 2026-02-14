@@ -18,6 +18,7 @@
 """TXT-like base class."""
 
 from collections.abc import Iterable
+from typing import TypeVar
 
 import dns.exception
 import dns.immutable
@@ -27,6 +28,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.renderer
 import dns.tokenizer
+
+T = TypeVar("T", bound="TXTBase")
 
 
 @dns.immutable.immutable
@@ -74,14 +77,14 @@ class TXTBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls,
+        cls: type[T],
         rdclass: dns.rdataclass.RdataClass,
         rdtype: dns.rdatatype.RdataType,
         tok: dns.tokenizer.Tokenizer,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
         relativize_to: dns.name.Name | None = None,
-    ) -> dns.rdata.Rdata:
+    ) -> T:
         strings = []
         for token in tok.get_remaining():
             token = token.unescape_to_bytes()
@@ -104,7 +107,7 @@ class TXTBase(dns.rdata.Rdata):
                 file.write(s)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         strings = []
         while parser.remaining() > 0:
             s = parser.get_counted_bytes()
