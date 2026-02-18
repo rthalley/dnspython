@@ -18,7 +18,7 @@
 """TXT-like base class."""
 
 from collections.abc import Iterable
-from typing import Any
+from typing import TypeVar
 
 import dns.exception
 import dns.immutable
@@ -28,6 +28,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.renderer
 import dns.tokenizer
+
+T = TypeVar("T", bound="TXTBase")
 
 
 @dns.immutable.immutable
@@ -57,29 +59,32 @@ class TXTBase(dns.rdata.Rdata):
         if len(self.strings) == 0:
             raise ValueError("the list of strings must not be empty")
 
-    def to_text(
-        self,
-        origin: dns.name.Name | None = None,
-        relativize: bool = True,
-        **kw: dict[str, Any],
-    ) -> str:
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         txt = ""
         prefix = ""
         for s in self.strings:
-            txt += f'{prefix}"{dns.rdata._escapify(s)}"'
+            if style is not None and style.txt_is_utf8:
+                try:
+                    us = s.decode()
+                    element = dns.rdata._escapify_unicode(us)
+                except Exception:
+                    element = dns.rdata._escapify(s)
+            else:
+                element = dns.rdata._escapify(s)
+            txt += f'{prefix}"{element}"'
             prefix = " "
         return txt
 
     @classmethod
     def from_text(
-        cls,
+        cls: type[T],
         rdclass: dns.rdataclass.RdataClass,
         rdtype: dns.rdatatype.RdataType,
         tok: dns.tokenizer.Tokenizer,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
         relativize_to: dns.name.Name | None = None,
-    ) -> dns.rdata.Rdata:
+    ) -> T:
         strings = []
         for token in tok.get_remaining():
             token = token.unescape_to_bytes()
@@ -102,7 +107,7 @@ class TXTBase(dns.rdata.Rdata):
                 file.write(s)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         strings = []
         while parser.remaining() > 0:
             s = parser.get_counted_bytes()

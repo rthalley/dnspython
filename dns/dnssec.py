@@ -114,18 +114,7 @@ def key_id(key: DNSKEY | CDNSKEY) -> int:
     Returns an ``int`` between 0 and 65535
     """
 
-    rdata = key.to_wire()
-    assert rdata is not None  # for mypy
-    if key.algorithm == Algorithm.RSAMD5:
-        return (rdata[-3] << 8) + rdata[-2]
-    else:
-        total = 0
-        for i in range(len(rdata) // 2):
-            total += (rdata[2 * i] << 8) + rdata[2 * i + 1]
-        if len(rdata) % 2 != 0:
-            total += rdata[len(rdata) - 1] << 8
-        total += (total >> 16) & 0xFFFF
-        return total & 0xFFFF
+    return key.key_id()
 
 
 class Policy:
@@ -1193,11 +1182,11 @@ def _need_pyca(*args, **kwargs):
 
 if dns._features.have("dnssec"):
     from cryptography.exceptions import InvalidSignature
-    from cryptography.hazmat.primitives.asymmetric import ec  # pylint: disable=W0611
-    from cryptography.hazmat.primitives.asymmetric import ed448  # pylint: disable=W0611
-    from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import (  # pylint: disable=W0611
+        ec,  # pylint: disable=W0611
+        ed448,  # pylint: disable=W0611
         ed25519,
+        rsa,  # pylint: disable=W0611
     )
 
     from dns.dnssecalgs import (  # pylint: disable=C0412

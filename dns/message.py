@@ -18,6 +18,7 @@
 """DNS Messages"""
 
 import contextlib
+import dataclasses
 import enum
 import io
 import time
@@ -33,6 +34,7 @@ import dns.opcode
 import dns.rcode
 import dns.rdata
 import dns.rdataclass
+import dns.rdataset
 import dns.rdatatype
 import dns.rdtypes.ANY.OPT
 import dns.rdtypes.ANY.SOA
@@ -140,6 +142,19 @@ IndexType = dict[IndexKeyType, dns.rrset.RRset]
 SectionType = int | str | list[dns.rrset.RRset]
 
 
+@dataclasses.dataclass(frozen=True)
+class MessageStyle(dns.rdataset.RdatasetStyle):
+    """Message text styles.
+
+    A ``MessageStyle`` is also a :py:class:`dns.name.NameStyle` and a
+    :py:class:`dns.rdata.RdataStyle`, and a :py:class:`dns.rdataset.RdatasetStyle`.
+    See those classes for a description of their options.
+
+    There are currently no message-specific style options, but if that changes they
+    will be documented here.
+    """
+
+
 class Message:
     """A DNS message."""
 
@@ -213,12 +228,31 @@ class Message:
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: dict[str, Any],
+        style: MessageStyle | None = None,
+        **kw: Any,
     ) -> str:
         """Convert the message to text.
 
         The *origin*, *relativize*, and any other keyword
-        arguments are passed to the RRset ``to_wire()`` method.
+        arguments are passed to the RRset ``to_text()`` method.
+
+        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters.
+
+        Returns a ``str``.
+        """
+        if style is None:
+            kw = kw.copy()
+            kw["origin"] = origin
+            kw["relativize"] = relativize
+            style = MessageStyle.from_keywords(kw)
+        return self.to_styled_text(style)
+
+    def to_styled_text(self, style: MessageStyle) -> str:
+        """Convert the message to styled text.
+
+        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters.
 
         Returns a ``str``.
         """
@@ -238,10 +272,10 @@ class Message:
         for name, which in self._section_enum.__members__.items():
             s.write(f";{name}\n")
             for rrset in self.section_from_number(which):
-                s.write(rrset.to_text(origin, relativize, **kw))
+                s.write(rrset.to_styled_text(style))
                 s.write("\n")
         if self.tsig is not None:
-            s.write(self.tsig.to_text(origin, relativize, **kw))
+            s.write(self.tsig.to_styled_text(style))
             s.write("\n")
         #
         # We strip off the final \n so the caller can print the result without
@@ -566,7 +600,7 @@ class Message:
         tsig_ctx: Any | None = None,
         prepend_length: bool = False,
         prefer_truncation: bool = False,
-        **kw: dict[str, Any],
+        **kw: Any,
     ) -> bytes:
         """Return a string containing the message in DNS compressed wire
         format.

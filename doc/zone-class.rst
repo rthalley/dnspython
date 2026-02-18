@@ -10,7 +10,7 @@ use the :py:class:`dns.versioned.Zone` class (described below).
 
 .. autoclass:: dns.zone.Zone
    :members:
-      
+
    .. attribute:: rdclass
 
       The zone's rdata class, an ``int``; the default is class IN.
@@ -20,10 +20,10 @@ use the :py:class:`dns.versioned.Zone` class (described below).
       The origin of the zone, a ``dns.name.Name``.
 
    .. attribute:: nodes
-                   
+
    A dictionary mapping the names of nodes in the zone to the nodes
    themselves.
-   
+
    .. attribute:: relativize
 
    A ``bool``, which is ``True`` if names in the zone should be relativized.
@@ -34,6 +34,9 @@ subclassed if a different node factory is desired.
 The node factory is a class or callable that returns a subclass of
 ``dns.node.Node``.
 
+.. autoclass:: dns.zone.ZoneStyle
+   :members:
+   :inherited-members:
 
 The dns.versioned.Zone Class
 ----------------------------
@@ -68,11 +71,11 @@ Transactions are context managers, and are created with ``reader()`` or
        txn.set_serial()
 
 See below for more information on the ``Transaction`` API.
-       
+
 .. autoclass:: dns.versioned.Zone
    :exclude-members: delete_node, delete_rdataset, replace_rdataset
    :members:
-      
+
    .. attribute:: rdclass
 
       The zone's rdata class, an ``int``; the default is class IN.
@@ -82,10 +85,10 @@ See below for more information on the ``Transaction`` API.
       The origin of the zone, a ``dns.name.Name``.
 
    .. attribute:: nodes
-                   
+
    A dictionary mapping the names of nodes in the zone to the nodes
    themselves.
-   
+
    .. attribute:: relativize
 
    A ``bool``, which is ``True`` if names in the zone should be relativized.
@@ -105,4 +108,4 @@ The Transaction Class
 
 .. autoclass:: dns.transaction.Transaction
    :members:
-   
+

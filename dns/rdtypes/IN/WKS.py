@@ -45,7 +45,7 @@ class WKS(dns.rdata.Rdata):
         self.protocol = self._as_uint8(protocol)
         self.bitmap = self._as_bytes(bitmap)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         bits = []
         for i, byte in enumerate(self.bitmap):
             for j in range(0, 8):

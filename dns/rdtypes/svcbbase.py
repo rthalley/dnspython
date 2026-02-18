@@ -3,13 +3,14 @@
 import base64
 import enum
 import struct
-from typing import Any
+from typing import Any, TypeVar
 
 import dns.enum
 import dns.exception
 import dns.immutable
 import dns.ipv4
 import dns.ipv6
+import dns.name
 import dns.rdata
 import dns.rdtypes.util
 import dns.renderer
@@ -457,6 +458,9 @@ def _validate_and_define(params, key, value):
     params[key] = value
 
 
+T = TypeVar("T", bound="SVCBBase")
+
+
 @dns.immutable.immutable
 class SVCBBase(dns.rdata.Rdata):
     """Base class for SVCB-like records"""
@@ -467,13 +471,13 @@ class SVCBBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, priority, target, params):
         super().__init__(rdclass, rdtype)
-        self.priority = self._as_uint16(priority)
-        self.target = self._as_name(target)
+        self.priority: int = self._as_uint16(priority)
+        self.target: dns.name.Name = self._as_name(target)
         for k, v in params.items():
             k = ParamKey.make(k)
             if not isinstance(v, Param) and v is not None:
                 raise ValueError(f"{k:d} not a Param")
-        self.params = dns.immutable.Dict(params)
+        self.params: dns.immutable.Dict = dns.immutable.Dict(params)
         # Make sure any parameter listed as mandatory is present in the
         # record.
         mandatory = params.get(ParamKey.MANDATORY)
@@ -488,8 +492,8 @@ class SVCBBase(dns.rdata.Rdata):
             if ParamKey.ALPN not in params:
                 raise ValueError("no-default-alpn present, but alpn missing")
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        target = self.target.choose_relativity(origin, relativize)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        target = self.target.to_styled_text(style)
         params = []
         for key in sorted(self.params.keys()):
             value = self.params[key]
@@ -506,8 +510,14 @@ class SVCBBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+        cls: type[T],
+        rdclass,
+        rdtype,
+        tok,
+        origin=None,
+        relativize=True,
+        relativize_to=None,
+    ) -> T:
         priority = tok.get_uint16()
         target = tok.get_name(origin, relativize, relativize_to)
         if priority == 0:
@@ -558,7 +568,7 @@ class SVCBBase(dns.rdata.Rdata):
                     value.to_wire(file, origin)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         priority = parser.get_uint16()
         target = parser.get_name(origin)
         if priority == 0 and parser.remaining() != 0:

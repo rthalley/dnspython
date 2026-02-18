@@ -115,6 +115,7 @@ class Transaction:
         self.manager = manager
         self.replacement = replacement
         self.read_only = read_only
+        self.unicode: set[str] = set()
         self._ended = False
         self._check_put_rdataset: list[CheckPutRdatasetType] = []
         self._check_delete_rdataset: list[CheckDeleteRdatasetType] = []
@@ -280,6 +281,9 @@ class Transaction:
         rdata = rdataset[0].replace(serial=serial)
         new_rdataset = dns.rdataset.from_rdata(rdataset.ttl, rdata)
         self.replace(name, new_rdataset)
+
+    def add_unicode(self, attribute: str):
+        self.unicode.add(attribute.upper())
 
     def __iter__(self):
         self._check_ended()

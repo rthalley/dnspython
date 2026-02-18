@@ -21,12 +21,12 @@ class NID(dns.rdata.Rdata):
         if isinstance(nodeid, bytes):
             if len(nodeid) != 8:
                 raise ValueError("invalid nodeid")
-            self.nodeid = dns.rdata._hexify(nodeid, 4, b":")
+            self.nodeid = dns.rdata._hexify(nodeid, 4, ":")
         else:
             dns.rdtypes.util.parse_formatted_hex(nodeid, 4, 4, ":")
             self.nodeid = nodeid
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return f"{self.preference} {self.nodeid}"
 
     @classmethod

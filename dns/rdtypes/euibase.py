@@ -15,10 +15,13 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import binascii
+from typing import TypeVar
 
 import dns.exception
 import dns.immutable
 import dns.rdata
+
+T = TypeVar("T", bound="EUIBase")
 
 
 @dns.immutable.immutable
@@ -42,13 +45,20 @@ class EUIBase(dns.rdata.Rdata):
                 f"EUI{self.byte_len * 8} rdata has to have {self.byte_len} bytes"
             )
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        return dns.rdata._hexify(self.eui, chunksize=2, separator=b"-", **kw)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        # Not using style as the style of EUIs is fixed
+        return dns.rdata._hexify(self.eui, chunksize=2, separator="-")
 
     @classmethod
     def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+        cls: type[T],
+        rdclass,
+        rdtype,
+        tok,
+        origin=None,
+        relativize=True,
+        relativize_to=None,
+    ) -> T:
         text = tok.get_string()
         if len(text) != cls.text_len:
             raise dns.exception.SyntaxError(
@@ -68,6 +78,6 @@ class EUIBase(dns.rdata.Rdata):
         file.write(self.eui)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         eui = parser.get_bytes(cls.byte_len)
         return cls(rdclass, rdtype, eui)

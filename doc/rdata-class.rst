@@ -40,3 +40,7 @@ future behavior to be tested with existing code.
 .. autoclass:: dns.rdata.Rdata
    :members:
    :inherited-members:
+
+.. autoclass:: dns.rdata.RdataStyle
+   :members:
+   :inherited-members:

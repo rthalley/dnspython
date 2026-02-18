@@ -17,10 +17,10 @@ class L32(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, preference, locator32):
         super().__init__(rdclass, rdtype)
-        self.preference = self._as_uint16(preference)
-        self.locator32 = self._as_ipv4_address(locator32)
+        self.preference: int = self._as_uint16(preference)
+        self.locator32: str = self._as_ipv4_address(locator32)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return f"{self.preference} {self.locator32}"
 
     @classmethod

@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
-
+import dataclasses
 import io
 import random
 import struct
@@ -44,6 +44,84 @@ class DifferingCovers(dns.exception.DNSException):
 
 class IncompatibleTypes(dns.exception.DNSException):
     """An attempt was made to add DNS RR data of an incompatible type."""
+
+
+@dataclasses.dataclass(frozen=True)
+class RdatasetStyle(dns.rdata.RdataStyle):
+    """Rdataset text styles
+
+    An ``RdatasetStyle`` is also a :py:class:`dns.name.NameStyle` and a
+    :py:class:`dns.rdata.RdataStyle`.  See those classes
+    for a description of their options.
+
+    *override_rdclass*, a ``dns.rdataclass.RdataClass`` or ``None``.
+    If not ``None``, use this class instead of the Rdataset's class.
+
+    *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
+    which have them.  The default is ``False``.
+
+    *omit_rdclass*, a ``bool``.  If ``True``, do not print the RdataClass.
+    The default is ``False``.
+
+    *omit_ttl*, a ``bool``.  If ``True``, do not print the TTL.
+    The default is ``False``.  Use of this option may lose information.
+
+    *want_generic*, a ``bool``.  If ``True``, print RdataClass, RdataType,
+    and Rdatas in the generic format, a.k.a. the "unknown rdata format".
+    The default is ``False``.
+
+    *deduplicate_names*, a ``bool``.  If ``True``, print whitespace instead of the
+    owner name if the owner name of an RR is the same as the prior RR's owner name.
+    The default is ``False``.
+
+    *first_name_is_duplicate*, a ``bool``.  If ``True``, consider the first owner name
+    of the rdataset as a duplicate too, and emit whitespace for it as well.  A sample
+    use is in emitting a Node of multiple rdatasets and the current rdataset is not
+    the first to be emitted.  The default is ``False``.
+
+    *default_ttl*, an ``int`` or ``None``.  If ``None``, the default, there is no
+    default TTL.  If an integer is specified, then any TTL matching that value will
+    be omitted.  When emitting a zonefile, a setting other than ``None`` will cause
+    a ``$TTL`` directive to be emitted.
+
+    *name_just*, an ``int``.  The owner name field justification.  Negative values
+    are left justified, and positive values are right justified.  A value of zero,
+    the default, means that no justification is performed.
+
+    *ttl_just*, an ``int``.  The TTL field justification.  Negative values
+    are left justified, and positive values are right justified.  A value of zero,
+    the default, means that no justification is performed.
+
+    *rdclass_just*, an ``int``.  The RdataClass name field justification.  Negative values
+    are left justified, and positive values are right justified.  A value of zero,
+    the default, means that no justification is performed.
+
+    *rdtype_just*, an ``int``.  The RdataType field justification.  Negative values
+    are left justified, and positive values are right justified.  A value of zero,
+    the default, means that no justification is performed.
+    """
+
+    override_rdclass: dns.rdataclass.RdataClass | None = None
+    want_comments: bool = False
+    omit_rdclass: bool = False
+    omit_ttl: bool = False
+    want_generic: bool = False
+    deduplicate_names: bool = False
+    first_name_is_duplicate: bool = False
+    default_ttl: int | None = None
+    name_just: int = 0
+    ttl_just: int = 0
+    rdclass_just: int = 0
+    rdtype_just: int = 0
+
+
+def justify(text: str, amount: int):
+    if amount == 0:
+        return text
+    if amount < 0:
+        return text.ljust(-1 * amount)
+    else:
+        return text.rjust(amount)
 
 
 class Rdataset(dns.set.Set):
@@ -202,7 +280,8 @@ class Rdataset(dns.set.Set):
         relativize: bool = True,
         override_rdclass: dns.rdataclass.RdataClass | None = None,
         want_comments: bool = False,
-        **kw: dict[str, Any],
+        style: RdatasetStyle | None = None,
+        **kw: Any,
     ) -> str:
         """Convert the rdataset into DNS zone file format.
 
@@ -223,47 +302,87 @@ class Rdataset(dns.set.Set):
         to *origin*.
 
         *override_rdclass*, a ``dns.rdataclass.RdataClass`` or ``None``.
-        If not ``None``, use this class instead of the Rdataset's class.
+        If not ``None``, when rendering, emit records as if they were of this class.
 
         *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
         which have them.  The default is ``False``.
-        """
 
+        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters except for *name*.
+        """
+        if style is None:
+            kw = kw.copy()
+            kw["origin"] = origin
+            kw["relativize"] = relativize
+            kw["override_rdclass"] = override_rdclass
+            kw["want_comments"] = want_comments
+            style = RdatasetStyle.from_keywords(kw)
+        return self.to_styled_text(style, name)
+
+    def to_styled_text(
+        self, style: RdatasetStyle, name: dns.name.Name | None = None
+    ) -> str:
+        """Convert the rdataset into styled text format.
+
+        See the documentation for :py:class:`dns.rdataset.RdatasetStyle` for a description
+        of the style parameters.
+        """
         if name is not None:
-            name = name.choose_relativity(origin, relativize)
-            ntext = str(name)
-            pad = " "
+            if style.deduplicate_names and style.first_name_is_duplicate:
+                ntext = "    "
+            else:
+                ntext = f"{name.to_styled_text(style)} "
+            ntext = justify(ntext, style.name_just)
         else:
             ntext = ""
-            pad = ""
         s = io.StringIO()
-        if override_rdclass is not None:
-            rdclass = override_rdclass
+        if style.override_rdclass is not None:
+            rdclass = style.override_rdclass
         else:
             rdclass = self.rdclass
+        if style.omit_rdclass:
+            rdclass_text = ""
+        elif style.want_generic:
+            rdclass_text = f"CLASS{rdclass} "
+        else:
+            rdclass_text = f"{dns.rdataclass.to_text(rdclass)} "
+        rdclass_text = justify(rdclass_text, style.rdclass_just)
+        if style.want_generic:
+            rdtype_text = f"TYPE{self.rdtype}"
+        else:
+            rdtype_text = f"{dns.rdatatype.to_text(self.rdtype)}"
+        rdtype_text = justify(rdtype_text, style.rdtype_just)
         if len(self) == 0:
             #
             # Empty rdatasets are used for the question section, and in
             # some dynamic updates, so we don't need to print out the TTL
             # (which is meaningless anyway).
             #
-            s.write(
-                f"{ntext}{pad}{dns.rdataclass.to_text(rdclass)} "
-                f"{dns.rdatatype.to_text(self.rdtype)}\n"
-            )
+            s.write(f"{ntext}{rdclass_text}{rdtype_text}\n")
         else:
+            if style.omit_ttl or (
+                style.default_ttl is not None and self.ttl == style.default_ttl
+            ):
+                ttl = ""
+            else:
+                ttl = f"{self.ttl} "
+            ttl = justify(ttl, style.ttl_just)
             for rd in self:
                 extra = ""
-                if want_comments:
+                if style.want_comments:
                     if rd.rdcomment:
                         extra = f" ;{rd.rdcomment}"
+                if style.want_generic:
+                    rdata_text = rd.to_generic().to_styled_text(style)
+                else:
+                    rdata_text = rd.to_styled_text(style)
                 s.write(
-                    f"{ntext}{pad}{self.ttl} "
-                    f"{dns.rdataclass.to_text(rdclass)} "
-                    f"{dns.rdatatype.to_text(self.rdtype)} "
-                    f"{rd.to_text(origin=origin, relativize=relativize, **kw)}"
-                    f"{extra}\n"
+                    f"{ntext}{ttl}{rdclass_text}{rdtype_text} {rdata_text}{extra}\n"
                 )
+                if style.deduplicate_names:
+                    ntext = "    "
+                    ntext = justify(ntext, style.name_just)
+
         #
         # We strip off the final \n for the caller's convenience in printing
         #

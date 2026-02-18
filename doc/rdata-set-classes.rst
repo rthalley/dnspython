@@ -19,8 +19,19 @@ tree.  Nodes are primarily used in ``Zone`` objects.
 .. autoclass:: dns.rdataset.Rdataset
    :members:
 
+.. autoclass:: dns.rdataset.RdatasetStyle
+   :members:
+   :inherited-members:
+
 .. autoclass:: dns.rrset.RRset
    :members:
 
 .. autoclass:: dns.node.Node
    :members:
+
+.. autoclass:: dns.node.NodeKind
+   :members:
+
+.. autoclass:: dns.node.NodeStyle
+   :members:
+   :inherited-members:

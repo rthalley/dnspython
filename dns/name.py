@@ -18,6 +18,7 @@
 """DNS Names."""
 
 import copy
+import dataclasses
 import encodings.idna  # pyright: ignore
 import functools
 import struct
@@ -29,6 +30,7 @@ import dns.enum
 import dns.exception
 import dns.immutable
 import dns.wirebase
+from dns.style import BaseStyle
 
 # Dnspython will never access idna if the import fails, but pyright can't figure
 # that out, so...
@@ -371,6 +373,30 @@ def _maybe_convert_to_binary(label: bytes | str) -> bytes:
         return label.encode()
 
 
+@dataclasses.dataclass(frozen=True)
+class NameStyle(BaseStyle):
+    """Name text styles
+
+    *omit_final_dot* is a ``bool``.  If True, don't emit the final
+    dot (denoting the root label) for absolute names.  The default
+    is False.
+
+    *idna_codec* specifies the IDNA decoder to use.  The default is ``None``
+    which means all text is in the standard DNS zonefile format, i.e.
+    punycode will not be decoded.
+
+    If *origin* is ``None``, the default, then the name's relativity is not
+    altered before conversion to text.  Otherwise, if *relativize* is ``True``
+    the name is relativized, and if *relativize* is ``False`` the name is
+    derelativized.
+    """
+
+    omit_final_dot: bool = False
+    idna_codec: IDNACodec | None = None
+    origin: "Name | None" = None
+    relativize: bool = False
+
+
 @dns.immutable.immutable
 class Name:
     """A DNS name.
@@ -584,54 +610,68 @@ class Name:
     def __str__(self):
         return self.to_text(False)
 
-    def to_text(self, omit_final_dot: bool = False) -> str:
+    def to_text(
+        self, omit_final_dot: bool = False, style: NameStyle | None = None
+    ) -> str:
         """Convert name to DNS text format.
 
         *omit_final_dot* is a ``bool``.  If True, don't emit the final
         dot (denoting the root label) for absolute names.  The default
         is False.
 
+        *style*, a :py:class:`dns.name.NameStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters.
+
         Returns a ``str``.
         """
-
-        if len(self.labels) == 0:
-            return "@"
-        if len(self.labels) == 1 and self.labels[0] == b"":
-            return "."
-        if omit_final_dot and self.is_absolute():
-            l = self.labels[:-1]
-        else:
-            l = self.labels
-        s = ".".join(map(_escapify, l))
-        return s
+        if style is None:
+            style = NameStyle(omit_final_dot=omit_final_dot)
+        return self.to_styled_text(style)
 
     def to_unicode(
-        self, omit_final_dot: bool = False, idna_codec: IDNACodec | None = None
+        self,
+        omit_final_dot: bool = False,
+        idna_codec: IDNACodec | None = None,
+        style: NameStyle | None = None,
     ) -> str:
-        """Convert name to Unicode text format.
+        """Convert name to DNS text format.
 
-        IDN ACE labels are converted to Unicode.
+        IDN ACE labels are converted to Unicode using the specified codec.
 
         *omit_final_dot* is a ``bool``.  If True, don't emit the final
         dot (denoting the root label) for absolute names.  The default
         is False.
-        *idna_codec* specifies the IDNA encoder/decoder.  If None, the
-        dns.name.IDNA_DEFAULT encoder/decoder is used.
+
+        Returns a ``str``.
+        """
+        if idna_codec is None:
+            idna_codec = IDNA_DEFAULT
+        if style is None:
+            style = NameStyle(omit_final_dot=omit_final_dot, idna_codec=idna_codec)
+        return self.to_styled_text(style)
+
+    def to_styled_text(self, style: NameStyle) -> str:
+        """Convert name to text format, applying the style.
+
+        See the documentation for :py:class:`dns.name.NameStyle` for a description
+        of the style parameters.
 
         Returns a ``str``.
         """
 
-        if len(self.labels) == 0:
+        name = self.choose_relativity(style.origin, style.relativize)
+        if len(name.labels) == 0:
             return "@"
-        if len(self.labels) == 1 and self.labels[0] == b"":
+        if len(name.labels) == 1 and name.labels[0] == b"":
             return "."
-        if omit_final_dot and self.is_absolute():
-            l = self.labels[:-1]
+        if style.omit_final_dot and name.is_absolute():
+            l = name.labels[:-1]
         else:
-            l = self.labels
-        if idna_codec is None:
-            idna_codec = IDNA_DEFAULT
-        return ".".join([idna_codec.decode(x) for x in l])
+            l = name.labels
+        if style.idna_codec is None:
+            return ".".join(map(_escapify, l))
+        else:
+            return ".".join([style.idna_codec.decode(x) for x in l])
 
     def to_digestable(self, origin: "Name | None" = None) -> bytes:
         """Convert name to a format suitable for digesting in hashes.

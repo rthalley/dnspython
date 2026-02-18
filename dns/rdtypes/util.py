@@ -37,8 +37,8 @@ class Gateway:
     name = ""
 
     def __init__(self, type: Any, gateway: str | dns.name.Name | None = None):
-        self.type = dns.rdata.Rdata._as_uint8(type)
-        self.gateway = gateway
+        self.type: int = dns.rdata.Rdata._as_uint8(type)
+        self.gateway: str | dns.name.Name | None = gateway
         self._check()
 
     @classmethod
@@ -64,14 +64,18 @@ class Gateway:
         else:
             raise SyntaxError(self._invalid_type(self.type))
 
-    def to_text(self, origin=None, relativize=True):
+    def to_text(self, origin=None, relativize=True) -> str:
+        return self.to_styled_text(dns.rdata.RdataStyle(origin=origin, relativize=True))
+
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         if self.type == 0:
             return "."
         elif self.type in (1, 2):
+            assert isinstance(self.gateway, str)
             return self.gateway
         elif self.type == 3:
             assert isinstance(self.gateway, dns.name.Name)
-            return str(self.gateway.choose_relativity(origin, relativize))
+            return self.gateway.to_styled_text(style)
         else:
             raise ValueError(self._invalid_type(self.type))  # pragma: no cover
 

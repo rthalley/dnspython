@@ -16,8 +16,8 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS Zones."""
-
 import contextlib
+import dataclasses
 import io
 import os
 import struct
@@ -105,6 +105,41 @@ def _validate_name(
     return name
 
 
+@dataclasses.dataclass(frozen=True)
+class ZoneStyle(dns.node.NodeStyle):
+    """Zone text styles
+
+    A ``ZoneStyle`` is also a :py:class:`dns.name.NameStyle` and a
+    :py:class:`dns.rdata.RdataStyle`, a :py:class:`dns.rdataset.RdatasetStyle`,
+    and a :py:class:`dns.node.NodeStyle`.
+    See those classes for a description of their options.
+
+    *sorted*, a ``bool``.  If True, the default, then the file
+    will be written with the names sorted in DNSSEC order from
+    least to greatest.  Otherwise the names will be written in
+    whatever order they happen to have in the zone's dictionary.
+
+    *nl*, a ``str`` or ``None`` (the default).  The end of line string,
+    or if ``None``, the output will use the platform's native
+    end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
+
+    *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
+    the start of the output.  If ``False``, the default, do not emit
+    one.
+
+    *want_unicode_directive*, a ``bool``.  If ``True`` and the zone
+    has a non-empty ``unicode`` attribute, then emit a ``$UNICODE``
+    line in the output.  This directive is not standard, but allows
+    dnspython and other aware software to read and write Unicode zonefiles
+    without changing the rendering of names and TXT-like records.
+    """
+
+    sorted: bool = True
+    nl: str | None = None
+    want_origin: bool = False
+    want_unicode_directive: bool = True
+
+
 class Zone(dns.transaction.TransactionManager):
     """A DNS zone.
 
@@ -154,6 +189,7 @@ class Zone(dns.transaction.TransactionManager):
         self.rdclass = rdclass
         self.nodes: MutableMapping[dns.name.Name, dns.node.Node] = self.map_factory()
         self.relativize = relativize
+        self.unicode: set[str] = set()
 
     def __eq__(self, other):
         """Two zones are equal if they have the same origin, class, and
@@ -620,6 +656,7 @@ class Zone(dns.transaction.TransactionManager):
         nl: str | bytes | None = None,
         want_comments: bool = False,
         want_origin: bool = False,
+        style: ZoneStyle | None = None,
     ) -> None:
         """Write a zone to a file.
 
@@ -647,7 +684,52 @@ class Zone(dns.transaction.TransactionManager):
         the start of the file.  If ``False``, the default, do not emit
         one.
         """
+        if style is None:
+            kw = {}
+            kw["sorted"] = sorted
+            kw["relativize"] = relativize
+            if relativize:
+                assert self.origin is not None
+                kw["origin"] = self.origin
+            kw["nl"] = nl
+            kw["want_comments"] = want_comments
+            kw["want_origin"] = want_origin
+            style = ZoneStyle.from_keywords(kw)
+        return self.to_styled_file(style, f)
 
+    def _write_line(self, output, l, l_b, nl, nl_b):
+        try:
+            bout = cast(BinaryIO, output)
+            bout.write(l_b)
+            bout.write(nl_b)
+        except TypeError:  # textual mode
+            tout = cast(TextIO, output)
+            tout.write(l)
+            tout.write(nl)
+
+    def to_styled_file(
+        self,
+        style: ZoneStyle,
+        f: Any,
+    ) -> None:
+        """Write a zone to a styled file.
+
+        *f*, a file or `str`.  If *f* is a string, it is treated
+        as the name of a file to open.
+        """
+
+        # Apply style items we learned from $UNICODE when we loaded the zone (if any).
+        if style.want_unicode_directive:
+            idna_codec: dns.name.IDNACodec | None = style.idna_codec
+            if "2008" in self.unicode:
+                idna_codec = dns.name.IDNA_2008_Practical
+            elif "2003" in self.unicode:
+                idna_codec = dns.name.IDNA_2003_Practical
+            if "TXT" in self.unicode:
+                txt_is_utf8 = True
+            else:
+                txt_is_utf8 = style.txt_is_utf8
+            style = style.replace(idna_codec=idna_codec, txt_is_utf8=txt_is_utf8)
         if isinstance(f, str):
             cm: contextlib.AbstractContextManager = open(f, "wb")
         else:
@@ -659,52 +741,44 @@ class Zone(dns.transaction.TransactionManager):
             if file_enc is None:
                 file_enc = "utf-8"
 
-            if nl is None:
+            if style.nl is None:
                 # binary mode, '\n' is not enough
                 nl_b = os.linesep.encode(file_enc)
                 nl = "\n"
-            elif isinstance(nl, str):
-                nl_b = nl.encode(file_enc)
+            elif isinstance(style.nl, str):
+                nl_b = style.nl.encode(file_enc)
+                nl = style.nl
             else:
-                nl_b = nl
-                nl = nl.decode()
+                nl_b = style.nl
+                nl = style.nl.decode()
             assert nl is not None
             assert nl_b is not None
 
-            if want_origin:
-                assert self.origin is not None
-                l = "$ORIGIN " + self.origin.to_text()
+            if style.want_unicode_directive and len(self.unicode) > 0:
+                l = "$UNICODE " + " ".join(sorted(self.unicode))
                 l_b = l.encode(file_enc)
-                try:
-                    bout = cast(BinaryIO, output)
-                    bout.write(l_b)
-                    bout.write(nl_b)
-                except TypeError:  # textual mode
-                    tout = cast(TextIO, output)
-                    tout.write(l)
-                    tout.write(nl)
+                self._write_line(output, l, l_b, nl, nl_b)
+            if style.want_origin:
+                assert self.origin is not None
+                # Ensure we don't relativize the origin to the origin in $ORIGIN!
+                origin_style = style.replace(origin=None)
+                l = "$ORIGIN " + self.origin.to_styled_text(origin_style)
+                l_b = l.encode(file_enc)
+                self._write_line(output, l, l_b, nl, nl_b)
+            if style.default_ttl is not None:
+                l = f"$TTL {style.default_ttl}"
+                l_b = l.encode(file_enc)
+                self._write_line(output, l, l_b, nl, nl_b)
 
-            if sorted:
+            if style.sorted:
                 names = list(self.keys())
                 names.sort()
             else:
                 names = self.keys()
             for n in names:
-                l = self[n].to_text(
-                    n,
-                    origin=self.origin,  # pyright: ignore
-                    relativize=relativize,  # pyright: ignore
-                    want_comments=want_comments,  # pyright: ignore
-                )
+                l = self[n].to_styled_text(style, n)
                 l_b = l.encode(file_enc)
-                try:
-                    bout = cast(BinaryIO, output)
-                    bout.write(l_b)
-                    bout.write(nl_b)
-                except TypeError:  # textual mode
-                    tout = cast(TextIO, output)
-                    tout.write(l)
-                    tout.write(nl)
+                self._write_line(output, l, l_b, nl, nl_b)
 
     def to_text(
         self,
@@ -713,6 +787,7 @@ class Zone(dns.transaction.TransactionManager):
         nl: str | None = None,
         want_comments: bool = False,
         want_origin: bool = False,
+        style: ZoneStyle | None = None,
     ) -> str:
         """Return a zone's text as though it were written to a file.
 
@@ -737,10 +812,26 @@ class Zone(dns.transaction.TransactionManager):
         the start of the output.  If ``False``, the default, do not emit
         one.
 
+        *style*, a :py:class:`dns.zone.ZoneStyle` or ``None`` (the default).  If specified,
+        the style overrides the other parameters.
+
         Returns a ``str``.
         """
         temp_buffer = io.StringIO()
         self.to_file(temp_buffer, sorted, relativize, nl, want_comments, want_origin)
+        return_value = temp_buffer.getvalue()
+        temp_buffer.close()
+        return return_value
+
+    def to_styled_text(self, style: ZoneStyle):
+        """Return a zone's styled text as though it were written to a file.
+
+        See the documentation for :py:class:`dns.zone.ZoneStyle` for a description
+        of the style parameters.
+        """
+
+        temp_buffer = io.StringIO()
+        self.to_styled_file(style, temp_buffer)
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
         return return_value
@@ -1246,6 +1337,7 @@ def _from_text(
         )
         try:
             reader.read()
+            zone.unicode = txn.unicode
         except dns.zonefile.UnknownOrigin:
             # for backwards compatibility
             raise UnknownOrigin

@@ -17,10 +17,14 @@
 
 """NS-like base classes."""
 
+from typing import TypeVar
+
 import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
+
+T = TypeVar("T", bound="NSBase")
 
 
 @dns.immutable.immutable
@@ -31,16 +35,21 @@ class NSBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, target):
         super().__init__(rdclass, rdtype)
-        self.target = self._as_name(target)
+        self.target: dns.name.Name = self._as_name(target)
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        target = self.target.choose_relativity(origin, relativize)
-        return str(target)
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
+        return self.target.to_styled_text(style)
 
     @classmethod
     def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
+        cls: type[T],
+        rdclass,
+        rdtype,
+        tok,
+        origin=None,
+        relativize=True,
+        relativize_to=None,
+    ) -> T:
         target = tok.get_name(origin, relativize, relativize_to)
         return cls(rdclass, rdtype, target)
 
@@ -48,7 +57,7 @@ class NSBase(dns.rdata.Rdata):
         self.target.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         target = parser.get_name(origin)
         return cls(rdclass, rdtype, target)
 

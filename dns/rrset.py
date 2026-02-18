@@ -133,7 +133,9 @@ class RRset(dns.rdataset.Rdataset):
         self,
         origin: dns.name.Name | None = None,
         relativize: bool = True,
-        **kw: dict[str, Any],
+        want_comments: bool = False,
+        style: dns.rdataset.RdatasetStyle | None = None,
+        **kw: Any,
     ) -> str:
         """Convert the RRset into DNS zone file format.
 
@@ -149,18 +151,42 @@ class RRset(dns.rdataset.Rdataset):
 
         *relativize*, a ``bool``.  If ``True``, names will be relativized
         to *origin*.
-        """
 
-        return super().to_text(
-            self.name, origin, relativize, self.deleting, **kw  # type: ignore
-        )
+        *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
+        which have them.  The default is ``False``.
+
+        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters.
+        """
+        if style is None:
+            kw = kw.copy()
+            kw["origin"] = origin
+            kw["relativize"] = relativize
+            kw["want_comments"] = want_comments
+            style = dns.rdataset.RdatasetStyle.from_keywords(kw)
+        return self.to_styled_text(style)
+
+    def to_styled_text(self, style: dns.rdataset.RdatasetStyle) -> str:  # type: ignore
+        """Convert the RRset to styled text.
+
+        A new style is made from the specified style setting the ``override_rdclass``
+        attribute appropriately for the deleting status of the RRset.
+
+        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
+        specified, the style overrides the other parameters.
+
+        returns a ``str``.
+        """
+        if self.deleting is not None:
+            style = style.replace(override_rdclass=self.deleting)
+        return super().to_styled_text(style, self.name)
 
     def to_wire(  # type: ignore
         self,
         file: Any,
         compress: dns.name.CompressType | None = None,
         origin: dns.name.Name | None = None,
-        **kw: dict[str, Any],
+        **kw: Any,
     ) -> int:
         """Convert the RRset to wire format.
 
@@ -170,9 +196,7 @@ class RRset(dns.rdataset.Rdataset):
         Returns an ``int``, the number of records emitted.
         """
 
-        return super().to_wire(
-            self.name, file, compress, origin, self.deleting, **kw  # type: ignore
-        )
+        return super().to_wire(self.name, file, compress, origin, self.deleting, **kw)
 
     # pylint: enable=arguments-differ
 
