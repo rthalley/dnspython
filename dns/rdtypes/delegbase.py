@@ -1,6 +1,5 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-import base64
 import enum
 import struct
 from typing import Any, Dict
@@ -198,7 +197,7 @@ class GenericInfo(DelegInfo):
         else:
             return cls(_unescape(value))
 
-    def to_text(self):
+    def to_styled_text(self, style: dns.rdata.RdataStyle):
         return '"' + dns.rdata._escapify(self.value) + '"'
 
     @classmethod
@@ -232,7 +231,7 @@ class MandatoryInfo(DelegInfo):
         keys = [k.encode() for k in value.split(",")]
         return cls(keys)
 
-    def to_text(self):
+    def to_styled_text(self, style: dns.rdata.RdataStyle):
         return '"' + ",".join([key_to_text(key) for key in self.keys]) + '"'
 
     @classmethod
@@ -264,7 +263,7 @@ class ServerIPv4Info(DelegInfo):
         addresses = value.split(",")
         return cls(addresses)
 
-    def to_text(self):
+    def to_styled_text(self, style: dns.rdata.RdataStyle):
         return '"' + ",".join(self.addresses) + '"'
 
     @classmethod
@@ -292,7 +291,7 @@ class ServerIPv6Info(DelegInfo):
         addresses = value.split(",")
         return cls(addresses)
 
-    def to_text(self):
+    def to_styled_text(self, style: dns.rdata.RdataStyle):
         return '"' + ",".join(self.addresses) + '"'
 
     @classmethod
@@ -332,10 +331,12 @@ class NameSetInfo(DelegInfo):
     def from_value(cls, value):
         return cls(_split(_unescape(value)))
 
-    def to_text(self):
+    def to_styled_text(self, style: dns.rdata.RdataStyle):
         value = ",".join(
             [
-                _escapify_commas(dns.rdata._escapify(name.to_text().encode()))
+                _escapify_commas(
+                    dns.rdata._escapify(name.to_styled_text(style).encode())
+                )
                 for name in self.names
             ]
         )
@@ -416,14 +417,14 @@ class DelegBase(dns.rdata.Rdata):
             raise ValueError("a server-name DELEG cannot have an include-delegi")
         self.infos = dns.immutable.Dict(infos)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         infos = []
         for key in sorted(self.infos.keys()):
             value = self.infos[key]
             if value is None:
                 infos.append(key_to_text(key))
             else:
-                kv = key_to_text(key) + "=" + value.to_text()
+                kv = key_to_text(key) + "=" + value.to_styled_text(style)
                 infos.append(kv)
         return " ".join(infos)
 
