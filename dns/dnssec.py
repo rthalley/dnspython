@@ -49,7 +49,7 @@ from dns.rdtypes.ANY.DS import DS
 from dns.rdtypes.ANY.NSEC import NSEC, Bitmap
 from dns.rdtypes.ANY.NSEC3PARAM import NSEC3PARAM
 from dns.rdtypes.ANY.RRSIG import RRSIG, sigtime_to_posixtime
-from dns.rdtypes.dnskeybase import Flag
+from dns.rdtypes.dnskeybase import Flag as Flag
 
 PublicKey = Union[
     "GenericPublicKey",
@@ -1182,11 +1182,11 @@ def _need_pyca(*args, **kwargs):
 
 if dns._features.have("dnssec"):
     from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives.asymmetric import ec  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import ed448  # pylint: disable=W0611
+    from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import (  # pylint: disable=W0611
-        ec,  # pylint: disable=W0611
-        ed448,  # pylint: disable=W0611
         ed25519,
-        rsa,  # pylint: disable=W0611
     )
 
     from dns.dnssecalgs import (  # pylint: disable=C0412
