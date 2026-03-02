@@ -30,7 +30,7 @@ class DelegInfoKey(dns.enum.IntEnum):
     SERVER_IPV4 = 1
     SERVER_IPV6 = 2
     SERVER_NAME = 3
-    INCLUDE_DELEGI = 4
+    INCLUDE_DELEGPARAM = 4
 
     @classmethod
     def _maximum(cls):
@@ -360,7 +360,7 @@ _class_for_key: Dict[DelegInfoKey, Any] = {
     DelegInfoKey.SERVER_IPV4: ServerIPv4Info,
     DelegInfoKey.SERVER_IPV6: ServerIPv6Info,
     DelegInfoKey.SERVER_NAME: NameSetInfo,
-    DelegInfoKey.INCLUDE_DELEGI: NameSetInfo,
+    DelegInfoKey.INCLUDE_DELEGPARAM: NameSetInfo,
 }
 
 
@@ -408,7 +408,7 @@ class DelegBase(dns.rdata.Rdata):
         have_v4 = infos.get(DelegInfoKey.SERVER_IPV4)
         have_v6 = infos.get(DelegInfoKey.SERVER_IPV6)
         have_server_name = infos.get(DelegInfoKey.SERVER_NAME)
-        have_include = infos.get(DelegInfoKey.INCLUDE_DELEGI)
+        have_include = infos.get(DelegInfoKey.INCLUDE_DELEGPARAM)
         if (have_v4 or have_v6) and (have_server_name or have_include):
             raise ValueError(
                 "an address DELEG cannot have a server-name or include-delegi"
