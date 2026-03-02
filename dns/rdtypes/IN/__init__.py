@@ -22,7 +22,7 @@ __all__ = [
     "AAAA",
     "APL",
     "DELEG",
-    "DELEGI",
+    "DELEGPARAM",
     "DHCID",
     "HTTPS",
     "IPSECKEY",
