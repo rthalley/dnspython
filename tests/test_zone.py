@@ -168,9 +168,7 @@ $ORIGIN example.
 """
 
 include_text = """$INCLUDE "%s"
-""" % here(
-    "example"
-)
+""" % here("example")
 
 bad_directive_text = """$FOO bar
 $ORIGIN example.

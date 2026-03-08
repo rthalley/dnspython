@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
+
 import dataclasses
 import io
 import random
