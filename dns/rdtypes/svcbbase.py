@@ -37,6 +37,7 @@ class ParamKey(dns.enum.IntEnum):
     IPV6HINT = 6
     DOHPATH = 7
     OHTTP = 8
+    DOCPATH = 10
 
     @classmethod
     def _maximum(cls):
@@ -428,6 +429,26 @@ class OHTTPParam(Param):
         raise NotImplementedError  # pragma: no cover
 
 
+@dns.immutable.immutable
+class DoCPathParam(ALPNParam):
+    def __init__(self, ids):
+        print("init", ids)
+        if not ids:
+            self.ids = []
+        else:
+            super().__init__(ids)
+
+    @classmethod
+    def emptiness(cls):
+        return Emptiness.ALLOWED
+
+    @classmethod
+    def from_value(cls, value):
+        if not value:
+            return cls([])
+        return super().from_value(value)
+
+
 _class_for_key: dict[ParamKey, Any] = {
     ParamKey.MANDATORY: MandatoryParam,
     ParamKey.ALPN: ALPNParam,
@@ -437,6 +458,7 @@ _class_for_key: dict[ParamKey, Any] = {
     ParamKey.ECH: ECHParam,
     ParamKey.IPV6HINT: IPv6HintParam,
     ParamKey.OHTTP: OHTTPParam,
+    ParamKey.DOCPATH: DoCPathParam,
 }
 
 
