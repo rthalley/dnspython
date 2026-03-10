@@ -432,7 +432,6 @@ class OHTTPParam(Param):
 @dns.immutable.immutable
 class DoCPathParam(ALPNParam):
     def __init__(self, ids):
-        print("init", ids)
         if not ids:
             self.ids = []
         else:
