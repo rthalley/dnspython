@@ -443,9 +443,15 @@ class DoCPathParam(ALPNParam):
 
     @classmethod
     def from_value(cls, value):
-        if not value:
-            return cls([])
+        if value is None or value == "":
+            return None
         return super().from_value(value)
+
+    @classmethod
+    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
+        if parser.remaining() == 0:
+            return None
+        return super().from_wire_parser(parser, origin=origin)
 
 
 _class_for_key: dict[ParamKey, Any] = {

@@ -248,8 +248,8 @@ class SVCBTestCase(unittest.TestCase):
         self.check_valid_inputs(valid_inputs_one_item)
 
         valid_inputs_no_item = (
-            '1 . docpath=""',
             "1 . docpath",
+            '1 . docpath=""',
             '1 . key10=""',
             "1 . key10",
         )
@@ -311,7 +311,7 @@ class SVCBTestCase(unittest.TestCase):
         self.check_valid_inputs(valid_inputs)
 
         valid_inputs = (
-            '1 . alpn="co" docpath=""',
+            '1 . alpn="co" docpath',
             "\\# 14 0001 00 0001000302636f 000a0000",
         )
         self.check_valid_inputs(valid_inputs)
