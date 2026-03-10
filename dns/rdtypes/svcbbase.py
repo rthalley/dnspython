@@ -431,12 +431,6 @@ class OHTTPParam(Param):
 
 @dns.immutable.immutable
 class DoCPathParam(ALPNParam):
-    def __init__(self, ids):
-        if not ids:
-            self.ids = []
-        else:
-            super().__init__(ids)
-
     @classmethod
     def emptiness(cls):
         return Emptiness.ALLOWED
