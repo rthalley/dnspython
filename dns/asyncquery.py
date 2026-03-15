@@ -734,10 +734,10 @@ async def _http3(
     wire = q.to_wire()
     the_connection: dns.quic.AsyncQuicConnection
     if connection:
-        cfactory = dns.quic.null_factory  # type: ignore
-        mfactory = dns.quic.null_factory  # type: ignore
+        cfactory = dns.quic.null_factory
+        mfactory = dns.quic.null_factory
     else:
-        cfactory, mfactory = dns.quic.factories_for_backend(backend)  # type: ignore
+        cfactory, mfactory = dns.quic.factories_for_backend(backend)
 
     async with cfactory() as context:
         async with mfactory(
@@ -805,11 +805,11 @@ async def quic(
     wire = q.to_wire()
     the_connection: dns.quic.AsyncQuicConnection
     if connection:
-        cfactory = dns.quic.null_factory  # type: ignore
-        mfactory = dns.quic.null_factory  # type: ignore
+        cfactory = dns.quic.null_factory
+        mfactory = dns.quic.null_factory
         the_connection = connection
     else:
-        cfactory, mfactory = dns.quic.factories_for_backend(backend)  # type: ignore
+        cfactory, mfactory = dns.quic.factories_for_backend(backend)
 
     async with cfactory() as context:
         async with mfactory(

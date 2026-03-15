@@ -696,11 +696,11 @@ def _http3(
     q.id = 0
     wire = q.to_wire()
     the_connection: dns.quic.SyncQuicConnection
-    the_manager: dns.quic.SyncQuicManager  # type: ignore
+    the_manager: dns.quic.SyncQuicManager
     if connection:
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
     else:
-        manager = dns.quic.SyncQuicManager(  # type: ignore
+        manager = dns.quic.SyncQuicManager(
             verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
         )
         the_manager = manager  # for type checking happiness
@@ -1491,12 +1491,12 @@ def quic(
     q.id = 0
     wire = q.to_wire()
     the_connection: dns.quic.SyncQuicConnection
-    the_manager: dns.quic.SyncQuicManager  # type: ignore
+    the_manager: dns.quic.SyncQuicManager
     if connection:
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
         the_connection = connection
     else:
-        manager = dns.quic.SyncQuicManager(  # type: ignore
+        manager = dns.quic.SyncQuicManager(
             verify_mode=verify, server_name=hostname  # pyright: ignore
         )
         the_manager = manager  # for type checking happiness
