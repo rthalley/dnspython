@@ -238,14 +238,22 @@ class MandatoryParam(Param):
 
 
 @dns.immutable.immutable
-class ALPNParam(Param):
+class _StringList(Param):
+    """A comma separated list of strings, possibly empty."""
+
     def __init__(self, ids):
         self.ids = dns.rdata.Rdata._as_tuple(
             ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False)
         )
 
     @classmethod
+    def emptiness(cls) -> Emptiness:
+        return Emptiness.ALLOWED
+
+    @classmethod
     def from_value(cls, value):
+        if value is None or value == "":
+            return None
         return cls(_split(_unescape(value)))
 
     def to_text(self):
@@ -254,6 +262,8 @@ class ALPNParam(Param):
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
+        if parser.remaining() == 0:
+            return None
         ids = []
         while parser.remaining() > 0:
             id = parser.get_counted_bytes()
@@ -264,6 +274,20 @@ class ALPNParam(Param):
         for id in self.ids:
             file.write(struct.pack("!B", len(id)))
             file.write(id)
+
+
+@dns.immutable.immutable
+class ALPNParam(_StringList):
+    """The alpn parameter."""
+
+    def __init__(self, ids):
+        self.ids = dns.rdata.Rdata._as_tuple(
+            ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False)
+        )
+
+    @classmethod
+    def emptiness(cls):
+        return Emptiness.NEVER
 
 
 @dns.immutable.immutable
@@ -430,22 +454,8 @@ class OHTTPParam(Param):
 
 
 @dns.immutable.immutable
-class DoCPathParam(ALPNParam):
-    @classmethod
-    def emptiness(cls):
-        return Emptiness.ALLOWED
-
-    @classmethod
-    def from_value(cls, value):
-        if value is None or value == "":
-            return None
-        return super().from_value(value)
-
-    @classmethod
-    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
-        if parser.remaining() == 0:
-            return None
-        return super().from_wire_parser(parser, origin=origin)
+class DoCPathParam(_StringList):
+    """The docpath parameter."""
 
 
 _class_for_key: dict[ParamKey, Any] = {
