@@ -225,6 +225,50 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_invalid_inputs(invalid_inputs)
 
+    def test_svcb_docpath(self):
+        valid_inputs_two_items = (
+            '1 . docpath="n,s"',
+            "1 . docpath=n,s",
+            "1 . docpath=\\110,s",
+            '1 . docpath="\\110,s"',
+            "1 . docpath=\\n,s",
+            '1 . docpath="n\\,s"',
+            "1 . docpath=n\\,s",
+            "1 . docpath=n\\044s",
+            "1 . key10=\\001n\\001s",
+        )
+        self.check_valid_inputs(valid_inputs_two_items)
+
+        valid_inputs_one_item = (
+            '1 . docpath="n\\\\,s"',
+            "1 . docpath=n\\\\,s",
+            "1 . docpath=n\\092\\044s",
+            "1 . key10=\\003n,s",
+        )
+        self.check_valid_inputs(valid_inputs_one_item)
+
+        valid_inputs_no_item = (
+            "1 . docpath",
+            '1 . docpath=""',
+            '1 . key10=""',
+            "1 . key10",
+        )
+        self.check_valid_inputs(valid_inputs_no_item)
+
+        invalid_inputs = (
+            "1 . docpath=n,,s",
+            "1 . docpath=01234567890abcdef01234567890abcdef01234567890abcdef"
+            "01234567890abcdef01234567890abcdef01234567890abcdef"
+            "01234567890abcdef01234567890abcdef01234567890abcdef"
+            "01234567890abcdef01234567890abcdef01234567890abcdef"
+            "01234567890abcdef01234567890abcdef01234567890abcdef"
+            "01234567890abcdef",
+            '1 . docpath=",n,s"',
+            '1 . docpath="n,s,"',
+        )
+        self.check_invalid_inputs(invalid_inputs)
+
+
     def test_svcb_unknown(self):
         valid_inputs_one_key = (
             '1 . key23="key45"',
@@ -257,6 +301,18 @@ class SVCBTestCase(unittest.TestCase):
         valid_inputs = (
             '1 . mandatory="alpn,port" alpn="h2" port="257"',
             "\\# 24 0001 00 0000000400010003 00010003026832 000300020101",
+        )
+        self.check_valid_inputs(valid_inputs)
+
+        valid_inputs = (
+            '1 . alpn="co" docpath="n,s"',
+            "\\# 18 0001 00 0001000302636f 000a0004016e0173",
+        )
+        self.check_valid_inputs(valid_inputs)
+
+        valid_inputs = (
+            '1 . alpn="co" docpath',
+            "\\# 14 0001 00 0001000302636f 000a0000",
         )
         self.check_valid_inputs(valid_inputs)
 
