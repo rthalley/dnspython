@@ -85,6 +85,8 @@ class RdataType(dns.enum.IntEnum):
     SVCB = 64
     HTTPS = 65
     DSYNC = 66
+    HHIT = 67
+    BRID = 68
     SPF = 99
     UNSPEC = 103
     NID = 104
@@ -310,6 +312,8 @@ ZONEMD = RdataType.ZONEMD
 SVCB = RdataType.SVCB
 HTTPS = RdataType.HTTPS
 DSYNC = RdataType.DSYNC
+HHIT = RdataType.HHIT
+BRID = RdataType.BRID
 SPF = RdataType.SPF
 UNSPEC = RdataType.UNSPEC
 NID = RdataType.NID
