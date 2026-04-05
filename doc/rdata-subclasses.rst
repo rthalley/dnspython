@@ -17,24 +17,27 @@ Universal Types
 .. autoclass:: dns.rdtypes.ANY.AFSDB.AFSDB
    :members:
 
+.. autoclass:: dns.rdtypes.ANY.AMTRELAY.Relay
+   :members:
+
 .. autoclass:: dns.rdtypes.ANY.AMTRELAY.AMTRELAY
    :members:
 
    .. attribute:: precedence
 
-   An ``int``, the 8-bit unsigned integer preference.
+      An ``int``, the 8-bit unsigned integer preference.
 
    .. attribute:: discovery_optional
 
-   A ``bool``, specifying whether discovery is optional or not.
+      A ``bool``, specifying whether discovery is optional or not.
 
    .. attribute:: relay_type
 
-   An ``int``, the 8-bit unsigned integer relay type.
+      An ``int``, the 8-bit unsigned integer relay type.
 
    .. attribute:: relay
 
-   A ``dns.rdtypes.ANY.AMTRELAY.Relay`` instance, the relay.
+      A :py:class:`dns.rdtypes.ANY.AMTRELAY.Relay` instance, the relay.
 
 .. autoclass:: dns.rdtypes.ANY.AVC.AVC
    :members:
@@ -120,7 +123,7 @@ Universal Types
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target name.
+      A :py:class:`dns.name.Name`, the target name.
 
 .. autoclass:: dns.rdtypes.ANY.CSYNC.CSYNC
    :members:
@@ -161,7 +164,7 @@ Universal Types
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target name.
+      A :py:class:`dns.name.Name`, the target name.
 
 .. autoclass:: dns.rdtypes.ANY.DNSKEY.DNSKEY
    :members:
@@ -201,16 +204,19 @@ Universal Types
 
       A ``bytes``, the digest of the key.
 
+.. autoclass:: dns.rdtypes.ANY.DSYNC.Scheme
+   :members:
+
 .. autoclass:: dns.rdtypes.ANY.DSYNC.DSYNC
    :members:
 
    .. attribute:: rrtype
 
-      A ``dns.rdatatype.RdataType``, the type this DSYNC record will notify about.
+      A :py:class:`dns.rdatatype.RdataType`, the type this DSYNC record will notify about.
 
    .. attribute:: scheme
 
-      A ``dns.rdtypes.ANY.DSYNC.Scheme`` the scheme to use, typically
+      A :py:class:`dns.rdtypes.ANY.DSYNC.Scheme` the scheme to use, typically
       ``dns.rdtypes.ANY.DSYNC.Scheme.NOTIFY``.
 
    .. attribute:: port
@@ -219,7 +225,7 @@ Universal Types
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the hostname of the notification receiver.
+      A :py:class:`dns.name.Name`, the hostname of the notification receiver.
 
 .. autoclass:: dns.rdtypes.ANY.EUI48.EUI48
    :members:
@@ -278,7 +284,7 @@ Universal Types
 
    .. attribute:: servers
 
-      A tuple of ``dns.name.Name`` objects, the rendezvous servers.
+      A tuple of :py:class:`dns.name.Name` objects, the rendezvous servers.
 
 .. autoclass:: dns.rdtypes.ANY.ISDN.ISDN
    :members:
@@ -351,7 +357,7 @@ Universal Types
 
    .. attribute:: fqdn
 
-      A ``dns.name.Name``, the domain name of a locator.
+      A :py:class:`dns.name.Name`, the domain name of a locator.
 
 .. autoclass:: dns.rdtypes.ANY.MX.MX
    :members:
@@ -362,7 +368,7 @@ Universal Types
 
    .. attribute:: exchange
 
-      A ``dns.name.Name``, the exchange name.
+      A :py:class:`dns.name.Name`, the exchange name.
 
 .. autoclass:: dns.rdtypes.ANY.NID.NID
    :members:
@@ -386,14 +392,14 @@ Universal Types
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target name.
+      A :py:class:`dns.name.Name`, the target name.
 
 .. autoclass:: dns.rdtypes.ANY.NSEC.NSEC
    :members:
 
    .. attribute:: next
 
-      A ``dns.name.Name``, the next name
+      A :py:class:`dns.name.Name`, the next name
 
    .. attribute:: windows
 
@@ -457,7 +463,7 @@ Universal Types
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target name.
+      A :py:class:`dns.name.Name`, the target name.
 
 .. autoclass:: dns.rdtypes.ANY.RESINFO.RESINFO
    :members:
@@ -471,11 +477,11 @@ Universal Types
 
    .. attribute:: mbox
 
-      A ``dns.name.Name``, the responsible person's mailbox.
+      A :py:class:`dns.name.Name`, the responsible person's mailbox.
 
    .. attribute:: txt
 
-      A ``dns.name.Name``, the owner name of a node with TXT records,
+      A :py:class:`dns.name.Name`, the owner name of a node with TXT records,
       or the root name if no TXT records are associated with this RP.
 
 .. autoclass:: dns.rdtypes.ANY.RRSIG.RRSIG
@@ -511,7 +517,7 @@ Universal Types
 
    .. attribute:: signer
 
-      A ``dns.name.Name``, the signer.
+      A :py:class:`dns.name.Name`, the signer.
 
    .. attribute:: signature
 
@@ -526,7 +532,7 @@ Universal Types
 
    .. attribute:: exchange
 
-      A ``dns.name.Name``, the exchange name.
+      A :py:class:`dns.name.Name`, the exchange name.
 
 .. autoclass:: dns.rdtypes.ANY.SMIMEA.SMIMEA
    :members:
@@ -552,11 +558,11 @@ Universal Types
 
    .. attribute:: mname
 
-      A ``dns.name.Name``, the MNAME (master name).
+      A :py:class:`dns.name.Name`, the MNAME (master name).
 
    .. attribute:: rname
 
-      A ``dns.name.Name``, the RNAME (responsible name).
+      A :py:class:`dns.name.Name`, the RNAME (responsible name).
 
    .. attribute:: serial
 
@@ -640,7 +646,7 @@ Universal Types
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target.
+      A :py:class:`dns.name.Name`, the target.
 
 .. autoclass:: dns.rdtypes.ANY.WALLET.WALLET
    :members:
@@ -699,7 +705,7 @@ Types specific to class IN
 
    .. attribute:: items
 
-      A tuple of ``dns.rdtypes.IN.APL.APLItem``.
+      A tuple of :py:class:`dns.rdtypes.IN.APL.APLItem`.
 
 .. autoclass:: dns.rdtypes.IN.DHCID.DHCID
    :members:
@@ -718,11 +724,11 @@ Types specific to class IN
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target name.
+      A :py:class:`dns.name.Name`, the target name.
 
    .. attribute:: params
 
-      A ``dict[dns.rdtypes.svcbbase.ParamKey, dns.rdtypes.svcbbase.Param]``, the
+      A dict mapping :py:class:`dns.rdtypes.svcbbase.ParamKey` to :py:class:`dns.rdtypes.svcbbase.Param`, the
       parameters.  See the dedicated section :ref:`svcb-https-params` below for
       more information on the parameter types.
 
@@ -747,8 +753,8 @@ Types specific to class IN
 
    .. attribute:: gateway
 
-      The gateway.  This value may be ``None``, a ``str` with an IPv4 or
-      IPV6 address, or a ``dns.name.Name``.
+      The gateway.  This value may be ``None``, a ``str`` with an IPv4 or
+      IPV6 address, or a :py:class:`dns.name.Name`.
 
    .. attribute:: key
 
@@ -763,7 +769,7 @@ Types specific to class IN
 
    .. attribute:: exchange
 
-      A ``dns.name.Name``, the exchange name.
+      A :py:class:`dns.name.Name`, the exchange name.
 
 .. autoclass:: dns.rdtypes.IN.NAPTR.NAPTR
    :members:
@@ -790,7 +796,7 @@ Types specific to class IN
 
    .. attribute:: replacement
 
-      A ``dns.name.Name``, the replacement name.
+      A :py:class:`dns.name.Name`, the replacement name.
 
 .. autoclass:: dns.rdtypes.IN.NSAP.NSAP
    :members:
@@ -804,7 +810,7 @@ Types specific to class IN
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target name.
+      A :py:class:`dns.name.Name`, the target name.
 
 .. autoclass:: dns.rdtypes.IN.PX.PX
    :members:
@@ -815,11 +821,11 @@ Types specific to class IN
 
    .. attribute:: map822
 
-      A ``dns.name.Name``, the map822 name.
+      A :py:class:`dns.name.Name`, the map822 name.
 
    .. attribute:: mapx400
 
-      A ``dns.name.Name``, the mapx400 name.
+      A :py:class:`dns.name.Name`, the mapx400 name.
 
 .. autoclass:: dns.rdtypes.IN.SRV.SRV
    :members:
@@ -838,7 +844,7 @@ Types specific to class IN
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target host.
+      A :py:class:`dns.name.Name`, the target host.
 
 .. autoclass:: dns.rdtypes.IN.SVCB.SVCB
    :members:
@@ -849,11 +855,11 @@ Types specific to class IN
 
    .. attribute:: target
 
-      A ``dns.name.Name``, the target name.
+      A :py:class:`dns.name.Name`, the target name.
 
    .. attribute:: params
 
-      A ``dict[dns.rdtypes.svcbbase.ParamKey, dns.rdtypes.svcbbase.Param]``, the
+      A dict mapping :py:class:`dns.rdtypes.svcbbase.ParamKey` to :py:class:`dns.rdtypes.svcbbase.Param`, the
       parameters.  See the dedicated section :ref:`svcb-https-params` below for
       more information on the parameter types.
 
@@ -903,7 +909,7 @@ SVCB and HTTPS Parameter Classes
 
    .. attribute:: keys
 
-      A tuple of ``ParamKey``, the keys which are mandatory.
+      A tuple of :py:class:`dns.rdtypes.svcbbase.ParamKey`, the keys which are mandatory.
 
 .. autoclass:: dns.rdtypes.svcbbase.ALPNParam
    :members:

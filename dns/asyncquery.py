@@ -96,19 +96,18 @@ async def send_udp(
 ) -> tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
-    *sock*, a ``dns.asyncbackend.DatagramSocket``.
-
-    *what*, a ``bytes`` or ``dns.message.Message``, the message to send.
-
-    *destination*, a destination tuple appropriate for the address family
-    of the socket, specifying where to send the query.
-
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.  The expiration value is meaningless for the asyncio backend, as
-    asyncio's transport sendto() never blocks.
-
-    Returns an ``(int, float)`` tuple of bytes sent and the sent time.
+    :param sock: The socket to use.
+    :type sock: :py:class:`dns.asyncbackend.DatagramSocket`
+    :param what: The message to send.
+    :type what: bytes or :py:class:`dns.message.Message`
+    :param destination: A destination tuple appropriate for the address
+        family of the socket.
+    :param expiration: The absolute time at which to raise a timeout
+        exception.  ``None`` means no timeout (and is meaningless for the
+        asyncio backend, as ``sendto()`` never blocks there).
+    :type expiration: float or ``None``
+    :returns: A ``(bytes_sent, sent_time)`` tuple.
+    :rtype: tuple[int, float]
     """
 
     if isinstance(what, dns.message.Message):
@@ -133,13 +132,14 @@ async def receive_udp(
 ) -> Any:
     """Read a DNS message from a UDP socket.
 
-    *sock*, a ``dns.asyncbackend.DatagramSocket``.
+    :param sock: The socket to read from.
+    :type sock: :py:class:`dns.asyncbackend.DatagramSocket`
 
-    See :py:func:`dns.query.receive_udp()` for the documentation of the other
-    parameters, and exceptions.
+    See :py:func:`dns.query.receive_udp` for the documentation of the other
+    parameters and exceptions.
 
-    Returns a ``(dns.message.Message, float, tuple)`` tuple of the received message, the
-    received time, and the address where the message arrived from.
+    :returns: A ``(message, received_time, from_address)`` tuple.
+    :rtype: tuple
     """
 
     wire = b""
@@ -197,13 +197,13 @@ async def udp(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
 
-    *sock*, a ``dns.asyncbackend.DatagramSocket``, or ``None``,
-    the socket to use for the query.  If ``None``, the default, a
-    socket is created.  Note that if a socket is provided, the
-    *source*, *source_port*, and *backend* are ignored.
-
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
+    :param sock: The socket to use. If ``None`` (the default), a socket is
+        created. Note that if a socket is provided, *source*, *source_port*,
+        and *backend* are ignored.
+    :type sock: :py:class:`dns.asyncbackend.DatagramSocket` or ``None``
+    :param backend: The async backend. If ``None`` (the default), dnspython
+        will use the default backend.
+    :type backend: :py:class:`dns.asyncbackend.Backend` or ``None``
 
     See :py:func:`dns.query.udp()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -264,18 +264,18 @@ async def udp_with_fallback(
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
-    *udp_sock*, a ``dns.asyncbackend.DatagramSocket``, or ``None``,
-    the socket to use for the UDP query.  If ``None``, the default, a
-    socket is created.  Note that if a socket is provided the *source*,
-    *source_port*, and *backend* are ignored for the UDP query.
-
-    *tcp_sock*, a ``dns.asyncbackend.StreamSocket``, or ``None``, the
-    socket to use for the TCP query.  If ``None``, the default, a
-    socket is created.  Note that if a socket is provided *where*,
-    *source*, *source_port*, and *backend*  are ignored for the TCP query.
-
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
+    :param udp_sock: The socket to use for the UDP query. If ``None``
+        (the default), a socket is created. Note that if a socket is provided,
+        *source*, *source_port*, and *backend* are ignored for the UDP query.
+    :type udp_sock: :py:class:`dns.asyncbackend.DatagramSocket` or ``None``
+    :param tcp_sock: The socket to use for the TCP query. If ``None``
+        (the default), a socket is created. Note that if a socket is provided,
+        *where*, *source*, *source_port*, and *backend* are ignored for the
+        TCP query.
+    :type tcp_sock: :py:class:`dns.asyncbackend.StreamSocket` or ``None``
+    :param backend: The async backend. If ``None`` (the default), dnspython
+        will use the default backend.
+    :type backend: :py:class:`dns.asyncbackend.Backend` or ``None``
 
     See :py:func:`dns.query.udp_with_fallback()` for the documentation
     of the other parameters, exceptions, and return type of this
@@ -321,7 +321,8 @@ async def send_tcp(
 ) -> tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
-    *sock*, a ``dns.asyncbackend.StreamSocket``.
+    :param sock: The socket to use.
+    :type sock: :py:class:`dns.asyncbackend.StreamSocket`
 
     See :py:func:`dns.query.send_tcp()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -364,7 +365,8 @@ async def receive_tcp(
 ) -> tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
-    *sock*, a ``dns.asyncbackend.StreamSocket``.
+    :param sock: The socket to use.
+    :type sock: :py:class:`dns.asyncbackend.StreamSocket`
 
     See :py:func:`dns.query.receive_tcp()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -399,13 +401,13 @@ async def tcp(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
 
-    *sock*, a ``dns.asyncbacket.StreamSocket``, or ``None``, the
-    socket to use for the query.  If ``None``, the default, a socket
-    is created.  Note that if a socket is provided
-    *where*, *port*, *source*, *source_port*, and *backend* are ignored.
-
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
+    :param sock: The socket to use. If ``None`` (the default), a socket is
+        created. Note that if a socket is provided, *where*, *port*,
+        *source*, *source_port*, and *backend* are ignored.
+    :type sock: :py:class:`dns.asyncbackend.StreamSocket` or ``None``
+    :param backend: The async backend. If ``None`` (the default), dnspython
+        will use the default backend.
+    :type backend: :py:class:`dns.asyncbackend.Backend` or ``None``
 
     See :py:func:`dns.query.tcp()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -463,15 +465,14 @@ async def tls(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
-    *sock*, an ``asyncbackend.StreamSocket``, or ``None``, the socket
-    to use for the query.  If ``None``, the default, a socket is
-    created.  Note that if a socket is provided, it must be a
-    connected SSL stream socket, and *where*, *port*,
-    *source*, *source_port*, *backend*, *ssl_context*, and *server_hostname*
-    are ignored.
-
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
+    :param sock: The socket to use. If ``None`` (the default), a socket is
+        created. Note that if a socket is provided, it must be a connected
+        SSL stream socket, and *where*, *port*, *source*, *source_port*,
+        *backend*, *ssl_context*, and *server_hostname* are ignored.
+    :type sock: :py:class:`dns.asyncbackend.StreamSocket` or ``None``
+    :param backend: The async backend. If ``None`` (the default), dnspython
+        will use the default backend.
+    :type backend: :py:class:`dns.asyncbackend.Backend` or ``None``
 
     See :py:func:`dns.query.tls()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -550,11 +551,10 @@ async def https(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
-    *client*, a ``httpx.AsyncClient``.  If provided, the client to use for
-    the query.
-
-    Unlike the other dnspython async functions, a backend cannot be provided
-    in this function because httpx always auto-detects the async backend.
+    :param client: If provided, the client to use for the query. Unlike the
+        other dnspython async functions, a backend cannot be provided here
+        because httpx always auto-detects the async backend.
+    :type client: ``httpx.AsyncClient`` or ``None``
 
     See :py:func:`dns.query.https()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -788,8 +788,9 @@ async def quic(
     """Return the response obtained after sending an asynchronous query via
     DNS-over-QUIC.
 
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
+    :param backend: The async backend. If ``None`` (the default), dnspython
+        will use the default backend.
+    :type backend: :py:class:`dns.asyncbackend.Backend` or ``None``
 
     See :py:func:`dns.query.quic()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -910,8 +911,9 @@ async def inbound_xfr(
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
+    :param backend: The async backend. If ``None`` (the default), dnspython
+        will use the default backend.
+    :type backend: :py:class:`dns.asyncbackend.Backend` or ``None``
 
     See :py:func:`dns.query.inbound_xfr()` for the documentation of
     the other parameters, exceptions, and return type of this method.

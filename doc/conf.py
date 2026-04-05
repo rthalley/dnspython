@@ -34,9 +34,42 @@ sys.path.insert(0, os.path.abspath(".."))
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.todo",
+]
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "cryptography": ("https://cryptography.io/en/latest/", None)
+}
+
+nitpick_ignore = [
+    ("py:class", "dns.tokenizer.Tokenizer"),
+    ("py:class", "dns.wirebase.Parser"),
+    ("py:class", "dns.wire.Parser"),
+    ("py:class", "dns.btree.BTreeDict"),
+    ("py:class", "dns.btree.BTree"),
+    # Private async backend classes (underscore-prefixed, not publicly documented)
+    ("py:class", "dns._asyncbackend.Backend"),
+    ("py:class", "dns._asyncbackend.DatagramSocket"),
+    ("py:class", "dns._asyncbackend.StreamSocket"),
+    # TSIG module not yet documented
+    ("py:class", "dns.tsig.Key"),
+    ("py:class", "dns.tsig.HMACTSig"),
+    ("py:class", "dns.tsig.GSSTSig"),
+    # Malformed dict[] type annotation cross-ref from autodoc
+    ("py:class", "dict[~dns.name.Name"),
+    # Public async backend module classes (implementation detail)
+    ("py:class", "dns.asyncbackend.Backend"),
+    # Python built-in file object (old-style type annotation)
+    ("py:class", "file"),
+    # socket module class (from dns.query sock parameters)
+    ("py:class", "socket"),
+    # External libraries not in intersphinx
+    ("py:class", "httpx.AsyncClient"),
+    ("py:class", "dns.quic.AsyncQuicConnection"),
 ]
 
 # Add any paths that contain templates here, relative to this directory.

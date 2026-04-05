@@ -63,12 +63,12 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         See the documentation of the Message class for a complete
         description of the keyring dictionary.
 
-        *zone*, a ``dns.name.Name``, ``str``, or ``None``, the zone
-        which is being updated.  ``None`` should only be used by dnspython's
-        message constructors, as a zone is required for the convenience
-        methods like ``add()``, ``replace()``, etc.
-
-        *rdclass*, an ``int`` or ``str``, the class of the zone.
+        :param zone: The zone which is being updated. ``None`` should only be
+            used by dnspython's message constructors, as a zone is required for
+            the convenience methods like ``add()``, ``replace()``, etc.
+        :type zone: :py:class:`dns.name.Name`, str, or ``None``
+        :param rdclass: The class of the zone.
+        :type rdclass: int or str
 
         The *keyring*, *keyname*, and *keyalgorithm* parameters are passed to
         ``use_tsig()``; see its documentation for details.

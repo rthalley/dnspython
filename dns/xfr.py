@@ -71,8 +71,8 @@ class Inbound:
         *serial* is the base serial number for IXFRs, and is required in
         that case.
 
-        *is_udp*, a ``bool`` indidicates if UDP is being used for this
-        XFR.
+        :param is_udp: Whether UDP is being used for this XFR.
+        :type is_udp: bool
         """
         self.txn_manager = txn_manager
         self.txn: dns.transaction.Transaction | None = None
@@ -278,22 +278,22 @@ def make_query(
 ) -> tuple[dns.message.QueryMessage, int | None]:
     """Make an AXFR or IXFR query.
 
-    *txn_manager* is a ``dns.transaction.TransactionManager``, typically a
-    ``dns.zone.Zone``.
-
-    *serial* is an ``int`` or ``None``.  If 0, then IXFR will be
-    attempted using the most recent serial number from the
-    *txn_manager*; it is the caller's responsibility to ensure there
-    are no write transactions active that could invalidate the
-    retrieved serial.  If a serial cannot be determined, AXFR will be
-    forced.  Other integer values are the starting serial to use.
-    ``None`` forces an AXFR.
+    :param txn_manager: The transaction manager for this transfer, typically
+        a :py:class:`dns.zone.Zone`.
+    :type txn_manager: :py:class:`dns.transaction.TransactionManager`
+    :param serial: If ``0``, IXFR is attempted using the most recent serial
+        from *txn_manager* (caller must ensure no write transactions are
+        active that could invalidate the retrieved serial).  If a serial
+        cannot be determined, AXFR is forced.  Other integer values are the
+        starting serial to use.  ``None`` forces an AXFR.
+    :type serial: int or ``None``
 
     Please see the documentation for :py:func:`dns.message.make_query` and
     :py:func:`dns.message.Message.use_tsig` for details on the other parameters
     to this function.
 
-    Returns a `(query, serial)` tuple.
+    :returns: A ``(query, serial)`` tuple.
+    :rtype: tuple
     """
     zone_origin, _, origin = txn_manager.origin_information()
     if zone_origin is None:

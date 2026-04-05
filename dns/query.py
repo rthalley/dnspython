@@ -327,22 +327,16 @@ def make_socket(
     type: socket.SocketKind,
     source: Any | None = None,
 ) -> socket.socket:
-    """Make a socket.
+    """Make a socket using the module's ``socket_factory``.
 
-    This function uses the module's ``socket_factory`` to make a socket of the
-    specified address family and type.
-
-    *af*, a ``socket.AddressFamily`` or ``int`` is the address family, either
-    ``socket.AF_INET`` or ``socket.AF_INET6``.
-
-    *type*, a ``socket.SocketKind`` is the type of socket, e.g. ``socket.SOCK_DGRAM``,
-    a datagram socket, or ``socket.SOCK_STREAM``, a stream socket.  Note that the
-    ``proto`` attribute of a socket is always zero with this API, so a datagram socket
-    will always be a UDP socket, and a stream socket will always be a TCP socket.
-
-    *source* is the source address and port to bind to, if any.  The default is
-    ``None`` which will bind to the wildcard address and a randomly chosen port.
-    If not ``None``, it should be a (low-level) address tuple appropriate for *af*.
+    :param af: Address family: ``socket.AF_INET`` or ``socket.AF_INET6``.
+    :type af: ``socket.AddressFamily`` or int
+    :param type: Socket type, e.g. ``socket.SOCK_DGRAM`` or
+        ``socket.SOCK_STREAM``.  The ``proto`` is always 0, so datagram
+        sockets are UDP and stream sockets are TCP.
+    :type type: ``socket.SocketKind``
+    :param source: Source address/port tuple to bind to, or ``None`` (bind
+        to wildcard address and random port).
     """
     s = socket_factory(af, type, 0)
     try:
@@ -362,29 +356,21 @@ def make_ssl_socket(
     server_hostname: dns.name.Name | str | None = None,
     source: Any | None = None,
 ) -> ssl.SSLSocket:
-    """Make a socket.
+    """Make an SSL socket using the module's ``socket_factory``.
 
-    This function uses the module's ``socket_factory`` to make a socket of the
-    specified address family and type.
-
-    *af*, a ``socket.AddressFamily`` or ``int`` is the address family, either
-    ``socket.AF_INET`` or ``socket.AF_INET6``.
-
-    *type*, a ``socket.SocketKind`` is the type of socket, e.g. ``socket.SOCK_DGRAM``,
-    a datagram socket, or ``socket.SOCK_STREAM``, a stream socket.  Note that the
-    ``proto`` attribute of a socket is always zero with this API, so a datagram socket
-    will always be a UDP socket, and a stream socket will always be a TCP socket.
-
-    If *ssl_context* is not ``None``, then it specifies the SSL context to use,
-    typically created with ``make_ssl_context()``.
-
-    If *server_hostname* is not ``None``, then it is the hostname to use for server
-    certificate validation.  A valid hostname must be supplied if *ssl_context*
-    requires hostname checking.
-
-    *source* is the source address and port to bind to, if any.  The default is
-    ``None`` which will bind to the wildcard address and a randomly chosen port.
-    If not ``None``, it should be a (low-level) address tuple appropriate for *af*.
+    :param af: Address family: ``socket.AF_INET`` or ``socket.AF_INET6``.
+    :type af: ``socket.AddressFamily`` or int
+    :param type: Socket type, e.g. ``socket.SOCK_DGRAM`` or
+        ``socket.SOCK_STREAM``.
+    :type type: ``socket.SocketKind``
+    :param ssl_context: The SSL context to use, typically created with
+        :py:func:`make_ssl_context`.
+    :type ssl_context: ``ssl.SSLContext``
+    :param server_hostname: The hostname for server certificate validation,
+        or ``None``.  Required when *ssl_context* uses hostname checking.
+    :type server_hostname: :py:class:`dns.name.Name` or str or ``None``
+    :param source: Source address/port tuple to bind to, or ``None`` (bind
+        to wildcard address and random port).
     """
     sock = make_socket(af, type, source)
     if isinstance(server_hostname, dns.name.Name):
@@ -461,55 +447,53 @@ def https(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
-    *q*, a ``dns.message.Message``, the query to send.
-
-    *where*, a ``str``, the nameserver IP address or the full URL. If an IP address is
-    given, the URL will be constructed using the following schema:
-    https://<IP-address>:<port>/<path>.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the query
-    times out. If ``None``, the default, wait forever.
-
-    *port*, a ``int``, the port to send the query to. The default is 443.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying the source
-    address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message. The default is
-    0.
-
-    *one_rr_per_rrset*, a ``bool``. If ``True``, put each RR into its own RRset.
-
-    *ignore_trailing*, a ``bool``. If ``True``, ignore trailing junk at end of the
-    received message.
-
-    *session*, an ``httpx.Client``.  If provided, the client session to use to send the
-    queries.
-
-    *path*, a ``str``. If *where* is an IP address, then *path* will be used to
-    construct the URL to send the DNS query to.
-
-    *post*, a ``bool``. If ``True``, the default, POST method will be used.
-
-    *bootstrap_address*, a ``str``, the IP address to use to bypass resolution.
-
-    *verify*, a ``bool`` or ``str``.  If a ``True``, then TLS certificate verification
-    of the server is done using the default CA bundle; if ``False``, then no
-    verification is done; if a `str` then it specifies the path to a certificate file or
-    directory which will be used for verification.
-
-    *resolver*, a ``dns.resolver.Resolver`` or ``None``, the resolver to use for
-    resolution of hostnames in URLs.  If not specified, a new resolver with a default
-    configuration will be used; note this is *not* the default resolver as that resolver
-    might have been configured to use DoH causing a chicken-and-egg problem.  This
-    parameter only has an effect if the HTTP library is httpx.
-
-    *family*, an ``int``, the address family.  If socket.AF_UNSPEC (the default), both A
-    and AAAA records will be retrieved.
-
-    *http_version*, a ``dns.query.HTTPVersion``, indicating which HTTP version to use.
-
-    Returns a ``dns.message.Message``.
+    :param q: The query to send.
+    :type q: :py:class:`dns.message.Message`
+    :param where: The nameserver IP address or full URL.  If an IP address is
+        given, the URL is constructed as
+        ``https://<IP-address>:<port>/<path>``.
+    :type where: str
+    :param timeout: Seconds to wait before timing out.  ``None`` means wait
+        forever.
+    :type timeout: float or ``None``
+    :param port: The port to send the query to.  Default is 443.
+    :type port: int
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default is
+        0.
+    :type source_port: int
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :param session: If provided, the client session to use to send the
+        queries.
+    :type session: ``httpx.Client`` or ``None``
+    :param path: If *where* is an IP address, *path* is used to construct the
+        query URL.
+    :type path: str
+    :param post: If ``True`` (the default), use the POST method.
+    :type post: bool
+    :param bootstrap_address: The IP address to use to bypass resolution.
+    :type bootstrap_address: str or ``None``
+    :param verify: If ``True``, verify the TLS certificate using default CA
+        roots; if ``False``, disable verification; if a ``str``, path to a
+        certificate file or directory.
+    :type verify: bool or str
+    :param resolver: Resolver to use for hostname resolution in URLs.  If
+        ``None``, a new resolver with default configuration is used (not the
+        default resolver, to avoid a DoH chicken-and-egg problem).  Only
+        effective when using httpx.
+    :type resolver: :py:class:`dns.resolver.Resolver` or ``None``
+    :param family: Address family.  ``socket.AF_UNSPEC`` (the default)
+        retrieves both A and AAAA records.
+    :type family: int
+    :param http_version: Which HTTP version to use.
+    :type http_version: :py:class:`dns.query.HTTPVersion`
+    :rtype: :py:class:`dns.message.Message`
     """
 
     af, _, the_source = _destination_and_source(where, port, source, source_port, False)
@@ -766,18 +750,17 @@ def send_udp(
 ) -> tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
-    *sock*, a ``socket``.
-
-    *what*, a ``bytes`` or ``dns.message.Message``, the message to send.
-
-    *destination*, a destination tuple appropriate for the address family
-    of the socket, specifying where to send the query.
-
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
-
-    Returns an ``(int, float)`` tuple of bytes sent and the sent time.
+    :param sock: The socket to use.
+    :type sock: socket
+    :param what: The message to send.
+    :type what: bytes or :py:class:`dns.message.Message`
+    :param destination: A destination tuple appropriate for the address family
+        of the socket.
+    :param expiration: The absolute time at which to raise a timeout
+        exception.  ``None`` means no timeout.
+    :type expiration: float or ``None``
+    :returns: A ``(bytes_sent, sent_time)`` tuple.
+    :rtype: tuple[int, float]
     """
 
     if isinstance(what, dns.message.Message):
@@ -802,51 +785,42 @@ def receive_udp(
 ) -> Any:
     """Read a DNS message from a UDP socket.
 
-    *sock*, a ``socket``.
-
-    *destination*, a destination tuple appropriate for the address family
-    of the socket, specifying where the message is expected to arrive from.
-    When receiving a response, this would be where the associated query was
-    sent.
-
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
-
-    *ignore_unexpected*, a ``bool``.  If ``True``, ignore responses from
-    unexpected sources.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *keyring*, a ``dict``, the keyring to use for TSIG.
-
-    *request_mac*, a ``bytes`` or ``None``, the MAC of the request (for TSIG).
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if
-    the TC bit is set.
-
     Raises if the message is malformed, if network errors occur, of if
     there is a timeout.
 
-    If *destination* is not ``None``, returns a ``(dns.message.Message, float)``
-    tuple of the received message and the received time.
-
-    If *destination* is ``None``, returns a
-    ``(dns.message.Message, float, tuple)``
-    tuple of the received message, the received time, and the address where
-    the message arrived from.
-
-    *ignore_errors*, a ``bool``.  If various format errors or response
-    mismatches occur, ignore them and keep listening for a valid response.
-    The default is ``False``.
-
-    *query*, a ``dns.message.Message`` or ``None``.  If not ``None`` and
-    *ignore_errors* is ``True``, check that the received message is a response
-    to this query, and if not keep listening for a valid response.
+    :param sock: The socket to read from.
+    :type sock: socket
+    :param destination: Destination tuple indicating where the message is
+        expected to arrive from (where the associated query was sent).
+        ``None`` means accept from any source.
+    :param expiration: The absolute time at which to raise a timeout
+        exception.  ``None`` means no timeout.
+    :type expiration: float or ``None``
+    :param ignore_unexpected: If ``True``, ignore responses from unexpected
+        sources.
+    :type ignore_unexpected: bool
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param keyring: The keyring to use for TSIG.
+    :type keyring: dict or ``None``
+    :param request_mac: The MAC of the request (for TSIG).
+    :type request_mac: bytes or ``None``
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :param raise_on_truncation: If ``True``, raise an exception if the TC
+        bit is set.
+    :type raise_on_truncation: bool
+    :param ignore_errors: If ``True``, ignore format errors or response
+        mismatches and keep listening for a valid response.
+    :type ignore_errors: bool
+    :param query: If not ``None`` and *ignore_errors* is ``True``, verify
+        the received message is a response to this query.
+    :type query: :py:class:`dns.message.Message` or ``None``
+    :returns: If *destination* is not ``None``, a
+        ``(message, received_time)`` tuple; otherwise a
+        ``(message, received_time, from_address)`` tuple.
+    :rtype: tuple
     """
 
     wire = b""
@@ -909,44 +883,40 @@ def udp(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
-    to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
-    query times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *ignore_unexpected*, a ``bool``.  If ``True``, ignore responses from
-    unexpected sources.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if
-    the TC bit is set.
-
-    *sock*, a ``socket.socket``, or ``None``, the socket to use for the
-    query.  If ``None``, the default, a socket is created.  Note that
-    if a socket is provided, it must be a nonblocking datagram socket,
-    and the *source* and *source_port* are ignored.
-
-    *ignore_errors*, a ``bool``.  If various format errors or response
-    mismatches occur, ignore them and keep listening for a valid response.
-    The default is ``False``.
-
-    Returns a ``dns.message.Message``.
+    :param q: The query to send.
+    :type q: :py:class:`dns.message.Message`
+    :param where: IPv4 or IPv6 address of the nameserver.
+    :type where: str
+    :param timeout: Seconds to wait before timing out.  ``None`` means wait
+        forever.
+    :type timeout: float or ``None``
+    :param port: The port to send the message to.  Default is 53.
+    :type port: int
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default
+        is 0.
+    :type source_port: int
+    :param ignore_unexpected: If ``True``, ignore responses from unexpected
+        sources.
+    :type ignore_unexpected: bool
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :param raise_on_truncation: If ``True``, raise an exception if the TC
+        bit is set.
+    :type raise_on_truncation: bool
+    :param sock: The socket to use.  If ``None`` (the default), a socket is
+        created.  If provided, must be a nonblocking datagram socket; *source*
+        and *source_port* are ignored.
+    :type sock: ``socket.socket`` or ``None``
+    :param ignore_errors: If ``True``, ignore format errors or response
+        mismatches and keep listening for a valid response.
+    :type ignore_errors: bool
+    :rtype: :py:class:`dns.message.Message`
     """
 
     wire = q.to_wire()
@@ -1002,45 +972,44 @@ def udp_with_fallback(
     """Return the response to the query, trying UDP first and falling back
     to TCP if UDP results in a truncated response.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the query
-    times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying the source
-    address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message. The default is
-    0.
-
-    *ignore_unexpected*, a ``bool``.  If ``True``, ignore responses from unexpected
-    sources.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing junk at end of the
-    received message.
-
-    *udp_sock*, a ``socket.socket``, or ``None``, the socket to use for the UDP query.
-    If ``None``, the default, a socket is created.  Note that if a socket is provided,
-    it must be a nonblocking datagram socket, and the *source* and *source_port* are
-    ignored for the UDP query.
-
-    *tcp_sock*, a ``socket.socket``, or ``None``, the connected socket to use for the
-    TCP query.  If ``None``, the default, a socket is created.  Note that if a socket is
-    provided, it must be a nonblocking connected stream socket, and *where*, *source*
-    and *source_port* are ignored for the TCP query.
-
-    *ignore_errors*, a ``bool``.  If various format errors or response mismatches occur
-    while listening for UDP, ignore them and keep listening for a valid response. The
-    default is ``False``.
-
-    Returns a (``dns.message.Message``, tcp) tuple where tcp is ``True`` if and only if
-    TCP was used.
+    :param q: The query to send.
+    :type q: :py:class:`dns.message.Message`
+    :param where: IPv4 or IPv6 address of the nameserver.
+    :type where: str
+    :param timeout: Seconds to wait before timing out.  ``None`` means wait
+        forever.
+    :type timeout: float or ``None``
+    :param port: The port to send the message to.  Default is 53.
+    :type port: int
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default
+        is 0.
+    :type source_port: int
+    :param ignore_unexpected: If ``True``, ignore responses from unexpected
+        sources.
+    :type ignore_unexpected: bool
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :param udp_sock: The socket to use for the UDP query.  If ``None``
+        (the default), a socket is created.  If provided, must be a
+        nonblocking datagram socket; *source* and *source_port* are ignored.
+    :type udp_sock: ``socket.socket`` or ``None``
+    :param tcp_sock: The connected socket to use for the TCP query.  If
+        ``None`` (the default), a socket is created.  If provided, must be a
+        nonblocking connected stream socket; *where*, *source* and
+        *source_port* are ignored.
+    :type tcp_sock: ``socket.socket`` or ``None``
+    :param ignore_errors: If ``True``, ignore UDP format errors or response
+        mismatches and keep listening for a valid response.
+    :type ignore_errors: bool
+    :returns: A ``(message, used_tcp)`` tuple; *used_tcp* is ``True`` if and
+        only if TCP was used.
+    :rtype: tuple[:py:class:`dns.message.Message`, bool]
     """
     try:
         response = udp(
@@ -1117,15 +1086,15 @@ def send_tcp(
 ) -> tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
-    *sock*, a ``socket``.
-
-    *what*, a ``bytes`` or ``dns.message.Message``, the message to send.
-
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
-
-    Returns an ``(int, float)`` tuple of bytes sent and the sent time.
+    :param sock: The socket to use.
+    :type sock: socket
+    :param what: The message to send.
+    :type what: bytes or :py:class:`dns.message.Message`
+    :param expiration: The absolute time at which to raise a timeout
+        exception.  ``None`` means no timeout.
+    :type expiration: float or ``None``
+    :returns: A ``(bytes_sent, sent_time)`` tuple.
+    :rtype: tuple[int, float]
     """
 
     if isinstance(what, dns.message.Message):
@@ -1150,27 +1119,22 @@ def receive_tcp(
 ) -> tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
 
-    *sock*, a ``socket``.
-
-    *expiration*, a ``float`` or ``None``, the absolute time at which
-    a timeout exception should be raised.  If ``None``, no timeout will
-    occur.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *keyring*, a ``dict``, the keyring to use for TSIG.
-
-    *request_mac*, a ``bytes`` or ``None``, the MAC of the request (for TSIG).
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    Raises if the message is malformed, if network errors occur, of if
-    there is a timeout.
-
-    Returns a ``(dns.message.Message, float)`` tuple of the received message
-    and the received time.
+    :param sock: The socket to read from.
+    :type sock: socket
+    :param expiration: The absolute time at which to raise a timeout
+        exception.  ``None`` means no timeout.
+    :type expiration: float or ``None``
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param keyring: The keyring to use for TSIG.
+    :type keyring: dict or ``None``
+    :param request_mac: The MAC of the request (for TSIG).
+    :type request_mac: bytes or ``None``
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :returns: A ``(message, received_time)`` tuple.
+    :rtype: tuple[:py:class:`dns.message.Message`, float]
     """
 
     ldata = _net_read(sock, 2, expiration)
@@ -1211,34 +1175,32 @@ def tcp(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address, where
-    to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
-    query times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    *sock*, a ``socket.socket``, or ``None``, the connected socket to use for the
-    query.  If ``None``, the default, a socket is created.  Note that
-    if a socket is provided, it must be a nonblocking connected stream
-    socket, and *where*, *port*, *source* and *source_port* are ignored.
-
-    Returns a ``dns.message.Message``.
+    :param q: The query to send.
+    :type q: :py:class:`dns.message.Message`
+    :param where: IPv4 or IPv6 address of the nameserver.
+    :type where: str
+    :param timeout: Seconds to wait before timing out.  ``None`` means wait
+        forever.
+    :type timeout: float or ``None``
+    :param port: The port to send the message to.  Default is 53.
+    :type port: int
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default
+        is 0.
+    :type source_port: int
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :param sock: The connected socket to use.  If ``None`` (the default), a
+        socket is created.  If provided, must be a nonblocking connected
+        stream socket; *where*, *port*, *source* and *source_port* are
+        ignored.
+    :type sock: ``socket.socket`` or ``None``
+    :rtype: :py:class:`dns.message.Message`
     """
 
     wire = q.to_wire()
@@ -1335,49 +1297,43 @@ def tls(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
-    *q*, a ``dns.message.Message``, the query to send
-
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
-    to send the message.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the
-    query times out.  If ``None``, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 853.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own
-    RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing
-    junk at end of the received message.
-
-    *sock*, an ``ssl.SSLSocket``, or ``None``, the socket to use for
-    the query.  If ``None``, the default, a socket is created.  Note
-    that if a socket is provided, it must be a nonblocking connected
-    SSL stream socket, and *where*, *port*, *source*, *source_port*,
-    and *ssl_context* are ignored.
-
-    *ssl_context*, an ``ssl.SSLContext``, the context to use when establishing
-    a TLS connection. If ``None``, the default, creates one with the default
-    configuration.
-
-    *server_hostname*, a ``str`` containing the server's hostname.  The
-    default is ``None``, which means that no hostname is known, and if an
-    SSL context is created, hostname checking will be disabled.
-
-    *verify*, a ``bool`` or ``str``.  If a ``True``, then TLS certificate verification
-    of the server is done using the default CA bundle; if ``False``, then no
-    verification is done; if a `str` then it specifies the path to a certificate file or
-    directory which will be used for verification.
-
-    Returns a ``dns.message.Message``.
-
+    :param q: The query to send.
+    :type q: :py:class:`dns.message.Message`
+    :param where: IPv4 or IPv6 address of the nameserver.
+    :type where: str
+    :param timeout: Seconds to wait before timing out.  ``None`` means wait
+        forever.
+    :type timeout: float or ``None``
+    :param port: The port to send the message to.  Default is 853.
+    :type port: int
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default
+        is 0.
+    :type source_port: int
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :param sock: The SSL socket to use.  If ``None`` (the default), a socket
+        is created.  If provided, must be a nonblocking connected SSL stream
+        socket; *where*, *port*, *source*, *source_port*, and *ssl_context*
+        are ignored.
+    :type sock: ``ssl.SSLSocket`` or ``None``
+    :param ssl_context: The SSL context to use when establishing the TLS
+        connection.  If ``None`` (the default), one is created with the
+        default configuration.
+    :type ssl_context: ``ssl.SSLContext`` or ``None``
+    :param server_hostname: The server's hostname, or ``None``.  If ``None``
+        and an SSL context is created, hostname checking is disabled.
+    :type server_hostname: str or ``None``
+    :param verify: If ``True``, verify the TLS certificate using default CA
+        roots; if ``False``, disable verification; if a ``str``, path to a
+        certificate file or directory.
+    :type verify: bool or str
+    :rtype: :py:class:`dns.message.Message`
     """
 
     if sock:
@@ -1443,43 +1399,38 @@ def quic(
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-QUIC.
 
-    *q*, a ``dns.message.Message``, the query to send.
-
-    *where*, a ``str``, the nameserver IP address.
-
-    *timeout*, a ``float`` or ``None``, the number of seconds to wait before the query
-    times out. If ``None``, the default, wait forever.
-
-    *port*, a ``int``, the port to send the query to. The default is 853.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying the source
-    address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message. The default is
-    0.
-
-    *one_rr_per_rrset*, a ``bool``. If ``True``, put each RR into its own RRset.
-
-    *ignore_trailing*, a ``bool``. If ``True``, ignore trailing junk at end of the
-    received message.
-
-    *connection*, a ``dns.quic.SyncQuicConnection``.  If provided, the connection to use
-    to send the query.
-
-    *verify*, a ``bool`` or ``str``.  If a ``True``, then TLS certificate verification
-    of the server is done using the default CA bundle; if ``False``, then no
-    verification is done; if a `str` then it specifies the path to a certificate file or
-    directory which will be used for verification.
-
-    *hostname*, a ``str`` containing the server's hostname or ``None``.  The default is
-    ``None``, which means that no hostname is known, and if an SSL context is created,
-    hostname checking will be disabled.  This value is ignored if *url* is not
-    ``None``.
-
-    *server_hostname*, a ``str`` or ``None``.  This item is for backwards compatibility
-    only, and has the same meaning as *hostname*.
-
-    Returns a ``dns.message.Message``.
+    :param q: The query to send.
+    :type q: :py:class:`dns.message.Message`
+    :param where: The nameserver IP address.
+    :type where: str
+    :param timeout: Seconds to wait before timing out.  ``None`` means wait
+        forever.
+    :type timeout: float or ``None``
+    :param port: The port to send the query to.  Default is 853.
+    :type port: int
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default
+        is 0.
+    :type source_port: int
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param ignore_trailing: If ``True``, ignore trailing junk at end of the
+        received message.
+    :type ignore_trailing: bool
+    :param connection: If provided, the QUIC connection to use.
+    :type connection: :py:class:`dns.quic.SyncQuicConnection` or ``None``
+    :param verify: If ``True``, verify the TLS certificate using default CA
+        roots; if ``False``, disable verification; if a ``str``, path to a
+        certificate file or directory.
+    :type verify: bool or str
+    :param hostname: The server's hostname, or ``None``.  If ``None`` and an
+        SSL context is created, hostname checking is disabled.
+    :type hostname: str or ``None``
+    :param server_hostname: Deprecated alias for *hostname*.
+    :type server_hostname: str or ``None``
+    :rtype: :py:class:`dns.message.Message`
     """
 
     if not dns.quic.have_quic:
@@ -1608,54 +1559,45 @@ def xfr(
 ) -> Any:
     """Return a generator for the responses to a zone transfer.
 
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
-    to send the message.
-
-    *zone*, a ``dns.name.Name`` or ``str``, the name of the zone to transfer.
-
-    *rdtype*, an ``int`` or ``str``, the type of zone transfer.  The
-    default is ``dns.rdatatype.AXFR``.  ``dns.rdatatype.IXFR`` can be
-    used to do an incremental transfer instead.
-
-    *rdclass*, an ``int`` or ``str``, the class of the zone transfer.
-    The default is ``dns.rdataclass.IN``.
-
-    *timeout*, a ``float``, the number of seconds to wait for each
-    response message.  If None, the default, wait forever.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *keyring*, a ``dict``, the keyring to use for TSIG.
-
-    *keyname*, a ``dns.name.Name`` or ``str``, the name of the TSIG
-    key to use.
-
-    *relativize*, a ``bool``.  If ``True``, all names in the zone will be
-    relativized to the zone origin.  It is essential that the
-    relativize setting matches the one specified to
-    ``dns.zone.from_xfr()`` if using this generator to make a zone.
-
-    *lifetime*, a ``float``, the total number of seconds to spend
-    doing the transfer.  If ``None``, the default, then there is no
-    limit on the time the transfer may take.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *serial*, an ``int``, the SOA serial number to use as the base for
-    an IXFR diff sequence (only meaningful if *rdtype* is
-    ``dns.rdatatype.IXFR``).
-
-    *use_udp*, a ``bool``.  If ``True``, use UDP (only meaningful for IXFR).
-
-    *keyalgorithm*, a ``dns.name.Name`` or ``str``, the TSIG algorithm to use.
-
-    Raises on errors, and so does the generator.
-
-    Returns a generator of ``dns.message.Message`` objects.
+    :param where: IPv4 or IPv6 address of the nameserver.
+    :type where: str
+    :param zone: The name of the zone to transfer.
+    :type zone: :py:class:`dns.name.Name` or str
+    :param rdtype: The type of zone transfer.  Default is
+        ``dns.rdatatype.AXFR``; use ``dns.rdatatype.IXFR`` for incremental.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType` or str or int
+    :param rdclass: The class of the zone transfer.  Default is
+        ``dns.rdataclass.IN``.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass` or str or int
+    :param timeout: Seconds to wait for each response message.  ``None``
+        means wait forever.
+    :type timeout: float or ``None``
+    :param port: The port to send the message to.  Default is 53.
+    :type port: int
+    :param keyring: The keyring to use for TSIG.
+    :type keyring: dict or ``None``
+    :param keyname: The name of the TSIG key to use.
+    :type keyname: :py:class:`dns.name.Name` or str or ``None``
+    :param relativize: If ``True``, relativize all names to the zone origin.
+        Must match the setting passed to ``dns.zone.from_xfr()``.
+    :type relativize: bool
+    :param lifetime: Total seconds to spend on the transfer.  ``None`` means
+        no limit.
+    :type lifetime: float or ``None``
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default
+        is 0.
+    :type source_port: int
+    :param serial: SOA serial number to use as the IXFR base (only
+        meaningful when *rdtype* is ``dns.rdatatype.IXFR``).
+    :type serial: int
+    :param use_udp: If ``True``, use UDP (only meaningful for IXFR).
+    :type use_udp: bool
+    :param keyalgorithm: The TSIG algorithm to use.
+    :type keyalgorithm: :py:class:`dns.name.Name` or str
+    :returns: A generator of :py:class:`dns.message.Message` objects.
     """
 
     class DummyTransactionManager(dns.transaction.TransactionManager):
@@ -1721,38 +1663,32 @@ def inbound_xfr(
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
 
-    *where*, a ``str`` containing an IPv4 or IPv6 address,  where
-    to send the message.
-
-    *txn_manager*, a ``dns.transaction.TransactionManager``, the txn_manager
-    for this transfer (typically a ``dns.zone.Zone``).
-
-    *query*, the query to send.  If not supplied, a default query is
-    constructed using information from the *txn_manager*.
-
-    *port*, an ``int``, the port send the message to.  The default is 53.
-
-    *timeout*, a ``float``, the number of seconds to wait for each
-    response message.  If None, the default, wait forever.
-
-    *lifetime*, a ``float``, the total number of seconds to spend
-    doing the transfer.  If ``None``, the default, then there is no
-    limit on the time the transfer may take.
-
-    *source*, a ``str`` containing an IPv4 or IPv6 address, specifying
-    the source address.  The default is the wildcard address.
-
-    *source_port*, an ``int``, the port from which to send the message.
-    The default is 0.
-
-    *udp_mode*, a ``dns.query.UDPMode``, determines how UDP is used
-    for IXFRs.  The default is ``dns.query.UDPMode.NEVER``, i.e. only use
-    TCP.  Other possibilities are ``dns.query.UDPMode.TRY_FIRST``, which
-    means "try UDP but fallback to TCP if needed", and
-    ``dns.query.UDPMode.ONLY``, which means "try UDP and raise
-    ``dns.xfr.UseTCP`` if it does not succeed.
-
-    Raises on errors.
+    :param where: IPv4 or IPv6 address of the nameserver.
+    :type where: str
+    :param txn_manager: The transaction manager for this transfer (typically
+        a :py:class:`dns.zone.Zone`).
+    :type txn_manager: :py:class:`dns.transaction.TransactionManager`
+    :param query: The query to send.  If not supplied, a default query is
+        constructed from *txn_manager*.
+    :param port: The port to send the message to.  Default is 53.
+    :type port: int
+    :param timeout: Seconds to wait for each response message.  ``None``
+        means wait forever.
+    :type timeout: float or ``None``
+    :param lifetime: Total seconds to spend on the transfer.  ``None`` means
+        no limit.
+    :type lifetime: float or ``None``
+    :param source: Source IPv4 or IPv6 address.  Default is the wildcard
+        address.
+    :type source: str or ``None``
+    :param source_port: The port from which to send the message.  Default
+        is 0.
+    :type source_port: int
+    :param udp_mode: How to use UDP for IXFRs.  Default is
+        ``dns.query.UDPMode.NEVER`` (TCP only).  ``TRY_FIRST`` tries UDP
+        with TCP fallback; ``ONLY`` raises :py:exc:`dns.xfr.UseTCP` if UDP
+        does not succeed.
+    :type udp_mode: :py:class:`dns.query.UDPMode`
     """
     if query is None:
         query, serial = dns.xfr.make_query(txn_manager)

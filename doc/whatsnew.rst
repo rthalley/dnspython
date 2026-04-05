@@ -189,10 +189,10 @@ TBD
 
 * Python 3.8 or newer is required.
 
-* The stub resolver now uses instances of ``dns.nameserver.Nameserver`` to represent
+* The stub resolver now uses instances of :py:class:`dns.nameserver.Nameserver` to represent
   remote recursive resolvers, and can communicate using
   DNS over UDP/TCP, HTTPS, TLS, and QUIC.  In additional to being able to specify
-  an IPv4, IPv6, or HTTPS URL as a nameserver, instances of ``dns.nameserver.Nameserver``
+  an IPv4, IPv6, or HTTPS URL as a nameserver, instances of :py:class:`dns.nameserver.Nameserver`
   are now permitted.
 
 * The DNS-over-HTTPS bootstrap address no longer causes URL rewriting.
@@ -231,7 +231,7 @@ TBD
   non-zero pad option will be automatically padded appropriately when
   converted to wire format.
 
-* ``dns.zone.from_text()`` and ``dns.zone.from_file()`` now have an
+* :py:func:`dns.zone.from_text` and :py:func:`dns.zone.from_file` now have an
   ``allow_directives`` parameter to allow finer control over how directives
   in zonefiles are processed.
 
@@ -241,7 +241,7 @@ TBD
   is subject to change in future releases.  For asynchronous I/O, both
   asyncio and Trio are supported, but Curio is not.
 
-* DNSSEC signing support has been added to the ``dns.dnssec`` module, along with
+* DNSSEC signing support has been added to the :py:mod:`dns.dnssec` module, along with
   a number of functions to help generate DS, CDS, and CDNSKEY RRsets.  Thank you
   very much Jakob Schlyter!
 
@@ -297,7 +297,7 @@ This release has no new features, but fixes the following issues:
 
 * DNS-over-HTTPS is now supported for asynchronous queries and resolutions.
 
-* ``dns.zonefile.read_rrsets()`` has been added, which allows rrsets in zonefile
+* :py:func:`dns.zonefile.read_rrsets` has been added, which allows rrsets in zonefile
   format, or a restrition of it, to be read.  This function is useful for
   applications that want to read DNS data in text format, but do not want to
   use a Zone.
@@ -367,7 +367,7 @@ This release has no new features, but fixes the following issues:
 
 * The license is now the ISC license.
 
-* Rdata is now immutable.  Use ``dns.rdata.Rdata.replace()`` to make a new
+* Rdata is now immutable.  Use :py:meth:`dns.rdata.Rdata.replace` to make a new
   Rdata based on an existing one.
 
 * dns.resolver.resolve() has been added, allowing control of whether search
@@ -376,14 +376,14 @@ This release has no new features, but fixes the following issues:
   behavior can be set at in the resolver object with the
   ``use_search_by_default`` parameter.  The default is False.
 
-* DNS-over-TLS is supported with ``dns.query.tls()``.
+* DNS-over-TLS is supported with :py:func:`dns.query.tls`.
 
-* DNS-over-HTTPS is supported with ``dns.query.https()``, and the resolver
+* DNS-over-HTTPS is supported with :py:func:`dns.query.https`, and the resolver
   will use DNS-over-HTTPS for a nameserver which is an HTTPS URL.
 
 * Basic query and resolver support for the Trio, Curio, and asyncio
-  asynchronous I/O libraries has been added in ``dns.asyncquery`` and
-  ``dns.asyncresolver``.  This API should be viewed as experimental as
+  asynchronous I/O libraries has been added in :py:mod:`dns.asyncquery` and
+  :py:mod:`dns.asyncresolver`.  This API should be viewed as experimental as
   asynchronous I/O support in dnspython is still evolving.
 
 * TSIG now defaults to using SHA-256.

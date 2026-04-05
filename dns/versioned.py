@@ -52,18 +52,20 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
     ):
         """Initialize a versioned zone object.
 
-        *origin* is the origin of the zone.  It may be a ``dns.name.Name``,
-        a ``str``, or ``None``.  If ``None``, then the zone's origin will
-        be set by the first ``$ORIGIN`` line in a zone file.
-
-        *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
-
-        *relativize*, a ``bool``, determine's whether domain names are
-        relativized to the zone's origin.  The default is ``True``.
-
-        *pruning policy*, a function taking a ``Zone`` and a ``Version`` and returning
-        a ``bool``, or ``None``.  Should the version be pruned?  If ``None``,
-        the default policy, which retains one version is used.
+        :param origin: The origin of the zone.  It may be a
+            :py:class:`dns.name.Name`, a ``str``, or ``None``.  If ``None``,
+            then the zone's origin will be set by the first ``$ORIGIN`` line
+            in a zone file.
+        :type origin: :py:class:`dns.name.Name`, str, or ``None``
+        :param rdclass: The zone's rdata class; the default is class IN.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+        :param bool relativize: Whether domain names are relativized to the
+            zone's origin.  The default is ``True``.
+        :param pruning_policy: A callable taking a
+            :py:class:`dns.versioned.Zone` and a :py:class:`dns.zone.Version`
+            and returning a ``bool`` if the version should be pruned.  If
+            ``None``, the default policy (retain one version) is used.
+        :type pruning_policy: Callable or ``None``
         """
         super().__init__(origin, rdclass, relativize)
         self._versions: collections.deque[Version] = collections.deque()
@@ -201,7 +203,11 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
 
     def set_max_versions(self, max_versions: int | None) -> None:
         """Set a pruning policy that retains up to the specified number
-        of versions
+        of versions.
+
+        :param max_versions: The maximum number of versions to retain, or
+            ``None`` for no limit.
+        :type max_versions: int or ``None``
         """
         if max_versions is not None and max_versions < 1:
             raise ValueError("max versions must be at least 1")
@@ -222,14 +228,18 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
     ) -> None:
         """Set the pruning policy for the zone.
 
-        The *policy* function takes a `Version` and returns `True` if
-        the version should be pruned, and `False` otherwise.  `None`
-        may also be specified for policy, in which case the default policy
-        is used.
+        The *policy* function takes a :py:class:`dns.zone.Version` and returns
+        ``True`` if the version should be pruned, and ``False`` otherwise.
+        ``None`` may also be specified for policy, in which case the default
+        policy is used.
 
         Pruning checking proceeds from the least version and the first
-        time the function returns `False`, the checking stops.  I.e. the
+        time the function returns ``False``, the checking stops.  I.e. the
         retained versions are always a consecutive sequence.
+
+        :param policy: The pruning policy callable, or ``None`` to use the
+            default policy.
+        :type policy: Callable or ``None``
         """
         if policy is None:
             policy = self._default_pruning_policy

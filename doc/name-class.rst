@@ -6,6 +6,7 @@ The dns.name.Name Class and Predefined Names
 .. autoclass:: dns.name.Name
    :members:
    :inherited-members:
+   :special-members: __init__
 
    .. attribute:: labels
 
@@ -13,9 +14,7 @@ The dns.name.Name Class and Predefined Names
       labels in the name, in order from least-significant label
       (i.e. farthest from the origin) to most-significant label.
 
-   .. method:: __init__(labels)
-
-      Initialize a name using *labels*, an iterable of ``bytes`` or ``str``.
+      :type: tuple[bytes, ...]
 
 .. data:: dns.name.root
 

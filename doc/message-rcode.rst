@@ -8,6 +8,9 @@ use, then the rcode is encoded solely in the DNS header.   If EDNS is
 in use, then the rcode is encoded using bits form both the header and
 the EDNS OPT RR.
 
+.. autoclass:: dns.rcode.Rcode
+   :members:
+
 .. autodata:: dns.rcode.NOERROR
 .. autodata:: dns.rcode.FORMERR
 .. autodata:: dns.rcode.SERVFAIL

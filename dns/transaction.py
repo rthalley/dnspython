@@ -24,37 +24,33 @@ class TransactionManager:
     def writer(self, replacement: bool = False) -> "Transaction":
         """Begin a writable transaction.
 
-        *replacement*, a ``bool``.  If `True`, the content of the
-        transaction completely replaces any prior content.  If False,
-        the default, then the content of the transaction updates the
-        existing content.
+        :param bool replacement: If ``True``, the content of the transaction
+            completely replaces any prior content.  If ``False`` (the default),
+            the content of the transaction updates the existing content.
         """
         raise NotImplementedError  # pragma: no cover
 
     def origin_information(
         self,
     ) -> tuple[dns.name.Name | None, bool, dns.name.Name | None]:
-        """Returns a tuple
-
-            (absolute_origin, relativize, effective_origin)
-
-        giving the absolute name of the default origin for any
-        relative domain names, the "effective origin", and whether
-        names should be relativized.  The "effective origin" is the
-        absolute origin if relativize is False, and the empty name if
-        relativize is true.  (The effective origin is provided even
-        though it can be computed from the absolute_origin and
-        relativize setting because it avoids a lot of code
-        duplication.)
-
-        If the returned names are `None`, then no origin information is
-        available.
+        """Return origin information for the transaction manager.
 
         This information is used by code working with transactions to
         allow it to coordinate relativization.  The transaction code
         itself takes what it gets (i.e. does not change name
         relativity).
 
+        :returns: A tuple ``(absolute_origin, relativize, effective_origin)``
+            giving the absolute name of the default origin for any relative
+            domain names, whether names should be relativized, and the
+            "effective origin".  The effective origin is the absolute origin if
+            *relativize* is ``False``, and the empty name if *relativize* is
+            ``True``.  (The effective origin is provided even though it can be
+            computed from the absolute origin and relativize setting because it
+            avoids a lot of code duplication.)  If the returned names are
+            ``None``, then no origin information is available.
+        :rtype: tuple[:py:class:`dns.name.Name` or ``None``, bool,
+            :py:class:`dns.name.Name` or ``None``]
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -135,7 +131,7 @@ class Transaction:
         covers: dns.rdatatype.RdataType | str = dns.rdatatype.NONE,
     ) -> dns.rdataset.Rdataset:
         """Return the rdataset associated with *name*, *rdtype*, and *covers*,
-        or `None` if not found.
+        or ``None`` if not found.
 
         Note that the returned rdataset is immutable.
         """
@@ -150,7 +146,8 @@ class Transaction:
     def get_node(self, name: dns.name.Name) -> dns.node.Node | None:
         """Return the node at *name*, if any.
 
-        Returns an immutable node or ``None``.
+        :returns: An immutable node, or ``None`` if *name* does not exist.
+        :rtype: :py:class:`dns.node.ImmutableNode` or ``None``
         """
         return _ensure_immutable_node(self._get_node(name))
 
@@ -231,9 +228,8 @@ class Transaction:
 
             - name, rdata...
 
-        Raises dns.transaction.DeleteNotExact if some of the records
-        are not in the existing set.
-
+        :raises: :py:exc:`dns.transaction.DeleteNotExact` if some of the
+            records are not in the existing set.
         """
         self._check_ended()
         self._check_read_only()
@@ -254,14 +250,16 @@ class Transaction:
     ) -> None:
         """Update the serial number.
 
-        *value*, an `int`, is an increment if *relative* is `True`, or the
-        actual value to set if *relative* is `False`.
-
-        Raises `KeyError` if there is no SOA rdataset at *name*.
-
-        Raises `ValueError` if *value* is negative or if the increment is
-        so large that it would cause the new serial to be less than the
-        prior value.
+        :param int value: An increment if *relative* is ``True``, or the
+            actual value to set if *relative* is ``False``.
+        :param bool relative: Whether *value* is a relative increment or an
+            absolute value.  The default is ``True``.
+        :param name: The name of the SOA record to update.
+        :type name: :py:class:`dns.name.Name`
+        :raises KeyError: If there is no SOA rdataset at *name*.
+        :raises ValueError: If *value* is negative or if the increment is
+            so large that it would cause the new serial to be less than the
+            prior value.
         """
         self._check_ended()
         if value < 0:
@@ -292,9 +290,9 @@ class Transaction:
     def changed(self) -> bool:
         """Has this transaction changed anything?
 
-        For read-only transactions, the result is always `False`.
+        For read-only transactions, the result is always ``False``.
 
-        For writable transactions, the result is `True` if at some time
+        For writable transactions, the result is ``True`` if at some time
         during the life of the transaction, the content was changed.
         """
         self._check_ended()
@@ -305,11 +303,11 @@ class Transaction:
 
         Normally transactions are used as context managers and commit
         or rollback automatically, but it may be done explicitly if needed.
-        A ``dns.transaction.Ended`` exception will be raised if you try
-        to use a transaction after it has been committed or rolled back.
 
-        Raises an exception if the commit fails (in which case the transaction
-        is also rolled back.
+        :raises: :py:exc:`dns.transaction.AlreadyEnded` if the transaction
+            has already been committed or rolled back.
+        :raises: An exception if the commit fails, in which case the
+            transaction is also rolled back.
         """
         self._end(True)
 
@@ -318,10 +316,10 @@ class Transaction:
 
         Normally transactions are used as context managers and commit
         or rollback automatically, but it may be done explicitly if needed.
-        A ``dns.transaction.AlreadyEnded`` exception will be raised if you try
-        to use a transaction after it has been committed or rolled back.
-
         Rollback cannot otherwise fail.
+
+        :raises: :py:exc:`dns.transaction.AlreadyEnded` if the transaction
+            has already been committed or rolled back.
         """
         self._end(False)
 
@@ -366,20 +364,20 @@ class Transaction:
         self,
     ) -> Iterator[tuple[dns.name.Name, dns.rdataset.Rdataset]]:
         """Iterate all the rdatasets in the transaction, returning
-        (`dns.name.Name`, `dns.rdataset.Rdataset`) tuples.
+        (:py:class:`dns.name.Name`, :py:class:`dns.rdataset.Rdataset`) tuples.
 
-        Note that as is usual with python iterators, adding or removing items
-        while iterating will invalidate the iterator and may raise `RuntimeError`
-        or fail to iterate over all entries."""
+        Note that as is usual with Python iterators, adding or removing items
+        while iterating will invalidate the iterator and may raise
+        :py:exc:`RuntimeError` or fail to iterate over all entries."""
         self._check_ended()
         return self._iterate_rdatasets()
 
     def iterate_names(self) -> Iterator[dns.name.Name]:
         """Iterate all the names in the transaction.
 
-        Note that as is usual with python iterators, adding or removing names
-        while iterating will invalidate the iterator and may raise `RuntimeError`
-        or fail to iterate over all entries."""
+        Note that as is usual with Python iterators, adding or removing names
+        while iterating will invalidate the iterator and may raise
+        :py:exc:`RuntimeError` or fail to iterate over all entries."""
         self._check_ended()
         return self._iterate_names()
 
@@ -578,7 +576,7 @@ class Transaction:
 
     def _get_rdataset(self, name, rdtype, covers):
         """Return the rdataset associated with *name*, *rdtype*, and *covers*,
-        or `None` if not found.
+        or ``None`` if not found.
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -603,7 +601,7 @@ class Transaction:
     def _name_exists(self, name):
         """Does name exist?
 
-        Returns a bool.
+        :rtype: bool
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -614,11 +612,9 @@ class Transaction:
     def _end_transaction(self, commit):
         """End the transaction.
 
-        *commit*, a bool.  If ``True``, commit the transaction, otherwise
-        roll it back.
-
-        If committing and the commit fails, then roll back and raise an
-        exception.
+        :param bool commit: If ``True``, commit the transaction; otherwise
+            roll it back.  If committing and the commit fails, then roll back
+            and raise an exception.
         """
         raise NotImplementedError  # pragma: no cover
 
@@ -642,7 +638,8 @@ class Transaction:
     def _get_node(self, name):
         """Return the node at *name*, if any.
 
-        Returns a node or ``None``.
+        :returns: The node, or ``None`` if *name* does not exist.
+        :rtype: :py:class:`dns.node.Node` or ``None``
         """
         raise NotImplementedError  # pragma: no cover
 

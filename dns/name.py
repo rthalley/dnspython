@@ -148,8 +148,10 @@ _escaped_text = '"().;\\@$'
 
 def _escapify(label: bytes | str) -> str:
     """Escape the characters in label which need it.
-    @returns: the escaped string
-    @rtype: string"""
+
+    :returns: the escaped string
+    :rtype: str
+    """
     if isinstance(label, bytes):
         # Ordinary DNS label mode.  Escape special characters and values
         # < 0x20 or > 0x7f.
@@ -205,9 +207,9 @@ class IDNA2003Codec(IDNACodec):
     def __init__(self, strict_decode: bool = False):
         """Initialize the IDNA 2003 encoder/decoder.
 
-        *strict_decode* is a ``bool``. If `True`, then IDNA2003 checking
-        is done when decoding.  This can cause failures if the name
-        was encoded with IDNA2008.  The default is `False`.
+        :param bool strict_decode: If ``True``, then IDNA2003 checking
+            is done when decoding.  This can cause failures if the name
+            was encoded with IDNA2008.  The default is ``False``.
         """
 
         super().__init__()
@@ -247,26 +249,23 @@ class IDNA2008Codec(IDNACodec):
     ):
         """Initialize the IDNA 2008 encoder/decoder.
 
-        *uts_46* is a ``bool``.  If True, apply Unicode IDNA
-        compatibility processing as described in Unicode Technical
-        Standard #46 (https://unicode.org/reports/tr46/).
-        If False, do not apply the mapping.  The default is False.
-
-        *transitional* is a ``bool``: If True, use the
-        "transitional" mode described in Unicode Technical Standard
-        #46.  The default is False.  This setting has no effect
-        in idna 3.11 and later as transitional support has been removed.
-
-        *allow_pure_ascii* is a ``bool``.  If True, then a label which
-        consists of only ASCII characters is allowed.  This is less
-        strict than regular IDNA 2008, but is also necessary for mixed
-        names, e.g. a name with starting with "_sip._tcp." and ending
-        in an IDN suffix which would otherwise be disallowed.  The
-        default is False.
-
-        *strict_decode* is a ``bool``: If True, then IDNA2008 checking
-        is done when decoding.  This can cause failures if the name
-        was encoded with IDNA2003.  The default is False.
+        :param bool uts_46: If ``True``, apply Unicode IDNA compatibility
+            processing as described in Unicode Technical Standard #46
+            (https://unicode.org/reports/tr46/).  If ``False``, do not
+            apply the mapping.  The default is ``False``.
+        :param bool transitional: If ``True``, use the "transitional" mode
+            described in Unicode Technical Standard #46.  The default is
+            ``False``.  This setting has no effect in idna 3.11 and later
+            as transitional support has been removed.
+        :param bool allow_pure_ascii: If ``True``, then a label which
+            consists of only ASCII characters is allowed.  This is less
+            strict than regular IDNA 2008, but is also necessary for mixed
+            names, e.g. a name starting with ``_sip._tcp.`` and ending
+            in an IDN suffix which would otherwise be disallowed.  The
+            default is ``False``.
+        :param bool strict_decode: If ``True``, then IDNA2008 checking
+            is done when decoding.  This can cause failures if the name
+            was encoded with IDNA2003.  The default is ``False``.
         """
         super().__init__()
         self.uts_46 = uts_46
@@ -335,12 +334,10 @@ def _validate_labels(labels: tuple[bytes, ...]) -> None:
     """Check for empty labels in the middle of a label sequence,
     labels that are too long, and for too many labels.
 
-    Raises ``dns.name.NameTooLong`` if the name as a whole is too long.
-
-    Raises ``dns.name.EmptyLabel`` if a label is empty (i.e. the root
-    label) and appears in a position other than the end of the label
-    sequence
-
+    :raises dns.name.NameTooLong: if the name as a whole is too long.
+    :raises dns.name.EmptyLabel: if a label is empty (i.e. the root
+        label) and appears in a position other than the end of the label
+        sequence.
     """
 
     l = len(labels)
@@ -375,20 +372,22 @@ def _maybe_convert_to_binary(label: bytes | str) -> bytes:
 
 @dataclasses.dataclass(frozen=True)
 class NameStyle(BaseStyle):
-    """Name text styles
+    """Name text styles.
 
-    *omit_final_dot* is a ``bool``.  If True, don't emit the final
-    dot (denoting the root label) for absolute names.  The default
-    is False.
-
-    *idna_codec* specifies the IDNA decoder to use.  The default is ``None``
-    which means all text is in the standard DNS zonefile format, i.e.
-    punycode will not be decoded.
-
-    If *origin* is ``None``, the default, then the name's relativity is not
-    altered before conversion to text.  Otherwise, if *relativize* is ``True``
-    the name is relativized, and if *relativize* is ``False`` the name is
-    derelativized.
+    :param bool omit_final_dot: If ``True``, don't emit the final dot
+        (denoting the root label) for absolute names.  The default is
+        ``False``.
+    :param idna_codec: The IDNA decoder to use.  The default is ``None``,
+        which means all text is in the standard DNS zonefile format, i.e.
+        punycode will not be decoded.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param origin: If ``None`` (the default), the name's relativity is not
+        altered before conversion to text.  Otherwise, if *relativize* is
+        ``True`` the name is relativized, and if *relativize* is ``False``
+        the name is derelativized.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param bool relativize: Controls the direction of relativization when
+        *origin* is set.
     """
 
     omit_final_dot: bool = False
@@ -409,7 +408,10 @@ class Name:
     __slots__ = ["labels"]
 
     def __init__(self, labels: Iterable[bytes | str]):
-        """*labels* is any iterable whose values are ``str`` or ``bytes``."""
+        """Initialize a DNS name.
+
+        :param labels: An iterable whose values are ``str`` or ``bytes``.
+        """
 
         blabels = [_maybe_convert_to_binary(x) for x in labels]
         self.labels = tuple(blabels)
@@ -432,15 +434,15 @@ class Name:
     def is_absolute(self) -> bool:
         """Is the most significant label of this name the root label?
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         return len(self.labels) > 0 and self.labels[-1] == b""
 
     def is_wild(self) -> bool:
-        """Is this name wild?  (I.e. Is the least significant label '*'?)
+        """Is this name wild?  (I.e. Is the least significant label ``'*'``?)
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         return len(self.labels) > 0 and self.labels[0] == b"*"
@@ -448,7 +450,7 @@ class Name:
     def __hash__(self) -> int:
         """Return a case-insensitive hash of the name.
 
-        Returns an ``int``.
+        :rtype: int
         """
 
         h = 0
@@ -461,10 +463,12 @@ class Name:
         """Compare two names, returning a 3-tuple
         ``(relation, order, nlabels)``.
 
-        *relation* describes the relation ship between the names,
-        and is one of: ``dns.name.NameRelation.NONE``,
-        ``dns.name.NameRelation.SUPERDOMAIN``, ``dns.name.NameRelation.SUBDOMAIN``,
-        ``dns.name.NameRelation.EQUAL``, or ``dns.name.NameRelation.COMMONANCESTOR``.
+        *relation* describes the relationship between the names, and is one
+        of: :py:attr:`dns.name.NameRelation.NONE`,
+        :py:attr:`dns.name.NameRelation.SUPERDOMAIN`,
+        :py:attr:`dns.name.NameRelation.SUBDOMAIN`,
+        :py:attr:`dns.name.NameRelation.EQUAL`, or
+        :py:attr:`dns.name.NameRelation.COMMONANCESTOR`.
 
         *order* is < 0 if *self* < *other*, > 0 if *self* > *other*, and ==
         0 if *self* == *other*.  A relative name is always less than an
@@ -487,6 +491,11 @@ class Name:
         example1       example2.      none         < 0    0
         example1.      example2       none         > 0    0
         =============  =============  ===========  =====  =======
+
+        :param other: The name to compare with.
+        :type other: :py:class:`dns.name.Name`
+        :returns: A 3-tuple ``(relation, order, nlabels)``.
+        :rtype: tuple[:py:class:`dns.name.NameRelation`, int, int]
         """
 
         sabs = self.is_absolute()
@@ -537,9 +546,9 @@ class Name:
         """Is self a subdomain of other?
 
         Note that the notion of subdomain includes equality, e.g.
-        "dnspython.org" is a subdomain of itself.
+        ``dnspython.org`` is a subdomain of itself.
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         nr, _, _ = self.fullcompare(other)
@@ -551,9 +560,9 @@ class Name:
         """Is self a superdomain of other?
 
         Note that the notion of superdomain includes equality, e.g.
-        "dnspython.org" is a superdomain of itself.
+        ``dnspython.org`` is a superdomain of itself.
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         nr, _, _ = self.fullcompare(other)
@@ -564,6 +573,8 @@ class Name:
     def canonicalize(self) -> "Name":
         """Return a name which is equal to the current name, but is in
         DNSSEC canonical form.
+
+        :rtype: :py:class:`dns.name.Name`
         """
 
         return Name([x.lower() for x in self.labels])
@@ -615,14 +626,12 @@ class Name:
     ) -> str:
         """Convert name to DNS text format.
 
-        *omit_final_dot* is a ``bool``.  If True, don't emit the final
-        dot (denoting the root label) for absolute names.  The default
-        is False.
-
-        *style*, a :py:class:`dns.name.NameStyle` or ``None`` (the default).  If
-        specified, the style overrides the other parameters.
-
-        Returns a ``str``.
+        :param bool omit_final_dot: If ``True``, don't emit the final dot
+            (denoting the root label) for absolute names.  The default is
+            ``False``.
+        :param style: If specified, the style overrides the other parameters.
+        :type style: :py:class:`dns.name.NameStyle` or ``None``
+        :rtype: str
         """
         if style is None:
             style = NameStyle(omit_final_dot=omit_final_dot)
@@ -638,11 +647,15 @@ class Name:
 
         IDN ACE labels are converted to Unicode using the specified codec.
 
-        *omit_final_dot* is a ``bool``.  If True, don't emit the final
-        dot (denoting the root label) for absolute names.  The default
-        is False.
-
-        Returns a ``str``.
+        :param bool omit_final_dot: If ``True``, don't emit the final dot
+            (denoting the root label) for absolute names.  The default is
+            ``False``.
+        :param idna_codec: The IDNA codec to use for decoding ACE labels.
+            If ``None``, the default IDNA codec is used.
+        :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+        :param style: If specified, the style overrides the other parameters.
+        :type style: :py:class:`dns.name.NameStyle` or ``None``
+        :rtype: str
         """
         if idna_codec is None:
             idna_codec = IDNA_DEFAULT
@@ -656,7 +669,9 @@ class Name:
         See the documentation for :py:class:`dns.name.NameStyle` for a description
         of the style parameters.
 
-        Returns a ``str``.
+        :param style: The style to apply.
+        :type style: :py:class:`dns.name.NameStyle`
+        :rtype: str
         """
 
         name = self.choose_relativity(style.origin, style.relativize)
@@ -680,14 +695,12 @@ class Name:
         format.  All names in wire format are absolute.  If the name
         is a relative name, then an origin must be supplied.
 
-        *origin* is a ``dns.name.Name`` or ``None``.  If the name is
-        relative and origin is not ``None``, then origin will be appended
-        to the name.
-
-        Raises ``dns.name.NeedAbsoluteNameOrOrigin`` if the name is
-        relative and no origin was provided.
-
-        Returns a ``bytes``.
+        :param origin: If the name is relative and *origin* is not ``None``,
+            then *origin* will be appended to the name.
+        :type origin: :py:class:`dns.name.Name` or ``None``
+        :raises dns.name.NeedAbsoluteNameOrOrigin: if the name is relative
+            and no origin was provided.
+        :rtype: bytes
         """
 
         digest = self.to_wire(origin=origin, canonicalize=True)
@@ -703,28 +716,24 @@ class Name:
     ) -> bytes | None:
         """Convert name to wire format, possibly compressing it.
 
-        *file* is the file where the name is emitted (typically an
-        io.BytesIO file).  If ``None`` (the default), a ``bytes``
-        containing the wire name will be returned.
-
-        *compress*, a ``dict``, is the compression table to use.  If
-        ``None`` (the default), names will not be compressed.  Note that
-        the compression code assumes that compression offset 0 is the
-        start of *file*, and thus compression will not be correct
-        if this is not the case.
-
-        *origin* is a ``dns.name.Name`` or ``None``.  If the name is
-        relative and origin is not ``None``, then *origin* will be appended
-        to it.
-
-        *canonicalize*, a ``bool``, indicates whether the name should
-        be canonicalized; that is, converted to a format suitable for
-        digesting in hashes.
-
-        Raises ``dns.name.NeedAbsoluteNameOrOrigin`` if the name is
-        relative and no origin was provided.
-
-        Returns a ``bytes`` or ``None``.
+        :param file: The file where the name is emitted (typically an
+            ``io.BytesIO`` file).  If ``None`` (the default), a ``bytes``
+            containing the wire name will be returned.
+        :param compress: The compression table to use.  If ``None`` (the
+            default), names will not be compressed.  Note that the compression
+            code assumes that compression offset 0 is the start of *file*,
+            and thus compression will not be correct if this is not the case.
+        :type compress: dict or ``None``
+        :param origin: If the name is relative and *origin* is not ``None``,
+            then *origin* will be appended to it.
+        :type origin: :py:class:`dns.name.Name` or ``None``
+        :param bool canonicalize: Whether the name should be canonicalized;
+            that is, converted to a format suitable for digesting in hashes.
+        :raises dns.name.NeedAbsoluteNameOrOrigin: if the name is relative
+            and no origin was provided.
+        :returns: ``None`` if *file* is provided, otherwise the wire format
+            as ``bytes``.
+        :rtype: bytes or ``None``
         """
 
         if file is None:
@@ -784,7 +793,7 @@ class Name:
     def __len__(self) -> int:
         """The length of the name (in labels).
 
-        Returns an ``int``.
+        :rtype: int
         """
 
         return len(self.labels)
@@ -801,12 +810,11 @@ class Name:
     def split(self, depth: int) -> tuple["Name", "Name"]:
         """Split a name into a prefix and suffix names at the specified depth.
 
-        *depth* is an ``int`` specifying the number of labels in the suffix
-
-        Raises ``ValueError`` if *depth* was not >= 0 and <= the length of the
-        name.
-
-        Returns the tuple ``(prefix, suffix)``.
+        :param int depth: The number of labels in the suffix.
+        :raises ValueError: if *depth* is not >= 0 and <= the length of the
+            name.
+        :returns: A ``(prefix, suffix)`` tuple.
+        :rtype: tuple[:py:class:`dns.name.Name`, :py:class:`dns.name.Name`]
         """
 
         l = len(self.labels)
@@ -821,10 +829,11 @@ class Name:
     def concatenate(self, other: "Name") -> "Name":
         """Return a new name which is the concatenation of self and other.
 
-        Raises ``dns.name.AbsoluteConcatenation`` if the name is
-        absolute and *other* is not the empty name.
-
-        Returns a ``dns.name.Name``.
+        :param other: The name to concatenate.
+        :type other: :py:class:`dns.name.Name`
+        :raises dns.name.AbsoluteConcatenation: if the name is absolute and
+            *other* is not the empty name.
+        :rtype: :py:class:`dns.name.Name`
         """
 
         if self.is_absolute() and len(other) > 0:
@@ -841,7 +850,9 @@ class Name:
         ``dnspython.org.`` returns the name ``www``.  Relativizing ``example.``
         to origin ``dnspython.org.`` returns ``example.``.
 
-        Returns a ``dns.name.Name``.
+        :param origin: The origin to relativize against.
+        :type origin: :py:class:`dns.name.Name`
+        :rtype: :py:class:`dns.name.Name`
         """
 
         if self.is_subdomain(origin):
@@ -857,7 +868,9 @@ class Name:
         returns the name ``www.dnspython.org.``.  Derelativizing ``example.``
         to origin ``dnspython.org.`` returns ``example.``.
 
-        Returns a ``dns.name.Name``.
+        :param origin: The origin to append.
+        :type origin: :py:class:`dns.name.Name`
+        :rtype: :py:class:`dns.name.Name`
         """
 
         if not self.is_absolute():
@@ -875,7 +888,11 @@ class Name:
         relativized, and if *relativize* is ``False`` the name is
         derelativized.
 
-        Returns a ``dns.name.Name``.
+        :param origin: If not ``None``, controls relativization.
+        :type origin: :py:class:`dns.name.Name` or ``None``
+        :param bool relativize: If ``True``, relativize; if ``False``,
+            derelativize.
+        :rtype: :py:class:`dns.name.Name`
         """
 
         if origin:
@@ -889,12 +906,11 @@ class Name:
     def parent(self) -> "Name":
         """Return the parent of the name.
 
-        For example, the parent of ``www.dnspython.org.`` is ``dnspython.org``.
+        For example, the parent of ``www.dnspython.org.`` is ``dnspython.org.``.
 
-        Raises ``dns.name.NoParent`` if the name is either the root name or the
-        empty name, and thus has no parent.
-
-        Returns a ``dns.name.Name``.
+        :raises dns.name.NoParent: if the name is either the root name or the
+            empty name, and thus has no parent.
+        :rtype: :py:class:`dns.name.Name`
         """
 
         if self == root or self == empty:
@@ -902,27 +918,34 @@ class Name:
         return Name(self.labels[1:])
 
     def predecessor(self, origin: "Name", prefix_ok: bool = True) -> "Name":
-        """Return the maximal predecessor of *name* in the DNSSEC ordering in the zone
-        whose origin is *origin*, or return the longest name under *origin* if the
-        name is origin (i.e. wrap around to the longest name, which may still be
-        *origin* due to length considerations.
+        """Return the maximal predecessor of the name in the DNSSEC ordering.
+
+        Returns the maximal predecessor in the zone whose origin is *origin*,
+        or returns the longest name under *origin* if the name is *origin*
+        (i.e. wraps around to the longest name, which may still be *origin*
+        due to length considerations).
 
         The relativity of the name is preserved, so if this name is relative
         then the method will return a relative name, and likewise if this name
         is absolute then the predecessor will be absolute.
 
-        *prefix_ok* indicates if prefixing labels is allowed, and
-        defaults to ``True``.  Normally it is good to allow this, but if computing
-        a maximal predecessor at a zone cut point then ``False`` must be specified.
+        :param origin: The zone origin.
+        :type origin: :py:class:`dns.name.Name`
+        :param bool prefix_ok: If ``True`` (the default), prefixing labels is
+            allowed.  Specify ``False`` when computing a maximal predecessor
+            at a zone cut point.
+        :rtype: :py:class:`dns.name.Name`
         """
         return _handle_relativity_and_call(
             _absolute_predecessor, self, origin, prefix_ok
         )
 
     def successor(self, origin: "Name", prefix_ok: bool = True) -> "Name":
-        """Return the minimal successor of *name* in the DNSSEC ordering in the zone
-        whose origin is *origin*, or return *origin* if the successor cannot be
-        computed due to name length limitations.
+        """Return the minimal successor of the name in the DNSSEC ordering.
+
+        Returns the minimal successor in the zone whose origin is *origin*,
+        or returns *origin* if the successor cannot be computed due to name
+        length limitations.
 
         Note that *origin* is returned in the "too long" cases because wrapping
         around to the origin is how NSEC records express "end of the zone".
@@ -931,9 +954,12 @@ class Name:
         then the method will return a relative name, and likewise if this name
         is absolute then the successor will be absolute.
 
-        *prefix_ok* indicates if prefixing a new minimal label is allowed, and
-        defaults to ``True``.  Normally it is good to allow this, but if computing
-        a minimal successor at a zone cut point then ``False`` must be specified.
+        :param origin: The zone origin.
+        :type origin: :py:class:`dns.name.Name`
+        :param bool prefix_ok: If ``True`` (the default), prefixing a new
+            minimal label is allowed.  Specify ``False`` when computing a
+            minimal successor at a zone cut point.
+        :rtype: :py:class:`dns.name.Name`
         """
         return _handle_relativity_and_call(_absolute_successor, self, origin, prefix_ok)
 
@@ -948,21 +974,19 @@ empty = Name([])
 def from_unicode(
     text: str, origin: Name | None = root, idna_codec: IDNACodec | None = None
 ) -> Name:
-    """Convert unicode text into a Name object.
+    """Convert unicode text into a :py:class:`dns.name.Name` object.
 
     Labels are encoded in IDN ACE form according to rules specified by
     the IDNA codec.
 
-    *text*, a ``str``, is the text to convert into a name.
-
-    *origin*, a ``dns.name.Name``, specifies the origin to
-    append to non-absolute names.  The default is the root name.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA encoder/decoder
-    is used.
-
-    Returns a ``dns.name.Name``.
+    :param str text: The text to convert into a name.
+    :param origin: The origin to append to non-absolute names.  The
+        default is the root name.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param idna_codec: The IDNA encoder/decoder.  If ``None``, the default
+        IDNA encoder/decoder is used.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :rtype: :py:class:`dns.name.Name`
     """
 
     labels = []
@@ -1030,18 +1054,17 @@ def from_text(
     origin: Name | None = root,
     idna_codec: IDNACodec | None = None,
 ) -> Name:
-    """Convert text into a Name object.
+    """Convert text into a :py:class:`dns.name.Name` object.
 
-    *text*, a ``bytes`` or ``str``, is the text to convert into a name.
-
-    *origin*, a ``dns.name.Name``, specifies the origin to
-    append to non-absolute names.  The default is the root name.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA encoder/decoder
-    is used.
-
-    Returns a ``dns.name.Name``.
+    :param text: The text to convert into a name.
+    :type text: bytes or str
+    :param origin: The origin to append to non-absolute names.  The
+        default is the root name.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param idna_codec: The IDNA encoder/decoder.  If ``None``, the default
+        IDNA encoder/decoder is used.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :rtype: :py:class:`dns.name.Name`
     """
 
     if isinstance(text, str):
@@ -1109,16 +1132,14 @@ def from_text(
 
 
 def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
-    """Convert possibly compressed wire format into a Name.
+    """Convert possibly compressed wire format into a :py:class:`dns.name.Name`.
 
-    *parser* is a dns.wirebase.Parser.
-
-    Raises ``dns.name.BadPointer`` if a compression pointer did not
-    point backwards in the message.
-
-    Raises ``dns.name.BadLabelType`` if an invalid label type was encountered.
-
-    Returns a ``dns.name.Name``
+    :param parser: The wire format parser.
+    :type parser: :py:class:`dns.wirebase.Parser`
+    :raises dns.name.BadPointer: if a compression pointer did not
+        point backwards in the message.
+    :raises dns.name.BadLabelType: if an invalid label type was encountered.
+    :rtype: :py:class:`dns.name.Name`
     """
 
     labels = []
@@ -1142,22 +1163,18 @@ def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
 
 
 def from_wire(message: bytes, current: int) -> tuple[Name, int]:
-    """Convert possibly compressed wire format into a Name.
+    """Convert possibly compressed wire format into a :py:class:`dns.name.Name`.
 
-    *message* is a ``bytes`` containing an entire DNS message in DNS
-    wire form.
-
-    *current*, an ``int``, is the offset of the beginning of the name
-    from the start of the message
-
-    Raises ``dns.name.BadPointer`` if a compression pointer did not
-    point backwards in the message.
-
-    Raises ``dns.name.BadLabelType`` if an invalid label type was encountered.
-
-    Returns a ``(dns.name.Name, int)`` tuple consisting of the name
-    that was read and the number of bytes of the wire format message
-    which were consumed reading it.
+    :param bytes message: A ``bytes`` containing an entire DNS message in DNS
+        wire form.
+    :param int current: The offset of the beginning of the name from the
+        start of the message.
+    :raises dns.name.BadPointer: if a compression pointer did not
+        point backwards in the message.
+    :raises dns.name.BadLabelType: if an invalid label type was encountered.
+    :returns: A tuple of the name that was read and the number of bytes of
+        the wire format message which were consumed reading it.
+    :rtype: tuple[:py:class:`dns.name.Name`, int]
     """
 
     parser = dns.wirebase.Parser(message, current)

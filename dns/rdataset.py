@@ -55,51 +55,75 @@ class RdatasetStyle(dns.rdata.RdataStyle):
     :py:class:`dns.rdata.RdataStyle`.  See those classes
     for a description of their options.
 
-    *override_rdclass*, a ``dns.rdataclass.RdataClass`` or ``None``.
-    If not ``None``, use this class instead of the Rdataset's class.
+    .. attribute:: override_rdclass
 
-    *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
-    which have them.  The default is ``False``.
+        A :py:class:`dns.rdataclass.RdataClass` or ``None``. If not ``None``,
+        use this class instead of the Rdataset's class.
 
-    *omit_rdclass*, a ``bool``.  If ``True``, do not print the RdataClass.
-    The default is ``False``.
+    .. attribute:: want_comments
 
-    *omit_ttl*, a ``bool``.  If ``True``, do not print the TTL.
-    The default is ``False``.  Use of this option may lose information.
+        A ``bool``. If ``True``, emit comments for rdata which have them.
+        The default is ``False``.
 
-    *want_generic*, a ``bool``.  If ``True``, print RdataClass, RdataType,
-    and Rdatas in the generic format, a.k.a. the "unknown rdata format".
-    The default is ``False``.
+    .. attribute:: omit_rdclass
 
-    *deduplicate_names*, a ``bool``.  If ``True``, print whitespace instead of the
-    owner name if the owner name of an RR is the same as the prior RR's owner name.
-    The default is ``False``.
+        A ``bool``. If ``True``, do not print the RdataClass. The default is
+        ``False``.
 
-    *first_name_is_duplicate*, a ``bool``.  If ``True``, consider the first owner name
-    of the rdataset as a duplicate too, and emit whitespace for it as well.  A sample
-    use is in emitting a Node of multiple rdatasets and the current rdataset is not
-    the first to be emitted.  The default is ``False``.
+    .. attribute:: omit_ttl
 
-    *default_ttl*, an ``int`` or ``None``.  If ``None``, the default, there is no
-    default TTL.  If an integer is specified, then any TTL matching that value will
-    be omitted.  When emitting a zonefile, a setting other than ``None`` will cause
-    a ``$TTL`` directive to be emitted.
+        A ``bool``. If ``True``, do not print the TTL. The default is
+        ``False``. Use of this option may lose information.
 
-    *name_just*, an ``int``.  The owner name field justification.  Negative values
-    are left justified, and positive values are right justified.  A value of zero,
-    the default, means that no justification is performed.
+    .. attribute:: want_generic
 
-    *ttl_just*, an ``int``.  The TTL field justification.  Negative values
-    are left justified, and positive values are right justified.  A value of zero,
-    the default, means that no justification is performed.
+        A ``bool``. If ``True``, print RdataClass, RdataType, and Rdatas in
+        the generic format (the "unknown rdata format"). The default is
+        ``False``.
 
-    *rdclass_just*, an ``int``.  The RdataClass name field justification.  Negative values
-    are left justified, and positive values are right justified.  A value of zero,
-    the default, means that no justification is performed.
+    .. attribute:: deduplicate_names
 
-    *rdtype_just*, an ``int``.  The RdataType field justification.  Negative values
-    are left justified, and positive values are right justified.  A value of zero,
-    the default, means that no justification is performed.
+        A ``bool``. If ``True``, print whitespace instead of the owner name
+        when the owner name of an RR is the same as the prior RR's owner name.
+        The default is ``False``.
+
+    .. attribute:: first_name_is_duplicate
+
+        A ``bool``. If ``True``, consider the first owner name of the rdataset
+        as a duplicate too, emitting whitespace for it as well. Useful when
+        emitting a Node of multiple rdatasets and the current rdataset is not
+        the first. The default is ``False``.
+
+    .. attribute:: default_ttl
+
+        An ``int`` or ``None``. If ``None`` (the default), there is no default
+        TTL. If an integer is specified, any TTL matching that value will be
+        omitted. When emitting a zonefile, a value other than ``None`` will
+        cause a ``$TTL`` directive to be emitted.
+
+    .. attribute:: name_just
+
+        An ``int``. The owner name field justification. Negative values are
+        left-justified, positive values are right-justified. Zero (the default)
+        means no justification.
+
+    .. attribute:: ttl_just
+
+        An ``int``. The TTL field justification. Negative values are
+        left-justified, positive values are right-justified. Zero (the default)
+        means no justification.
+
+    .. attribute:: rdclass_just
+
+        An ``int``. The RdataClass field justification. Negative values are
+        left-justified, positive values are right-justified. Zero (the default)
+        means no justification.
+
+    .. attribute:: rdtype_just
+
+        An ``int``. The RdataType field justification. Negative values are
+        left-justified, positive values are right-justified. Zero (the default)
+        means no justification.
     """
 
     override_rdclass: dns.rdataclass.RdataClass | None = None
@@ -139,13 +163,14 @@ class Rdataset(dns.set.Set):
     ):
         """Create a new rdataset of the specified class and type.
 
-        *rdclass*, a ``dns.rdataclass.RdataClass``, the rdataclass.
-
-        *rdtype*, an ``dns.rdatatype.RdataType``, the rdatatype.
-
-        *covers*, an ``dns.rdatatype.RdataType``, the covered rdatatype.
-
-        *ttl*, an ``int``, the TTL.
+        :param rdclass: The rdataclass.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+        :param rdtype: The rdatatype.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType`
+        :param covers: The covered rdatatype.
+        :type covers: :py:class:`dns.rdatatype.RdataType`
+        :param ttl: The TTL.
+        :type ttl: int
         """
 
         super().__init__()
@@ -169,7 +194,8 @@ class Rdataset(dns.set.Set):
         TTL or the specified TTL.  If the set contains no rdatas, set the TTL
         to the specified TTL.
 
-        *ttl*, an ``int`` or ``str``.
+        :param ttl: The candidate TTL value.
+        :type ttl: int or str
         """
         ttl = dns.ttl.make(ttl)
         if len(self) == 0:
@@ -184,15 +210,14 @@ class Rdataset(dns.set.Set):
         If the optional *ttl* parameter is supplied, then
         ``self.update_ttl(ttl)`` will be called prior to adding the rdata.
 
-        *rd*, a ``dns.rdata.Rdata``, the rdata
-
-        *ttl*, an ``int``, the TTL.
-
-        Raises ``dns.rdataset.IncompatibleTypes`` if the type and class
-        do not match the type and class of the rdataset.
-
-        Raises ``dns.rdataset.DifferingCovers`` if the type is a signature
-        type and the covered type does not match that of the rdataset.
+        :param rd: The rdata to add.
+        :type rd: :py:class:`dns.rdata.Rdata`
+        :param ttl: The TTL.
+        :type ttl: int or ``None``
+        :raises dns.rdataset.IncompatibleTypes: If the type and class do not
+            match the type and class of the rdataset.
+        :raises dns.rdataset.DifferingCovers: If the type is a signature type
+            and the covered type does not match that of the rdataset.
         """
 
         #
@@ -226,8 +251,8 @@ class Rdataset(dns.set.Set):
     def update(self, other):
         """Add all rdatas in other to self.
 
-        *other*, a ``dns.rdataset.Rdataset``, the rdataset from which
-        to update.
+        :param other: The rdataset from which to update.
+        :type other: :py:class:`dns.rdataset.Rdataset`
         """
 
         self.update_ttl(other.ttl)
@@ -293,23 +318,21 @@ class Rdataset(dns.set.Set):
         Any additional keyword arguments are passed on to the rdata
         ``to_text()`` method.
 
-        *name*, a ``dns.name.Name``.  If name is not ``None``, emit RRs with
-        *name* as the owner name.
-
-        *origin*, a ``dns.name.Name`` or ``None``, the origin for relative
-        names.
-
-        *relativize*, a ``bool``.  If ``True``, names will be relativized
-        to *origin*.
-
-        *override_rdclass*, a ``dns.rdataclass.RdataClass`` or ``None``.
-        If not ``None``, when rendering, emit records as if they were of this class.
-
-        *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
-        which have them.  The default is ``False``.
-
-        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
-        specified, the style overrides the other parameters except for *name*.
+        :param name: If not ``None``, emit RRs with this as the owner name.
+        :type name: :py:class:`dns.name.Name` or ``None``
+        :param origin: The origin for relative names.
+        :type origin: :py:class:`dns.name.Name` or ``None``
+        :param relativize: If ``True``, names will be relativized to *origin*.
+        :type relativize: bool
+        :param override_rdclass: If not ``None``, emit records as if they were
+            of this class.
+        :type override_rdclass: :py:class:`dns.rdataclass.RdataClass` or ``None``
+        :param want_comments: If ``True``, emit comments for rdata which have
+            them. The default is ``False``.
+        :type want_comments: bool
+        :param style: If specified, overrides the other parameters except
+            *name*.
+        :type style: :py:class:`dns.rdataset.RdatasetStyle` or ``None``
         """
         if style is None:
             kw = kw.copy()
@@ -400,26 +423,25 @@ class Rdataset(dns.set.Set):
     ) -> int:
         """Convert the rdataset to wire format.
 
-        *name*, a ``dns.name.Name`` is the owner name to use.
+        :param name: The owner name to use.
+        :type name: :py:class:`dns.name.Name`
+        :param file: The file where the name is emitted (typically a
+            ``BytesIO`` file).
+        :param compress: The compression table to use. If ``None`` (the
+            default), names will not be compressed.
+        :type compress: dict or ``None``
+        :param origin: If the name is relative and *origin* is not ``None``,
+            *origin* will be appended to it.
+        :type origin: :py:class:`dns.name.Name` or ``None``
+        :param override_rdclass: If not ``None``, used as the class instead of
+            the class of the rdataset. Useful for dynamic update rendering.
+        :type override_rdclass: int or ``None``
+        :param want_shuffle: If ``True``, the order of Rdatas within the
+            Rdataset will be shuffled before rendering.
+        :type want_shuffle: bool
 
-        *file* is the file where the name is emitted (typically a
-        BytesIO file).
-
-        *compress*, a ``dict``, is the compression table to use.  If
-        ``None`` (the default), names will not be compressed.
-
-        *origin* is a ``dns.name.Name`` or ``None``.  If the name is
-        relative and origin is not ``None``, then *origin* will be appended
-        to it.
-
-        *override_rdclass*, an ``int``, is used as the class instead of the
-        class of the rdataset.  This is useful when rendering rdatasets
-        associated with dynamic updates.
-
-        *want_shuffle*, a ``bool``.  If ``True``, then the order of the
-        Rdatas within the Rdataset will be shuffled before rendering.
-
-        Returns an ``int``, the number of records emitted.
+        :returns: The number of records emitted.
+        :rtype: int
         """
 
         if override_rdclass is not None:
@@ -556,19 +578,18 @@ def from_text_list(
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified list of rdatas in text format.
 
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder to use; if ``None``, the default IDNA 2003
-    encoder/decoder is used.
+    :param idna_codec: Specifies the IDNA encoder/decoder. If ``None``, the
+        default IDNA 2003 encoder/decoder is used.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param origin: The origin to use for relative names.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param relativize: If ``True``, names will be relativized.
+    :type relativize: bool
+    :param relativize_to: The origin to use when relativizing names. If not
+        set, *origin* is used.
+    :type relativize_to: :py:class:`dns.name.Name` or ``None``
 
-    *origin*, a ``dns.name.Name`` (or ``None``), the
-    origin to use for relative names.
-
-    *relativize*, a ``bool``.  If true, name will be relativized.
-
-    *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
-    when relativizing names.  If not set, the *origin* value will be used.
-
-    Returns a ``dns.rdataset.Rdataset`` object.
+    :rtype: :py:class:`dns.rdataset.Rdataset`
     """
 
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
@@ -592,7 +613,7 @@ def from_text(
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified rdatas in text format.
 
-    Returns a ``dns.rdataset.Rdataset`` object.
+    :rtype: :py:class:`dns.rdataset.Rdataset`
     """
 
     return from_text_list(rdclass, rdtype, ttl, cast(Collection[str], text_rdatas))
@@ -602,7 +623,7 @@ def from_rdata_list(ttl: int, rdatas: Collection[dns.rdata.Rdata]) -> Rdataset:
     """Create an rdataset with the specified TTL, and with
     the specified list of rdata objects.
 
-    Returns a ``dns.rdataset.Rdataset`` object.
+    :rtype: :py:class:`dns.rdataset.Rdataset`
     """
 
     if len(rdatas) == 0:
@@ -621,7 +642,7 @@ def from_rdata(ttl: int, *rdatas: Any) -> Rdataset:
     """Create an rdataset with the specified TTL, and with
     the specified rdata objects.
 
-    Returns a ``dns.rdataset.Rdataset`` object.
+    :rtype: :py:class:`dns.rdataset.Rdataset`
     """
 
     return from_rdata_list(ttl, cast(Collection[dns.rdata.Rdata], rdatas))

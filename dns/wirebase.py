@@ -13,12 +13,12 @@ class Parser:
     """Helper class for parsing DNS wire format."""
 
     def __init__(self, wire: bytes, current: int = 0):
-        """Initialize a Parser
+        """Initialize a Parser.
 
-        *wire*, a ``bytes`` contains the data to be parsed, and possibly other data.
-        Typically it is the whole message or a slice of it.
-
-        *current*, an `int`, the offset within *wire* where parsing should begin.
+        :param wire: The data to be parsed (typically a whole message or a slice of it).
+        :type wire: bytes
+        :param current: The offset within *wire* where parsing should begin.
+        :type current: int
         """
         self.wire = wire
         self.current = 0

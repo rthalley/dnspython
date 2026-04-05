@@ -4,9 +4,9 @@
 DNS Query Support
 =================
 
-The ``dns.asyncquery`` module is for sending messages to DNS servers, and
+The :py:mod:`dns.asyncquery` module is for sending messages to DNS servers, and
 processing their responses.  If you want "stub resolver" behavior, then
-you should use the higher level ``dns.asyncresolver`` module; see
+you should use the higher level :py:mod:`dns.asyncresolver` module; see
 :ref:`async_resolver`.
 
 For UDP and TCP, the module provides a single "do everything" query

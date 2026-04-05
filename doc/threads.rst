@@ -23,7 +23,7 @@ The cache implementations for the resolver are also thread-safe, so if a
 web-crawling application associates an ``LRUCache`` with a Resolver, it will
 be safe to have many crawler threads doing resolutions.
 
-The ``dns.query`` methods are also thread-safe.  One caveat with these
+The :py:mod:`dns.query` methods are also thread-safe.  One caveat with these
 functions is that if a socket or other context (e.g. a Requests
 session or an SSL context) is passed to the function instead of
 allowing the function to create it, then it is up to the application to

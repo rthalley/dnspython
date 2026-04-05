@@ -79,8 +79,9 @@ class _Node(Generic[KT, ET]):
         """Get the index of the ``Element`` matching ``key`` or the index of its
         least successor.
 
-        Returns a tuple of the index and an ``equal`` boolean that is ``True`` iff.
-        the key was found.
+        :returns: A tuple of the index and an ``equal`` boolean that is ``True``
+            iff the key was found.
+        :rtype: tuple[int, bool]
         """
         l = len(self.elts)
         if l > 0 and key > self.elts[l - 1].key():
@@ -118,8 +119,8 @@ class _Node(Generic[KT, ET]):
         """Get the node associated with key and its index, doing
         copy-on-write if we have to descend.
 
-        Returns a tuple of the node and the index, or the tuple ``(None, 0)``
-        if the key was not found.
+        :returns: A tuple of the node and the index, or ``(None, 0)``
+            if the key was not found.
         """
         i, equal = self.search_in_node(key)
         if equal:
@@ -198,7 +199,8 @@ class _Node(Generic[KT, ET]):
     def try_left_steal(self, parent: "_Node[KT, ET]", index: int) -> bool:
         """Try to steal from this Node's left sibling for balancing purposes.
 
-        Returns ``True`` if the theft was successful, or ``False`` if not.
+        :returns: ``True`` if the theft was successful, ``False`` if not.
+        :rtype: bool
         """
         if index != 0:
             left = parent.children[index - 1]
@@ -217,7 +219,8 @@ class _Node(Generic[KT, ET]):
     def try_right_steal(self, parent: "_Node[KT, ET]", index: int) -> bool:
         """Try to steal from this Node's right sibling for balancing purposes.
 
-        Returns ``True`` if the theft was successful, or ``False`` if not.
+        :returns: ``True`` if the theft was successful, ``False`` if not.
+        :rtype: bool
         """
         if index + 1 < len(parent.children):
             right = parent.children[index + 1]
@@ -665,11 +668,10 @@ class BTree(Generic[KT, ET]):
     def insert_element(self, elt: ET, in_order: bool = False) -> ET | None:
         """Insert the element into the BTree.
 
-        If *in_order* is ``True``, then extra work will be done to make left siblings
-        full, which optimizes storage space when the the elements are inserted in-order
-        or close to it.
-
-        Returns the previously existing element at the element's key or ``None``.
+        :param bool in_order: If ``True``, extra work will be done to make left
+            siblings full, which optimizes storage space when elements are inserted
+            in-order or close to it.
+        :returns: The previously existing element at the element's key, or ``None``.
         """
         self._check_mutable_and_park()
         cloned = self.root.maybe_cow(self.creator)
@@ -711,14 +713,14 @@ class BTree(Generic[KT, ET]):
     def delete_key(self, key: KT) -> ET | None:
         """Delete the element matching *key* from the BTree.
 
-        Returns the matching element or ``None`` if it does not exist.
+        :returns: The matching element, or ``None`` if it does not exist.
         """
         return self._delete(key, None)
 
     def delete_exact(self, element: ET) -> ET | None:
         """Delete *element* from the BTree.
 
-        Returns the matching element or ``None`` if it was not in the BTree.
+        :returns: The matching element, or ``None`` if it was not in the BTree.
         """
         delt = self._delete(element.key(), element)
         assert delt is element

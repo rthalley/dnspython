@@ -28,8 +28,32 @@ DNSSEC Functions
 .. autofunction:: dns.dnssec.default_rrset_signer()
 .. autofunction:: dns.dnssec.sign_zone()
 
-DNSSEC Algorithms
------------------
+DNSSEC Policy
+-------------
+
+.. autoclass:: dns.dnssec.Policy
+   :members:
+
+DNSSEC Algorithm Types
+----------------------
+
+.. autoclass:: dns.dnssectypes.Algorithm
+   :members:
+
+.. autoclass:: dns.dnssectypes.DSDigest
+   :members:
+
+DNSSEC Algorithm Implementations
+---------------------------------
+
+.. autoclass:: dns.dnssecalgs.base.GenericPublicKey
+   :members:
+
+.. autoclass:: dns.dnssecalgs.base.GenericPrivateKey
+   :members:
+
+DNSSEC Algorithm Constants
+---------------------------
 
 .. autodata:: dns.dnssec.RSAMD5
 .. autodata:: dns.dnssec.DH

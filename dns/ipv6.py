@@ -29,10 +29,10 @@ _leading_zero = re.compile(r"0+([0-9a-f]+)")
 def inet_ntoa(address: bytes) -> str:
     """Convert an IPv6 address in binary form to text form.
 
-    *address*, a ``bytes``, the IPv6 address in binary form.
-
-    Raises ``ValueError`` if the address isn't 16 bytes long.
-    Returns a ``str``.
+    :param address: The IPv6 address in binary form.
+    :type address: bytes
+    :raises ValueError: If the address is not 16 bytes long.
+    :rtype: str
     """
 
     if len(address) != 16:
@@ -103,12 +103,12 @@ _colon_colon_end = re.compile(rb".*::$")
 def inet_aton(text: str | bytes, ignore_scope: bool = False) -> bytes:
     """Convert an IPv6 address in text form to binary form.
 
-    *text*, a ``str`` or ``bytes``, the IPv6 address in textual form.
-
-    *ignore_scope*, a ``bool``.  If ``True``, a scope will be ignored.
-    If ``False``, the default, it is an error for a scope to be present.
-
-    Returns a ``bytes``.
+    :param text: The IPv6 address in textual form.
+    :type text: str or bytes
+    :param ignore_scope: If ``True``, a scope is ignored; if ``False``
+        (the default), a scope is an error.
+    :type ignore_scope: bool
+    :rtype: bytes
     """
 
     #
@@ -197,9 +197,9 @@ _mapped_prefix = b"\x00" * 10 + b"\xff\xff"
 def is_mapped(address: bytes) -> bool:
     """Is the specified address a mapped IPv4 address?
 
-    *address*, a ``bytes`` is an IPv6 address in binary form.
-
-    Returns a ``bool``.
+    :param address: An IPv6 address in binary form.
+    :type address: bytes
+    :rtype: bool
     """
 
     return address.startswith(_mapped_prefix)
@@ -209,8 +209,8 @@ def canonicalize(text: str | bytes) -> str:
     """Verify that *address* is a valid text form IPv6 address and return its
     canonical text form.  Addresses with scopes are rejected.
 
-    *text*, a ``str`` or ``bytes``, the IPv6 address in textual form.
-
-    Raises ``dns.exception.SyntaxError`` if the text is not valid.
+    :param text: The IPv6 address in textual form.
+    :type text: str or bytes
+    :raises dns.exception.SyntaxError: If the text is not valid.
     """
     return inet_ntoa(inet_aton(text))

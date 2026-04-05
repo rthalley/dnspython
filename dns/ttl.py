@@ -36,11 +36,10 @@ def from_text(text: str) -> int:
 
     The BIND 8 units syntax for TTLs (e.g. '1w6d4h3m10s') is supported.
 
-    *text*, a ``str``, the textual TTL.
-
-    Raises ``dns.ttl.BadTTL`` if the TTL is not well-formed.
-
-    Returns an ``int``.
+    :param text: The textual TTL.
+    :type text: str
+    :raises dns.ttl.BadTTL: If the TTL is not well-formed.
+    :rtype: int
     """
 
     if text.isdigit():

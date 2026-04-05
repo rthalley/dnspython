@@ -52,23 +52,24 @@ class TSIG(dns.rdata.Rdata):
     ):
         """Initialize a TSIG rdata.
 
-        *rdclass*, an ``int`` is the rdataclass of the Rdata.
-
-        *rdtype*, an ``int`` is the rdatatype of the Rdata.
-
-        *algorithm*, a ``dns.name.Name``.
-
-        *time_signed*, an ``int``.
-
-        *fudge*, an ``int`.
-
-        *mac*, a ``bytes``
-
-        *original_id*, an ``int``
-
-        *error*, an ``int``
-
-        *other*, a ``bytes``
+        :param rdclass: The rdataclass of the Rdata.
+        :type rdclass: int
+        :param rdtype: The rdatatype of the Rdata.
+        :type rdtype: int
+        :param algorithm: The TSIG algorithm name.
+        :type algorithm: :py:class:`dns.name.Name`
+        :param time_signed: The time signed (seconds since epoch).
+        :type time_signed: int
+        :param fudge: The fudge (seconds of error permitted in time_signed).
+        :type fudge: int
+        :param mac: The message authentication code.
+        :type mac: bytes
+        :param original_id: The original message ID.
+        :type original_id: int
+        :param error: The TSIG error code.
+        :type error: int
+        :param other: Other data (typically empty).
+        :type other: bytes
         """
 
         super().__init__(rdclass, rdtype)

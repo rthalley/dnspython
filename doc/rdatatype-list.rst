@@ -97,6 +97,8 @@ Rdatatypes
    :annotation: = 104
 .. py:data:: dns.rdatatype.NINFO
    :annotation: = 56
+.. py:data:: dns.rdatatype.NONE
+   :annotation: = 0
 .. py:data:: dns.rdatatype.NS
    :annotation: = 2
 .. py:data:: dns.rdatatype.NSAP
@@ -111,6 +113,8 @@ Rdatatypes
    :annotation: = 51
 .. py:data:: dns.rdatatype.NULL
    :annotation: = 10
+.. py:data:: dns.rdatatype.NXNAME
+   :annotation: = 128
 .. py:data:: dns.rdatatype.NXT
    :annotation: = 30
 .. py:data:: dns.rdatatype.OPENPGPKEY

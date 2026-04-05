@@ -7,7 +7,7 @@ EDNS allows for larger messages and also provides an extension
 mechanism for the protocol.  EDNS *options* are typed data, and are
 treated much like Rdata.  For example, if dnspython encounters the EDNS
 ``ECS`` option code when parsing a DNS wire format message, it
-will create a ``dns.edns.ECSOption`` object to represent it.
+will create a :py:class:`dns.edns.ECSOption` object to represent it.
 
 .. autoclass:: dns.edns.OptionType
 

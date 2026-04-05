@@ -4,9 +4,9 @@
 DNS Query Support
 =================
 
-The ``dns.query`` module is for sending messages to DNS servers, and
+The :py:mod:`dns.query` module is for sending messages to DNS servers, and
 processing their responses.  If you want "stub resolver" behavior, then
-you should use the higher level ``dns.resolver`` module; see :ref:`resolver`.
+you should use the higher level :py:mod:`dns.resolver` module; see :ref:`resolver`.
 
 For UDP and TCP, the module provides a single "do everything" query
 function, and also provides the send and receive halves of this function
@@ -43,6 +43,9 @@ Zone Transfers
 
 As of dnspython 2.1, :py:func:`dns.query.xfr` is deprecated.  Please use
 :py:func:`dns.query.inbound_xfr` instead.
+
+.. autoclass:: dns.query.HTTPVersion
+   :members:
 
 .. autoclass:: dns.query.UDPMode
 

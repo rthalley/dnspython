@@ -70,7 +70,7 @@ def from_text(text: str) -> int:
     """Convert a space-separated list of flag text values into a flags
     value.
 
-    Returns an ``int``
+    :rtype: int
     """
 
     return _from_text(text, Flag)
@@ -80,7 +80,7 @@ def to_text(flags: int) -> str:
     """Convert a flags value into a space-separated list of flag text
     values.
 
-    Returns a ``str``.
+    :rtype: str
     """
 
     return _to_text(flags, Flag)
@@ -90,7 +90,7 @@ def edns_from_text(text: str) -> int:
     """Convert a space-separated list of EDNS flag text values into a EDNS
     flags value.
 
-    Returns an ``int``
+    :rtype: int
     """
 
     return _from_text(text, EDNSFlag)
@@ -100,7 +100,7 @@ def edns_to_text(flags: int) -> str:
     """Convert an EDNS flags value into a space-separated list of EDNS flag
     text values.
 
-    Returns a ``str``.
+    :rtype: str
     """
 
     return _to_text(flags, EDNSFlag)

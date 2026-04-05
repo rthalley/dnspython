@@ -50,11 +50,10 @@ def get_algorithm_cls(
 ) -> type[GenericPrivateKey]:
     """Get Private Key class from Algorithm.
 
-    *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
-
-    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
-
-    Returns a ``dns.dnssecalgs.GenericPrivateKey``
+    :param algorithm: The DNSKEY algorithm.
+    :type algorithm: str or int
+    :raises UnsupportedAlgorithm: If the algorithm is unknown.
+    :rtype: type[:py:class:`dns.dnssecalgs.base.GenericPrivateKey`]
     """
     algorithm = Algorithm.make(algorithm)
     cls = algorithms.get((algorithm, prefix))
@@ -68,11 +67,10 @@ def get_algorithm_cls(
 def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> type[GenericPrivateKey]:
     """Get Private Key class from DNSKEY.
 
-    *dnskey*, a ``DNSKEY`` to get Algorithm class for.
-
-    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
-
-    Returns a ``dns.dnssecalgs.GenericPrivateKey``
+    :param dnskey: The DNSKEY rdata to get the algorithm class for.
+    :type dnskey: :py:class:`dns.rdtypes.ANY.DNSKEY.DNSKEY`
+    :raises UnsupportedAlgorithm: If the algorithm is unknown.
+    :rtype: type[:py:class:`dns.dnssecalgs.base.GenericPrivateKey`]
     """
     prefix: AlgorithmPrefix = None
     if dnskey.algorithm == Algorithm.PRIVATEDNS:
@@ -91,15 +89,15 @@ def register_algorithm_cls(
 ) -> None:
     """Register Algorithm Private Key class.
 
-    *algorithm*, a ``str`` or ``int`` specifying the DNSKEY algorithm.
-
-    *algorithm_cls*: A `GenericPrivateKey` class.
-
-    *name*, an optional ``dns.name.Name`` or ``str``, for for PRIVATEDNS algorithms.
-
-    *oid*: an optional BER-encoded `bytes` for PRIVATEOID algorithms.
-
-    Raises ``ValueError`` if a name or oid is specified incorrectly.
+    :param algorithm: The DNSKEY algorithm.
+    :type algorithm: str or int
+    :param algorithm_cls: A :py:class:`dns.dnssecalgs.base.GenericPrivateKey`
+        subclass.
+    :param name: For PRIVATEDNS algorithms, the algorithm name.
+    :type name: :py:class:`dns.name.Name`, str, or ``None``
+    :param oid: For PRIVATEOID algorithms, a BER-encoded OID.
+    :type oid: bytes or ``None``
+    :raises ValueError: If a name or oid is specified incorrectly.
     """
     if not issubclass(algorithm_cls, GenericPrivateKey):
         raise TypeError("Invalid algorithm class")

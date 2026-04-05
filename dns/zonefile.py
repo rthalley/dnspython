@@ -461,8 +461,8 @@ class Reader:
     def read(self) -> None:
         """Read a DNS zone file and build a zone object.
 
-        @raises dns.zone.NoSOA: No SOA RR was found at the zone origin
-        @raises dns.zone.NoNS: No NS RRset was found at the zone origin
+        :raises dns.zone.NoSOA: if there is no SOA RR at the zone origin.
+        :raises dns.zone.NoNS: if there is no NS RRset at the zone origin.
         """
 
         try:
@@ -687,51 +687,42 @@ def read_rrsets(
     """Read one or more rrsets from the specified text, possibly subject
     to restrictions.
 
-    *text*, a file object or a string, is the input to process.
-
-    *name*, a string, ``dns.name.Name``, or ``None``, is the owner name of
-    the rrset.  If not ``None``, then the owner name is "forced", and the
-    input must not specify an owner name.  If ``None``, then any owner names
-    are allowed and must be present in the input.
-
-    *ttl*, an ``int``, string, or None.  If not ``None``, the the TTL is
-    forced to be the specified value and the input must not specify a TTL.
-    If ``None``, then a TTL may be specified in the input.  If it is not
-    specified, then the *default_ttl* will be used.
-
-    *rdclass*, a ``dns.rdataclass.RdataClass``, string, or ``None``.  If
-    not ``None``, then the class is forced to the specified value, and the
-    input must not specify a class.  If ``None``, then the input may specify
-    a class that matches *default_rdclass*.  Note that it is not possible to
-    return rrsets with differing classes; specifying ``None`` for the class
-    simply allows the user to optionally type a class as that may be convenient
-    when cutting and pasting.
-
-    *default_rdclass*, a ``dns.rdataclass.RdataClass`` or string.  The class
-    of the returned rrsets.
-
-    *rdtype*, a ``dns.rdatatype.RdataType``, string, or ``None``.  If not
-    ``None``, then the type is forced to the specified value, and the
-    input must not specify a type.  If ``None``, then a type must be present
-    for each RR.
-
-    *default_ttl*, an ``int``, string, or ``None``.  If not ``None``, then if
-    the TTL is not forced and is not specified, then this value will be used.
-    if ``None``, then if the TTL is not forced an error will occur if the TTL
-    is not specified.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
-    is used.  Note that codecs only apply to the owner name; dnspython does
-    not do IDNA for names in rdata, as there is no IDNA zonefile format.
-
-    *origin*, a string, ``dns.name.Name``, or ``None``, is the origin for any
-    relative names in the input, and also the origin to relativize to if
-    *relativize* is ``True``.
-
-    *relativize*, a bool.  If ``True``, names are relativized to the *origin*;
-    if ``False`` then any relative names in the input are made absolute by
-    appending the *origin*.
+    :param text: The input to process, either a file object or a string.
+    :param name: The owner name of the rrset.  If not ``None``, the owner
+        name is forced and the input must not specify one.  If ``None``,
+        any owner names are allowed and must be present in the input.
+    :type name: str, :py:class:`dns.name.Name`, or ``None``
+    :param ttl: If not ``None``, the TTL is forced to the specified value
+        and the input must not specify a TTL.  If ``None``, a TTL may be
+        specified in the input; if not specified, *default_ttl* will be used.
+    :type ttl: int, str, or ``None``
+    :param rdclass: If not ``None``, the class is forced to the specified
+        value and the input must not specify a class.  If ``None``, the input
+        may optionally specify a class matching *default_rdclass*.  Note that
+        rrsets with differing classes cannot be returned; ``None`` here simply
+        allows the user to optionally write a class in the input.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass`, str, or ``None``
+    :param default_rdclass: The class of the returned rrsets.
+    :type default_rdclass: :py:class:`dns.rdataclass.RdataClass` or str
+    :param rdtype: If not ``None``, the type is forced to the specified value
+        and the input must not specify a type.  If ``None``, a type must be
+        present for each RR.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType`, str, or ``None``
+    :param default_ttl: If not ``None``, and the TTL is not forced and not
+        specified in the input, this value will be used.  If ``None``, an
+        error will occur if the TTL is not forced and not specified.
+    :type default_ttl: int, str, or ``None``
+    :param idna_codec: The IDNA encoder/decoder.  If ``None``, the default
+        IDNA encoder/decoder is used.  Note that codecs only apply to the
+        owner name; dnspython does not do IDNA for names in rdata.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param origin: The origin for any relative names in the input, and also
+        the origin to relativize to if *relativize* is ``True``.
+    :type origin: str, :py:class:`dns.name.Name`, or ``None``
+    :param bool relativize: If ``True``, names are relativized to *origin*;
+        if ``False``, relative names in the input are made absolute by
+        appending *origin*.
+    :rtype: list[:py:class:`dns.rrset.RRset`]
     """
     if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root, idna_codec)

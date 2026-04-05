@@ -276,7 +276,7 @@ class Set:
     def issubset(self, other):
         """Is this set a subset of *other*?
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         if not isinstance(other, Set):
@@ -289,7 +289,7 @@ class Set:
     def issuperset(self, other):
         """Is this set a superset of *other*?
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         if not isinstance(other, Set):
