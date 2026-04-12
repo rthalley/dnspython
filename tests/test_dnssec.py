@@ -1246,11 +1246,12 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
             "digest length inconsistent with digest type": ["0 0 0 0000"],
             "Odd-length string": ["0 0 0 0", "0 0 0 000"],
         }
-        for msg, records in test_records.items():
+        for _, records in test_records.items():
             for record in records:
                 with self.assertRaises(dns.exception.SyntaxError) as cm:
                     dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, record)
-                self.assertEqual(msg, str(cm.exception))
+                # we don't test the message because it varies between pre=3.15 and 3.15
+                #self.assertEqual(msg, str(cm.exception))
 
     def testMakeCDS(self):  # type: () -> None
         name = dns.name.from_text("example.com")
