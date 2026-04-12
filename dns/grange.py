@@ -24,9 +24,9 @@ def from_text(text: str) -> tuple[int, int, int]:
     """Convert the text form of a range in a ``$GENERATE`` statement to an
     integer.
 
-    *text*, a ``str``, the textual range in ``$GENERATE`` form.
-
-    Returns a tuple of three ``int`` values ``(start, stop, step)``.
+    :param text: The textual range in ``$GENERATE`` form.
+    :type text: str
+    :rtype: tuple[int, int, int]
     """
 
     start = -1

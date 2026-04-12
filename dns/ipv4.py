@@ -25,9 +25,9 @@ import dns.exception
 def inet_ntoa(address: bytes) -> str:
     """Convert an IPv4 address in binary form to text form.
 
-    *address*, a ``bytes``, the IPv4 address in binary form.
-
-    Returns a ``str``.
+    :param address: The IPv4 address in binary form.
+    :type address: bytes
+    :rtype: str
     """
 
     if len(address) != 4:
@@ -38,9 +38,9 @@ def inet_ntoa(address: bytes) -> str:
 def inet_aton(text: str | bytes) -> bytes:
     """Convert an IPv4 address in text form to binary form.
 
-    *text*, a ``str`` or ``bytes``, the IPv4 address in textual form.
-
-    Returns a ``bytes``.
+    :param text: The IPv4 address in textual form.
+    :type text: str or bytes
+    :rtype: bytes
     """
 
     if not isinstance(text, bytes):
@@ -67,9 +67,9 @@ def canonicalize(text: str | bytes) -> str:
     """Verify that *address* is a valid text form IPv4 address and return its
     canonical text form.
 
-    *text*, a ``str`` or ``bytes``, the IPv4 address in textual form.
-
-    Raises ``dns.exception.SyntaxError`` if the text is not valid.
+    :param text: The IPv4 address in textual form.
+    :type text: str or bytes
+    :raises dns.exception.SyntaxError: If the text is not valid.
     """
     # Note that inet_aton() only accepts canonial form, but we still run through
     # inet_ntoa() to ensure the output is a str.

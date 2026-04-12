@@ -36,20 +36,17 @@ def from_address(
     """Convert an IPv4 or IPv6 address in textual form into a Name object whose
     value is the reverse-map domain name of the address.
 
-    *text*, a ``str``, is an IPv4 or IPv6 address in textual form
-    (e.g. '127.0.0.1', '::1')
-
-    *v4_origin*, a ``dns.name.Name`` to append to the labels corresponding to
-    the address if the address is an IPv4 address, instead of the default
-    (in-addr.arpa.)
-
-    *v6_origin*, a ``dns.name.Name`` to append to the labels corresponding to
-    the address if the address is an IPv6 address, instead of the default
-    (ip6.arpa.)
-
-    Raises ``dns.exception.SyntaxError`` if the address is badly formed.
-
-    Returns a ``dns.name.Name``.
+    :param text: An IPv4 or IPv6 address in textual form (e.g. ``'127.0.0.1'``,
+        ``'::1'``).
+    :type text: str
+    :param v4_origin: Domain to append for IPv4 addresses instead of
+        ``in-addr.arpa.``
+    :type v4_origin: :py:class:`dns.name.Name`
+    :param v6_origin: Domain to append for IPv6 addresses instead of
+        ``ip6.arpa.``
+    :type v6_origin: :py:class:`dns.name.Name`
+    :raises dns.exception.SyntaxError: If the address is badly formed.
+    :rtype: :py:class:`dns.name.Name`
     """
 
     try:
@@ -73,19 +70,17 @@ def to_address(
 ) -> str:
     """Convert a reverse map domain name into textual address form.
 
-    *name*, a ``dns.name.Name``, an IPv4 or IPv6 address in reverse-map name
-    form.
-
-    *v4_origin*, a ``dns.name.Name`` representing the top-level domain for
-    IPv4 addresses, instead of the default (in-addr.arpa.)
-
-    *v6_origin*, a ``dns.name.Name`` representing the top-level domain for
-    IPv4 addresses, instead of the default (ip6.arpa.)
-
-    Raises ``dns.exception.SyntaxError`` if the name does not have a
-    reverse-map form.
-
-    Returns a ``str``.
+    :param name: An IPv4 or IPv6 address in reverse-map name form.
+    :type name: :py:class:`dns.name.Name`
+    :param v4_origin: Top-level domain for IPv4 addresses (default
+        ``in-addr.arpa.``).
+    :type v4_origin: :py:class:`dns.name.Name`
+    :param v6_origin: Top-level domain for IPv6 addresses (default
+        ``ip6.arpa.``).
+    :type v6_origin: :py:class:`dns.name.Name`
+    :raises dns.exception.SyntaxError: If the name does not have a
+        reverse-map form.
+    :rtype: str
     """
 
     if name.is_subdomain(v4_origin):

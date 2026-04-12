@@ -92,10 +92,10 @@ class NameDict(MutableMapping):
         a superdomain of *name*.  Note that *superdomain* includes matching
         *name* itself.
 
-        *name*, a ``dns.name.Name``, the name to find.
-
-        Returns a ``(key, value)`` where *key* is the deepest
-        ``dns.name.Name``, and *value* is the value associated with *key*.
+        :param name: The name to find.
+        :type name: :py:class:`dns.name.Name`
+        :returns: A ``(key, value)`` tuple where *key* is the deepest
+            matching :py:class:`dns.name.Name`.
         """
 
         depth = len(name)

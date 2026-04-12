@@ -4,7 +4,7 @@
 DNS Messages
 ============
 
-Objects of the dns.message.Message class and its subclasses represent
+Objects of the :py:class:`dns.message.Message` class and its subclasses represent
 a single DNS message, as defined by `RFC 1035
 <https://tools.ietf.org/html/rfc1035>`_ and its many updates and
 extensions.

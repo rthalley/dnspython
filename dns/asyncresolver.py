@@ -59,8 +59,9 @@ class Resolver(dns.resolver.BaseResolver):
     ) -> dns.resolver.Answer:
         """Query nameservers asynchronously to find the answer to the question.
 
-        *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-        the default, then dnspython will use the default backend.
+        :param backend: The async backend. If ``None`` (the default), dnspython
+            will use the default backend.
+        :type backend: :py:class:`dns.asyncbackend.Backend` or ``None``
 
         See :py:func:`dns.resolver.Resolver.resolve()` for the
         documentation of the other parameters, exceptions, and return
@@ -118,8 +119,8 @@ class Resolver(dns.resolver.BaseResolver):
         This utilizes the resolve() method to perform a PTR lookup on the
         specified IP address.
 
-        *ipaddr*, a ``str``, the IPv4 or IPv6 address you want to get
-        the PTR record for.
+        :param ipaddr: The IPv4 or IPv6 address to look up.
+        :type ipaddr: str
 
         All other arguments that can be passed to the resolve() function
         except for rdtype and rdclass are also supported by this
@@ -148,10 +149,11 @@ class Resolver(dns.resolver.BaseResolver):
         This utilizes the resolve() method to perform A and/or AAAA lookups on
         the specified name.
 
-        *qname*, a ``dns.name.Name`` or ``str``, the name to resolve.
-
-        *family*, an ``int``, the address family.  If socket.AF_UNSPEC
-        (the default), both A and AAAA records will be retrieved.
+        :param name: The name to resolve.
+        :type name: :py:class:`dns.name.Name` or str
+        :param family: The address family. If ``socket.AF_UNSPEC`` (the
+            default), both A and AAAA records will be retrieved.
+        :type family: int
 
         All other arguments that can be passed to the resolve() function
         except for rdtype and rdclass are also supported by this
@@ -212,13 +214,13 @@ class Resolver(dns.resolver.BaseResolver):
         The canonical name is the name the resolver uses for queries
         after all CNAME and DNAME renamings have been applied.
 
-        *name*, a ``dns.name.Name`` or ``str``, the query name.
+        :param name: The query name.
+        :type name: :py:class:`dns.name.Name` or str
+        :rtype: :py:class:`dns.name.Name`
 
-        This method can raise any exception that ``resolve()`` can
-        raise, other than ``dns.resolver.NoAnswer`` and
-        ``dns.resolver.NXDOMAIN``.
-
-        Returns a ``dns.name.Name``.
+        This method can raise any exception that
+        :py:meth:`~dns.asyncresolver.Resolver.resolve` can raise, other than
+        :py:exc:`dns.resolver.NoAnswer` and :py:exc:`dns.resolver.NXDOMAIN`.
         """
         try:
             answer = await self.resolve(name, raise_on_no_answer=False)
@@ -369,7 +371,7 @@ async def zone_for_name(
 ) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 
-    See :py:func:`dns.resolver.Resolver.zone_for_name` for more
+    See :py:func:`dns.resolver.zone_for_name` for more
     information on the parameters and possible exceptions.
     """
 
@@ -404,20 +406,18 @@ async def make_resolver_at(
 ) -> Resolver:
     """Make a stub resolver using the specified destination as the full resolver.
 
-    *where*, a ``dns.name.Name`` or ``str`` the domain name or IP address of the
-    full resolver.
-
-    *port*, an ``int``, the port to use.  If not specified, the default is 53.
-
-    *family*, an ``int``, the address family to use.  This parameter is used if
-    *where* is not an address.  The default is ``socket.AF_UNSPEC`` in which case
-    the first address returned by ``resolve_name()`` will be used, otherwise the
-    first address of the specified family will be used.
-
-    *resolver*, a ``dns.asyncresolver.Resolver`` or ``None``, the resolver to use for
-    resolution of hostnames.  If not specified, the default resolver will be used.
-
-    Returns a ``dns.resolver.Resolver`` or raises an exception.
+    :param where: The domain name or IP address of the full resolver.
+    :type where: :py:class:`dns.name.Name` or str
+    :param port: The port to use.  Default is 53.
+    :type port: int
+    :param family: The address family.  Used only when *where* is not an
+        address literal.  ``socket.AF_UNSPEC`` (default) uses the first
+        address returned; otherwise the first address of the given family.
+    :type family: int
+    :param resolver: The resolver to use for hostname resolution.  If
+        ``None``, the default resolver is used.
+    :type resolver: :py:class:`dns.asyncresolver.Resolver` or ``None``
+    :rtype: :py:class:`dns.resolver.Resolver`
     """
     if resolver is None:
         resolver = get_default_resolver()

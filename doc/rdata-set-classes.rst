@@ -9,7 +9,7 @@ rdatatype, rdataclass, and covered type.  ``Rdatasets`` also have a
 set API, but are also ordered.
 
 An ``RRset`` is a subclass of ``Rdataset`` that also has an owner
-name, i.e. a ``dns.name.Name`` that says where in the DNS tree this
+name, i.e. a :py:class:`dns.name.Name` that says where in the DNS tree this
 set is located.
 
 A ``Node`` is a set of ``Rdataset`` objects, the Rdatasets being
@@ -27,6 +27,9 @@ tree.  Nodes are primarily used in ``Zone`` objects.
    :members:
 
 .. autoclass:: dns.node.Node
+   :members:
+
+.. autoclass:: dns.node.ImmutableNode
    :members:
 
 .. autoclass:: dns.node.NodeKind

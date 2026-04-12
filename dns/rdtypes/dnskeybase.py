@@ -91,9 +91,7 @@ class DNSKEYBase(dns.rdata.Rdata):
     def key_id(self) -> int:
         """Return the key id (a 16-bit number) for the specified key.
 
-        *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``
-
-        Returns an ``int`` between 0 and 65535
+        :rtype: int
         """
 
         wire = self.to_wire()

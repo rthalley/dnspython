@@ -3,7 +3,7 @@
 The dns.update.UpdateMessage Class
 ----------------------------------
 
-The ``dns.update.UpdateMessage`` class is used for DNS Dynamic Update
+The :py:class:`dns.update.UpdateMessage` class is used for DNS Dynamic Update
 messages.  It provides section access using the DNS Dynamic Update
 section names, and a variety of convenience methods for constructing
 dynamic updates.

@@ -87,7 +87,7 @@ class Truncated(dns.exception.DNSException):
     def message(self):
         """As much of the message as could be processed.
 
-        Returns a ``dns.message.Message``.
+        :rtype: :py:class:`dns.message.Message`
         """
         return self.kwargs["message"]
 
@@ -236,10 +236,9 @@ class Message:
         The *origin*, *relativize*, and any other keyword
         arguments are passed to the RRset ``to_text()`` method.
 
-        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
-        specified, the style overrides the other parameters.
-
-        Returns a ``str``.
+        :param style: If specified, overrides *origin* and *relativize*.
+        :type style: :py:class:`dns.rdataset.RdatasetStyle` or ``None``
+        :rtype: str
         """
         if style is None:
             kw = kw.copy()
@@ -251,10 +250,9 @@ class Message:
     def to_styled_text(self, style: MessageStyle) -> str:
         """Convert the message to styled text.
 
-        *style*, a :py:class:`dns.rdataset.RdatasetStyle` or ``None`` (the default).  If
-        specified, the style overrides the other parameters.
-
-        Returns a ``str``.
+        :param style: The style to use for formatting.
+        :type style: :py:class:`dns.message.MessageStyle`
+        :rtype: str
         """
 
         s = io.StringIO()
@@ -288,7 +286,7 @@ class Message:
         """Two messages are equal if they have the same content in the
         header, question, answer, and authority sections.
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         if not isinstance(other, Message):
@@ -311,10 +309,11 @@ class Message:
         return not self.__eq__(other)
 
     def is_response(self, other: "Message") -> bool:
-        """Is *other*, also a ``dns.message.Message``, a response to this
-        message?
+        """Is *other* a response to this message?
 
-        Returns a ``bool``.
+        :param other: The message to check.
+        :type other: :py:class:`dns.message.Message`
+        :rtype: bool
         """
 
         if (
@@ -352,11 +351,9 @@ class Message:
         """Return the "section number" of the specified section for use
         in indexing.
 
-        *section* is one of the section attributes of this message.
-
-        Raises ``ValueError`` if the section isn't known.
-
-        Returns an ``int``.
+        :param section: One of the section attributes of this message.
+        :raises ValueError: If the section is not known.
+        :rtype: int
         """
 
         for i, our_section in enumerate(self.sections):
@@ -368,12 +365,9 @@ class Message:
         """Return the section list associated with the specified section
         number.
 
-        *number* is a section number `int` or the text form of a section
-        name.
-
-        Raises ``ValueError`` if the section isn't known.
-
-        Returns a ``list``.
+        :param number: A section number (``int``) or text name of a section.
+        :raises ValueError: If the section is not known.
+        :rtype: list
         """
 
         section = self._section_enum.make(number)
@@ -393,42 +387,32 @@ class Message:
     ) -> dns.rrset.RRset:
         """Find the RRset with the given attributes in the specified section.
 
-        *section*, an ``int`` section number, a ``str`` section name, or one of
-        the section attributes of this message.  This specifies the
-        the section of the message to search.  For example::
+        *section* may be an ``int`` section number, a ``str`` section name, or
+        one of the section list attributes of this message.  For example::
 
             my_message.find_rrset(my_message.answer, name, rdclass, rdtype)
             my_message.find_rrset(dns.message.ANSWER, name, rdclass, rdtype)
             my_message.find_rrset("ANSWER", name, rdclass, rdtype)
 
-        *name*, a ``dns.name.Name`` or ``str``, the name of the RRset.
-
-        *rdclass*, an ``int`` or ``str``, the class of the RRset.
-
-        *rdtype*, an ``int`` or ``str``, the type of the RRset.
-
-        *covers*, an ``int`` or ``str``, the covers value of the RRset.
-        The default is ``dns.rdatatype.NONE``.
-
-        *deleting*, an ``int``, ``str``, or ``None``, the deleting value of the
-        RRset.  The default is ``None``.
-
-        *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
-        The created RRset is appended to *section*.
-
-        *force_unique*, a ``bool``.  If ``True`` and *create* is also ``True``,
-        create a new RRset regardless of whether a matching RRset exists
-        already.  The default is ``False``.  This is useful when creating
-        DDNS Update messages, as order matters for them.
-
-        *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-        encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
-        is used.
-
-        Raises ``KeyError`` if the RRset was not found and create was
-        ``False``.
-
-        Returns a ``dns.rrset.RRset object``.
+        :param name: The owner name.
+        :type name: :py:class:`dns.name.Name` or ``str``
+        :param rdclass: The rdata class.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass` or ``str``
+        :param rdtype: The rdata type.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or ``str``
+        :param covers: The covered type; default is ``dns.rdatatype.NONE``.
+        :type covers: :py:class:`dns.rdatatype.RdataType` or ``str``
+        :param deleting: The deleting value; default is ``None``.
+        :type deleting: :py:class:`dns.rdataclass.RdataClass`, ``str``, or ``None``
+        :param create: If ``True``, create and append the RRset if not found.
+        :type create: bool
+        :param force_unique: If ``True`` and *create* is ``True``, always create
+            a new RRset even if a matching one exists.  Useful for DDNS updates.
+        :type force_unique: bool
+        :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
+        :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+        :raises KeyError: If the RRset was not found and *create* is ``False``.
+        :rtype: :py:class:`dns.rrset.RRset`
         """
 
         if isinstance(section, int):
@@ -478,41 +462,31 @@ class Message:
     ) -> dns.rrset.RRset | None:
         """Get the RRset with the given attributes in the specified section.
 
-        If the RRset is not found, None is returned.
+        Like :py:meth:`find_rrset` but returns ``None`` instead of raising
+        :py:exc:`KeyError` when the RRset is not found.
 
-        *section*, an ``int`` section number, a ``str`` section name, or one of
-        the section attributes of this message.  This specifies the
-        the section of the message to search.  For example::
+        *section* may be an ``int`` section number, a ``str`` section name, or
+        one of the section list attributes of this message.
 
-            my_message.get_rrset(my_message.answer, name, rdclass, rdtype)
-            my_message.get_rrset(dns.message.ANSWER, name, rdclass, rdtype)
-            my_message.get_rrset("ANSWER", name, rdclass, rdtype)
-
-        *name*, a ``dns.name.Name`` or ``str``, the name of the RRset.
-
-        *rdclass*, an ``int`` or ``str``, the class of the RRset.
-
-        *rdtype*, an ``int`` or ``str``, the type of the RRset.
-
-        *covers*, an ``int`` or ``str``, the covers value of the RRset.
-        The default is ``dns.rdatatype.NONE``.
-
-        *deleting*, an ``int``, ``str``, or ``None``, the deleting value of the
-        RRset.  The default is ``None``.
-
-        *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
-        The created RRset is appended to *section*.
-
-        *force_unique*, a ``bool``.  If ``True`` and *create* is also ``True``,
-        create a new RRset regardless of whether a matching RRset exists
-        already.  The default is ``False``.  This is useful when creating
-        DDNS Update messages, as order matters for them.
-
-        *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-        encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
-        is used.
-
-        Returns a ``dns.rrset.RRset object`` or ``None``.
+        :param name: The owner name.
+        :type name: :py:class:`dns.name.Name` or ``str``
+        :param rdclass: The rdata class.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass` or ``str``
+        :param rdtype: The rdata type.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or ``str``
+        :param covers: The covered type; default is ``dns.rdatatype.NONE``.
+        :type covers: :py:class:`dns.rdatatype.RdataType` or ``str``
+        :param deleting: The deleting value; default is ``None``.
+        :type deleting: :py:class:`dns.rdataclass.RdataClass`, ``str``, or ``None``
+        :param create: If ``True``, create and append the RRset if not found.
+        :type create: bool
+        :param force_unique: If ``True`` and *create* is ``True``, always create
+            a new RRset even if a matching one exists.
+        :type force_unique: bool
+        :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
+        :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+        :returns: The matching RRset, or ``None`` if not found.
+        :rtype: :py:class:`dns.rrset.RRset` or ``None``
         """
 
         try:
@@ -534,13 +508,12 @@ class Message:
     def section_count(self, section: SectionType) -> int:
         """Returns the number of records in the specified section.
 
-        *section*, an ``int`` section number, a ``str`` section name, or one of
-        the section attributes of this message.  This specifies the
-        the section of the message to count.  For example::
+        :param section: An ``int`` section number, a ``str`` section name, or
+            one of the section attributes of this message. For example::
 
-            my_message.section_count(my_message.answer)
-            my_message.section_count(dns.message.ANSWER)
-            my_message.section_count("ANSWER")
+                my_message.section_count(my_message.answer)
+                my_message.section_count(dns.message.ANSWER)
+                my_message.section_count("ANSWER")
         """
 
         if isinstance(section, int):
@@ -602,38 +575,30 @@ class Message:
         prefer_truncation: bool = False,
         **kw: Any,
     ) -> bytes:
-        """Return a string containing the message in DNS compressed wire
-        format.
+        """Return the message in DNS compressed wire format.
 
         Additional keyword arguments are passed to the RRset ``to_wire()``
         method.
 
-        *origin*, a ``dns.name.Name`` or ``None``, the origin to be appended
-        to any relative names.  If ``None``, and the message has an origin
-        attribute that is not ``None``, then it will be used.
-
-        *max_size*, an ``int``, the maximum size of the wire format
-        output; default is 0, which means "the message's request
-        payload, if nonzero, or 65535".
-
-        *multi*, a ``bool``, should be set to ``True`` if this message is
-        part of a multiple message sequence.
-
-        *tsig_ctx*, a ``dns.tsig.HMACTSig`` or ``dns.tsig.GSSTSig`` object, the
-        ongoing TSIG context, used when signing zone transfers.
-
-        *prepend_length*, a ``bool``, should be set to ``True`` if the caller
-        wants the message length prepended to the message itself.  This is
-        useful for messages sent over TCP, TLS (DoT), or QUIC (DoQ).
-
-        *prefer_truncation*, a ``bool``, should be set to ``True`` if the caller
-        wants the message to be truncated if it would otherwise exceed the
-        maximum length.  If the truncation occurs before the additional section,
-        the TC bit will be set.
-
-        Raises ``dns.exception.TooBig`` if *max_size* was exceeded.
-
-        Returns a ``bytes``.
+        :param origin: Origin to append to relative names. If ``None``, the
+            message's own origin (if any) is used.
+        :type origin: :py:class:`dns.name.Name` or ``None``
+        :param max_size: Maximum wire format size; 0 means use the request
+            payload or 65535.
+        :type max_size: int
+        :param multi: ``True`` if this message is part of a multi-message sequence.
+        :type multi: bool
+        :param tsig_ctx: Ongoing TSIG context for zone transfer signing.
+        :param prepend_length: If ``True``, prepend the 2-byte message length
+            (useful for TCP/TLS/QUIC).
+        :type prepend_length: bool
+        :param prefer_truncation: If ``True``, truncate instead of raising when
+            the message exceeds *max_size*. Sets TC if truncation is before the
+            additional section.
+        :type prefer_truncation: bool
+        :raises dns.exception.TooBig: If *max_size* is exceeded and
+            *prefer_truncation* is ``False``.
+        :rtype: bytes
         """
 
         if origin is None and self.origin is not None:
@@ -712,38 +677,28 @@ class Message:
         other_data: bytes = b"",
         algorithm: dns.name.Name | str = dns.tsig.default_algorithm,
     ) -> None:
-        """When sending, a TSIG signature using the specified key
-        should be added.
+        """Arrange for a TSIG signature to be added when sending.
 
-        *keyring*, a ``dict``, ``callable`` or ``dns.tsig.Key``, is either
-        the TSIG keyring or key to use.
-
-        The format of a keyring dict is a mapping from TSIG key name, as
-        ``dns.name.Name`` to ``dns.tsig.Key`` or a TSIG secret, a ``bytes``.
-        If a ``dict`` *keyring* is specified but a *keyname* is not, the key
-        used will be the first key in the *keyring*.  Note that the order of
-        keys in a dictionary is not defined, so applications should supply a
-        keyname when a ``dict`` keyring is used, unless they know the keyring
-        contains only one key.  If a ``callable`` keyring is specified, the
-        callable will be called with the message and the keyname, and is
-        expected to return a key.
-
-        *keyname*, a ``dns.name.Name``, ``str`` or ``None``, the name of
-        this TSIG key to use; defaults to ``None``.  If *keyring* is a
-        ``dict``, the key must be defined in it.  If *keyring* is a
-        ``dns.tsig.Key``, this is ignored.
-
-        *fudge*, an ``int``, the TSIG time fudge.
-
-        *original_id*, an ``int``, the TSIG original id.  If ``None``,
-        the message's id is used.
-
-        *tsig_error*, an ``int``, the TSIG error code.
-
-        *other_data*, a ``bytes``, the TSIG other data.
-
-        *algorithm*, a ``dns.name.Name`` or ``str``, the TSIG algorithm to use.  This is
-        only used if *keyring* is a ``dict``, and the key entry is a ``bytes``.
+        :param keyring: The TSIG keyring or key. A ``dict`` maps
+            :py:class:`dns.name.Name` keys to :py:class:`dns.tsig.Key` objects
+            or ``bytes`` secrets. If a ``dict`` is given without *keyname*, the
+            first key in the dict is used. A callable is invoked with the message
+            and *keyname* and must return a key.
+        :type keyring: dict, callable, or :py:class:`dns.tsig.Key`
+        :param keyname: The TSIG key name. Ignored if *keyring* is a
+            :py:class:`dns.tsig.Key`. Defaults to ``None``.
+        :type keyname: :py:class:`dns.name.Name`, ``str``, or ``None``
+        :param fudge: The TSIG time fudge.
+        :type fudge: int
+        :param original_id: The TSIG original id. Defaults to the message id.
+        :type original_id: int or ``None``
+        :param tsig_error: The TSIG error code.
+        :type tsig_error: int
+        :param other_data: The TSIG other data.
+        :type other_data: bytes
+        :param algorithm: The TSIG algorithm. Only used when *keyring* is a
+            ``dict`` and the key entry is ``bytes``.
+        :type algorithm: :py:class:`dns.name.Name` or ``str``
         """
 
         if isinstance(keyring, dns.tsig.Key):
@@ -824,25 +779,24 @@ class Message:
     ) -> None:
         """Configure EDNS behavior.
 
-        *edns*, an ``int``, is the EDNS level to use.  Specifying ``None``, ``False``,
-        or ``-1`` means "do not use EDNS", and in this case the other parameters are
-        ignored.  Specifying ``True`` is equivalent to specifying 0, i.e. "use EDNS0".
-
-        *ednsflags*, an ``int``, the EDNS flag values.
-
-        *payload*, an ``int``, is the EDNS sender's payload field, which is the maximum
-        size of UDP datagram the sender can handle.  I.e. how big a response to this
-        message can be.
-
-        *request_payload*, an ``int``, is the EDNS payload size to use when sending this
-        message.  If not specified, defaults to the value of *payload*.
-
-        *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS options.
-
-        *pad*, a non-negative ``int``.  If 0, the default, do not pad; otherwise add
-        padding bytes to make the message size a multiple of *pad*.  Note that if
-        padding is non-zero, an EDNS PADDING option will always be added to the
-        message.
+        :param edns: The EDNS level to use. Specifying ``None``, ``False``, or
+            ``-1`` means "do not use EDNS" (other parameters are ignored).
+            Specifying ``True`` is equivalent to specifying 0 (use EDNS0).
+        :type edns: int or ``None``
+        :param ednsflags: The EDNS flag values.
+        :type ednsflags: int
+        :param payload: The EDNS sender's payload field — the maximum UDP
+            datagram size the sender can handle (i.e. how big a response can be).
+        :type payload: int
+        :param request_payload: The EDNS payload size to use when sending.
+            Defaults to the value of *payload*.
+        :type request_payload: int or ``None``
+        :param options: The EDNS options.
+        :type options: list of :py:class:`dns.edns.Option` or ``None``
+        :param pad: If 0 (the default), do not pad; otherwise add padding bytes
+            to make the message size a multiple of *pad*. When nonzero, an EDNS
+            PADDING option is always added.
+        :type pad: int
         """
 
         if edns is None or edns is False:
@@ -906,10 +860,10 @@ class Message:
     def want_dnssec(self, wanted: bool = True) -> None:
         """Enable or disable 'DNSSEC desired' flag in requests.
 
-        *wanted*, a ``bool``.  If ``True``, then DNSSEC data is
-        desired in the response, EDNS is enabled if required, and then
-        the DO bit is set.  If ``False``, the DO bit is cleared if
-        EDNS is enabled.
+        :param wanted: If ``True``, DNSSEC data is desired in the response,
+            EDNS is enabled if required, and the DO bit is set. If ``False``,
+            the DO bit is cleared if EDNS is enabled.
+        :type wanted: bool
         """
 
         if wanted:
@@ -920,7 +874,7 @@ class Message:
     def rcode(self) -> dns.rcode.Rcode:
         """Return the rcode.
 
-        Returns a ``dns.rcode.Rcode``.
+        :rtype: :py:class:`dns.rcode.Rcode`
         """
         return dns.rcode.from_flags(int(self.flags), int(self.ednsflags))
 
@@ -938,14 +892,15 @@ class Message:
     def opcode(self) -> dns.opcode.Opcode:
         """Return the opcode.
 
-        Returns a ``dns.opcode.Opcode``.
+        :rtype: :py:class:`dns.opcode.Opcode`
         """
         return dns.opcode.from_flags(int(self.flags))
 
     def set_opcode(self, opcode: dns.opcode.Opcode) -> None:
         """Set the opcode.
 
-        *opcode*, a ``dns.opcode.Opcode``, is the opcode to set.
+        :param opcode: The opcode to set.
+        :type opcode: :py:class:`dns.opcode.Opcode`
         """
         self.flags &= 0x87FF
         self.flags |= dns.opcode.to_flags(opcode)
@@ -1024,17 +979,12 @@ class QueryMessage(Message):
         """Follow the CNAME chain in the response to determine the answer
         RRset.
 
-        Raises ``dns.message.NotQueryResponse`` if the message is not
-        a response.
-
-        Raises ``dns.message.ChainTooLong`` if the CNAME chain is too long.
-
-        Raises ``dns.message.AnswerForNXDOMAIN`` if the rcode is NXDOMAIN
-        but an answer was found.
-
-        Raises ``dns.exception.FormError`` if the question count is not 1.
-
-        Returns a ChainingResult object.
+        :raises dns.message.NotQueryResponse: If the message is not a response.
+        :raises dns.message.ChainTooLong: If the CNAME chain is too long.
+        :raises dns.message.AnswerForNXDOMAIN: If the rcode is NXDOMAIN but
+            an answer was found.
+        :raises dns.exception.FormError: If the question count is not 1.
+        :rtype: :py:class:`dns.message.ChainingResult`
         """
         if self.flags & dns.flags.QR == 0:
             raise NotQueryResponse
@@ -1100,15 +1050,11 @@ class QueryMessage(Message):
         """Return the canonical name of the first name in the question
         section.
 
-        Raises ``dns.message.NotQueryResponse`` if the message is not
-        a response.
-
-        Raises ``dns.message.ChainTooLong`` if the CNAME chain is too long.
-
-        Raises ``dns.message.AnswerForNXDOMAIN`` if the rcode is NXDOMAIN
-        but an answer was found.
-
-        Raises ``dns.exception.FormError`` if the question count is not 1.
+        :raises dns.message.NotQueryResponse: If the message is not a response.
+        :raises dns.message.ChainTooLong: If the CNAME chain is too long.
+        :raises dns.message.AnswerForNXDOMAIN: If the rcode is NXDOMAIN but
+            an answer was found.
+        :raises dns.exception.FormError: If the question count is not 1.
         """
         return self.resolve_chaining().canonical_name
 
@@ -1341,59 +1287,43 @@ def from_wire(
 ) -> Message:
     """Convert a DNS wire format message into a message object.
 
-    *keyring*, a ``dns.tsig.Key``, ``dict``, ``bool``, or ``None``, the key or keyring
-    to use if the message is signed.  If ``None`` or ``True``, then trying to decode
-    a message with a TSIG will fail as it cannot be validated.  If ``False``, then
-    TSIG validation is disabled.
-
-    *request_mac*, a ``bytes`` or ``None``.  If the message is a response to a
-    TSIG-signed request, *request_mac* should be set to the MAC of that request.
-
-    *xfr*, a ``bool``, should be set to ``True`` if this message is part of a zone
-    transfer.
-
-    *origin*, a ``dns.name.Name`` or ``None``.  If the message is part of a zone
-    transfer, *origin* should be the origin name of the zone.  If not ``None``, names
-    will be relativized to the origin.
-
-    *tsig_ctx*, a ``dns.tsig.HMACTSig`` or ``dns.tsig.GSSTSig`` object, the ongoing TSIG
-    context, used when validating zone transfers.
-
-    *multi*, a ``bool``, should be set to ``True`` if this message is part of a multiple
-    message sequence.
-
-    *question_only*, a ``bool``.  If ``True``, read only up to the end of the question
-    section.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, put each RR into its own RRset.
-
-    *ignore_trailing*, a ``bool``.  If ``True``, ignore trailing junk at end of the
-    message.
-
-    *raise_on_truncation*, a ``bool``.  If ``True``, raise an exception if the TC bit is
-    set.
-
-    *continue_on_error*, a ``bool``.  If ``True``, try to continue parsing even if
-    errors occur.  Erroneous rdata will be ignored.  Errors will be accumulated as a
-    list of MessageError objects in the message's ``errors`` attribute.  This option is
-    recommended only for DNS analysis tools, or for use in a server as part of an error
-    handling path.  The default is ``False``.
-
-    Raises ``dns.message.ShortHeader`` if the message is less than 12 octets long.
-
-    Raises ``dns.message.TrailingJunk`` if there were octets in the message past the end
-    of the proper DNS message, and *ignore_trailing* is ``False``.
-
-    Raises ``dns.message.BadEDNS`` if an OPT record was in the wrong section, or
-    occurred more than once.
-
-    Raises ``dns.message.BadTSIG`` if a TSIG record was not the last record of the
-    additional data section.
-
-    Raises ``dns.message.Truncated`` if the TC flag is set and *raise_on_truncation* is
-    ``True``.
-
-    Returns a ``dns.message.Message``.
+    :param keyring: The key or keyring for TSIG validation. ``None`` or
+        ``True`` causes TSIG-signed messages to fail; ``False`` disables
+        validation.
+    :type keyring: :py:class:`dns.tsig.Key`, dict, bool, or ``None``
+    :param request_mac: MAC of the TSIG-signed request this message responds
+        to, if any.
+    :type request_mac: bytes or ``None``
+    :param xfr: ``True`` if this message is part of a zone transfer.
+    :type xfr: bool
+    :param origin: Zone origin for zone transfers; names are relativized to
+        this if not ``None``.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param tsig_ctx: Ongoing TSIG context for zone transfer validation.
+    :param multi: ``True`` if this message is part of a multi-message sequence.
+    :type multi: bool
+    :param question_only: If ``True``, read only the question section.
+    :type question_only: bool
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param ignore_trailing: If ``True``, ignore trailing octets after the
+        message.
+    :type ignore_trailing: bool
+    :param raise_on_truncation: If ``True``, raise
+        :py:exc:`dns.message.Truncated` when the TC bit is set.
+    :type raise_on_truncation: bool
+    :param continue_on_error: If ``True``, try to continue parsing on errors
+        and accumulate them in the message's ``errors`` attribute.
+    :type continue_on_error: bool
+    :raises dns.message.ShortHeader: If the message is less than 12 octets.
+    :raises dns.message.TrailingJunk: If trailing octets are present and
+        *ignore_trailing* is ``False``.
+    :raises dns.message.BadEDNS: If an OPT record is in the wrong section.
+    :raises dns.message.BadTSIG: If a TSIG record is not the last additional
+        record.
+    :raises dns.message.Truncated: If the TC flag is set and
+        *raise_on_truncation* is ``True``.
+    :rtype: :py:class:`dns.message.Message`
     """
 
     # We permit None for request_mac solely for backwards compatibility
@@ -1699,28 +1629,21 @@ def from_text(
     facilitate reading multiple messages from a single file with
     ``dns.message.from_file()``.
 
-    *text*, a ``str``, the text format message.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
-    is used.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, then each RR is put
-    into its own rrset.  The default is ``False``.
-
-    *origin*, a ``dns.name.Name`` (or ``None``), the
-    origin to use for relative names.
-
-    *relativize*, a ``bool``.  If true, name will be relativized.
-
-    *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
-    when relativizing names.  If not set, the *origin* value will be used.
-
-    Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
-
-    Raises ``dns.exception.SyntaxError`` if the text is badly formed.
-
-    Returns a ``dns.message.Message object``
+    :param text: The text format message.
+    :type text: str
+    :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :param origin: The origin to use for relative names.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param relativize: If ``True``, names will be relativized.
+    :type relativize: bool
+    :param relativize_to: The origin to relativize to. Defaults to *origin*.
+    :type relativize_to: :py:class:`dns.name.Name` or ``None``
+    :raises dns.message.UnknownHeaderField: If a header field is unknown.
+    :raises dns.exception.SyntaxError: If the text is badly formed.
+    :rtype: :py:class:`dns.message.Message`
     """
 
     # 'text' can also be a file, but we don't publish that fact
@@ -1742,21 +1665,14 @@ def from_file(
 
     Message blocks are separated by a single blank line.
 
-    *f*, a ``file`` or ``str``.  If *f* is text, it is treated as the
-    pathname of a file to open.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
-    is used.
-
-    *one_rr_per_rrset*, a ``bool``.  If ``True``, then each RR is put
-    into its own rrset.  The default is ``False``.
-
-    Raises ``dns.message.UnknownHeaderField`` if a header is unknown.
-
-    Raises ``dns.exception.SyntaxError`` if the text is badly formed.
-
-    Returns a ``dns.message.Message object``
+    :param f: A file object or a pathname string.
+    :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
+    :type one_rr_per_rrset: bool
+    :raises dns.message.UnknownHeaderField: If a header field is unknown.
+    :raises dns.exception.SyntaxError: If the text is badly formed.
+    :rtype: :py:class:`dns.message.Message`
     """
 
     if isinstance(f, str):
@@ -1786,57 +1702,39 @@ def make_query(
 ) -> QueryMessage:
     """Make a query message.
 
-    The query name, type, and class may all be specified either
-    as objects of the appropriate type, or as strings.
+    The query name, type, and class may be specified as objects of the
+    appropriate type or as strings.  The query id is chosen at random, and
+    the DNS flags are set to ``dns.flags.RD``.
 
-    The query will have a randomly chosen query id, and its DNS flags
-    will be set to dns.flags.RD.
-
-    qname, a ``dns.name.Name`` or ``str``, the query name.
-
-    *rdtype*, an ``int`` or ``str``, the desired rdata type.
-
-    *rdclass*, an ``int`` or ``str``,  the desired rdata class; the default
-    is class IN.
-
-    *use_edns*, an ``int``, ``bool`` or ``None``.  The EDNS level to use; the
-    default is ``None``.  If ``None``, EDNS will be enabled only if other
-    parameters (*ednsflags*, *payload*, *request_payload*, or *options*) are
-    set.
-    See the description of :py:func:`dns.message.Message.use_edns()` for the
-    possible values for use_edns and their meanings.
-
-    *want_dnssec*, a ``bool``.  If ``True``, DNSSEC data is desired.
-
-    *ednsflags*, an ``int``, the EDNS flag values.
-
-    *payload*, an ``int``, is the EDNS sender's payload field, which is the
-    maximum size of UDP datagram the sender can handle.  I.e. how big
-    a response to this message can be.
-
-    *request_payload*, an ``int``, is the EDNS payload size to use when
-    sending this message.  If not specified, defaults to the value of
-    *payload*.
-
-    *options*, a list of ``dns.edns.Option`` objects or ``None``, the EDNS
-    options.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
-    is used.
-
-    *id*, an ``int`` or ``None``, the desired query id.  The default is
-    ``None``, which generates a random query id.
-
-    *flags*, an ``int``, the desired query flags.  The default is
-    ``dns.flags.RD``.
-
-    *pad*, a non-negative ``int``.  If 0, the default, do not pad; otherwise add
-    padding bytes to make the message size a multiple of *pad*.  Note that if
-    padding is non-zero, an EDNS PADDING option will always be added to the
-    message.
-
-    Returns a ``dns.message.QueryMessage``
+    :param qname: The query name.
+    :type qname: :py:class:`dns.name.Name` or ``str``
+    :param rdtype: The desired rdata type.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType` or ``str``
+    :param rdclass: The desired rdata class; default is IN.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass` or ``str``
+    :param use_edns: The EDNS level; ``None`` enables EDNS only if other EDNS
+        parameters are set. See :py:meth:`dns.message.Message.use_edns`.
+    :type use_edns: int, bool, or ``None``
+    :param want_dnssec: If ``True``, DNSSEC data is desired.
+    :type want_dnssec: bool
+    :param ednsflags: The EDNS flag values.
+    :type ednsflags: int
+    :param payload: The EDNS sender payload field (max UDP response size).
+    :type payload: int
+    :param request_payload: The EDNS payload size to advertise when sending.
+        Defaults to *payload*.
+    :type request_payload: int
+    :param options: The EDNS options.
+    :type options: list of :py:class:`dns.edns.Option` or ``None``
+    :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param id: The query id. Defaults to a random id.
+    :type id: int or ``None``
+    :param flags: The query flags. Default is ``dns.flags.RD``.
+    :type flags: int
+    :param pad: If non-zero, add EDNS PADDING to make size a multiple of this.
+    :type pad: int
+    :rtype: :py:class:`dns.message.QueryMessage`
     """
 
     if isinstance(qname, str):
@@ -1873,8 +1771,11 @@ class CopyMode(enum.Enum):
     How should sections be copied when making an update response?
     """
 
+    #: Copy no sections; only suitable for testing
     NOTHING = 0
+    #: Copy only the question section, if present.
     QUESTION = 1
+    #: Copy all sections, other than OPT and TSIG RRs.
     EVERYTHING = 2
 
 
@@ -1887,43 +1788,31 @@ def make_response(
     pad: int | None = None,
     copy_mode: CopyMode | None = None,
 ) -> Message:
-    """Make a message which is a response for the specified query.
-    The message returned is really a response skeleton; it has all of the infrastructure
-    required of a response, but none of the content.
+    """Make a response skeleton for the specified query.
 
-    Response section(s) which are copied are shallow copies of the matching section(s)
-    in the query, so the query's RRsets should not be changed.
+    The returned message has all required response infrastructure but no
+    content.  Copied sections are shallow copies, so the query's RRsets
+    should not be changed.
 
-    *query*, a ``dns.message.Message``, the query to respond to.
-
-    *recursion_available*, a ``bool``, should RA be set in the response?
-
-    *our_payload*, an ``int``, the payload size to advertise in EDNS responses.
-
-    *fudge*, an ``int``, the TSIG time fudge.
-
-    *tsig_error*, an ``int``, the TSIG error.
-
-    *pad*, a non-negative ``int`` or ``None``.  If 0, the default, do not pad; otherwise
-    if not ``None`` add padding bytes to make the message size a multiple of *pad*. Note
-    that if padding is non-zero, an EDNS PADDING option will always be added to the
-    message.  If ``None``, add padding following RFC 8467, namely if the request is
-    padded, pad the response to 468 otherwise do not pad.
-
-    *copy_mode*, a ``dns.message.CopyMode`` or ``None``, determines how sections are
-    copied.  The default, ``None`` copies sections according to the default for the
-    message's opcode, which is currently ``dns.message.CopyMode.QUESTION`` for all
-    opcodes.   ``dns.message.CopyMode.QUESTION`` copies only the question section.
-    ``dns.message.CopyMode.EVERYTHING`` copies all sections other than OPT or TSIG
-    records, which are created appropriately if needed. ``dns.message.CopyMode.NOTHING``
-    copies no sections; note that this mode is for server testing purposes and is
-    otherwise not recommended for use.  In particular, ``dns.message.is_response()``
-    will be ``False`` if you create a response this way and the rcode is not
-    ``FORMERR``, ``SERVFAIL``, ``NOTIMP``, or ``REFUSED``.
-
-    Returns a ``dns.message.Message`` object whose specific class is appropriate for the
-    query.  For example, if query is a ``dns.update.UpdateMessage``, the response will
-    be one too.
+    :param query: The query to respond to.
+    :type query: :py:class:`dns.message.Message`
+    :param recursion_available: If ``True``, set the RA bit.
+    :type recursion_available: bool
+    :param our_payload: The EDNS payload size to advertise.
+    :type our_payload: int
+    :param fudge: The TSIG time fudge.
+    :type fudge: int
+    :param tsig_error: The TSIG error code.
+    :type tsig_error: int
+    :param pad: If 0, no padding; if not ``None`` pad to a multiple of this
+        value; if ``None``, follow RFC 8467 (pad to 468 if request was padded).
+    :type pad: int or ``None``
+    :param copy_mode: Controls which sections are copied. ``None`` uses the
+        default for the opcode (currently
+        :py:attr:`dns.message.CopyMode.QUESTION`).
+    :type copy_mode: :py:class:`dns.message.CopyMode` or ``None``
+    :returns: A response message of the same class as *query*.
+    :rtype: :py:class:`dns.message.Message`
     """
 
     if query.flags & dns.flags.QR:

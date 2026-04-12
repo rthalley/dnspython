@@ -35,12 +35,13 @@ class OPT(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, options):
         """Initialize an OPT rdata.
 
-        *rdclass*, an ``int`` is the rdataclass of the Rdata,
-        which is also the payload size.
-
-        *rdtype*, an ``int`` is the rdatatype of the Rdata.
-
-        *options*, a tuple of ``bytes``
+        :param rdclass: The rdataclass of the Rdata, which is also the
+            payload size.
+        :type rdclass: int
+        :param rdtype: The rdatatype of the Rdata.
+        :type rdtype: int
+        :param options: The EDNS options.
+        :type options: tuple of :py:class:`dns.edns.Option`
         """
 
         super().__init__(rdclass, rdtype)

@@ -14,6 +14,8 @@ The ``make_query()`` function is used to making the query message for
 the query methods to use in more complex situations, e.g. with TSIG or
 EDNS.
 
+.. autoexception:: dns.xfr.UseTCP
+
 .. autoclass:: dns.xfr.Inbound
    :members:
 

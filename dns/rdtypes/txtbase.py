@@ -46,11 +46,12 @@ class TXTBase(dns.rdata.Rdata):
     ):
         """Initialize a TXT-like rdata.
 
-        *rdclass*, an ``int`` is the rdataclass of the Rdata.
-
-        *rdtype*, an ``int`` is the rdatatype of the Rdata.
-
-        *strings*, a tuple of ``bytes``
+        :param rdclass: The rdataclass of the Rdata.
+        :type rdclass: int
+        :param rdtype: The rdatatype of the Rdata.
+        :type rdtype: int
+        :param strings: The strings.
+        :type strings: tuple of bytes
         """
         super().__init__(rdclass, rdtype)
         self.strings: tuple[bytes] = self._as_tuple(

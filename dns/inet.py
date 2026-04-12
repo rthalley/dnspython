@@ -33,14 +33,12 @@ AF_INET6 = socket.AF_INET6
 def inet_pton(family: int, text: str) -> bytes:
     """Convert the textual form of a network address into its binary form.
 
-    *family* is an ``int``, the address family.
-
-    *text* is a ``str``, the textual address.
-
-    Raises ``NotImplementedError`` if the address family specified is not
-    implemented.
-
-    Returns a ``bytes``.
+    :param family: The address family.
+    :type family: int
+    :param text: The textual address.
+    :type text: str
+    :raises NotImplementedError: If the address family is not implemented.
+    :rtype: bytes
     """
 
     if family == AF_INET:
@@ -54,14 +52,12 @@ def inet_pton(family: int, text: str) -> bytes:
 def inet_ntop(family: int, address: bytes) -> str:
     """Convert the binary form of a network address into its textual form.
 
-    *family* is an ``int``, the address family.
-
-    *address* is a ``bytes``, the network address in binary form.
-
-    Raises ``NotImplementedError`` if the address family specified is not
-    implemented.
-
-    Returns a ``str``.
+    :param family: The address family.
+    :type family: int
+    :param address: The network address in binary form.
+    :type address: bytes
+    :raises NotImplementedError: If the address family is not implemented.
+    :rtype: str
     """
 
     if family == AF_INET:
@@ -75,12 +71,10 @@ def inet_ntop(family: int, address: bytes) -> str:
 def af_for_address(text: str) -> int:
     """Determine the address family of a textual-form network address.
 
-    *text*, a ``str``, the textual address.
-
-    Raises ``ValueError`` if the address family cannot be determined
-    from the input.
-
-    Returns an ``int``.
+    :param text: The textual address.
+    :type text: str
+    :raises ValueError: If the address family cannot be determined.
+    :rtype: int
     """
 
     try:
@@ -97,12 +91,10 @@ def af_for_address(text: str) -> int:
 def is_multicast(text: str) -> bool:
     """Is the textual-form network address a multicast address?
 
-    *text*, a ``str``, the textual address.
-
-    Raises ``ValueError`` if the address family cannot be determined
-    from the input.
-
-    Returns a ``bool``.
+    :param text: The textual address.
+    :type text: str
+    :raises ValueError: If the address family cannot be determined.
+    :rtype: bool
     """
 
     try:
@@ -119,9 +111,9 @@ def is_multicast(text: str) -> bool:
 def is_address(text: str) -> bool:
     """Is the specified string an IPv4 or IPv6 address?
 
-    *text*, a ``str``, the textual address.
-
-    Returns a ``bool``.
+    :param text: The textual address.
+    :type text: str
+    :rtype: bool
     """
 
     try:
@@ -182,9 +174,9 @@ def canonicalize(text: str) -> str:
     """Verify that *address* is a valid text form IPv4 or IPv6 address and return its
     canonical text form.  IPv6 addresses with scopes are rejected.
 
-    *text*, a ``str``, the address in textual form.
-
-    Raises ``ValueError`` if the text is not valid.
+    :param text: The address in textual form.
+    :type text: str
+    :raises ValueError: If the text is not a valid address.
     """
     try:
         return dns.ipv6.canonicalize(text)

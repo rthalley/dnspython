@@ -36,12 +36,12 @@ def from_e164(
     Non-digits in the text are ignored, i.e. "16505551212",
     "+1.650.555.1212" and "1 (650) 555-1212" are all the same.
 
-    *text*, a ``str``, is an E.164 number in textual form.
-
-    *origin*, a ``dns.name.Name``, the domain in which the number
-    should be constructed.  The default is ``e164.arpa.``.
-
-    Returns a ``dns.name.Name``.
+    :param text: An E.164 number in textual form.
+    :type text: str
+    :param origin: The domain in which the number should be constructed.
+        Default is ``e164.arpa.``
+    :type origin: :py:class:`dns.name.Name`
+    :rtype: :py:class:`dns.name.Name`
     """
 
     parts = [d for d in text if d.isdigit()]
@@ -61,17 +61,16 @@ def to_e164(
     emitted as a simple string of digits, prefixed by a '+' (unless
     *want_plus_prefix* is ``False``).
 
-    *name* is a ``dns.name.Name``, the ENUM domain name.
-
-    *origin* is a ``dns.name.Name``, a domain containing the ENUM
-    domain name.  The name is relativized to this domain before being
-    converted to text.  If ``None``, no relativization is done.
-
-    *want_plus_prefix* is a ``bool``.  If True, add a '+' to the beginning of
-    the returned number.
-
-    Returns a ``str``.
-
+    :param name: The ENUM domain name.
+    :type name: :py:class:`dns.name.Name`
+    :param origin: A domain containing the ENUM domain name.  The name is
+        relativized to this domain before conversion.  If ``None``, no
+        relativization is done.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param want_plus_prefix: If ``True``, add a ``'+'`` prefix to the
+        returned number.
+    :type want_plus_prefix: bool
+    :rtype: str
     """
     if origin is not None:
         name = name.relativize(origin)
@@ -94,12 +93,12 @@ def query(
 
     e.g. lookup('16505551212', ['e164.dnspython.org.', 'e164.arpa.'])
 
-    *number*, a ``str`` is the number to look for.
-
-    *domains* is an iterable containing ``dns.name.Name`` values.
-
-    *resolver*, a ``dns.resolver.Resolver``, is the resolver to use.  If
-    ``None``, the default resolver is used.
+    :param number: The E.164 number to look up.
+    :type number: str
+    :param domains: An iterable of domain names to search.
+    :param resolver: The resolver to use.  If ``None``, the default resolver
+        is used.
+    :type resolver: :py:class:`dns.resolver.Resolver` or ``None``
     """
 
     if resolver is None:

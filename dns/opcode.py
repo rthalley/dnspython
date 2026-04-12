@@ -49,11 +49,10 @@ class UnknownOpcode(dns.exception.DNSException):
 def from_text(text: str) -> Opcode:
     """Convert text into an opcode.
 
-    *text*, a ``str``, the textual opcode
-
-    Raises ``dns.opcode.UnknownOpcode`` if the opcode is unknown.
-
-    Returns an ``int``.
+    :param text: The textual opcode.
+    :type text: str
+    :raises dns.opcode.UnknownOpcode: If the opcode is unknown.
+    :rtype: :py:class:`dns.opcode.Opcode`
     """
 
     return Opcode.from_text(text)
@@ -62,9 +61,9 @@ def from_text(text: str) -> Opcode:
 def from_flags(flags: int) -> Opcode:
     """Extract an opcode from DNS message flags.
 
-    *flags*, an ``int``, the DNS flags.
-
-    Returns an ``int``.
+    :param flags: The DNS message flags.
+    :type flags: int
+    :rtype: :py:class:`dns.opcode.Opcode`
     """
 
     return Opcode((flags & 0x7800) >> 11)
@@ -74,9 +73,9 @@ def to_flags(value: Opcode) -> int:
     """Convert an opcode to a value suitable for ORing into DNS message
     flags.
 
-    *value*, an ``int``, the DNS opcode value.
-
-    Returns an ``int``.
+    :param value: The DNS opcode value.
+    :type value: :py:class:`dns.opcode.Opcode`
+    :rtype: int
     """
 
     return (value << 11) & 0x7800
@@ -85,11 +84,10 @@ def to_flags(value: Opcode) -> int:
 def to_text(value: Opcode) -> str:
     """Convert an opcode to text.
 
-    *value*, an ``int`` the opcode value,
-
-    Raises ``dns.opcode.UnknownOpcode`` if the opcode is unknown.
-
-    Returns a ``str``.
+    :param value: The opcode value.
+    :type value: :py:class:`dns.opcode.Opcode`
+    :raises dns.opcode.UnknownOpcode: If the opcode is unknown.
+    :rtype: str
     """
 
     return Opcode.to_text(value)
@@ -98,9 +96,9 @@ def to_text(value: Opcode) -> str:
 def is_update(flags: int) -> bool:
     """Is the opcode in flags UPDATE?
 
-    *flags*, an ``int``, the DNS message flags.
-
-    Returns a ``bool``.
+    :param flags: The DNS message flags.
+    :type flags: int
+    :rtype: bool
     """
 
     return from_flags(flags) == Opcode.UPDATE

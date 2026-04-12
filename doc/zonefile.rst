@@ -3,7 +3,7 @@
 The RRSet Reader
 ----------------
 
-``dns.zonefile.read_rrsets()`` reads one or more RRsets from text format.  It
+:py:func:`dns.zonefile.read_rrsets` reads one or more RRsets from text format.  It
 is designed to be used in situations where you are processing DNS data in
 text format, but do not want or need a valid zone.  For example, a DNS registry
 web application might want to allow the user to input RRs.
@@ -50,8 +50,8 @@ The ``Reader`` class reads data in DNS zonefile format, or various
 restrictions of that format, and converts it to a sequence of operations
 in a transaction.
 
-This class is primarily used by ``dns.zone.Zone.from_text()`` and
-``dns.zonefile.read_rrsets``, but may be useful for other software which needs
+This class is primarily used by :py:func:`dns.zone.from_text` and
+:py:func:`dns.zonefile.read_rrsets`, but may be useful for other software which needs
 to process the zonefile format.
 
 .. autoclass:: dns.zonefile.Reader

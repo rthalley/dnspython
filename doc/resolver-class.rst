@@ -8,20 +8,20 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: domain
 
-      A ``dns.name.Name``, the domain of this host.
+      A :py:class:`dns.name.Name`, the domain of this host.
 
    .. attribute:: nameservers
 
-      A ``list`` of ``str`` or ``dns.nameserver.Nameserver``.  A string may be
+      A ``list`` of ``str`` or :py:class:`dns.nameserver.Nameserver`.  A string may be
       an IPv4 or IPv6 address, or an https URL.
 
       This field is actually a property, and returns a tuple as of dnspython 2.4.
       Assigning this field converts any strings into
-      ``dns.nameserver.Nameserver`` instances.
+      :py:class:`dns.nameserver.Nameserver` instances.
 
    .. attribute:: search
 
-      A ``list`` of dns.name.Name objects.  If the query name is a
+      A ``list`` of :py:class:`dns.name.Name` objects.  If the query name is a
       relative name, the resolver will construct absolute query names
       to try by appending values from the search list.
 
@@ -53,12 +53,12 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
       A ``float``, the number of seconds to spend trying to get an
       answer to the question.  If the lifetime expires a
-      ``dns.exception.Timeout`` exception will be raised.
+      :py:exc:`dns.exception.Timeout` exception will be raised.
 
    .. attribute::  cache
 
       An object implementing the caching protocol, e.g. a
-      ``dns.resolver.Cache`` or a ``dns.resolver.LRUCache``.  The default
+      :py:class:`dns.resolver.Cache` or a :py:class:`dns.resolver.LRUCache`.  The default
       is ``None``, in which case there is no local caching.
 
    .. attribute:: retry_servfail
@@ -77,13 +77,13 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: keyname
 
-      A ``dns.name.Name`` or ``None``, the name of the TSIG key to
+      A :py:class:`dns.name.Name` or ``None``, the name of the TSIG key to
       use; defaults to ``None``. The key must be defined in the
       keyring.
 
    .. attribute:: keyalgorithm
 
-      A ``dns.name.Name`` or ``str``, the TSIG algorithm to use.
+      A :py:class:`dns.name.Name` or ``str``, the TSIG algorithm to use.
 
    .. attribute:: edns
 
@@ -105,16 +105,19 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
    .. attribute:: flags
 
       An ``int`` or ``None``, the message flags to use.  If ``None``,
-      then the default flags as set by the ``dns.message.Message``
+      then the default flags as set by the :py:class:`dns.message.Message`
       constructor will be used.
 
+
+.. autoclass:: dns.resolver.HostAnswers
+   :members:
 
 .. autoclass:: dns.resolver.Answer
    :members:
 
    .. attribute:: qname
 
-      A ``dns.name.Name``, the query name.
+      A :py:class:`dns.name.Name`, the query name.
 
    .. attribute:: rdclass
 
@@ -126,11 +129,11 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: response
 
-      A ``dns.message.QueryMessage``, the response message.
+      A :py:class:`dns.message.QueryMessage`, the response message.
 
    .. attribute:: rrset
 
-      A ``dns.rrset.RRset`` or ``None``, the answer RRset.
+      A :py:class:`dns.rrset.RRset` or ``None``, the answer RRset.
 
    .. attribute:: expiration
 
@@ -138,6 +141,6 @@ The dns.resolver.Resolver and dns.resolver.Answer Classes
 
    .. attribute:: canonical_name
 
-      A ``dns.name.Name``, the canonical name of the query name,
+      A :py:class:`dns.name.Name`, the canonical name of the query name,
       i.e. the owner name of the answer RRset after any CNAME and DNAME
       chaining.

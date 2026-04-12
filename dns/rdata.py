@@ -65,29 +65,39 @@ class RdataStyle(dns.name.NameStyle):
     An ``RdataStyle`` is also a :py:class:`dns.name.NameStyle`; see that class
     for a description of its options.
 
-    If *txt_is_utf8* is ``True``, then TXT-like records will be treated
-    as UTF-8 if they decode successfully, and the output string may contain any
-    Unicode codepoint.  If ``False``, the default, then TXT-like records are
-    treated according to RFC 1035 rules.
+    .. attribute:: txt_is_utf8
 
-    *base64_chunk_size*, an ``int`` with default 32, specifies the chunk size for
-    text representations that break base64 strings into chunks.
+        A ``bool``. If ``True``, TXT-like records will be treated as UTF-8 if
+        they decode successfully, and the output string may contain any Unicode
+        codepoint. If ``False`` (the default), TXT-like records are treated
+        according to RFC 1035 rules.
 
-    *base64_chunk_separator*, a ``str`` with default ``" "``, specifies the
-    chunk separator for text representations that break base64 strings into chunks.
+    .. attribute:: base64_chunk_size
 
-    *hex_chunk_size*, an ``int`` with default 128, specifies the chunk size for
-    text representations that break hex strings into chunks.
+        An ``int`` (default 32). The chunk size for text representations that
+        break base64 strings into chunks.
 
-    *hex_chunk_separator*, a ``str`` with default ``" "``, specifies the
-    chunk separator for text representations that break hex strings into chunks.
+    .. attribute:: base64_chunk_separator
 
-    *truncate_crypto*, a ``bool``.  The default is ``False``.  If ``True``, then
-    output of crypto types (e.g. DNSKEY) is altered to be readable
-    by humans in a debugging context, but the crypto content will be removed.
-    A sample use would be a "dig" application where you wanted to see how many
-    DNSKEYs there were, and what key ids they had, without seeing the actual
-    public key data.  Use of this option will lose information.
+        A ``str`` (default ``" "``). The separator for text representations
+        that break base64 strings into chunks.
+
+    .. attribute:: hex_chunk_size
+
+        An ``int`` (default 128). The chunk size for text representations that
+        break hex strings into chunks.
+
+    .. attribute:: hex_chunk_separator
+
+        A ``str`` (default ``" "``). The separator for text representations
+        that break hex strings into chunks.
+
+    .. attribute:: truncate_crypto
+
+        A ``bool`` (default ``False``). If ``True``, output of crypto types
+        (e.g. DNSKEY) is altered to be human-readable in a debugging context,
+        but the crypto content is removed. Use of this option will lose
+        information.
     """
 
     txt_is_utf8: bool = False
@@ -236,9 +246,10 @@ class Rdata:
     ) -> None:
         """Initialize an rdata.
 
-        *rdclass*, an ``int`` is the rdataclass of the Rdata.
-
-        *rdtype*, an ``int`` is the rdatatype of the Rdata.
+        :param rdclass: The rdata class.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+        :param rdtype: The rdata type.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType`
         """
 
         self.rdclass = self._as_rdataclass(rdclass)
@@ -281,7 +292,7 @@ class Rdata:
         creating rdatasets, allowing the rdataset to contain only RRSIGs
         of a particular type, e.g. RRSIG(NS).
 
-        Returns a ``dns.rdatatype.RdataType``.
+        :rtype: :py:class:`dns.rdatatype.RdataType`
         """
 
         return dns.rdatatype.NONE
@@ -291,7 +302,7 @@ class Rdata:
         which are the ordinary DNS type, and the upper 16 bits of which are
         the "covered" type, if any.
 
-        Returns an ``int``.
+        :rtype: int
         """
 
         return self.covers() << 16 | self.rdtype
@@ -305,10 +316,9 @@ class Rdata:
     ) -> str:
         """Convert an rdata to text format.
 
-        *style*, a :py:class:`dns.rdata.RdataStyle` or ``None`` (the default).  If
-        specified, the style overrides the other parameters.
-
-        Returns a ``str``.
+        :param style: If specified, overrides *origin* and *relativize*.
+        :type style: :py:class:`dns.rdata.RdataStyle` or ``None``
+        :rtype: str
         """
         if style is None:
             kw = kw.copy()
@@ -323,7 +333,7 @@ class Rdata:
         See the documentation for :py:class:`dns.rdata.RdataStyle` for a description
         of the style parameters.
 
-        Returns a ``str``.
+        :rtype: str
         """
 
         raise NotImplementedError  # pragma: no cover
@@ -346,7 +356,9 @@ class Rdata:
     ) -> bytes | None:
         """Convert an rdata to wire format.
 
-        Returns a ``bytes`` if no output file was specified, or ``None`` otherwise.
+        :returns: Wire-format bytes if no output file was specified, or ``None``
+            if a file was provided.
+        :rtype: bytes or ``None``
         """
 
         if file:
@@ -362,9 +374,9 @@ class Rdata:
             return f.getvalue()
 
     def to_generic(self, origin: dns.name.Name | None = None) -> "GenericRdata":
-        """Creates a dns.rdata.GenericRdata equivalent of this rdata.
+        """Create a :py:class:`dns.rdata.GenericRdata` equivalent of this rdata.
 
-        Returns a ``dns.rdata.GenericRdata``.
+        :rtype: :py:class:`dns.rdata.GenericRdata`
         """
         wire = self.to_wire(origin=origin)
         assert wire is not None  # for type checkers
@@ -374,7 +386,7 @@ class Rdata:
         """Convert rdata to a format suitable for digesting in hashes.  This
         is also the DNSSEC canonical form.
 
-        Returns a ``bytes``.
+        :rtype: bytes
         """
         wire = self.to_wire(origin=origin, canonicalize=True)
         assert wire is not None  # for mypy
@@ -540,15 +552,15 @@ class Rdata:
         raise NotImplementedError  # pragma: no cover
 
     def replace(self, **kwargs: Any) -> "Rdata":
-        """
-        Create a new Rdata instance based on the instance replace was
+        """Create a new Rdata instance based on the instance replace was
         invoked on. It is possible to pass different parameters to
         override the corresponding properties of the base Rdata.
 
         Any field specific to the Rdata type can be replaced, but the
         *rdtype* and *rdclass* fields cannot.
 
-        Returns an instance of the same Rdata subclass as *self*.
+        :returns: A new instance of the same :py:class:`Rdata` subclass as *self*.
+        :rtype: :py:class:`Rdata`
         """
 
         # Get the constructor parameters.
@@ -816,9 +828,11 @@ def load_all_types(disable_dynamic_load=True):
     Normally dnspython loads DNS rdatatype implementations on demand, but in some
     specialized cases loading all types at an application-controlled time is preferred.
 
-    If *disable_dynamic_load*, a ``bool``, is ``True`` then dnspython will not attempt
-    to use its dynamic loading mechanism if an unknown type is subsequently encountered,
-    and will simply use the ``GenericRdata`` class.
+    :param disable_dynamic_load: If ``True`` (the default), dnspython will not
+        attempt to use its dynamic loading mechanism if an unknown type is
+        subsequently encountered, and will simply use the ``GenericRdata``
+        class.
+    :type disable_dynamic_load: bool
     """
     # Load class IN and ANY types.
     for rdtype in dns.rdatatype.RdataType:
@@ -856,27 +870,23 @@ def from_text(
     If *tok* is a ``str``, then a tokenizer is created and the string
     is used as its input.
 
-    *rdclass*, a ``dns.rdataclass.RdataClass`` or ``str``, the rdataclass.
-
-    *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdatatype.
-
-    *tok*, a ``dns.tokenizer.Tokenizer`` or a ``str``.
-
-    *origin*, a ``dns.name.Name`` (or ``None``), the
-    origin to use for relative names.
-
-    *relativize*, a ``bool``.  If true, name will be relativized.
-
-    *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
-    when relativizing names.  If not set, the *origin* value will be used.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder to use if a tokenizer needs to be created.  If
-    ``None``, the default IDNA 2003 encoder/decoder is used.  If a
-    tokenizer is not created, then the codec associated with the tokenizer
-    is the one that is used.
-
-    Returns an instance of the chosen Rdata subclass.
+    :param rdclass: The rdata class.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass` or ``str``
+    :param rdtype: The rdata type.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType` or ``str``
+    :param tok: The tokenizer or input string.
+    :type tok: :py:class:`dns.tokenizer.Tokenizer` or ``str``
+    :param origin: The origin to use for relative names.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :param relativize: If ``True``, names will be relativized. Default is ``True``.
+    :type relativize: bool
+    :param relativize_to: The origin to use when relativizing. Defaults to *origin*.
+    :type relativize_to: :py:class:`dns.name.Name` or ``None``
+    :param idna_codec: The IDNA encoder/decoder to use when creating a tokenizer.
+        If ``None``, the default IDNA 2003 codec is used.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :returns: An instance of the chosen :py:class:`Rdata` subclass.
+    :rtype: :py:class:`Rdata`
 
     """
     if isinstance(tok, str):
@@ -943,17 +953,16 @@ def from_wire_parser(
     Once a class is chosen, its from_wire() class method is called
     with the parameters to this function.
 
-    *rdclass*, a ``dns.rdataclass.RdataClass`` or ``str``, the rdataclass.
-
-    *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdatatype.
-
-    *parser*, a ``dns.wire.Parser``, the parser, which should be
-    restricted to the rdata length.
-
-    *origin*, a ``dns.name.Name`` (or ``None``).  If not ``None``,
-    then names will be relativized to this origin.
-
-    Returns an instance of the chosen Rdata subclass.
+    :param rdclass: The rdata class.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass` or ``str``
+    :param rdtype: The rdata type.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType` or ``str``
+    :param parser: The wire format parser, restricted to the rdata length.
+    :type parser: :py:class:`dns.wire.Parser`
+    :param origin: If not ``None``, names will be relativized to this origin.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :returns: An instance of the chosen :py:class:`Rdata` subclass.
+    :rtype: :py:class:`Rdata`
     """
 
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
@@ -982,21 +991,20 @@ def from_wire(
     Once a class is chosen, its from_wire() class method is called
     with the parameters to this function.
 
-    *rdclass*, an ``int``, the rdataclass.
-
-    *rdtype*, an ``int``, the rdatatype.
-
-    *wire*, a ``bytes``, the wire-format message.
-
-    *current*, an ``int``, the offset in wire of the beginning of
-    the rdata.
-
-    *rdlen*, an ``int``, the length of the wire-format rdata
-
-    *origin*, a ``dns.name.Name`` (or ``None``).  If not ``None``,
-    then names will be relativized to this origin.
-
-    Returns an instance of the chosen Rdata subclass.
+    :param rdclass: The rdata class.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass` or ``str``
+    :param rdtype: The rdata type.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType` or ``str``
+    :param wire: The wire-format message.
+    :type wire: bytes
+    :param current: The offset of the start of the rdata in *wire*.
+    :type current: int
+    :param rdlen: The length of the rdata in wire format.
+    :type rdlen: int
+    :param origin: If not ``None``, names will be relativized to this origin.
+    :type origin: :py:class:`dns.name.Name` or ``None``
+    :returns: An instance of the chosen :py:class:`Rdata` subclass.
+    :rtype: :py:class:`Rdata`
     """
     parser = dns.wire.Parser(wire, current)
     with parser.restrict_to(rdlen):
@@ -1022,18 +1030,16 @@ def register_type(
 ) -> None:
     """Dynamically register a module to handle an rdatatype.
 
-    *implementation*, a subclass of ``dns.rdata.Rdata`` implementing the type,
-    or a module containing such a class named by its text form.
-
-    *rdtype*, an ``int``, the rdatatype to register.
-
-    *rdtype_text*, a ``str``, the textual form of the rdatatype.
-
-    *is_singleton*, a ``bool``, indicating if the type is a singleton (i.e.
-    RRsets of the type can have only one member.)
-
-    *rdclass*, the rdataclass of the type, or ``dns.rdataclass.ANY`` if
-    it applies to all classes.
+    :param implementation: A subclass of :py:class:`dns.rdata.Rdata` implementing
+        the type, or a module containing such a class named by its text form.
+    :param rdtype: The rdatatype to register.
+    :type rdtype: int
+    :param rdtype_text: The textual form of the rdatatype.
+    :type rdtype_text: str
+    :param is_singleton: If ``True``, RRsets of this type can have only one member.
+    :type is_singleton: bool
+    :param rdclass: The rdata class, or ``dns.rdataclass.ANY`` for all classes.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass`
     """
 
     rdtype = dns.rdatatype.RdataType.make(rdtype)

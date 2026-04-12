@@ -62,8 +62,11 @@ class NodeStyle(dns.rdataset.RdatasetStyle):
 class NodeKind(enum.Enum):
     """Rdatasets in nodes"""
 
+    #: Has rdatasets not compatible with CNAME
     REGULAR = 0  # a.k.a "other data"
+    #: Has rdatasets compatible with CNAME, but no CNAME
     NEUTRAL = 1
+    #: Has a CNAME or RRSIG(CNAME)
     CNAME = 2
 
     @classmethod
@@ -112,13 +115,12 @@ class Node:
         Each rdataset at the node is printed.  Any keyword arguments
         to this method are passed on to the rdataset's to_text() method.
 
-        *name*, a ``dns.name.Name``, the owner name of the
-        rdatasets.
-
-        *style*, a :py:class:`dns.node.NodeStyle` or ``None`` (the default).  If
-        specified, the style overrides the other parameters except *name*.
-
-        Returns a ``str``.
+        :param name: The owner name of the rdatasets.
+        :type name: :py:class:`dns.name.Name`
+        :param style: If specified, overrides the other parameters except
+            *name*.
+        :type style: :py:class:`dns.node.NodeStyle` or ``None``
+        :rtype: str
         """
         if style is None:
             style = NodeStyle.from_keywords(kw)
@@ -129,13 +131,13 @@ class Node:
 
         Each rdataset at the node is printed.
 
-        *name*, a ``dns.name.Name``, the owner name of the
-        rdatasets.
+        :param name: The owner name of the rdatasets.
+        :type name: :py:class:`dns.name.Name`
 
         See the documentation for :py:class:`dns.node.NodeStyle` for a description
         of the style parameters.
 
-        Returns a ``str``.
+        :rtype: str
         """
 
         s = io.StringIO()
@@ -209,26 +211,18 @@ class Node:
         """Find an rdataset matching the specified properties in the
         current node.
 
-        *rdclass*, a ``dns.rdataclass.RdataClass``, the class of the rdataset.
-
-        *rdtype*, a ``dns.rdatatype.RdataType``, the type of the rdataset.
-
-        *covers*, a ``dns.rdatatype.RdataType``, the covered type.
-        Usually this value is ``dns.rdatatype.NONE``, but if the
-        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
-        then the covers value will be the rdata type the SIG/RRSIG
-        covers.  The library treats the SIG and RRSIG types as if they
-        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
-        This makes RRSIGs much easier to work with than if RRSIGs
-        covering different rdata types were aggregated into a single
-        RRSIG rdataset.
-
-        *create*, a ``bool``.  If True, create the rdataset if it is not found.
-
-        Raises ``KeyError`` if an rdataset of the desired type and class does
-        not exist and *create* is not ``True``.
-
-        Returns a ``dns.rdataset.Rdataset``.
+        :param rdclass: The class of the rdataset.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+        :param rdtype: The type of the rdataset.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType`
+        :param covers: The covered type.  Usually ``dns.rdatatype.NONE``, but
+            for SIG/RRSIG the type being covered (e.g. A, NS, SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType`
+        :param create: If ``True``, create the rdataset if not found.
+        :type create: bool
+        :raises KeyError: If no matching rdataset exists and *create* is not
+            ``True``.
+        :rtype: :py:class:`dns.rdataset.Rdataset`
         """
 
         for rds in self.rdatasets:
@@ -253,22 +247,15 @@ class Node:
         None is returned if an rdataset of the specified type and
         class does not exist and *create* is not ``True``.
 
-        *rdclass*, an ``int``, the class of the rdataset.
-
-        *rdtype*, an ``int``, the type of the rdataset.
-
-        *covers*, an ``int``, the covered type.  Usually this value is
-        dns.rdatatype.NONE, but if the rdtype is dns.rdatatype.SIG or
-        dns.rdatatype.RRSIG, then the covers value will be the rdata
-        type the SIG/RRSIG covers.  The library treats the SIG and RRSIG
-        types as if they were a family of
-        types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).  This makes RRSIGs much
-        easier to work with than if RRSIGs covering different rdata
-        types were aggregated into a single RRSIG rdataset.
-
-        *create*, a ``bool``.  If True, create the rdataset if it is not found.
-
-        Returns a ``dns.rdataset.Rdataset`` or ``None``.
+        :param rdclass: The class of the rdataset.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+        :param rdtype: The type of the rdataset.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType`
+        :param covers: The covered type (usually ``dns.rdatatype.NONE``).
+        :type covers: :py:class:`dns.rdatatype.RdataType`
+        :param create: If ``True``, create the rdataset if not found.
+        :type create: bool
+        :rtype: :py:class:`dns.rdataset.Rdataset` or ``None``
         """
 
         try:
@@ -288,11 +275,12 @@ class Node:
 
         If a matching rdataset does not exist, it is not an error.
 
-        *rdclass*, an ``int``, the class of the rdataset.
-
-        *rdtype*, an ``int``, the type of the rdataset.
-
-        *covers*, an ``int``, the covered type.
+        :param rdclass: The class of the rdataset.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+        :param rdtype: The type of the rdataset.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType`
+        :param covers: The covered type.
+        :type covers: :py:class:`dns.rdatatype.RdataType`
         """
 
         rds = self.get_rdataset(rdclass, rdtype, covers)
@@ -308,10 +296,10 @@ class Node:
         in other words, this method does not store a copy of *replacement*
         at the node, it stores *replacement* itself.
 
-        *replacement*, a ``dns.rdataset.Rdataset``.
-
-        Raises ``ValueError`` if *replacement* is not a
-        ``dns.rdataset.Rdataset``.
+        :param replacement: The replacement rdataset.
+        :type replacement: :py:class:`dns.rdataset.Rdataset`
+        :raises ValueError: If *replacement* is not a
+            :py:class:`dns.rdataset.Rdataset`.
         """
 
         if not isinstance(replacement, dns.rdataset.Rdataset):

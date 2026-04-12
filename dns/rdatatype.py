@@ -172,11 +172,9 @@ def from_text(text: str) -> RdataType:
 
     For example, "NS" and "TYPE2" will both result in a value of 2.
 
-    Raises ``dns.rdatatype.UnknownRdatatype`` if the type is unknown.
-
-    Raises ``ValueError`` if the rdata type value is not >= 0 and <= 65535.
-
-    Returns a ``dns.rdatatype.RdataType``.
+    :raises dns.rdatatype.UnknownRdatatype: If the type is unknown.
+    :raises ValueError: If the rdata type value is not >= 0 and <= 65535.
+    :rtype: :py:class:`dns.rdatatype.RdataType`
     """
 
     return RdataType.from_text(text)
@@ -188,9 +186,8 @@ def to_text(value: RdataType) -> str:
     If the value has a known mnemonic, it will be used, otherwise the
     DNS generic type syntax will be used.
 
-    Raises ``ValueError`` if the rdata type value is not >= 0 and <= 65535.
-
-    Returns a ``str``.
+    :raises ValueError: If the rdata type value is not >= 0 and <= 65535.
+    :rtype: str
     """
 
     return RdataType.to_text(value)
@@ -199,12 +196,12 @@ def to_text(value: RdataType) -> str:
 def is_metatype(rdtype: RdataType) -> bool:
     """True if the specified type is a metatype.
 
-    *rdtype* is a ``dns.rdatatype.RdataType``.
-
     The currently defined metatypes are TKEY, TSIG, IXFR, AXFR, MAILA,
     MAILB, ANY, OPT, and NXNAME.
 
-    Returns a ``bool``.
+    :param rdtype: The rdata type to check.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType`
+    :rtype: bool
     """
 
     return (256 > rdtype >= 128) or rdtype in _metatypes
@@ -219,9 +216,9 @@ def is_singleton(rdtype: RdataType) -> bool:
     The currently defined singleton types are CNAME, DNAME, NSEC, NXT, and
     SOA.
 
-    *rdtype* is an ``int``.
-
-    Returns a ``bool``.
+    :param rdtype: The rdata type to check.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType`
+    :rtype: bool
     """
 
     if rdtype in _singletons:
@@ -235,12 +232,13 @@ def register_type(
 ) -> None:
     """Dynamically register an rdatatype.
 
-    *rdtype*, a ``dns.rdatatype.RdataType``, the rdatatype to register.
-
-    *rdtype_text*, a ``str``, the textual form of the rdatatype.
-
-    *is_singleton*, a ``bool``, indicating if the type is a singleton (i.e.
-    RRsets of the type can have only one member.)
+    :param rdtype: The rdatatype to register.
+    :type rdtype: :py:class:`dns.rdatatype.RdataType`
+    :param rdtype_text: The textual form of the rdatatype.
+    :type rdtype_text: str
+    :param is_singleton: If ``True``, RRsets of this type can have only one
+        member.
+    :type is_singleton: bool
     """
 
     _registered_by_text[rdtype_text] = rdtype

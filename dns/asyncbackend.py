@@ -27,10 +27,10 @@ class AsyncLibraryNotFoundError(dns.exception.DNSException):
 def get_backend(name: str) -> Backend:
     """Get the specified asynchronous backend.
 
-    *name*, a ``str``, the name of the backend.  Currently the "trio"
-    and "asyncio" backends are available.
-
-    Raises NotImplementedError if an unknown backend name is specified.
+    :param name: The name of the backend. Currently ``"trio"`` and
+        ``"asyncio"`` are available.
+    :type name: str
+    :raises NotImplementedError: If an unknown backend name is specified.
     """
     # pylint: disable=import-outside-toplevel,redefined-outer-name
     backend = _backends.get(name)

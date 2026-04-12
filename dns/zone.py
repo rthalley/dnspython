@@ -108,31 +108,28 @@ def _validate_name(
 
 @dataclasses.dataclass(frozen=True)
 class ZoneStyle(dns.node.NodeStyle):
-    """Zone text styles
+    """Zone text styles.
 
-    A ``ZoneStyle`` is also a :py:class:`dns.name.NameStyle` and a
-    :py:class:`dns.rdata.RdataStyle`, a :py:class:`dns.rdataset.RdatasetStyle`,
-    and a :py:class:`dns.node.NodeStyle`.
+    A :py:class:`dns.zone.ZoneStyle` is also a :py:class:`dns.name.NameStyle`,
+    :py:class:`dns.rdata.RdataStyle`, :py:class:`dns.rdataset.RdatasetStyle`,
+    and :py:class:`dns.node.NodeStyle`.
     See those classes for a description of their options.
 
-    *sorted*, a ``bool``.  If True, the default, then the file
-    will be written with the names sorted in DNSSEC order from
-    least to greatest.  Otherwise the names will be written in
-    whatever order they happen to have in the zone's dictionary.
-
-    *nl*, a ``str`` or ``None`` (the default).  The end of line string,
-    or if ``None``, the output will use the platform's native
-    end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
-
-    *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
-    the start of the output.  If ``False``, the default, do not emit
-    one.
-
-    *want_unicode_directive*, a ``bool``.  If ``True`` and the zone
-    has a non-empty ``unicode`` attribute, then emit a ``$UNICODE``
-    line in the output.  This directive is not standard, but allows
-    dnspython and other aware software to read and write Unicode zonefiles
-    without changing the rendering of names and TXT-like records.
+    :param bool sorted: If ``True`` (the default), the file will be written
+        with the names sorted in DNSSEC order from least to greatest.
+        Otherwise the names will be written in whatever order they happen
+        to have in the zone's dictionary.
+    :param nl: The end of line string.  If ``None`` (the default), the
+        output will use the platform's native end-of-line marker (i.e. LF
+        on POSIX, CRLF on Windows).
+    :type nl: str or ``None``
+    :param bool want_origin: If ``True``, emit a ``$ORIGIN`` line at the
+        start of the output.  If ``False`` (the default), do not emit one.
+    :param bool want_unicode_directive: If ``True`` and the zone has a
+        non-empty ``unicode`` attribute, then emit a ``$UNICODE`` line in
+        the output.  This directive is not standard, but allows dnspython
+        and other aware software to read and write Unicode zonefiles without
+        changing the rendering of names and TXT-like records.
     """
 
     sorted: bool = True
@@ -169,14 +166,15 @@ class Zone(dns.transaction.TransactionManager):
     ):
         """Initialize a zone object.
 
-        *origin* is the origin of the zone.  It may be a ``dns.name.Name``,
-        a ``str``, or ``None``.  If ``None``, then the zone's origin will
-        be set by the first ``$ORIGIN`` line in a zone file.
-
-        *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
-
-        *relativize*, a ``bool``, determine's whether domain names are
-        relativized to the zone's origin.  The default is ``True``.
+        :param origin: The origin of the zone.  It may be a
+            :py:class:`dns.name.Name`, a ``str``, or ``None``.  If ``None``,
+            then the zone's origin will be set by the first ``$ORIGIN`` line
+            in a zone file.
+        :type origin: :py:class:`dns.name.Name`, str, or ``None``
+        :param rdclass: The zone's rdata class; the default is class IN.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+        :param bool relativize: Whether domain names are relativized to the
+            zone's origin.  The default is ``True``.
         """
 
         if origin is not None:
@@ -196,7 +194,7 @@ class Zone(dns.transaction.TransactionManager):
         """Two zones are equal if they have the same origin, class, and
         nodes.
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         if not isinstance(other, Zone):
@@ -212,7 +210,7 @@ class Zone(dns.transaction.TransactionManager):
     def __ne__(self, other):
         """Are two zones not equal?
 
-        Returns a ``bool``.
+        :rtype: bool
         """
 
         return not self.__eq__(other)
@@ -263,18 +261,16 @@ class Zone(dns.transaction.TransactionManager):
     ) -> dns.node.Node:
         """Find a node in the zone, possibly creating it.
 
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
-        *create*, a ``bool``.  If true, the node will be created if it does
-        not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
-
-        Returns a ``dns.node.Node``.
+        :param name: The name of the node to find.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param bool create: If ``True``, the node will be created if it does
+            not exist.
+        :raises KeyError: if the name is not known and *create* was not
+            specified, or if the name was not a subdomain of the origin.
+        :rtype: :py:class:`dns.node.Node`
         """
 
         name = self._validate_name(name)
@@ -291,19 +287,18 @@ class Zone(dns.transaction.TransactionManager):
     ) -> dns.node.Node | None:
         """Get a node in the zone, possibly creating it.
 
-        This method is like ``find_node()``, except it returns None instead
-        of raising an exception if the node does not exist and creation
-        has not been requested.
+        This method is like :py:meth:`find_node`, except it returns ``None``
+        instead of raising an exception if the node does not exist and
+        creation has not been requested.
 
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
-        *create*, a ``bool``.  If true, the node will be created if it does
-        not exist.
-
-        Returns a ``dns.node.Node`` or ``None``.
+        :param name: The name of the node to find.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param bool create: If ``True``, the node will be created if it does
+            not exist.
+        :rtype: :py:class:`dns.node.Node` or ``None``
         """
 
         try:
@@ -315,12 +310,13 @@ class Zone(dns.transaction.TransactionManager):
     def delete_node(self, name: dns.name.Name | str) -> None:
         """Delete the specified node if it exists.
 
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
         It is not an error if the node does not exist.
+
+        :param name: The name of the node to delete.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
         """
 
         name = self._validate_name(name)
@@ -340,32 +336,24 @@ class Zone(dns.transaction.TransactionManager):
         The rdataset returned is not a copy; changes to it will change
         the zone.
 
-        KeyError is raised if the name or type are not found.
-
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
-        *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdata type desired.
-
-        *covers*, a ``dns.rdatatype.RdataType`` or ``str`` the covered type.
-        Usually this value is ``dns.rdatatype.NONE``, but if the
-        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
-        then the covers value will be the rdata type the SIG/RRSIG
-        covers.  The library treats the SIG and RRSIG types as if they
-        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
-        This makes RRSIGs much easier to work with than if RRSIGs
-        covering different rdata types were aggregated into a single
-        RRSIG rdataset.
-
-        *create*, a ``bool``.  If true, the node will be created if it does
-        not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
-
-        Returns a ``dns.rdataset.Rdataset``.
+        :param name: The name of the node to find.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param rdtype: The rdata type desired.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or str
+        :param covers: The covered type.  Usually :py:attr:`dns.rdatatype.NONE`,
+            but if *rdtype* is :py:attr:`dns.rdatatype.SIG` or
+            :py:attr:`dns.rdatatype.RRSIG`, then this is the rdata type the
+            SIG/RRSIG covers.  The library treats the SIG and RRSIG types as
+            a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType` or str
+        :param bool create: If ``True``, the node will be created if it does
+            not exist.
+        :raises KeyError: if the name or type are not found and *create* was
+            not specified, or if the name was not a subdomain of the origin.
+        :rtype: :py:class:`dns.rdataset.Rdataset`
         """
 
         name = self._validate_name(name)
@@ -383,37 +371,29 @@ class Zone(dns.transaction.TransactionManager):
     ) -> dns.rdataset.Rdataset | None:
         """Look for an rdataset with the specified name and type in the zone.
 
-        This method is like ``find_rdataset()``, except it returns None instead
-        of raising an exception if the rdataset does not exist and creation
-        has not been requested.
+        This method is like :py:meth:`find_rdataset`, except it returns
+        ``None`` instead of raising an exception if the rdataset does not
+        exist and creation has not been requested.
 
         The rdataset returned is not a copy; changes to it will change
         the zone.
 
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
-        *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdata type desired.
-
-        *covers*, a ``dns.rdatatype.RdataType`` or ``str``, the covered type.
-        Usually this value is ``dns.rdatatype.NONE``, but if the
-        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
-        then the covers value will be the rdata type the SIG/RRSIG
-        covers.  The library treats the SIG and RRSIG types as if they
-        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
-        This makes RRSIGs much easier to work with than if RRSIGs
-        covering different rdata types were aggregated into a single
-        RRSIG rdataset.
-
-        *create*, a ``bool``.  If true, the node will be created if it does
-        not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
-
-        Returns a ``dns.rdataset.Rdataset`` or ``None``.
+        :param name: The name of the node to find.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param rdtype: The rdata type desired.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or str
+        :param covers: The covered type.  Usually :py:attr:`dns.rdatatype.NONE`,
+            but if *rdtype* is :py:attr:`dns.rdatatype.SIG` or
+            :py:attr:`dns.rdatatype.RRSIG`, then this is the rdata type the
+            SIG/RRSIG covers.  The library treats the SIG and RRSIG types as
+            a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType` or str
+        :param bool create: If ``True``, the node will be created if it does
+            not exist.
+        :rtype: :py:class:`dns.rdataset.Rdataset` or ``None``
         """
 
         try:
@@ -431,24 +411,23 @@ class Zone(dns.transaction.TransactionManager):
         """Delete the rdataset matching *rdtype* and *covers*, if it
         exists at the node specified by *name*.
 
-        It is not an error if the node does not exist, or if there is no matching
-        rdataset at the node.
+        It is not an error if the node does not exist, or if there is no
+        matching rdataset at the node.  If the node has no rdatasets after
+        the deletion, it will itself be deleted.
 
-        If the node has no rdatasets after the deletion, it will itself be deleted.
-
-        *name*: the name of the node to find. The value may be a ``dns.name.Name`` or a
-        ``str``.  If absolute, the name must be a subdomain of the zone's origin.  If
-        ``zone.relativize`` is ``True``, then the name will be relativized.
-
-        *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdata type desired.
-
-        *covers*, a ``dns.rdatatype.RdataType`` or ``str`` or ``None``, the covered
-        type. Usually this value is ``dns.rdatatype.NONE``, but if the rdtype is
-        ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``, then the covers value will be
-        the rdata type the SIG/RRSIG covers.  The library treats the SIG and RRSIG types
-        as if they were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA). This
-        makes RRSIGs much easier to work with than if RRSIGs covering different rdata
-        types were aggregated into a single RRSIG rdataset.
+        :param name: The name of the node.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param rdtype: The rdata type desired.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or str
+        :param covers: The covered type.  Usually :py:attr:`dns.rdatatype.NONE`,
+            but if *rdtype* is :py:attr:`dns.rdatatype.SIG` or
+            :py:attr:`dns.rdatatype.RRSIG`, then this is the rdata type the
+            SIG/RRSIG covers.  The library treats the SIG and RRSIG types as
+            a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType` or str
         """
 
         name = self._validate_name(name)
@@ -465,20 +444,20 @@ class Zone(dns.transaction.TransactionManager):
     ) -> None:
         """Replace an rdataset at name.
 
-        It is not an error if there is no rdataset matching I{replacement}.
+        It is not an error if there is no rdataset matching *replacement*.
 
         Ownership of the *replacement* object is transferred to the zone;
         in other words, this method does not store a copy of *replacement*
-        at the node, it stores *replacement* itself.
+        at the node, it stores *replacement* itself.  If the node does not
+        exist, it is created.
 
-        If the node does not exist, it is created.
-
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
-        *replacement*, a ``dns.rdataset.Rdataset``, the replacement rdataset.
+        :param name: The name of the node.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param replacement: The replacement rdataset.
+        :type replacement: :py:class:`dns.rdataset.Rdataset`
         """
 
         if replacement.rdclass != self.rdclass:
@@ -496,38 +475,30 @@ class Zone(dns.transaction.TransactionManager):
         and return an RRset encapsulating it.
 
         This method is less efficient than the similar
-        ``find_rdataset()`` because it creates an RRset instead of
-        returning the matching rdataset.  It may be more convenient
-        for some uses since it returns an object which binds the owner
-        name to the rdataset.
+        :py:meth:`find_rdataset` because it creates an RRset instead of
+        returning the matching rdataset.  It may be more convenient for some
+        uses since it returns an object which binds the owner name to the
+        rdataset.
 
         This method may not be used to create new nodes or rdatasets;
-        use ``find_rdataset`` instead.
+        use :py:meth:`find_rdataset` instead.
 
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
-        *rdtype*, a ``dns.rdatatype.RdataType`` or ``str``, the rdata type desired.
-
-        *covers*, a ``dns.rdatatype.RdataType`` or ``str``, the covered type.
-        Usually this value is ``dns.rdatatype.NONE``, but if the
-        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
-        then the covers value will be the rdata type the SIG/RRSIG
-        covers.  The library treats the SIG and RRSIG types as if they
-        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
-        This makes RRSIGs much easier to work with than if RRSIGs
-        covering different rdata types were aggregated into a single
-        RRSIG rdataset.
-
-        *create*, a ``bool``.  If true, the node will be created if it does
-        not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
-
-        Returns a ``dns.rrset.RRset`` or ``None``.
+        :param name: The name of the node to find.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param rdtype: The rdata type desired.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or str
+        :param covers: The covered type.  Usually :py:attr:`dns.rdatatype.NONE`,
+            but if *rdtype* is :py:attr:`dns.rdatatype.SIG` or
+            :py:attr:`dns.rdatatype.RRSIG`, then this is the rdata type the
+            SIG/RRSIG covers.  The library treats the SIG and RRSIG types as
+            a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType` or str
+        :raises KeyError: if the name or type are not found, or if the name
+            was not a subdomain of the origin.
+        :rtype: :py:class:`dns.rrset.RRset`
         """
 
         vname = self._validate_name(name)
@@ -547,35 +518,28 @@ class Zone(dns.transaction.TransactionManager):
         """Look for an rdataset with the specified name and type in the zone,
         and return an RRset encapsulating it.
 
-        This method is less efficient than the similar ``get_rdataset()``
+        This method is less efficient than the similar :py:meth:`get_rdataset`
         because it creates an RRset instead of returning the matching
-        rdataset.  It may be more convenient for some uses since it
-        returns an object which binds the owner name to the rdataset.
+        rdataset.  It may be more convenient for some uses since it returns
+        an object which binds the owner name to the rdataset.
 
         This method may not be used to create new nodes or rdatasets;
-        use ``get_rdataset()`` instead.
+        use :py:meth:`get_rdataset` instead.
 
-        *name*: the name of the node to find.
-        The value may be a ``dns.name.Name`` or a ``str``.  If absolute, the
-        name must be a subdomain of the zone's origin.  If ``zone.relativize``
-        is ``True``, then the name will be relativized.
-
-        *rdtype*, a ``dns.rdataset.Rdataset`` or ``str``, the rdata type desired.
-
-        *covers*, a ``dns.rdataset.Rdataset`` or ``str``, the covered type.
-        Usually this value is ``dns.rdatatype.NONE``, but if the
-        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
-        then the covers value will be the rdata type the SIG/RRSIG
-        covers.  The library treats the SIG and RRSIG types as if they
-        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
-        This makes RRSIGs much easier to work with than if RRSIGs
-        covering different rdata types were aggregated into a single
-        RRSIG rdataset.
-
-        *create*, a ``bool``.  If true, the node will be created if it does
-        not exist.
-
-        Returns a ``dns.rrset.RRset`` or ``None``.
+        :param name: The name of the node to find.  The value may be a
+            :py:class:`dns.name.Name` or a ``str``.  If absolute, the name
+            must be a subdomain of the zone's origin.  If ``zone.relativize``
+            is ``True``, then the name will be relativized.
+        :type name: :py:class:`dns.name.Name` or str
+        :param rdtype: The rdata type desired.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or str
+        :param covers: The covered type.  Usually :py:attr:`dns.rdatatype.NONE`,
+            but if *rdtype* is :py:attr:`dns.rdatatype.SIG` or
+            :py:attr:`dns.rdatatype.RRSIG`, then this is the rdata type the
+            SIG/RRSIG covers.  The library treats the SIG and RRSIG types as
+            a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType` or str
+        :rtype: :py:class:`dns.rrset.RRset` or ``None``
         """
 
         try:
@@ -589,22 +553,19 @@ class Zone(dns.transaction.TransactionManager):
         rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.ANY,
         covers: dns.rdatatype.RdataType | str = dns.rdatatype.NONE,
     ) -> Iterator[tuple[dns.name.Name, dns.rdataset.Rdataset]]:
-        """Return a generator which yields (name, rdataset) tuples for
-        all rdatasets in the zone which have the specified *rdtype*
-        and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
+        """Return a generator which yields ``(name, rdataset)`` tuples for
+        all rdatasets in the zone which have the specified *rdtype* and
+        *covers*.  If *rdtype* is :py:attr:`dns.rdatatype.ANY` (the default),
         then all rdatasets will be matched.
 
-        *rdtype*, a ``dns.rdataset.Rdataset`` or ``str``, the rdata type desired.
-
-        *covers*, a ``dns.rdataset.Rdataset`` or ``str``, the covered type.
-        Usually this value is ``dns.rdatatype.NONE``, but if the
-        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
-        then the covers value will be the rdata type the SIG/RRSIG
-        covers.  The library treats the SIG and RRSIG types as if they
-        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
-        This makes RRSIGs much easier to work with than if RRSIGs
-        covering different rdata types were aggregated into a single
-        RRSIG rdataset.
+        :param rdtype: The rdata type desired.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or str
+        :param covers: The covered type.  Usually :py:attr:`dns.rdatatype.NONE`,
+            but if *rdtype* is :py:attr:`dns.rdatatype.SIG` or
+            :py:attr:`dns.rdatatype.RRSIG`, then this is the rdata type the
+            SIG/RRSIG covers.  The library treats the SIG and RRSIG types as
+            a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType` or str
         """
 
         rdtype = dns.rdatatype.RdataType.make(rdtype)
@@ -621,22 +582,19 @@ class Zone(dns.transaction.TransactionManager):
         rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.ANY,
         covers: dns.rdatatype.RdataType | str = dns.rdatatype.NONE,
     ) -> Iterator[tuple[dns.name.Name, int, dns.rdata.Rdata]]:
-        """Return a generator which yields (name, ttl, rdata) tuples for
-        all rdatas in the zone which have the specified *rdtype*
-        and *covers*.  If *rdtype* is ``dns.rdatatype.ANY``, the default,
-        then all rdatas will be matched.
+        """Return a generator which yields ``(name, ttl, rdata)`` tuples for
+        all rdatas in the zone which have the specified *rdtype* and *covers*.
+        If *rdtype* is :py:attr:`dns.rdatatype.ANY` (the default), then all
+        rdatas will be matched.
 
-        *rdtype*, a ``dns.rdataset.Rdataset`` or ``str``, the rdata type desired.
-
-        *covers*, a ``dns.rdataset.Rdataset`` or ``str``, the covered type.
-        Usually this value is ``dns.rdatatype.NONE``, but if the
-        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
-        then the covers value will be the rdata type the SIG/RRSIG
-        covers.  The library treats the SIG and RRSIG types as if they
-        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
-        This makes RRSIGs much easier to work with than if RRSIGs
-        covering different rdata types were aggregated into a single
-        RRSIG rdataset.
+        :param rdtype: The rdata type desired.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or str
+        :param covers: The covered type.  Usually :py:attr:`dns.rdatatype.NONE`,
+            but if *rdtype* is :py:attr:`dns.rdatatype.SIG` or
+            :py:attr:`dns.rdatatype.RRSIG`, then this is the rdata type the
+            SIG/RRSIG covers.  The library treats the SIG and RRSIG types as
+            a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        :type covers: :py:class:`dns.rdatatype.RdataType` or str
         """
 
         rdtype = dns.rdatatype.RdataType.make(rdtype)
@@ -661,29 +619,25 @@ class Zone(dns.transaction.TransactionManager):
     ) -> None:
         """Write a zone to a file.
 
-        *f*, a file or `str`.  If *f* is a string, it is treated
-        as the name of a file to open.
-
-        *sorted*, a ``bool``.  If True, the default, then the file
-        will be written with the names sorted in DNSSEC order from
-        least to greatest.  Otherwise the names will be written in
-        whatever order they happen to have in the zone's dictionary.
-
-        *relativize*, a ``bool``.  If True, the default, then domain
-        names in the output will be relativized to the zone's origin
-        if possible.
-
-        *nl*, a ``str``, ``bytes``, or None.  The end of line string.  If not
-        ``None``, the output will use the platform's native
-        end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
-
-        *want_comments*, a ``bool``.  If ``True``, emit end-of-line comments
-        as part of writing the file.  If ``False``, the default, do not
-        emit them.
-
-        *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
-        the start of the file.  If ``False``, the default, do not emit
-        one.
+        :param f: A file object or a ``str`` filename.  If a string, it is
+            treated as the name of a file to open.
+        :param bool sorted: If ``True`` (the default), the file will be
+            written with the names sorted in DNSSEC order from least to
+            greatest.  Otherwise the names will be written in whatever order
+            they happen to have in the zone's dictionary.
+        :param bool relativize: If ``True`` (the default), domain names in
+            the output will be relativized to the zone's origin if possible.
+        :param nl: The end of line string.  If ``None`` (the default), the
+            output will use the platform's native end-of-line marker (i.e. LF
+            on POSIX, CRLF on Windows).
+        :type nl: str, bytes, or ``None``
+        :param bool want_comments: If ``True``, emit end-of-line comments as
+            part of writing the file.  If ``False`` (the default), do not
+            emit them.
+        :param bool want_origin: If ``True``, emit a ``$ORIGIN`` line at the
+            start of the file.  If ``False`` (the default), do not emit one.
+        :param style: If specified, the style overrides the other parameters.
+        :type style: :py:class:`dns.zone.ZoneStyle` or ``None``
         """
         if style is None:
             kw = {}
@@ -715,8 +669,10 @@ class Zone(dns.transaction.TransactionManager):
     ) -> None:
         """Write a zone to a styled file.
 
-        *f*, a file or `str`.  If *f* is a string, it is treated
-        as the name of a file to open.
+        :param style: The style to apply.
+        :type style: :py:class:`dns.zone.ZoneStyle`
+        :param f: A file object or a ``str`` filename.  If a string, it is
+            treated as the name of a file to open.
         """
 
         # Apply style items we learned from $UNICODE when we loaded the zone (if any).
@@ -792,31 +748,23 @@ class Zone(dns.transaction.TransactionManager):
     ) -> str:
         """Return a zone's text as though it were written to a file.
 
-        *sorted*, a ``bool``.  If True, the default, then the file
-        will be written with the names sorted in DNSSEC order from
-        least to greatest.  Otherwise the names will be written in
-        whatever order they happen to have in the zone's dictionary.
-
-        *relativize*, a ``bool``.  If True, the default, then domain
-        names in the output will be relativized to the zone's origin
-        if possible.
-
-        *nl*, a ``str`` or None.  The end of line string.  If not
-        ``None``, the output will use the platform's native
-        end-of-line marker (i.e. LF on POSIX, CRLF on Windows).
-
-        *want_comments*, a ``bool``.  If ``True``, emit end-of-line comments
-        as part of writing the file.  If ``False``, the default, do not
-        emit them.
-
-        *want_origin*, a ``bool``.  If ``True``, emit a $ORIGIN line at
-        the start of the output.  If ``False``, the default, do not emit
-        one.
-
-        *style*, a :py:class:`dns.zone.ZoneStyle` or ``None`` (the default).  If specified,
-        the style overrides the other parameters.
-
-        Returns a ``str``.
+        :param bool sorted: If ``True`` (the default), the output will be
+            written with the names sorted in DNSSEC order from least to
+            greatest.  Otherwise the names will be written in whatever order
+            they happen to have in the zone's dictionary.
+        :param bool relativize: If ``True`` (the default), domain names in
+            the output will be relativized to the zone's origin if possible.
+        :param nl: The end of line string.  If ``None`` (the default), the
+            output will use the platform's native end-of-line marker (i.e. LF
+            on POSIX, CRLF on Windows).
+        :type nl: str or ``None``
+        :param bool want_comments: If ``True``, emit end-of-line comments as
+            part of the output.  If ``False`` (the default), do not emit them.
+        :param bool want_origin: If ``True``, emit a ``$ORIGIN`` line at the
+            start of the output.  If ``False`` (the default), do not emit one.
+        :param style: If specified, the style overrides the other parameters.
+        :type style: :py:class:`dns.zone.ZoneStyle` or ``None``
+        :rtype: str
         """
         temp_buffer = io.StringIO()
         self.to_file(temp_buffer, sorted, relativize, nl, want_comments, want_origin)
@@ -829,6 +777,10 @@ class Zone(dns.transaction.TransactionManager):
 
         See the documentation for :py:class:`dns.zone.ZoneStyle` for a description
         of the style parameters.
+
+        :param style: The style to apply.
+        :type style: :py:class:`dns.zone.ZoneStyle`
+        :rtype: str
         """
 
         temp_buffer = io.StringIO()
@@ -840,11 +792,9 @@ class Zone(dns.transaction.TransactionManager):
     def check_origin(self) -> None:
         """Do some simple checking of the zone's origin.
 
-        Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
-
-        Raises ``dns.zone.NoNS`` if there is no NS RRset.
-
-        Raises ``KeyError`` if there is no origin node.
+        :raises dns.zone.NoSOA: if there is no SOA RRset.
+        :raises dns.zone.NoNS: if there is no NS RRset.
+        :raises KeyError: if there is no origin node.
         """
         if self.relativize:
             name = dns.name.empty
@@ -861,9 +811,8 @@ class Zone(dns.transaction.TransactionManager):
     ) -> dns.rdtypes.ANY.SOA.SOA:
         """Get the zone SOA rdata.
 
-        Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
-
-        Returns a ``dns.rdtypes.ANY.SOA.SOA`` Rdata.
+        :raises dns.zone.NoSOA: if there is no SOA RRset.
+        :rtype: :py:class:`dns.rdtypes.ANY.SOA.SOA`
         """
         if self.relativize:
             origin_name = dns.name.empty
@@ -1362,51 +1311,39 @@ def from_text(
 ) -> Zone:
     """Build a zone object from a zone file format string.
 
-    *text*, a ``str``, the zone file format input.
-
-    *origin*, a ``dns.name.Name``, a ``str``, or ``None``.  The origin
-    of the zone; if not specified, the first ``$ORIGIN`` statement in the
-    zone file will determine the origin of the zone.
-
-    *rdclass*, a ``dns.rdataclass.RdataClass``, the zone's rdata class; the default is
-    class IN.
-
-    *relativize*, a ``bool``, determine's whether domain names are
-    relativized to the zone's origin.  The default is ``True``.
-
-    *zone_factory*, the zone factory to use or ``None``.  If ``None``, then
-    ``dns.zone.Zone`` will be used.  The value may be any class or callable
-    that returns a subclass of ``dns.zone.Zone``.
-
-    *filename*, a ``str`` or ``None``, the filename to emit when
-    describing where an error occurred; the default is ``'<string>'``.
-
-    *allow_include*, a ``bool``.  If ``True``, the default, then ``$INCLUDE``
-    directives are permitted.  If ``False``, then encoutering a ``$INCLUDE``
-    will raise a ``SyntaxError`` exception.
-
-    *check_origin*, a ``bool``.  If ``True``, the default, then sanity
-    checks of the origin node will be made by calling the zone's
-    ``check_origin()`` method.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA encoder/decoder
-    is used.
-
-    *allow_directives*, a ``bool`` or an iterable of `str`.  If ``True``, the default,
-    then directives are permitted, and the *allow_include* parameter controls whether
-    ``$INCLUDE`` is permitted.  If ``False`` or an empty iterable, then no directive
-    processing is done and any directive-like text will be treated as a regular owner
-    name.  If a non-empty iterable, then only the listed directives (including the
-    ``$``) are allowed.
-
-    Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
-
-    Raises ``dns.zone.NoNS`` if there is no NS RRset.
-
-    Raises ``KeyError`` if there is no origin node.
-
-    Returns a subclass of ``dns.zone.Zone``.
+    :param str text: The zone file format input.
+    :param origin: The origin of the zone.  If not specified, the first
+        ``$ORIGIN`` statement in the zone file will determine the origin.
+    :type origin: :py:class:`dns.name.Name`, str, or ``None``
+    :param rdclass: The zone's rdata class; the default is class IN.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+    :param bool relativize: Whether domain names are relativized to the
+        zone's origin.  The default is ``True``.
+    :param zone_factory: The zone factory to use.  If ``None``, then
+        :py:class:`dns.zone.Zone` will be used.  The value may be any class
+        or callable that returns a subclass of :py:class:`dns.zone.Zone`.
+    :param filename: The filename to emit when describing where an error
+        occurred; the default is ``'<string>'``.
+    :type filename: str or ``None``
+    :param bool allow_include: If ``True`` (the default), then ``$INCLUDE``
+        directives are permitted.  If ``False``, then encountering a
+        ``$INCLUDE`` will raise a :py:exc:`SyntaxError`.
+    :param bool check_origin: If ``True`` (the default), then sanity checks
+        of the origin node will be made by calling
+        :py:meth:`dns.zone.Zone.check_origin`.
+    :param idna_codec: The IDNA encoder/decoder.  If ``None``, the default
+        IDNA encoder/decoder is used.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param allow_directives: If ``True`` (the default), directives are
+        permitted and *allow_include* controls ``$INCLUDE``.  If ``False``
+        or an empty iterable, no directive processing is done.  If a
+        non-empty iterable, only the listed directives (including the ``$``)
+        are allowed.
+    :type allow_directives: bool or Iterable[str]
+    :raises dns.zone.NoSOA: if there is no SOA RRset.
+    :raises dns.zone.NoNS: if there is no NS RRset.
+    :raises KeyError: if there is no origin node.
+    :returns: A subclass of :py:class:`dns.zone.Zone`.
     """
     return _from_text(
         text,
@@ -1436,51 +1373,40 @@ def from_file(
 ) -> Zone:
     """Read a zone file and build a zone object.
 
-    *f*, a file or ``str``.  If *f* is a string, it is treated
-    as the name of a file to open.
-
-    *origin*, a ``dns.name.Name``, a ``str``, or ``None``.  The origin
-    of the zone; if not specified, the first ``$ORIGIN`` statement in the
-    zone file will determine the origin of the zone.
-
-    *rdclass*, an ``int``, the zone's rdata class; the default is class IN.
-
-    *relativize*, a ``bool``, determine's whether domain names are
-    relativized to the zone's origin.  The default is ``True``.
-
-    *zone_factory*, the zone factory to use or ``None``.  If ``None``, then
-    ``dns.zone.Zone`` will be used.  The value may be any class or callable
-    that returns a subclass of ``dns.zone.Zone``.
-
-    *filename*, a ``str`` or ``None``, the filename to emit when
-    describing where an error occurred; the default is ``'<string>'``.
-
-    *allow_include*, a ``bool``.  If ``True``, the default, then ``$INCLUDE``
-    directives are permitted.  If ``False``, then encoutering a ``$INCLUDE``
-    will raise a ``SyntaxError`` exception.
-
-    *check_origin*, a ``bool``.  If ``True``, the default, then sanity
-    checks of the origin node will be made by calling the zone's
-    ``check_origin()`` method.
-
-    *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
-    encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
-    is used.
-
-    *allow_directives*, a ``bool`` or an iterable of `str`.  If ``True``, the default,
-    then directives are permitted, and the *allow_include* parameter controls whether
-    ``$INCLUDE`` is permitted.  If ``False`` or an empty iterable, then no directive
-    processing is done and any directive-like text will be treated as a regular owner
-    name.  If a non-empty iterable, then only the listed directives (including the
-    ``$``) are allowed.
-
-    Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
-
-    Raises ``dns.zone.NoNS`` if there is no NS RRset.
-
-    Raises ``KeyError`` if there is no origin node.
-
-    Returns a subclass of ``dns.zone.Zone``.
+    :param f: A file object or a ``str`` filename.  If a string, it is
+        treated as the name of a file to open.
+    :param origin: The origin of the zone.  If not specified, the first
+        ``$ORIGIN`` statement in the zone file will determine the origin.
+    :type origin: :py:class:`dns.name.Name`, str, or ``None``
+    :param rdclass: The zone's rdata class; the default is class IN.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass`
+    :param bool relativize: Whether domain names are relativized to the
+        zone's origin.  The default is ``True``.
+    :param zone_factory: The zone factory to use.  If ``None``, then
+        :py:class:`dns.zone.Zone` will be used.  The value may be any class
+        or callable that returns a subclass of :py:class:`dns.zone.Zone`.
+    :param filename: The filename to emit when describing where an error
+        occurred; the default is ``'<string>'``.
+    :type filename: str or ``None``
+    :param bool allow_include: If ``True`` (the default), then ``$INCLUDE``
+        directives are permitted.  If ``False``, then encountering a
+        ``$INCLUDE`` will raise a :py:exc:`SyntaxError`.
+    :param bool check_origin: If ``True`` (the default), then sanity checks
+        of the origin node will be made by calling
+        :py:meth:`dns.zone.Zone.check_origin`.
+    :param idna_codec: The IDNA encoder/decoder.  If ``None``, the default
+        IDNA encoder/decoder is used.
+    :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+    :param allow_directives: If ``True`` (the default), directives are
+        permitted and *allow_include* controls ``$INCLUDE``.  If ``False``
+        or an empty iterable, no directive processing is done.  If a
+        non-empty iterable, only the listed directives (including the ``$``)
+        are allowed.
+    :type allow_directives: bool or Iterable[str]
+    :raises dns.zone.NoSOA: if there is no SOA RRset.
+    :raises dns.zone.NoNS: if there is no NS RRset.
+    :raises KeyError: if there is no origin node.
+    :returns: A subclass of :py:class:`dns.zone.Zone`.
     """
 
     if isinstance(f, str):
@@ -1513,27 +1439,21 @@ def from_xfr(
 ) -> Zone:
     """Convert the output of a zone transfer generator into a zone object.
 
-    *xfr*, a generator of ``dns.message.Message`` objects, typically
-    ``dns.query.xfr()``.
-
-    *relativize*, a ``bool``, determine's whether domain names are
-    relativized to the zone's origin.  The default is ``True``.
-    It is essential that the relativize setting matches the one specified
-    to the generator.
-
-    *check_origin*, a ``bool``.  If ``True``, the default, then sanity
-    checks of the origin node will be made by calling the zone's
-    ``check_origin()`` method.
-
-    Raises ``dns.zone.NoSOA`` if there is no SOA RRset.
-
-    Raises ``dns.zone.NoNS`` if there is no NS RRset.
-
-    Raises ``KeyError`` if there is no origin node.
-
-    Raises ``ValueError`` if no messages are yielded by the generator.
-
-    Returns a subclass of ``dns.zone.Zone``.
+    :param xfr: A generator of :py:class:`dns.message.Message` objects,
+        typically from :py:func:`dns.query.xfr`.
+    :param zone_factory: The zone factory to use.  If ``None``, then
+        :py:class:`dns.zone.Zone` will be used.
+    :param bool relativize: Whether domain names are relativized to the
+        zone's origin.  The default is ``True``.  It is essential that this
+        setting matches the one specified to the generator.
+    :param bool check_origin: If ``True`` (the default), then sanity checks
+        of the origin node will be made by calling
+        :py:meth:`dns.zone.Zone.check_origin`.
+    :raises dns.zone.NoSOA: if there is no SOA RRset.
+    :raises dns.zone.NoNS: if there is no NS RRset.
+    :raises KeyError: if there is no origin node.
+    :raises ValueError: if no messages are yielded by the generator.
+    :returns: A subclass of :py:class:`dns.zone.Zone`.
     """
 
     z = None

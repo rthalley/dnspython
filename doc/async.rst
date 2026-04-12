@@ -3,9 +3,9 @@
 Asynchronous I/O Support
 ========================
 
-The ``dns.asyncquery`` and ``dns.asyncresolver`` modules offer
-asynchronous APIs equivalent to those of ``dns.query`` and
-``dns.resolver``.
+The :py:mod:`dns.asyncquery` and :py:mod:`dns.asyncresolver` modules offer
+asynchronous APIs equivalent to those of :py:mod:`dns.query` and
+:py:mod:`dns.resolver`.
 
 Dnspython presents a uniform API, but offers two different backend
 implementations, to support the Trio and asyncio libraries.

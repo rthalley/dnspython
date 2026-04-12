@@ -72,15 +72,11 @@ class IntEnum(enum.IntEnum):
     def make(cls: type[TIntEnum], value: int | str) -> TIntEnum:
         """Convert text or a value into an enumerated type, if possible.
 
-        *value*, the ``int`` or ``str`` to convert.
-
-        Raises a class-specific exception if a ``str`` is provided that
-        cannot be converted.
-
-        Raises ``ValueError`` if the value is out of range.
-
-        Returns an enumeration from the calling class corresponding to the
-        value, if one is defined, or an ``int`` otherwise.
+        :param value: The value to convert.
+        :type value: int or str
+        :raises ValueError: If the value is out of range.
+        :returns: An enumeration from the calling class corresponding to the
+            value, if one is defined, or an ``int`` otherwise.
         """
 
         if isinstance(value, str):

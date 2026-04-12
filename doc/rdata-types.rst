@@ -8,8 +8,8 @@ datum is called an *rdata*.  The type of an rdata is specified by its
 *rdataclass* and *rdatatype*.  The class is almost always `IN`, the Internet
 class, and may often be omitted in the dnspython APIs.
 
-The ``dns.rdataclass`` module provides constants for each defined
-rdata class, as well as some helpful functions.  The ``dns.rdatatype``
+The :py:mod:`dns.rdataclass` module provides constants for each defined
+rdata class, as well as some helpful functions.  The :py:mod:`dns.rdatatype`
 module does the same for rdata types.  Examples of the constants are::
 
   dns.rdataclass.IN

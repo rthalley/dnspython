@@ -66,11 +66,9 @@ def from_text(text: str) -> RdataClass:
 
     For example, "IN" and "CLASS1" will both result in a value of 1.
 
-    Raises ``dns.rdatatype.UnknownRdataclass`` if the class is unknown.
-
-    Raises ``ValueError`` if the rdata class value is not >= 0 and <= 65535.
-
-    Returns a ``dns.rdataclass.RdataClass``.
+    :raises dns.rdataclass.UnknownRdataclass: If the class is unknown.
+    :raises ValueError: If the rdata class value is not >= 0 and <= 65535.
+    :rtype: :py:class:`dns.rdataclass.RdataClass`
     """
 
     return RdataClass.from_text(text)
@@ -82,9 +80,8 @@ def to_text(value: RdataClass) -> str:
     If the value has a known mnemonic, it will be used, otherwise the
     DNS generic class syntax will be used.
 
-    Raises ``ValueError`` if the rdata class value is not >= 0 and <= 65535.
-
-    Returns a ``str``.
+    :raises ValueError: If the rdata class value is not >= 0 and <= 65535.
+    :rtype: str
     """
 
     return RdataClass.to_text(value)
@@ -95,7 +92,8 @@ def is_metaclass(rdclass: RdataClass) -> bool:
 
     The currently defined metaclasses are ANY and NONE.
 
-    *rdclass* is a ``dns.rdataclass.RdataClass``.
+    :param rdclass: The rdata class to check.
+    :type rdclass: :py:class:`dns.rdataclass.RdataClass`
     """
 
     if rdclass in _metaclasses:

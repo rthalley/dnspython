@@ -5,12 +5,12 @@
 ======================
 
 All Rdata objects are instances of some subclass of
-``dns.rdata.Rdata``, and are immutable.  The Rdata factory functions
+:py:class:`dns.rdata.Rdata`, and are immutable.  The Rdata factory functions
 described in :ref:`rdata-make` will create objects which are instances
 of the most appropriate subclass.  For example, a AAAA record will be
-an instance of the ``dns.rdtypes.IN.AAAA`` class, but a record of
+an instance of the :py:class:`dns.rdtypes.IN.AAAA.AAAA` class, but a record of
 TYPE12345, which we don't know anything specific about, will be an
-instance of ``dns.rdata.GenericRdata``.
+instance of :py:class:`dns.rdata.GenericRdata`.
 
 Rdata of the same type and class are ordered.  For rdata that do not
 contain domain names, or which contain absolute domain names, the
