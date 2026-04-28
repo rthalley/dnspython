@@ -59,6 +59,14 @@ class OptionType(dns.enum.IntEnum):
     EDE = 15
     #: REPORTCHANNEL
     REPORTCHANNEL = 18
+    #: EDE-EXTRA-TEXT-LANGUAGE (Extended DNS Error EXTRA-TEXT language)
+    EDE_EXTRA_TEXT_LANGUAGE = 22
+    #: FILTERING-CONTACT
+    FILTERING_CONTACT = 23
+    #: FILTERING-ORGANIZATION
+    FILTERING_ORGANIZATION = 24
+    #: FILTERING-DB
+    FILTERING_DB = 25
 
     @classmethod
     def _maximum(cls):
@@ -505,12 +513,140 @@ class ReportChannelOption(Option):
         return cls(parser.get_name())
 
 
+class EDEExtraTextLanguageOption(Option):
+    """Extended DNS Error EXTRA-TEXT language (EDE-EXTRA-TEXT-LANGUAGE)"""
+
+    def __init__(self, language: str):
+        """Initialize an EDEExtraTextLanguageOption.
+
+        :param language: The language of EXTRA-TEXT in the EDE option.
+        :type language: str
+        """
+
+        super().__init__(OptionType.EDE_EXTRA_TEXT_LANGUAGE)
+        self.language = language
+
+    def to_wire(self, file: Any = None) -> bytes | None:
+        if file:
+            file.write(self.language.encode("utf8"))
+            return None
+        else:
+            return self.language
+
+    def to_text(self) -> str:
+        return f"EDE-EXTRA-TEXT-LANGUAGE {self.language}"
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: OptionType | str, parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_remaining().decode("utf8"))
+
+
+class FilteringContactOption(Option):
+    """Filtering contact (FILTERING-CONTACT)"""
+
+    def __init__(self, contact: str):
+        """Initialize a FilteringContactOption.
+
+        :param contact: A filtering contact URI as a string.
+        :type contact: str
+        """
+
+        super().__init__(OptionType.FILTERING_CONTACT)
+        self.contact = contact
+
+    def to_wire(self, file: Any = None) -> bytes | None:
+        if file:
+            file.write(self.contact.encode("utf8"))
+            return None
+        else:
+            return self.contact
+
+    def to_text(self) -> str:
+        return f"FILTERING-CONTACT {self.contact}"
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: OptionType | str, parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_remaining().decode("utf8"))
+
+
+class FilteringOrganizationOption(Option):
+    """Filtering organization (FILTERING-ORGANIZATION)"""
+
+    def __init__(self, organization: str):
+        """Initialize a FilteringOrganizationOption.
+
+        :param organization: The filtering organization.
+        :type organization: str
+        """
+
+        super().__init__(OptionType.FILTERING_ORGANIZATION)
+        self.organization = organization
+
+    def to_wire(self, file: Any = None) -> bytes | None:
+        if file:
+            file.write(self.organization.encode("utf8"))
+            return None
+        else:
+            return self.organization
+
+    def to_text(self) -> str:
+        return f"FILTERING-ORGANIZATION {self.organization}"
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: OptionType | str, parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_remaining().decode("utf8"))
+
+
+class FilteringDBOption(Option):
+    """Filtering DB (FILTERING-DB)"""
+
+    def __init__(self, db: str):
+        """Initialize a FilteringDBOption.
+
+        :param db: The filtering database containing the identifier,
+                   name, or description of the filtering database
+                   against which a matched query caused the filtering to
+                   occur.
+        :type db: str
+
+        """
+
+        super().__init__(OptionType.FILTERING_DB)
+        self.db = db
+
+    def to_wire(self, file: Any = None) -> bytes | None:
+        if file:
+            file.write(self.db.encode("utf8"))
+            return None
+        else:
+            return self.db
+
+    def to_text(self) -> str:
+        return f"FILTERING-DB {self.db}"
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: OptionType | str, parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_remaining().decode("utf8"))
+
+
 _type_to_class: dict[OptionType, Any] = {
     OptionType.ECS: ECSOption,
     OptionType.EDE: EDEOption,
     OptionType.NSID: NSIDOption,
     OptionType.COOKIE: CookieOption,
     OptionType.REPORTCHANNEL: ReportChannelOption,
+    OptionType.EDE_EXTRA_TEXT_LANGUAGE: EDEExtraTextLanguageOption,
+    OptionType.FILTERING_CONTACT: FilteringContactOption,
+    OptionType.FILTERING_ORGANIZATION: FilteringOrganizationOption,
+    OptionType.FILTERING_DB: FilteringDBOption,
 }
 
 
@@ -588,5 +724,9 @@ PADDING = OptionType.PADDING
 CHAIN = OptionType.CHAIN
 EDE = OptionType.EDE
 REPORTCHANNEL = OptionType.REPORTCHANNEL
+EDE_EXTRA_TEXT_LANGUAGE = OptionType.EDE_EXTRA_TEXT_LANGUAGE
+FILTERING_CONTACT = OptionType.FILTERING_CONTACT
+FILTERING_ORGANIZATION = OptionType.FILTERING_ORGANIZATION
+FILTERING_DB = OptionType.FILTERING_DB
 
 ### END generated OptionType constants
