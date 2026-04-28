@@ -266,6 +266,66 @@ class OptionTestCase(unittest.TestCase):
         )
         self.assertEqual(opt2.agent_domain, agent_domain)
 
+    def testEDEExtraTextLanguageOption(self):
+        language = "en"
+        expected_wire = bytes(language, "utf8")
+        opt = dns.edns.EDEExtraTextLanguageOption(language)
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, expected_wire)
+        self.assertEqual(str(opt), "EDE-EXTRA-TEXT-LANGUAGE en")
+        opt2 = dns.edns.option_from_wire(
+            dns.edns.OptionType.EDE_EXTRA_TEXT_LANGUAGE,
+            expected_wire, 0, len(expected_wire)
+        )
+        self.assertEqual(opt2.language, language)
+
+    def testFilteringContactOption(self):
+        contact = "mailto:support@example.com"
+        expected_wire = bytes(contact, "utf8")
+        opt = dns.edns.FilteringContactOption(contact)
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, expected_wire)
+        self.assertEqual(str(opt), "FILTERING-CONTACT mailto:support@example.com")
+        opt2 = dns.edns.option_from_wire(
+            dns.edns.OptionType.FILTERING_CONTACT,
+            expected_wire, 0, len(expected_wire)
+        )
+        self.assertEqual(opt2.contact, contact)
+
+    def testFilteringOrganizationOption(self):
+        organization = "The Example Organization"
+        expected_wire = bytes(organization, "utf8")
+        opt = dns.edns.FilteringOrganizationOption(organization)
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, expected_wire)
+        self.assertEqual(str(opt), "FILTERING-ORGANIZATION The Example Organization")
+        opt2 = dns.edns.option_from_wire(
+            dns.edns.OptionType.FILTERING_ORGANIZATION,
+            expected_wire, 0, len(expected_wire)
+        )
+        self.assertEqual(opt2.organization, organization)
+
+    def testFilteringDBOption(self):
+        db = "Government Anti-Piracy Policies #1"
+        expected_wire = b"Government Anti-Piracy Policies #1"
+        opt = dns.edns.FilteringDBOption(db)
+        io = BytesIO()
+        opt.to_wire(io)
+        data = io.getvalue()
+        self.assertEqual(data, expected_wire)
+        self.assertEqual(str(opt), "FILTERING-DB Government Anti-Piracy Policies #1")
+        opt2 = dns.edns.option_from_wire(
+            dns.edns.OptionType.FILTERING_DB,
+            expected_wire, 0, len(expected_wire)
+        )
+        self.assertEqual(opt2.db, db)
+
     def test_option_registration(self):
         U32OptionType = 9999
 
@@ -312,3 +372,7 @@ class OptionTestCase(unittest.TestCase):
 
         generic = dns.edns.GenericOption(12345, "foo")
         assert generic.to_generic() is generic
+
+
+if __name__ == "__main__":
+    unittest.main()
