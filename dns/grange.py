@@ -66,5 +66,6 @@ def from_text(text: str) -> tuple[int, int, int]:
     assert start >= 0
     if start > stop:
         raise dns.exception.SyntaxError("start must be <= stop")
-
+    if (stop - start) // step > 65535:
+        raise dns.exception.SyntaxError("$GENERATE range too large (max 65535 records)")
     return (start, stop, step)
