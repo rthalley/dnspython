@@ -79,13 +79,13 @@ class AlreadyEnded(dns.exception.DNSException):
     """Tried to use an already-ended transaction."""
 
 
-def _ensure_immutable_rdataset(rdataset):
+def _ensure_immutable_rdataset(rdataset) -> dns.rdataset.ImmutableRdataset | None:
     if rdataset is None or isinstance(rdataset, dns.rdataset.ImmutableRdataset):
         return rdataset
     return dns.rdataset.ImmutableRdataset(rdataset)
 
 
-def _ensure_immutable_node(node):
+def _ensure_immutable_node(node) -> dns.node.ImmutableNode | None:
     if node is None or node.is_immutable():
         return node
     return dns.node.ImmutableNode(node)
@@ -129,7 +129,7 @@ class Transaction:
         name: dns.name.Name | str | None,
         rdtype: dns.rdatatype.RdataType | str,
         covers: dns.rdatatype.RdataType | str = dns.rdatatype.NONE,
-    ) -> dns.rdataset.Rdataset:
+    ) -> dns.rdataset.Rdataset | None:
         """Return the rdataset associated with *name*, *rdtype*, and *covers*,
         or ``None`` if not found.
 

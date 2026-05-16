@@ -1016,6 +1016,8 @@ def sign_zone(
                     dnskey_ttl = dnskey.ttl
                 else:
                     soa = _txn.get(zone.origin, dns.rdatatype.SOA)
+                    if soa is None:
+                        raise ValueError("zone does not have an SOA at the origin")
                     dnskey_ttl = soa.ttl
             for _, dnskey in keys:
                 _txn.add(zone.origin, dnskey_ttl, dnskey)

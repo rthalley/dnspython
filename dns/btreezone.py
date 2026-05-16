@@ -210,7 +210,9 @@ class WritableVersion(dns.zone.WritableVersion):
         if not replacement:
             assert isinstance(zone, dns.versioned.Zone)
             version = zone._versions[-1]
-            self.nodes: dns.btree.BTreeDict[dns.name.Name, Node] = dns.btree.BTreeDict(
+            self.nodes: dns.btree.BTreeDict[dns.name.Name, Node] = dns.btree.BTreeDict[
+                dns.name.Name, Node
+            ](
                 original=version.nodes  # type: ignore
             )
             self.delegations = Delegations(original=version.delegations)  # type: ignore
