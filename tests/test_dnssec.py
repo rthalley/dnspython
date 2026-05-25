@@ -1251,7 +1251,7 @@ class DNSSECMakeDSTestCase(unittest.TestCase):
                 with self.assertRaises(dns.exception.SyntaxError) as cm:
                     dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.CDS, record)
                 # we don't test the message because it varies between pre=3.15 and 3.15
-                #self.assertEqual(msg, str(cm.exception))
+                # self.assertEqual(msg, str(cm.exception))
 
     def testMakeCDS(self):  # type: () -> None
         name = dns.name.from_text("example.com")

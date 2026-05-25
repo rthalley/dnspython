@@ -277,7 +277,9 @@ class OptionTestCase(unittest.TestCase):
         self.assertEqual(str(opt), "EDE-EXTRA-TEXT-LANGUAGE en")
         opt2 = dns.edns.option_from_wire(
             dns.edns.OptionType.EDE_EXTRA_TEXT_LANGUAGE,
-            expected_wire, 0, len(expected_wire)
+            expected_wire,
+            0,
+            len(expected_wire),
         )
         self.assertEqual(opt2.language, language)
 
@@ -291,8 +293,7 @@ class OptionTestCase(unittest.TestCase):
         self.assertEqual(data, expected_wire)
         self.assertEqual(str(opt), "FILTERING-CONTACT mailto:support@example.com")
         opt2 = dns.edns.option_from_wire(
-            dns.edns.OptionType.FILTERING_CONTACT,
-            expected_wire, 0, len(expected_wire)
+            dns.edns.OptionType.FILTERING_CONTACT, expected_wire, 0, len(expected_wire)
         )
         self.assertEqual(opt2.contact, contact)
 
@@ -307,7 +308,9 @@ class OptionTestCase(unittest.TestCase):
         self.assertEqual(str(opt), "FILTERING-ORGANIZATION The Example Organization")
         opt2 = dns.edns.option_from_wire(
             dns.edns.OptionType.FILTERING_ORGANIZATION,
-            expected_wire, 0, len(expected_wire)
+            expected_wire,
+            0,
+            len(expected_wire),
         )
         self.assertEqual(opt2.organization, organization)
 
@@ -321,8 +324,7 @@ class OptionTestCase(unittest.TestCase):
         self.assertEqual(data, expected_wire)
         self.assertEqual(str(opt), "FILTERING-DB Government Anti-Piracy Policies #1")
         opt2 = dns.edns.option_from_wire(
-            dns.edns.OptionType.FILTERING_DB,
-            expected_wire, 0, len(expected_wire)
+            dns.edns.OptionType.FILTERING_DB, expected_wire, 0, len(expected_wire)
         )
         self.assertEqual(opt2.db, db)
 

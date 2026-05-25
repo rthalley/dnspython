@@ -539,7 +539,7 @@ class EDEExtraTextLanguageOption(Option):
             file.write(self.language.encode("utf8"))
             return None
         else:
-            return self.language
+            return self.language.encode()
 
     def to_text(self) -> str:
         return f"EDE-EXTRA-TEXT-LANGUAGE {self.language}"
@@ -569,7 +569,7 @@ class FilteringContactOption(Option):
             file.write(self.contact.encode("utf8"))
             return None
         else:
-            return self.contact
+            return self.contact.encode()
 
     def to_text(self) -> str:
         return f"FILTERING-CONTACT {self.contact}"
@@ -599,7 +599,7 @@ class FilteringOrganizationOption(Option):
             file.write(self.organization.encode("utf8"))
             return None
         else:
-            return self.organization
+            return self.organization.encode()
 
     def to_text(self) -> str:
         return f"FILTERING-ORGANIZATION {self.organization}"
@@ -633,7 +633,7 @@ class FilteringDBOption(Option):
             file.write(self.db.encode("utf8"))
             return None
         else:
-            return self.db
+            return self.db.encode()
 
     def to_text(self) -> str:
         return f"FILTERING-DB {self.db}"

@@ -268,7 +268,6 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_invalid_inputs(invalid_inputs)
 
-
     def test_svcb_unknown(self):
         valid_inputs_one_key = (
             '1 . key23="key45"',
