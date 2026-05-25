@@ -45,6 +45,18 @@ will create a :py:class:`dns.edns.ECSOption` object to represent it.
 .. autoclass:: dns.edns.ReportChannelOption
    :members:
 
+.. autoclass:: dns.edns.EDEExtraTextLanguageOption
+   :members:
+
+.. autoclass:: dns.edns.FilteringContactOption
+   :members:
+
+.. autoclass:: dns.edns.FilteringOrganizationOption
+   :members:
+
+.. autoclass:: dns.edns.FilteringDBOption
+   :members:
+
 .. autofunction:: dns.edns.get_option_class
 .. autofunction:: dns.edns.option_from_wire_parser
 .. autofunction:: dns.edns.option_from_wire
