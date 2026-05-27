@@ -18,10 +18,45 @@
 """A place to store TSIG keys."""
 
 import base64
+import re
 from typing import Any
-
+from pathlib import Path
 import dns.name
 import dns.tsig
+
+TSIG_KEY_FILE_RE = re.compile(
+    r"key\s*"
+    r'(?:"([^"]*)"'  # group 1: quoted name
+    r"|([^{\s]+))"  # group 2: unquoted name
+    r"\s*\{\s*"
+    r"(?:algorithm\s*"  # --- algorithm block (optional) ---
+    r'(?:"([^"]*)"'  # group 3: quoted algo
+    r"|([^;\s}]+))"  # group 4: unquoted algo
+    r"\s*;\s*)?"  # --- end optional block ---
+    r"secret\s*"
+    r'(?:"([^"]*)"'  # group 5: quoted secret
+    r"|([^;\s}]+))"  # group 6: unquoted secret
+    r"\s*;?\s*\}?"
+)
+
+
+def from_file(key_file: str) -> dict[dns.name.Name, Any]:
+    """Open a tsig key file generate by tsig-keygen
+    and parse to retrieve key, algo and secret
+    @rtype: dict"""
+
+    content = Path(key_file).read_text().replace("\n", "").strip()
+
+    if m := TSIG_KEY_FILE_RE.match(content):
+        key_name = m.group(1) or m.group(2)
+        algorithm = m.group(3) or m.group(4)
+        secret = m.group(5) or m.group(6)
+        if algorithm:
+            return from_text({key_name: (algorithm, secret)})
+        else:
+            return from_text({key_name: secret})
+    else:
+        raise Exception(f"Error while parsing {key_file}")
 
 
 def from_text(textring: dict[str, Any]) -> dict[dns.name.Name, Any]:
