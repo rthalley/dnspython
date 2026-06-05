@@ -1495,6 +1495,7 @@ def _inbound_xfr(
     serial: int | None,
     timeout: float | None,
     expiration: float | None,
+    raise_on_serial_went_backwards: bool,
 ) -> Any:
     """Given a socket, does the zone transfer."""
     rdtype = query.question[0].rdtype
@@ -1507,7 +1508,7 @@ def _inbound_xfr(
     else:
         tcpmsg = struct.pack("!H", len(wire)) + wire
         _net_write(s, tcpmsg, expiration)
-    with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
+    with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp, raise_on_serial_went_backwards) as inbound:
         done = False
         tsig_ctx = None
         r: dns.message.Message | None = None
@@ -1555,6 +1556,7 @@ def xfr(
     source_port: int = 0,
     serial: int = 0,
     use_udp: bool = False,
+    raise_on_serial_went_backwards: bool = True,
     keyalgorithm: dns.name.Name | str = dns.tsig.default_algorithm,
 ) -> Any:
     """Return a generator for the responses to a zone transfer.
@@ -1595,6 +1597,9 @@ def xfr(
     :type serial: int
     :param use_udp: If ``True``, use UDP (only meaningful for IXFR).
     :type use_udp: bool
+    :param raise_on_serial_went_backwards: If ``True`` and the IXFR response
+        has older SOA serial than queried, raise exception.
+    :type raise_on_serial_went_backwards: bool
     :param keyalgorithm: The TSIG algorithm to use.
     :type keyalgorithm: :py:class:`dns.name.Name` or str
     :returns: A generator of :py:class:`dns.message.Message` objects.
@@ -1646,7 +1651,7 @@ def xfr(
     sock_type = socket.SOCK_DGRAM if use_udp else socket.SOCK_STREAM
     with make_socket(af, sock_type, source) as s:
         _connect(s, destination, expiration)
-        yield from _inbound_xfr(tm, s, q, serial, timeout, expiration)
+        yield from _inbound_xfr(tm, s, q, serial, timeout, expiration, raise_on_serial_went_backwards)
 
 
 def inbound_xfr(
