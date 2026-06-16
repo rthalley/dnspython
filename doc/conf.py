@@ -42,7 +42,7 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "cryptography": ("https://cryptography.io/en/latest/", None)
+    "cryptography": ("https://cryptography.io/en/latest/", None),
 }
 
 nitpick_ignore = [
@@ -68,7 +68,7 @@ nitpick_ignore = [
     # socket module class (from dns.query sock parameters)
     ("py:class", "socket"),
     # External libraries not in intersphinx
-    ("py:class", "httpx.AsyncClient"),
+    ("py:class", "httpx2.AsyncClient"),
     ("py:class", "dns.quic.AsyncQuicConnection"),
 ]
 

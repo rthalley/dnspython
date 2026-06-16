@@ -72,7 +72,7 @@ TBD
   currently dns.message.CopyMode.QUESTION for all opcodes.
 
 * If an IP address is used as the hostname in a URL, the https query code now passes
-  the sni_hostname to httpx as this is required to get httpx to validate the certificate
+  the sni_hostname to httpx2 as this is required to get httpx2 to validate the certificate
   and check for an IP subject alternative name.
 
 * The minimum supported aioquic version is now 1.0.0.
@@ -101,7 +101,7 @@ TBD
 
 * Dnspython now looks for version metadata for optional packages and will not
   use them if they are too old.  This prevents possible exceptions when a
-  feature like DoH is not desired in dnspython, but an old httpx is installed
+  feature like DoH is not desired in dnspython, but an old httpx2 is installed
   along with dnspython for some other purpose.
 
 * The DoHNameserver class now allows GET to be used instead of the default POST,
@@ -197,8 +197,8 @@ TBD
 
 * The DNS-over-HTTPS bootstrap address no longer causes URL rewriting.
 
-* DNS-over-HTTPS now only uses httpx; support for requests has been dropped.  A source
-  port may now be supplied when using httpx.
+* DNS-over-HTTPS now only uses httpx2; support for requests has been dropped.  A source
+  port may now be supplied when using httpx2.
 
 * DNSSEC zone signing with NSEC records is now supported. Thank you
   very much (again!) Jakob Schlyter!
@@ -292,7 +292,7 @@ This release has no new features, but fixes the following issues:
   an error trace like the NoNameservers exception.  This class is a subclass of
   dns.exception.Timeout for backwards compatibility.
 
-* DNS-over-HTTPS will try to use HTTP/2 if the httpx and h2 packages
+* DNS-over-HTTPS will try to use HTTP/2 if the httpx2 and h2 packages
   are installed.
 
 * DNS-over-HTTPS is now supported for asynchronous queries and resolutions.

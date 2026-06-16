@@ -57,7 +57,7 @@ except ImportError:
     import dns._no_ssl as ssl  # pyright: ignore
 
 if have_doh:
-    import httpx
+    import httpx2
 
 # for brevity
 _lltuple = dns.inet.low_level_address_tuple
@@ -540,7 +540,7 @@ async def https(
     source_port: int = 0,  # pylint: disable=W0613
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    client: "httpx.AsyncClient|dns.quic.AsyncQuicConnection | None" = None,
+    client: "httpx2.AsyncClient|dns.quic.AsyncQuicConnection | None" = None,
     path: str = "/dns-query",
     post: bool = True,
     verify: bool | str | ssl.SSLContext = True,
@@ -553,8 +553,8 @@ async def https(
 
     :param client: If provided, the client to use for the query. Unlike the
         other dnspython async functions, a backend cannot be provided here
-        because httpx always auto-detects the async backend.
-    :type client: ``httpx.AsyncClient`` or ``None``
+        because httpx2 always auto-detects the async backend.
+    :type client: ``httpx2.AsyncClient`` or ``None``
 
     See :py:func:`dns.query.https()` for the documentation of the other
     parameters, exceptions, and return type of this method.
@@ -617,8 +617,8 @@ async def https(
     if not have_doh:
         raise NoDOH  # pragma: no cover
     # pylint: disable=possibly-used-before-assignment
-    if client and not isinstance(client, httpx.AsyncClient):  # pyright: ignore
-        raise ValueError("client parameter must be an httpx.AsyncClient")
+    if client and not isinstance(client, httpx2.AsyncClient):  # pyright: ignore
+        raise ValueError("client parameter must be an httpx2.AsyncClient")
     # pylint: enable=possibly-used-before-assignment
 
     wire = q.to_wire()
@@ -650,7 +650,7 @@ async def https(
             family=family,
         )
 
-        cm = httpx.AsyncClient(  # pyright: ignore
+        cm = httpx2.AsyncClient(  # pyright: ignore
             http1=h1, http2=h2, verify=verify, transport=transport  # type: ignore
         )
 
@@ -675,7 +675,7 @@ async def https(
             )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
-            twire = wire.decode()  # httpx does a repr() if we give it bytes
+            twire = wire.decode()  # httpx2 does a repr() if we give it bytes
             response = await backend.wait_for(
                 the_client.get(  # pyright: ignore
                     url,
