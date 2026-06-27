@@ -105,6 +105,9 @@ lint.ignore = [
 ]
 lint.exclude = ["tests/*"]
 
+[tool.black]
+target-version = ["py310"]
+
 [tool.isort]
 profile = "black"
 
