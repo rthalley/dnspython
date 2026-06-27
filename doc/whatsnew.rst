@@ -14,6 +14,11 @@ TBD
   only Python 3" update, also quite some time ago.  It is now renamed to "type"
   (again) so it matches the Python 3 code it is overriding.
 
+* dns.flags.to_text() and dns.flags.edns_to_text() no longer silently drop set
+  bits that have no named flag.  Such bits are now rendered as ``FLAGn``, where n
+  is the bit position, and dns.flags.from_text() / edns_from_text() parse that form
+  back, so the conversions round-trip.  See issue #1264.
+
 2.8.0
 -----
 

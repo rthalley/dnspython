@@ -54,15 +54,32 @@ def _from_text(text: str, enum_class: Any) -> int:
     flags = 0
     tokens = text.split()
     for t in tokens:
-        flags |= enum_class[t.upper()]
+        token = t.upper()
+        if token.startswith("FLAG") and token[4:].isdigit():
+            # An unnamed flag, rendered by _to_text() as FLAGn (see below).
+            flags |= 1 << int(token[4:])
+        else:
+            flags |= enum_class[token]
     return flags
 
 
 def _to_text(flags: int, enum_class: Any) -> str:
     text_flags = []
+    known = 0
     for k, v in enum_class.__members__.items():
+        known |= int(v)
         if flags & v != 0:
             text_flags.append(k)
+    # Render any set bits that do not have a named flag as FLAGn, where n is
+    # the bit position, so that they are not silently dropped. These tokens
+    # round-trip through _from_text().
+    unknown = flags & ~known
+    bit = 0
+    while unknown:
+        if unknown & 1:
+            text_flags.append(f"FLAG{bit}")
+        unknown >>= 1
+        bit += 1
     return " ".join(text_flags)
 
 
