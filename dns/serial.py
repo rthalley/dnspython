@@ -19,9 +19,6 @@ class Serial:
         return self.value == other.value
 
     def __hash__(self):
-        # hash(self.value) satisfies the contract that a == b implies
-        # hash(a) == hash(b): Serial(v, bits) compares equal to the int v
-        # (after modular reduction), so its hash must equal hash(v).
         return hash(self.value)
 
     def __ne__(self, other):
