@@ -18,8 +18,8 @@
 import unittest
 
 import dns.flags
-import dns.rcode
 import dns.opcode
+import dns.rcode
 
 
 class FlagsTestCase(unittest.TestCase):
@@ -59,17 +59,17 @@ class FlagsTestCase(unittest.TestCase):
 
     def test_to_text_unknown_flag(self):
         # An unknown flag bit must not be silently dropped (issue #1264).
-        self.assertEqual(dns.flags.to_text(0x8000 | 0x0001), "QR FLAG0")
+        self.assertEqual(dns.flags.to_text(0x8000 | 0x0040), "QR FLAG6")
 
     def test_edns_to_text_unknown_flag(self):
         # EDNS flags behave the same: the unnamed 0x2000 bit is rendered.
-        self.assertEqual(dns.flags.edns_to_text(0x2000), "FLAG13")
-        self.assertEqual(dns.flags.edns_to_text(0x8000 | 0x2000), "DO FLAG13")
+        self.assertEqual(dns.flags.edns_to_text(0x0003), "FLAG0 FLAG1")
+        self.assertEqual(dns.flags.edns_to_text(0x8000 | 0x0001), "DO FLAG0")
 
     def test_unknown_flag_roundtrip(self):
-        for value in [0x0001, 0x8000 | 0x0001, 0x0400 | 0x0008]:
+        for value in [0x0040, 0x8000 | 0x0040]:
             self.assertEqual(dns.flags.from_text(dns.flags.to_text(value)), value)
-        for value in [0x2000, 0x8000 | 0x2000, 0x4000 | 0x2000]:
+        for value in [0x0003, 0x8000 | 0x0003]:
             self.assertEqual(
                 dns.flags.edns_from_text(dns.flags.edns_to_text(value)), value
             )

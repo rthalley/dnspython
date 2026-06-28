@@ -50,6 +50,13 @@ class EDNSFlag(enum.IntFlag):
     CO = 0x4000
 
 
+# Flags Mask (excludes opcode and rcode)
+FLAGS_MASK = 0x87F0
+
+# EDNS Flags Mask (excludes extended rcode and version)
+EDNS_FLAGS_MASK = 0x0000FFFF
+
+
 def _from_text(text: str, enum_class: Any) -> int:
     flags = 0
     tokens = text.split()
@@ -100,7 +107,8 @@ def to_text(flags: int) -> str:
     :rtype: str
     """
 
-    return _to_text(flags, Flag)
+    # We & with 0xff0 to mask out rcode.
+    return _to_text(flags & FLAGS_MASK, Flag)
 
 
 def edns_from_text(text: str) -> int:
@@ -120,7 +128,7 @@ def edns_to_text(flags: int) -> str:
     :rtype: str
     """
 
-    return _to_text(flags, EDNSFlag)
+    return _to_text(flags & EDNS_FLAGS_MASK, EDNSFlag)
 
 
 ### BEGIN generated Flag constants
