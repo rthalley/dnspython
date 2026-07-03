@@ -19,6 +19,12 @@ TBD
   is the bit position, and dns.flags.from_text() / edns_from_text() parse that form
   back, so the conversions round-trip.  See issue #1264.
 
+* dns.ttl.from_text() now raises dns.ttl.BadTTL, rather than leaking a bare
+  ValueError, when the text contains a non-decimal Unicode "digit" (e.g. the
+  superscript ``\u00b2``).  Such characters are accepted by ``str.isdigit()`` but
+  rejected by ``int()``, so they previously escaped the parser's validation.  This
+  also makes zone files with such a TTL fail with a clean dns.exception.SyntaxError.
+
 2.8.0
 -----
 
