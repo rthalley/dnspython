@@ -42,3 +42,12 @@ class TTLTestCase(unittest.TestCase):
     def test_empty(self):
         with self.assertRaises(dns.ttl.BadTTL):
             dns.ttl.from_text("")
+
+    def test_non_decimal_unicode_digits(self):
+        # str.isdigit() is True for Unicode "digit" characters (e.g. the
+        # superscript "\u00b2" or the Ethiopic "\u1369") that int() cannot
+        # convert, so these must be rejected as a BadTTL rather than leaking a
+        # bare ValueError.
+        for text in ("\u00b2", "1\u00b2", "\u00b2w", "1\u00b2s", "\u1369"):
+            with self.assertRaises(dns.ttl.BadTTL):
+                dns.ttl.from_text(text)

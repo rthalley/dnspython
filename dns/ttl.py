@@ -42,7 +42,7 @@ def from_text(text: str) -> int:
     :rtype: int
     """
 
-    if text.isdigit():
+    if text.isdecimal():
         total = int(text)
     elif len(text) == 0:
         raise BadTTL
@@ -51,7 +51,7 @@ def from_text(text: str) -> int:
         current = 0
         need_digit = True
         for c in text:
-            if c.isdigit():
+            if c.isdecimal():
                 current *= 10
                 current += int(c)
                 need_digit = False
