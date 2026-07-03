@@ -238,6 +238,9 @@ class TokenizerTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer("200000")
             tok.get_uint16(base=8)
+        tok = dns.tokenizer.Tokenizer("ff")
+        v = tok.get_int(16)
+        self.assertEqual(v, 255)
 
     def testGetString(self):
         tok = dns.tokenizer.Tokenizer("foo")

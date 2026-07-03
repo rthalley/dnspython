@@ -36,9 +36,9 @@ def _validate_float_string(what):
         raise dns.exception.FormError
     if left == b"" and right == b"":
         raise dns.exception.FormError
-    if not left == b"" and not left.decode().isdigit():
+    if not left == b"" and not left.isdigit():
         raise dns.exception.FormError
-    if not right == b"" and not right.decode().isdigit():
+    if not right == b"" and not right.isdigit():
         raise dns.exception.FormError
 
 

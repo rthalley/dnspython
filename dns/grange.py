@@ -49,7 +49,7 @@ def from_text(text: str) -> tuple[int, int, int]:
             stop = int(cur)
             cur = ""
             state = 2
-        elif c.isdigit():
+        elif c.isdecimal():
             cur += c
         else:
             raise dns.exception.SyntaxError(f"Could not parse {c}")

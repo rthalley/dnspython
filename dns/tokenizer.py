@@ -114,7 +114,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdigit():
+                if c.isdecimal():
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -123,7 +123,7 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdigit() and c3.isdigit()):
+                    if not (c2.isdecimal() and c3.isdecimal()):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:
@@ -168,7 +168,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdigit():
+                if c.isdecimal():
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -177,7 +177,7 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdigit() and c3.isdigit()):
+                    if not (c2.isdecimal() and c3.isdecimal()):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:
@@ -631,9 +631,13 @@ class Tokenizer:
 
         if not token.is_identifier():
             raise dns.exception.SyntaxError("expecting an identifier")
-        if not token.value.isdigit():
+        try:
+            value = int(token.value, base)
+            if value < 0:
+                raise ValueError
+        except ValueError:
             raise dns.exception.SyntaxError("expecting an integer")
-        return int(token.value, base)
+        return value
 
     def as_uint8(self, token: Token) -> int:
         """Try to interpret the token as an unsigned 8-bit integer.

@@ -113,7 +113,7 @@ def _unescape(value: str) -> bytes:
                 raise dns.exception.UnexpectedEnd
             c = value[i]
             i += 1
-            if c.isdigit():
+            if c.isdecimal():
                 if i >= l:
                     raise dns.exception.UnexpectedEnd
                 c2 = value[i]
@@ -122,7 +122,7 @@ def _unescape(value: str) -> bytes:
                     raise dns.exception.UnexpectedEnd
                 c3 = value[i]
                 i += 1
-                if not (c2.isdigit() and c3.isdigit()):
+                if not (c2.isdecimal() and c3.isdecimal()):
                     raise dns.exception.SyntaxError
                 codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                 if codepoint > 255:

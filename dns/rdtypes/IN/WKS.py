@@ -60,14 +60,14 @@ class WKS(dns.rdata.Rdata):
     ):
         address = tok.get_string()
         protocol = tok.get_string()
-        if protocol.isdigit():
+        if protocol.isdecimal():
             protocol = int(protocol)
         else:
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
         for token in tok.get_remaining():
             value = token.unescape().value
-            if value.isdigit():
+            if value.isdecimal():
                 serv = int(value)
             else:
                 if protocol != _proto_udp and protocol != _proto_tcp:
