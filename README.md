@@ -17,8 +17,8 @@ classes perform queries for data of a given name, type, and class, and return an
 answer set. The low-level classes allow direct manipulation of DNS zones,
 messages, names, and records.
 
-To see a few of the ways `dnspython` can be used, look in the `examples/`
-directory.
+The module name for `dnspython` is `dns`.  To see a few of the ways `dnspython` can be
+used, look in the `examples/` directory.
 
 `dnspython` is a utility to work with DNS, `/etc/hosts` is thus not used. For
 simple forward DNS lookups, it's better to use `socket.getaddrinfo()` or
