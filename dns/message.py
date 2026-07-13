@@ -67,7 +67,7 @@ class BadEDNS(dns.exception.FormError):
 
 class BadTSIG(dns.exception.FormError):
     """A TSIG record occurred somewhere other than the end of
-    the additional data section."""
+    the additional data section or the class is not ANY."""
 
 
 class UnknownTSIGKey(dns.exception.DNSException):
