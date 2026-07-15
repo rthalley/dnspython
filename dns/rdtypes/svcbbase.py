@@ -82,20 +82,18 @@ def key_to_text(key):
     return ParamKey.to_text(key).replace("_", "-").lower()
 
 
-# Like rdata escapify, but escapes ',' too.
+# Escape the characters which are special in a comma-separated list; the
+# character-string escaping (dns.rdata._escapify) is applied on top of this.
 
-_escaped = b'",\\'
+_escaped = b",\\"
 
 
-def _escapify(qstring):
-    text = ""
+def _escapify(qstring: bytes) -> bytes:
+    text = b""
     for c in qstring:
         if c in _escaped:
-            text += "\\" + chr(c)
-        elif c >= 0x20 and c < 0x7F:
-            text += chr(c)
-        else:
-            text += f"\\{c:03d}"
+            text += b"\\"
+        text += b"%c" % (c)
     return text
 
 
@@ -257,8 +255,8 @@ class _StringList(Param):
         return cls(_split(_unescape(value)))
 
     def to_text(self):
-        value = ",".join([_escapify(id) for id in self.ids])
-        return '"' + dns.rdata._escapify(value.encode()) + '"'
+        value = b",".join([_escapify(id) for id in self.ids])
+        return '"' + dns.rdata._escapify(value) + '"'
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613

@@ -120,6 +120,46 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_invalid_inputs(invalid_inputs)
 
+    def test_svcb_alpn_escaping(self):
+        # Bytes outside 0x20-0x7e are escaped once, at the character-string
+        # level, as they don't need any escaping at the list level.
+        valid_inputs_non_printable = (
+            '1 . alpn="h\\0002,h3"',
+            "1 . alpn=h\\0002,h3",
+            "1 . key1=\\003h\\0002\\002h3",
+        )
+        self.check_valid_inputs(valid_inputs_non_printable)
+
+        valid_inputs_high_bit = (
+            '1 . alpn="\\255h2"',
+            "1 . alpn=\\255h2",
+            "1 . key1=\\003\\255h2",
+        )
+        self.check_valid_inputs(valid_inputs_high_bit)
+
+        valid_inputs_quote = (
+            '1 . alpn="h\\"2"',
+            "1 . alpn=h\\0342",
+            "1 . key1=\\003h\\0342",
+        )
+        self.check_valid_inputs(valid_inputs_quote)
+
+        # to_text() output must parse back to the same value, both from
+        # text and from wire.
+        for ids in (
+            (b"h\x002",),
+            (b"\xff", b"h2"),
+            (b"h,3", b"h\\3"),
+            (b'h"2',),
+            (b"h2", b"h3"),
+        ):
+            param = dns.rdtypes.svcbbase.ALPNParam(ids)
+            rr = dns.rdata.from_text("IN", "SVCB", "1 . alpn=" + param.to_text())
+            alpn = rr.params[dns.rdtypes.svcbbase.ParamKey.ALPN]
+            self.assertEqual(alpn.ids, ids)
+            rr2 = dns.rdata.from_text("IN", "SVCB", rr.to_generic().to_text())
+            self.assertEqual(rr2, rr)
+
     def test_svcb_no_default_alpn(self):
         valid_inputs = (
             '1 . alpn="h2" no-default-alpn',
@@ -268,6 +308,15 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_invalid_inputs(invalid_inputs)
 
+    def test_svcb_docpath_escaping(self):
+        # docpath shares ALPN's string list escaping.
+        valid_inputs = (
+            '1 . docpath="n\\000s,t"',
+            "1 . docpath=n\\000s,t",
+            "1 . key10=\\003n\\000s\\001t",
+        )
+        self.check_valid_inputs(valid_inputs)
+
     def test_svcb_unknown(self):
         valid_inputs_one_key = (
             '1 . key23="key45"',
@@ -340,8 +389,9 @@ class SVCBTestCase(unittest.TestCase):
 
     def test_misc_escape(self):
         rdata = dns.rdata.from_text("in", "svcb", "1 . alpn=\\010\\010")
-        expected = '1 . alpn="\\\\010\\\\010"'
+        expected = '1 . alpn="\\010\\010"'
         self.assertEqual(rdata.to_text(), expected)
+        self.assertEqual(dns.rdata.from_text("in", "svcb", expected), rdata)
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text("in", "svcb", "1 . alpn=\\0")
         with self.assertRaises(dns.exception.SyntaxError):

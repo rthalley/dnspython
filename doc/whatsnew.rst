@@ -25,6 +25,11 @@ TBD
   rejected by ``int()``, so they previously escaped the parser's validation.  This
   also makes zone files with such a TTL fail with a clean dns.exception.SyntaxError.
 
+* The to_text() of string-list SVCB parameters (alpn and docpath) escaped
+  non-printable bytes twice, rendering them as ``\\ddd`` instead of ``\ddd``,
+  so the output did not parse back to the original value.  Such bytes are now
+  escaped once, at the character-string level.
+
 2.8.0
 -----
 
