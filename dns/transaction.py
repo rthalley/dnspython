@@ -685,6 +685,7 @@ class TransactionLimiter(TransactionSetup):
     """
 
     def __init__(self, limit: int):
+        super().__init__()
         self.limit = limit
         self.changes: int = 0
 
