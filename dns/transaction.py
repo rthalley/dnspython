@@ -651,3 +651,18 @@ class Transaction:
     def _origin_information(self):
         # This is only used by _add()
         return self.manager.origin_information()
+
+
+class TransactionSetup:
+    """Abstract base class for additional transaction setup.
+
+    In code which supports it, the setup() method is called on writable transactions
+    just after the transaction is created and before it is used on zone data.  This
+    allows the caller to set additional transaction attributes, e.g. checking.
+    """
+
+    def __init__(self):
+        pass
+
+    def setup(self, txn: Transaction):
+        pass

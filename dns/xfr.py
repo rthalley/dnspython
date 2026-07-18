@@ -61,6 +61,7 @@ class Inbound:
         rdtype: dns.rdatatype.RdataType = dns.rdatatype.AXFR,
         serial: int | None = None,
         is_udp: bool = False,
+        transaction_setup: dns.transaction.TransactionSetup | None = None,
     ):
         """Initialize an inbound zone transfer.
 
@@ -73,6 +74,12 @@ class Inbound:
 
         :param is_udp: Whether UDP is being used for this XFR.
         :type is_udp: bool
+
+        :param transaction_setup: If not ``None``, call the object's setup()
+            method with the just-created writer transaction.  This lets the caller
+            alter the transaction's configuration before it is used, for example adding
+            checking policies.
+        :type transaction_setup: None or dns.transaction.TransactionSetup
         """
         self.txn_manager = txn_manager
         self.txn: dns.transaction.Transaction | None = None
@@ -97,6 +104,7 @@ class Inbound:
         self.done = False
         self.expecting_SOA = False
         self.delete_mode = False
+        self.transaction_setup = transaction_setup
 
     def process_message(self, message: dns.message.Message) -> bool:
         """Process one message in the transfer.
@@ -109,6 +117,8 @@ class Inbound:
         """
         if self.txn is None:
             self.txn = self.txn_manager.writer(not self.incremental)
+            if self.transaction_setup is not None:
+                self.transaction_setup.setup(self.txn)
         rcode = message.rcode()
         if rcode != dns.rcode.NOERROR:
             raise TransferError(rcode)
@@ -228,6 +238,8 @@ class Inbound:
                 self.delete_mode = False
                 self.txn.rollback()
                 self.txn = self.txn_manager.writer(True)
+                if self.transaction_setup is not None:
+                    self.transaction_setup.setup(self.txn)
                 #
                 # Note we are falling through into the code below
                 # so whatever rdataset this was gets written.
