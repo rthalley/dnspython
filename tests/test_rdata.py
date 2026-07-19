@@ -34,6 +34,7 @@ import dns.rdtypes.IN.A
 import dns.rdtypes.IN.AAAA
 import dns.rdtypes.IN.APL
 import dns.rdtypes.util
+import dns.rrset
 import dns.tokenizer
 import dns.ttl
 import dns.wire
@@ -1015,6 +1016,21 @@ class UtilTestCase(unittest.TestCase):
     def test_compressed_in_generic_is_bad(self):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.MX, r"\# 4 000aC000")
+
+    def test_LP_name_not_compressed(self):
+        # RFC 3597 section 4 requires that domain names in the RDATA of RR
+        # types not defined in RFC 1035 MUST NOT be compressed.  LP (RFC 6742)
+        # is such a type, so its FQDN must be emitted uncompressed.  The
+        # owner and FQDN differ only in case (name compression is
+        # case-insensitive) so a full label proves both that the name was
+        # not compressed and that its case was preserved.
+        rrs = dns.rrset.from_text("elsewhere.", 300, "in", "lp", "10 elseWhere.")
+        output = io.BytesIO()
+        compress = {}
+        rrs.to_wire(output, compress)
+        wire = output.getvalue()
+        self.assertFalse(wire.endswith(b"\xc0\x00"))
+        self.assertTrue(wire.endswith(b"\x09elseWhere\x00"))
 
     def test_rdataset_ttl_conversion(self):
         rds1 = dns.rdataset.from_text("in", "a", 300, "10.0.0.1")

@@ -33,7 +33,10 @@ class LP(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack("!H", self.preference))
-        self.fqdn.to_wire(file, compress, origin, canonicalize)
+        # LP is not an RFC 1035 type, so per RFC 3597 section 4 its FQDN is
+        # never compressed, and per RFC 4034 section 6.2 (as amended by RFC
+        # 6840 section 5.1) it is not downcased for the canonical form.
+        self.fqdn.to_wire(file, None, origin, False)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
