@@ -33,7 +33,7 @@ class LP(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack("!H", self.preference))
-        self.fqdn.to_wire(file, compress, origin, canonicalize)
+        self.fqdn.to_wire(file, None, origin, False)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
