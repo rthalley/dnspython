@@ -14,6 +14,7 @@ import dns.rdata
 import dns.renderer
 import dns.tokenizer
 import dns.wire
+from dns.rdtypes.svcbbase import _split, _unescape
 
 # Until there is an RFC, this module is experimental and may be changed in
 # incompatible ways.
@@ -94,80 +95,6 @@ def _validate_key(key):
 
 def key_to_text(key):
     return DelegInfoKey.to_text(key).replace("_", "-").lower()
-
-
-# Like rdata escapify, but escapes ',' too.
-
-_escaped = b'",\\'
-
-
-def _escapify(qstring):
-    text = ""
-    for c in qstring:
-        if c in _escaped:
-            text += "\\" + chr(c)
-        elif c >= 0x20 and c < 0x7F:
-            text += chr(c)
-        else:
-            text += f"\\{c:03d}"
-    return text
-
-
-def _unescape(value: str) -> bytes:
-    if value == "":
-        return b""
-    unescaped = b""
-    l = len(value)
-    i = 0
-    while i < l:
-        c = value[i]
-        i += 1
-        if c == "\\":
-            if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
-                raise dns.exception.UnexpectedEnd
-            c = value[i]
-            i += 1
-            if c.isdigit():
-                if i >= l:
-                    raise dns.exception.UnexpectedEnd
-                c2 = value[i]
-                i += 1
-                if i >= l:
-                    raise dns.exception.UnexpectedEnd
-                c3 = value[i]
-                i += 1
-                if not (c2.isdigit() and c3.isdigit()):
-                    raise dns.exception.SyntaxError
-                codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
-                if codepoint > 255:
-                    raise dns.exception.SyntaxError
-                unescaped += b"%c" % (codepoint)
-                continue
-        unescaped += c.encode()
-    return unescaped
-
-
-def _split(value):
-    l = len(value)
-    i = 0
-    items = []
-    unescaped = b""
-    while i < l:
-        c = value[i]
-        i += 1
-        if c == ord("\\"):
-            if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
-                raise dns.exception.UnexpectedEnd
-            c = value[i]
-            i += 1
-            unescaped += b"%c" % (c)
-        elif c == ord(","):
-            items.append(unescaped)
-            unescaped = b""
-        else:
-            unescaped += b"%c" % (c)
-    items.append(unescaped)
-    return items
 
 
 @dns.immutable.immutable
