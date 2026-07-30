@@ -1265,6 +1265,7 @@ def _from_text(
     check_origin: bool = True,
     idna_codec: dns.name.IDNACodec | None = None,
     allow_directives: bool | Iterable[str] = True,
+    transaction_setup: dns.transaction.TransactionSetup | None = None,
 ) -> Zone:
     # See the comments for the public APIs from_text() and from_file() for
     # details.
@@ -1277,6 +1278,8 @@ def _from_text(
         filename = "<string>"
     zone = zone_factory(origin, rdclass, relativize=relativize)
     with zone.writer(True) as txn:
+        if transaction_setup is not None:
+            transaction_setup.setup(txn)
         tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
         reader = dns.zonefile.Reader(
             tok,
@@ -1308,6 +1311,7 @@ def from_text(
     check_origin: bool = True,
     idna_codec: dns.name.IDNACodec | None = None,
     allow_directives: bool | Iterable[str] = True,
+    transaction_setup: dns.transaction.TransactionSetup | None = None,
 ) -> Zone:
     """Build a zone object from a zone file format string.
 
@@ -1340,6 +1344,11 @@ def from_text(
         non-empty iterable, only the listed directives (including the ``$``)
         are allowed.
     :type allow_directives: bool or Iterable[str]
+    :param transaction_setup: If not ``None``, call the object's setup()
+        method with the just-created writer transaction.  This lets the caller
+        alter the transaction's configuration before it is used, for example adding
+        checking policies.
+    :type transaction_setup: None or dns.transaction.TransactionSetup
     :raises dns.zone.NoSOA: if there is no SOA RRset.
     :raises dns.zone.NoNS: if there is no NS RRset.
     :raises KeyError: if there is no origin node.
@@ -1356,6 +1365,7 @@ def from_text(
         check_origin,
         idna_codec,
         allow_directives,
+        transaction_setup,
     )
 
 
@@ -1370,6 +1380,7 @@ def from_file(
     check_origin: bool = True,
     idna_codec: dns.name.IDNACodec | None = None,
     allow_directives: bool | Iterable[str] = True,
+    transaction_setup: dns.transaction.TransactionSetup | None = None,
 ) -> Zone:
     """Read a zone file and build a zone object.
 
@@ -1403,6 +1414,11 @@ def from_file(
         non-empty iterable, only the listed directives (including the ``$``)
         are allowed.
     :type allow_directives: bool or Iterable[str]
+    :param transaction_setup: If not ``None``, call the object's setup()
+        method with the just-created writer transaction.  This lets the caller
+        alter the transaction's configuration before it is used, for example adding
+        checking policies.
+    :type transaction_setup: None or dns.transaction.TransactionSetup
     :raises dns.zone.NoSOA: if there is no SOA RRset.
     :raises dns.zone.NoNS: if there is no NS RRset.
     :raises KeyError: if there is no origin node.
@@ -1427,6 +1443,7 @@ def from_file(
             check_origin,
             idna_codec,
             allow_directives,
+            transaction_setup,
         )
     assert False  # make mypy happy  lgtm[py/unreachable-statement]
 
