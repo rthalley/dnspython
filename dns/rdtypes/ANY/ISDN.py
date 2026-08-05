@@ -49,12 +49,12 @@ class ISDN(dns.rdata.Rdata):
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
     ):
-        address = tok.get_string()
+        address = tok.get_bytes(max_length=255)
         tokens = tok.get_remaining(max_tokens=1)
         if len(tokens) >= 1:
-            subaddress = tokens[0].unescape().value
+            subaddress = tokens[0].unescape_to_bytes().value
         else:
-            subaddress = ""
+            subaddress = b""
         return cls(rdclass, rdtype, address, subaddress)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
