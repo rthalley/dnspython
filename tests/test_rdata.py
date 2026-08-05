@@ -181,6 +181,58 @@ class RdataTestCase(unittest.TestCase):
         )
         self.assertEqual(str(rdata), '"foo\\226\\128\\139{bar"')
 
+    def test_uri_to_text_escapes_target(self):
+        # A URI target from the wire may contain arbitrary octets, so
+        # to_text() must escape them rather than raise UnicodeDecodeError.
+        wire = bytes.fromhex("000a000168747470ff")
+        rdata = dns.rdata.from_wire("in", "uri", wire, 0, len(wire))
+        self.assertEqual(rdata.target, b"http\xff")
+        self.assertEqual(rdata.to_text(), '10 1 "http\\255"')
+
+    def test_uri_escape_roundtrip(self):
+        # from_text() unescapes the target, so to_text() must escape it,
+        # or backslashes and quotes are corrupted on a round trip.
+        text = '10 1 "http://example/a\\\\b\\"c\\255"'
+        rdata = dns.rdata.from_text("in", "uri", text)
+        self.assertEqual(rdata.target, b'http://example/a\\b"c\xff')
+        self.assertEqual(rdata.to_text(), text)
+
+    def test_uri_escape_not_double_encoded(self):
+        # \255 is the single octet 0xff on the wire, not UTF-8 0xc3 0xbf.
+        rdata = dns.rdata.from_text("in", "uri", '10 1 "http://x/\\255"')
+        self.assertEqual(rdata.to_wire()[4:], b"http://x/\xff")
+
+    def test_character_string_escape_roundtrip_all_octets(self):
+        # For rdtypes with free-form string fields, \DDD parses to octet
+        # DDD (RFC 1035 5.1) and from_text(to_text()) is the identity.
+        cases = [
+            ("uri", '10 1 "x{}"', lambda r: r.target),
+            ("hinfo", '"x{}" "os"', lambda r: r.cpu),
+            ("x25", '"x{}"', lambda r: r.address),
+            ("isdn", '"x{}" "004"', lambda r: r.address),
+            ("naptr", '10 10 "x{}" "s" "r" .', lambda r: r.flags),
+            ("caa", '0 issue "x{}"', lambda r: r.value),
+            ("txt", '"x{}"', lambda r: r.strings[0]),
+        ]
+        for value in range(256):
+            expected = b"x" + bytes([value])
+            for rdtype, template, field in cases:
+                text = template.format(f"\\{value:03d}")
+                rdata = dns.rdata.from_text("in", rdtype, text)
+                self.assertEqual(field(rdata), expected)
+                again = dns.rdata.from_text("in", rdtype, rdata.to_text())
+                self.assertEqual(again, rdata)
+
+    def test_isdn_subaddress_escape(self):
+        rdata = dns.rdata.from_text("in", "isdn", '"150862028003217" "\\255"')
+        self.assertEqual(rdata.subaddress, b"\xff")
+        self.assertEqual(rdata, dns.rdata.from_text("in", "isdn", rdata.to_text()))
+
+    def test_bad_HINFO_text(self):
+        # string too long
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text("in", "hinfo", '"' + "a" * 256 + '" "os"')
+
     def test_unicode_idna2003_in_rdata(self):
         rdata = dns.rdata.from_text(
             dns.rdataclass.IN,

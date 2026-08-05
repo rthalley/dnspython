@@ -42,7 +42,7 @@ class URI(dns.rdata.Rdata):
             raise dns.exception.SyntaxError("URI target cannot be empty")
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
-        return f'{self.priority} {self.weight} "{self.target.decode()}"'
+        return f'{self.priority} {self.weight} "{dns.rdata._escapify(self.target)}"'
 
     @classmethod
     def from_text(
@@ -50,10 +50,8 @@ class URI(dns.rdata.Rdata):
     ):
         priority = tok.get_uint16()
         weight = tok.get_uint16()
-        target = tok.get().unescape()
-        if not (target.is_quoted_string() or target.is_identifier()):
-            raise dns.exception.SyntaxError("URI target must be a string")
-        return cls(rdclass, rdtype, priority, weight, target.value)
+        target = tok.get_bytes()
+        return cls(rdclass, rdtype, priority, weight, target)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         two_ints = struct.pack("!HH", self.priority, self.weight)

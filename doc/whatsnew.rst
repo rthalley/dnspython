@@ -30,6 +30,15 @@ TBD
   so the output did not parse back to the original value.  Such bytes are now
   escaped once, at the character-string level.
 
+* Rdata types with free-form string fields (URI, HINFO, X25, ISDN, NAPTR, and
+  CAA) processed ``\ddd`` escapes as Unicode code points and then UTF-8 encoded
+  them, so escapes greater than ``\127`` became two octets instead of one.  URI
+  also emitted its target unescaped in to_text(), raising UnicodeDecodeError
+  for wire-legal non-UTF-8 targets and corrupting backslashes and quotes on a
+  round trip.  These fields now apply escapes directly to bytes, like TXT-like
+  records, using the new Tokenizer.get_bytes(), and URI escapes its target on
+  output, so from_text(to_text()) is the identity for all octet values.
+
 2.8.0
 -----
 
