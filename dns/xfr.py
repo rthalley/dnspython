@@ -61,6 +61,7 @@ class Inbound:
         rdtype: dns.rdatatype.RdataType = dns.rdatatype.AXFR,
         serial: int | None = None,
         is_udp: bool = False,
+        raise_on_serial_went_backwards: bool = True,
     ):
         """Initialize an inbound zone transfer.
 
@@ -97,6 +98,7 @@ class Inbound:
         self.done = False
         self.expecting_SOA = False
         self.delete_mode = False
+        self.raise_on_serial_went_backwards = raise_on_serial_went_backwards
 
     def process_message(self, message: dns.message.Message) -> bool:
         """Process one message in the transfer.
@@ -145,7 +147,9 @@ class Inbound:
                     self.done = True
                 elif dns.serial.Serial(soa.serial) < self.serial:
                     # It went backwards!
-                    raise SerialWentBackwards
+                    if self.raise_on_serial_went_backwards:
+                        raise SerialWentBackwards
+                    self.done = True
                 else:
                     if self.is_udp and len(message.answer[answer_index:]) == 0:
                         #
