@@ -32,6 +32,7 @@ try:
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
     from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
+    from dns.dnssecalgs.mldsa import PrivateMLDSA44, PublicMLDSA44
     from dns.dnssecalgs.rsa import (
         PrivateRSAMD5,
         PrivateRSASHA1,
@@ -114,6 +115,9 @@ class DNSSECAlgorithm(unittest.TestCase):
     def test_eddsa(self):
         self._test_dnssec_alg(PrivateED25519)
         self._test_dnssec_alg(PrivateED448)
+
+    def test_mldsa(self):
+        self._test_dnssec_alg(PrivateMLDSA44)
 
     def test_algorithm_mismatch(self):
         private_key_ed448 = PrivateED448.generate()
