@@ -57,6 +57,7 @@ PublicKey = Union[
     "ec.EllipticCurvePublicKey",
     "ed25519.Ed25519PublicKey",
     "ed448.Ed448PublicKey",
+    "mldsa.MLDSA44PublicKey",
 ]
 
 PrivateKey = Union[
@@ -65,6 +66,7 @@ PrivateKey = Union[
     "ec.EllipticCurvePrivateKey",
     "ed25519.Ed25519PrivateKey",
     "ed448.Ed448PrivateKey",
+    "mldsa.MLDSA44PrivateKey",
 ]
 
 RRsetSigner = Callable[[dns.transaction.Transaction, dns.rrset.RRset], None]
