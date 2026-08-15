@@ -1135,6 +1135,7 @@ if dns._features.have("dnssec"):
         ec,  # pylint: disable=W0611
         ed448,  # pylint: disable=W0611
         ed25519,
+        mldsa,  # pylint: disable=W0611
         rsa,  # pylint: disable=W0611
     )
 
