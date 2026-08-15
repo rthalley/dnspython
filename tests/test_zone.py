@@ -33,6 +33,7 @@ import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
 import dns.rrset
+import dns.transaction
 import dns.versioned
 import dns.zone
 from tests.util import here
@@ -1415,6 +1416,17 @@ class ZoneTestCase(unittest.TestCase):
         print("-------")
         print(example_unicode_justified)
         self.assertEqual(t1, example_unicode_justified)
+
+    def testFromFileHittingLimit(self):
+        limiter = dns.transaction.TransactionLimiter(20)
+        with self.assertRaises(dns.transaction.TooManyChanges):
+            z = dns.zone.from_file(
+                here("example"), "example", transaction_setup=limiter
+            )
+
+    def testFromFileLimitOk(self):
+        limiter = dns.transaction.TransactionLimiter(1000)
+        z = dns.zone.from_file(here("example"), "example", transaction_setup=limiter)
 
 
 class VersionedZoneTestCase(unittest.TestCase):
