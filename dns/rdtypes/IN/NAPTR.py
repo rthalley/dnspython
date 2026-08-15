@@ -80,7 +80,7 @@ class NAPTR(dns.rdata.Rdata):
         _write_string(file, self.flags)
         _write_string(file, self.service)
         _write_string(file, self.regexp)
-        self.replacement.to_wire(file, compress, origin, canonicalize)
+        self.replacement.to_wire(file, None, origin, canonicalize)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
