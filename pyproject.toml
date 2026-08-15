@@ -40,6 +40,7 @@ dev = [
     "ruff>=0.16.0",
     "sphinx>=9.1.0 ; python_version >= '3.12'",
     "sphinx-rtd-theme>=3.1.0 ; python_full_version >= '3.12'",
+    "trustme>=1.2.1",
     "ty>=0.0.63",
 ]
 dnssec = ["cryptography>=49"]
