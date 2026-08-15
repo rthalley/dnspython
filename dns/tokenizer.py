@@ -549,6 +549,19 @@ class Tokenizer:
 
         return self.as_string(self.get().unescape(), max_length)
 
+    def get_bytes(self, max_length: int | None = None) -> bytes:
+        """Read the next token and interpret it as a byte string,
+        applying any DNS escapes directly to bytes.
+
+        Raises dns.exception.SyntaxError if not a string.
+        Raises dns.exception.SyntaxError if the byte length
+        exceeds max_length (if specified).
+
+        Returns bytes.
+        """
+
+        return self.as_bytes(self.get().unescape_to_bytes(), max_length)
+
     def get_identifier(self) -> str:
         """Read the next token, which should be an identifier.
 
@@ -717,6 +730,25 @@ class Tokenizer:
         if max_length and len(token.value) > max_length:
             raise dns.exception.SyntaxError("string too long")
         return token.value
+
+    def as_bytes(self, token: Token, max_length: int | None = None) -> bytes:
+        """Try to interpret the token as a byte string.
+
+        Raises dns.exception.SyntaxError if not a string.
+        Raises dns.exception.SyntaxError if the byte length
+        exceeds max_length (if specified).
+
+        Returns bytes.
+        """
+
+        if not (token.is_identifier() or token.is_quoted_string()):
+            raise dns.exception.SyntaxError("expecting a string")
+        value = token.value
+        if isinstance(value, str):
+            value = value.encode()
+        if max_length and len(value) > max_length:
+            raise dns.exception.SyntaxError("string too long")
+        return value
 
     def as_identifier(self, token: Token) -> str:
         """Try to interpret the token as an identifier.
