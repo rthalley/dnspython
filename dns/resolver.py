@@ -1879,7 +1879,7 @@ def _getaddrinfo(
     except Exception:
         if flags & socket.AI_NUMERICSERV == 0:
             try:
-                port = socket.getservbyname(service)  # type: ignore
+                port = socket.getservbyname(service)  # pyright: ignore
             except Exception:
                 pass
     if port is None:

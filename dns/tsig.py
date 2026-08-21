@@ -183,7 +183,7 @@ class HMACTSig:
 
         # create the HMAC context
         if isinstance(hashinfo, tuple):
-            self.hmac_context = hmac.new(key, digestmod=hashinfo[0])  # type: ignore
+            self.hmac_context = hmac.new(key, digestmod=hashinfo[0])
             self.size = hashinfo[1]
         else:
             self.hmac_context = hmac.new(key, digestmod=hashinfo)
