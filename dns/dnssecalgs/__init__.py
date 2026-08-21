@@ -11,6 +11,7 @@ if dns._features.have("dnssec"):
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
     from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519
+    from dns.dnssecalgs.mldsa import PrivateMLDSA44
     from dns.dnssecalgs.rsa import (
         PrivateRSAMD5,
         PrivateRSASHA1,
@@ -41,6 +42,7 @@ if _have_cryptography:
             (Algorithm.ECDSAP384SHA384, None): PrivateECDSAP384SHA384,
             (Algorithm.ED25519, None): PrivateED25519,
             (Algorithm.ED448, None): PrivateED448,
+            (Algorithm.MLDSA44, None): PrivateMLDSA44,
         }
     )
 
