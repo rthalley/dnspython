@@ -45,7 +45,7 @@ dev = [
 dnssec = ["cryptography>=49"]
 doh = ["httpcore2>=2.9", "httpx2>=2.9", "h2>=4.4"]
 doq = ["aioquic>=1.3.0"]
-idna = ["idna>=3.18"]
+idna = ["idna>=3.19"]
 trio = ["trio>=0.33"]
 wmi = ["wmi>=1.5.1; platform_system=='Windows'"]
 
