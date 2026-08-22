@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import asyncio
 import selectors
 import socket
 import sys
@@ -26,6 +27,7 @@ from unittest.mock import patch
 import dns.win32util
 import pytest
 
+import dns.asyncresolver
 import dns.e164
 import dns.message
 import dns.name
@@ -1249,3 +1251,41 @@ def testZoneForNameLifetimeTimeout():
             dns.resolver.zone_for_name(
                 "1.2.3.4.5.6.7.8.9.10.example.", resolver=res, lifetime=1.0
             )
+
+
+@pytest.mark.skipif(
+    not (tests.util.is_internet_reachable() and _nanonameserver_available),
+    reason="Internet and NanoAuth required",
+)
+def testAsyncZoneForNameLifetimeTimeout():
+    with SlowAlwaysType3NXDOMAINNanoNameserver() as na:
+        res = dns.asyncresolver.Resolver(configure=False)
+        res.port = na.udp_address[1]
+        res.nameservers = [na.udp_address[0]]
+
+        async def run():
+            return await dns.asyncresolver.zone_for_name(
+                "1.2.3.4.5.6.7.8.9.10.example.", resolver=res, lifetime=1.0
+            )
+
+        with pytest.raises(dns.resolver.LifetimeTimeout):
+            asyncio.run(run())
+
+
+@pytest.mark.skipif(
+    not (tests.util.is_internet_reachable() and _nanonameserver_available),
+    reason="Internet and NanoAuth required",
+)
+def testAsyncHelpfulNXDOMAIN():
+    # the SOA in the authority section should short-circuit the walk up the tree
+    with AlwaysNXDOMAINNanoNameserver() as na:
+        res = dns.asyncresolver.Resolver(configure=False)
+        res.port = na.udp_address[1]
+        res.nameservers = [na.udp_address[0]]
+
+        async def run():
+            return await dns.asyncresolver.zone_for_name(
+                "1.2.3.4.5.6.7.8.9.10.example.", resolver=res
+            )
+
+        assert asyncio.run(run()) == dns.name.from_text("example.")
