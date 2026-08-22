@@ -24,9 +24,9 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
-import dns.win32util
 import pytest
 
+import dns.asyncbackend
 import dns.asyncresolver
 import dns.e164
 import dns.message
@@ -38,6 +38,7 @@ import dns.resolver
 import dns.reversename
 import dns.tsig
 import dns.tsigkeyring
+import dns.win32util
 import tests.util
 
 # Some tests use a "nano nameserver" for testing.  It requires trio
@@ -1000,7 +1001,7 @@ class ResolverMiscTestCase(unittest.TestCase):
             self.assertEqual(n, dns.win32util._config_domain(".home"))
 
         def test_set_config_method(self):
-            from dns.win32util import set_config_method, ConfigMethod
+            from dns.win32util import ConfigMethod, set_config_method
 
             self.assertNotEqual(
                 dns.win32util._config_method, dns.win32util.ConfigMethod.Win32
@@ -1269,6 +1270,7 @@ def testAsyncZoneForNameLifetimeTimeout():
             )
 
         with pytest.raises(dns.resolver.LifetimeTimeout):
+            dns.asyncbackend.set_default_backend("asyncio")
             asyncio.run(run())
 
 
@@ -1288,4 +1290,5 @@ def testAsyncHelpfulNXDOMAIN():
                 "1.2.3.4.5.6.7.8.9.10.example.", resolver=res
             )
 
+        dns.asyncbackend.set_default_backend("asyncio")
         assert asyncio.run(run()) == dns.name.from_text("example.")
