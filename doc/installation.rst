@@ -45,7 +45,7 @@ Optional Modules
 
 The following modules are optional, but recommended for full functionality.
 
-If ``httpx`` is installed, then DNS-over-HTTPS will be available.
+If ``httpx2`` is installed, then DNS-over-HTTPS will be available.
 
 If ``cryptography`` is installed, then dnspython will be
 able to do low-level DNSSEC signature generation and validation.

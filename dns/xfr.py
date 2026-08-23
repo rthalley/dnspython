@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from collections.abc import Callable
 from typing import Any, cast
 
 import dns.edns
@@ -62,6 +63,7 @@ class Inbound:
         serial: int | None = None,
         is_udp: bool = False,
         raise_on_serial_went_backwards: bool = True,
+        transaction_setup: Callable[[dns.transaction.Transaction], None] | None = None,
     ):
         """Initialize an inbound zone transfer.
 
@@ -74,6 +76,12 @@ class Inbound:
 
         :param is_udp: Whether UDP is being used for this XFR.
         :type is_udp: bool
+
+        :param transaction_setup: If not ``None``, call the object's setup()
+            method with the just-created writer transaction.  This lets the caller
+            alter the transaction's configuration before it is used, for example adding
+            checking policies.
+        :type transaction_setup: None or dns.transaction.TransactionSetup
         """
         self.txn_manager = txn_manager
         self.txn: dns.transaction.Transaction | None = None
@@ -99,6 +107,7 @@ class Inbound:
         self.expecting_SOA = False
         self.delete_mode = False
         self.raise_on_serial_went_backwards = raise_on_serial_went_backwards
+        self.transaction_setup = transaction_setup
 
     def process_message(self, message: dns.message.Message) -> bool:
         """Process one message in the transfer.
@@ -111,6 +120,8 @@ class Inbound:
         """
         if self.txn is None:
             self.txn = self.txn_manager.writer(not self.incremental)
+            if self.transaction_setup is not None:
+                self.transaction_setup(self.txn)
         rcode = message.rcode()
         if rcode != dns.rcode.NOERROR:
             raise TransferError(rcode)
@@ -232,6 +243,8 @@ class Inbound:
                 self.delete_mode = False
                 self.txn.rollback()
                 self.txn = self.txn_manager.writer(True)
+                if self.transaction_setup is not None:
+                    self.transaction_setup(self.txn)
                 #
                 # Note we are falling through into the code below
                 # so whatever rdataset this was gets written.

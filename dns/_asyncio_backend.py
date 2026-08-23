@@ -115,12 +115,12 @@ class _StreamSocket(dns._asyncbackend.StreamSocket):
 
 if dns._features.have("doh"):
     import anyio
-    import httpcore
-    import httpcore._backends.anyio
-    import httpx
+    import httpcore2
+    import httpcore2._backends.anyio
+    import httpx2
 
-    _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream  # pyright: ignore
+    _CoreAsyncNetworkBackend = httpcore2.AsyncNetworkBackend
+    _CoreAnyIOStream = httpcore2._backends.anyio.AnyIOStream  # pyright: ignore
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
@@ -133,7 +133,7 @@ if dns._features.have("doh"):
             self._family = family
             if local_port != 0:
                 raise NotImplementedError(
-                    "the asyncio transport for HTTPX cannot set the local port"
+                    "the asyncio transport for httpx2 cannot set the local port"
                 )
 
         async def connect_tcp(
@@ -167,7 +167,7 @@ if dns._features.have("doh"):
                     return _CoreAnyIOStream(stream)
                 except Exception:
                     pass
-            raise httpcore.ConnectError
+            raise httpcore2.ConnectError
 
         async def connect_unix_socket(
             self, path, timeout=None, socket_options=None
@@ -177,7 +177,7 @@ if dns._features.have("doh"):
         async def sleep(self, seconds):  # pylint: disable=signature-differs
             await anyio.sleep(seconds)
 
-    class _HTTPTransport(httpx.AsyncHTTPTransport):
+    class _HTTPTransport(httpx2.AsyncHTTPTransport):
         def __init__(
             self,
             *args,

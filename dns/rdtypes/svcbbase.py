@@ -82,20 +82,18 @@ def key_to_text(key):
     return ParamKey.to_text(key).replace("_", "-").lower()
 
 
-# Like rdata escapify, but escapes ',' too.
+# Escape the characters which are special in a comma-separated list; the
+# character-string escaping (dns.rdata._escapify) is applied on top of this.
 
-_escaped = b'",\\'
+_escaped = b",\\"
 
 
-def _escapify(qstring):
-    text = ""
+def _escapify(qstring: bytes) -> bytes:
+    text = b""
     for c in qstring:
         if c in _escaped:
-            text += "\\" + chr(c)
-        elif c >= 0x20 and c < 0x7F:
-            text += chr(c)
-        else:
-            text += f"\\{c:03d}"
+            text += b"\\"
+        text += b"%c" % (c)
     return text
 
 
@@ -113,7 +111,7 @@ def _unescape(value: str) -> bytes:
                 raise dns.exception.UnexpectedEnd
             c = value[i]
             i += 1
-            if c.isdigit():
+            if c.isdecimal():
                 if i >= l:
                     raise dns.exception.UnexpectedEnd
                 c2 = value[i]
@@ -122,7 +120,7 @@ def _unescape(value: str) -> bytes:
                     raise dns.exception.UnexpectedEnd
                 c3 = value[i]
                 i += 1
-                if not (c2.isdigit() and c3.isdigit()):
+                if not (c2.isdecimal() and c3.isdecimal()):
                     raise dns.exception.SyntaxError
                 codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                 if codepoint > 255:
@@ -257,8 +255,8 @@ class _StringList(Param):
         return cls(_split(_unescape(value)))
 
     def to_text(self):
-        value = ",".join([_escapify(id) for id in self.ids])
-        return '"' + dns.rdata._escapify(value.encode()) + '"'
+        value = b",".join([_escapify(id) for id in self.ids])
+        return '"' + dns.rdata._escapify(value) + '"'
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613

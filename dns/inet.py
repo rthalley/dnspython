@@ -149,7 +149,7 @@ def low_level_address_tuple(high_tuple: tuple[str, int], af: int | None = None) 
         # try to avoid getaddrinfo()
         addrpart = address[:i]
         scope = address[i + 1 :]
-        if scope.isdigit():
+        if scope.isdecimal():
             return (addrpart, port, 0, int(scope))
         try:
             return (addrpart, port, 0, socket.if_nametoindex(scope))

@@ -18,6 +18,9 @@ class Serial:
             return NotImplemented
         return self.value == other.value
 
+    def __hash__(self):
+        return hash(self.value)
+
     def __ne__(self, other):
         if isinstance(other, int):
             other = Serial(other, self.bits)

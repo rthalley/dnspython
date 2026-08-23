@@ -126,3 +126,14 @@ class SerialTestCase(unittest.TestCase):
     def test_not_equal(self):
         self.assertNotEqual(S8(0), S8(1))
         self.assertNotEqual(S8(0), S2(0))
+
+    def test_hashable(self):
+        # Can be stored in a set.
+        seen = {S8(0), S8(1), S8(2)}
+        self.assertIn(S8(0), seen)
+        self.assertIn(S8(1), seen)
+        self.assertIn(S8(2), seen)
+
+        # Can be used as a dict key.
+        d = {S8(100): "zone-a"}
+        self.assertEqual(d[S8(100)], "zone-a")

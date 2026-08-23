@@ -651,3 +651,58 @@ class Transaction:
     def _origin_information(self):
         # This is only used by _add()
         return self.manager.origin_information()
+
+
+class TooManyChanges(dns.exception.DNSException):
+    """Too many changes"""
+
+
+class TransactionLimiter:
+    """Transaction setup that enforces a maximum number of changes in the transaction.
+
+    Each rdataset put or deleted counts as a change.  Each whole name deletion counts
+    as a change.
+
+    The limiter is meant to ensure that reading a zonefile from an untrusted source
+    cannot cause too many changes, e.g. via large $GENERATE statements.  It is not
+    meant to limit the total number of records in a zone or the memory used by the
+    zone.
+    """
+
+    def __init__(self, limit: int):
+        super().__init__()
+        self.limit = limit
+        self.changes: int = 0
+
+    def _check_limit(self):
+        if self.changes >= self.limit:
+            raise TooManyChanges(f"limit is {self.limit} changes")
+
+    def _check_put_rdataset(
+        self, txn: Transaction, name: dns.name.Name, rdataset: dns.rdataset.Rdataset
+    ):
+        self.changes += 1
+        self._check_limit()
+
+    def _check_delete_rdataset(
+        self,
+        txn: Transaction,
+        name: dns.name.Name,
+        type: dns.rdatatype.RdataType,
+        covers: dns.rdatatype.RdataType | None,
+    ):
+        self.changes += 1
+        self._check_limit()
+
+    def _check_delete_name(
+        self,
+        txn: Transaction,
+        name: dns.name.Name,
+    ):
+        self.changes += 1
+        self._check_limit()
+
+    def __call__(self, txn: Transaction):
+        txn.check_put_rdataset(self._check_put_rdataset)
+        txn.check_delete_rdataset(self._check_delete_rdataset)
+        txn.check_delete_name(self._check_delete_name)

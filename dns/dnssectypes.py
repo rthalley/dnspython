@@ -38,6 +38,7 @@ class Algorithm(dns.enum.IntEnum):
     ECDSAP384SHA384 = 14
     ED25519 = 15
     ED448 = 16
+    MLDSA44 = 18
     INDIRECT = 252
     PRIVATEDNS = 253
     PRIVATEOID = 254

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build>=0.9.21,<0.12.0"]
+requires = ["uv_build>=0.9.21,<0.13.0"]
 build-backend = "uv_build"
 
 [project]
@@ -30,23 +30,24 @@ version = "2.9.0dev0"
 
 [project.optional-dependencies]
 dev = [
-    "black>=26.1",
-    "coverage>=7.0",
+    "black>=26.5",
+    "coverage>=7.15",
     "hypercorn>=0.18.0",
-    "pyright>=1.1.407",
-    "pytest>=9.0",
-    "pytest-cov>=7.0",
+    "pyright>=1.1.411",
+    "pytest>=9.1",
+    "pytest-cov>=7.1",
     "quart-trio>=0.12.0",
-    "ruff>=0.14.0",
+    "ruff>=0.16.0",
     "sphinx>=9.1.0 ; python_version >= '3.12'",
     "sphinx-rtd-theme>=3.1.0 ; python_full_version >= '3.12'",
-    "ty>=0.0.14",
+    "trustme>=1.2.1",
+    "ty>=0.0.63",
 ]
-dnssec = ["cryptography>=46"]
-doh = ["httpcore>=1.0.0", "httpx>=0.28.0", "h2>=4.3.0"]
+dnssec = ["cryptography>=50"]
+doh = ["httpcore2>=2.9", "httpx2>=2.9", "h2>=4.4"]
 doq = ["aioquic>=1.3.0"]
-idna = ["idna>=3.11"]
-trio = ["trio>=0.30"]
+idna = ["idna>=3.19"]
+trio = ["trio>=0.33"]
 wmi = ["wmi>=1.5.1; platform_system=='Windows'"]
 
 [project.urls]
@@ -59,22 +60,23 @@ issues = "https://github.com/rthalley/dnspython/issues"
 module-name = "dns"
 module-root = ""
 source-include = [
-    "/dns/*.py",
-    "/dns/**/*.py",
-    "/dns/py.typed",
-    "/examples/*.txt",
-    "/examples/*.py",
-    "/tests/*.txt",
-    "/tests/*.py",
-    "/tests/*.good",
-    "/tests/example",
-    "/tests/query",
-    "/tests/*.pickle",
-    "/tests/*.text",
-    "/tests/*.generic",
-    "/tests/tls/*.crt",
-    "/tests/tls/*.pem",
-    "/util/**",
+    "dns/*.py",
+    "dns/**/*.py",
+    "dns/py.typed",
+    "examples/*.txt",
+    "examples/*.py",
+    "tests/*.txt",
+    "tests/*.py",
+    "tests/*.good",
+    "tests/example",
+    "tests/query",
+    "tests/*.pickle",
+    "tests/*.text",
+    "tests/*.generic",
+    "tests/tls/*.crt",
+    "tests/tls/*.pem",
+    "tests/tsigkeys/*.key",
+    "util/**",
 ]
 source-exclude = [
     ".pytest_cache",
@@ -104,6 +106,9 @@ lint.ignore = [
     "UP035",
 ]
 lint.exclude = ["tests/*"]
+
+[tool.black]
+target-version = ["py310"]
 
 [tool.isort]
 profile = "black"

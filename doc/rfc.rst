@@ -114,14 +114,14 @@ DNSSEC RFCs
 `RFC 8080 <https://tools.ietf.org/html/rfc8080>`_
     Edwards-Curve Digital Security Algorithm (EdDSA) for DNSSEC.
 
-`RFC 8624 <https://tools.ietf.org/html/rfc8624>`_
-    Algorithm Implementation Requirements and Usage Guidance for DNSSEC.
-
 `RFC 9157 <https://tools.ietf.org/html/rfc9157>`_
     Revised IANA Considerations for DNSSEC.
 
 `RFC 9824 <https://tools.ietf.org/html/rfc9824>`_
     Compact Denial of Existence in DNSSEC
+
+`RFC 9904 <https://www.rfc-editor.org/info/rfc9904>`_
+    DNSSEC Cryptographic Algorithm Recommendation Update Process
 
 Misc RFCs
 ---------

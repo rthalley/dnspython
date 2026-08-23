@@ -43,8 +43,8 @@ class HINFO(dns.rdata.Rdata):
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
     ):
-        cpu = tok.get_string(max_length=255)
-        os = tok.get_string(max_length=255)
+        cpu = tok.get_bytes(max_length=255)
+        os = tok.get_bytes(max_length=255)
         return cls(rdclass, rdtype, cpu, os)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

@@ -66,13 +66,13 @@ def _expiration_for_this_attempt(timeout, expiration):
     return min(time.time() + timeout, expiration)
 
 
-_have_httpx = dns._features.have("doh")
-if _have_httpx:
-    import httpcore._backends.sync
-    import httpx
+_have_httpx2 = dns._features.have("doh")
+if _have_httpx2:
+    import httpcore2._backends.sync
+    import httpx2
 
-    _CoreNetworkBackend = httpcore.NetworkBackend
-    _CoreSyncStream = httpcore._backends.sync.SyncStream
+    _CoreNetworkBackend = httpcore2.NetworkBackend
+    _CoreSyncStream = httpcore2._backends.sync.SyncStream
 
     class _NetworkBackend(_CoreNetworkBackend):
         def __init__(self, resolver, local_port, bootstrap_address, family):
@@ -121,14 +121,14 @@ if _have_httpx:
                     return _CoreSyncStream(sock)
                 except Exception:
                     pass
-            raise httpcore.ConnectError
+            raise httpcore2.ConnectError
 
         def connect_unix_socket(
             self, path, timeout=None, socket_options=None
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
-    class _HTTPTransport(httpx.HTTPTransport):  # pyright: ignore
+    class _HTTPTransport(httpx2.HTTPTransport):  # pyright: ignore
         def __init__(
             self,
             *args,
@@ -166,7 +166,7 @@ else:
             raise NotImplementedError
 
 
-have_doh = _have_httpx
+have_doh = _have_httpx2
 
 
 def default_socket_factory(
@@ -193,7 +193,7 @@ class BadResponse(dns.exception.FormError):
 
 
 class NoDOH(dns.exception.DNSException):
-    """DNS over HTTPS (DOH) was requested but the httpx module is not
+    """DNS over HTTPS (DOH) was requested but the httpx2 module is not
     available."""
 
 
@@ -471,7 +471,7 @@ def https(
     :type ignore_trailing: bool
     :param session: If provided, the client session to use to send the
         queries.
-    :type session: ``httpx.Client`` or ``None``
+    :type session: ``httpx2.Client`` or ``None``
     :param path: If *where* is an IP address, *path* is used to construct the
         query URL.
     :type path: str
@@ -486,7 +486,7 @@ def https(
     :param resolver: Resolver to use for hostname resolution in URLs.  If
         ``None``, a new resolver with default configuration is used (not the
         default resolver, to avoid a DoH chicken-and-egg problem).  Only
-        effective when using httpx.
+        effective when using httpx2.
     :type resolver: :py:class:`dns.resolver.Resolver` or ``None``
     :param family: Address family.  ``socket.AF_UNSPEC`` (the default)
         retrieves both A and AAAA records.
@@ -544,8 +544,8 @@ def https(
 
     if not have_doh:
         raise NoDOH  # pragma: no cover
-    if session and not isinstance(session, httpx.Client):  # pyright: ignore
-        raise ValueError("session parameter must be an httpx.Client")
+    if session and not isinstance(session, httpx2.Client):  # pyright: ignore
+        raise ValueError("session parameter must be an httpx2.Client")
 
     wire = q.to_wire()
     headers = {"accept": "application/dns-message"}
@@ -576,7 +576,7 @@ def https(
             family=family,  # pyright: ignore
         )
 
-        cm = httpx.Client(  # pyright: ignore
+        cm = httpx2.Client(  # pyright: ignore
             http1=h1, http2=h2, verify=verify, transport=transport  # type: ignore
         )
     with cm as session:
@@ -599,7 +599,7 @@ def https(
             )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
-            twire = wire.decode()  # httpx does a repr() if we give it bytes
+            twire = wire.decode()  # httpx2 does a repr() if we give it bytes
             response = session.get(
                 url,
                 headers=headers,

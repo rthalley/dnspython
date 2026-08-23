@@ -33,6 +33,7 @@ import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
 import dns.rrset
+import dns.transaction
 import dns.versioned
 import dns.zone
 from tests.util import here
@@ -563,6 +564,142 @@ class ZoneTestCase(unittest.TestCase):
                         rds.rdclass, rds.rdtype, wire, 0, len(wire), origin=o
                     )
                     self.assertEqual(rd, rd2)
+
+    def upcase(self, name):
+        return dns.name.Name((x.upper() for x in name.labels))
+
+    def ensure_origin_and_upcase(self, avalue, origin, root_too):
+        # Make sure any names in rd are subdomains of example. and upcase
+        # everything.  We make an exception for the root in some types
+        # as the root can have special meaning there.
+        if avalue == dns.name.root and not root_too:
+            return avalue
+        avalue = self.upcase(avalue)
+        uorigin = self.upcase(origin)
+        if not avalue.is_subdomain(uorigin):
+            if avalue.is_absolute():
+                avalue = avalue.relativize(dns.name.root)
+            avalue = avalue.concatenate(uorigin)
+        return avalue
+
+    def testToCompressOrNotToCompressAndCanonicalization(self):
+        #
+        # Read a zone containing all our supported RR types, and
+        # for each RR in the zone, convert the rdata into wire format
+        # using a compression table with example in it, and one without,
+        # and see if rdatas that should compress do, and those that should not
+        # do not.
+        #
+        f = BytesIO()
+        o = dns.name.from_text("example.")
+        z = dns.zone.from_file(here("example"), o)
+        # Only non-obsolete types in RFC 1035 may be compressed if they contain
+        # a name.  This is the list!
+        ok_to_compress = frozenset(
+            [
+                dns.rdatatype.NS,
+                dns.rdatatype.CNAME,
+                dns.rdatatype.SOA,
+                dns.rdatatype.PTR,
+                dns.rdatatype.MX,
+            ]
+        )
+        # Only non-obsolete types containing names and listed in section
+        # 6.2 item 3 of RFC 4034 get downcased, with the exception of NSEC which
+        # is listed in 4034 but removed in RFC 6840 section 5.1.  Also HINFO
+        # is omitted as it has no names.
+        ok_to_downcase = frozenset(
+            [
+                dns.rdatatype.NS,
+                dns.rdatatype.CNAME,
+                dns.rdatatype.SOA,
+                dns.rdatatype.PTR,
+                dns.rdatatype.MX,
+                dns.rdatatype.RP,
+                dns.rdatatype.AFSDB,
+                dns.rdatatype.RT,
+                dns.rdatatype.SIG,
+                dns.rdatatype.PX,
+                dns.rdatatype.NXT,
+                dns.rdatatype.NAPTR,
+                dns.rdatatype.KX,
+                dns.rdatatype.SRV,
+                dns.rdatatype.DNAME,
+                dns.rdatatype.RRSIG,
+            ]
+        )
+        for node in z.values():
+            for rds in node:
+                # We do individual rdata to wire as we don't want to test
+                # owner name compression, which is always allowed.
+                compressible = rds.rdtype in ok_to_compress
+                downcases = rds.rdtype in ok_to_downcase
+                for rd in rds:
+                    # For every attribute of the rdata that is a name and not the
+                    # root name, force it to be a subdomain of "example." and upcase
+                    # everything.
+                    replace = {}
+                    if hasattr(rd, "__dict__"):
+                        for aname, avalue in vars(rd).items():
+                            if isinstance(avalue, dns.name.Name):
+                                replace[aname] = self.ensure_origin_and_upcase(
+                                    avalue, o, compressible or downcases
+                                )
+                    cls = type(rd)
+                    seen = set()
+                    for klass in cls.__mro__:
+                        slots = getattr(klass, "__slots__", ())
+                        if isinstance(slots, str):
+                            slots = (slots,)
+                        for aname in slots:
+                            if aname in seen or aname == "__dict__":
+                                continue
+                            seen.add(aname)
+                            try:
+                                avalue = getattr(rd, aname)
+                            except AttributeError:
+                                # slot declared but never assigned
+                                continue
+                            if isinstance(avalue, dns.name.Name):
+                                replace[aname] = self.ensure_origin_and_upcase(
+                                    avalue, o, compressible or downcases
+                                )
+                    if len(replace) > 0:
+                        rd = rd.replace(**replace)
+                    # Test Compression
+                    f.seek(0)
+                    f.truncate()
+                    f.write(b"\0" * 12)
+                    compress = {}
+                    o.to_wire(f, compress=compress, origin=o)
+                    # compress ec and foo too as examples use it
+                    rd.to_wire(f, origin=o, compress=compress)
+                    wire1 = f.getvalue()
+                    f.seek(0)
+                    f.truncate()
+                    f.write(b"\0" * 12)
+                    o.to_wire(f, compress=None)
+                    rd.to_wire(f, origin=o, compress=None)
+                    wire2 = f.getvalue()
+                    # The possibly compressed wire1 must not be longer than wire2!
+                    self.assertLessEqual(len(wire1), len(wire2))
+                    if len(wire1) < len(wire2):
+                        self.assertTrue(compressible)
+                    else:
+                        self.assertFalse(compressible)
+                    # Test if canonicalization downcases.
+                    f.seek(0)
+                    f.truncate()
+                    rd.to_wire(f, origin=o, compress=None, canonicalize=False)
+                    wire1 = f.getvalue()
+                    f.seek(0)
+                    f.truncate()
+                    rd.to_wire(f, origin=o, compress=None, canonicalize=True)
+                    wire2 = f.getvalue()
+                    if wire1 != wire2:
+                        self.assertTrue(downcases)
+                    else:
+                        self.assertFalse(downcases)
 
     def testEqual(self):
         z1 = dns.zone.from_text(example_text, "example.", relativize=True)
@@ -1279,6 +1416,17 @@ class ZoneTestCase(unittest.TestCase):
         print("-------")
         print(example_unicode_justified)
         self.assertEqual(t1, example_unicode_justified)
+
+    def testFromFileHittingLimit(self):
+        limiter = dns.transaction.TransactionLimiter(20)
+        with self.assertRaises(dns.transaction.TooManyChanges):
+            z = dns.zone.from_file(
+                here("example"), "example", transaction_setup=limiter
+            )
+
+    def testFromFileLimitOk(self):
+        limiter = dns.transaction.TransactionLimiter(1000)
+        z = dns.zone.from_file(here("example"), "example", transaction_setup=limiter)
 
 
 class VersionedZoneTestCase(unittest.TestCase):

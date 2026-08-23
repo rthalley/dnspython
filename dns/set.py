@@ -87,7 +87,7 @@ class Set:
             cls = self._clone_class  # pyright: ignore
         else:
             cls = self.__class__
-        obj = cls.__new__(cls)
+        obj = cls.__new__(cls)  # type: ignore
         obj.items = dict()
         obj.items.update(self.items)
         return obj

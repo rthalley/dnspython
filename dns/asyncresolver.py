@@ -368,6 +368,7 @@ async def zone_for_name(
     tcp: bool = False,
     resolver: Resolver | None = None,
     backend: dns.asyncbackend.Backend | None = None,
+    lifetime: float | None = None,
 ) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 
@@ -381,17 +382,52 @@ async def zone_for_name(
         resolver = get_default_resolver()
     if not name.is_absolute():
         raise NotAbsolute(name)
+    start = time.time()
+    expiration: float | None
+    if lifetime is not None:
+        expiration = start + lifetime
+    else:
+        expiration = None
     while True:
         try:
+            rlifetime: float | None
+            if expiration is not None:
+                rlifetime = expiration - time.time()
+                if rlifetime <= 0:
+                    rlifetime = 0
+            else:
+                rlifetime = None
             answer = await resolver.resolve(
-                name, dns.rdatatype.SOA, rdclass, tcp, backend=backend
+                name,
+                dns.rdatatype.SOA,
+                rdclass,
+                tcp,
+                lifetime=rlifetime,
+                backend=backend,
             )
             assert answer.rrset is not None
             if answer.rrset.name == name:
                 return name
             # otherwise we were CNAMEd or DNAMEd and need to look higher
-        except (NXDOMAIN, NoAnswer):
-            pass
+        except (NXDOMAIN, NoAnswer) as e:
+            if isinstance(e, NXDOMAIN):
+                response = e.responses().get(name)
+            else:
+                response = e.response()  # pylint: disable=no-value-for-parameter
+            if response:
+                for rrs in response.authority:
+                    if rrs.rdtype == dns.rdatatype.SOA and rrs.rdclass == rdclass:
+                        nr, _, _ = rrs.name.fullcompare(name)
+                        if nr == dns.name.NAMERELN_SUPERDOMAIN:
+                            # We're doing a proper superdomain check as
+                            # if the name were equal we ought to have gotten
+                            # it in the answer section!  We are ignoring the
+                            # possibility that the authority is insane and
+                            # is including multiple SOA RRs for different
+                            # authorities.
+                            return rrs.name
+            # we couldn't extract anything useful from the response (e.g. it's
+            # a type 3 NXDOMAIN)
         try:
             name = name.parent()
         except dns.name.NoParent:  # pragma: no cover

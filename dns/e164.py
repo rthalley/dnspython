@@ -44,7 +44,7 @@ def from_e164(
     :rtype: :py:class:`dns.name.Name`
     """
 
-    parts = [d for d in text if d.isdigit()]
+    parts = [d for d in text if d.isdecimal()]
     parts.reverse()
     return dns.name.from_text(".".join(parts), origin=origin)
 

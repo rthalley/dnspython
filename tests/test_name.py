@@ -817,9 +817,6 @@ class NameTestCase(unittest.TestCase):
         self.assertRaises(dns.name.IDNAException, bad)
         e1 = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2008)
         self.assertEqual(str(e1), "xn--knigsgchen-b4a3dun.")
-        c2 = dns.name.IDNA_2008_Transitional
-        e2 = dns.name.from_unicode(t, idna_codec=c2)
-        self.assertEqual(str(e2), "xn--knigsgsschen-lcb0w.")
 
     @unittest.skipUnless(
         dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
@@ -828,7 +825,7 @@ class NameTestCase(unittest.TestCase):
         # the IDN rules for names are very restrictive, disallowing
         # practical names like '_sip._tcp.Königsgäßchen'.  Dnspython
         # has a "practical" mode which permits labels which are purely
-        # ASCII to go straight through, and thus not invalid useful
+        # ASCII to go straight through, and thus not invalidate useful
         # things in the real world.
         t = "_sip._tcp.Königsgäßchen"
 
@@ -840,13 +837,8 @@ class NameTestCase(unittest.TestCase):
             codec = dns.name.IDNA_2008_UTS_46
             return dns.name.from_unicode(t, idna_codec=codec)
 
-        def bad3():
-            codec = dns.name.IDNA_2008_Transitional
-            return dns.name.from_unicode(t, idna_codec=codec)
-
         self.assertRaises(dns.name.IDNAException, bad1)
         self.assertRaises(dns.name.IDNAException, bad2)
-        self.assertRaises(dns.name.IDNAException, bad3)
         e = dns.name.from_unicode(t, idna_codec=dns.name.IDNA_2008_Practical)
         self.assertEqual(str(e), "_sip._tcp.xn--knigsgchen-b4a3dun.")
 
@@ -878,17 +870,6 @@ class NameTestCase(unittest.TestCase):
         s = n.to_unicode()
         self.assertEqual(str(n), "xn--eckwd4c7c.xn--zckzah.")
         self.assertEqual(s, "ドメイン.テスト.")
-
-    @unittest.skipUnless(
-        dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"
-    )
-    def testToUnicode5(self):
-        # Exercise UTS 46 remapping in decode.  This doesn't normally happen
-        # as you can see from us having to instantiate the codec as
-        # transitional with strict decoding, not one of our usual choices.
-        codec = dns.name.IDNA2008Codec(True, True, False, True)
-        n = dns.name.from_text("xn--gro-7ka.com")
-        self.assertEqual(n.to_unicode(idna_codec=codec), "gross.com.")
 
     @unittest.skipUnless(
         dns.name.have_idna_2008, "Python idna cannot be imported; no IDNA2008"

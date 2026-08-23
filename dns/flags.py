@@ -50,19 +50,43 @@ class EDNSFlag(enum.IntFlag):
     CO = 0x4000
 
 
+# Flags Mask (excludes opcode and rcode)
+FLAGS_MASK = 0x87F0
+
+# EDNS Flags Mask (excludes extended rcode and version)
+EDNS_FLAGS_MASK = 0x0000FFFF
+
+
 def _from_text(text: str, enum_class: Any) -> int:
     flags = 0
     tokens = text.split()
     for t in tokens:
-        flags |= enum_class[t.upper()]
+        token = t.upper()
+        if token.startswith("FLAG") and token[4:].isdecimal():
+            # An unnamed flag, rendered by _to_text() as FLAGn (see below).
+            flags |= 1 << int(token[4:])
+        else:
+            flags |= enum_class[token]
     return flags
 
 
 def _to_text(flags: int, enum_class: Any) -> str:
     text_flags = []
+    known = 0
     for k, v in enum_class.__members__.items():
+        known |= int(v)
         if flags & v != 0:
             text_flags.append(k)
+    # Render any set bits that do not have a named flag as FLAGn, where n is
+    # the bit position, so that they are not silently dropped. These tokens
+    # round-trip through _from_text().
+    unknown = flags & ~known
+    bit = 0
+    while unknown:
+        if unknown & 1:
+            text_flags.append(f"FLAG{bit}")
+        unknown >>= 1
+        bit += 1
     return " ".join(text_flags)
 
 
@@ -83,7 +107,8 @@ def to_text(flags: int) -> str:
     :rtype: str
     """
 
-    return _to_text(flags, Flag)
+    # We & with 0xff0 to mask out rcode.
+    return _to_text(flags & FLAGS_MASK, Flag)
 
 
 def edns_from_text(text: str) -> int:
@@ -103,7 +128,7 @@ def edns_to_text(flags: int) -> str:
     :rtype: str
     """
 
-    return _to_text(flags, EDNSFlag)
+    return _to_text(flags & EDNS_FLAGS_MASK, EDNSFlag)
 
 
 ### BEGIN generated Flag constants

@@ -114,7 +114,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdigit():
+                if c.isdecimal():
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -123,7 +123,7 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdigit() and c3.isdigit()):
+                    if not (c2.isdecimal() and c3.isdecimal()):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:
@@ -168,7 +168,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdigit():
+                if c.isdecimal():
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -177,7 +177,7 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdigit() and c3.isdigit()):
+                    if not (c2.isdecimal() and c3.isdecimal()):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:
@@ -549,6 +549,19 @@ class Tokenizer:
 
         return self.as_string(self.get().unescape(), max_length)
 
+    def get_bytes(self, max_length: int | None = None) -> bytes:
+        """Read the next token and interpret it as a byte string,
+        applying any DNS escapes directly to bytes.
+
+        Raises dns.exception.SyntaxError if not a string.
+        Raises dns.exception.SyntaxError if the byte length
+        exceeds max_length (if specified).
+
+        Returns bytes.
+        """
+
+        return self.as_bytes(self.get().unescape_to_bytes(), max_length)
+
     def get_identifier(self) -> str:
         """Read the next token, which should be an identifier.
 
@@ -631,9 +644,13 @@ class Tokenizer:
 
         if not token.is_identifier():
             raise dns.exception.SyntaxError("expecting an identifier")
-        if not token.value.isdigit():
+        try:
+            value = int(token.value, base)
+            if value < 0:
+                raise ValueError
+        except ValueError:
             raise dns.exception.SyntaxError("expecting an integer")
-        return int(token.value, base)
+        return value
 
     def as_uint8(self, token: Token) -> int:
         """Try to interpret the token as an unsigned 8-bit integer.
@@ -713,6 +730,25 @@ class Tokenizer:
         if max_length and len(token.value) > max_length:
             raise dns.exception.SyntaxError("string too long")
         return token.value
+
+    def as_bytes(self, token: Token, max_length: int | None = None) -> bytes:
+        """Try to interpret the token as a byte string.
+
+        Raises dns.exception.SyntaxError if not a string.
+        Raises dns.exception.SyntaxError if the byte length
+        exceeds max_length (if specified).
+
+        Returns bytes.
+        """
+
+        if not (token.is_identifier() or token.is_quoted_string()):
+            raise dns.exception.SyntaxError("expecting a string")
+        value = token.value
+        if isinstance(value, str):
+            value = value.encode()
+        if max_length and len(value) > max_length:
+            raise dns.exception.SyntaxError("string too long")
+        return value
 
     def as_identifier(self, token: Token) -> str:
         """Try to interpret the token as an identifier.

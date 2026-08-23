@@ -554,7 +554,7 @@ class AsyncTests(unittest.TestCase):
 
         self.assertRaises(dns.exception.Timeout, run)
 
-    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
+    @unittest.skipIf(not dns.query._have_httpx2, "httpx2 not available")
     @tests.util.retry_on_timeout
     def testDOHGetRequest(self):
         async def run():
@@ -567,7 +567,7 @@ class AsyncTests(unittest.TestCase):
 
         self.async_run(run)
 
-    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
+    @unittest.skipIf(not dns.query._have_httpx2, "httpx2 not available")
     @tests.util.retry_on_timeout
     def testDOHPostRequest(self):
         async def run():
@@ -633,7 +633,7 @@ class AsyncTests(unittest.TestCase):
 
         self.async_run(run)
 
-    @unittest.skipIf(not dns.query._have_httpx, "httpx not available")
+    @unittest.skipIf(not dns.query._have_httpx2, "httpx2 not available")
     @tests.util.retry_on_timeout
     def testResolverDOH(self):
         async def run():

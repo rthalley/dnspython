@@ -57,6 +57,7 @@ PublicKey = Union[
     "ec.EllipticCurvePublicKey",
     "ed25519.Ed25519PublicKey",
     "ed448.Ed448PublicKey",
+    "mldsa.MLDSA44PublicKey",
 ]
 
 PrivateKey = Union[
@@ -65,6 +66,7 @@ PrivateKey = Union[
     "ec.EllipticCurvePrivateKey",
     "ed25519.Ed25519PrivateKey",
     "ed448.Ed448PrivateKey",
+    "mldsa.MLDSA44PrivateKey",
 ]
 
 RRsetSigner = Callable[[dns.transaction.Transaction, dns.rrset.RRset], None]
@@ -162,10 +164,12 @@ rfc_8624_policy = SimpleDeny(
     {DSDigest.NULL},
 )
 
+rfc_9904_policy = rfc_8624_policy
+
 allow_all_policy = SimpleDeny(set(), set(), set(), set())
 
 
-default_policy = rfc_8624_policy
+default_policy = rfc_9904_policy
 
 
 def make_ds(
@@ -190,7 +194,7 @@ def make_ds(
         using this origin.
     :type origin: :py:class:`dns.name.Name` or ``None``
     :param policy: The policy to use. If ``None``, ``dns.dnssec.default_policy``
-        is used (defaults to RFC 8624 policy).
+        is used (defaults to RFC 9904 policy).
     :type policy: :py:class:`dns.dnssec.Policy` or ``None``
     :param validating: If ``True``, policy is checked in validating mode ("Is it
         ok to validate using this digest algorithm?"). Otherwise checked in
@@ -339,7 +343,7 @@ def _validate_rrsig(
         the actual current time is used.
     :type now: float or ``None``
     :param policy: The policy to use. If ``None``, ``dns.dnssec.default_policy``
-        is used (defaults to RFC 8624 policy).
+        is used (defaults to RFC 9904 policy).
     :type policy: :py:class:`dns.dnssec.Policy` or ``None``
     :raises ValidationFailure: If the signature is expired, not yet valid, the
         public key is invalid, the algorithm is unknown, verification fails, etc.
@@ -400,7 +404,7 @@ def _validate(
         the actual current time is used.
     :type now: int or ``None``
     :param policy: The policy to use. If ``None``, ``dns.dnssec.default_policy``
-        is used (defaults to RFC 8624 policy).
+        is used (defaults to RFC 9904 policy).
     :type policy: :py:class:`dns.dnssec.Policy` or ``None``
     :raises ValidationFailure: If the signature is expired, not yet valid, the
         public key is invalid, the algorithm is unknown, verification fails, etc.
@@ -477,7 +481,7 @@ def _sign(
         Default is ``False``.
     :type verify: bool
     :param policy: The policy to use. If ``None``, ``dns.dnssec.default_policy``
-        is used (defaults to RFC 8624 policy).
+        is used (defaults to RFC 9904 policy).
     :type policy: :py:class:`dns.dnssec.Policy` or ``None``
     :param origin: If ``None`` (the default), all names must be absolute.
         Otherwise, this origin is used to make names absolute when signing.
@@ -1131,6 +1135,7 @@ if dns._features.have("dnssec"):
         ec,  # pylint: disable=W0611
         ed448,  # pylint: disable=W0611
         ed25519,
+        mldsa,  # pylint: disable=W0611
         rsa,  # pylint: disable=W0611
     )
 
@@ -1170,6 +1175,7 @@ ECDSAP256SHA256 = Algorithm.ECDSAP256SHA256
 ECDSAP384SHA384 = Algorithm.ECDSAP384SHA384
 ED25519 = Algorithm.ED25519
 ED448 = Algorithm.ED448
+MLDSA44 = Algorithm.MLDSA44
 INDIRECT = Algorithm.INDIRECT
 PRIVATEDNS = Algorithm.PRIVATEDNS
 PRIVATEOID = Algorithm.PRIVATEOID

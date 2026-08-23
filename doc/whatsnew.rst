@@ -14,6 +14,31 @@ TBD
   only Python 3" update, also quite some time ago.  It is now renamed to "type"
   (again) so it matches the Python 3 code it is overriding.
 
+* dns.flags.to_text() and dns.flags.edns_to_text() no longer silently drop set
+  bits that have no named flag.  Such bits are now rendered as ``FLAGn``, where n
+  is the bit position, and dns.flags.from_text() / edns_from_text() parse that form
+  back, so the conversions round-trip.  See issue #1264.
+
+* dns.ttl.from_text() now raises dns.ttl.BadTTL, rather than leaking a bare
+  ValueError, when the text contains a non-decimal Unicode "digit" (e.g. the
+  superscript ``\u00b2``).  Such characters are accepted by ``str.isdigit()`` but
+  rejected by ``int()``, so they previously escaped the parser's validation.  This
+  also makes zone files with such a TTL fail with a clean dns.exception.SyntaxError.
+
+* The to_text() of string-list SVCB parameters (alpn and docpath) escaped
+  non-printable bytes twice, rendering them as ``\\ddd`` instead of ``\ddd``,
+  so the output did not parse back to the original value.  Such bytes are now
+  escaped once, at the character-string level.
+
+* Rdata types with free-form string fields (URI, HINFO, X25, ISDN, NAPTR, and
+  CAA) processed ``\ddd`` escapes as Unicode code points and then UTF-8 encoded
+  them, so escapes greater than ``\127`` became two octets instead of one.  URI
+  also emitted its target unescaped in to_text(), raising UnicodeDecodeError
+  for wire-legal non-UTF-8 targets and corrupting backslashes and quotes on a
+  round trip.  These fields now apply escapes directly to bytes, like TXT-like
+  records, using the new Tokenizer.get_bytes(), and URI escapes its target on
+  output, so from_text(to_text()) is the identity for all octet values.
+
 2.8.0
 -----
 
@@ -72,7 +97,7 @@ TBD
   currently dns.message.CopyMode.QUESTION for all opcodes.
 
 * If an IP address is used as the hostname in a URL, the https query code now passes
-  the sni_hostname to httpx as this is required to get httpx to validate the certificate
+  the sni_hostname to httpx2 as this is required to get httpx2 to validate the certificate
   and check for an IP subject alternative name.
 
 * The minimum supported aioquic version is now 1.0.0.
@@ -101,7 +126,7 @@ TBD
 
 * Dnspython now looks for version metadata for optional packages and will not
   use them if they are too old.  This prevents possible exceptions when a
-  feature like DoH is not desired in dnspython, but an old httpx is installed
+  feature like DoH is not desired in dnspython, but an old httpx2 is installed
   along with dnspython for some other purpose.
 
 * The DoHNameserver class now allows GET to be used instead of the default POST,
@@ -197,8 +222,8 @@ TBD
 
 * The DNS-over-HTTPS bootstrap address no longer causes URL rewriting.
 
-* DNS-over-HTTPS now only uses httpx; support for requests has been dropped.  A source
-  port may now be supplied when using httpx.
+* DNS-over-HTTPS now only uses httpx2; support for requests has been dropped.  A source
+  port may now be supplied when using httpx2.
 
 * DNSSEC zone signing with NSEC records is now supported. Thank you
   very much (again!) Jakob Schlyter!
@@ -292,7 +317,7 @@ This release has no new features, but fixes the following issues:
   an error trace like the NoNameservers exception.  This class is a subclass of
   dns.exception.Timeout for backwards compatibility.
 
-* DNS-over-HTTPS will try to use HTTP/2 if the httpx and h2 packages
+* DNS-over-HTTPS will try to use HTTP/2 if the httpx2 and h2 packages
   are installed.
 
 * DNS-over-HTTPS is now supported for asynchronous queries and resolutions.

@@ -1004,14 +1004,14 @@ def from_unicode(
         for c in text:
             if escaping:
                 if edigits == 0:
-                    if c.isdigit():
+                    if c.isdecimal():
                         total = int(c)
                         edigits += 1
                     else:
                         label += c
                         escaping = False
                 else:
-                    if not c.isdigit():
+                    if not c.isdecimal():
                         raise BadEscape
                     total *= 10
                     total += int(c)

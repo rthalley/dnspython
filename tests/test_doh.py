@@ -34,8 +34,8 @@ import dns.quic
 import dns.rdatatype
 import dns.resolver
 
-if dns.query._have_httpx:
-    import httpx
+if dns.query._have_httpx2:
+    import httpx2
 
 import tests.util
 
@@ -80,12 +80,12 @@ KNOWN_PAD_AWARE_DOH_RESOLVER_URLS = [
 
 
 @unittest.skipUnless(
-    dns.query._have_httpx and tests.util.is_internet_reachable() and _have_ssl,
-    "Python httpx cannot be imported; no DNS over HTTPS (DOH)",
+    dns.query._have_httpx2 and tests.util.is_internet_reachable() and _have_ssl,
+    "Python httpx2 cannot be imported; no DNS over HTTPS (DOH)",
 )
-class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
+class DNSOverHTTPSTestCasehttpx2(unittest.TestCase):
     def setUp(self):
-        self.session = httpx.Client(http1=True, http2=True, verify=True)
+        self.session = httpx2.Client(http1=True, http2=True, verify=True)
 
     def tearDown(self):
         self.session.close()
@@ -152,7 +152,7 @@ class DNSOverHTTPSTestCaseHttpx(unittest.TestCase):
     #         q = dns.message.make_query("example.com.", dns.rdatatype.A)
     #         # make sure CleanBrowsing's IP address will fail TLS certificate
     #         # check.
-    #         with self.assertRaises(httpx.ConnectError):
+    #         with self.assertRaises(httpx2.ConnectError):
     #             dns.query.https(q, invalid_tls_url, session=self.session, timeout=4)
     #         # And if we don't mangle the URL, it should work.
     #         r = dns.query.https(

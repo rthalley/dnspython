@@ -56,7 +56,7 @@ class SRV(dns.rdata.Rdata):
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         three_ints = struct.pack("!HHH", self.priority, self.weight, self.port)
         file.write(three_ints)
-        self.target.to_wire(file, compress, origin, canonicalize)
+        self.target.to_wire(file, None, origin, canonicalize)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):

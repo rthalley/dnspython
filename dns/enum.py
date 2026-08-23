@@ -50,7 +50,7 @@ class IntEnum(enum.IntEnum):
         if value:
             return value
         prefix = cls._prefix()
-        if text.startswith(prefix) and text[len(prefix) :].isdigit():
+        if text.startswith(prefix) and text[len(prefix) :].isdecimal():
             value = int(text[len(prefix) :])
             cls._check_value(value)
             return cls(value)

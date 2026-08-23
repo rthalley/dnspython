@@ -3,7 +3,7 @@
 import base64
 import time
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import dns.message
 import dns.rcode
@@ -48,22 +48,41 @@ class TSIGTestCase(unittest.TestCase):
         with self.assertRaises(dns.tsig.BadSignature):
             ctx.verify(bad_expected)
 
+    def _tsig_start(self, wire, kr):
+        # dns.tsig.validate() needs the exact byte offset of the TSIG
+        # record, but nothing in the public API exposes it directly.
+        # dns.message.from_wire() computes it correctly during parsing,
+        # so capture the value it uses via the same call.
+        captured = {}
+        real_validate = dns.tsig.validate
+
+        def spy(*args, **kwargs):
+            captured["tsig_start"] = args[6]
+            return real_validate(*args, **kwargs)
+
+        with patch("dns.tsig.validate", side_effect=spy):
+            dns.message.from_wire(wire, kr)
+        return captured["tsig_start"]
+
     def test_validate(self):
         # make message and grab the TSIG
         m = dns.message.make_query("example", "a")
         m.use_tsig(keyring, keyname, algorithm=dns.tsig.HMAC_SHA256)
         w = m.to_wire()
         tsig = m.tsig[0]
+        tsig_start = self._tsig_start(w, keyring)
 
-        # get the time and create a key with matching characteristics
+        # get the time and use the correct key so only the timestamp is wrong
         now = int(time.time())
-        key = dns.tsig.Key("foo.com", "abcd", "hmac-sha256")
+        correct_key = dns.tsig.Key(keyname, keyring[keyname], dns.tsig.HMAC_SHA256)
 
         # add enough to the time to take it over the fudge amount
         with self.assertRaises(dns.tsig.BadTime):
             dns.tsig.validate(
-                w, key, dns.name.from_text("foo.com"), tsig, now + 1000, b"", 0
+                w, correct_key, keyname, tsig, now + 1000, b"", tsig_start
             )
+
+        key = dns.tsig.Key("foo.com", "abcd", "hmac-sha256")
 
         # change the key name
         with self.assertRaises(dns.tsig.BadKey):
@@ -73,6 +92,21 @@ class TSIGTestCase(unittest.TestCase):
         key = dns.tsig.Key("foo.com", "abcd", "hmac-sha512")
         with self.assertRaises(dns.tsig.BadAlgorithm):
             dns.tsig.validate(w, key, dns.name.from_text("foo.com"), tsig, now, b"", 0)
+
+    def test_validate_bad_signature_takes_precedence_over_bad_time(self):
+        # https://github.com/rthalley/dnspython/issues/1287
+        # RFC 8945 5.2: MAC validity must be established before other
+        # errors like a bad timestamp are reported.
+        m = dns.message.make_query("example", "a")
+        m.use_tsig(keyring, keyname, algorithm=dns.tsig.HMAC_SHA256)
+        w = m.to_wire()
+        tsig = m.tsig[0]
+        tsig_start = self._tsig_start(w, keyring)
+
+        now = int(time.time())
+        wrong_key = dns.tsig.Key(keyname, "abcd", "hmac-sha256")
+        with self.assertRaises(dns.tsig.BadSignature):
+            dns.tsig.validate(w, wrong_key, keyname, tsig, now + 1000, b"", tsig_start)
 
     def test_gssapi_context(self):
         def verify_signature(data, mac):

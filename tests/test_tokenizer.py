@@ -238,6 +238,9 @@ class TokenizerTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             tok = dns.tokenizer.Tokenizer("200000")
             tok.get_uint16(base=8)
+        tok = dns.tokenizer.Tokenizer("ff")
+        v = tok.get_int(16)
+        self.assertEqual(v, 255)
 
     def testGetString(self):
         tok = dns.tokenizer.Tokenizer("foo")
@@ -255,6 +258,30 @@ class TokenizerTestCase(unittest.TestCase):
         tok = dns.tokenizer.Tokenizer("")
         with self.assertRaises(dns.exception.SyntaxError):
             tok.get_string()
+
+    def testGetBytes(self):
+        tok = dns.tokenizer.Tokenizer("foo")
+        v = tok.get_bytes()
+        self.assertEqual(v, b"foo")
+        tok = dns.tokenizer.Tokenizer('"foo\\255"')
+        v = tok.get_bytes()
+        self.assertEqual(v, b"foo\xff")
+        tok = dns.tokenizer.Tokenizer('"foo\u200bbar"')
+        v = tok.get_bytes()
+        self.assertEqual(v, b"foo\xe2\x80\x8bbar")
+        tok = dns.tokenizer.Tokenizer("abcdefghij")
+        v = tok.get_bytes(max_length=10)
+        self.assertEqual(v, b"abcdefghij")
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok = dns.tokenizer.Tokenizer("abcdefghij")
+            tok.get_bytes(max_length=9)
+        with self.assertRaises(dns.exception.SyntaxError):
+            # the limit is on the byte length, not the character length
+            tok = dns.tokenizer.Tokenizer('"\u200b"')
+            tok.get_bytes(max_length=2)
+        tok = dns.tokenizer.Tokenizer("")
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok.get_bytes()
 
     def testMultiLineWithComment(self):
         tok = dns.tokenizer.Tokenizer("( ; abc\n)")
