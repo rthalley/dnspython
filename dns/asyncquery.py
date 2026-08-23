@@ -847,7 +847,8 @@ async def _inbound_xfr(
     query: dns.message.Message,
     serial: int | None,
     timeout: float | None,
-    expiration: float,
+    expiration: float | None,
+    raise_on_serial_went_backwards: bool = True,
 ) -> Any:
     """Given a socket, does the zone transfer."""
     rdtype = query.question[0].rdtype
@@ -862,7 +863,9 @@ async def _inbound_xfr(
         tcp_sock = cast(dns.asyncbackend.StreamSocket, s)
         tcpmsg = struct.pack("!H", len(wire)) + wire
         await tcp_sock.sendall(tcpmsg, expiration)
-    with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
+    with dns.xfr.Inbound(
+        txn_manager, rdtype, serial, is_udp, raise_on_serial_went_backwards
+    ) as inbound:
         done = False
         tsig_ctx = None
         r: dns.message.Message | None = None
@@ -907,6 +910,7 @@ async def inbound_xfr(
     source_port: int = 0,
     udp_mode: UDPMode = UDPMode.NEVER,
     backend: dns.asyncbackend.Backend | None = None,
+    raise_on_serial_went_backwards: bool = True,
 ) -> None:
     """Conduct an inbound transfer and apply it via a transaction from the
     txn_manager.
@@ -940,7 +944,8 @@ async def inbound_xfr(
                     query,
                     serial,
                     timeout,
-                    expiration,  # pyright: ignore
+                    expiration,  # pyright: ignore,
+                    raise_on_serial_went_backwards,
                 ):
                     pass
                 return
