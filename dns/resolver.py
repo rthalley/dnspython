@@ -17,6 +17,7 @@
 
 """DNS stub resolver."""
 
+import os
 import random
 import socket
 import sys
@@ -935,14 +936,15 @@ class BaseResolver:
     _nameservers: Sequence[str | dns.nameserver.Nameserver]
 
     def __init__(
-        self, filename: str = "/etc/resolv.conf", configure: bool = True
+        self, filename: str | os.PathLike = "/etc/resolv.conf", configure: bool = True
     ) -> None:
         """Initialize a resolver.
 
-        :param filename: A ``str`` or file object specifying a file in
-            standard ``/etc/resolv.conf`` format.  Meaningful only when
-            *configure* is ``True`` and the platform is POSIX.
-        :type filename: str or file
+        :param filename: A ``str``, ``os.PathLike``, or file object
+            specifying a file in standard ``/etc/resolv.conf`` format.
+            Meaningful only when *configure* is ``True`` and the platform
+            is POSIX.
+        :type filename: str, os.PathLike, or file
         :param configure: If ``True`` (the default), configure the resolver
             for the operating system (reads ``/etc/resolv.conf`` on POSIX,
             registry on Windows).
@@ -983,9 +985,9 @@ class BaseResolver:
         self.ndots = None
 
     def read_resolv_conf(self, f: Any) -> None:
-        """Process *f* as a file in the /etc/resolv.conf format.  If f is
-        a ``str``, it is used as the name of the file to open; otherwise it
-        is treated as the file itself.
+        """Process *f* as a file in the /etc/resolv.conf format.  If *f* is
+        a ``str`` or an ``os.PathLike``, it is used as the name of the file
+        to open; otherwise it is treated as the file itself.
 
         Interprets the following items:
 

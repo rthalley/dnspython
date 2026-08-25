@@ -1,6 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import base64
+import pathlib
 import unittest
 import os
 import dns.tsig
@@ -94,6 +95,13 @@ class TSIGKeyRingTestCase(unittest.TestCase):
     def test_from_file_1(self):
         """test to parse key file 1.key"""
         keyring = dns.tsigkeyring.from_file(os.path.join(TEST_DIR, "./tsigkeys/1.key"))
+        self.assertEqual(keyring, keyring_file_1)
+
+    def test_from_file_with_path(self):
+        """test to parse key file 1.key named by a pathlib.Path"""
+        keyring = dns.tsigkeyring.from_file(
+            pathlib.Path(TEST_DIR) / "tsigkeys" / "1.key"
+        )
         self.assertEqual(keyring, keyring_file_1)
 
     def test_from_file_2(self):

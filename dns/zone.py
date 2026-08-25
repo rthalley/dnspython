@@ -619,8 +619,9 @@ class Zone(dns.transaction.TransactionManager):
     ) -> None:
         """Write a zone to a file.
 
-        :param f: A file object or a ``str`` filename.  If a string, it is
-            treated as the name of a file to open.
+        :param f: A file object, a ``str`` filename, or an ``os.PathLike``.
+            If not a file object, it is treated as the name of a file to
+            open.
         :param bool sorted: If ``True`` (the default), the file will be
             written with the names sorted in DNSSEC order from least to
             greatest.  Otherwise the names will be written in whatever order
@@ -671,8 +672,9 @@ class Zone(dns.transaction.TransactionManager):
 
         :param style: The style to apply.
         :type style: :py:class:`dns.zone.ZoneStyle`
-        :param f: A file object or a ``str`` filename.  If a string, it is
-            treated as the name of a file to open.
+        :param f: A file object, a ``str`` filename, or an ``os.PathLike``.
+            If not a file object, it is treated as the name of a file to
+            open.
         """
 
         # Apply style items we learned from $UNICODE when we loaded the zone (if any).
@@ -1379,8 +1381,8 @@ def from_file(
 ) -> Zone:
     """Read a zone file and build a zone object.
 
-    :param f: A file object or a ``str`` filename.  If a string, it is
-        treated as the name of a file to open.
+    :param f: A file object, a ``str`` filename, or an ``os.PathLike``.  If
+        not a file object, it is treated as the name of a file to open.
     :param origin: The origin of the zone.  If not specified, the first
         ``$ORIGIN`` statement in the zone file will determine the origin.
     :type origin: :py:class:`dns.name.Name`, str, or ``None``

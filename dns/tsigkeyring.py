@@ -18,6 +18,7 @@
 """A place to store TSIG keys."""
 
 import base64
+import os
 import re
 from typing import Any
 from pathlib import Path
@@ -40,7 +41,7 @@ TSIG_KEY_FILE_RE = re.compile(
 )
 
 
-def from_file(key_file: str) -> dict[dns.name.Name, Any]:
+def from_file(key_file: str | os.PathLike) -> dict[dns.name.Name, Any]:
     """Open a tsig key file generate by tsig-keygen
     and parse to retrieve key, algo and secret
     @rtype: dict"""

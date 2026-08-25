@@ -64,6 +64,12 @@ TBD
 
 * The HHIT and BRID rdata types are now supported, and the NXNAME metatype is defined.
 
+* APIs which accept the name of a file to open — dns.zone.from_file(),
+  dns.zone.Zone.to_file(), dns.message.from_file(), dns.tsigkeyring.from_file(),
+  Resolver.read_resolv_conf(), and the resolver constructor's *filename* parameter —
+  now also accept any ``os.PathLike``, e.g. a ``pathlib.Path``.  Previously a path
+  object was mistaken for an open file.
+
 2.8.0
 -----
 

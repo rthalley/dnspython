@@ -1,12 +1,13 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import contextlib
+import os
 from typing import Any
 
 
 def as_filename(f: Any) -> str | None:
-    if isinstance(f, str):
-        return f
+    if isinstance(f, (str, os.PathLike)):
+        return os.fsdecode(f)
     return None
 
 

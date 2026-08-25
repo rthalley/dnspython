@@ -1665,7 +1665,8 @@ def from_file(
 
     Message blocks are separated by a single blank line.
 
-    :param f: A file object or a pathname string.
+    :param f: A file object, or the name of a file to open, as a ``str``
+        or an ``os.PathLike``.
     :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
     :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
     :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.

@@ -17,6 +17,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import binascii
+import pathlib
 import unittest
 
 import dns.edns
@@ -435,6 +436,11 @@ class MessageTestCase(unittest.TestCase):
 
     def test_from_file(self):
         m = dns.message.from_file(here("query"))
+        expected = dns.message.from_text(query_text)
+        self.assertEqual(m, expected)
+
+    def test_from_file_with_path(self):
+        m = dns.message.from_file(pathlib.Path(here("query")))
         expected = dns.message.from_text(query_text)
         self.assertEqual(m, expected)
 

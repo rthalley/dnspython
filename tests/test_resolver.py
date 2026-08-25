@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import asyncio
+import pathlib
 import selectors
 import socket
 import sys
@@ -70,15 +71,6 @@ except Exception:
 # it should say no error no data.
 _is_docker = tests.util.is_docker()
 
-
-resolv_conf = """
-    /t/t
-# comment 1
-; comment 2
-domain foo
-nameserver 10.0.0.1
-nameserver 10.0.0.2
-"""
 
 resolv_conf_options1 = """
 nameserver 10.0.0.1
@@ -228,11 +220,19 @@ class FakeTime:
 
 class BaseResolverTests(unittest.TestCase):
     def testRead(self):
-        f = StringIO(resolv_conf)
         r = dns.resolver.Resolver(configure=False)
-        r.read_resolv_conf(f)
+        with open(tests.util.here("resolv.conf")) as f:
+            r.read_resolv_conf(f)
         self.assertEqual(r.nameservers, ["10.0.0.1", "10.0.0.2"])
         self.assertEqual(r.domain, dns.name.from_text("foo"))
+
+    def testReadPath(self):
+        r = dns.resolver.Resolver(configure=False)
+        r.read_resolv_conf(pathlib.Path(tests.util.here("resolv.conf")))
+        self.assertEqual(r.nameservers, ["10.0.0.1", "10.0.0.2"])
+        self.assertEqual(r.domain, dns.name.from_text("foo"))
+        with self.assertRaises(dns.resolver.NoResolverConfiguration):
+            r.read_resolv_conf(pathlib.Path(tests.util.here("nonexistent.conf")))
 
     def testReadOptions(self):
         f = StringIO(resolv_conf_options1)

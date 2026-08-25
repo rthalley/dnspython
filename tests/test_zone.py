@@ -18,6 +18,7 @@
 
 import difflib
 import os
+import pathlib
 import sys
 import unittest
 from io import BytesIO, StringIO
@@ -418,6 +419,24 @@ class ZoneTestCase(unittest.TestCase):
         finally:
             if not _keep_output:
                 os.unlink(here("example2.out"))
+        self.assertTrue(ok)
+
+    def testFromFileWithPath(self):
+        z = dns.zone.from_file(pathlib.Path(here("example")), "example")
+        z2 = dns.zone.from_file(here("example"), "example")
+        self.assertEqual(z, z2)
+
+    def testToFileWithPath(self):
+        z = dns.zone.from_file(here("example"), "example")
+        ok = False
+        try:
+            z.to_file(pathlib.Path(here("example-path.out")), nl=b"\x0a")
+            ok = compare_files(
+                "testToFileWithPath", here("example-path.out"), here("example1.good")
+            )
+        finally:
+            if not _keep_output:
+                os.unlink(here("example-path.out"))
         self.assertTrue(ok)
 
     def testToFileTextualStream(self):
