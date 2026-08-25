@@ -19,6 +19,7 @@
 
 import base64
 import contextlib
+import os
 import random
 import socket
 import struct
@@ -26,6 +27,7 @@ import time
 import urllib.parse
 from typing import Any, cast
 
+import dns._file_util
 import dns.asyncbackend
 import dns.exception
 import dns.inet
@@ -461,7 +463,7 @@ async def tls(
     backend: dns.asyncbackend.Backend | None = None,
     ssl_context: ssl.SSLContext | None = None,
     server_hostname: str | None = None,
-    verify: bool | str = True,
+    verify: bool | str | os.PathLike = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
@@ -543,7 +545,7 @@ async def https(
     client: "httpx2.AsyncClient|dns.quic.AsyncQuicConnection | None" = None,
     path: str = "/dns-query",
     post: bool = True,
-    verify: bool | str | ssl.SSLContext = True,
+    verify: bool | str | os.PathLike | ssl.SSLContext = True,
     bootstrap_address: str | None = None,
     resolver: "dns.asyncresolver.Resolver | None" = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
@@ -560,6 +562,9 @@ async def https(
     parameters, exceptions, and return type of this method.
     """
 
+    verify_filename = dns._file_util.as_filename(verify)
+    if verify_filename is not None:
+        verify = verify_filename
     try:
         af = dns.inet.af_for_address(where)
     except ValueError:
@@ -716,7 +721,7 @@ async def _http3(
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    verify: bool | str | ssl.SSLContext = True,
+    verify: bool | str | os.PathLike | ssl.SSLContext = True,
     backend: dns.asyncbackend.Backend | None = None,
     post: bool = True,
     connection: dns.quic.AsyncQuicConnection | None = None,
@@ -780,7 +785,7 @@ async def quic(
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     connection: dns.quic.AsyncQuicConnection | None = None,
-    verify: bool | str = True,
+    verify: bool | str | os.PathLike = True,
     backend: dns.asyncbackend.Backend | None = None,
     hostname: str | None = None,
     server_hostname: str | None = None,

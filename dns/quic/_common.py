@@ -13,6 +13,7 @@ import aioquic.h3.connection  # pyright: ignore
 import aioquic.quic.configuration  # pyright: ignore
 import aioquic.quic.connection  # pyright: ignore
 
+import dns._file_util
 import dns._tls_util
 import dns.inet
 
@@ -231,9 +232,8 @@ class BaseQuicManager:
         self._tokens = {}
         self._h3 = h3
         if conf is None:
-            verify_path = None
-            if isinstance(verify_mode, str):
-                verify_path = verify_mode
+            verify_path = dns._file_util.as_filename(verify_mode)
+            if verify_path is not None:
                 verify_mode = True
             if h3:
                 alpn_protocols = ["h3"]

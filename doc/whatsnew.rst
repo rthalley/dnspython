@@ -70,6 +70,10 @@ TBD
   now also accept any ``os.PathLike``, e.g. a ``pathlib.Path``.  Previously a path
   object was mistaken for an open file.
 
+* The *verify* parameter of the DoH/DoT/DoQ query functions and nameserver classes
+  now also accepts an ``os.PathLike`` naming the CA file or directory.  Previously a
+  path object was silently ignored and the default CA roots were used.
+
 2.8.0
 -----
 

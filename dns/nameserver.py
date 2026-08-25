@@ -1,3 +1,4 @@
+import os
 from urllib.parse import urlparse
 
 import dns.asyncbackend
@@ -164,7 +165,7 @@ class DoHNameserver(Nameserver):
         self,
         url: str,
         bootstrap_address: str | None = None,
-        verify: bool | str = True,
+        verify: bool | str | os.PathLike = True,
         want_get: bool = False,
         http_version: dns.query.HTTPVersion = dns.query.HTTPVersion.DEFAULT,
     ):
@@ -249,7 +250,7 @@ class DoTNameserver(AddressAndPortNameserver):
         address: str,
         port: int = 853,
         hostname: str | None = None,
-        verify: bool | str = True,
+        verify: bool | str | os.PathLike = True,
     ):
         super().__init__(address, port)
         self.hostname = hostname
@@ -307,7 +308,7 @@ class DoQNameserver(AddressAndPortNameserver):
         self,
         address: str,
         port: int = 853,
-        verify: bool | str = True,
+        verify: bool | str | os.PathLike = True,
         server_hostname: str | None = None,
     ):
         super().__init__(address, port)

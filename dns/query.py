@@ -32,6 +32,7 @@ from collections.abc import Callable
 from typing import Any, cast
 
 import dns._features
+import dns._file_util
 import dns._tls_util
 import dns.exception
 import dns.inet
@@ -440,7 +441,7 @@ def https(
     path: str = "/dns-query",
     post: bool = True,
     bootstrap_address: str | None = None,
-    verify: bool | str | ssl.SSLContext = True,
+    verify: bool | str | os.PathLike | ssl.SSLContext = True,
     resolver: "dns.resolver.Resolver | None" = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
@@ -480,9 +481,9 @@ def https(
     :param bootstrap_address: The IP address to use to bypass resolution.
     :type bootstrap_address: str or ``None``
     :param verify: If ``True``, verify the TLS certificate using default CA
-        roots; if ``False``, disable verification; if a ``str``, path to a
-        certificate file or directory.
-    :type verify: bool or str
+        roots; if ``False``, disable verification; if a ``str`` or an
+        ``os.PathLike``, path to a certificate file or directory.
+    :type verify: bool, str, or os.PathLike
     :param resolver: Resolver to use for hostname resolution in URLs.  If
         ``None``, a new resolver with default configuration is used (not the
         default resolver, to avoid a DoH chicken-and-egg problem).  Only
@@ -496,6 +497,9 @@ def https(
     :rtype: :py:class:`dns.message.Message`
     """
 
+    verify_filename = dns._file_util.as_filename(verify)
+    if verify_filename is not None:
+        verify = verify_filename
     af, _, the_source = _destination_and_source(where, port, source, source_port, False)
     # we bind url and then override as pyright can't figure out all paths bind.
     url = where
@@ -664,7 +668,7 @@ def _http3(
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    verify: bool | str | ssl.SSLContext = True,
+    verify: bool | str | os.PathLike | ssl.SSLContext = True,
     post: bool = True,
     connection: dns.quic.SyncQuicConnection | None = None,
 ) -> dns.message.Message:
@@ -1242,7 +1246,7 @@ def _tls_handshake(s, expiration):
 
 
 def make_ssl_context(
-    verify: bool | str = True,
+    verify: bool | str | os.PathLike = True,
     check_hostname: bool = True,
     alpns: list[str] | None = None,
 ) -> ssl.SSLContext:
@@ -1250,9 +1254,10 @@ def make_ssl_context(
 
     If *verify* is ``True``, the default, then certificate verification will occur using
     the standard CA roots.  If *verify* is ``False``, then certificate verification will
-    be disabled.  If *verify* is a string which is a valid pathname, then if the
-    pathname is a regular file, the CA roots will be taken from the file, otherwise if
-    the pathname is a directory roots will be taken from the directory.
+    be disabled.  If *verify* is a ``str`` or an ``os.PathLike`` which is a valid
+    pathname, then if the pathname is a regular file, the CA roots will be taken from
+    the file, otherwise if the pathname is a directory roots will be taken from the
+    directory.
 
     If *check_hostname* is ``True``, the default, then the hostname of the server must
     be specified when connecting and the server's certificate must authorize the
@@ -1276,7 +1281,7 @@ def make_ssl_context(
 
 # for backwards compatibility
 def _make_dot_ssl_context(
-    server_hostname: str | None, verify: bool | str
+    server_hostname: str | None, verify: bool | str | os.PathLike
 ) -> ssl.SSLContext:
     return make_ssl_context(verify, server_hostname is not None, ["dot"])
 
@@ -1293,7 +1298,7 @@ def tls(
     sock: ssl.SSLSocket | None = None,
     ssl_context: ssl.SSLContext | None = None,
     server_hostname: str | None = None,
-    verify: bool | str = True,
+    verify: bool | str | os.PathLike = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
@@ -1330,9 +1335,9 @@ def tls(
         and an SSL context is created, hostname checking is disabled.
     :type server_hostname: str or ``None``
     :param verify: If ``True``, verify the TLS certificate using default CA
-        roots; if ``False``, disable verification; if a ``str``, path to a
-        certificate file or directory.
-    :type verify: bool or str
+        roots; if ``False``, disable verification; if a ``str`` or an
+        ``os.PathLike``, path to a certificate file or directory.
+    :type verify: bool, str, or os.PathLike
     :rtype: :py:class:`dns.message.Message`
     """
 
@@ -1393,7 +1398,7 @@ def quic(
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     connection: dns.quic.SyncQuicConnection | None = None,
-    verify: bool | str = True,
+    verify: bool | str | os.PathLike = True,
     hostname: str | None = None,
     server_hostname: str | None = None,
 ) -> dns.message.Message:
@@ -1422,9 +1427,9 @@ def quic(
     :param connection: If provided, the QUIC connection to use.
     :type connection: :py:class:`dns.quic.SyncQuicConnection` or ``None``
     :param verify: If ``True``, verify the TLS certificate using default CA
-        roots; if ``False``, disable verification; if a ``str``, path to a
-        certificate file or directory.
-    :type verify: bool or str
+        roots; if ``False``, disable verification; if a ``str`` or an
+        ``os.PathLike``, path to a certificate file or directory.
+    :type verify: bool, str, or os.PathLike
     :param hostname: The server's hostname, or ``None``.  If ``None`` and an
         SSL context is created, hostname checking is disabled.
     :type hostname: str or ``None``
