@@ -8,6 +8,18 @@ What's New in dnspython
 
 TBD
 
+* DNSSEC now supports ML-DSA-44, a post-quantum signature algorithm.
+
+* A "transaction setup" callable may be specified when reading a zone from a file,
+  a string, or an inbound zone transfer.  It is called just after the transaction is
+  created.  A ``TransactionLimiter`` setup is available to limit the size of the
+  zone.
+
+* Name and rdata "to text" is now done with the `to_styled_text()` method, allowing
+  much greater control over text output.  Application code that uses `to_text()`
+  continues to work as before, but any custom Rdata implementations need to be updated
+  to support `to_styled_text()`.
+
 * The socket type parameter to socket.getaddrinfo used to be called "socktype" in
   Python 2, but was renamed to "type" in Python 3.  We applied this change on
   the python3 branch almost a decade ago, but it was lost in the "single code base,
@@ -38,6 +50,19 @@ TBD
   round trip.  These fields now apply escapes directly to bytes, like TXT-like
   records, using the new Tokenizer.get_bytes(), and URI escapes its target on
   output, so from_text(to_text()) is the identity for all octet values.
+
+* Httpx2 has replaced httpx for HTTPS TCP connections.
+
+* Mypy type checking has been removed; ty type checking has been added.
+
+* The zone transfer code's "raise on serial went backwards" default behavior can now
+  be disabled with the ``raise_on_serial_went_backwards`` parameter.
+
+* The async `zone_from_name()` function now behaves the same as the sync version.
+
+* Documentation has been augmented and modernized.
+
+* The HHIT and BRID rdata types are now supported, and the NXNAME metatype is defined.
 
 2.8.0
 -----
