@@ -17,7 +17,6 @@
 
 """DNS stub resolver."""
 
-import contextlib
 import random
 import socket
 import sys
@@ -29,6 +28,7 @@ from typing import Any, cast
 from urllib.parse import urlparse
 
 import dns._ddr
+import dns._file_util
 import dns.edns
 import dns.exception
 import dns.flags
@@ -1000,14 +1000,11 @@ class BaseResolver:
         """
 
         nameservers = []
-        if isinstance(f, str):
-            try:
-                cm: contextlib.AbstractContextManager = open(f, encoding="utf-8")
-            except OSError:
-                # /etc/resolv.conf doesn't exist, can't be read, etc.
-                raise NoResolverConfiguration(f"cannot open {f}")
-        else:
-            cm = contextlib.nullcontext(f)
+        try:
+            cm = dns._file_util.maybe_open(f, encoding="utf-8")
+        except OSError:
+            # /etc/resolv.conf doesn't exist, can't be read, etc.
+            raise NoResolverConfiguration(f"cannot open {f}")
         with cm as f:
             assert f is not None
             for l in f:

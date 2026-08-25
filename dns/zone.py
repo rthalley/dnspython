@@ -17,7 +17,6 @@
 
 """DNS Zones."""
 
-import contextlib
 import dataclasses
 import io
 import os
@@ -25,6 +24,7 @@ import struct
 from collections.abc import Callable, Iterable, Iterator, MutableMapping
 from typing import Any, BinaryIO, TextIO, cast
 
+import dns._file_util
 import dns.exception
 import dns.immutable
 import dns.name
@@ -687,11 +687,7 @@ class Zone(dns.transaction.TransactionManager):
             else:
                 txt_is_utf8 = style.txt_is_utf8
             style = style.replace(idna_codec=idna_codec, txt_is_utf8=txt_is_utf8)
-        if isinstance(f, str):
-            cm: contextlib.AbstractContextManager = open(f, "wb")
-        else:
-            cm = contextlib.nullcontext(f)
-        with cm as output:
+        with dns._file_util.maybe_open(f, "wb") as output:
             # must be in this way, f.encoding may contain None, or even
             # attribute may not be there
             file_enc = getattr(f, "encoding", None)
@@ -1423,13 +1419,9 @@ def from_file(
     :returns: A subclass of :py:class:`dns.zone.Zone`.
     """
 
-    if isinstance(f, str):
-        if filename is None:
-            filename = f
-        cm: contextlib.AbstractContextManager = open(f, encoding="utf-8")
-    else:
-        cm = contextlib.nullcontext(f)
-    with cm as f:
+    if filename is None:
+        filename = dns._file_util.as_filename(f)
+    with dns._file_util.maybe_open(f, encoding="utf-8") as f:
         return _from_text(
             f,
             origin,

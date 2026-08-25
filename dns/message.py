@@ -17,13 +17,13 @@
 
 """DNS Messages"""
 
-import contextlib
 import dataclasses
 import enum
 import io
 import time
 from typing import Any, cast
 
+import dns._file_util
 import dns.edns
 import dns.entropy
 import dns.enum
@@ -1675,11 +1675,7 @@ def from_file(
     :rtype: :py:class:`dns.message.Message`
     """
 
-    if isinstance(f, str):
-        cm: contextlib.AbstractContextManager = open(f, encoding="utf-8")
-    else:
-        cm = contextlib.nullcontext(f)
-    with cm as f:
+    with dns._file_util.maybe_open(f, encoding="utf-8") as f:
         reader = _TextReader(f, idna_codec, one_rr_per_rrset)
         return reader.read()
     assert False  # for mypy  lgtm[py/unreachable-statement]
