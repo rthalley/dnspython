@@ -609,7 +609,7 @@ class Zone(dns.transaction.TransactionManager):
 
     def to_file(
         self,
-        f: Any,
+        f: str | os.PathLike | BinaryIO | TextIO,
         sorted: bool = True,
         relativize: bool = True,
         nl: str | bytes | None = None,
@@ -666,7 +666,7 @@ class Zone(dns.transaction.TransactionManager):
     def to_styled_file(
         self,
         style: ZoneStyle,
-        f: Any,
+        f: str | os.PathLike | BinaryIO | TextIO,
     ) -> None:
         """Write a zone to a styled file.
 
@@ -1367,7 +1367,7 @@ def from_text(
 
 
 def from_file(
-    f: Any,
+    f: str | os.PathLike | TextIO,
     origin: dns.name.Name | str | None = None,
     rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
     relativize: bool = True,
@@ -1423,9 +1423,9 @@ def from_file(
 
     if filename is None:
         filename = dns._file_util.as_filename(f)
-    with dns._file_util.maybe_open(f, encoding="utf-8") as f:
+    with dns._file_util.maybe_open(f, encoding="utf-8") as fp:
         return _from_text(
-            f,
+            fp,
             origin,
             rdclass,
             relativize,

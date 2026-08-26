@@ -25,7 +25,7 @@ import threading
 import time
 import warnings
 from collections.abc import Iterator, Sequence
-from typing import Any, cast
+from typing import Any, TextIO, cast
 from urllib.parse import urlparse
 
 import dns._ddr
@@ -936,7 +936,9 @@ class BaseResolver:
     _nameservers: Sequence[str | dns.nameserver.Nameserver]
 
     def __init__(
-        self, filename: str | os.PathLike = "/etc/resolv.conf", configure: bool = True
+        self,
+        filename: str | os.PathLike | TextIO = "/etc/resolv.conf",
+        configure: bool = True,
     ) -> None:
         """Initialize a resolver.
 
@@ -984,7 +986,7 @@ class BaseResolver:
         self.rotate = False
         self.ndots = None
 
-    def read_resolv_conf(self, f: Any) -> None:
+    def read_resolv_conf(self, f: str | os.PathLike | TextIO) -> None:
         """Process *f* as a file in the /etc/resolv.conf format.  If *f* is
         a ``str`` or an ``os.PathLike``, it is used as the name of the file
         to open; otherwise it is treated as the file itself.
@@ -1007,9 +1009,8 @@ class BaseResolver:
         except OSError:
             # /etc/resolv.conf doesn't exist, can't be read, etc.
             raise NoResolverConfiguration(f"cannot open {f}")
-        with cm as f:
-            assert f is not None
-            for l in f:
+        with cm as fp:
+            for l in fp:
                 if len(l) == 0 or l[0] == "#" or l[0] == ";":
                     continue
                 tokens = l.split()

@@ -20,8 +20,9 @@
 import dataclasses
 import enum
 import io
+import os
 import time
-from typing import Any, cast
+from typing import Any, TextIO, cast
 
 import dns._file_util
 import dns.edns
@@ -1657,7 +1658,7 @@ def from_text(
 
 
 def from_file(
-    f: Any,
+    f: str | os.PathLike | TextIO,
     idna_codec: dns.name.IDNACodec | None = None,
     one_rr_per_rrset: bool = False,
 ) -> Message:
@@ -1676,8 +1677,8 @@ def from_file(
     :rtype: :py:class:`dns.message.Message`
     """
 
-    with dns._file_util.maybe_open(f, encoding="utf-8") as f:
-        reader = _TextReader(f, idna_codec, one_rr_per_rrset)
+    with dns._file_util.maybe_open(f, encoding="utf-8") as fp:
+        reader = _TextReader(fp, idna_codec, one_rr_per_rrset)
         return reader.read()
     assert False  # for mypy  lgtm[py/unreachable-statement]
 
