@@ -60,6 +60,13 @@ TBD
 
 * The async `zone_from_name()` function now behaves the same as the sync version.
 
+* `dns.asyncquery.receive_udp()` with ``ignore_errors`` set again discards a datagram
+  that fails to parse and keeps listening for a valid response, matching
+  `dns.query.receive_udp()`.  It had been returning the unparsable datagram with its
+  errors recorded on the message.  The unused ``ignore_errors`` parameter added to
+  `dns.asyncquery.receive_tcp()` at the same time has been removed, as the sync
+  version has no such parameter.
+
 * Documentation has been augmented and modernized.
 
 * The HHIT and BRID rdata types are now supported, and the NXNAME metatype is defined.

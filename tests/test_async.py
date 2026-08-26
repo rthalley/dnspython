@@ -972,6 +972,31 @@ class IgnoreErrors(unittest.TestCase):
 
         self.async_run(run)
 
+    def test_unparsable_wire_is_skipped_not_salvaged(self):
+        # ignore_errors means "keep listening for a valid response", so a
+        # datagram that fails to parse must be discarded rather than returned
+        # with its parse errors recorded.  The first datagram below has a
+        # valid header and a different rcode, so returning it instead of the
+        # second one is detectable.
+        async def run():
+            bad_r = dns.message.make_response(self.q)
+            bad_r.set_rcode(dns.rcode.SERVFAIL)
+            bad_r_wire = bad_r.to_wire() + b"abcd"
+            s = MockSock(
+                bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
+            )
+            r, _, _ = await dns.asyncquery.receive_udp(
+                s,
+                ("127.0.0.1", 53),
+                time.time() + 2,
+                ignore_errors=True,
+                query=self.q,
+            )
+            self.assertEqual(r, self.good_r)
+            self.assertEqual(r.errors, [])
+
+        self.async_run(run)
+
     def test_trailing_wire_not_ignored(self):
         wire = self.good_r_wire + b"abcd"
 
