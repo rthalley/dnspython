@@ -2,17 +2,20 @@
 
 import os
 
+import dns._file_util
+
 
 def convert_verify_to_cafile_and_capath(
-    verify: bool | str,
+    verify: bool | str | os.PathLike,
 ) -> tuple[str | None, str | None]:
     cafile: str | None = None
     capath: str | None = None
-    if isinstance(verify, str):
-        if os.path.isfile(verify):
-            cafile = verify
-        elif os.path.isdir(verify):
-            capath = verify
+    filename = dns._file_util.as_filename(verify)
+    if filename is not None:
+        if os.path.isfile(filename):
+            cafile = filename
+        elif os.path.isdir(filename):
+            capath = filename
         else:
             raise ValueError("invalid verify string")
     return cafile, capath

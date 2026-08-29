@@ -17,13 +17,14 @@
 
 """DNS Messages"""
 
-import contextlib
 import dataclasses
 import enum
 import io
+import os
 import time
-from typing import Any, cast
+from typing import Any, TextIO, cast
 
+import dns._file_util
 import dns.edns
 import dns.entropy
 import dns.enum
@@ -1657,7 +1658,7 @@ def from_text(
 
 
 def from_file(
-    f: Any,
+    f: str | os.PathLike | TextIO,
     idna_codec: dns.name.IDNACodec | None = None,
     one_rr_per_rrset: bool = False,
 ) -> Message:
@@ -1665,7 +1666,8 @@ def from_file(
 
     Message blocks are separated by a single blank line.
 
-    :param f: A file object or a pathname string.
+    :param f: A file object, or the name of a file to open, as a ``str``
+        or an ``os.PathLike``.
     :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
     :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
     :param one_rr_per_rrset: If ``True``, put each RR into its own RRset.
@@ -1675,12 +1677,8 @@ def from_file(
     :rtype: :py:class:`dns.message.Message`
     """
 
-    if isinstance(f, str):
-        cm: contextlib.AbstractContextManager = open(f, encoding="utf-8")
-    else:
-        cm = contextlib.nullcontext(f)
-    with cm as f:
-        reader = _TextReader(f, idna_codec, one_rr_per_rrset)
+    with dns._file_util.maybe_open(f, encoding="utf-8") as fp:
+        reader = _TextReader(fp, idna_codec, one_rr_per_rrset)
         return reader.read()
     assert False  # for mypy  lgtm[py/unreachable-statement]
 
