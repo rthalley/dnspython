@@ -864,6 +864,30 @@ class IgnoreErrors(unittest.TestCase):
         wire = self.good_r_wire + b"abcd"
         self.mock_receive(wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53))
 
+    def test_unparsable_wire_is_skipped_not_salvaged(self):
+        # The twin of the dns.asyncquery test of the same name.  The first
+        # datagram has a valid header and a different rcode, so returning it
+        # instead of the second one is detectable.
+        bad_r = dns.message.make_response(self.q)
+        bad_r.set_rcode(dns.rcode.SERVFAIL)
+        bad_r_wire = bad_r.to_wire() + b"abcd"
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            with mock_udp_recv(
+                bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
+            ):
+                r, _ = dns.query.receive_udp(
+                    s,
+                    ("127.0.0.1", 53),
+                    time.time() + 2,
+                    ignore_errors=True,
+                    query=self.q,
+                )
+                self.assertEqual(r, self.good_r)
+                self.assertEqual(r.errors, [])
+        finally:
+            s.close()
+
     def test_trailing_wire_not_ignored(self):
         wire = self.good_r_wire + b"abcd"
 
