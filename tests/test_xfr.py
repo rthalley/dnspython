@@ -851,3 +851,123 @@ def test_asyncio_retry_tcp_inbound_xfr():
 
         runner = old_runner
     runner(run())
+
+
+#
+# The master's serial is older than ours, in a single-message IXFR response.
+#
+went_backwards_ixfr = """id 1
+opcode QUERY
+rcode NOERROR
+flags AA
+;QUESTION
+example. IN IXFR
+;ANSWER
+@ 3600 IN SOA foo bar 5 2 3 4 5
+"""
+
+# Newer than what went_backwards_ixfr offers, so an IXFR from it goes backwards.
+went_backwards_base = """@ 3600 IN SOA foo bar 6 2 3 4 5
+@ 3600 IN NS ns1
+"""
+
+
+class WentBackwardsNanoNameserver(Server):
+    def __init__(self):
+        super().__init__(origin=dns.name.from_text("example"))
+
+    def handle(self, request):
+        try:
+            r = dns.message.from_text(
+                went_backwards_ixfr, one_rr_per_rrset=True, origin=self.origin
+            )
+            r.id = request.message.id
+            return r
+        except Exception:
+            pass
+
+
+def went_backwards_zone():
+    return dns.zone.from_text(
+        went_backwards_base, "example", zone_factory=dns.versioned.Zone
+    )
+
+
+def check_went_backwards_zone(zone):
+    # Declining to raise ends the transfer without applying anything, so the
+    # zone must be untouched.
+    assert zone == dns.zone.from_text(went_backwards_base, "example")
+
+
+#
+# raise_on_serial_went_backwards has to reach dns.xfr.Inbound on both the UDP
+# and the TCP path.  UDPMode.NEVER is TCP only; TRY_FIRST sends the IXFR over
+# UDP first.
+#
+udp_modes = [dns.query.UDPMode.NEVER, dns.query.UDPMode.TRY_FIRST]
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("udp_mode", udp_modes)
+def test_sync_inbound_xfr_serial_went_backwards(udp_mode):
+    with WentBackwardsNanoNameserver() as ns:
+        where, port = ns.tcp_address
+        with pytest.raises(dns.xfr.SerialWentBackwards):
+            dns.query.inbound_xfr(
+                where, went_backwards_zone(), port=port, udp_mode=udp_mode
+            )
+        zone = went_backwards_zone()
+        dns.query.inbound_xfr(
+            where,
+            zone,
+            port=port,
+            udp_mode=udp_mode,
+            raise_on_serial_went_backwards=False,
+        )
+        check_went_backwards_zone(zone)
+
+
+async def async_inbound_xfr_serial_went_backwards(udp_mode):
+    with WentBackwardsNanoNameserver() as ns:
+        where, port = ns.tcp_address
+        with pytest.raises(dns.xfr.SerialWentBackwards):
+            await dns.asyncquery.inbound_xfr(
+                where, went_backwards_zone(), port=port, udp_mode=udp_mode
+            )
+        zone = went_backwards_zone()
+        await dns.asyncquery.inbound_xfr(
+            where,
+            zone,
+            port=port,
+            udp_mode=udp_mode,
+            raise_on_serial_went_backwards=False,
+        )
+        check_went_backwards_zone(zone)
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("udp_mode", udp_modes)
+def test_asyncio_inbound_xfr_serial_went_backwards(udp_mode):
+    dns.asyncbackend.set_default_backend("asyncio")
+
+    async def run():
+        await async_inbound_xfr_serial_went_backwards(udp_mode)
+
+    asyncio.run(run())
+
+
+try:
+    import trio
+
+    @pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+    @pytest.mark.parametrize("udp_mode", udp_modes)
+    def test_trio_inbound_xfr_serial_went_backwards(udp_mode):
+        dns.asyncbackend.set_default_backend("trio")
+
+        async def run():
+            await async_inbound_xfr_serial_went_backwards(udp_mode)
+
+        trio.run(run)
+
+except ImportError:
+    pass

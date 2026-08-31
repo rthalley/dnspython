@@ -850,7 +850,7 @@ async def _inbound_xfr(
     serial: int | None,
     timeout: float | None,
     expiration: float | None,
-    raise_on_serial_went_backwards: bool = True,
+    raise_on_serial_went_backwards: bool,
 ) -> Any:
     """Given a socket, does the zone transfer."""
     rdtype = query.question[0].rdtype
@@ -960,6 +960,12 @@ async def inbound_xfr(
     )
     async with s:
         async for _ in _inbound_xfr(  # pyright: ignore
-            txn_manager, s, query, serial, timeout, expiration  # pyright: ignore
+            txn_manager,
+            s,
+            query,
+            serial,
+            timeout,
+            expiration,  # pyright: ignore
+            raise_on_serial_went_backwards,
         ):
             pass
