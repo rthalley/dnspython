@@ -489,7 +489,11 @@ class Reader:
                 elif token.is_comment():
                     self.tok.get_eol()
                     continue
-                elif token.value[0] == "$" and len(self.allowed_directives) > 0:
+                elif (
+                    token.is_identifier()
+                    and token.value[0] == "$"
+                    and len(self.allowed_directives) > 0
+                ):
                     # Note that we only run directive processing code if at least
                     # one directive is allowed in order to be backwards compatible
                     c = token.value.upper()

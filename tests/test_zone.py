@@ -1162,6 +1162,26 @@ class ZoneTestCase(unittest.TestCase):
 
         self.assertRaises(dns.exception.SyntaxError, bad)
 
+    def testEmptyTokenAtStartOfLine(self):
+        # An empty token at the start of a line is not a directive, and used
+        # to escape as an IndexError instead of a SyntaxError.
+        def bad():
+            dns.zone.from_text('""\n', origin="example.", check_origin=False)
+
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testQuotedDirectiveIsNotADirective(self):
+        # A quoted string is data, not a directive, so "$TTL" must not be
+        # processed as $TTL.
+        def bad():
+            dns.zone.from_text(
+                '"$TTL" 60\nfoo 60 IN A 10.0.0.1\n',
+                origin="example.",
+                check_origin=False,
+            )
+
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
     def testFirstRRStartsWithWhitespace(self):
         # no name is specified, so default to the initial origin
         z = dns.zone.from_text(
