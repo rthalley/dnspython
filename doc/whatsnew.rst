@@ -37,6 +37,13 @@ TBD
   rejected by ``int()``, so they previously escaped the parser's validation.  This
   also makes zone files with such a TTL fail with a clean dns.exception.SyntaxError.
 
+* The zone file reader no longer treats a quoted string as a directive.  A line
+  starting with ``"$TTL"`` was processed as if it were ``$TTL``, because only the
+  token's value was tested and not its type; a directive must now be an unquoted
+  identifier.  This also fixes a crash: a line beginning with an empty token
+  (e.g. an empty quoted string) made the reader raise a bare IndexError, rather
+  than the dns.exception.SyntaxError any other malformed zone file gets.
+
 * The to_text() of string-list SVCB parameters (alpn and docpath) escaped
   non-printable bytes twice, rendering them as ``\\ddd`` instead of ``\ddd``,
   so the output did not parse back to the original value.  Such bytes are now
