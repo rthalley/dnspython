@@ -129,6 +129,28 @@ class OptionTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             dns.edns.ECSOption.from_text("1.2.3.4/2001:4b98::1/24")
 
+    def testECSOption_from_text_accepts_to_text(self):
+        for opt in (
+            dns.edns.ECSOption("1.2.3.4", 24, 32),
+            dns.edns.ECSOption("1.2.3.4", 24, 0),
+            dns.edns.ECSOption("2001:4b98::1", 64, 128),
+        ):
+            self.assertEqual(dns.edns.ECSOption.from_text(opt.to_text()), opt)
+
+    def testECSOption_from_text_scope_form_invalid(self):
+        # Three-token forms that to_text() never emits stay ValueErrors.
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text("ECS 1.2.3.4 scope/32")
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text("BOGUS 1.2.3.4/24 scope/32")
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text("ECS 1.2.3.4/24 32")
+
+        with self.assertRaises(ValueError):
+            dns.edns.ECSOption.from_text("ECS 1.2.3.4/24/0 scope/32")
+
     def testECSOption_from_wire_invalid(self):
         with self.assertRaises(ValueError):
             opt = dns.edns.option_from_wire(

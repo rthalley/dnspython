@@ -278,6 +278,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         >>> dns.edns.ECSOption.from_text('ECS 1.2.3.4/24/32')
         """
         optional_prefix = "ECS"
+        scope_prefix = "scope/"
         tokens = text.split()
         ecs_text = None
         if len(tokens) == 1:
@@ -286,6 +287,14 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             if tokens[0] != optional_prefix:
                 raise ValueError(f'could not parse ECS from "{text}"')
             ecs_text = tokens[1]
+        elif (
+            len(tokens) == 3
+            and tokens[0] == optional_prefix
+            and tokens[1].count("/") == 1
+            and tokens[2].startswith(scope_prefix)
+        ):
+            # The form emitted by to_text().
+            ecs_text = f"{tokens[1]}/{tokens[2][len(scope_prefix) :]}"
         else:
             raise ValueError(f'could not parse ECS from "{text}"')
         n_slashes = ecs_text.count("/")
