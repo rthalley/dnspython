@@ -624,6 +624,19 @@ class TsigTests(unittest.TestCase):
             seen = set([rdata.address for rdata in rrs])
             self.assertTrue("1.2.3.4" in seen)
 
+    def test_unsigned_response_to_signed_query(self):
+        # A server without the key answers a signed query with an unsigned
+        # response, which must be rejected (RFC 8945, section 5.4).
+        with TSIGNanoNameserver(keyring=False) as ns:
+            for query, address in (
+                (dns.query.udp, ns.udp_address),
+                (dns.query.tcp, ns.tcp_address),
+            ):
+                q = dns.message.make_query("example.com", "A")
+                q.use_tsig(keyring=keyring, keyname="name")
+                with self.assertRaises(dns.query.BadResponse):
+                    query(q, address[0], port=address[1], timeout=2)
+
 
 @unittest.skipIf(sys.platform == "win32", "low level tests do not work on win32")
 class LowLevelWaitTests(unittest.TestCase):

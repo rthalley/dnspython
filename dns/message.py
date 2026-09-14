@@ -312,6 +312,9 @@ class Message:
     def is_response(self, other: "Message") -> bool:
         """Is *other* a response to this message?
 
+        If this message is TSIG signed, then *other* must also be TSIG
+        signed to be considered a response (RFC 8945, section 5.4).
+
         :param other: The message to check.
         :type other: :py:class:`dns.message.Message`
         :rtype: bool
@@ -322,6 +325,8 @@ class Message:
             or self.id != other.id
             or dns.opcode.from_flags(self.flags) != dns.opcode.from_flags(other.flags)
         ):
+            return False
+        if self.had_tsig and not other.had_tsig:
             return False
         if other.rcode() in {
             dns.rcode.FORMERR,

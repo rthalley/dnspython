@@ -264,6 +264,20 @@ class TSIGTestCase(unittest.TestCase):
         wr = mr.to_wire()
         dns.message.from_wire(wr, keyring, request_mac=mq_with_tsig.mac)
 
+    def test_unsigned_response_to_signed_query_is_not_a_response(self):
+        mq = dns.message.make_query("example", "a")
+        mq.use_tsig(keyring, keyname)
+        wq = mq.to_wire()
+        # A peer without the key can still parse the query and answer it,
+        # but its unsigned answer must not be accepted as our response.
+        mr = dns.message.make_response(dns.message.from_wire(wq, keyring=False))
+        self.assertFalse(mr.had_tsig)
+        self.assertFalse(mq.is_response(mr))
+        # A signed answer is a response.
+        mr = dns.message.make_response(dns.message.from_wire(wq, keyring))
+        self.assertTrue(mr.had_tsig)
+        self.assertTrue(mq.is_response(mr))
+
     def make_message_pair(self, qname="example", rdtype="A", tsig_error=0):
         q = dns.message.make_query(qname, rdtype)
         q.use_tsig(keyring=keyring, keyname=keyname)

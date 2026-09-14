@@ -88,6 +88,12 @@ TBD
   now also accepts an ``os.PathLike`` naming the CA file or directory.  Previously a
   path object was silently ignored and the default CA roots were used.
 
+* dns.message.Message.is_response() now returns ``False`` when the message
+  was TSIG signed but the candidate response is not, as RFC 8945 section 5.4
+  requires.  The query functions in dns.query and dns.asyncquery therefore
+  reject an unsigned answer to a signed query with dns.query.BadResponse
+  instead of returning it.
+
 2.8.0
 -----
 
