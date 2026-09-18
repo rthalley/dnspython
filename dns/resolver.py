@@ -907,6 +907,12 @@ class _Resolution:
             return (None, False)
 
 
+def _reject_bool_lifetime(lifetime: float | None) -> None:
+    # bool subclasses int; lifetime=True would silently become a 1-second budget
+    if isinstance(lifetime, bool):
+        raise TypeError("lifetime must be a float or int, not bool")
+
+
 class BaseResolver:
     """DNS stub resolver."""
 
@@ -1071,7 +1077,9 @@ class BaseResolver:
         lifetime: float | None = None,
         errors: list[ErrorTuple] | None = None,
     ) -> float:
+        _reject_bool_lifetime(lifetime)
         lifetime = self.lifetime if lifetime is None else lifetime
+        _reject_bool_lifetime(lifetime)
         now = time.time()
         duration = now - start
         if errors is None:
@@ -1500,6 +1508,7 @@ class Resolver(BaseResolver):
         the bootstrap nameserver is in the Subject Alternative Name field of the
         TLS certficate.
         """
+        _reject_bool_lifetime(lifetime)
         try:
             expiration = time.time() + lifetime
             answer = self.resolve(
@@ -1671,6 +1680,7 @@ def zone_for_name(
     :rtype: :py:class:`dns.name.Name`
     """
 
+    _reject_bool_lifetime(lifetime)
     if isinstance(name, str):
         name = dns.name.from_text(name, dns.name.root)
     if resolver is None:

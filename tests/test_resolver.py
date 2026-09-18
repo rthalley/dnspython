@@ -993,6 +993,26 @@ class ResolverMiscTestCase(unittest.TestCase):
         # not raising is the test
         res._compute_timeout(now + 0.5)
 
+
+    def test_lifetime_rejects_bool(self):
+        """bool subclasses int; lifetime=True must not silently become 1s."""
+        res = dns.resolver.Resolver(configure=False)
+        for value in (True, False):
+            self.assertRaises(
+                TypeError, lambda v=value: res._compute_timeout(time.time(), lifetime=v)
+            )
+            self.assertRaises(TypeError, lambda v=value: res.try_ddr(lifetime=v))
+            self.assertRaises(
+                TypeError,
+                lambda v=value: dns.resolver.zone_for_name(
+                    "example.com.", resolver=res, lifetime=v
+                ),
+            )
+        remaining = res._compute_timeout(time.time(), lifetime=5.0)
+        self.assertGreater(remaining, 0)
+        self.assertLessEqual(remaining, 5.0)
+
+
     if sys.platform == "win32":
 
         def test_configure_win32_domain(self):
