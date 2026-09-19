@@ -275,7 +275,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         >>> dns.edns.ECSOption.from_text('2001:4b98::1/64/64')
         >>>
         >>> # it understands results from `dns.edns.ECSOption.to_text()`
-        >>> dns.edns.ECSOption.from_text('ECS 1.2.3.4/24/32')
+        >>> dns.edns.ECSOption.from_text('ECS 1.2.3.4/24 scope/32')
         """
         optional_prefix = "ECS"
         scope_prefix = "scope/"
