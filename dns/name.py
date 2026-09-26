@@ -95,6 +95,10 @@ class BadPointer(dns.exception.FormError):
     """A DNS compression pointer points forward instead of backward."""
 
 
+class PointerChainTooLong(dns.exception.FormError):
+    """A DNS compression pointer chain was too long."""
+
+
 class BadLabelType(dns.exception.FormError):
     """The label type in DNS name wire format is unknown."""
 
@@ -1136,6 +1140,9 @@ def from_text(
     return Name(labels)
 
 
+MAX_COMPRESSION_POINTER_CHAIN = 16
+
+
 def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
     """Convert possibly compressed wire format into a :py:class:`dns.name.Name`.
 
@@ -1149,6 +1156,7 @@ def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
 
     labels = []
     biggest_pointer = parser.current
+    hops = 0
     with parser.restore_furthest():
         count = parser.get_uint8()
         while count != 0:
@@ -1159,6 +1167,9 @@ def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
                 if current >= biggest_pointer:
                     raise BadPointer
                 biggest_pointer = current
+                hops += 1
+                if hops > MAX_COMPRESSION_POINTER_CHAIN:
+                    raise PointerChainTooLong
                 parser.seek(current)
             else:
                 raise BadLabelType
