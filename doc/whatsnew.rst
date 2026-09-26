@@ -88,6 +88,12 @@ TBD
   now also accepts an ``os.PathLike`` naming the CA file or directory.  Previously a
   path object was silently ignored and the default CA roots were used.
 
+* dns.message.from_wire() now raises dns.exception.FormError if a response to a
+  TSIG-signed request does not have a TSIG, unless *keyring* is ``False`` or *multi*
+  is ``True``.  Previously such unsigned responses were accepted.  As a result, the
+  query functions now reject unsigned responses to signed queries, and with
+  ``ignore_errors`` UDP receives discard them and keep waiting.
+
 2.8.0
 -----
 

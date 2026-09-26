@@ -1262,8 +1262,20 @@ class _WireReader:
             self._get_section(MessageSection.ADDITIONAL, adcount)
             if not self.ignore_trailing and self.parser.remaining() != 0:
                 raise TrailingJunk
-            if self.multi and self.message.tsig_ctx and not self.message.had_tsig:
-                self.message.tsig_ctx.update(self.parser.wire)
+            if self.multi:
+                if self.message.tsig_ctx and not self.message.had_tsig:
+                    # In the (obsolete) multi-mode, and we didn't get a TSIG, then
+                    # we need to update the context with this message.
+                    self.message.tsig_ctx.update(self.parser.wire)
+            elif (
+                self.keyring is not False
+                and self.message.request_mac
+                and not self.message.had_tsig
+            ):
+                # A TSIG is required but not present.
+                raise dns.exception.FormError(
+                    "response requires a TSIG but does not have one"
+                )
         except Exception as e:
             if self.continue_on_error:
                 self._add_error(e)
@@ -1290,10 +1302,14 @@ def from_wire(
 
     :param keyring: The key or keyring for TSIG validation. ``None`` or
         ``True`` causes TSIG-signed messages to fail; ``False`` disables
-        validation.
+        validation.  When used to validate responses to TSIG-signed requests,
+        the keyring should only have the key used to sign the request, otherwise
+        the validation will not correctly check that the key name and algorithm
+        match the request.
     :type keyring: :py:class:`dns.tsig.Key`, dict, bool, or ``None``
     :param request_mac: MAC of the TSIG-signed request this message responds
-        to, if any.
+        to, if any.  If nonempty, the message must have a TSIG unless *multi*
+        is ``True`` or *keyring* is ``False``.
     :type request_mac: bytes or ``None``
     :param xfr: ``True`` if this message is part of a zone transfer.
     :type xfr: bool
@@ -1324,6 +1340,9 @@ def from_wire(
         record.
     :raises dns.message.Truncated: If the TC flag is set and
         *raise_on_truncation* is ``True``.
+    :raises dns.exception.FormError: If *request_mac* is nonempty, *multi* is
+        ``False``, *keyring* is not ``False``, and the message does not have a
+        TSIG.
     :rtype: :py:class:`dns.message.Message`
     """
 
