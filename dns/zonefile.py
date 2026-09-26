@@ -75,8 +75,9 @@ SavedStateType = tuple[
     int,  # last_ttl
     bool,  # last_ttl_known
     int,  # default_ttl
-    bool,
-]  # default_ttl_known
+    bool,  # default_ttl_known
+    bool,  # default_ttl_from_soa
+]
 
 
 def _upper_dollarize(s):
@@ -101,12 +102,15 @@ class Reader:
         force_rdclass: dns.rdataclass.RdataClass | None = None,
         force_rdtype: dns.rdatatype.RdataType | None = None,
         default_ttl: int | None = None,
+        rfc2308_ttl: bool = False,
     ):
         self.tok = tok
         self.zone_origin, self.relativize, _ = txn.manager.origin_information()
         self.current_origin = self.zone_origin
         self.last_ttl = 0
         self.last_ttl_known = False
+        self.rfc2308_ttl = rfc2308_ttl
+        self.default_ttl_from_soa = False
         if force_ttl is not None:
             default_ttl = force_ttl
         if default_ttl is None:
@@ -150,6 +154,27 @@ class Reader:
         if not token.is_identifier():
             raise dns.exception.SyntaxError
         return token
+
+    def _implicit_ttl(self) -> int | None:
+        """Return the TTL to use for a record which did not specify one, or
+        ``None`` if no TTL can be determined yet.
+
+        An explicit default (from ``$TTL``, or from the *default_ttl* /
+        *force_ttl* constructor parameters) always wins.  Otherwise, in
+        ``rfc2308_ttl`` mode, the most recently stated TTL (RFC 1035 section
+        5.1) is preferred over a default synthesized from the SOA MINIMUM
+        field, whose overloaded "default TTL" meaning RFC 2308 section 4
+        removed.  In legacy mode the SOA-derived default wins, as it did
+        before RFC 2308.
+        """
+        if self.last_ttl_known and (  # only if the default doesn't take precedence
+            not self.default_ttl_known
+            or (self.rfc2308_ttl and self.default_ttl_from_soa)
+        ):
+            return self.last_ttl
+        if self.default_ttl_known:
+            return self.default_ttl
+        return None
 
     def _rr_line(self) -> None:
         """Process one line from a DNS zone file."""
@@ -218,10 +243,7 @@ class Reader:
                 self.last_ttl = ttl
                 self.last_ttl_known = True
             except dns.ttl.BadTTL:
-                if self.default_ttl_known:
-                    ttl = self.default_ttl
-                elif self.last_ttl_known:
-                    ttl = self.last_ttl
+                ttl = self._implicit_ttl()
                 self.tok.unget(token)
 
         # Type
@@ -262,9 +284,10 @@ class Reader:
             soa_rd = cast(dns.rdtypes.ANY.SOA.SOA, rd)
             self.default_ttl = soa_rd.minimum
             self.default_ttl_known = True
+            self.default_ttl_from_soa = True
             if ttl is None:
                 # if we didn't have a TTL on the SOA, set it!
-                ttl = soa_rd.minimum
+                ttl = self._implicit_ttl()
 
         # TTL check.  We had to wait until now to do this as the SOA RR's
         # own TTL can be inferred from its minimum.
@@ -353,16 +376,11 @@ class Reader:
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
         except dns.ttl.BadTTL:
-            if not (self.last_ttl_known or self.default_ttl_known):
-                raise dns.exception.SyntaxError("Missing default TTL value")
-            if self.default_ttl_known:
-                ttl = self.default_ttl
-            elif self.last_ttl_known:
-                ttl = self.last_ttl
-            else:
-                # We don't go to the extra "look at the SOA" level of effort for
-                # $GENERATE, because the user really ought to have defined a TTL
-                # somehow!
+            # We don't go to the extra "look at the SOA" level of effort for
+            # $GENERATE, because the user really ought to have defined a TTL
+            # somehow!
+            ttl = self._implicit_ttl()
+            if ttl is None:
                 raise dns.exception.SyntaxError("Missing default TTL value")
 
         # Class
@@ -481,6 +499,7 @@ class Reader:
                             self.last_ttl_known,
                             self.default_ttl,
                             self.default_ttl_known,
+                            self.default_ttl_from_soa,
                         ) = self.saved_state.pop(-1)
                         continue
                     break
@@ -507,6 +526,7 @@ class Reader:
                             raise dns.exception.SyntaxError("bad $TTL")
                         self.default_ttl = dns.ttl.from_text(token.value)
                         self.default_ttl_known = True
+                        self.default_ttl_from_soa = False
                         self.tok.get_eol()
                     elif c == "$ORIGIN":
                         self.current_origin = self.tok.get_name()
@@ -538,6 +558,7 @@ class Reader:
                                 self.last_ttl_known,
                                 self.default_ttl,
                                 self.default_ttl_known,
+                                self.default_ttl_from_soa,
                             )
                         )
                         self.current_file = open(filename, encoding="utf-8")
@@ -687,6 +708,7 @@ def read_rrsets(
     idna_codec: dns.name.IDNACodec | None = None,
     origin: dns.name.Name | str | None = dns.name.root,
     relativize: bool = False,
+    rfc2308_ttl: bool = False,
 ) -> list[dns.rrset.RRset]:
     """Read one or more rrsets from the specified text, possibly subject
     to restrictions.
@@ -726,6 +748,10 @@ def read_rrsets(
     :param bool relativize: If ``True``, names are relativized to *origin*;
         if ``False``, relative names in the input are made absolute by
         appending *origin*.
+    :param bool rfc2308_ttl: If ``True``, a TTL-less record inherits the most
+        recently stated TTL in preference to a default derived from the SOA
+        MINIMUM field, per RFC 2308 section 4.  The default is ``False``, the
+        historical behavior.
     :rtype: list[:py:class:`dns.rrset.RRset`]
     """
     if isinstance(origin, str):
@@ -758,6 +784,7 @@ def read_rrsets(
             force_rdclass=rdclass,
             force_rdtype=rdtype,
             default_ttl=default_ttl,
+            rfc2308_ttl=rfc2308_ttl,
         )
         reader.read()
     return manager.rrsets

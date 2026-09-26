@@ -136,6 +136,26 @@ bar 30 20 b.
     assert equal_rrsets(rrsets, [expected_mx_3, expected_mx_4])
 
 
+def test_soa_minimum_is_default_ttl():
+    input = """;
+example. 300 soa a. b. 1 2 3 4 5
+bar mx 10 a.
+"""
+    rrsets = read_rrsets(input, origin="example")
+    assert rrsets[0].ttl == 300
+    assert rrsets[1].ttl == 5
+
+
+def test_rfc2308_ttl_prefers_last_ttl():
+    input = """;
+example. 300 soa a. b. 1 2 3 4 5
+bar mx 10 a.
+"""
+    rrsets = read_rrsets(input, origin="example", rfc2308_ttl=True)
+    assert rrsets[0].ttl == 300
+    assert rrsets[1].ttl == 300
+
+
 # also weird but legal
 # input5 = '''foo 30 10 a
 # bar 10 20 foo.

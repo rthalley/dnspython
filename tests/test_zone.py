@@ -61,7 +61,7 @@ ns2 3600 IN A 10.0.0.2
 
 example_text_output_class_before_ttl = """@ IN 3600 SOA foo bar 1 2 3 4 5
 @ 3600 NS ns1 ; no class
-@ NS ns2 ; no class or TTL, TTL inferred from prior record
+@ NS ns2 ; no class or TTL, TTL from the SOA minimum (prior record in RFC 2308 mode)
 bar.foo IN 300 MX 0 blaz.foo
 ns1 IN 3600 A 10.0.0.1
 ns2 IN 3600 A 10.0.0.2
@@ -147,6 +147,45 @@ ttl_from_last_text = """$ORIGIN example.
 ns1 a 10.0.0.1
 ns2 1w1D1h1m1S a 10.0.0.2
 """
+
+# An explicit $TTL is the default TTL in both TTL modes, even though a later
+# RR states a TTL of its own.
+dollar_ttl_wins_text = """$TTL 1h
+$ORIGIN example.
+@ 2h soa foo bar 1 2 3 4 5
+@ 2h ns ns1
+ns1 1w1D1h1m1S a 10.0.0.1
+ns2 a 10.0.0.2
+"""
+
+# A $TTL after the SOA replaces a default TTL taken from the SOA minimum, in
+# both TTL modes.  Before the $TTL, ns1 has no TTL of its own and so shows
+# where the default came from.
+dollar_ttl_after_soa_text = """$ORIGIN example.
+@ 1h soa foo bar 1 2 3 4 5
+@ 1h ns ns1
+ns1 a 10.0.0.1
+$TTL 300
+ns2 a 10.0.0.2
+"""
+
+# No $TTL and no TTL on the SOA, so the SOA minimum is the only TTL there is
+# and is used in both TTL modes.
+ttl_only_from_soa_minimum_text = """$ORIGIN example.
+@ soa foo bar 1 2 3 4 5
+@ ns ns1
+ns1 a 10.0.0.1
+"""
+
+# The $TTL in the included file must not outlive the $INCLUDE; ns2 gets the
+# outer default TTL, which came from the SOA minimum.
+ttl_include_text = """$ORIGIN example.
+@ 1h soa foo bar 1 2 3 4 5
+@ 1h ns ns1
+ns1 1w1D1h1m1S a 10.0.0.1
+$INCLUDE "%s"
+ns2 a 10.0.0.2
+""" % here("ttl_include.text")
 
 # No $TTL and no SOA should raise SyntaxError as no TTL can be determined.
 no_ttl_text = """$ORIGIN example.
@@ -1058,9 +1097,98 @@ class ZoneTestCase(unittest.TestCase):
         )
         self.assertEqual(rds.ttl, 694861)
 
+    def testTTLFromLastInsteadOfSOA(self):
+        # RFC 2308 section 4 removed the "default TTL" meaning of the SOA
+        # minimum, so ns2 inherits the last stated TTL instead of the minimum.
+        z = dns.zone.from_text(
+            ttl_from_soa_text, "example.", relativize=True, rfc2308_ttl=True
+        )
+        rds = z.find_rdataset("@", "SOA")
+        self.assertEqual(rds.ttl, 3600)
+        rds = z.find_rdataset("ns1", "A")
+        self.assertEqual(rds.ttl, 694861)
+        rds = z.find_rdataset("ns2", "A")
+        self.assertEqual(rds.ttl, 694861)
+
+    def testDollarTTLWinsOverLastTTL(self):
+        z = dns.zone.from_text(dollar_ttl_wins_text, "example.", relativize=True)
+        self.assertEqual(z.find_rdataset("ns2", "A").ttl, 3600)
+        z = dns.zone.from_text(
+            dollar_ttl_wins_text, "example.", relativize=True, rfc2308_ttl=True
+        )
+        self.assertEqual(z.find_rdataset("ns2", "A").ttl, 3600)
+
+    def testDollarTTLAfterSOAWins(self):
+        z = dns.zone.from_text(dollar_ttl_after_soa_text, "example.", relativize=True)
+        # Until the $TTL is seen, the default TTL is the SOA minimum.
+        self.assertEqual(z.find_rdataset("ns1", "A").ttl, 5)
+        self.assertEqual(z.find_rdataset("ns2", "A").ttl, 300)
+        z = dns.zone.from_text(
+            dollar_ttl_after_soa_text, "example.", relativize=True, rfc2308_ttl=True
+        )
+        # In RFC 2308 mode the SOA minimum is not a default TTL, so ns1 takes
+        # the last stated TTL, but the $TTL still wins for ns2.
+        self.assertEqual(z.find_rdataset("ns1", "A").ttl, 3600)
+        self.assertEqual(z.find_rdataset("ns2", "A").ttl, 300)
+
+    def testTTLFromSOAMinimumAsLastResort(self):
+        # Nothing has stated a TTL, so even in RFC 2308 mode the minimum is
+        # the only TTL available.
+        z = dns.zone.from_text(
+            ttl_only_from_soa_minimum_text, "example.", relativize=True
+        )
+        self.assertEqual(z.find_rdataset("@", "SOA").ttl, 5)
+        self.assertEqual(z.find_rdataset("ns1", "A").ttl, 5)
+        z = dns.zone.from_text(
+            ttl_only_from_soa_minimum_text,
+            "example.",
+            relativize=True,
+            rfc2308_ttl=True,
+        )
+        self.assertEqual(z.find_rdataset("@", "SOA").ttl, 5)
+        self.assertEqual(z.find_rdataset("ns1", "A").ttl, 5)
+
+    def testTTLFromLastWithClassBeforeTTL(self):
+        # The <class> <ttl> <type> syntax has its own TTL inheritance code.
+        z = dns.zone.from_text(
+            example_text_output_class_before_ttl, "example.", relativize=True
+        )
+        self.assertEqual(z.find_rdataset("@", "NS").ttl, 5)
+        z = dns.zone.from_text(
+            example_text_output_class_before_ttl,
+            "example.",
+            relativize=True,
+            rfc2308_ttl=True,
+        )
+        self.assertEqual(z.find_rdataset("@", "NS").ttl, 3600)
+
+    def testDollarTTLInIncludeDoesNotEscape(self):
+        z = dns.zone.from_text(
+            ttl_include_text, "example.", relativize=True, allow_include=True
+        )
+        self.assertEqual(z.find_rdataset("included", "A").ttl, 300)
+        self.assertEqual(z.find_rdataset("ns2", "A").ttl, 5)
+        z = dns.zone.from_text(
+            ttl_include_text,
+            "example.",
+            relativize=True,
+            allow_include=True,
+            rfc2308_ttl=True,
+        )
+        self.assertEqual(z.find_rdataset("included", "A").ttl, 300)
+        self.assertEqual(z.find_rdataset("ns2", "A").ttl, 694861)
+
     def testNoTTL(self):
         def bad():
             dns.zone.from_text(no_ttl_text, "example.", check_origin=False)
+
+        self.assertRaises(dns.exception.SyntaxError, bad)
+
+    def testNoTTLRFC2308(self):
+        def bad():
+            dns.zone.from_text(
+                no_ttl_text, "example.", check_origin=False, rfc2308_ttl=True
+            )
 
         self.assertRaises(dns.exception.SyntaxError, bad)
 
