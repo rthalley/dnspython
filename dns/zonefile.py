@@ -102,7 +102,7 @@ class Reader:
         force_rdclass: dns.rdataclass.RdataClass | None = None,
         force_rdtype: dns.rdatatype.RdataType | None = None,
         default_ttl: int | None = None,
-        rfc2308_ttl: bool = False,
+        rfc2308_ttl: bool = True,
     ):
         self.tok = tok
         self.zone_origin, self.relativize, _ = txn.manager.origin_information()
@@ -708,7 +708,7 @@ def read_rrsets(
     idna_codec: dns.name.IDNACodec | None = None,
     origin: dns.name.Name | str | None = dns.name.root,
     relativize: bool = False,
-    rfc2308_ttl: bool = False,
+    rfc2308_ttl: bool = True,
 ) -> list[dns.rrset.RRset]:
     """Read one or more rrsets from the specified text, possibly subject
     to restrictions.
@@ -750,8 +750,8 @@ def read_rrsets(
         appending *origin*.
     :param bool rfc2308_ttl: If ``True``, a TTL-less record inherits the most
         recently stated TTL in preference to a default derived from the SOA
-        MINIMUM field, per RFC 2308 section 4.  The default is ``False``, the
-        historical behavior.
+        MINIMUM field, per RFC 2308 section 4.  The default is ``True``.  If
+        ``False``, the historical pre-RFC 2308 behavior is used.
     :rtype: list[:py:class:`dns.rrset.RRset`]
     """
     if isinstance(origin, str):

@@ -141,7 +141,7 @@ def test_soa_minimum_is_default_ttl():
 example. 300 soa a. b. 1 2 3 4 5
 bar mx 10 a.
 """
-    rrsets = read_rrsets(input, origin="example")
+    rrsets = read_rrsets(input, origin="example", rfc2308_ttl=False)
     assert rrsets[0].ttl == 300
     assert rrsets[1].ttl == 5
 

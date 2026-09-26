@@ -94,6 +94,15 @@ TBD
   query functions now reject unsigned responses to signed queries, and with
   ``ignore_errors`` UDP receives discard them and keep waiting.
 
+* Zone file reading now follows RFC 2308 section 4 by default, and no longer treats
+  the SOA MINIMUM field as the default TTL.  In a zone file with no ``$TTL``
+  directive, a record with no TTL of its own now inherits the most recently stated
+  TTL (RFC 1035 section 5.1) rather than the SOA MINIMUM; the SOA MINIMUM is still
+  used as a last resort if no TTL has been stated at all.  An explicit ``$TTL``
+  always takes precedence, as before.  The previous behavior can be requested by
+  passing ``rfc2308_ttl=False`` to dns.zone.from_text(), dns.zone.from_file(), or
+  dns.zonefile.read_rrsets().
+
 2.8.0
 -----
 

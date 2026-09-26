@@ -61,7 +61,7 @@ ns2 3600 IN A 10.0.0.2
 
 example_text_output_class_before_ttl = """@ IN 3600 SOA foo bar 1 2 3 4 5
 @ 3600 NS ns1 ; no class
-@ NS ns2 ; no class or TTL, TTL from the SOA minimum (prior record in RFC 2308 mode)
+@ NS ns2 ; no class or TTL, TTL from prior record (SOA minimum if not RFC 2308 mode)
 bar.foo IN 300 MX 0 blaz.foo
 ns1 IN 3600 A 10.0.0.1
 ns2 IN 3600 A 10.0.0.2
@@ -1061,7 +1061,9 @@ class ZoneTestCase(unittest.TestCase):
         self.assertEqual(rds.ttl, 694861)
 
     def testTTLFromSOA(self):
-        z = dns.zone.from_text(ttl_from_soa_text, "example.", relativize=True)
+        z = dns.zone.from_text(
+            ttl_from_soa_text, "example.", relativize=True, rfc2308_ttl=False
+        )
         n = z["@"]
         rds = cast(
             dns.rdataset.Rdataset, n.get_rdataset(dns.rdataclass.IN, dns.rdatatype.SOA)
@@ -1111,7 +1113,9 @@ class ZoneTestCase(unittest.TestCase):
         self.assertEqual(rds.ttl, 694861)
 
     def testDollarTTLWinsOverLastTTL(self):
-        z = dns.zone.from_text(dollar_ttl_wins_text, "example.", relativize=True)
+        z = dns.zone.from_text(
+            dollar_ttl_wins_text, "example.", relativize=True, rfc2308_ttl=False
+        )
         self.assertEqual(z.find_rdataset("ns2", "A").ttl, 3600)
         z = dns.zone.from_text(
             dollar_ttl_wins_text, "example.", relativize=True, rfc2308_ttl=True
@@ -1119,7 +1123,9 @@ class ZoneTestCase(unittest.TestCase):
         self.assertEqual(z.find_rdataset("ns2", "A").ttl, 3600)
 
     def testDollarTTLAfterSOAWins(self):
-        z = dns.zone.from_text(dollar_ttl_after_soa_text, "example.", relativize=True)
+        z = dns.zone.from_text(
+            dollar_ttl_after_soa_text, "example.", relativize=True, rfc2308_ttl=False
+        )
         # Until the $TTL is seen, the default TTL is the SOA minimum.
         self.assertEqual(z.find_rdataset("ns1", "A").ttl, 5)
         self.assertEqual(z.find_rdataset("ns2", "A").ttl, 300)
@@ -1135,7 +1141,10 @@ class ZoneTestCase(unittest.TestCase):
         # Nothing has stated a TTL, so even in RFC 2308 mode the minimum is
         # the only TTL available.
         z = dns.zone.from_text(
-            ttl_only_from_soa_minimum_text, "example.", relativize=True
+            ttl_only_from_soa_minimum_text,
+            "example.",
+            relativize=True,
+            rfc2308_ttl=False,
         )
         self.assertEqual(z.find_rdataset("@", "SOA").ttl, 5)
         self.assertEqual(z.find_rdataset("ns1", "A").ttl, 5)
@@ -1151,7 +1160,10 @@ class ZoneTestCase(unittest.TestCase):
     def testTTLFromLastWithClassBeforeTTL(self):
         # The <class> <ttl> <type> syntax has its own TTL inheritance code.
         z = dns.zone.from_text(
-            example_text_output_class_before_ttl, "example.", relativize=True
+            example_text_output_class_before_ttl,
+            "example.",
+            relativize=True,
+            rfc2308_ttl=False,
         )
         self.assertEqual(z.find_rdataset("@", "NS").ttl, 5)
         z = dns.zone.from_text(
@@ -1164,7 +1176,11 @@ class ZoneTestCase(unittest.TestCase):
 
     def testDollarTTLInIncludeDoesNotEscape(self):
         z = dns.zone.from_text(
-            ttl_include_text, "example.", relativize=True, allow_include=True
+            ttl_include_text,
+            "example.",
+            relativize=True,
+            allow_include=True,
+            rfc2308_ttl=False,
         )
         self.assertEqual(z.find_rdataset("included", "A").ttl, 300)
         self.assertEqual(z.find_rdataset("ns2", "A").ttl, 5)
@@ -1180,7 +1196,9 @@ class ZoneTestCase(unittest.TestCase):
 
     def testNoTTL(self):
         def bad():
-            dns.zone.from_text(no_ttl_text, "example.", check_origin=False)
+            dns.zone.from_text(
+                no_ttl_text, "example.", check_origin=False, rfc2308_ttl=False
+            )
 
         self.assertRaises(dns.exception.SyntaxError, bad)
 

@@ -714,7 +714,7 @@ class GenerateTestCase(unittest.TestCase):
         self.assertEqual(rrs.ttl, 300)
 
     def testUsesSOAMinimum(self):
-        z = dns.zone.from_text(soa_before_generate_input, "example")
+        z = dns.zone.from_text(soa_before_generate_input, "example", rfc2308_ttl=False)
         rrs = z.find_rrset("foo9", "CNAME")
         self.assertEqual(rrs.ttl, 5)
 
@@ -725,7 +725,9 @@ class GenerateTestCase(unittest.TestCase):
 
     def testNoTTL(self):
         def bad():
-            dns.zone.from_text("$GENERATE 1-10 fooo$ CNAME $.0", "example")
+            dns.zone.from_text(
+                "$GENERATE 1-10 fooo$ CNAME $.0", "example", rfc2308_ttl=False
+            )
 
         self.assertRaises(dns.exception.SyntaxError, bad)
 

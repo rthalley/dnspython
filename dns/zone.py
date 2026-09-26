@@ -1264,7 +1264,7 @@ def _from_text(
     idna_codec: dns.name.IDNACodec | None = None,
     allow_directives: bool | Iterable[str] = True,
     transaction_setup: Callable[[dns.transaction.Transaction], None] | None = None,
-    rfc2308_ttl: bool = False,
+    rfc2308_ttl: bool = True,
 ) -> Zone:
     # See the comments for the public APIs from_text() and from_file() for
     # details.
@@ -1312,7 +1312,7 @@ def from_text(
     idna_codec: dns.name.IDNACodec | None = None,
     allow_directives: bool | Iterable[str] = True,
     transaction_setup: Callable[[dns.transaction.Transaction], None] | None = None,
-    rfc2308_ttl: bool = False,
+    rfc2308_ttl: bool = True,
 ) -> Zone:
     """Build a zone object from a zone file format string.
 
@@ -1349,13 +1349,13 @@ def from_text(
         transaction.  This lets the caller alter the transaction's configuration
         before it is used, for example adding checking policies.
     :type transaction_setup: ``None`` or ``Callable[[dns.transaction.Transaction], None]``.
-    :param bool rfc2308_ttl: If ``False``, the default, then a master file with
-        no ``$TTL`` directive gets its default TTL from the SOA MINIMUM field,
-        which is the pre-RFC 2308 behavior.  If ``True``, then RFC 2308 section 4
-        is followed and MINIMUM is not treated as a source of the default TTL; a
-        record with no TTL instead inherits the most recently stated TTL, per RFC
-        1035 section 5.1.  The SOA MINIMUM is still used as a last resort if no
-        TTL has been stated at all.
+    :param bool rfc2308_ttl: If ``True``, the default, then RFC 2308 section 4
+        is followed and the SOA MINIMUM field is not treated as a source of the
+        default TTL; a record with no TTL instead inherits the most recently
+        stated TTL, per RFC 1035 section 5.1.  The SOA MINIMUM is still used as a
+        last resort if no TTL has been stated at all.  If ``False``, then a master
+        file with no ``$TTL`` directive gets its default TTL from the SOA MINIMUM
+        field, which is the pre-RFC 2308 behavior.
     :raises dns.zone.NoSOA: if there is no SOA RRset.
     :raises dns.zone.NoNS: if there is no NS RRset.
     :raises KeyError: if there is no origin node.
@@ -1389,7 +1389,7 @@ def from_file(
     idna_codec: dns.name.IDNACodec | None = None,
     allow_directives: bool | Iterable[str] = True,
     transaction_setup: Callable[[dns.transaction.Transaction], None] | None = None,
-    rfc2308_ttl: bool = False,
+    rfc2308_ttl: bool = True,
 ) -> Zone:
     """Read a zone file and build a zone object.
 
@@ -1427,13 +1427,13 @@ def from_file(
         transaction.  This lets the caller alter the transaction's configuration
         before it is used, for example adding checking policies.
     :type transaction_setup: ``None`` or ``Callable[[dns.transaction.Transaction], None]``.
-    :param bool rfc2308_ttl: If ``False``, the default, then a master file with
-        no ``$TTL`` directive gets its default TTL from the SOA MINIMUM field,
-        which is the pre-RFC 2308 behavior.  If ``True``, then RFC 2308 section 4
-        is followed and MINIMUM is not treated as a source of the default TTL; a
-        record with no TTL instead inherits the most recently stated TTL, per RFC
-        1035 section 5.1.  The SOA MINIMUM is still used as a last resort if no
-        TTL has been stated at all.
+    :param bool rfc2308_ttl: If ``True``, the default, then RFC 2308 section 4
+        is followed and the SOA MINIMUM field is not treated as a source of the
+        default TTL; a record with no TTL instead inherits the most recently
+        stated TTL, per RFC 1035 section 5.1.  The SOA MINIMUM is still used as a
+        last resort if no TTL has been stated at all.  If ``False``, then a master
+        file with no ``$TTL`` directive gets its default TTL from the SOA MINIMUM
+        field, which is the pre-RFC 2308 behavior.
     :raises dns.zone.NoSOA: if there is no SOA RRset.
     :raises dns.zone.NoNS: if there is no NS RRset.
     :raises KeyError: if there is no origin node.
