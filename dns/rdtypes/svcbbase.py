@@ -224,8 +224,10 @@ class MandatoryParam(Param):
         last_key = -1
         while parser.remaining() > 0:
             key = parser.get_uint16()
-            if key < last_key:
-                raise dns.exception.FormError("manadatory keys not ascending")
+            if key <= last_key:
+                raise dns.exception.FormError(
+                    "mandatory keys not in strictly increasing order"
+                )
             last_key = key
             keys.append(key)
         return cls(keys)
@@ -606,8 +608,8 @@ class SVCBBase(dns.rdata.Rdata):
         prior_key = -1
         while parser.remaining() > 0:
             key = parser.get_uint16()
-            if key < prior_key:
-                raise dns.exception.FormError("keys not in order")
+            if key <= prior_key:
+                raise dns.exception.FormError("keys not in strictly increasing order")
             prior_key = key
             vlen = parser.get_uint16()
             pkey = ParamKey.make(key)
