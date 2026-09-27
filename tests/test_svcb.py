@@ -387,6 +387,22 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_invalid_inputs(invalid_inputs)
 
+    def test_svcb_duplicate_key_wire(self):
+        # RFC 9460 Sec 2.2 requires SvcParamKeys to be in strictly increasing
+        # numeric order, so a repeated key makes the RR malformed.  The
+        # presentation parser rejects this (test_svcb_spec_failure_cases), but
+        # the wire parser used to accept it and silently keep only the last
+        # value; check that it is now a FormError.  Here PORT (key 3) appears
+        # twice, as ports 53 and 54.
+        wire = bytes.fromhex("0001" "00" "000300020035" "000300020036")
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("in", "svcb", wire, 0, len(wire))
+        # The same rule applies to the keys inside the mandatory list (Sec 8):
+        # here the mandatory value lists key 1 twice.
+        wire = bytes.fromhex("0001" "00" "0000" "0004" "0001" "0001")
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("in", "svcb", wire, 0, len(wire))
+
     def test_misc_escape(self):
         rdata = dns.rdata.from_text("in", "svcb", "1 . alpn=\\010\\010")
         expected = '1 . alpn="\\010\\010"'

@@ -49,6 +49,14 @@ TBD
   so the output did not parse back to the original value.  Such bytes are now
   escaped once, at the character-string level.
 
+* The SVCB/HTTPS wire parser now rejects a record whose SvcParamKeys are not in
+  strictly increasing numeric order, including one that repeats a key.  RFC 9460
+  section 2.2 requires such a record to be treated as malformed, and the
+  presentation parser already did, but the wire parser only checked for a
+  decreasing key, so a duplicate key was accepted and silently kept only its
+  last value.  The same strictly-increasing check now also applies to the keys
+  inside a ``mandatory`` parameter (section 8).
+
 * Rdata types with free-form string fields (URI, HINFO, X25, ISDN, NAPTR, and
   CAA) processed ``\ddd`` escapes as Unicode code points and then UTF-8 encoded
   them, so escapes greater than ``\127`` became two octets instead of one.  URI
