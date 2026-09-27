@@ -270,7 +270,7 @@ class DestinationAndSourceTests(unittest.TestCase):
         af, d, s = _d_and_s("1.2.3.4", 53, None, 0)
         self.assertEqual(af, socket.AF_INET)
 
-    def test_af_inferred_from_where(self):
+    def test_v6_af_inferred_from_where(self):
         af, d, s = _d_and_s("1::2", 53, None, 0)
         self.assertEqual(af, socket.AF_INET6)
 
