@@ -509,6 +509,35 @@ class RdataTestCase(unittest.TestCase):
         except dns.exception.SyntaxError as e:
             self.assertIsInstance(e.__cause__, NotImplementedError)
 
+    def test_WKS_rejects_port_out_of_range(self):
+        for text in ("10.0.0.1 6 65536", "10.0.0.1 6 70000"):
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS, text)
+
+    def test_WKS_accepts_port_bounds(self):
+        low = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS, "10.0.0.1 6 0")
+        high = dns.rdata.from_text(
+            dns.rdataclass.IN, dns.rdatatype.WKS, "10.0.0.1 6 65535"
+        )
+        self.assertEqual(len(low.bitmap), 1)
+        self.assertEqual(len(high.bitmap), 8192)
+
+    def test_WKS_from_wire_drops_trailing_zeros(self):
+        rda = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.WKS, "10.0.0.1 6 80")
+        wire = rda.to_wire() + b"\x00\x00"
+        rdb = dns.rdata.from_wire(
+            dns.rdataclass.IN, dns.rdatatype.WKS, wire, 0, len(wire)
+        )
+        self.assertEqual(rda, rdb)
+        self.assertEqual(rdb.bitmap, rda.bitmap)
+
+    def test_WKS_from_wire_rejects_oversized_bitmap(self):
+        wire = bytes([10, 0, 0, 1, 6]) + (b"\x00" * 8192) + b"\x80"
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.WKS, wire, 0, len(wire)
+            )
+
     def test_GPOS_float_converters(self):
         rd = dns.rdata.from_text("in", "gpos", "49 0 0")
         self.assertEqual(rd.float_latitude, 49.0)

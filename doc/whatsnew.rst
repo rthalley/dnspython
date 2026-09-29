@@ -49,6 +49,12 @@ TBD
   so the output did not parse back to the original value.  Such bytes are now
   escaped once, at the character-string level.
 
+* WKS now rejects a port outside 0-65535 in presentation form, and a wire
+  bitmap longer than 8192 octets.  Trailing zero octets in a WKS bitmap from
+  the wire are dropped so the record compares equal to the same ports parsed
+  from text.  RFC 1035 §3.4.2 maps each bit to a protocol port, which is a
+  16-bit value.  See issue #1309.
+
 * The SVCB/HTTPS wire parser now rejects a record whose SvcParamKeys are not in
   strictly increasing numeric order, including one that repeats a key.  RFC 9460
   section 2.2 requires such a record to be treated as malformed, and the

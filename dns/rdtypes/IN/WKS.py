@@ -18,6 +18,7 @@
 import socket
 import struct
 
+import dns.exception
 import dns.immutable
 import dns.ipv4
 import dns.rdata
@@ -29,6 +30,19 @@ except OSError:
     # Fall back to defaults in case /etc/protocols is unavailable.
     _proto_tcp = 6
     _proto_udp = 17
+
+# RFC 1035 §3.4.2: each bit is a protocol port. Ports are 16-bit values, so
+# the bitmap cannot describe more than ports 0-65535 (8192 octets).
+_MAX_WKS_BITMAP = 8192
+
+
+def _canonicalize_wks_bitmap(bitmap: bytes) -> bytes:
+    if len(bitmap) > _MAX_WKS_BITMAP:
+        raise dns.exception.FormError("WKS bitmap too long")
+    i = len(bitmap)
+    while i > 0 and bitmap[i - 1] == 0:
+        i -= 1
+    return bitmap[:i]
 
 
 @dns.immutable.immutable
@@ -43,7 +57,7 @@ class WKS(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.address = self._as_ipv4_address(address)
         self.protocol = self._as_uint8(protocol)
-        self.bitmap = self._as_bytes(bitmap)
+        self.bitmap = _canonicalize_wks_bitmap(self._as_bytes(bitmap))
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         bits = []
@@ -77,13 +91,14 @@ class WKS(dns.rdata.Rdata):
                 else:
                     protocol_text = "tcp"
                 serv = socket.getservbyname(value, protocol_text)
+            if serv < 0 or serv > 65535:
+                raise dns.exception.SyntaxError("port must be between 0 and 65535")
             i = serv // 8
             l = len(bitmap)
             if l < i + 1:
                 for _ in range(l, i + 1):
                     bitmap.append(0)
             bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
-        bitmap = dns.rdata._truncate_bitmap(bitmap)
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
