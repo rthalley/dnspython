@@ -1017,6 +1017,8 @@ def from_unicode(
                     total += int(c)
                     edigits += 1
                     if edigits == 3:
+                        if total > 255:
+                            raise BadEscape
                         escaping = False
                         label += chr(total)
             elif c in [".", "\u3002", "\uff0e", "\uff61"]:
@@ -1107,6 +1109,8 @@ def from_text(
                     total += int(byte_)
                     edigits += 1
                     if edigits == 3:
+                        if total > 255:
+                            raise BadEscape
                         escaping = False
                         label += struct.pack("!B", total)
             elif byte_ == b".":
