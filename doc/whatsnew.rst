@@ -57,6 +57,12 @@ TBD
   last value.  The same strictly-increasing check now also applies to the keys
   inside a ``mandatory`` parameter (section 8).
 
+* The NSEC, NSEC3, and CSYNC type-bitmap wire parser now rejects a window
+  whose bitmap ends in a zero octet, including an all-zero block.  RFC 4034
+  section 4.1.2 requires trailing zero octets to be omitted and forbids a block
+  with no types present, so the last octet of a window's bitmap is always
+  non-zero; the parser previously accepted these non-canonical encodings.
+
 * Rdata types with free-form string fields (URI, HINFO, X25, ISDN, NAPTR, and
   CAA) processed ``\ddd`` escapes as Unicode code points and then UTF-8 encoded
   them, so escapes greater than ``\127`` became two octets instead of one.  URI

@@ -50,6 +50,27 @@ class NSEC3TestCase(unittest.TestCase):
             copy[-3] = 0
             dns.rdata.from_wire("IN", "NSEC3", copy, 0, len(copy))
 
+    def test_NSEC3_bitmap_trailing_zero_octet(self):
+        # RFC 4034 Sec 4.1.2: a window's bitmap must not carry trailing zero
+        # octets, and a window with no types present must not appear.  The wire
+        # parser used to accept both and keep the non-canonical bytes; check
+        # that they are now FormErrors.  The prefix here is a valid NSEC3 with a
+        # single type ("A") whose bitmap is the last three octets, 00 01 40.
+        rdata = dns.rdata.from_text(
+            dns.rdataclass.IN,
+            dns.rdatatype.NSEC3,
+            "1 0 100 ABCD SCBCQHKU35969L2A68P3AD59LHF30715 A",
+        )
+        prefix = bytes(rdata.to_wire())[:-3]
+        # window 0, length 2, bitmap 40 00: a trailing zero octet.
+        trailing = prefix + bytes([0, 2, 0x40, 0])
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("IN", "NSEC3", trailing, 0, len(trailing))
+        # window 0, length 1, bitmap 00: a block with no types present.
+        empty = prefix + bytes([0, 1, 0])
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("IN", "NSEC3", empty, 0, len(empty))
+
 
 if __name__ == "__main__":
     unittest.main()
