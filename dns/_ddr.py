@@ -94,21 +94,24 @@ def _extract_nameservers_from_svcb(answer):
         # bootstrap address
         if b"h2" in alpns:
             param = rr.params.get(dns.rdtypes.svcbbase.ParamKey.DOHPATH)
-            if param is None or not param.value.endswith(b"{?dns}"):
-                continue
-            path = param.value[:-6].decode()
-            if not path.startswith("/"):
-                path = "/" + path
-            if port is None:
-                port = 443
-            url = f"https://{host}:{port}{path}"
-            # check the URL
-            try:
-                urlparse(url)
-                nameservers.append(dns.nameserver.DoHNameserver(url, bootstrap_address))
-            except Exception:
-                # continue processing other ALPN types
-                pass
+            # A missing or malformed dohpath only rules out the DoH nameserver;
+            # any dot/doq resolver advertised by the same record is still valid.
+            if param is not None and param.value.endswith(b"{?dns}"):
+                path = param.value[:-6].decode()
+                if not path.startswith("/"):
+                    path = "/" + path
+                if port is None:
+                    port = 443
+                url = f"https://{host}:{port}{path}"
+                # check the URL
+                try:
+                    urlparse(url)
+                    nameservers.append(
+                        dns.nameserver.DoHNameserver(url, bootstrap_address)
+                    )
+                except Exception:
+                    # continue processing other ALPN types
+                    pass
         if b"dot" in alpns:
             if port is None:
                 port = 853
