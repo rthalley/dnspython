@@ -150,7 +150,9 @@ class ZoneDigestTestCase(unittest.TestCase):
         dns.rdata.from_text("IN", "ZONEMD", "100 1 1 " + self.sha384_hash)
         dns.rdata.from_text("IN", "ZONEMD", "100 1 2 " + self.sha512_hash)
         dns.rdata.from_text("IN", "ZONEMD", "100 100 1 " + self.sha384_hash)
-        dns.rdata.from_text("IN", "ZONEMD", "100 1 100 abcd")
+        # an unknown hash algorithm parses with any digest of at least the
+        # RFC 8976 Sec. 2.2.4 minimum of 12 octets.
+        dns.rdata.from_text("IN", "ZONEMD", "100 1 100 " + "ab" * 12)
 
     def test_zonemd_unknown_scheme(self):
         zone = dns.zone.from_text(self.simple_example, origin="example")
@@ -167,6 +169,16 @@ class ZoneDigestTestCase(unittest.TestCase):
             dns.rdata.from_text("IN", "ZONEMD", "100 1 2 " + self.sha384_hash)
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text("IN", "ZONEMD", "100 2 1 " + self.sha512_hash)
+
+    def test_zonemd_digest_too_short(self):
+        # RFC 8976 Sec. 2.2.4: the digest must be at least 12 octets even for a
+        # private-use hash algorithm the length is otherwise not checked for.
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text("IN", "ZONEMD", "100 1 100 " + "ab" * 11)
+        # serial 100, scheme 1, hash_algorithm 100, then an 11-octet digest.
+        short = b"\x00\x00\x00\x64\x01\x64" + b"\xab" * 11
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("IN", "ZONEMD", short, 0, len(short))
 
     def test_zonemd_parse_rdata_reserved(self):
         with self.assertRaises(dns.exception.SyntaxError):
