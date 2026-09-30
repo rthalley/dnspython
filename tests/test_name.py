@@ -425,6 +425,14 @@ class NameTestCase(unittest.TestCase):
 
         self.assertRaises(dns.name.BadEscape, bad)
 
+    def testEscapeOutOfRange(self):
+        # A \DDD escape denotes a single octet, so values above 255 are
+        # invalid.  Both the all-ASCII (from_text) and Unicode (from_unicode)
+        # decoders must reject them.
+        for text in [r"\256", r"\300", r"\999"]:
+            self.assertRaises(dns.name.BadEscape, dns.name.from_text, text)
+            self.assertRaises(dns.name.BadEscape, dns.name.from_unicode, "é" + text)
+
     def testDigestable1(self):
         n = dns.name.from_text("FOO.bar")
         d = n.to_digestable()
