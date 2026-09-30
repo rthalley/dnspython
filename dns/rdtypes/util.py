@@ -148,6 +148,11 @@ class Bitmap:
                 raise ValueError(f"bad {self.type_name} octets type")
             if len(bitmap) == 0 or len(bitmap) > 32:
                 raise ValueError(f"bad {self.type_name} octets")
+            if bitmap[-1] == 0:
+                # RFC 4034 section 4.1.2: blocks with no types present must not
+                # be included and trailing zero octets must be omitted, so the
+                # last octet of a window's bitmap is always non-zero.
+                raise ValueError(f"bad {self.type_name} octets: trailing zero octet")
 
     def to_text(self) -> str:
         text = ""
