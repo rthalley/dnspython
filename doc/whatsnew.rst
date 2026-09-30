@@ -117,6 +117,13 @@ TBD
   passing ``rfc2308_ttl=False`` to dns.zone.from_text(), dns.zone.from_file(), or
   dns.zonefile.read_rrsets().
 
+* Discovery of Designated Resolvers (DDR) now verifies an IPv6 unencrypted
+  resolver address against the designated resolver's certificate correctly.  The
+  check compared the address text with the subjectAltName text produced by
+  ``ssl``, which renders IPv6 entries uncompressed and in upper case, so the two
+  never matched and ``try_ddr()`` could not upgrade an IPv6 resolver to an
+  encrypted transport.  Addresses are now compared in binary form.
+
 2.8.0
 -----
 
