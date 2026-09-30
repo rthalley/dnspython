@@ -63,6 +63,12 @@ TBD
   with no types present, so the last octet of a window's bitmap is always
   non-zero; the parser previously accepted these non-canonical encodings.
 
+* ZONEMD rdata now rejects a digest shorter than 12 octets.  RFC 8976
+  section 2.2.4 requires the digest to be at least 12 octets regardless of the
+  hash algorithm, but dnspython only checked the length for the hash algorithms
+  it implements, so a record using a private-use algorithm could carry a
+  truncated (or empty) digest.
+
 * Rdata types with free-form string fields (URI, HINFO, X25, ISDN, NAPTR, and
   CAA) processed ``\ddd`` escapes as Unicode code points and then UTF-8 encoded
   them, so escapes greater than ``\127`` became two octets instead of one.  URI
