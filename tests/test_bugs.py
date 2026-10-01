@@ -20,6 +20,7 @@ import unittest
 
 import binascii
 
+import dns.exception
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
@@ -84,6 +85,21 @@ class BugsTestCase(unittest.TestCase):
         out6 = rd6.to_digestable(dns.name.from_text("test"))
         text6 = binascii.hexlify(out6).decode("ascii")
         self.assertEqual(text6, "0002018f000000000000000000000000000010")
+
+    def test_trailing_zero_APL_from_wire(self):
+        # RFC 3123 4.1/4.2: the AFDPART must not have trailing zero octets.
+        # IPv4 item 1:1.2.3.0/24 with a 4-octet AFDPART ending in 0x00.
+        wire4 = bytes([0, 1, 24, 4, 1, 2, 3, 0])
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.APL, wire4, 0, len(wire4)
+            )
+        # IPv6 item 2:::0100:0/16 with a 16-octet AFDPART ending in 0x00.
+        wire6 = bytes([0, 2, 16, 16]) + bytes(14) + bytes([1, 0])
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.APL, wire6, 0, len(wire6)
+            )
 
     def test_TXT_conversions(self):
         t1 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, [b"foo"])

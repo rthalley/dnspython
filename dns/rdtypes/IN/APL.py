@@ -133,6 +133,12 @@ class APL(dns.rdata.Rdata):
                 negation = False
             address = parser.get_bytes(afdlen)
             l = len(address)
+            if l > 0 and address[-1] == 0:
+                # RFC 3123 sections 4.1 and 4.2: the sender MUST NOT include
+                # trailing zero octets in the AFDPART, as DNSSEC requires a
+                # single canonical wire encoding.  Since to_wire() strips them,
+                # accepting them here would silently rewrite the rdata.
+                raise dns.exception.FormError("APL address has trailing zero octet")
             if header[0] == 1:
                 if l < 4:
                     address += b"\x00" * (4 - l)
