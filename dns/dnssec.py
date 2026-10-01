@@ -365,7 +365,7 @@ def _validate_rrsig(
     if rrsig.inception > now:
         raise ValidationFailure("not yet valid")
 
-    data = _make_rrsig_signature_data(rrset, rrsig, origin)
+    data = _make_rrsig_signature_data(rrset, rrsig, origin, validating=True)
 
     # pylint: disable=possibly-used-before-assignment
     for candidate_key in candidate_keys:
@@ -565,6 +565,7 @@ def _make_rrsig_signature_data(
     rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
     rrsig: RRSIG,
     origin: dns.name.Name | None = None,
+    validating: bool = False,
 ) -> bytes:
     """Create signature rdata.
 
@@ -576,6 +577,9 @@ def _make_rrsig_signature_data(
     :type rrsig: :py:class:`dns.rdata.Rdata`
     :param origin: The origin to use for relative names.
     :type origin: :py:class:`dns.name.Name` or ``None``
+    :param validating: If ``True``, checks which only apply to a signature
+        being validated are made.
+    :type validating: bool
     :raises UnsupportedAlgorithm: If the algorithm is recognized but not
         implemented.
     """
@@ -604,6 +608,11 @@ def _make_rrsig_signature_data(
         if origin is None:
             raise ValidationFailure("relative RR name without an origin specified")
         rrname = rrname.derelativize(origin)
+
+    # RFC 4035 5.3.1: the signer's name is the name of the zone holding the
+    # RRset, and so must be a superdomain of the owner name.
+    if validating and not signer.is_superdomain(rrname):
+        raise ValidationFailure("signer name is not a superdomain of the owner name")
 
     name_len = len(rrname)
     if rrname.is_wild() and rrsig.labels != name_len - 2:

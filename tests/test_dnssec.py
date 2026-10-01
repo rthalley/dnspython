@@ -809,6 +809,22 @@ class DNSSECValidatorTestCase(unittest.TestCase):
 
         self.assertRaises(dns.dnssec.ValidationFailure, bad)
 
+    def testSignerNameNotSuperdomain(self):  # type: () -> None
+        # A key for some other zone must not be able to sign for this one, even
+        # if the validator happens to trust that zone's key too.
+        key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+        other_zone = dns.name.from_text("example.")
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=key.public_key(), algorithm=dns.dnssec.Algorithm.ECDSAP256SHA256
+        )
+        keys = {other_zone: dns.rrset.from_rdata(other_zone, 3600, dnskey)}
+        rrset = dns.rrset.from_text("www.dnspython.org.", 300, "IN", "A", "10.0.0.1")
+        rrsig = dns.dnssec.sign(rrset, key, other_zone, dnskey, lifetime=3600)
+        self.assertEqual(rrsig.signer, other_zone)
+        rrsigset = dns.rrset.from_rdata(rrset.name, 300, rrsig)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(rrset, rrsigset, keys)
+
     def testAbsoluteDSAGood(self):  # type: () -> None
         dns.dnssec.validate(
             abs_dsa_soa,

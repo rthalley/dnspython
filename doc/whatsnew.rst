@@ -117,6 +117,12 @@ TBD
   passing ``rfc2308_ttl=False`` to dns.zone.from_text(), dns.zone.from_file(), or
   dns.zonefile.read_rrsets().
 
+* DNSSEC validation now rejects an RRSIG whose signer name is not a superdomain of
+  the RRset's owner name.  RFC 4035 section 5.3.1 requires the signer name to be the
+  name of the zone containing the RRset, but the check was missing, so when the *keys*
+  dictionary held the DNSKEYs of more than one zone, a key for any of them could be
+  used to validate an RRset belonging to any other.
+
 2.8.0
 -----
 
