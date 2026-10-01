@@ -778,6 +778,20 @@ class RdataTestCase(unittest.TestCase):
             # value.
             dns.rdtypes.IN.APL.APLItem(9999, False, b"0xff" * 128, 255)
 
+    def test_APL_unknown_family_text_round_trip(self):
+        # 9999 is an "unknown" address family, whose address is shown in hex.
+        wire = b"\x27\x0f\x08\x82\xab\xcd" + b"\x27\x0f\x00\x40" + b"\xef" * 64
+        rd = dns.rdata.from_wire(
+            dns.rdataclass.IN, dns.rdatatype.APL, wire, 0, len(wire)
+        )
+        text = rd.to_text()
+        self.assertEqual(text, "!9999:abcd/8 9999:" + "ef" * 64 + "/0")
+        rd2 = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL, text)
+        self.assertEqual(rd2, rd)
+        self.assertEqual(rd2.to_wire(), wire)
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.APL, "9999:abc/8")
+
     def test_DNSKEY_chunking(self):
         inputs = (  # each with chunking as given by dig, unusual chunking, and no chunking
             # example 1
