@@ -63,6 +63,12 @@ TBD
   with no types present, so the last octet of a window's bitmap is always
   non-zero; the parser previously accepted these non-canonical encodings.
 
+* The APL wire parser now rejects an item whose address prefix (AFDPART) ends in
+  a zero octet.  RFC 3123 sections 4.1 and 4.2 require trailing zero octets to be
+  omitted so that DNSSEC has a single canonical wire encoding.  The parser
+  previously accepted these, and since to_wire() strips the trailing zeros,
+  from_wire() followed by to_wire() silently rewrote the rdata to different bytes.
+
 * Rdata types with free-form string fields (URI, HINFO, X25, ISDN, NAPTR, and
   CAA) processed ``\ddd`` escapes as Unicode code points and then UTF-8 encoded
   them, so escapes greater than ``\127`` became two octets instead of one.  URI
