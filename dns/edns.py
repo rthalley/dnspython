@@ -332,17 +332,30 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         cls, otype: OptionType | str, parser: "dns.wire.Parser"
     ) -> Option:
         family, src, scope = parser.get_struct("!HBB")
-        addrlen = int(math.ceil(src / 8.0))
-        prefix = parser.get_bytes(addrlen)
         if family == 1:
-            pad = 4 - addrlen
-            addr = dns.ipv4.inet_ntoa(prefix + b"\x00" * pad)
+            bits = 32
         elif family == 2:
-            pad = 16 - addrlen
-            addr = dns.ipv6.inet_ntoa(prefix + b"\x00" * pad)
+            bits = 128
         else:
             raise ValueError("unsupported family")
-
+        # RFC 7871 Section 6: the source and scope prefix lengths are the
+        # significant bits of ADDRESS and cannot exceed the width of the
+        # address family.
+        if src > bits or scope > bits:
+            raise ValueError("invalid ECS prefix length")
+        addrlen = int(math.ceil(src / 8.0))
+        prefix = parser.get_bytes(addrlen)
+        # RFC 7871 Sections 6 and 7.4: bits of ADDRESS beyond the source
+        # prefix length are padding and must be zero.  Reject a non-zero pad
+        # rather than letting the ECSOption constructor mask it off, which
+        # would make from_wire and to_wire disagree on the same option.
+        rest = src % 8
+        if rest != 0 and prefix[-1] & (0xFF >> rest):
+            raise ValueError("non-zero ECS address padding bits")
+        if family == 1:
+            addr = dns.ipv4.inet_ntoa(prefix + b"\x00" * (4 - addrlen))
+        else:
+            addr = dns.ipv6.inet_ntoa(prefix + b"\x00" * (16 - addrlen))
         return cls(addr, src, scope)
 
 
