@@ -114,7 +114,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdecimal():
+                if c in "0123456789":
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -123,7 +123,7 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdecimal() and c3.isdecimal()):
+                    if not (c2 in "0123456789" and c3 in "0123456789"):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:
@@ -168,7 +168,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdecimal():
+                if c in "0123456789":
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -177,7 +177,7 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdecimal() and c3.isdecimal()):
+                    if not (c2 in "0123456789" and c3 in "0123456789"):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:

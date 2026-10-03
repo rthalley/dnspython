@@ -92,6 +92,18 @@ TBD
 
 * The HHIT and BRID rdata types are now supported, and the NXNAME metatype is defined.
 
+* ``\DDD`` escapes are now only recognized when the three characters are ASCII
+  digits, as RFC 1035 section 5.1 requires.  The escape parsers tested them with
+  ``str.isdecimal()``, which is also true for non-ASCII decimal digits such as
+  the Devanagari ``१`` (``U+0967``), and ``int()`` converts those, so a
+  ``\123``-style escape written with those digits was read as an octet instead
+  of being rejected.  This affected ``dns.name.from_unicode()``,
+  ``dns.tokenizer.Token.unescape()``, ``dns.tokenizer.Token.unescape_to_bytes()``,
+  and the SVCB/HTTPS alpn and docpath value parser, and it meant a name could be
+  written two ways, with the all-ASCII ``dns.name.from_text()`` path disagreeing
+  with the non-ASCII one.  Such a character is now an ordinary escaped
+  character, like any other.
+
 * APIs which accept the name of a file to open — dns.zone.from_file(),
   dns.zone.Zone.to_file(), dns.message.from_file(), dns.tsigkeyring.from_file(),
   Resolver.read_resolv_conf(), and the resolver constructor's *filename* parameter —
