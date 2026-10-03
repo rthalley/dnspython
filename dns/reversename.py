@@ -91,6 +91,8 @@ def to_address(
     elif name.is_subdomain(v6_origin):
         name = name.relativize(v6_origin)
         labels = list(reversed(name.labels))
+        if len(labels) != 32 or any(len(label) != 1 for label in labels):
+            raise dns.exception.SyntaxError("invalid IPv6 reverse-map name")
         parts = []
         for i in range(0, len(labels), 4):
             parts.append(b"".join(labels[i : i + 4]))
