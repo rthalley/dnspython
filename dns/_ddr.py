@@ -7,6 +7,7 @@ import time
 from urllib.parse import urlparse
 
 import dns.asyncbackend
+import dns.exception
 import dns.inet
 import dns.name
 import dns.nameserver
@@ -32,9 +33,19 @@ class _SVCBInfo:
 
     def ddr_check_certificate(self, cert):
         """Verify that the _SVCBInfo's address is in the cert's subjectAltName (SAN)"""
+        # ssl renders IPv6 SAN entries uncompressed and in upper case (e.g.
+        # 2001:DB8:0:0:0:0:0:1), so compare addresses in binary form, not as text.
+        af = dns.inet.af_for_address(self.bootstrap_address)
+        address = dns.inet.inet_pton(af, self.bootstrap_address)
         for name, value in cert["subjectAltName"]:
-            if name == "IP Address" and value == self.bootstrap_address:
-                return True
+            if name != "IP Address":
+                continue
+            try:
+                if dns.inet.inet_pton(af, value) == address:
+                    return True
+            except dns.exception.SyntaxError:
+                # An address of the other family, or one we cannot parse.
+                pass
         return False
 
     def make_tls_context(self):

@@ -38,6 +38,31 @@ def test_svcb_all_transports_extracted():
     assert set(kinds) == {"DoH", "DoT", "DoQ"}
 
 
+def _ddr_check_certificate(bootstrap_address, san_ip):
+    info = dns._ddr._SVCBInfo(bootstrap_address, 853, "dns.example", [])
+    cert = {"subjectAltName": (("DNS", "dns.example"), ("IP Address", san_ip))}
+    return info.ddr_check_certificate(cert)
+
+
+def test_ddr_check_certificate_ipv6():
+    # ssl.SSLSocket.getpeercert() renders IPv6 SAN entries uncompressed and in
+    # upper case, so the check must compare addresses, not text.
+    assert _ddr_check_certificate("2001:4860:4860::8888", "2001:4860:4860:0:0:0:0:8888")
+    assert _ddr_check_certificate("2620:fe::fe", "2620:FE:0:0:0:0:0:FE")
+    assert _ddr_check_certificate("::1", "0:0:0:0:0:0:0:1")
+    assert not _ddr_check_certificate(
+        "2001:4860:4860::8844", "2001:4860:4860:0:0:0:0:8888"
+    )
+
+
+def test_ddr_check_certificate_ipv4():
+    assert _ddr_check_certificate("8.8.8.8", "8.8.8.8")
+    assert not _ddr_check_certificate("8.8.8.8", "8.8.4.4")
+    # A SAN entry of the other family is skipped, not an error.
+    assert not _ddr_check_certificate("8.8.8.8", "0:0:0:0:0:FFFF:808:808")
+    assert not _ddr_check_certificate("2001:4860:4860::8888", "8.8.8.8")
+
+
 @pytest.mark.skipif(
     not tests.util.is_internet_reachable(), reason="Internet not reachable"
 )
