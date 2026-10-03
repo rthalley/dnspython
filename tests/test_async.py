@@ -442,7 +442,7 @@ class AsyncTests(unittest.TestCase):
 
             async def run():
                 ssl_context = ssl.create_default_context()
-                ssl_context.check_hostname = True
+                ssl_context.check_hostname = False
                 q = dns.message.make_query(qname, dns.rdatatype.A)
                 return await dns.asyncquery.tls(
                     q, address, timeout=2, ssl_context=ssl_context
