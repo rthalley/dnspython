@@ -156,6 +156,9 @@ Additional Transport RFCs
 `RFC 9250 <https://tools.ietf.org/html/rfc9250>`_
     DNS over Dedicated QUIC Connections.
 
+`RFC 9462 <https://tools.ietf.org/html/rfc9462>`_
+    Discovery of Designated Resolvers (DDR).
+
 RFCs for RR types
 -----------------
 
