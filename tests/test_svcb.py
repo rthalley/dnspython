@@ -421,6 +421,22 @@ class SVCBTestCase(unittest.TestCase):
         expected = '"\\001\\002"'
         self.assertEqual(gp.to_text(), expected)
 
+    def test_non_ascii_digits_escape(self):
+        digits = "\u0967"
+        rdata = dns.rdata.from_text("in", "svcb", "1 . alpn=" + digits)
+        self.assertEqual(rdata.to_text(), '1 . alpn="\\224\\165\\167"')
+        self.assertEqual(
+            dns.rdata.from_text("in", "svcb", rdata.to_text()).to_wire(),
+            rdata.to_wire(),
+        )
+        self.assertRaises(
+            dns.exception.SyntaxError,
+            dns.rdata.from_text,
+            "in",
+            "svcb",
+            "1 . alpn=\\12" + digits,
+        )
+
     def test_svcb_spec_test_vectors(self):
         text_file = here("svcb_test_vectors.text")
         text_tokenizer = Tokenizer(
