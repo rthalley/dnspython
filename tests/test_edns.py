@@ -157,6 +157,35 @@ class OptionTestCase(unittest.TestCase):
                 dns.edns.ECS, b"\x00\xff\x18\x00\x01\x02\x03", 0, 7
             )
 
+    def testECSOption_from_wire_nonzero_pad(self):
+        # srclen 25 leaves 7 padding bits in the final octet; they must be 0.
+        with self.assertRaises(ValueError):
+            dns.edns.option_from_wire(
+                dns.edns.ECS, b"\x00\x01\x19\x00\x01\x02\x03\xff", 0, 8
+            )
+
+    def testECSOption_from_wire_srclen_too_long(self):
+        # srclen 40 exceeds 32 bits for IPv4.
+        with self.assertRaises(ValueError):
+            dns.edns.option_from_wire(
+                dns.edns.ECS, b"\x00\x01\x28\x00\x01\x02\x03\x04\x05", 0, 9
+            )
+        # srclen 129 exceeds 128 bits for IPv6.
+        with self.assertRaises(ValueError):
+            dns.edns.option_from_wire(
+                dns.edns.ECS, b"\x00\x02\x81\x00" + b"\x00" * 17, 0, 21
+            )
+
+    def testECSOption_from_wire_scopelen_too_long(self):
+        # scopelen 200 exceeds 128 bits for IPv6.
+        with self.assertRaises(ValueError):
+            dns.edns.option_from_wire(
+                dns.edns.ECS,
+                b"\x00\x02\x38\xc8" + b"\x20\x01\x4b\x98\x00\x00\x00",
+                0,
+                11,
+            )
+
     def testEDEOption(self):
         opt = dns.edns.EDEOption(3)
         io = BytesIO()

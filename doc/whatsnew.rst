@@ -63,6 +63,14 @@ TBD
   with no types present, so the last octet of a window's bitmap is always
   non-zero; the parser previously accepted these non-canonical encodings.
 
+* The EDNS Client Subnet (ECS) option wire parser now rejects a malformed
+  option instead of silently rewriting it.  RFC 7871 section 6 requires the
+  source and scope prefix lengths to fit the address family and the address
+  bits beyond the source prefix length to be zero.  A non-zero pad was
+  previously masked off by the option constructor, so from_wire followed by
+  to_wire produced different bytes, and an out-of-range prefix length leaked a
+  low-level error rather than being reported as malformed.
+  
 * ZONEMD rdata now rejects a digest shorter than 12 octets.  RFC 8976
   section 2.2.4 requires the digest to be at least 12 octets regardless of the
   hash algorithm, but dnspython only checked the length for the hash algorithms
