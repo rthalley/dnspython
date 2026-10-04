@@ -17,6 +17,7 @@
 
 """DNS GENERATE range conversion."""
 
+import dns._text_util
 import dns.exception
 
 
@@ -49,7 +50,7 @@ def from_text(text: str) -> tuple[int, int, int]:
             stop = int(cur)
             cur = ""
             state = 2
-        elif c.isdecimal():
+        elif dns._text_util.is_ascii_digit(c):
             cur += c
         else:
             raise dns.exception.SyntaxError(f"Could not parse {c}")

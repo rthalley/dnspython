@@ -205,6 +205,20 @@ class TokenizerTestCase(unittest.TestCase):
         self.assertEqual(t.ttype, dns.tokenizer.IDENTIFIER)
         self.assertEqual(t.value, r"child")
 
+    def testNonASCIIDigits(self):
+        digits = "\u0967\u0968\u0969"
+        t = dns.tokenizer.Tokenizer("a\\" + digits + "b").get().unescape()
+        self.assertEqual(t.value, "a" + digits + "b")
+        t = dns.tokenizer.Tokenizer("a\\" + digits + "b").get().unescape_to_bytes()
+        self.assertEqual(t.value, b"a" + digits.encode() + b"b")
+        self.assertEqual(
+            dns.tokenizer.Tokenizer("a\\065b").get().unescape().value, "aAb"
+        )
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.tokenizer.Tokenizer("a\\12" + digits).get().unescape()
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.tokenizer.Tokenizer("a\\12" + digits).get().unescape_to_bytes()
+
     def testGetUInt(self):
         tok = dns.tokenizer.Tokenizer("1234")
         v = tok.get_int()

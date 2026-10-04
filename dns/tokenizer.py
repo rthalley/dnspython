@@ -21,6 +21,7 @@ import io
 import sys
 from typing import Any
 
+import dns._text_util
 import dns.exception
 import dns.name
 import dns.ttl
@@ -114,7 +115,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdecimal():
+                if dns._text_util.is_ascii_digit(c):
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -123,7 +124,10 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdecimal() and c3.isdecimal()):
+                    if not (
+                        dns._text_util.is_ascii_digit(c2)
+                        and dns._text_util.is_ascii_digit(c3)
+                    ):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:
@@ -168,7 +172,7 @@ class Token:
                     raise dns.exception.UnexpectedEnd
                 c = self.value[i]
                 i += 1
-                if c.isdecimal():
+                if dns._text_util.is_ascii_digit(c):
                     if i >= l:
                         raise dns.exception.UnexpectedEnd
                     c2 = self.value[i]
@@ -177,7 +181,10 @@ class Token:
                         raise dns.exception.UnexpectedEnd
                     c3 = self.value[i]
                     i += 1
-                    if not (c2.isdecimal() and c3.isdecimal()):
+                    if not (
+                        dns._text_util.is_ascii_digit(c2)
+                        and dns._text_util.is_ascii_digit(c3)
+                    ):
                         raise dns.exception.SyntaxError
                     codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                     if codepoint > 255:
@@ -637,6 +644,10 @@ class Tokenizer:
     def as_int(self, token: Token, base: int = 10) -> int:
         """Try to interpret the token as an unsigned integer.
 
+        The token must consist only of ASCII digits valid in *base*, which
+        must be between 2 and 36 inclusive.  A sign, whitespace, underscores,
+        and base prefixes such as ``0x`` are not allowed.
+
         Raises dns.exception.SyntaxError if not an unsigned integer.
 
         Returns an int.
@@ -644,13 +655,9 @@ class Tokenizer:
 
         if not token.is_identifier():
             raise dns.exception.SyntaxError("expecting an identifier")
-        try:
-            value = int(token.value, base)
-            if value < 0:
-                raise ValueError
-        except ValueError:
+        if not dns._text_util.is_ascii_digits(token.value, base):
             raise dns.exception.SyntaxError("expecting an integer")
-        return value
+        return int(token.value, base)
 
     def as_uint8(self, token: Token) -> int:
         """Try to interpret the token as an unsigned 8-bit integer.

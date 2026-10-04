@@ -70,6 +70,12 @@ TBD
   previously masked off by the option constructor, so from_wire followed by
   to_wire produced different bytes, and an out-of-range prefix length leaked a
   low-level error rather than being reported as malformed.
+  
+* ZONEMD rdata now rejects a digest shorter than 12 octets.  RFC 8976
+  section 2.2.4 requires the digest to be at least 12 octets regardless of the
+  hash algorithm, but dnspython only checked the length for the hash algorithms
+  it implements, so a record using a private-use algorithm could carry a
+  truncated (or empty) digest.
 
 * Rdata types with free-form string fields (URI, HINFO, X25, ISDN, NAPTR, and
   CAA) processed ``\ddd`` escapes as Unicode code points and then UTF-8 encoded
@@ -99,6 +105,42 @@ TBD
 * Documentation has been augmented and modernized.
 
 * The HHIT and BRID rdata types are now supported, and the NXNAME metatype is defined.
+
+* ``\DDD`` escapes are now only recognized when the three characters are ASCII
+  digits, as RFC 1035 section 5.1 requires.  The escape parsers tested them with
+  ``str.isdecimal()``, which is also true for non-ASCII decimal digits such as
+  the Devanagari ``१`` (``U+0967``), and ``int()`` converts those, so a
+  ``\123``-style escape written with those digits was read as an octet instead
+  of being rejected.  This affected ``dns.name.from_unicode()``,
+  ``dns.tokenizer.Token.unescape()``, ``dns.tokenizer.Token.unescape_to_bytes()``,
+  and the SVCB/HTTPS alpn and docpath value parser, and it meant a name could be
+  written two ways, with the all-ASCII ``dns.name.from_text()`` path disagreeing
+  with the non-ASCII one.  Such a character is now an ordinary escaped
+  character, like any other.
+
+* Other text parsers that tested for digits with ``str.isdecimal()`` now also
+  require ASCII digits, so non-ASCII decimal digits are no longer read as
+  numbers.  This affects dns.ttl.from_text(), dns.grange.from_text(),
+  dns.e164.from_e164() (which now drops such characters like any other
+  non-digit), the IPv6 scope id in dns.inet.low_level_address_tuple(), the
+  ``FLAGn`` form in dns.flags.from_text(), the ``TYPEn``-style generic forms in
+  enum ``from_text()`` methods (e.g. dns.rdatatype.from_text()), SIG/RRSIG
+  signature times, and the WKS and LOC rdata text parsers.  SIG/RRSIG signature
+  times in the 14-digit ``YYYYMMDDHHmmSS`` form are now also required to be all
+  digits.
+
+* dns.tokenizer.Tokenizer.get_int() and the other integer-reading tokenizer
+  methods, which underlie most rdata text parsing, now require the token to
+  consist only of ASCII digits valid in the requested base.  They previously
+  used ``int()`` directly, which also accepts non-ASCII decimal digits, a leading
+  ``+``, underscores (``1_000``), and base prefixes such as ``0o17`` when the
+  base matched.  The *base* must now be between 2 and 36; base 0 is no longer
+  accepted.  The SVCB/HTTPS ``port`` parameter is checked the same way.
+
+* dns.message.from_text() now reads an RR's TTL as a decimal integer with the
+  tokenizer.  It previously used ``int(text, 0)``, which accepted forms such as
+  ``0x10``, ``+10``, and non-ASCII digits, and rejected decimal TTLs with a
+  leading zero such as ``010``.
 
 * APIs which accept the name of a file to open — dns.zone.from_file(),
   dns.zone.Zone.to_file(), dns.message.from_file(), dns.tsigkeyring.from_file(),

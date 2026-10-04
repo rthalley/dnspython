@@ -20,6 +20,8 @@
 import enum
 from typing import Any
 
+import dns._text_util
+
 # Standard DNS flags
 
 
@@ -62,7 +64,7 @@ def _from_text(text: str, enum_class: Any) -> int:
     tokens = text.split()
     for t in tokens:
         token = t.upper()
-        if token.startswith("FLAG") and token[4:].isdecimal():
+        if token.startswith("FLAG") and dns._text_util.is_ascii_digits(token[4:]):
             # An unnamed flag, rendered by _to_text() as FLAGn (see below).
             flags |= 1 << int(token[4:])
         else:

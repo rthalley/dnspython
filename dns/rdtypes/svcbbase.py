@@ -5,6 +5,7 @@ import enum
 import struct
 from typing import Any, TypeVar
 
+import dns._text_util
 import dns.enum
 import dns.exception
 import dns.immutable
@@ -111,7 +112,7 @@ def _unescape(value: str) -> bytes:
                 raise dns.exception.UnexpectedEnd
             c = value[i]
             i += 1
-            if c.isdecimal():
+            if dns._text_util.is_ascii_digit(c):
                 if i >= l:
                     raise dns.exception.UnexpectedEnd
                 c2 = value[i]
@@ -120,7 +121,10 @@ def _unescape(value: str) -> bytes:
                     raise dns.exception.UnexpectedEnd
                 c3 = value[i]
                 i += 1
-                if not (c2.isdecimal() and c3.isdecimal()):
+                if not (
+                    dns._text_util.is_ascii_digit(c2)
+                    and dns._text_util.is_ascii_digit(c3)
+                ):
                     raise dns.exception.SyntaxError
                 codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                 if codepoint > 255:
@@ -327,6 +331,8 @@ class PortParam(Param):
 
     @classmethod
     def from_value(cls, value):
+        if not dns._text_util.is_ascii_digits(value):
+            raise dns.exception.SyntaxError("port is not an integer")
         value = int(value)
         return cls(value)
 

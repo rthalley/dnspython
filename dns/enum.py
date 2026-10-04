@@ -18,6 +18,8 @@
 import enum
 from typing import Any, TypeVar
 
+import dns._text_util
+
 TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 
 
@@ -50,7 +52,9 @@ class IntEnum(enum.IntEnum):
         if value:
             return value
         prefix = cls._prefix()
-        if text.startswith(prefix) and text[len(prefix) :].isdecimal():
+        if text.startswith(prefix) and dns._text_util.is_ascii_digits(
+            text[len(prefix) :]
+        ):
             value = int(text[len(prefix) :])
             cls._check_value(value)
             return cls(value)

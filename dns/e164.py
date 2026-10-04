@@ -19,6 +19,7 @@
 
 from collections.abc import Iterable
 
+import dns._text_util
 import dns.exception
 import dns.name
 import dns.resolver
@@ -44,7 +45,7 @@ def from_e164(
     :rtype: :py:class:`dns.name.Name`
     """
 
-    parts = [d for d in text if d.isdecimal()]
+    parts = [d for d in text if dns._text_util.is_ascii_digit(d)]
     parts.reverse()
     return dns.name.from_text(".".join(parts), origin=origin)
 

@@ -18,6 +18,7 @@
 import socket
 import struct
 
+import dns._text_util
 import dns.immutable
 import dns.ipv4
 import dns.rdata
@@ -60,14 +61,14 @@ class WKS(dns.rdata.Rdata):
     ):
         address = tok.get_string()
         protocol = tok.get_string()
-        if protocol.isdecimal():
+        if dns._text_util.is_ascii_digits(protocol):
             protocol = int(protocol)
         else:
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
         for token in tok.get_remaining():
             value = token.unescape().value
-            if value.isdecimal():
+            if dns._text_util.is_ascii_digits(value):
                 serv = int(value)
             else:
                 if protocol != _proto_udp and protocol != _proto_tcp:
