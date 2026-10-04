@@ -22,6 +22,7 @@ import time
 from typing import TypeVar
 
 import dns.dnssectypes
+import dns._text_util
 import dns.exception
 import dns.immutable
 import dns.name
@@ -34,7 +35,9 @@ class BadSigTime(dns.exception.DNSException):
 
 
 def sigtime_to_posixtime(what):
-    if len(what) <= 10 and what.isdecimal():
+    if not dns._text_util.is_ascii_digits(what):
+        raise BadSigTime
+    if len(what) <= 10:
         return int(what)
     if len(what) != 14:
         raise BadSigTime

@@ -29,6 +29,11 @@ class ZONEMD(dns.rdata.Rdata):
         if self.hash_algorithm == 0:  # reserved, RFC 8976 Sec. 5.3
             raise ValueError("hash_algorithm 0 is reserved")
 
+        # RFC 8976 Sec. 2.2.4: the digest is never shorter than 12 octets,
+        # regardless of the hash algorithm, including private-use ones.
+        if len(self.digest) < 12:
+            raise ValueError("digest must be at least 12 octets")
+
         hasher = dns.zonetypes._digest_hashers.get(self.hash_algorithm)
         if hasher and hasher().digest_size != len(self.digest):
             raise ValueError("digest length inconsistent with hash algorithm")

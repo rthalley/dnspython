@@ -1522,14 +1522,13 @@ class _TextReader:
             raise dns.exception.SyntaxError
         # TTL
         try:
-            ttl = int(token.value, 0)
+            ttl = self.tok.as_int(token)
+        except dns.exception.SyntaxError:
+            ttl = 0
+        else:
             token = self.tok.get()
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
-        except dns.exception.SyntaxError:
-            raise dns.exception.SyntaxError
-        except Exception:
-            ttl = 0
         # Class
         try:
             rdclass = dns.rdataclass.from_text(token.value)

@@ -433,6 +433,17 @@ class NameTestCase(unittest.TestCase):
             self.assertRaises(dns.name.BadEscape, dns.name.from_text, text)
             self.assertRaises(dns.name.BadEscape, dns.name.from_unicode, "é" + text)
 
+    def testEscapeNonASCIIDigits(self):
+        digits = "\u0967\u0968\u0969"
+        self.assertEqual(
+            dns.name.from_unicode("\\" + digits), dns.name.from_unicode(digits)
+        )
+        self.assertEqual(
+            dns.name.from_text("\\" + digits), dns.name.from_unicode(digits)
+        )
+        self.assertRaises(dns.name.BadEscape, dns.name.from_text, "\\12" + digits)
+        self.assertEqual(dns.name.from_text(r"\065").to_wire(), b"\x01A\x00")
+
     def testDigestable1(self):
         n = dns.name.from_text("FOO.bar")
         d = n.to_digestable()

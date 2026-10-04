@@ -59,8 +59,10 @@ except ImportError:
 
 if dns.dnssec._have_pyca:
     have_deterministic = default_backend().ecdsa_deterministic_supported()
+    have_mldsa = default_backend().mldsa_supported()
 else:
     have_deterministic = False
+    have_mldsa = False
 
 abs_dnspython_org = dns.name.from_text("dnspython.org")
 
@@ -916,11 +918,13 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                 abs_other_ed448_mx, abs_ed448_mx_rrsig_2, abs_ed448_keys_2, None, when5
             )
 
+    @unittest.skipUnless(have_mldsa, "ML-DSA is not available")
     def testAbsoluteMLDSA44Good(self):  # type: () -> None
         dns.dnssec.validate(
             abs_mldsa44_mx, abs_mldsa44_mx_rrsig_1, abs_mldsa44_keys_1, None, when5
         )
 
+    @unittest.skipUnless(have_mldsa, "ML-DSA is not available")
     def testAbsoluteMLDSA44Bad(self):  # type: () -> None
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(
@@ -1607,6 +1611,7 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         key = ed448.Ed448PrivateKey.generate()
         self._test_signature(key, dns.dnssec.Algorithm.ED448, abs_soa)
 
+    @unittest.skipUnless(have_mldsa, "ML-DSA is not available")
     def testSignatureMLDSA44(self):  # type: () -> None
         key = mldsa.MLDSA44PrivateKey.generate()
         self._test_signature(key, dns.dnssec.Algorithm.MLDSA44, abs_soa)

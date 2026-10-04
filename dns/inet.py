@@ -20,6 +20,7 @@
 import socket
 from typing import Any
 
+import dns._text_util
 import dns.ipv4
 import dns.ipv6
 
@@ -149,7 +150,7 @@ def low_level_address_tuple(high_tuple: tuple[str, int], af: int | None = None) 
         # try to avoid getaddrinfo()
         addrpart = address[:i]
         scope = address[i + 1 :]
-        if scope.isdecimal():
+        if dns._text_util.is_ascii_digits(scope):
             return (addrpart, port, 0, int(scope))
         try:
             return (addrpart, port, 0, socket.if_nametoindex(scope))

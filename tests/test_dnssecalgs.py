@@ -54,8 +54,10 @@ except ImportError:
 
 if dns.dnssec._have_pyca:
     have_deterministic = default_backend().ecdsa_deterministic_supported()
+    have_mldsa = default_backend().mldsa_supported()
 else:
     have_deterministic = False
+    have_mldsa = False
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
@@ -116,6 +118,7 @@ class DNSSECAlgorithm(unittest.TestCase):
         self._test_dnssec_alg(PrivateED25519)
         self._test_dnssec_alg(PrivateED448)
 
+    @unittest.skipUnless(have_mldsa, "ML-DSA is not available")
     def test_mldsa(self):
         self._test_dnssec_alg(PrivateMLDSA44)
 
