@@ -43,14 +43,21 @@ class APLItem:
             self.address = dns.rdata.Rdata._as_ipv6_address(address)
             self.prefix = dns.rdata.Rdata._as_int(prefix, 0, 128)
         else:
-            self.address = dns.rdata.Rdata._as_bytes(address, max_length=127)
+            # The address is kept as hex, so it may be up to 254 characters.
+            self.address = dns.rdata.Rdata._as_bytes(
+                address, encode=True, max_length=254
+            )
+            binascii.unhexlify(self.address)
             self.prefix = dns.rdata.Rdata._as_uint8(prefix)
 
     def __str__(self):
+        address = self.address
+        if isinstance(address, bytes):
+            address = address.decode()
         if self.negation:
-            return f"!{self.family}:{self.address}/{self.prefix}"
+            return f"!{self.family}:{address}/{self.prefix}"
         else:
-            return f"{self.family}:{self.address}/{self.prefix}"
+            return f"{self.family}:{address}/{self.prefix}"
 
     def to_wire(self, file):
         if self.family == 1:

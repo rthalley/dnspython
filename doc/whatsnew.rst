@@ -92,6 +92,12 @@ TBD
   records, using the new Tokenizer.get_bytes(), and URI escapes its target on
   output, so from_text(to_text()) is the identity for all octet values.
 
+* APL items with an address family other than 1 (IPv4) or 2 (IPv6) now round
+  trip through text.  to_text() rendered their hex address as a Python bytes
+  literal (``3:b'e0'/4``), from_text() rejected every such item, and the wire
+  parser rejected an address longer than 63 octets although up to 127 are
+  allowed.
+
 * Httpx2 has replaced httpx for HTTPS TCP connections.
 
 * Mypy type checking has been removed; ty type checking has been added.
