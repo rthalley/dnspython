@@ -8,6 +8,10 @@ What's New in dnspython
 
 TBD
 
+* ``dns.reversename.to_address()`` now rejects IPv6 reverse-map names without
+  exactly 32 single-character labels, instead of padding missing nibbles or
+  accepting multiple nibbles in a label.
+
 * DNSSEC now supports ML-DSA-44, a post-quantum signature algorithm.
 
 * A "transaction setup" callable may be specified when reading a zone from a file,
