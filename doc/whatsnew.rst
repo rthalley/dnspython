@@ -63,6 +63,12 @@ TBD
   with no types present, so the last octet of a window's bitmap is always
   non-zero; the parser previously accepted these non-canonical encodings.
 
+* The APL wire parser now rejects an item whose address prefix (AFDPART) ends in
+  a zero octet.  RFC 3123 sections 4.1 and 4.2 require trailing zero octets to be
+  omitted so that DNSSEC has a single canonical wire encoding.  The parser
+  previously accepted these, and since to_wire() strips the trailing zeros,
+  from_wire() followed by to_wire() silently rewrote the rdata to different bytes.
+  
 * The EDNS Client Subnet (ECS) option wire parser now rejects a malformed
   option instead of silently rewriting it.  RFC 7871 section 6 requires the
   source and scope prefix lengths to fit the address family and the address
