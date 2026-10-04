@@ -17,6 +17,7 @@
 
 import struct
 
+import dns._text_util
 import dns.exception
 import dns.immutable
 import dns.rdata
@@ -196,16 +197,16 @@ class LOC(dns.rdata.Rdata):
 
         latitude[0] = tok.get_int()
         t = tok.get_string()
-        if t.isdecimal():
+        if dns._text_util.is_ascii_digits(t):
             latitude[1] = int(t)
             t = tok.get_string()
             if "." in t:
                 seconds, milliseconds = t.split(".")
-                if not seconds.isdecimal():
+                if not dns._text_util.is_ascii_digits(seconds):
                     raise dns.exception.SyntaxError("bad latitude seconds value")
                 latitude[2] = int(seconds)
                 l = len(milliseconds)
-                if l == 0 or l > 3 or not milliseconds.isdecimal():
+                if l == 0 or l > 3 or not dns._text_util.is_ascii_digits(milliseconds):
                     raise dns.exception.SyntaxError("bad latitude milliseconds value")
                 if l == 1:
                     m = 100
@@ -215,7 +216,7 @@ class LOC(dns.rdata.Rdata):
                     m = 1
                 latitude[3] = m * int(milliseconds)
                 t = tok.get_string()
-            elif t.isdecimal():
+            elif dns._text_util.is_ascii_digits(t):
                 latitude[2] = int(t)
                 t = tok.get_string()
         if t == "S":
@@ -225,16 +226,16 @@ class LOC(dns.rdata.Rdata):
 
         longitude[0] = tok.get_int()
         t = tok.get_string()
-        if t.isdecimal():
+        if dns._text_util.is_ascii_digits(t):
             longitude[1] = int(t)
             t = tok.get_string()
             if "." in t:
                 seconds, milliseconds = t.split(".")
-                if not seconds.isdecimal():
+                if not dns._text_util.is_ascii_digits(seconds):
                     raise dns.exception.SyntaxError("bad longitude seconds value")
                 longitude[2] = int(seconds)
                 l = len(milliseconds)
-                if l == 0 or l > 3 or not milliseconds.isdecimal():
+                if l == 0 or l > 3 or not dns._text_util.is_ascii_digits(milliseconds):
                     raise dns.exception.SyntaxError("bad longitude milliseconds value")
                 if l == 1:
                     m = 100
@@ -244,7 +245,7 @@ class LOC(dns.rdata.Rdata):
                     m = 1
                 longitude[3] = m * int(milliseconds)
                 t = tok.get_string()
-            elif t.isdecimal():
+            elif dns._text_util.is_ascii_digits(t):
                 longitude[2] = int(t)
                 t = tok.get_string()
         if t == "W":

@@ -110,6 +110,30 @@ TBD
   with the non-ASCII one.  Such a character is now an ordinary escaped
   character, like any other.
 
+* Other text parsers that tested for digits with ``str.isdecimal()`` now also
+  require ASCII digits, so non-ASCII decimal digits are no longer read as
+  numbers.  This affects dns.ttl.from_text(), dns.grange.from_text(),
+  dns.e164.from_e164() (which now drops such characters like any other
+  non-digit), the IPv6 scope id in dns.inet.low_level_address_tuple(), the
+  ``FLAGn`` form in dns.flags.from_text(), the ``TYPEn``-style generic forms in
+  enum ``from_text()`` methods (e.g. dns.rdatatype.from_text()), SIG/RRSIG
+  signature times, and the WKS and LOC rdata text parsers.  SIG/RRSIG signature
+  times in the 14-digit ``YYYYMMDDHHmmSS`` form are now also required to be all
+  digits.
+
+* dns.tokenizer.Tokenizer.get_int() and the other integer-reading tokenizer
+  methods, which underlie most rdata text parsing, now require the token to
+  consist only of ASCII digits valid in the requested base.  They previously
+  used ``int()`` directly, which also accepts non-ASCII decimal digits, a leading
+  ``+``, underscores (``1_000``), and base prefixes such as ``0o17`` when the
+  base matched.  The *base* must now be between 2 and 36; base 0 is no longer
+  accepted.  The SVCB/HTTPS ``port`` parameter is checked the same way.
+
+* dns.message.from_text() now reads an RR's TTL as a decimal integer with the
+  tokenizer.  It previously used ``int(text, 0)``, which accepted forms such as
+  ``0x10``, ``+10``, and non-ASCII digits, and rejected decimal TTLs with a
+  leading zero such as ``010``.
+
 * APIs which accept the name of a file to open — dns.zone.from_file(),
   dns.zone.Zone.to_file(), dns.message.from_file(), dns.tsigkeyring.from_file(),
   Resolver.read_resolv_conf(), and the resolver constructor's *filename* parameter —

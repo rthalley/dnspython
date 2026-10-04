@@ -26,6 +26,7 @@ from collections.abc import Callable, Iterable
 from typing import Any
 
 import dns._features
+import dns._text_util
 import dns.enum
 import dns.exception
 import dns.immutable
@@ -1004,14 +1005,14 @@ def from_unicode(
         for c in text:
             if escaping:
                 if edigits == 0:
-                    if c in "0123456789":
+                    if dns._text_util.is_ascii_digit(c):
                         total = int(c)
                         edigits += 1
                     else:
                         label += c
                         escaping = False
                 else:
-                    if c not in "0123456789":
+                    if not dns._text_util.is_ascii_digit(c):
                         raise BadEscape
                     total *= 10
                     total += int(c)

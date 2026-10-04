@@ -17,6 +17,7 @@
 
 """DNS TTL conversion."""
 
+import dns._text_util
 import dns.exception
 
 # Technically TTLs are supposed to be between 0 and 2**31 - 1, with values
@@ -42,7 +43,7 @@ def from_text(text: str) -> int:
     :rtype: int
     """
 
-    if text.isdecimal():
+    if dns._text_util.is_ascii_digits(text):
         total = int(text)
     elif len(text) == 0:
         raise BadTTL
@@ -51,7 +52,7 @@ def from_text(text: str) -> int:
         current = 0
         need_digit = True
         for c in text:
-            if c.isdecimal():
+            if dns._text_util.is_ascii_digit(c):
                 current *= 10
                 current += int(c)
                 need_digit = False
