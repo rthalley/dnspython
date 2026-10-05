@@ -1526,6 +1526,10 @@ class _TextReader:
         except dns.exception.SyntaxError:
             ttl = 0
         else:
+            if ttl > dns.ttl.MAX_TTL:
+                raise dns.ttl.BadTTL(
+                    "TTL should be between 0 and 2**32 - 1 (inclusive)"
+                )
             token = self.tok.get()
             if not token.is_identifier():
                 raise dns.exception.SyntaxError

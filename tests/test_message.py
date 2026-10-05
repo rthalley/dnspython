@@ -32,6 +32,7 @@ import dns.rdtypes.ANY.TSIG
 import dns.rrset
 import dns.tsig
 import dns.tsigkeyring
+import dns.ttl
 import dns.update
 from tests.util import here
 
@@ -1024,6 +1025,43 @@ www.dnspython.org. 300 IN A 1.2.3.4
         r = dns.message.make_query("example", "A", use_edns=0, options=options)
         r.flags |= dns.flags.QR
         self.assertEqual(r.extended_errors(), options)
+
+
+class MessageTextTTLTestCase(unittest.TestCase):
+    # The TTL in the text form of a message is parsed with as_int(), which
+    # only checks that the token is decimal digits; it does not range-check.
+    # A too-large TTL used to parse cleanly, survive to_text(), and then blow
+    # up in to_wire() with a bare struct.error.
+
+    def _text(self, ttl):
+        return f"""id 1234
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+example. IN A
+;ANSWER
+example. {ttl} IN A 1.2.3.4
+"""
+
+    def test_too_big_ttl(self):
+        with self.assertRaises(dns.ttl.BadTTL):
+            dns.message.from_text(self._text(dns.ttl.MAX_TTL + 1))
+
+    def test_too_big_ttl_is_a_dns_exception(self):
+        # A public entry point must not leak struct.error.
+        try:
+            m = dns.message.from_text(self._text(dns.ttl.MAX_TTL + 1))
+            m.to_wire()
+        except dns.exception.DNSException:
+            pass
+        except Exception as e:
+            self.fail(f"non-DNSException escaped: {type(e).__name__}: {e}")
+
+    def test_max_ttl_still_accepted(self):
+        m = dns.message.from_text(self._text(dns.ttl.MAX_TTL))
+        self.assertEqual(m.answer[0].ttl, dns.ttl.MAX_TTL)
+        m.to_wire()
 
 
 if __name__ == "__main__":
