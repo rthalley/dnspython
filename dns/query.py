@@ -1518,7 +1518,6 @@ def _inbound_xfr(
     ) as inbound:
         done = False
         tsig_ctx = None
-        r: dns.message.Message | None = None
         while not done:
             _, mexpiration = _compute_times(timeout)
             if mexpiration is None or (
@@ -1544,8 +1543,6 @@ def _inbound_xfr(
             done = inbound.process_message(r)
             yield r
             tsig_ctx = r.tsig_ctx
-        if query.keyring and r is not None and not r.had_tsig:
-            raise dns.exception.FormError("missing TSIG")
 
 
 def xfr(

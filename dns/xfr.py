@@ -109,12 +109,24 @@ class Inbound:
         self.raise_on_serial_went_backwards = raise_on_serial_went_backwards
         self.transaction_setup = transaction_setup
 
+    def _check_tsig(self, message: dns.message.Message) -> None:
+        # RFC 8945 section 5.3.1 lets the messages in the middle of a signed
+        # transfer be unsigned, as the next TSIG covers them, but the first and
+        # the last message must have a TSIG.  This has to be checked before the
+        # transaction is committed, or unauthenticated data ends up in the zone.
+        if message.request_mac and not message.had_tsig:
+            raise dns.exception.FormError("missing TSIG")
+
     def process_message(self, message: dns.message.Message) -> bool:
         """Process one message in the transfer.
 
         The message should have the same relativization as was specified when
         the `dns.xfr.Inbound` was created.  The message should also have been
         created with `one_rr_per_rrset=True` because order matters.
+
+        If the request was TSIG-signed, i.e. the message was parsed with a
+        nonempty *request_mac*, then the first and the last message of the
+        transfer must have a TSIG, and nothing is committed otherwise.
 
         Returns `True` if the transfer is complete, and `False` otherwise.
         """
@@ -140,6 +152,7 @@ class Inbound:
             # This is the first message.  We're expecting an SOA at
             # the origin.
             #
+            self._check_tsig(message)
             if not message.answer or message.answer[0].name != self.origin:
                 raise dns.exception.FormError("No answer or RRset not for zone origin")
             rrset = message.answer[0]
@@ -207,6 +220,7 @@ class Inbound:
                         raise dns.exception.FormError("empty IXFR sequence")
                     if self.incremental and self.serial != soa.serial:
                         raise dns.exception.FormError("unexpected end of IXFR sequence")
+                    self._check_tsig(message)
                     self.txn.replace(name, rdataset)
                     self.txn.commit()
                     self.txn = None

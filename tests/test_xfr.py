@@ -971,3 +971,102 @@ try:
 
 except ImportError:
     pass
+
+
+#
+# If the request is TSIG-signed, the first and the last message of the response
+# must be signed too (RFC 8945 section 5.3.1), and a transfer which is not must
+# be rejected before anything is committed to the zone.
+#
+class TSIGXFRNanoNameserver(Server):
+    def __init__(self, signed):
+        super().__init__(origin=dns.name.from_text("example"), keyring=keyring)
+        # Whether to sign each of the two messages of the response.
+        self.signed = signed
+
+    def handle(self, request):
+        try:
+            items = []
+            for text, signed in zip((axfr1, axfr2), self.signed):
+                r = dns.message.from_text(
+                    text, one_rr_per_rrset=True, origin=self.origin
+                )
+                r.id = request.message.id
+                if signed:
+                    r.use_tsig(keyring, keyname)
+                    r.request_mac = request.message.mac
+                items.append(r)
+            return items
+        except Exception:
+            pass
+
+
+tsig_xfr_signed = [(True, True), (False, False), (False, True), (True, False)]
+
+
+def tsig_xfr_zone_and_query():
+    zone = dns.versioned.Zone("example")
+    query, _ = dns.xfr.make_query(zone, keyring=keyring, keyname=keyname)
+    return zone, query
+
+
+def check_tsig_xfr_zone(zone, signed):
+    if all(signed):
+        assert zone == dns.zone.from_text(base, "example")
+    else:
+        # The zone must be untouched.
+        assert zone == dns.versioned.Zone("example")
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("signed", tsig_xfr_signed)
+def test_sync_inbound_xfr_tsig(signed):
+    with TSIGXFRNanoNameserver(signed) as ns:
+        where, port = ns.tcp_address
+        zone, query = tsig_xfr_zone_and_query()
+        if all(signed):
+            dns.query.inbound_xfr(where, zone, query, port=port)
+        else:
+            with pytest.raises(dns.exception.FormError):
+                dns.query.inbound_xfr(where, zone, query, port=port)
+        check_tsig_xfr_zone(zone, signed)
+
+
+async def async_inbound_xfr_tsig(signed):
+    with TSIGXFRNanoNameserver(signed) as ns:
+        where, port = ns.tcp_address
+        zone, query = tsig_xfr_zone_and_query()
+        if all(signed):
+            await dns.asyncquery.inbound_xfr(where, zone, query, port=port)
+        else:
+            with pytest.raises(dns.exception.FormError):
+                await dns.asyncquery.inbound_xfr(where, zone, query, port=port)
+        check_tsig_xfr_zone(zone, signed)
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("signed", tsig_xfr_signed)
+def test_asyncio_inbound_xfr_tsig(signed):
+    dns.asyncbackend.set_default_backend("asyncio")
+
+    async def run():
+        await async_inbound_xfr_tsig(signed)
+
+    asyncio.run(run())
+
+
+try:
+    import trio
+
+    @pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+    @pytest.mark.parametrize("signed", tsig_xfr_signed)
+    def test_trio_inbound_xfr_tsig(signed):
+        dns.asyncbackend.set_default_backend("trio")
+
+        async def run():
+            await async_inbound_xfr_tsig(signed)
+
+        trio.run(run)
+
+except ImportError:
+    pass

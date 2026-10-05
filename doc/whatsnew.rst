@@ -174,6 +174,15 @@ TBD
   query functions now reject unsigned responses to signed queries, and with
   ``ignore_errors`` UDP receives discard them and keep waiting.
 
+* An inbound zone transfer made with a TSIG-signed request now requires the first
+  and the last message of the response to have a TSIG, as RFC 8945 section 5.3.1
+  specifies, and dns.xfr.Inbound.process_message() checks this before committing
+  the transaction.  Previously only the last message was checked, and only after
+  the transfer had been committed, so dns.query.inbound_xfr() and
+  dns.asyncquery.inbound_xfr() raised "missing TSIG" for an unsigned transfer
+  that had already replaced the zone, and unsigned messages sent ahead of the
+  first signed one were accepted.
+
 * Zone file reading now follows RFC 2308 section 4 by default, and no longer treats
   the SOA MINIMUM field as the default TTL.  In a zone file with no ``$TTL``
   directive, a record with no TTL of its own now inherits the most recently stated
