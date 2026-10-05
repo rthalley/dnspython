@@ -765,7 +765,9 @@ class Zone(dns.transaction.TransactionManager):
         :rtype: str
         """
         temp_buffer = io.StringIO()
-        self.to_file(temp_buffer, sorted, relativize, nl, want_comments, want_origin)
+        self.to_file(
+            temp_buffer, sorted, relativize, nl, want_comments, want_origin, style
+        )
         return_value = temp_buffer.getvalue()
         temp_buffer.close()
         return return_value
