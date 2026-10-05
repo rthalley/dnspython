@@ -529,7 +529,10 @@ class Reader:
                         self.default_ttl_from_soa = False
                         self.tok.get_eol()
                     elif c == "$ORIGIN":
-                        self.current_origin = self.tok.get_name()
+                        origin = self.tok.get_name()
+                        if not origin.is_absolute():
+                            raise dns.exception.SyntaxError("$ORIGIN must be absolute")
+                        self.current_origin = origin
                         self.tok.get_eol()
                         if self.zone_origin is None:
                             self.zone_origin = self.current_origin

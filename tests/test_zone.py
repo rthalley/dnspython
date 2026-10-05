@@ -1447,6 +1447,27 @@ class ZoneTestCase(unittest.TestCase):
 
         self.assertRaises(dns.exception.SyntaxError, bad6)
 
+    def testRelativeDollarOrigin(self):
+        # A zone origin must be an absolute name.  A relative ``$ORIGIN``
+        # used to be accepted here, and then blow up much later in the
+        # transaction layer with a bare ValueError instead of a SyntaxError
+        # from the parser.
+        text = """$ORIGIN foo
+@ 300 IN SOA ns hostmaster 1 2 3 4 5
+@ 300 IN NS ns
+ns 300 IN A 1.2.3.4
+"""
+
+        def bad1():
+            dns.zone.from_text(text)
+
+        self.assertRaises(dns.exception.SyntaxError, bad1)
+
+        def bad2():
+            dns.zone.from_text(text, "example.")
+
+        self.assertRaises(dns.exception.SyntaxError, bad2)
+
     def testUseLastTTL(self):
         z = dns.zone.from_text(last_ttl_input, "example.")
         rds = z.find_rdataset("foo", "A")
