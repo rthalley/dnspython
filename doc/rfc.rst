@@ -194,7 +194,8 @@ DS
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
 HTTPS
     `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_,
-    `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter)
+    `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter),
+    `RFC 9953 <https://tools.ietf.org/html/rfc9953>`_ (docpath parameter)
 LOC
     `RFC 1876 <https://tools.ietf.org/html/rfc1876>`_
 MX
@@ -227,7 +228,8 @@ SSHFP
     `RFC 4255 <https://tools.ietf.org/html/rfc4255>`_
 SVCB
     `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_,
-    `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter)
+    `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter),
+    `RFC 9953 <https://tools.ietf.org/html/rfc9953>`_ (docpath parameter)
 TLSA
     `RFC 6698 <https://tools.ietf.org/html/rfc6698>`_
 TXT

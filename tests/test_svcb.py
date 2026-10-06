@@ -36,6 +36,10 @@ class SVCBTestCase(unittest.TestCase):
             "1 . alpn = h2",
             '1 . alpn= "h2"',
             "1 . =alpn",
+            # Escaped keys
+            "1 . \\097lpn=h2",
+            "1 . al\\pn=h2",
+            "1 . key\\049=\\002h2",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -116,6 +120,11 @@ class SVCBTestCase(unittest.TestCase):
             "01234567890abcdef",
             '1 . alpn=",h2,h3"',
             '1 . alpn="h2,h3,"',
+            # list-level escapes other than "\," and "\\"
+            '1 . alpn="h2\\\\x"',
+            "1 . alpn=h2\\\\x",
+            "1 . alpn=h2\\092x",
+            "1 . alpn=h2\\\\",
             "1 . key1",
             "1 . key1=",
             '1 . key1=""',
@@ -315,6 +324,8 @@ class SVCBTestCase(unittest.TestCase):
             "01234567890abcdef",
             '1 . docpath=",n,s"',
             '1 . docpath="n,s,"',
+            '1 . docpath="n\\\\s"',
+            "1 . docpath=n\\092s",
         )
         self.check_invalid_inputs(invalid_inputs)
 

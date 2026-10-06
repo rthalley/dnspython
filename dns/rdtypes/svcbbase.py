@@ -144,10 +144,13 @@ def _split(value):
         c = value[i]
         i += 1
         if c == ord("\\"):
-            if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
+            if i >= l:
                 raise dns.exception.UnexpectedEnd
             c = value[i]
             i += 1
+            # Only "\," and "\\" are valid (RFC 9460 Appendix A.1).
+            if c not in _escaped:
+                raise dns.exception.SyntaxError("invalid escape in value list")
             unescaped += b"%c" % (c)
         elif c == ord(","):
             items.append(unescaped)
@@ -488,7 +491,10 @@ _class_for_key: dict[ParamKey, Any] = {
 
 
 def _validate_and_define(params, key, value):
-    key, force_generic = _validate_key(_unescape(key))
+    # Keys cannot contain escapes (RFC 9460 Section 2.1).
+    if "\\" in key:
+        raise SyntaxError("escape in key")
+    key, force_generic = _validate_key(key)
     if key in params:
         raise SyntaxError(f'duplicate key "{key:d}"')
     cls = _class_for_key.get(key, GenericParam)

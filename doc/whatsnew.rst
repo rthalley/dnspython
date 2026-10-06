@@ -8,6 +8,12 @@ What's New in dnspython
 
 TBD
 
+* SVCB and HTTPS presentation format parsing now follows the escaping rules of
+  RFC 9460.  SvcParamKeys may not contain escapes (e.g. ``\097lpn=h2``), and in
+  comma-separated values (``alpn``, ``docpath``) only ``\,`` and ``\\`` are
+  valid escapes after character-string decoding (e.g. ``alpn="h2\\x"`` is
+  rejected).
+
 * SVCB and HTTPS parameters whose value must not be empty (``mandatory``,
   ``alpn``, ``port``, ``ipv4hint``, ``ech``, ``ipv6hint``) are now rejected when
   empty in text form (e.g. ``alpn=""`` or ``key1=""``), in wire form, and in
