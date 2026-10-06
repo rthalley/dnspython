@@ -8,6 +8,10 @@ What's New in dnspython
 
 TBD
 
+* Rdata of a known type in the generic ``\#`` syntax, such as an NS record in a
+  zone file, no longer fails to parse when it contains a name under the origin.
+  Its names are relativized as in the type's own text form.
+
 * A relative ``$ORIGIN`` in a zone file is now relative to the current origin, as
   RFC 1035 requires.  Previously records after it were silently dropped.
 

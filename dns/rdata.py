@@ -912,9 +912,7 @@ def from_text(
                 grdata = GenericRdata.from_text(
                     rdclass, rdtype, tok, origin, relativize, relativize_to
                 )
-                rdata = from_wire(
-                    rdclass, rdtype, grdata.data, 0, len(grdata.data), origin
-                )
+                rdata = from_wire(rdclass, rdtype, grdata.data, 0, len(grdata.data))
                 #
                 # If this comparison isn't equal, then there must have been
                 # compressed names in the wire format, which is an error,
@@ -926,6 +924,18 @@ def from_text(
                         "compressed data in "
                         "generic syntax form "
                         "of known rdatatype"
+                    )
+                # Names in wire format are absolute; relativize them as the
+                # text form would be.
+                relativize_origin = relativize_to or origin
+                if relativize and relativize_origin is not None:
+                    rdata = from_wire(
+                        rdclass,
+                        rdtype,
+                        grdata.data,
+                        0,
+                        len(grdata.data),
+                        relativize_origin,
                     )
         if rdata is None:
             rdata = cls.from_text(

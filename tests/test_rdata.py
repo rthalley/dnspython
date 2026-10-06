@@ -37,6 +37,7 @@ import dns.rdtypes.util
 import dns.tokenizer
 import dns.ttl
 import dns.wire
+import dns.zone
 import tests.md_module
 import tests.stxt_module
 import tests.ttxt_module
@@ -651,6 +652,37 @@ class RdataTestCase(unittest.TestCase):
         # wrong length
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text("in", "type45678", "\\# 6 000a03666f6f00")
+
+    def test_generic_known_type_with_origin(self):
+        example = dns.name.from_text("example.")
+        for name in ("foo.example.", "foo.other."):
+            wire = dns.name.from_text(name).to_wire()
+            generic = f"\\# {len(wire)} {wire.hex()}"
+            for kwargs in (
+                {},
+                {"origin": example},
+                {"origin": example, "relativize": False},
+                {"origin": dns.name.root},
+                {"origin": dns.name.root, "relativize": False},
+                {"origin": example, "relativize_to": dns.name.root},
+            ):
+                with self.subTest(name=name, **kwargs):
+                    rd = dns.rdata.from_text("in", "ns", generic, **kwargs)
+                    expected = dns.rdata.from_text("in", "ns", name, **kwargs)
+                    self.assertEqual(rd, expected)
+                    self.assertEqual(rd.target, expected.target)
+
+    def test_generic_known_type_in_zone(self):
+        text = (
+            "@ 300 SOA ns. h. 1 2 3 4 5\n@ 300 NS \\# 13 03666f6f076578616d706c6500\n"
+        )
+        for relativize in (True, False):
+            zone = dns.zone.from_text(text, "example.", relativize=relativize)
+            rds = zone.find_rdataset("@", "NS")
+            expected = dns.name.from_text("foo.example.")
+            if relativize:
+                expected = expected.relativize(zone.origin)
+            self.assertEqual(rds[0].target, expected)
 
     def test_empty_generic(self):
         dns.rdata.from_text("in", "type45678", r"\# 0")
