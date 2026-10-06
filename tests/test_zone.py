@@ -1621,6 +1621,25 @@ $ORIGIN example.
         print(example_unicode_justified)
         self.assertEqual(t1, example_unicode_justified)
 
+    def testToTextForwardsStyle(self):
+        # to_text() accepts a style and documents that it "overrides the
+        # other parameters", but it never passed it to to_file(), so the
+        # style was silently dropped and the legacy defaults were rebuilt.
+        z1 = dns.zone.from_text(example_unicode, "example")
+        s = dns.zone.ZoneStyle(
+            deduplicate_names=True, omit_rdclass=True, want_origin=True
+        )
+        # want_origin is only reachable through the style in this test, so if
+        # the style is forwarded the $ORIGIN line is emitted.
+        self.assertIn("$ORIGIN", z1.to_text(style=s))
+        # to_text(style=s) must agree with the styled entry point.
+        self.assertEqual(z1.to_text(style=s), z1.to_styled_text(s))
+        # nl is style-only, so it is the clearest probe that the style is not
+        # being dropped.
+        self.assertIn("\r\n", z1.to_text(style=dns.zone.ZoneStyle(nl="\r\n")))
+        # A style with no flags set must produce the same output as no style.
+        self.assertEqual(z1.to_text(style=dns.zone.ZoneStyle()), z1.to_text())
+
     def testFromFileHittingLimit(self):
         limiter = dns.transaction.TransactionLimiter(20)
         with self.assertRaises(dns.transaction.TooManyChanges):
