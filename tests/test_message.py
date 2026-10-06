@@ -101,7 +101,6 @@ woof.play-bow.org. 3600 IN A 204.152.186.150
 """
 
 
-
 goodwire2 = binascii.unhexlify(goodhex2.replace(" ", "").encode())
 
 query_text_2 = """id 1234
