@@ -485,6 +485,11 @@ class SVCBTestCase(unittest.TestCase):
         )
 
     def test_svcb_spec_test_vectors(self):
+        for rdtype in ("SVCB", "HTTPS"):
+            with self.subTest(rdtype=rdtype):
+                self.check_spec_test_vectors(rdtype)
+
+    def check_spec_test_vectors(self, rdtype):
         text_file = here("svcb_test_vectors.text")
         text_tokenizer = Tokenizer(
             open(text_file, encoding="utf-8"), filename=text_file
@@ -511,8 +516,8 @@ class SVCBTestCase(unittest.TestCase):
             self.assertTrue(text_token.is_identifier)
             text_tokenizer.unget(text_token)
             generic_tokenizer.unget(generic_token)
-            text_rdata = dns.rdata.from_text("IN", "SVCB", text_tokenizer)
-            generic_rdata = dns.rdata.from_text("IN", "SVCB", generic_tokenizer)
+            text_rdata = dns.rdata.from_text("IN", rdtype, text_tokenizer)
+            generic_rdata = dns.rdata.from_text("IN", rdtype, generic_tokenizer)
             self.assertEqual(text_rdata, generic_rdata)
 
     def test_svcb_spec_failure_cases(self):
