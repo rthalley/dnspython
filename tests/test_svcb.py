@@ -251,18 +251,38 @@ class SVCBTestCase(unittest.TestCase):
 
     def test_svcb_ech(self):
         valid_inputs = (
-            '1 . ech="Zm9vMA=="',
-            "1 . ech=Zm9vMA==",
-            "1 . key5=foo0",
-            "1 . key5=\\102\\111\\111\\048",
+            '1 . ech="AAT+DQAA"',
+            "1 . ech=AAT+DQAA",
+            "1 . key5=\\000\\004\\254\\013\\000\\000",
         )
         self.check_valid_inputs(valid_inputs)
+
+        # RFC 9848 Figure 1
+        rr = dns.rdata.from_text(
+            "IN",
+            "SVCB",
+            "1 . ech=AEj+DQBEAQAgACAdd+scUi0IYFsXnUIU7ko2Nd9+F8M26pAGZVpz/KrWPgAEAAE"
+            "AAWQVZWNoLXNpdGVzLmV4YW1wbGUubmV0AAA=",
+        )
+        self.assertEqual(len(rr.params[dns.rdtypes.svcbbase.ParamKey.ECH].ech), 74)
+        wire = bytes.fromhex("0001 00 0005 0004 0002fe0d")
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("IN", "SVCB", wire, 0, len(wire))
 
         invalid_inputs = (
             "1 . ech",
             "1 . ech=",
             '1 . ech=""',
             "1 . ech=Zm9vMA",
+            # not an ECHConfigList
+            "1 . ech=Zm9vMA==",
+            "1 . key5=foo0",
+            # length prefix too large, too small
+            "1 . ech=AAX+DQAA",
+            "1 . ech=AAP+DQAA",
+            # fewer than 4 octets after the length prefix
+            "1 . ech=AAL+DQ==",
+            "1 . key5=\\000\\000",
             "1 . ech=\\090m9vMA==",
             "1 . key5",
             "1 . key5=",
@@ -399,7 +419,7 @@ class SVCBTestCase(unittest.TestCase):
 
         everything = (
             '100 foo.com. mandatory="alpn,port" alpn="h2,h3" '
-            '             no-default-alpn port="12345" ech="abcd" '
+            '             no-default-alpn port="12345" ech="AAT+DQAA" '
             "             ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4"
             '             key12345="foo"'
         )

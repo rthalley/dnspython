@@ -8,6 +8,10 @@ What's New in dnspython
 
 TBD
 
+* The SVCB and HTTPS ``ech`` parameter value must now be an ECHConfigList with a
+  correct length prefix and at least 4 octets of content (RFC 9848, RFC 9849).
+  The individual ECHConfig structures are not checked.
+
 * SVCB and HTTPS SvcParamKeys in presentation format, including those listed in
   ``mandatory``, must now be spelled as RFC 9460 requires: 1-63 lowercase
   letters, digits, or hyphens.  Uppercase keys such as ``ALPN`` and keys with

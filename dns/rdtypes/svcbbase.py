@@ -433,8 +433,13 @@ class IPv6HintParam(Param):
 class ECHParam(Param):
     def __init__(self, ech):
         self.ech = dns.rdata.Rdata._as_bytes(ech, True)
-        if len(self.ech) == 0:
-            raise ValueError("empty ech value")
+        # An ECHConfigList: a length prefix and 4 or more octets (RFC 9849
+        # Section 4).
+        if (
+            len(self.ech) < 6
+            or int.from_bytes(self.ech[:2], "big") != len(self.ech) - 2
+        ):
+            raise ValueError("invalid ECHConfigList")
 
     @classmethod
     def from_value(cls, value):
