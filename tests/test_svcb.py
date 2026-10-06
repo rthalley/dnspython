@@ -40,6 +40,10 @@ class SVCBTestCase(unittest.TestCase):
             "1 . \\097lpn=h2",
             "1 . al\\pn=h2",
             "1 . key\\049=\\002h2",
+            # Keys are lowercase, without underscores
+            "1 . ALPN=h2",
+            "1 . Key667=x",
+            "1 . no_default_alpn alpn=h2",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -70,6 +74,9 @@ class SVCBTestCase(unittest.TestCase):
             "1 . mandatory=alpn,alpn alpn=h2",
             # invalid escaping
             "1 . mandatory=\\alpn alpn=h2",
+            # invalid key syntax
+            "1 . mandatory=ALPN alpn=h2",
+            "1 . mandatory=no_default_alpn alpn=h2 no-default-alpn",
             # empty wire format
             "1 . key0",
             "1 . key0=",

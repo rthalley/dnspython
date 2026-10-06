@@ -2,6 +2,7 @@
 
 import base64
 import enum
+import re
 import struct
 from typing import Any, TypeVar
 
@@ -77,6 +78,15 @@ def _validate_key(key):
                 raise ValueError("leading zeros in key")
         key = key.replace("-", "_")
     return (ParamKey.make(key), force_generic)
+
+
+# Presentation format of a SvcParamKey (RFC 9460 Section 2.1).
+_key_text_re = re.compile("[a-z0-9-]{1,63}")
+
+
+def _check_key_text(key: str) -> None:
+    if not _key_text_re.fullmatch(key):
+        raise dns.exception.SyntaxError(f'invalid key "{key}"')
 
 
 def key_to_text(key):
@@ -221,8 +231,10 @@ class MandatoryParam(Param):
 
     @classmethod
     def from_value(cls, value):
-        keys = [k.encode() for k in value.split(",")]
-        return cls(keys)
+        keys = value.split(",")
+        for key in keys:
+            _check_key_text(key)
+        return cls([key.encode() for key in keys])
 
     def to_text(self):
         return '"' + ",".join([key_to_text(key) for key in self.keys]) + '"'
@@ -494,6 +506,7 @@ def _validate_and_define(params, key, value):
     # Keys cannot contain escapes (RFC 9460 Section 2.1).
     if "\\" in key:
         raise SyntaxError("escape in key")
+    _check_key_text(key)
     key, force_generic = _validate_key(key)
     if key in params:
         raise SyntaxError(f'duplicate key "{key:d}"')

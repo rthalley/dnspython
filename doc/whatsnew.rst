@@ -8,6 +8,11 @@ What's New in dnspython
 
 TBD
 
+* SVCB and HTTPS SvcParamKeys in presentation format, including those listed in
+  ``mandatory``, must now be spelled as RFC 9460 requires: 1-63 lowercase
+  letters, digits, or hyphens.  Uppercase keys such as ``ALPN`` and keys with
+  underscores such as ``no_default_alpn`` are rejected.
+
 * SVCB and HTTPS presentation format parsing now follows the escaping rules of
   RFC 9460.  SvcParamKeys may not contain escapes (e.g. ``\097lpn=h2``), and in
   comma-separated values (``alpn``, ``docpath``) only ``\,`` and ``\\`` are
