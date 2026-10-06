@@ -67,8 +67,8 @@ __all__ = [
     "wirebase",
     "xfr",
     "zone",
-    "zonetypes",
     "zonefile",
+    "zonetypes",
 ]
 
 from dns.version import version as __version__  # noqa
