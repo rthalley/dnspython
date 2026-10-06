@@ -231,6 +231,8 @@ class MandatoryParam(Param):
 
     @classmethod
     def from_value(cls, value):
+        if "\\" in value:
+            raise ValueError("escape in mandatory value")
         keys = value.split(",")
         for key in keys:
             _check_key_text(key)

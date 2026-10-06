@@ -58,6 +58,11 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_valid_inputs(valid_inputs)
 
+        # RFC 9460 Section 8 forbids escapes in the value.
+        for text in ("1 . mandatory=\\097lpn alpn=h2", '1 . mandatory="alpn\\,port"'):
+            with self.assertRaisesRegex(dns.exception.SyntaxError, "escape"):
+                dns.rdata.from_text("IN", "SVCB", text)
+
         invalid_inputs = (
             # empty
             "1 . mandatory=",
