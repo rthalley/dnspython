@@ -1522,8 +1522,9 @@ class _TextReader:
             raise dns.exception.SyntaxError
         # TTL
         try:
-            ttl = self.tok.as_int(token)
-        except dns.exception.SyntaxError:
+            ttl = dns.ttl.from_text(token.value)
+        except dns.ttl.BadTTL:
+            print("bad ttl")
             ttl = 0
         else:
             token = self.tok.get()

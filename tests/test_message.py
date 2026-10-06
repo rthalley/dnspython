@@ -84,6 +84,23 @@ goodhex2 = (
     "c091 0001 0001 00000e10 0004 cc98ba96"
 )
 
+answer_text_ttls = """id 1234
+opcode QUERY
+rcode NOERROR
+flags QR AA RD
+;QUESTION
+dnspython.org. IN SOA
+;ANSWER
+dnspython.org. 3600 IN SOA woof.dnspython.org. hostmaster.dnspython.org. 2003052700 3600 1800 604800 3600
+;AUTHORITY
+dnspython.org. 1h IN NS ns1.staff.nominum.org.
+dnspython.org. 3600s IN NS ns2.staff.nominum.org.
+dnspython.org. 60m IN NS woof.play-bow.org.
+;ADDITIONAL
+woof.play-bow.org. 3600 IN A 204.152.186.150
+"""
+
+
 
 goodwire2 = binascii.unhexlify(goodhex2.replace(" ", "").encode())
 
@@ -203,6 +220,11 @@ class MessageTestCase(unittest.TestCase):
 
     def test_answer1(self):
         a = dns.message.from_text(answer_text)
+        wire = a.to_wire(want_shuffle=False)
+        self.assertEqual(wire, goodwire2)
+
+    def test_answer_with_ttl_variations(self):
+        a = dns.message.from_text(answer_text_ttls)
         wire = a.to_wire(want_shuffle=False)
         self.assertEqual(wire, goodwire2)
 
