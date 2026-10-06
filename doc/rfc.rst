@@ -193,7 +193,8 @@ DNSKEY
 DS
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
 HTTPS
-    `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_
+    `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_,
+    `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter)
 LOC
     `RFC 1876 <https://tools.ietf.org/html/rfc1876>`_
 MX
@@ -225,7 +226,8 @@ SRV
 SSHFP
     `RFC 4255 <https://tools.ietf.org/html/rfc4255>`_
 SVCB
-    `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_
+    `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_,
+    `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter)
 TLSA
     `RFC 6698 <https://tools.ietf.org/html/rfc6698>`_
 TXT

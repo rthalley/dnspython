@@ -205,6 +205,8 @@ class MandatoryParam(Param):
     def __init__(self, keys):
         # check for duplicates
         keys = sorted([_validate_key(key)[0] for key in keys])
+        if len(keys) == 0:
+            raise ValueError("empty mandatory list")
         prior_k = None
         for k in keys:
             if k == prior_k:
@@ -288,6 +290,8 @@ class ALPNParam(_StringList):
         self.ids = dns.rdata.Rdata._as_tuple(
             ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False)
         )
+        if len(self.ids) == 0:
+            raise ValueError("empty alpn list")
 
     @classmethod
     def emptiness(cls):
@@ -354,6 +358,8 @@ class IPv4HintParam(Param):
         self.addresses = dns.rdata.Rdata._as_tuple(
             addresses, dns.rdata.Rdata._as_ipv4_address
         )
+        if len(self.addresses) == 0:
+            raise ValueError("empty address list")
 
     @classmethod
     def from_value(cls, value):
@@ -382,6 +388,8 @@ class IPv6HintParam(Param):
         self.addresses = dns.rdata.Rdata._as_tuple(
             addresses, dns.rdata.Rdata._as_ipv6_address
         )
+        if len(self.addresses) == 0:
+            raise ValueError("empty address list")
 
     @classmethod
     def from_value(cls, value):
@@ -408,6 +416,8 @@ class IPv6HintParam(Param):
 class ECHParam(Param):
     def __init__(self, ech):
         self.ech = dns.rdata.Rdata._as_bytes(ech, True)
+        if len(self.ech) == 0:
+            raise ValueError("empty ech value")
 
     @classmethod
     def from_value(cls, value):
@@ -482,10 +492,10 @@ def _validate_and_define(params, key, value):
     if key in params:
         raise SyntaxError(f'duplicate key "{key:d}"')
     cls = _class_for_key.get(key, GenericParam)
-    emptiness = cls.emptiness()
+    # An omitted value is the same as an empty one (RFC 9460 Section 2.1).
+    if (value is None or value == "") and cls.emptiness() == Emptiness.NEVER:
+        raise SyntaxError("value cannot be empty")
     if value is None:
-        if emptiness == Emptiness.NEVER:
-            raise SyntaxError("value cannot be empty")
         value = cls.from_value(value)
     else:
         if force_generic:
@@ -514,11 +524,15 @@ class SVCBBase(dns.rdata.Rdata):
             k = ParamKey.make(k)
             if not isinstance(v, Param) and v is not None:
                 raise ValueError(f"{k:d} not a Param")
+            if v is None:
+                pcls = _class_for_key.get(k, GenericParam)
+                if pcls.emptiness() == Emptiness.NEVER:
+                    raise ValueError(f"key {k:d} cannot be empty")
         self.params: dns.immutable.Dict = dns.immutable.Dict(params)
         # Make sure any parameter listed as mandatory is present in the
         # record.
         mandatory = params.get(ParamKey.MANDATORY)
-        if mandatory:
+        if mandatory is not None:
             for key in mandatory.keys:
                 # Note we have to say "not in" as we have None as a value
                 # so a get() and a not None test would be wrong.
@@ -620,6 +634,8 @@ class SVCBBase(dns.rdata.Rdata):
             vlen = parser.get_uint16()
             pkey = ParamKey.make(key)
             pcls = _class_for_key.get(pkey, GenericParam)
+            if vlen == 0 and pcls.emptiness() == Emptiness.NEVER:
+                raise dns.exception.FormError(f"key {key:d} cannot be empty")
             with parser.restrict_to(vlen):
                 value = pcls.from_wire_parser(parser, origin)
             params[pkey] = value

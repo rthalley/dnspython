@@ -54,6 +54,7 @@ class SVCBTestCase(unittest.TestCase):
             # empty
             "1 . mandatory=",
             "1 . mandatory",
+            '1 . mandatory=""',
             # unknown key
             "1 . mandatory=foo",
             # key 0
@@ -68,6 +69,7 @@ class SVCBTestCase(unittest.TestCase):
             # empty wire format
             "1 . key0",
             "1 . key0=",
+            '1 . key0=""',
             # 0 in wire format
             "1 . key0=\\000\\000",
             # invalid length in wire format
@@ -104,6 +106,7 @@ class SVCBTestCase(unittest.TestCase):
         invalid_inputs = (
             "1 . alpn",
             "1 . alpn=",
+            '1 . alpn=""',
             "1 . alpn=h2,,h3",
             "1 . alpn=01234567890abcdef01234567890abcdef01234567890abcdef"
             "01234567890abcdef01234567890abcdef01234567890abcdef"
@@ -115,6 +118,7 @@ class SVCBTestCase(unittest.TestCase):
             '1 . alpn="h2,h3,"',
             "1 . key1",
             "1 . key1=",
+            '1 . key1=""',
             "1 . key1=\\000",
             "1 . key1=\\002x",
         )
@@ -214,10 +218,12 @@ class SVCBTestCase(unittest.TestCase):
         invalid_inputs = (
             "1 . ipv4hint",
             "1 . ipv4hint=",
+            '1 . ipv4hint=""',
             "1 . ipv4hint=1234",
             "1 . ipv4hint=1\\.2.3.4",
             "1 . ipv4hint=1.2.3.4\\,2.3.4.5",
             "1 . key4=",
+            '1 . key4=""',
             "1 . key4=123",
         )
         self.check_invalid_inputs(invalid_inputs)
@@ -234,10 +240,12 @@ class SVCBTestCase(unittest.TestCase):
         invalid_inputs = (
             "1 . ech",
             "1 . ech=",
+            '1 . ech=""',
             "1 . ech=Zm9vMA",
             "1 . ech=\\090m9vMA==",
             "1 . key5",
             "1 . key5=",
+            '1 . key5=""',
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -255,12 +263,14 @@ class SVCBTestCase(unittest.TestCase):
         invalid_inputs = (
             "1 . ipv6hint",
             "1 . ipv6hint=",
+            '1 . ipv6hint=""',
             "1 . ipv6hint=1234",
             "1 . ipv6hint=1\\::2",
             "1 . ipv6hint=::1\\,::2",
             "1 . ipv6hint",
             "1 . key6",
             "1 . key6=",
+            '1 . key6=""',
             "1 . key6=123",
         )
         self.check_invalid_inputs(invalid_inputs)
@@ -386,6 +396,32 @@ class SVCBTestCase(unittest.TestCase):
             "\\# 07 0001 00 00020000",
         )
         self.check_invalid_inputs(invalid_inputs)
+
+    def test_svcb_empty_value(self):
+        # Keys whose value must not be empty, as zero-length wire values.
+        for key in (0, 1, 3, 4, 5, 6):
+            wire = bytes.fromhex(f"0001 00 {key:04x} 0000")
+            with self.assertRaises(dns.exception.FormError):
+                dns.rdata.from_wire("in", "svcb", wire, 0, len(wire))
+        # Keys whose value may be empty.
+        for key in (8, 10, 12345):
+            wire = bytes.fromhex(f"0001 00 {key:04x} 0000")
+            rr = dns.rdata.from_wire("in", "svcb", wire, 0, len(wire))
+            self.assertIsNone(rr.params[key])
+            self.assertEqual(rr.to_wire(), wire)
+        svcbbase = dns.rdtypes.svcbbase
+        for cls, value in (
+            (svcbbase.MandatoryParam, []),
+            (svcbbase.ALPNParam, []),
+            (svcbbase.IPv4HintParam, []),
+            (svcbbase.IPv6HintParam, []),
+            (svcbbase.ECHParam, b""),
+        ):
+            with self.assertRaises(ValueError):
+                cls(value)
+        for key in (0, 1, 3, 4, 5, 6):
+            with self.assertRaises(ValueError):
+                dns.rdata.from_text("IN", "SVCB", "1 .").replace(params={key: None})
 
     def test_svcb_duplicate_key_wire(self):
         # RFC 9460 Sec 2.2 requires SvcParamKeys to be in strictly increasing

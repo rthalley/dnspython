@@ -8,6 +8,12 @@ What's New in dnspython
 
 TBD
 
+* SVCB and HTTPS parameters whose value must not be empty (``mandatory``,
+  ``alpn``, ``port``, ``ipv4hint``, ``ech``, ``ipv6hint``) are now rejected when
+  empty in text form (e.g. ``alpn=""`` or ``key1=""``), in wire form, and in
+  the Python API.  Per RFC 9460, an omitted value is the same as an empty one.
+  This also rejects an empty ``ech`` value, which RFC 9848 does not allow.
+
 * A relative ``$ORIGIN`` in a zone file is now relative to the current origin, as
   RFC 1035 requires.  Previously records after it were silently dropped.
 
