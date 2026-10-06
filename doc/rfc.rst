@@ -74,6 +74,9 @@ Core RFCs
 `RFC 8914 <https://tools.ietf.org/html/rfc8914.html>`_
     Extended DNS Errors
 
+`RFC 8945 <https://tools.ietf.org/html/rfc8945>`_
+    Secret Key Transaction Authentication for DNS (TSIG), which obsoletes RFC 2845.
+
 
 DNSSEC RFCs
 -----------
