@@ -529,7 +529,12 @@ class Reader:
                         self.default_ttl_from_soa = False
                         self.tok.get_eol()
                     elif c == "$ORIGIN":
-                        self.current_origin = self.tok.get_name()
+                        # A relative $ORIGIN is relative to the current origin
+                        # (RFC 1035 section 5.1).
+                        origin = self.tok.get_name(self.current_origin)
+                        if not origin.is_absolute():
+                            raise UnknownOrigin
+                        self.current_origin = origin
                         self.tok.get_eol()
                         if self.zone_origin is None:
                             self.zone_origin = self.current_origin

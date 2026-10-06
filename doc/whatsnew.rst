@@ -8,6 +8,9 @@ What's New in dnspython
 
 TBD
 
+* A relative ``$ORIGIN`` in a zone file is now relative to the current origin, as
+  RFC 1035 requires.  Previously records after it were silently dropped.
+
 * ``dns.reversename.to_address()`` now rejects IPv6 reverse-map names without
   exactly 32 single-character labels, instead of padding missing nibbles or
   accepting multiple nibbles in a label.

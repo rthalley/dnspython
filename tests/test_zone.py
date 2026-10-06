@@ -1404,6 +1404,25 @@ class ZoneTestCase(unittest.TestCase):
 
         self.assertRaises(dns.zone.UnknownOrigin, bad)
 
+    def testRelativeDollarOriginUsesSuppliedOrigin(self):
+        text = """$ORIGIN sub
+@ 300 IN A 10.0.0.2
+$ORIGIN example.
+@ 300 IN SOA ns1 hostmaster 1 2 3 4 5
+@ 300 IN NS ns1
+"""
+        for relativize in (True, False):
+            z = dns.zone.from_text(text, "example.", relativize=relativize)
+            name = "sub" if relativize else "sub.example."
+            rds = z.find_rdataset(name, "A")
+            self.assertEqual(rds[0].address, "10.0.0.2")
+
+    def testRelativeDollarOriginUnknownOrigin(self):
+        def bad():
+            dns.zone.from_text("$ORIGIN sub\n@ 300 IN A 10.0.0.1\n")
+
+        self.assertRaises(dns.zone.UnknownOrigin, bad)
+
     def testBadClass(self):
         def bad():
             dns.zone.from_text("foo 300 ch txt hi", "example.")
