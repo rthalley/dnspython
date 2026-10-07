@@ -106,7 +106,6 @@ class DNSKEYBase(dns.rdata.Rdata):
                 total += wire[len(wire) - 1] << 8
             total += (total >> 16) & 0xFFFF
             return total & 0xFFFF
-            return total & 0xFFFF
 
 
 ### BEGIN generated Flag constants
