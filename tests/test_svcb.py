@@ -36,6 +36,14 @@ class SVCBTestCase(unittest.TestCase):
             "1 . alpn = h2",
             '1 . alpn= "h2"',
             "1 . =alpn",
+            # Escaped keys
+            "1 . \\097lpn=h2",
+            "1 . al\\pn=h2",
+            "1 . key\\049=\\002h2",
+            # Keys are lowercase, without underscores
+            "1 . ALPN=h2",
+            "1 . Key667=x",
+            "1 . no_default_alpn alpn=h2",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -50,10 +58,16 @@ class SVCBTestCase(unittest.TestCase):
         )
         self.check_valid_inputs(valid_inputs)
 
+        # RFC 9460 Section 8 forbids escapes in the value.
+        for text in ("1 . mandatory=\\097lpn alpn=h2", '1 . mandatory="alpn\\,port"'):
+            with self.assertRaisesRegex(dns.exception.SyntaxError, "escape"):
+                dns.rdata.from_text("IN", "SVCB", text)
+
         invalid_inputs = (
             # empty
             "1 . mandatory=",
             "1 . mandatory",
+            '1 . mandatory=""',
             # unknown key
             "1 . mandatory=foo",
             # key 0
@@ -65,9 +79,13 @@ class SVCBTestCase(unittest.TestCase):
             "1 . mandatory=alpn,alpn alpn=h2",
             # invalid escaping
             "1 . mandatory=\\alpn alpn=h2",
+            # invalid key syntax
+            "1 . mandatory=ALPN alpn=h2",
+            "1 . mandatory=no_default_alpn alpn=h2 no-default-alpn",
             # empty wire format
             "1 . key0",
             "1 . key0=",
+            '1 . key0=""',
             # 0 in wire format
             "1 . key0=\\000\\000",
             # invalid length in wire format
@@ -104,6 +122,7 @@ class SVCBTestCase(unittest.TestCase):
         invalid_inputs = (
             "1 . alpn",
             "1 . alpn=",
+            '1 . alpn=""',
             "1 . alpn=h2,,h3",
             "1 . alpn=01234567890abcdef01234567890abcdef01234567890abcdef"
             "01234567890abcdef01234567890abcdef01234567890abcdef"
@@ -113,8 +132,14 @@ class SVCBTestCase(unittest.TestCase):
             "01234567890abcdef",
             '1 . alpn=",h2,h3"',
             '1 . alpn="h2,h3,"',
+            # list-level escapes other than "\," and "\\"
+            '1 . alpn="h2\\\\x"',
+            "1 . alpn=h2\\\\x",
+            "1 . alpn=h2\\092x",
+            "1 . alpn=h2\\\\",
             "1 . key1",
             "1 . key1=",
+            '1 . key1=""',
             "1 . key1=\\000",
             "1 . key1=\\002x",
         )
@@ -214,30 +239,54 @@ class SVCBTestCase(unittest.TestCase):
         invalid_inputs = (
             "1 . ipv4hint",
             "1 . ipv4hint=",
+            '1 . ipv4hint=""',
             "1 . ipv4hint=1234",
             "1 . ipv4hint=1\\.2.3.4",
             "1 . ipv4hint=1.2.3.4\\,2.3.4.5",
             "1 . key4=",
+            '1 . key4=""',
             "1 . key4=123",
         )
         self.check_invalid_inputs(invalid_inputs)
 
     def test_svcb_ech(self):
         valid_inputs = (
-            '1 . ech="Zm9vMA=="',
-            "1 . ech=Zm9vMA==",
-            "1 . key5=foo0",
-            "1 . key5=\\102\\111\\111\\048",
+            '1 . ech="AAT+DQAA"',
+            "1 . ech=AAT+DQAA",
+            "1 . key5=\\000\\004\\254\\013\\000\\000",
         )
         self.check_valid_inputs(valid_inputs)
+
+        # RFC 9848 Figure 1
+        rr = dns.rdata.from_text(
+            "IN",
+            "SVCB",
+            "1 . ech=AEj+DQBEAQAgACAdd+scUi0IYFsXnUIU7ko2Nd9+F8M26pAGZVpz/KrWPgAEAAE"
+            "AAWQVZWNoLXNpdGVzLmV4YW1wbGUubmV0AAA=",
+        )
+        self.assertEqual(len(rr.params[dns.rdtypes.svcbbase.ParamKey.ECH].ech), 74)
+        wire = bytes.fromhex("0001 00 0005 0004 0002fe0d")
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("IN", "SVCB", wire, 0, len(wire))
 
         invalid_inputs = (
             "1 . ech",
             "1 . ech=",
+            '1 . ech=""',
             "1 . ech=Zm9vMA",
+            # not an ECHConfigList
+            "1 . ech=Zm9vMA==",
+            "1 . key5=foo0",
+            # length prefix too large, too small
+            "1 . ech=AAX+DQAA",
+            "1 . ech=AAP+DQAA",
+            # fewer than 4 octets after the length prefix
+            "1 . ech=AAL+DQ==",
+            "1 . key5=\\000\\000",
             "1 . ech=\\090m9vMA==",
             "1 . key5",
             "1 . key5=",
+            '1 . key5=""',
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -255,12 +304,14 @@ class SVCBTestCase(unittest.TestCase):
         invalid_inputs = (
             "1 . ipv6hint",
             "1 . ipv6hint=",
+            '1 . ipv6hint=""',
             "1 . ipv6hint=1234",
             "1 . ipv6hint=1\\::2",
             "1 . ipv6hint=::1\\,::2",
             "1 . ipv6hint",
             "1 . key6",
             "1 . key6=",
+            '1 . key6=""',
             "1 . key6=123",
         )
         self.check_invalid_inputs(invalid_inputs)
@@ -305,6 +356,8 @@ class SVCBTestCase(unittest.TestCase):
             "01234567890abcdef",
             '1 . docpath=",n,s"',
             '1 . docpath="n,s,"',
+            '1 . docpath="n\\\\s"',
+            "1 . docpath=n\\092s",
         )
         self.check_invalid_inputs(invalid_inputs)
 
@@ -366,7 +419,7 @@ class SVCBTestCase(unittest.TestCase):
 
         everything = (
             '100 foo.com. mandatory="alpn,port" alpn="h2,h3" '
-            '             no-default-alpn port="12345" ech="abcd" '
+            '             no-default-alpn port="12345" ech="AAT+DQAA" '
             "             ipv4hint=1.2.3.4,4.3.2.1 ipv6hint=1::2,3::4"
             '             key12345="foo"'
         )
@@ -386,6 +439,32 @@ class SVCBTestCase(unittest.TestCase):
             "\\# 07 0001 00 00020000",
         )
         self.check_invalid_inputs(invalid_inputs)
+
+    def test_svcb_empty_value(self):
+        # Keys whose value must not be empty, as zero-length wire values.
+        for key in (0, 1, 3, 4, 5, 6):
+            wire = bytes.fromhex(f"0001 00 {key:04x} 0000")
+            with self.assertRaises(dns.exception.FormError):
+                dns.rdata.from_wire("in", "svcb", wire, 0, len(wire))
+        # Keys whose value may be empty.
+        for key in (8, 10, 12345):
+            wire = bytes.fromhex(f"0001 00 {key:04x} 0000")
+            rr = dns.rdata.from_wire("in", "svcb", wire, 0, len(wire))
+            self.assertIsNone(rr.params[key])
+            self.assertEqual(rr.to_wire(), wire)
+        svcbbase = dns.rdtypes.svcbbase
+        for cls, value in (
+            (svcbbase.MandatoryParam, []),
+            (svcbbase.ALPNParam, []),
+            (svcbbase.IPv4HintParam, []),
+            (svcbbase.IPv6HintParam, []),
+            (svcbbase.ECHParam, b""),
+        ):
+            with self.assertRaises(ValueError):
+                cls(value)
+        for key in (0, 1, 3, 4, 5, 6):
+            with self.assertRaises(ValueError):
+                dns.rdata.from_text("IN", "SVCB", "1 .").replace(params={key: None})
 
     def test_svcb_duplicate_key_wire(self):
         # RFC 9460 Sec 2.2 requires SvcParamKeys to be in strictly increasing
@@ -438,6 +517,11 @@ class SVCBTestCase(unittest.TestCase):
         )
 
     def test_svcb_spec_test_vectors(self):
+        for rdtype in ("SVCB", "HTTPS"):
+            with self.subTest(rdtype=rdtype):
+                self.check_spec_test_vectors(rdtype)
+
+    def check_spec_test_vectors(self, rdtype):
         text_file = here("svcb_test_vectors.text")
         text_tokenizer = Tokenizer(
             open(text_file, encoding="utf-8"), filename=text_file
@@ -464,8 +548,8 @@ class SVCBTestCase(unittest.TestCase):
             self.assertTrue(text_token.is_identifier)
             text_tokenizer.unget(text_token)
             generic_tokenizer.unget(generic_token)
-            text_rdata = dns.rdata.from_text("IN", "SVCB", text_tokenizer)
-            generic_rdata = dns.rdata.from_text("IN", "SVCB", generic_tokenizer)
+            text_rdata = dns.rdata.from_text("IN", rdtype, text_tokenizer)
+            generic_rdata = dns.rdata.from_text("IN", rdtype, generic_tokenizer)
             self.assertEqual(text_rdata, generic_rdata)
 
     def test_svcb_spec_failure_cases(self):

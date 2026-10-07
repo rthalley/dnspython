@@ -19,8 +19,8 @@
 ; Here, two IPv6 hints are quoted in the presentation format.
 1 foo.example.com. ipv6hint="2001:db8::1,2001:db8::53:1"
 
-; This example shows a single IPv6 hint in IPv4 mapped IPv6 presentation format.
-1 example.com. ipv6hint="2001:db8:ffff:ffff:ffff:ffff:198.51.100.100"
+; This example shows a single IPv6 hint using the embedded IPv4 syntax.
+1 example.com. ipv6hint="2001:db8:122:344::192.0.2.33"
 
 ; In the next vector, neither the SvcParamValues nor the mandatory keys are
 ; sorted in presentation format, but are correctly sorted in the wire-format.
