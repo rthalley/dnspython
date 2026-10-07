@@ -36,13 +36,21 @@ class PublicRSA(CryptographyPublicKey):
     def from_dnskey(cls, key: DNSKEY) -> "PublicRSA":
         cls._ensure_algorithm_key_combination(key)
         keyptr = key.key
+        if len(keyptr) < 1:
+            raise ValueError("DNSKEY key material too short for RSA exponent length")
         (bytes_,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]
         if bytes_ == 0:
+            if len(keyptr) < 2:
+                raise ValueError("DNSKEY key material too short for RSA exponent length")
             (bytes_,) = struct.unpack("!H", keyptr[0:2])
             keyptr = keyptr[2:]
+        if len(keyptr) < bytes_:
+            raise ValueError("DNSKEY key material too short for RSA exponent")
         rsa_e = keyptr[0:bytes_]
         rsa_n = keyptr[bytes_:]
+        if len(rsa_n) == 0:
+            raise ValueError("DNSKEY key material missing RSA modulus")
         return cls(
             key=rsa.RSAPublicNumbers(
                 int.from_bytes(rsa_e, "big"), int.from_bytes(rsa_n, "big")
