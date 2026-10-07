@@ -91,9 +91,13 @@ def _decode_size(what, desc):
     return base * pow(10, exponent)
 
 
-def _check_coordinate_list(value, low, high):
-    if value[0] < low or value[0] > high:
-        raise ValueError(f"not in range [{low}, {high}]")
+def _check_coordinate_list(value, high):
+    if len(value) != 5:
+        raise ValueError("a coordinate tuple must have five elements")
+    if value[0] < 0:
+        raise ValueError("the degrees value must be positive, use the sign field to specify a hemisphere")
+    if value[0] > high:
+        raise ValueError(f"degrees not in range [0, {high}]")
     if value[1] < 0 or value[1] > 59:
         raise ValueError("bad minutes value")
     if value[2] < 0 or value[2] > 59:
@@ -132,8 +136,8 @@ class LOC(dns.rdata.Rdata):
     ):
         """Initialize a LOC record instance.
 
-        The parameters I{latitude} and I{longitude} may be either a 4-tuple
-        of integers specifying (degrees, minutes, seconds, milliseconds),
+        The parameters I{latitude} and I{longitude} may be either a 5-tuple
+        of integers specifying (degrees, minutes, seconds, milliseconds, sign),
         or they may be floating point values specifying the number of
         degrees. The other parameters are floats. Size, horizontal precision,
         and vertical precision are specified in centimeters."""
@@ -143,13 +147,13 @@ class LOC(dns.rdata.Rdata):
             latitude = float(latitude)
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
-        _check_coordinate_list(latitude, -90, 90)
+        _check_coordinate_list(latitude, 90)
         self.latitude = tuple(latitude)  # pyright: ignore
         if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
-        _check_coordinate_list(longitude, -180, 180)
+        _check_coordinate_list(longitude, 180)
         self.longitude = tuple(longitude)  # pyright: ignore
         self.altitude = float(altitude)
         self.size = float(size)
