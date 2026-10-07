@@ -91,6 +91,8 @@ def _decode_size(what, desc):
 
 
 def _check_coordinate_list(value, low, high):
+    if len(value) < 5:
+        raise ValueError("LOC coordinate list must have at least 5 elements")
     if value[0] < low or value[0] > high:
         raise ValueError(f"not in range [{low}, {high}]")
     if value[1] < 0 or value[1] > 59:
