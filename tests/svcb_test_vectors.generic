@@ -50,13 +50,13 @@
 20 01 0d b8 00 00 00 00 00 00 00 00 00 53 00 01    ; second address
 )
 
-; This example shows a single IPv6 hint in IPv4 mapped IPv6 presentation format.
+; This example shows a single IPv6 hint using the embedded IPv4 syntax.
 \# 35 (
 00 01                                              ; priority
 07 65 78 61 6d 70 6c 65 03 63 6f 6d 00             ; target
 00 06                                              ; key 6
 00 10                                              ; length 16
-20 01 0d b8 ff ff ff ff ff ff ff ff c6 33 64 64    ; address
+20 01 0d b8 01 22 03 44 00 00 00 00 c0 00 02 21    ; address
 )
 
 ; In the next vector, neither the SvcParamValues nor the mandatory keys are

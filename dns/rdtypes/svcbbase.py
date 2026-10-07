@@ -2,6 +2,7 @@
 
 import base64
 import enum
+import re
 import struct
 from typing import Any, TypeVar
 
@@ -79,6 +80,15 @@ def _validate_key(key):
     return (ParamKey.make(key), force_generic)
 
 
+# Presentation format of a SvcParamKey (RFC 9460 Section 2.1).
+_key_text_re = re.compile("[a-z0-9-]{1,63}")
+
+
+def _check_key_text(key: str) -> None:
+    if not _key_text_re.fullmatch(key):
+        raise dns.exception.SyntaxError(f'invalid key "{key}"')
+
+
 def key_to_text(key):
     return ParamKey.to_text(key).replace("_", "-").lower()
 
@@ -144,10 +154,13 @@ def _split(value):
         c = value[i]
         i += 1
         if c == ord("\\"):
-            if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
+            if i >= l:
                 raise dns.exception.UnexpectedEnd
             c = value[i]
             i += 1
+            # Only "\," and "\\" are valid (RFC 9460 Appendix A.1).
+            if c not in _escaped:
+                raise dns.exception.SyntaxError("invalid escape in value list")
             unescaped += b"%c" % (c)
         elif c == ord(","):
             items.append(unescaped)
@@ -205,6 +218,8 @@ class MandatoryParam(Param):
     def __init__(self, keys):
         # check for duplicates
         keys = sorted([_validate_key(key)[0] for key in keys])
+        if len(keys) == 0:
+            raise ValueError("empty mandatory list")
         prior_k = None
         for k in keys:
             if k == prior_k:
@@ -216,8 +231,12 @@ class MandatoryParam(Param):
 
     @classmethod
     def from_value(cls, value):
-        keys = [k.encode() for k in value.split(",")]
-        return cls(keys)
+        if "\\" in value:
+            raise ValueError("escape in mandatory value")
+        keys = value.split(",")
+        for key in keys:
+            _check_key_text(key)
+        return cls([key.encode() for key in keys])
 
     def to_text(self):
         return '"' + ",".join([key_to_text(key) for key in self.keys]) + '"'
@@ -288,6 +307,8 @@ class ALPNParam(_StringList):
         self.ids = dns.rdata.Rdata._as_tuple(
             ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False)
         )
+        if len(self.ids) == 0:
+            raise ValueError("empty alpn list")
 
     @classmethod
     def emptiness(cls):
@@ -354,6 +375,8 @@ class IPv4HintParam(Param):
         self.addresses = dns.rdata.Rdata._as_tuple(
             addresses, dns.rdata.Rdata._as_ipv4_address
         )
+        if len(self.addresses) == 0:
+            raise ValueError("empty address list")
 
     @classmethod
     def from_value(cls, value):
@@ -382,6 +405,8 @@ class IPv6HintParam(Param):
         self.addresses = dns.rdata.Rdata._as_tuple(
             addresses, dns.rdata.Rdata._as_ipv6_address
         )
+        if len(self.addresses) == 0:
+            raise ValueError("empty address list")
 
     @classmethod
     def from_value(cls, value):
@@ -408,6 +433,13 @@ class IPv6HintParam(Param):
 class ECHParam(Param):
     def __init__(self, ech):
         self.ech = dns.rdata.Rdata._as_bytes(ech, True)
+        # An ECHConfigList: a length prefix and 4 or more octets (RFC 9849
+        # Section 4).
+        if (
+            len(self.ech) < 6
+            or int.from_bytes(self.ech[:2], "big") != len(self.ech) - 2
+        ):
+            raise ValueError("invalid ECHConfigList")
 
     @classmethod
     def from_value(cls, value):
@@ -478,14 +510,18 @@ _class_for_key: dict[ParamKey, Any] = {
 
 
 def _validate_and_define(params, key, value):
-    key, force_generic = _validate_key(_unescape(key))
+    # Keys cannot contain escapes (RFC 9460 Section 2.1).
+    if "\\" in key:
+        raise SyntaxError("escape in key")
+    _check_key_text(key)
+    key, force_generic = _validate_key(key)
     if key in params:
         raise SyntaxError(f'duplicate key "{key:d}"')
     cls = _class_for_key.get(key, GenericParam)
-    emptiness = cls.emptiness()
+    # An omitted value is the same as an empty one (RFC 9460 Section 2.1).
+    if (value is None or value == "") and cls.emptiness() == Emptiness.NEVER:
+        raise SyntaxError("value cannot be empty")
     if value is None:
-        if emptiness == Emptiness.NEVER:
-            raise SyntaxError("value cannot be empty")
         value = cls.from_value(value)
     else:
         if force_generic:
@@ -514,11 +550,15 @@ class SVCBBase(dns.rdata.Rdata):
             k = ParamKey.make(k)
             if not isinstance(v, Param) and v is not None:
                 raise ValueError(f"{k:d} not a Param")
+            if v is None:
+                pcls = _class_for_key.get(k, GenericParam)
+                if pcls.emptiness() == Emptiness.NEVER:
+                    raise ValueError(f"key {k:d} cannot be empty")
         self.params: dns.immutable.Dict = dns.immutable.Dict(params)
         # Make sure any parameter listed as mandatory is present in the
         # record.
         mandatory = params.get(ParamKey.MANDATORY)
-        if mandatory:
+        if mandatory is not None:
             for key in mandatory.keys:
                 # Note we have to say "not in" as we have None as a value
                 # so a get() and a not None test would be wrong.
@@ -620,6 +660,8 @@ class SVCBBase(dns.rdata.Rdata):
             vlen = parser.get_uint16()
             pkey = ParamKey.make(key)
             pcls = _class_for_key.get(pkey, GenericParam)
+            if vlen == 0 and pcls.emptiness() == Emptiness.NEVER:
+                raise dns.exception.FormError(f"key {key:d} cannot be empty")
             with parser.restrict_to(vlen):
                 value = pcls.from_wire_parser(parser, origin)
             params[pkey] = value

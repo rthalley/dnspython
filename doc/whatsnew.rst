@@ -12,6 +12,27 @@ TBD
   zone file, no longer fails to parse when it contains a name under the origin.
   Its names are relativized as in the type's own text form.
 
+* The SVCB and HTTPS ``ech`` parameter value must now be an ECHConfigList with a
+  correct length prefix and at least 4 octets of content (RFC 9848, RFC 9849).
+  The individual ECHConfig structures are not checked.
+
+* SVCB and HTTPS SvcParamKeys in presentation format, including those listed in
+  ``mandatory``, must now be spelled as RFC 9460 requires: 1-63 lowercase
+  letters, digits, or hyphens.  Uppercase keys such as ``ALPN`` and keys with
+  underscores such as ``no_default_alpn`` are rejected.
+
+* SVCB and HTTPS presentation format parsing now follows the escaping rules of
+  RFC 9460.  SvcParamKeys may not contain escapes (e.g. ``\097lpn=h2``), and in
+  comma-separated values (``alpn``, ``docpath``) only ``\,`` and ``\\`` are
+  valid escapes after character-string decoding (e.g. ``alpn="h2\\x"`` is
+  rejected).
+
+* SVCB and HTTPS parameters whose value must not be empty (``mandatory``,
+  ``alpn``, ``port``, ``ipv4hint``, ``ech``, ``ipv6hint``) are now rejected when
+  empty in text form (e.g. ``alpn=""`` or ``key1=""``), in wire form, and in
+  the Python API.  Per RFC 9460, an omitted value is the same as an empty one.
+  This also rejects an empty ``ech`` value, which RFC 9848 does not allow.
+
 * A relative ``$ORIGIN`` in a zone file is now relative to the current origin, as
   RFC 1035 requires.  Previously records after it were silently dropped.
 
