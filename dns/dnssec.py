@@ -218,7 +218,7 @@ def make_ds(
         check = policy.ok_to_create_ds
     if not check(algorithm):
         raise DeniedByPolicy
-    if not isinstance(key, DNSKEY | CDNSKEY):
+    if not isinstance(key, (DNSKEY, CDNSKEY)):
         raise ValueError("key is not a DNSKEY | CDNSKEY")
     if algorithm == DSDigest.SHA1:
         dshash = hashlib.sha1()
