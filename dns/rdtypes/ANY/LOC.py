@@ -66,6 +66,8 @@ def _float_to_tuple(what):
 
 
 def _tuple_to_float(what):
+    if len(what) < 5:
+        raise ValueError("LOC coordinate tuple must have at least 5 elements")
     value = float(what[0])
     value += float(what[1]) / 60.0
     value += float(what[2]) / 3600.0
