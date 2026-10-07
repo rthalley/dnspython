@@ -41,15 +41,25 @@ class PublicDSA(CryptographyPublicKey):
     def from_dnskey(cls, key: DNSKEY) -> "PublicDSA":
         cls._ensure_algorithm_key_combination(key)
         keyptr = key.key
+        if len(keyptr) < 1:
+            raise ValueError("DNSKEY key material too short for DSA T byte")
         (t,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]
         octets = 64 + t * 8
+        if len(keyptr) < 20:
+            raise ValueError("DNSKEY key material too short for DSA Q")
         dsa_q = keyptr[0:20]
         keyptr = keyptr[20:]
+        if len(keyptr) < octets:
+            raise ValueError("DNSKEY key material too short for DSA P")
         dsa_p = keyptr[0:octets]
         keyptr = keyptr[octets:]
+        if len(keyptr) < octets:
+            raise ValueError("DNSKEY key material too short for DSA G")
         dsa_g = keyptr[0:octets]
         keyptr = keyptr[octets:]
+        if len(keyptr) < octets:
+            raise ValueError("DNSKEY key material too short for DSA Y")
         dsa_y = keyptr[0:octets]
         return cls(
             key=dsa.DSAPublicNumbers(  # pyright: ignore
