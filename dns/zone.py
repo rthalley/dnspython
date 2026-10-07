@@ -890,7 +890,28 @@ class Zone(dns.transaction.TransactionManager):
             if rds is None:
                 raise NoDigest
             digests = rds
+        try:
+            serial = self.get_soa().serial
+        except NoSOA:
+            # Without an SOA there is no serial for the ZONEMD serial to match.
+            raise DigestVerificationFailure
+        # RFC 8976 section 4 step 4: a (scheme, hash algorithm) tuple that occurs
+        # more than once disqualifies every ZONEMD RR that has it.
+        duplicated: set[tuple[int, int]] = set()
+        seen: set[tuple[int, int]] = set()
         for digest in digests:
+            key = (digest.scheme, digest.hash_algorithm)
+            if key in seen:
+                duplicated.add(key)
+            seen.add(key)
+        for digest in digests:
+            if (digest.scheme, digest.hash_algorithm) in duplicated:
+                continue
+            # RFC 8976 section 4 step 5.1.  The apex ZONEMD RRset is not part of
+            # what the digest covers, so its serial is not tied to the zone's by
+            # the digest comparison below.
+            if digest.serial != serial:
+                continue
             try:
                 computed = self._compute_digest(digest.hash_algorithm, digest.scheme)
                 if computed == digest.digest:

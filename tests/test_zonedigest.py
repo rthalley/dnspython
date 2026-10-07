@@ -5,6 +5,7 @@ import textwrap
 import unittest
 
 import dns.rdata
+import dns.rdataset
 import dns.rrset
 import dns.zone
 
@@ -104,6 +105,12 @@ class ZoneDigestTestCase(unittest.TestCase):
     def _get_zonemd(self, zone):
         return zone.get_rdataset(zone.origin, "ZONEMD")
 
+    def _replace_zonemd(self, zone, *rdatas):
+        zonemd = self._get_zonemd(zone)
+        zone.replace_rdataset(
+            dns.name.empty, dns.rdataset.from_rdata(zonemd.ttl, *rdatas)
+        )
+
     def test_zonemd_simple(self):
         zone = dns.zone.from_text(self.simple_example, origin="example")
         zone.verify_digest()
@@ -142,6 +149,46 @@ class ZoneDigestTestCase(unittest.TestCase):
         zone.delete_rdataset(dns.name.empty, "ZONEMD")
         with self.assertRaises(dns.zone.NoDigest):
             zone.verify_digest()
+
+    def test_zonemd_serial_mismatch(self):
+        # RFC 8976 Sec. 4 step 5.1.  The apex ZONEMD RRset is not covered by the
+        # digest, so only the serial changes here; the digest stays correct.
+        zone = dns.zone.from_text(self.simple_example, origin="example")
+        zonemd = self._get_zonemd(zone)
+        self.assertNotEqual(zonemd[0].serial, 1)
+        wrong_serial = zonemd[0].replace(serial=1)
+        with self.assertRaises(dns.zone.DigestVerificationFailure):
+            zone.verify_digest(wrong_serial)
+        self._replace_zonemd(zone, wrong_serial)
+        with self.assertRaises(dns.zone.DigestVerificationFailure):
+            zone.verify_digest()
+
+    def test_zonemd_no_soa(self):
+        zone = dns.zone.from_text(
+            self.simple_example, origin="example", check_origin=False
+        )
+        zone.delete_rdataset(dns.name.empty, "SOA")
+        with self.assertRaises(dns.zone.DigestVerificationFailure):
+            zone.verify_digest()
+
+    def test_zonemd_duplicate_scheme_and_hash_algorithm(self):
+        # RFC 8976 Sec. 4 step 4.  Adding a ZONEMD RR does not change the digest,
+        # so the original RR still has the right one, but its scheme and hash
+        # algorithm are no longer unique.
+        zone = dns.zone.from_text(self.simple_example, origin="example")
+        zonemd = self._get_zonemd(zone)
+        self._replace_zonemd(zone, zonemd[0], zonemd[0].replace(digest=b"\xab" * 48))
+        with self.assertRaises(dns.zone.DigestVerificationFailure):
+            zone.verify_digest()
+
+    def test_zonemd_duplicate_does_not_disqualify_other_tuples(self):
+        # Only the ZONEMD RRs sharing the duplicated tuple are disqualified, so
+        # the SHA-512 digest of this zone still verifies it.
+        zone = dns.zone.from_text(self.multiple_digests_example, origin="example")
+        zonemd = self._get_zonemd(zone)
+        sha384 = [rr for rr in zonemd if (rr.scheme, rr.hash_algorithm) == (1, 1)][0]
+        self._replace_zonemd(zone, *zonemd, sha384.replace(digest=b"\xab" * 48))
+        zone.verify_digest()
 
     sha384_hash = "ab" * 48
     sha512_hash = "ab" * 64
