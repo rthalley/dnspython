@@ -50,7 +50,7 @@ async def _maybe_wait_for(awaitable, timeout):
     if timeout is not None:
         try:
             return await asyncio.wait_for(awaitable, timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise dns.exception.Timeout(timeout=timeout)
     else:
         return await awaitable
