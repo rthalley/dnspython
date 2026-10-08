@@ -6,7 +6,7 @@ The following versions would get a security update release if necessary.
 
 | Version  | Supported          |
 | -------- | ------------------ |
-| 2.8.x    | :white_check_mark: |
+| 2.9.x    | :white_check_mark: |
 | < 1.16.0 | :x:                |
 
 For older version 2 releases, the normal security upgrade path is
