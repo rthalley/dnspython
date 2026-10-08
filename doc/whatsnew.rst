@@ -8,6 +8,12 @@ What's New in dnspython
 
 TBD
 
+* The NSEC3 Next Hashed Owner Name in presentation format is now decoded as
+  base32hex (RFC 5155 Section 1.3, RFC 4648 Extended Hex Alphabet).  The letters
+  W, X, Y, and Z are not in that alphabet; they used to be accepted and silently
+  decoded to a different owner name, so ``to_text`` of the result did not match
+  the input.  They are now rejected.
+
 * Rdata of a known type in the generic ``\#`` syntax, such as an NS record in a
   zone file, no longer fails to parse when it contains a name under the origin.
   Its names are relativized as in the type's own text form.
