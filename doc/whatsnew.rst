@@ -3,10 +3,14 @@
 What's New in dnspython
 =======================
 
-2.9.0 (in development)
-----------------------
+2.9.0
+-----
 
-TBD
+* Httpx2 has replaced httpx for HTTPS TCP connections.
+
+* The minimum supported Python version is now 3.11.
+
+* DNSSEC now supports ML-DSA-44, a post-quantum signature algorithm.
 
 * The NSEC3 Next Hashed Owner Name in presentation format is now decoded as
   base32hex (RFC 5155 Section 1.3, RFC 4648 Extended Hex Alphabet).  The letters
@@ -50,8 +54,6 @@ TBD
 * ``dns.reversename.to_address()`` now rejects IPv6 reverse-map names without
   exactly 32 single-character labels, instead of padding missing nibbles or
   accepting multiple nibbles in a label.
-
-* DNSSEC now supports ML-DSA-44, a post-quantum signature algorithm.
 
 * A "transaction setup" callable may be specified when reading a zone from a file,
   a string, or an inbound zone transfer.  It is called just after the transaction is
@@ -111,7 +113,7 @@ TBD
   omitted so that DNSSEC has a single canonical wire encoding.  The parser
   previously accepted these, and since to_wire() strips the trailing zeros,
   from_wire() followed by to_wire() silently rewrote the rdata to different bytes.
-  
+
 * The EDNS Client Subnet (ECS) option wire parser now rejects a malformed
   option instead of silently rewriting it.  RFC 7871 section 6 requires the
   source and scope prefix lengths to fit the address family and the address
@@ -119,7 +121,7 @@ TBD
   previously masked off by the option constructor, so from_wire followed by
   to_wire produced different bytes, and an out-of-range prefix length leaked a
   low-level error rather than being reported as malformed.
-  
+
 * ZONEMD rdata now rejects a digest shorter than 12 octets.  RFC 8976
   section 2.2.4 requires the digest to be at least 12 octets regardless of the
   hash algorithm, but dnspython only checked the length for the hash algorithms
@@ -140,8 +142,6 @@ TBD
   literal (``3:b'e0'/4``), from_text() rejected every such item, and the wire
   parser rejected an address longer than 63 octets although up to 127 are
   allowed.
-
-* Httpx2 has replaced httpx for HTTPS TCP connections.
 
 * Mypy type checking has been removed; ty type checking has been added.
 
