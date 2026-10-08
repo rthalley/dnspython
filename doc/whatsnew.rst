@@ -8,6 +8,12 @@ What's New in dnspython
 
 TBD
 
+* The NSEC3 Next Hashed Owner Name in presentation format is now decoded as
+  base32hex (RFC 5155 Section 1.3, RFC 4648 Extended Hex Alphabet).  The letters
+  W, X, Y, and Z are not in that alphabet; they used to be accepted and silently
+  decoded to a different owner name, so ``to_text`` of the result did not match
+  the input.  They are now rejected.
+
 * The NID and L64 node/locator ids in presentation format are now rejected when
   a group contains anything other than hex digits. A sign or underscore, which
   ``int()`` silently accepts, produced a record whose text form did not parse
