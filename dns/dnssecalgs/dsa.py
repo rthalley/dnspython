@@ -41,9 +41,13 @@ class PublicDSA(CryptographyPublicKey):
     def from_dnskey(cls, key: DNSKEY) -> "PublicDSA":
         cls._ensure_algorithm_key_combination(key)
         keyptr = key.key
+        if len(keyptr) < 1:
+            raise ValueError("key material is empty")
         (t,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]
         octets = 64 + t * 8
+        if len(keyptr) < 20 + 3 * octets:
+            raise ValueError("truncated DSA key material")
         dsa_q = keyptr[0:20]
         keyptr = keyptr[20:]
         dsa_p = keyptr[0:octets]

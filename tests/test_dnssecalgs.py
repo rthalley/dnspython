@@ -20,6 +20,9 @@ import unittest
 
 import dns.dnssec
 import dns.exception
+import dns.rdata
+import dns.rdataclass
+import dns.rdatatype
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
@@ -29,7 +32,7 @@ try:
         get_algorithm_cls_from_dnskey,
         register_algorithm_cls,
     )
-    from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
+    from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1, PublicDSA
     from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
     from dns.dnssecalgs.mldsa import PrivateMLDSA44, PublicMLDSA44
@@ -127,6 +130,28 @@ class DNSSECAlgorithm(unittest.TestCase):
         dnskey_ed448 = private_key_ed448.public_key().to_dnskey()
         with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             PublicED25519.from_dnskey(dnskey_ed448)
+
+    def _truncated_dnskey(self, algorithm, key_material):
+        wire = b"\x01\x00\x03" + bytes([algorithm]) + key_material
+        return dns.rdata.from_wire(
+            dns.rdataclass.IN, dns.rdatatype.DNSKEY, wire, 0, len(wire)
+        )
+
+    def test_truncated_dsa(self):
+        good = PrivateDSA.generate(1024).public_key().to_dnskey().key
+        for key_material in (b"", good[:1], good[:21], good[:-1]):
+            dnskey = self._truncated_dnskey(Algorithm.DSA, key_material)
+            with self.assertRaises(ValueError):
+                PublicDSA.from_dnskey(dnskey)
+
+    def test_truncated_ecdsa(self):
+        for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
+            public_cls = private_cls.public_cls
+            good = private_cls.generate().public_key().to_dnskey().key
+            for key_material in (b"", good[: public_cls.octets], good[:-1]):
+                dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
+                with self.assertRaises(ValueError):
+                    public_cls.from_dnskey(dnskey)
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
