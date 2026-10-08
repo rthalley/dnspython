@@ -51,6 +51,11 @@ What's New in dnspython
 * A relative ``$ORIGIN`` in a zone file is now relative to the current origin, as
   RFC 1035 requires.  Previously records after it were silently dropped.
 
+* ``dns.zone.Zone.verify_digest()`` now makes the two RFC 8976 section 4 checks it
+  was missing: a ZONEMD RR only verifies the zone if its serial matches the zone's
+  SOA serial (step 5.1), and a ZONEMD RR whose scheme and hash algorithm are shared
+  with another ZONEMD RR in the RRset does not verify the zone at all (step 4).
+
 * ``dns.reversename.to_address()`` now rejects IPv6 reverse-map names without
   exactly 32 single-character labels, instead of padding missing nibbles or
   accepting multiple nibbles in a label.
