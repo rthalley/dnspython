@@ -4,7 +4,7 @@
 
 import contextlib
 import struct
-from collections.abc import Iterator
+from collections.abc import Generator
 
 import dns.exception
 
@@ -69,7 +69,7 @@ class Parser:
         self.current = where
 
     @contextlib.contextmanager
-    def restrict_to(self, size: int) -> Iterator:
+    def restrict_to(self, size: int) -> Generator:
         assert size >= 0
         if size > self.remaining():
             raise dns.exception.FormError
@@ -86,7 +86,7 @@ class Parser:
             self.end = saved_end
 
     @contextlib.contextmanager
-    def restore_furthest(self) -> Iterator:
+    def restore_furthest(self) -> Generator:
         try:
             yield None
         finally:

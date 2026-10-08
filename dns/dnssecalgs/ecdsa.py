@@ -73,9 +73,11 @@ class PrivateECDSA(CryptographyPrivateKey):
 
     @classmethod
     def generate(cls) -> "PrivateECDSA":
+        typed_public_cls = cls.public_cls
+        assert isinstance(typed_public_cls, PublicECDSA)
         return cls(
             key=ec.generate_private_key(
-                curve=cls.public_cls.curve, backend=default_backend()  # pyright: ignore
+                curve=typed_public_cls.curve, backend=default_backend()
             ),
         )
 
