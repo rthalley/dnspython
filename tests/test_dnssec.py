@@ -19,7 +19,7 @@ import functools
 import time
 import unittest
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
 
 import dns.dnssec
 import dns.name
@@ -764,6 +764,58 @@ ns3.sub.example. 3600 IN A 10.0.0.3
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECValidatorTestCase(unittest.TestCase):
+    def _assertMalformedRSADNSKEYFailsValidation(self, key_material):
+        # RFC 4034 2.1.1 requires the key field to be present.  A DNSKEY
+        # with no or truncated key material parses successfully from the
+        # wire (dnskeybase keeps the remaining octets), so it has to be
+        # rejected during validation -- and rejected with a
+        # dns.exception.DNSException, not a bare struct.error, which is not
+        # a ValueError subclass and so slips past the guard in
+        # dnssec._validate_signature().
+        dnskey_wire = b"\x01\x00\x03\x08" + key_material
+        dnskey = cast(
+            dns.rdtypes.ANY.DNSKEY.DNSKEY,
+            dns.rdata.from_wire(
+                dns.rdataclass.IN,
+                dns.rdatatype.DNSKEY,
+                dnskey_wire,
+                0,
+                len(dnskey_wire),
+            ),
+        )
+        keys = {abs_dnspython_org: dns.rrset.from_rdata(abs_dnspython_org, 300, dnskey)}
+        inception = int(time.time())
+        rrsig = dns.dnssec.RRSIG(
+            rdclass=dns.rdataclass.IN,
+            rdtype=dns.rdatatype.RRSIG,
+            type_covered=dns.rdatatype.SOA,
+            algorithm=dns.dnssec.RSASHA256,
+            labels=1,
+            original_ttl=300,
+            expiration=inception + 86400,
+            inception=inception,
+            key_tag=dns.dnssec.key_id(dnskey),
+            signer=abs_dnspython_org,
+            signature=b"\x00" * 8,
+        )
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(
+                abs_soa,
+                dns.rrset.from_rdata(abs_dnspython_org, 300, rrsig),
+                keys,
+                None,
+                inception + 1,
+                policy=dns.dnssec.allow_all_policy,
+            )
+
+    def testEmptyRSADNSKEYKeyMaterial(self):
+        self._assertMalformedRSADNSKEYFailsValidation(b"")
+
+    def testTruncatedRSADNSKEYExponentLength(self):
+        # An exponent length octet of 0 selects the two-octet form of
+        # RFC 3110, and only one of those two octets is present.
+        self._assertMalformedRSADNSKEYFailsValidation(b"\x00\x03")
+
     def testAbsoluteRSAMD5Good(self):  # type: () -> None
         dns.dnssec.validate(
             rsamd5_ns,

@@ -36,11 +36,17 @@ class PublicRSA(CryptographyPublicKey):
     def from_dnskey(cls, key: DNSKEY) -> "PublicRSA":
         cls._ensure_algorithm_key_combination(key)
         keyptr = key.key
+        if len(keyptr) < 1:
+            raise ValueError("key material is empty")
         (bytes_,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]
         if bytes_ == 0:
+            if len(keyptr) < 2:
+                raise ValueError("truncated RSA exponent length")
             (bytes_,) = struct.unpack("!H", keyptr[0:2])
             keyptr = keyptr[2:]
+        if len(keyptr) < bytes_:
+            raise ValueError("truncated RSA public exponent")
         rsa_e = keyptr[0:bytes_]
         rsa_n = keyptr[bytes_:]
         return cls(
