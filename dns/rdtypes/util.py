@@ -21,6 +21,7 @@ import struct
 from collections.abc import Iterable
 from typing import Any
 
+import dns._text_util
 import dns.exception
 import dns.ipv4
 import dns.ipv6
@@ -271,6 +272,10 @@ def parse_formatted_hex(formatted, num_chunks, chunk_size, separator):
     value = b""
     for _ in range(num_chunks):
         chunk = formatted[0:chunk_size]
+        # int() would also accept a sign, underscores, or surrounding
+        # whitespace; the presentation format is hex digits only.
+        if not dns._text_util.is_ascii_digits(chunk, 16):
+            raise ValueError("invalid formatted hex string")
         value += int(chunk, 16).to_bytes(chunk_size // 2, "big")
         formatted = formatted[chunk_size:]
         if len(formatted) > 0 and formatted[0] != separator:

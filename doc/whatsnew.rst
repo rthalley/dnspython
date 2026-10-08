@@ -8,6 +8,11 @@ What's New in dnspython
 
 TBD
 
+* The NID and L64 node/locator ids in presentation format are now rejected when
+  a group contains anything other than hex digits. A sign or underscore, which
+  ``int()`` silently accepts, produced a record whose text form did not parse
+  back the same way (RFC 6742).
+
 * Rdata of a known type in the generic ``\#`` syntax, such as an NS record in a
   zone file, no longer fails to parse when it contains a name under the origin.
   Its names are relativized as in the type's own text form.
