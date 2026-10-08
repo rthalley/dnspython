@@ -758,6 +758,28 @@ class NameTestCase(unittest.TestCase):
 
         self.assertRaises(dns.name.BadLabelType, bad)
 
+    def testCompressionChainLength(self):
+        # We're going to decode some wire starting two bytes from the end.  At this
+        # position is a pointer which points to four bytes from the end, and it points
+        # to one 6 bytes from the end, etc., until finally the 16th pointer points at
+        # offset zero, which is the root label followed by a byte of padding.  After
+        # all of this useless pointer hopping, we should get the root name.
+        w = b"\x00\x00\xc0\x00\xc0\x02\xc0\x04\xc0\x06\xc0\x08\xc0\x0a\xc0\x0c\xc0\x0e\xc0\x10\xc0\x12\xc0\x14\xc0\x16\xc0\x18\xc0\x1a\xc0\x1c\xc0\x1e"
+        self.assertEqual(len(w), 34)
+        starts = [c for c in w if c == 0xC0]
+        self.assertEqual(len(starts), dns.name.MAX_COMPRESSION_POINTER_CHAIN)
+
+        def bad():
+            # Now we make the wire one pointer longer, which is too long!
+            w1 = w + b"\xc0\x20"
+            self.assertEqual(len(w1), 36)
+            starts = [c for c in w1 if c == 0xC0]
+            self.assertEqual(len(starts), dns.name.MAX_COMPRESSION_POINTER_CHAIN + 1)
+            dns.name.from_wire(w1, 34)
+
+        self.assertEqual(dns.name.from_wire(w, 32)[0], dns.name.from_text("."))
+        self.assertRaises(dns.name.PointerChainTooLong, bad)
+
     def testParent1(self):
         n = dns.name.from_text("foo.bar.")
         self.assertEqual(n.parent(), dns.name.from_text("bar."))

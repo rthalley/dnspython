@@ -6,6 +6,13 @@ What's New in dnspython
 2.9.0
 -----
 
+* Decompression chain length is limited to 16.  Prior to this change,
+  a maliciously crafted DNS message could cause
+  dns.name.from_wire_parser() to use excessive CPU for DNS name
+  decompression. Applications which processed untrusted DNS wire form
+  messages with dnspython could be degraded or DoS'd by the extra CPU
+  use required.
+
 * Httpx2 has replaced httpx for HTTPS TCP connections.
 
 * The minimum supported Python version is now 3.11.
