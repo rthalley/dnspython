@@ -101,6 +101,27 @@ class BugsTestCase(unittest.TestCase):
                 dns.rdataclass.IN, dns.rdatatype.APL, wire6, 0, len(wire6)
             )
 
+    def test_formatted_hex_rejects_non_hex(self):
+        # NID and L64 node/locator ids are groups of hex digits (RFC 6742).
+        # int(..., 16) also accepts a sign or underscores, which produced a
+        # record whose presentation form did not parse back the same way.
+        for rdtype in (dns.rdatatype.NID, dns.rdatatype.L64):
+            for bad in (
+                "10 0000:0000:0000:+f00",
+                "10 0000:0000:0000:1_00",
+                "10 +000:0000:0000:0000",
+            ):
+                with self.assertRaises(dns.exception.SyntaxError):
+                    dns.rdata.from_text(dns.rdataclass.IN, rdtype, bad)
+            # Valid ids, in either case, still work and round-trip.
+            good = "10 0014:4fff:ff20:ee64"
+            rd = dns.rdata.from_text(dns.rdataclass.IN, rdtype, good)
+            self.assertEqual(rd.to_text(), good)
+            rd2 = dns.rdata.from_text(
+                dns.rdataclass.IN, rdtype, "10 0014:4FFF:FF20:EE64"
+            )
+            self.assertEqual(rd.to_wire(), rd2.to_wire())
+
     def test_TXT_conversions(self):
         t1 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, [b"foo"])
         t2 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, b"foo")

@@ -196,12 +196,16 @@ HTTPS
     `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_,
     `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter),
     `RFC 9953 <https://tools.ietf.org/html/rfc9953>`_ (docpath parameter)
+L64
+    `RFC 6742 <https://tools.ietf.org/html/rfc6742>`_
 LOC
     `RFC 1876 <https://tools.ietf.org/html/rfc1876>`_
 MX
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_
 NAPTR
     `RFC 3403 <https://tools.ietf.org/html/rfc3403>`_
+NID
+    `RFC 6742 <https://tools.ietf.org/html/rfc6742>`_
 NS
     `RFC 1035 <https://tools.ietf.org/html/rfc1035>`_
 NSEC
