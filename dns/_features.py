@@ -84,11 +84,11 @@ def force(feature: str, enabled: bool) -> None:
 
 _requirements: dict[str, list[str]] = {
     ### BEGIN generated requirements
-    "dnssec": ["cryptography>=45"],
-    "doh": ["httpcore2>=2.4", "httpx2>=2.4", "h2>=4.3.0"],
-    "doq": ["aioquic>=1.2.0"],
-    "idna": ["idna>=3.10"],
-    "trio": ["trio>=0.30"],
+    "dnssec": ["cryptography>=50"],
+    "doh": ["httpcore2>=2.13", "httpx2>=2.13", "h2>=4.4"],
+    "doq": ["aioquic>=1.3.0"],
+    "idna": ["idna>=3.20"],
+    "trio": ["trio>=0.34"],
     "wmi": ["wmi>=1.5.1"],
     ### END generated requirements
 }

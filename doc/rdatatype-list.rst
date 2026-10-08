@@ -19,6 +19,8 @@ Rdatatypes
    :annotation: = 258
 .. py:data:: dns.rdatatype.AXFR
    :annotation: = 252
+.. py:data:: dns.rdatatype.BRID
+   :annotation: = 68
 .. py:data:: dns.rdatatype.CAA
    :annotation: = 257
 .. py:data:: dns.rdatatype.CDNSKEY
@@ -49,6 +51,8 @@ Rdatatypes
    :annotation: = 109
 .. py:data:: dns.rdatatype.GPOS
    :annotation: = 27
+.. py:data:: dns.rdatatype.HHIT
+   :annotation: = 67
 .. py:data:: dns.rdatatype.HINFO
    :annotation: = 13
 .. py:data:: dns.rdatatype.HIP
@@ -97,8 +101,6 @@ Rdatatypes
    :annotation: = 104
 .. py:data:: dns.rdatatype.NINFO
    :annotation: = 56
-.. py:data:: dns.rdatatype.NONE
-   :annotation: = 0
 .. py:data:: dns.rdatatype.NS
    :annotation: = 2
 .. py:data:: dns.rdatatype.NSAP

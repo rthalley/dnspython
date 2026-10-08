@@ -95,7 +95,9 @@ def _check_coordinate_list(value, high):
     if len(value) != 5:
         raise ValueError("a coordinate tuple must have five elements")
     if value[0] < 0:
-        raise ValueError("the degrees value must be positive, use the sign field to specify a hemisphere")
+        raise ValueError(
+            "the degrees value must be positive, use the sign field to specify a hemisphere"
+        )
     if value[0] > high:
         raise ValueError(f"degrees not in range [0, {high}]")
     if value[1] < 0 or value[1] > 59:
