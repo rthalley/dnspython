@@ -69,6 +69,7 @@ source-include = [
     "tests/*.good",
     "tests/example",
     "tests/query",
+    "tests/resolv.conf",
     "tests/*.pickle",
     "tests/*.text",
     "tests/*.generic",
