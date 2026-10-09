@@ -18,6 +18,11 @@ TBD
   messages with dnspython could be degraded or DoS'd by the extra CPU
   use required.
 
+  Thanks to Evgenios Gkritsis, Constantinos Patsakis, and George Stergiopoulos
+  for finding and reporting this issue.
+
+  See https://github.com/rthalley/dnspython/security/advisories/GHSA-45c3-73f7-pv4m
+
 * Httpx2 has replaced httpx for HTTPS TCP connections.
 
 * The minimum supported Python version is now 3.11.
