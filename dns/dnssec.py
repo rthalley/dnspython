@@ -365,6 +365,28 @@ def _validate_rrsig(
     if rrsig.inception > now:
         raise ValidationFailure("not yet valid")
 
+    # RFC 4035 section 5.3.1 requires the signer's name to be the name of
+    # the zone containing the RRset.  Zone cuts are not known at this
+    # layer, but the containing zone's name is always equal to the owner
+    # name or an ancestor of it, so a signer outside the owner name's
+    # ancestry is never valid.  Without this check, the signer field alone
+    # selects the key, letting any key in *keys* validate signatures over
+    # any name.
+    if isinstance(origin, str):
+        origin = dns.name.from_text(origin, dns.name.root)
+    rrname = _get_rrname_rdataset(rrset)[0]
+    if not rrname.is_absolute():
+        if origin is None:
+            raise ValidationFailure("relative RR name without an origin specified")
+        rrname = rrname.derelativize(origin)
+    signer = rrsig.signer
+    if not signer.is_absolute():
+        if origin is None:
+            raise ValidationFailure("relative signer name without an origin specified")
+        signer = signer.derelativize(origin)
+    if not rrname.is_subdomain(signer):
+        raise ValidationFailure("owner name is not in the signer's zone")
+
     data = _make_rrsig_signature_data(rrset, rrsig, origin)
 
     # pylint: disable=possibly-used-before-assignment

@@ -1100,6 +1100,51 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                 when5 + 1,
             )
 
+    def testSignerNotOwnerNameAncestor(self):
+        # RFC 4035 section 5.3.1: the RRSIG signer must name the zone
+        # containing the RRset.  A signature made by one zone's key over
+        # another zone's name must not validate, even though the keyring
+        # holds a trusted key for the signer.
+        algorithm = dns.dnssec.Algorithm.ED25519
+        evil = dns.name.from_text("evil")
+        evil_private_key = ed25519.Ed25519PrivateKey.generate()
+        evil_dnskey = dns.dnssec.make_dnskey(
+            public_key=evil_private_key.public_key(), algorithm=algorithm
+        )
+        a_rrset = dns.rrset.from_text("www.example.", 300, "IN", "A", "10.0.0.1")
+        inception = time.time()
+        expiration = inception + 86400
+        a_rrsig = dns.dnssec.sign(
+            a_rrset, evil_private_key, evil, evil_dnskey, inception, expiration
+        )
+        keys = {evil: dns.rrset.from_rdata(evil, 300, evil_dnskey)}
+        rrsigset = dns.rrset.from_rdata(a_rrset.name, 300, a_rrsig)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(a_rrset, rrsigset, keys, None, inception + 1)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate_rrsig(a_rrset, a_rrsig, keys, None, inception + 1)
+
+    def testSignerIsOwnerNameAncestor(self):
+        # A parent zone legitimately signs records at a child name, as
+        # with DS RRsets, so an ancestor signer must still validate.
+        algorithm = dns.dnssec.Algorithm.ED25519
+        signer = dns.name.from_text("example")
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=private_key.public_key(), algorithm=algorithm
+        )
+        ds_rrset = dns.rrset.from_text(
+            "sub.example.", 300, "IN", "DS", "12345 15 2 " + "ab" * 32
+        )
+        inception = time.time()
+        expiration = inception + 86400
+        ds_rrsig = dns.dnssec.sign(
+            ds_rrset, private_key, signer, dnskey, inception, expiration
+        )
+        keys = {signer: dns.rrset.from_rdata(signer, 300, dnskey)}
+        rrsigset = dns.rrset.from_rdata(ds_rrset.name, 300, ds_rrsig)
+        dns.dnssec.validate(ds_rrset, rrsigset, keys, None, inception + 1)
+
     def testGOSTNotSupported(self):
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(
