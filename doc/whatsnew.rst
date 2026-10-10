@@ -6,7 +6,12 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
-TBD
+* ``dns.dnssec.validate()`` and ``dns.dnssec.validate_rrsig()`` now reject an
+  RRSIG whose signer name is neither the owner name nor an ancestor of it.
+  RFC 4035 requires the signer to be the zone containing the RRset, but the
+  key used for validation was selected by the signer field alone, so when the
+  key dictionary held trusted keys for more than one zone, any of those keys
+  could validate a signature over any name.
 
 2.9.0
 -----
