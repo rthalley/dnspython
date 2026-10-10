@@ -1524,7 +1524,6 @@ class _TextReader:
         try:
             ttl = dns.ttl.from_text(token.value)
         except dns.ttl.BadTTL:
-            print("bad ttl")
             ttl = 0
         else:
             token = self.tok.get()
