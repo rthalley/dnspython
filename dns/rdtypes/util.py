@@ -142,7 +142,7 @@ class Bitmap:
                 raise ValueError(f"bad {self.type_name} window type")
             if window <= last_window:
                 raise ValueError(f"bad {self.type_name} window order")
-            if window > 256:
+            if window > 255:
                 raise ValueError(f"bad {self.type_name} window number")
             last_window = window
             if not isinstance(bitmap, bytes):

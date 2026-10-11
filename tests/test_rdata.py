@@ -1057,6 +1057,20 @@ class UtilTestCase(unittest.TestCase):
         ba.append(0x01)  # bit 15, for MX
         self.assertEqual(windows, [(0, bytes(ba))])
 
+    def test_Bitmap_window_256_is_invalid(self):
+        with self.assertRaises(ValueError):
+            dns.rdtypes.util.Bitmap([(256, b"\x80")])
+
+    def test_Bitmap_window_255_is_valid(self):
+        bitmap = dns.rdtypes.util.Bitmap([(255, b"\x80")])
+        output = io.BytesIO()
+        bitmap.to_wire(output)
+        self.assertEqual(output.getvalue(), b"\xff\x01\x80")
+        parsed = dns.rdtypes.util.Bitmap.from_wire_parser(
+            dns.wire.Parser(output.getvalue())
+        )
+        self.assertEqual(parsed.windows, bitmap.windows)
+
     def test_Bitmap_with_out_of_order_types(self):
         b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer("MX A")
