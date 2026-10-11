@@ -1048,6 +1048,27 @@ class UtilTestCase(unittest.TestCase):
         ba.append(0x01)  # bit 15, for MX
         self.assertEqual(windows, [(0, bytes(ba))])
 
+    def test_Bitmap_generator_windows(self):
+        windows = [(0, b"@"), (1, b"\x80")]
+        bitmap = dns.rdtypes.util.Bitmap(window for window in windows)
+        output = io.BytesIO()
+        bitmap.to_wire(output)
+        self.assertEqual(output.getvalue(), b"\x00\x01@\x01\x01\x80")
+        self.assertEqual(bitmap.to_text(), " A URI")
+
+    def test_Bitmap_generator_windows_in_rdata(self):
+        cases = [
+            ("NSEC", "next. A URI"),
+            ("NSEC3", "1 0 0 - 00 A URI"),
+            ("CSYNC", "1 0 A URI"),
+        ]
+        for rdtype, text in cases:
+            with self.subTest(rdtype=rdtype):
+                expected = dns.rdata.from_text("IN", rdtype, text)
+                actual = expected.replace(windows=(w for w in expected.windows))
+                self.assertEqual(actual.to_wire(), expected.to_wire())
+                self.assertEqual(actual.to_text(), expected.to_text())
+
     def test_Bitmap_with_duplicate_types(self):
         b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer("A MX A A MX")

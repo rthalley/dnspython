@@ -136,7 +136,7 @@ class Bitmap:
         last_window = -1
         if windows is None:
             windows = []
-        self.windows = windows
+        self.windows = list(windows)
         for window, bitmap in self.windows:
             if not isinstance(window, int):
                 raise ValueError(f"bad {self.type_name} window type")
