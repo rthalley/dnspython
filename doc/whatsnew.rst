@@ -3,6 +3,12 @@
 What's New in dnspython
 =======================
 
+2.10.0 (in development)
+-----------------------
+
+* CAA constructors now validate the encoded tag bytes, consistently rejecting
+  non-ASCII tags supplied as Python strings just as text and wire parsing do.
+
 2.9.0
 -----
 
