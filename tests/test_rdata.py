@@ -41,6 +41,7 @@ import dns.zone
 import tests.md_module
 import tests.stxt_module
 import tests.ttxt_module
+from dns.rdtypes.ANY.CAA import CAA
 from dns.rdtypes.ANY.GPOS import GPOS
 from dns.rdtypes.ANY.LOC import LOC
 from dns.rdtypes.ANY.OPT import OPT
@@ -745,6 +746,33 @@ class RdataTestCase(unittest.TestCase):
         # tag not alphanumeric
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text("in", "caa", '0 a-b "ca.example.net"')
+
+    def test_CAA_constructor_invalid_tag(self):
+        for tag in ("", "a-b", "é", "１２", "١", "issueé"):
+            for value in (tag, tag.encode()):
+                with self.subTest(tag=value):
+                    with self.assertRaisesRegex(ValueError, "tag is not alphanumeric"):
+                        CAA(
+                            dns.rdataclass.IN,
+                            dns.rdatatype.CAA,
+                            0,
+                            value,
+                            b"ca.example",
+                        )
+
+    def test_CAA_constructor_ascii_tag_roundtrip(self):
+        value = b"\x00\xffca.example"
+        for tag in ("issue", "ISSUE", "i1", "123"):
+            with self.subTest(tag=tag):
+                record = CAA(dns.rdataclass.IN, dns.rdatatype.CAA, 0, tag, value)
+                binary = CAA(
+                    dns.rdataclass.IN, dns.rdatatype.CAA, 0, tag.encode(), value
+                )
+                wire = record.to_wire()
+                self.assertEqual(wire, binary.to_wire())
+                self.assertEqual(record.value, value)
+                restored = dns.rdata.from_wire("in", "caa", wire, 0, len(wire))
+                self.assertEqual(restored, record)
 
     def test_bad_HIP_text(self):
         # hit too long

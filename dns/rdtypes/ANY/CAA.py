@@ -35,7 +35,7 @@ class CAA(dns.rdata.Rdata):
         super().__init__(rdclass, rdtype)
         self.flags: int = self._as_uint8(flags)
         self.tag: bytes = self._as_bytes(tag, True, 255)
-        if not tag.isalnum():
+        if not self.tag.isalnum():
             raise ValueError("tag is not alphanumeric")
         self.value: bytes = self._as_bytes(value)
 
