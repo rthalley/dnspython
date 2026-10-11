@@ -136,8 +136,8 @@ class Bitmap:
         last_window = -1
         if windows is None:
             windows = []
-        self.windows = list(windows)
-        for window, bitmap in self.windows:
+        self.windows: list[tuple[int, bytes]] = []
+        for window, bitmap in windows:
             if not isinstance(window, int):
                 raise ValueError(f"bad {self.type_name} window type")
             if window <= last_window:
@@ -154,6 +154,7 @@ class Bitmap:
                 # be included and trailing zero octets must be omitted, so the
                 # last octet of a window's bitmap is always non-zero.
                 raise ValueError(f"bad {self.type_name} octets: trailing zero octet")
+            self.windows.append((window, bitmap))
 
     def to_text(self) -> str:
         text = ""

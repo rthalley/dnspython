@@ -1069,6 +1069,13 @@ class UtilTestCase(unittest.TestCase):
                 self.assertEqual(actual.to_wire(), expected.to_wire())
                 self.assertEqual(actual.to_text(), expected.to_text())
 
+    def test_Bitmap_generator_stops_at_invalid_window(self):
+        remaining = (1, b"\x80")
+        windows = iter([(0, b"@"), (0, b"@"), remaining])
+        with self.assertRaises(ValueError):
+            dns.rdtypes.util.Bitmap(windows)
+        self.assertEqual(next(windows), remaining)
+
     def test_Bitmap_with_duplicate_types(self):
         b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer("A MX A A MX")
