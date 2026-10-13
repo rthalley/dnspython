@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import base64
-import calendar
+import datetime
 import struct
 import time
 from typing import TypeVar
@@ -47,7 +47,13 @@ def sigtime_to_posixtime(what):
     hour = int(what[8:10])
     minute = int(what[10:12])
     second = int(what[12:14])
-    return calendar.timegm((year, month, day, hour, minute, second, 0, 0, 0))
+    try:
+        value = datetime.datetime(
+            year, month, day, hour, minute, second, tzinfo=datetime.UTC
+        )
+    except ValueError:
+        raise BadSigTime
+    return int(value.timestamp())
 
 
 def posixtime_to_sigtime(what):
