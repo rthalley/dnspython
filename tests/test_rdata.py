@@ -803,6 +803,49 @@ class RdataTestCase(unittest.TestCase):
         except dns.exception.SyntaxError as e:
             self.assertIsInstance(e.__cause__, dns.rdtypes.ANY.RRSIG.BadSigTime)
 
+    def test_invalid_signature_calendar_time(self):
+        invalid = (
+            "20260001000000",
+            "20260100000000",
+            "20260229000000",
+            "20260231000000",
+            "20260431000000",
+            "20260101240000",
+            "20260101006000",
+            "20260101000060",
+        )
+        for value in invalid:
+            for rdtype in ("SIG", "RRSIG"):
+                for field in (0, 1):
+                    with self.subTest(value=value, rdtype=rdtype, field=field):
+                        times = ["20270101000000", "20260101000000"]
+                        times[field] = value
+                        text = f"A 8 1 3600 {times[0]} {times[1]} 1234 example. YQ=="
+                        with self.assertRaises(dns.exception.SyntaxError) as cm:
+                            dns.rdata.from_text("IN", rdtype, text)
+                        self.assertIsInstance(
+                            cm.exception.__cause__, dns.rdtypes.ANY.RRSIG.BadSigTime
+                        )
+
+    def test_valid_signature_calendar_time(self):
+        for value, timestamp in (
+            ("19700101000000", 0),
+            ("20240229000000", 1709164800),
+            ("21060207062815", 4294967295),
+        ):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    dns.rdtypes.ANY.RRSIG.sigtime_to_posixtime(value), timestamp
+                )
+                self.assertEqual(
+                    dns.rdtypes.ANY.RRSIG.posixtime_to_sigtime(timestamp), value
+                )
+        for value in ("0", "1709164800", "4294967295"):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    dns.rdtypes.ANY.RRSIG.sigtime_to_posixtime(value), int(value)
+                )
+
     def test_empty_TXT(self):
         # hit too long
         with self.assertRaises(dns.exception.SyntaxError):
