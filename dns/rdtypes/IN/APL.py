@@ -94,10 +94,11 @@ class APL(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, items):
         super().__init__(rdclass, rdtype)
+        items = tuple(items)
         for item in items:
             if not isinstance(item, APLItem):
                 raise ValueError("item not an APLItem")
-        self.items = tuple(items)
+        self.items = items
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return " ".join(map(str, self.items))

@@ -838,6 +838,21 @@ class RdataTestCase(unittest.TestCase):
             # value.
             dns.rdtypes.IN.APL.APLItem(9999, False, b"0xff" * 128, 255)
 
+    def test_APL_generator_items(self):
+        expected = dns.rdata.from_text("IN", "APL", "1:192.0.2.0/24 !2:2001:db8::/32")
+        actual = dns.rdtypes.IN.APL.APL(
+            dns.rdataclass.IN, dns.rdatatype.APL, (item for item in expected.items)
+        )
+        self.assertEqual(actual.items, expected.items)
+        self.assertEqual(actual.to_text(), expected.to_text())
+        self.assertEqual(actual.to_wire(), expected.to_wire())
+
+    def test_APL_generator_rejects_invalid_item(self):
+        with self.assertRaises(ValueError):
+            dns.rdtypes.IN.APL.APL(
+                dns.rdataclass.IN, dns.rdatatype.APL, (item for item in [object()])
+            )
+
     def test_APL_unknown_family_text_round_trip(self):
         # 9999 is an "unknown" address family, whose address is shown in hex.
         wire = b"\x27\x0f\x08\x82\xab\xcd" + b"\x27\x0f\x00\x40" + b"\xef" * 64
