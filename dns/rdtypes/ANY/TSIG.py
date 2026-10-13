@@ -84,9 +84,10 @@ class TSIG(dns.rdata.Rdata):
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         algorithm = self.algorithm.to_styled_text(style)
         error = dns.rcode.to_text(self.error, True)
+        mac = dns.rdata._base64ify(self.mac, 0) or '""'
         text = (
             f"{algorithm} {self.time_signed} {self.fudge} "
-            + f"{len(self.mac)} {dns.rdata._base64ify(self.mac, 0)} "
+            + f"{len(self.mac)} {mac} "
             + f"{self.original_id} {error} {len(self.other)}"
         )
         if self.other:
