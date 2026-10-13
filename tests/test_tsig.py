@@ -9,6 +9,7 @@ import dns.exception
 import dns.message
 import dns.rcode
 import dns.rdtypes.ANY.TKEY
+import dns.rdtypes.ANY.TSIG
 import dns.tsig
 import dns.tsigkeyring
 
@@ -335,6 +336,46 @@ class TSIGTestCase(unittest.TestCase):
 
     def test_text_hmac_sha512_256(self):
         self._test_text_format(dns.tsig.HMAC_SHA512_256)
+
+    def test_text_empty_mac(self):
+        for error in (dns.rcode.BADKEY, dns.rcode.BADSIG):
+            with self.subTest(error=error):
+                tsig = dns.rdtypes.ANY.TSIG.TSIG(
+                    dns.rdataclass.ANY,
+                    dns.rdatatype.TSIG,
+                    dns.tsig.HMAC_SHA256,
+                    0,
+                    300,
+                    b"",
+                    1234,
+                    error,
+                    b"",
+                )
+                wire = tsig.to_wire()
+                tsig = dns.rdata.from_wire("ANY", "TSIG", wire, 0, len(wire))
+                parsed = dns.rdata.from_text("ANY", "TSIG", tsig.to_text())
+                self.assertEqual(parsed, tsig)
+                self.assertEqual(parsed.to_wire(), wire)
+
+    def test_text_empty_tkey_key(self):
+        for other in (b"", b"other"):
+            with self.subTest(other=other):
+                tkey = dns.rdtypes.ANY.TKEY.TKEY(
+                    dns.rdataclass.ANY,
+                    dns.rdatatype.TKEY,
+                    dns.tsig.HMAC_SHA256,
+                    0,
+                    0,
+                    dns.rdtypes.ANY.TKEY.TKEY.KEY_DELETION,
+                    0,
+                    b"",
+                    other,
+                )
+                wire = tkey.to_wire()
+                tkey = dns.rdata.from_wire("ANY", "TKEY", wire, 0, len(wire))
+                parsed = dns.rdata.from_text("ANY", "TKEY", tkey.to_text())
+                self.assertEqual(parsed, tkey)
+                self.assertEqual(parsed.to_wire(), wire)
 
     def test_non_gss_key_repr(self):
         key = dns.tsig.Key(
