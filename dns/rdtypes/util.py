@@ -66,7 +66,9 @@ class Gateway:
             raise SyntaxError(self._invalid_type(self.type))
 
     def to_text(self, origin=None, relativize=True) -> str:
-        return self.to_styled_text(dns.rdata.RdataStyle(origin=origin, relativize=True))
+        return self.to_styled_text(
+            dns.rdata.RdataStyle(origin=origin, relativize=relativize)
+        )
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         if self.type == 0:
