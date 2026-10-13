@@ -61,7 +61,7 @@ class TKEY(dns.rdata.Rdata):
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         algorithm = self.algorithm.to_styled_text(style)
         # Not styled
-        key = dns.rdata._base64ify(self.key, 0)
+        key = dns.rdata._base64ify(self.key, 0) or '""'
         other = ""
         if len(self.other) > 0:
             # Not styled
