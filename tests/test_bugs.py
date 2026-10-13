@@ -38,6 +38,30 @@ class BugsTestCase(unittest.TestCase):
         self.assertEqual(rdata.float_latitude, 30.5)
         self.assertEqual(rdata.float_longitude, -100.5)
 
+    def test_noncanonical_LOC_size_from_wire(self):
+        # RFC 1876 Section 2: size/hprec/vprec are base * 10^exponent. A zero
+        # base is the value 0 for any exponent, but to_wire writes 0x00 for 0,
+        # so bytes 0x01-0x09 are non-canonical zeros that would not round-trip.
+        # version, size, hprec, vprec, latitude, longitude, altitude
+        prefix = bytes([0])
+        suffix = binascii.unhexlify("8000000080000000" + "00989680")
+        for offset in range(3):  # size, hprec, vprec in turn
+            fields = [0, 0, 0]
+            fields[offset] = 0x05
+            wire = prefix + bytes(fields) + suffix
+            with self.assertRaises(dns.exception.FormError):
+                dns.rdata.from_wire(
+                    dns.rdataclass.IN, dns.rdatatype.LOC, wire, 0, len(wire)
+                )
+        # A real zero (0x00) and a non-zero value (0x12 == 1m) still parse and
+        # round-trip.
+        for byte in (0x00, 0x12):
+            wire = prefix + bytes([byte, byte, byte]) + suffix
+            rd = dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.LOC, wire, 0, len(wire)
+            )
+            self.assertEqual(rd.to_wire(), wire)
+
     def test_SOA_BIND8_TTL(self):
         rdata1 = dns.rdata.from_text(
             dns.rdataclass.IN, dns.rdatatype.SOA, "a b 100 1s 1m 1h 1d"

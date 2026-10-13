@@ -88,6 +88,13 @@ def _decode_size(what, desc):
     base = (what & 0xF0) >> 4
     if base > 9:
         raise dns.exception.FormError(f"bad {desc} base")
+    if base == 0 and exponent != 0:
+        # The octet encodes base * 10^exponent (RFC 1876 Section 2); a zero
+        # base is the value 0 regardless of the exponent, but _encode_size()
+        # always writes 0x00 for 0, so a non-zero exponent here is a second,
+        # non-canonical encoding of 0 that would be silently rewritten and
+        # would not round-trip.
+        raise dns.exception.FormError(f"bad {desc}: non-canonical zero")
     return base * pow(10, exponent)
 
 
