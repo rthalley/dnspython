@@ -9,6 +9,11 @@ What's New in dnspython
 * CAA constructors now validate the encoded tag bytes, consistently rejecting
   non-ASCII tags supplied as Python strings just as text and wire parsing do.
 
+* LOC wire parsing now rejects a non-canonical size, horizontal precision, or
+  vertical precision octet whose base is zero but whose exponent is not.  Such
+  an octet means the value 0, which ``to_wire`` always encodes as ``0x00``, so
+  the wire form did not round-trip.
+
 2.9.0
 -----
 
