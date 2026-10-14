@@ -19,11 +19,11 @@
 
 import contextlib
 import io
-import random
 import struct
 import time
 
 import dns.edns
+import dns.entropy
 import dns.exception
 import dns.name
 import dns.rdataclass
@@ -112,7 +112,7 @@ class Renderer:
 
         self.output = io.BytesIO()
         if id is None:
-            self.id = random.randint(0, 65535)
+            self.id = dns.entropy.random_16()
         else:
             self.id = id
         self.flags = flags

@@ -56,6 +56,9 @@ Core RFCs
 `RFC 3645 <https://tools.ietf.org/html/rfc3645>`_
     GSS-TSIG.
 
+`RFC 5452 <https://tools.ietf.org/html/rfc5452>`_
+    Measures for Making DNS More Resilient against Forged Answers.
+
 `RFC 5936 <https://tools.ietf.org/html/rfc5936>`_
     Zone transfers (AXFR).
 
