@@ -34,9 +34,9 @@ class EntropyPool:
         self.digest: bytearray | None = None
         self.next_byte = 0
         self.lock = threading.Lock()
-        self.hash = hashlib.sha1()
-        self.hash_len = 20
-        self.pool = bytearray(b"\0" * self.hash_len)
+        self.hash = None
+        self.hash_len = 0
+        self.pool = bytearray()
         if seed is not None:
             self._stir(seed)
             self.seeded = True
@@ -45,7 +45,19 @@ class EntropyPool:
             self.seeded = False
             self.seed_pid = 0
 
+    def _new_hash(self):
+        try:
+            self.hash = hashlib.sha256()
+            self.hash_len = 32
+        except AttributeError:
+            self.hash = hashlib.sha1()
+            self.hash_len = 20
+        if len(self.pool) != self.hash_len:
+            self.pool = bytearray(b"\0" * self.hash_len)
+
     def _stir(self, entropy: bytes | bytearray) -> None:
+        if self.hash is None:
+            self._new_hash()
         for c in entropy:
             if self.pool_index == self.hash_len:
                 self.pool_index = 0
@@ -77,8 +89,12 @@ class EntropyPool:
         with self.lock:
             self._maybe_seed()
             if self.digest is None or self.next_byte == self.hash_len:
+                assert(self.hash is not None)
                 self.hash.update(bytes(self.pool))
                 self.digest = bytearray(self.hash.digest())
+                # We make a new hash because on MicroPython you can't update
+                # and digest more than once.
+                self._new_hash()
                 self._stir(self.digest)
                 self.next_byte = 0
             value = self.digest[self.next_byte]
