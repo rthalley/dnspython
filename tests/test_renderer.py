@@ -1,6 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import unittest
+import unittest.mock
 
 import dns.exception
 import dns.flags
@@ -103,6 +104,14 @@ class RendererTestCase(unittest.TestCase):
             r.add_rdataset(dns.renderer.ANSWER, qname, rds)
 
         self.assertRaises(dns.exception.FormError, bad)
+
+    def test_default_id_comes_from_entropy(self):
+        # The default message id is anti-spoofing entropy (RFC 5452 section
+        # 9.2), so it must come from dns.entropy like dns.message.Message's
+        # default id, and not from the predictable global random generator.
+        with unittest.mock.patch("dns.entropy.random_16", return_value=12345):
+            r = dns.renderer.Renderer()
+            self.assertEqual(r.id, 12345)
 
     def test_reservation(self):
         r = dns.renderer.Renderer(flags=dns.flags.QR, max_size=512)
