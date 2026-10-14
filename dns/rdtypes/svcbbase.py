@@ -445,7 +445,7 @@ class ECHParam(Param):
     def from_value(cls, value):
         if "\\" in value:
             raise ValueError("escape in ECH value")
-        value = base64.b64decode(value.encode())
+        value = base64.b64decode(value.encode(), validate=True)
         return cls(value)
 
     def to_text(self):

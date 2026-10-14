@@ -146,6 +146,28 @@ class BugsTestCase(unittest.TestCase):
             )
             self.assertEqual(rd.to_wire(), rd2.to_wire())
 
+    def test_base64_rejects_non_alphabet(self):
+        # base64.b64decode() silently discards characters outside the base64
+        # alphabet, so a presentation form with junk in it used to be accepted
+        # and decoded to a different record than it spelled.
+        cases = {
+            dns.rdatatype.DNSKEY: ("257 3 8 AwEAAaY=", "257 3 8 AwEA!!AaY="),
+            dns.rdatatype.CDNSKEY: ("257 3 8 AwEAAaY=", "257 3 8 AwEA!!AaY="),
+            dns.rdatatype.CERT: ("PKIX 0 8 AwEAAaY=", "PKIX 0 8 AwEA!!AaY="),
+            dns.rdatatype.OPENPGPKEY: ("AwEAAaY=", "AwEA!!AaY="),
+            dns.rdatatype.DHCID: ("AAABxg==", "AAAB!!xg=="),
+            dns.rdatatype.HTTPS: ('1 . ech="AAQAAAAA"', '1 . ech="AAQA!!AAAA"'),
+        }
+        for rdtype, (good, bad) in cases.items():
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.rdata.from_text(dns.rdataclass.IN, rdtype, bad)
+            # The valid form still parses and round-trips.
+            rd = dns.rdata.from_text(dns.rdataclass.IN, rdtype, good)
+            self.assertEqual(
+                dns.rdata.from_text(dns.rdataclass.IN, rdtype, rd.to_text()).to_wire(),
+                rd.to_wire(),
+            )
+
     def test_TXT_conversions(self):
         t1 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, [b"foo"])
         t2 = dns.rdtypes.ANY.TXT.TXT(dns.rdataclass.IN, dns.rdatatype.TXT, b"foo")

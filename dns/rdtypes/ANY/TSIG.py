@@ -102,14 +102,14 @@ class TSIG(dns.rdata.Rdata):
         time_signed = tok.get_uint48()
         fudge = tok.get_uint16()
         mac_len = tok.get_uint16()
-        mac = base64.b64decode(tok.get_string())
+        mac = base64.b64decode(tok.get_string(), validate=True)
         if len(mac) != mac_len:
             raise SyntaxError("invalid MAC")
         original_id = tok.get_uint16()
         error = dns.rcode.from_text(tok.get_string())
         other_len = tok.get_uint16()
         if other_len > 0:
-            other = base64.b64decode(tok.get_string())
+            other = base64.b64decode(tok.get_string(), validate=True)
             if len(other) != other_len:
                 raise SyntaxError("invalid other data")
         else:

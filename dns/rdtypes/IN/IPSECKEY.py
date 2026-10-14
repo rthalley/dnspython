@@ -63,7 +63,7 @@ class IPSECKEY(dns.rdata.Rdata):
             gateway_type, tok, origin, relativize, relativize_to
         )
         b64 = tok.concatenate_remaining_identifiers().encode()
-        key = base64.b64decode(b64)
+        key = base64.b64decode(b64, validate=True)
         return cls(
             rdclass, rdtype, precedence, gateway_type, algorithm, gateway.gateway, key
         )
