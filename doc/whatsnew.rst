@@ -6,6 +6,13 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.renderer.Renderer`` now draws its default message id from
+  ``dns.entropy``, as ``dns.message.Message`` already did.  The id was
+  previously taken from the ``random`` module's global generator, which is
+  seedable and predictable from its outputs, weakening the id's role as
+  anti-spoofing entropy (RFC 5452 section 9.2) for messages built directly
+  with the renderer.
+
 * CAA constructors now validate the encoded tag bytes, consistently rejecting
   non-ASCII tags supplied as Python strings just as text and wire parsing do.
 
