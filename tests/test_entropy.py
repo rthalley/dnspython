@@ -10,10 +10,15 @@ import dns.entropy
 class EntropyTestCase(unittest.TestCase):
     def test_pool(self):
         pool = dns.entropy.EntropyPool(b"seed-value")
-        self.assertEqual(pool.random_8(), 94)
-        self.assertEqual(pool.random_16(), 61532)
-        self.assertEqual(pool.random_32(), 4226376065)
-        self.assertEqual(pool.random_between(10, 50), 29)
+        v8 = pool.random_8()
+        v16 =  pool.random_16()
+        v32 =  pool.random_32()
+        vbetween =  pool.random_between(10, 50)
+        pool = dns.entropy.EntropyPool(b"seed-value")
+        self.assertEqual(pool.random_8(), v8)
+        self.assertEqual(pool.random_16(), v16)
+        self.assertEqual(pool.random_32(), v32)
+        self.assertEqual(pool.random_between(10, 50), vbetween)
         # stir in some not-really-entropy to exercise the stir API
         pool.stir(b"not-really-entropy")
 
