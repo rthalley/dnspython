@@ -74,7 +74,7 @@ class DNSKEYBase(dns.rdata.Rdata):
         protocol = tok.get_uint8()
         algorithm = tok.get_string()
         b64 = tok.concatenate_remaining_identifiers().encode()
-        key = base64.b64decode(b64)
+        key = base64.b64decode(b64, validate=True)
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

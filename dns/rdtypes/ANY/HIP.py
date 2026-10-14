@@ -61,7 +61,7 @@ class HIP(dns.rdata.Rdata):
     ):
         algorithm = tok.get_uint8()
         hit = binascii.unhexlify(tok.get_string().encode())
-        key = base64.b64decode(tok.get_string().encode())
+        key = base64.b64decode(tok.get_string().encode(), validate=True)
         servers = []
         for token in tok.get_remaining():
             server = tok.as_name(token, origin, relativize, relativize_to)

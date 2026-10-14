@@ -96,7 +96,7 @@ class CERT(dns.rdata.Rdata):
         key_tag = tok.get_uint16()
         algorithm = dns.dnssectypes.Algorithm.from_text(tok.get_string())
         b64 = tok.concatenate_remaining_identifiers().encode()
-        certificate = base64.b64decode(b64)
+        certificate = base64.b64decode(b64, validate=True)
         return cls(rdclass, rdtype, certificate_type, key_tag, algorithm, certificate)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

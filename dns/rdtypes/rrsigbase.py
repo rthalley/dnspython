@@ -139,7 +139,7 @@ class RRSIGBase(dns.rdata.Rdata):
         key_tag = tok.get_int()
         signer = tok.get_name(origin, relativize, relativize_to)
         b64 = tok.concatenate_remaining_identifiers().encode()
-        signature = base64.b64decode(b64)
+        signature = base64.b64decode(b64, validate=True)
         return cls(
             rdclass,
             rdtype,
