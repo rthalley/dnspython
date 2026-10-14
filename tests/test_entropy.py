@@ -1,6 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import unittest
+import unittest.mock
 
 import dns.entropy
 
@@ -57,3 +58,38 @@ class EntropyForcePoolTestCase(unittest.TestCase):
         self.assertTrue(0 <= v <= 65535)
         v = dns.entropy.between(10, 50)
         self.assertTrue(10 <= v <= 50)
+
+
+class EntropyFPSTestCase(unittest.TestCase):
+    """Verify EntropyPool works when OpenSSL's FIPS provider refuses SHA-1."""
+
+    def test_pool_with_fips_unsupported_sha1(self):
+        import _hashlib
+        import hashlib
+
+        original_new = _hashlib.new
+
+        def patched_new(name, *args, **kwargs):
+            if name == "sha1":
+                raise _hashlib.UnsupportedDigestmodError(
+                    "[digital envelope routines] unsupported"
+                )
+            return original_new(name, *args, **kwargs)
+
+        with unittest.mock.patch.object(_hashlib, "new", patched_new):
+            pool = dns.entropy.EntropyPool(b"fips-seed")
+            # must not raise; builtin _sha1 fallback should be used
+            val = pool.random_8()
+            self.assertIsInstance(val, int)
+            self.assertTrue(0 <= val <= 255)
+
+            # verify determinism: same seed produces same output
+            pool2 = dns.entropy.EntropyPool(b"fips-seed")
+            self.assertEqual(pool2.random_8(), val)
+
+    def test_hashlib_new_sha1_usedforsecurity(self):
+        import hashlib
+
+        h = hashlib.new("sha1", usedforsecurity=False)
+        h.update(b"test")
+        self.assertEqual(h.hexdigest(), "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")

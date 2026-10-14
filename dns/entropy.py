@@ -34,7 +34,7 @@ class EntropyPool:
         self.digest: bytearray | None = None
         self.next_byte = 0
         self.lock = threading.Lock()
-        self.hash = hashlib.sha1()
+        self.hash = hashlib.new("sha1", usedforsecurity=False)
         self.hash_len = 20
         self.pool = bytearray(b"\0" * self.hash_len)
         if seed is not None:
