@@ -109,7 +109,7 @@ class KEY(dns.rdtypes.dnskeybase.DNSKEYBase):
         # NOKEY value, nothing appears after the algorithm octet."
         if (flags & DNS_KEYFLAG_TYPEMASK) != LegacyFlag.NOKEY:
             b64 = tok.concatenate_remaining_identifiers().encode()
-            key = base64.b64decode(b64)
+            key = base64.b64decode(b64, validate=True)
         else:
             key = b""
 

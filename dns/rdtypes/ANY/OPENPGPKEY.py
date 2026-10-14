@@ -43,7 +43,7 @@ class OPENPGPKEY(dns.rdata.Rdata):
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
     ):
         b64 = tok.concatenate_remaining_identifiers().encode()
-        key = base64.b64decode(b64)
+        key = base64.b64decode(b64, validate=True)
         return cls(rdclass, rdtype, key)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

@@ -14,6 +14,13 @@ What's New in dnspython
   an octet means the value 0, which ``to_wire`` always encodes as ``0x00``, so
   the wire form did not round-trip.
 
+* Base64 fields in presentation format (the key material of DNSKEY, CDNSKEY,
+  KEY, CERT, HIP, IPSECKEY, OPENPGPKEY, RRSIG, SIG, DHCID, TSIG, TKEY, and the
+  SVCB/HTTPS ``ech`` value) are now rejected when they contain characters
+  outside the base64 alphabet.  ``base64.b64decode`` silently discarded such
+  characters, so a record spelled with junk in it decoded to different bytes
+  and its ``to_text`` no longer matched the input.
+
 2.9.0
 -----
 
