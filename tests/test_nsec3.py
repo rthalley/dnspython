@@ -74,6 +74,27 @@ class NSEC3TestCase(unittest.TestCase):
             )
             self.assertEqual(rdata.to_text(), f"1 0 100 abcd {next_field.lower()} A")
 
+    def test_NSEC3_next_non_canonical_base32hex(self):
+        # RFC 4648 Sec 3.5: when the Next Hashed Owner Name does not fill a
+        # whole number of base32hex characters, the unused low-order bits of
+        # the final character MUST be zero.  base32hex decoding ignores those
+        # bits, so a non-canonical spelling decoded to the same hash as the
+        # canonical one and to_text() did not reproduce the input.  "CPNMU"
+        # and "CPNMV" both decode to the three bytes 0x666f6f; only "cpnmu"
+        # is canonical.
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text(
+                dns.rdataclass.IN,
+                dns.rdatatype.NSEC3,
+                "1 0 100 ABCD CPNMV A",
+            )
+        rdata = dns.rdata.from_text(
+            dns.rdataclass.IN,
+            dns.rdatatype.NSEC3,
+            "1 0 100 ABCD CPNMU A",
+        )
+        self.assertEqual(rdata.to_text(), "1 0 100 abcd cpnmu A")
+
     def test_NSEC3_bitmap_trailing_zero_octet(self):
         # RFC 4034 Sec 4.1.2: a window's bitmap must not carry trailing zero
         # octets, and a window with no types present must not appear.  The wire
