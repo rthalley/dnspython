@@ -893,6 +893,10 @@ async def _inbound_xfr(
                 multi=(not is_udp),
                 one_rr_per_rrset=is_ixfr,
             )
+            # RFC 5936 section 2.2.1 requires the ID of every response message
+            # to be copied from the request.
+            if r.id != query.id:
+                raise BadResponse
             done = inbound.process_message(r)
             yield r
             tsig_ctx = r.tsig_ctx

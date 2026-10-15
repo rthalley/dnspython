@@ -6,6 +6,12 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.query.inbound_xfr()``, ``dns.asyncquery.inbound_xfr()``, and
+  ``dns.query.xfr()`` now raise ``dns.query.BadResponse`` when a response
+  message does not carry the ID of the request (RFC 5936 section 2.2.1).  The
+  ID was not checked, so a spoofed UDP IXFR response only had to match the
+  source port to be applied to the zone.
+
 * ``dns.renderer.Renderer`` now draws its default message id from
   ``dns.entropy``, as ``dns.message.Message`` already did.  The id was
   previously taken from the ``random`` module's global generator, which is

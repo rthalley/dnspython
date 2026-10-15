@@ -1070,3 +1070,69 @@ try:
 
 except ImportError:
     pass
+
+
+#
+# Every message of the response must carry the ID of the request (RFC 5936
+# section 2.2.1), otherwise a spoofed UDP IXFR response only has to hit the
+# source port to be applied to the zone.
+#
+class WrongIDXFRNanoNameserver(Server):
+    def __init__(self):
+        super().__init__(origin=dns.name.from_text("example"))
+
+    def handle(self, request):
+        try:
+            r = dns.message.from_text(ixfr, one_rr_per_rrset=True, origin=self.origin)
+            r.id = request.message.id ^ 1
+            return r
+        except Exception:
+            pass
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("udp_mode", udp_modes)
+def test_sync_inbound_xfr_wrong_id(udp_mode):
+    with WrongIDXFRNanoNameserver() as ns:
+        where, port = ns.tcp_address
+        zone = dns.zone.from_text(base, "example", zone_factory=dns.versioned.Zone)
+        with pytest.raises(dns.query.BadResponse):
+            dns.query.inbound_xfr(where, zone, port=port, udp_mode=udp_mode)
+        assert zone == dns.zone.from_text(base, "example")
+
+
+async def async_inbound_xfr_wrong_id(udp_mode):
+    with WrongIDXFRNanoNameserver() as ns:
+        where, port = ns.tcp_address
+        zone = dns.zone.from_text(base, "example", zone_factory=dns.versioned.Zone)
+        with pytest.raises(dns.query.BadResponse):
+            await dns.asyncquery.inbound_xfr(where, zone, port=port, udp_mode=udp_mode)
+        assert zone == dns.zone.from_text(base, "example")
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("udp_mode", udp_modes)
+def test_asyncio_inbound_xfr_wrong_id(udp_mode):
+    dns.asyncbackend.set_default_backend("asyncio")
+
+    async def run():
+        await async_inbound_xfr_wrong_id(udp_mode)
+
+    asyncio.run(run())
+
+
+try:
+    import trio
+
+    @pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+    @pytest.mark.parametrize("udp_mode", udp_modes)
+    def test_trio_inbound_xfr_wrong_id(udp_mode):
+        dns.asyncbackend.set_default_backend("trio")
+
+        async def run():
+            await async_inbound_xfr_wrong_id(udp_mode)
+
+        trio.run(run)
+
+except ImportError:
+    pass
