@@ -6,6 +6,13 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.query.https()``, ``dns.query.quic()``, and their ``dns.asyncquery``
+  equivalents now validate the response to a TSIG-signed query against the
+  query's MAC.  They previously passed an empty request MAC, so a correctly
+  signed response failed with ``BadSignature`` and a response with no TSIG at
+  all was accepted, as the RFC 8945 section 5.4 check for a missing TSIG was
+  skipped.
+
 * ``dns.renderer.Renderer`` now draws its default message id from
   ``dns.entropy``, as ``dns.message.Message`` already did.  The id was
   previously taken from the ``random`` module's global generator, which is
