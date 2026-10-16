@@ -494,6 +494,26 @@ class MessageTestCase(unittest.TestCase):
         r.set_rcode(dns.rcode.FORMERR)
         self.assertTrue(q.is_response(r))
 
+    def test_xfr_continuation_empty_question(self):
+        for rdtype in ("AXFR", "IXFR"):
+            q = dns.message.make_query("example.", rdtype)
+            r = dns.message.make_response(q)
+            r.question = []
+            self.assertFalse(q.is_response(r))
+            self.assertTrue(q.is_response(r, xfr_continuation=True))
+            r.flags &= ~dns.flags.QR
+            self.assertFalse(q.is_response(r, xfr_continuation=True))
+        # Only an empty question is allowed, not a different one.
+        q = dns.message.make_query("example.", "AXFR")
+        r = dns.message.make_response(dns.message.make_query("other.", "AXFR"))
+        r.id = q.id
+        self.assertFalse(q.is_response(r, xfr_continuation=True))
+        # Not an xfr query, so no effect.
+        q = dns.message.make_query("example.", "A")
+        r = dns.message.make_response(q)
+        r.question = []
+        self.assertFalse(q.is_response(r, xfr_continuation=True))
+
     def test_not_a_response(self):
         q = dns.message.QueryMessage(id=1)
         self.assertFalse(q.is_response(q))
