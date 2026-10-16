@@ -64,8 +64,9 @@ class NameDict(MutableMapping):
     def __setitem__(self, key, value):
         if not isinstance(key, dns.name.Name):
             raise ValueError("NameDict key must be a name")
+        if key not in self.__store:
+            self.__update_max_depth(key)
         self.__store[key] = value
-        self.__update_max_depth(key)
 
     def __delitem__(self, key):
         self.__store.pop(key)
