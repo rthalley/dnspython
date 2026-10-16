@@ -949,6 +949,16 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text("xn--gro-7ka.com")
         self.assertEqual(n.to_unicode(True, dns.name.IDNA_2008), "groß.com")
 
+    def testToUnicodeEscapesAlternateDots(self):
+        # One label which punycode-decodes to "a。b．c｡d".  The
+        # Unicode full stops must be escaped, as from_unicode() would otherwise
+        # read them as label separators.
+        n = dns.name.from_text("xn--abcd-qw3ct543jwqa.example.")
+        s = n.to_unicode(idna_codec=dns.name.IDNA_2003_Practical)
+        self.assertEqual(s, "a\\。b\\．c\\｡d.example.")
+        u = dns.name.from_unicode(s, idna_codec=dns.name.IDNA_2003_Practical)
+        self.assertEqual(len(u), 3)
+
     def testIDNA2003Misc(self):
         self.assertEqual(dns.name.IDNA_2003.encode(""), b"")
         self.assertRaises(
