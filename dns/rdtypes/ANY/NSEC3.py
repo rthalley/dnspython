@@ -18,6 +18,7 @@
 import base64
 import binascii
 import struct
+import sys
 
 import dns.immutable
 import dns.name
@@ -88,13 +89,17 @@ class NSEC3(dns.rdata.Rdata):
         padded = next
         if len(padded) % 8 != 0:
             padded += b"=" * (8 - len(padded) % 8)
-        decoded = base64.b32hexdecode(padded)
         # A non-canonical spelling whose final base32hex character has non-zero
         # unused bits decodes to the same hash as the canonical one, so to_text
         # would not reproduce the input (RFC 4648 section 3.5).
-        if base64.b32hexencode(decoded).rstrip(b"=") != next:
-            raise binascii.Error("non-canonical base32hex")
-        next = decoded
+        if sys.version_info >= (3, 15):
+            next = base64.b32hexdecode(padded, canonical=True)
+        else:
+            # Remove this workaround when Python 3.15 is the minimum version.
+            decoded = base64.b32hexdecode(padded)
+            if base64.b32hexencode(decoded).rstrip(b"=") != next:
+                raise binascii.Error("non-canonical base32hex")
+            next = decoded
         bitmap = Bitmap.from_text(tok)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, bitmap)
 
