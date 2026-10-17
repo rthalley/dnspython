@@ -13,6 +13,12 @@ What's New in dnspython
   anti-spoofing entropy (RFC 5452 section 9.2) for messages built directly
   with the renderer.
 
+* The NSEC3 Next Hashed Owner Name in presentation format is now rejected when
+  it is not canonical base32hex, i.e. when the unused low-order bits of its
+  final character are not zero (RFC 4648 section 3.5).  Such a spelling decoded
+  to the same hash as the canonical one, so ``to_text`` of the result did not
+  match the input.
+
 * CAA constructors now validate the encoded tag bytes, consistently rejecting
   non-ASCII tags supplied as Python strings just as text and wire parsing do.
 
