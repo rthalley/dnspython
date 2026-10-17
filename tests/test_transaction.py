@@ -454,6 +454,36 @@ def test_write_after_rollback(zone):
     assert zone.get_rdataset("a99", "a") == rds
 
 
+@pytest.mark.parametrize("zone_factory", [dns.zone.Zone, dns.versioned.Zone])
+@pytest.mark.parametrize("relativize", [True, False])
+@pytest.mark.parametrize("absolute", [True, False])
+@pytest.mark.parametrize("method", ["delete", "delete_exact"])
+def test_zone_delete_rdataset_relativity(zone_factory, relativize, absolute, method):
+    zone = zone_factory("example.", relativize=relativize)
+    rrset = dns.rrset.from_text("host.example.", 300, "IN", "A", "192.0.2.1")
+    with zone.writer() as txn:
+        txn.add(rrset)
+    name = "host.example." if absolute else "host"
+    with zone.writer() as txn:
+        getattr(txn, method)(name, "A")
+        assert not txn.name_exists(name)
+    assert zone.get_node(name) is None
+
+
+@pytest.mark.parametrize("zone_factory", [dns.zone.Zone, dns.versioned.Zone])
+@pytest.mark.parametrize("relativize", [True, False])
+def test_zone_delete_last_rdata_relativity(zone_factory, relativize):
+    zone = zone_factory("example.", relativize=relativize)
+    name = dns.name.from_text("host.example." if relativize else "host", None)
+    rrset = dns.rrset.from_text(name, 300, "IN", "A", "192.0.2.1")
+    with zone.writer() as txn:
+        txn.add(rrset)
+    with zone.writer() as txn:
+        txn.delete(rrset)
+        assert not txn.name_exists(name)
+    assert zone.get_node(name) is None
+
+
 def test_zone_get_deleted(zone):
     with zone.writer() as txn:
         ns1 = dns.name.from_text("ns1", None)

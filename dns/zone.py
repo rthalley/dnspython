@@ -1127,7 +1127,7 @@ class WritableVersion(Version):
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType,
     ) -> None:
-        node = self._maybe_cow(name)
+        node, name = self._maybe_cow_with_name(name)
         node.delete_rdataset(self.zone.rdclass, rdtype, covers)
         if len(node) == 0:
             del self.nodes[name]
