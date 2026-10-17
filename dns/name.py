@@ -148,7 +148,9 @@ class NeedSubdomainOfOrigin(dns.exception.DNSException):
 
 
 _escaped = b'"().;\\@$'
-_escaped_text = '"().;\\@$'
+# The Unicode full stops are escaped too, as from_unicode() treats them as label
+# separators.
+_escaped_text = '"().;\\@$。．｡'
 
 
 def _escapify(label: bytes | str) -> str:
