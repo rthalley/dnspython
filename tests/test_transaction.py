@@ -4,6 +4,7 @@ import time
 
 import pytest
 
+import dns.btreezone
 import dns.name
 import dns.rdataclass
 import dns.rdataset
@@ -734,3 +735,36 @@ try:
 
 except ImportError:  # pragma: no cover
     pass
+
+
+@pytest.mark.parametrize(
+    "zone_factory", [dns.zone.Zone, dns.versioned.Zone, dns.btreezone.Zone]
+)
+@pytest.mark.parametrize("relativize", [True, False])
+@pytest.mark.parametrize("commit", [True, False])
+def test_empty_replacement(zone_factory, relativize, commit):
+    zone = dns.zone.from_text(
+        example_text, zone_factory=zone_factory, relativize=relativize
+    )
+    with zone.reader() as original:
+        names = list(original.iterate_names())
+        with zone.writer(replacement=True) as txn:
+            assert list(txn.iterate_names()) == []
+            assert txn.changed()
+            if not commit:
+                txn.rollback()
+        with zone.reader() as current:
+            assert list(current.iterate_names()) == ([] if commit else names)
+        assert list(original.iterate_names()) == names
+    with zone.writer() as txn:
+        assert not txn.changed()
+
+
+@pytest.mark.parametrize(
+    "zone_factory", [dns.zone.Zone, dns.versioned.Zone, dns.btreezone.Zone]
+)
+def test_empty_replacement_of_empty_zone(zone_factory):
+    zone = zone_factory("example.")
+    with zone.writer(replacement=True) as txn:
+        assert not txn.changed()
+    assert not zone.nodes
