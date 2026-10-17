@@ -622,7 +622,7 @@ def https(
     r = dns.message.from_wire(
         response.content,
         keyring=q.keyring,
-        request_mac=q.request_mac,
+        request_mac=q.mac,
         one_rr_per_rrset=one_rr_per_rrset,
         ignore_trailing=ignore_trailing,
     )
@@ -709,7 +709,7 @@ def _http3(
     r = dns.message.from_wire(
         wire,
         keyring=q.keyring,
-        request_mac=q.request_mac,
+        request_mac=q.mac,
         one_rr_per_rrset=one_rr_per_rrset,
         ignore_trailing=ignore_trailing,
     )
@@ -1470,7 +1470,7 @@ def quic(
     r = dns.message.from_wire(
         wire,
         keyring=q.keyring,
-        request_mac=q.request_mac,
+        request_mac=q.mac,
         one_rr_per_rrset=one_rr_per_rrset,
         ignore_trailing=ignore_trailing,
     )

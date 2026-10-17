@@ -6,6 +6,13 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.query.https()``, ``dns.query.quic()``, and their ``dns.asyncquery``
+  equivalents now validate the response to a TSIG-signed query against the
+  query's MAC.  They previously passed an empty request MAC, so a correctly
+  signed response failed with ``BadSignature`` and a response with no TSIG at
+  all was accepted, as the RFC 8945 section 5.4 check for a missing TSIG was
+  skipped.
+  
 * ``dns.query.inbound_xfr()``, ``dns.asyncquery.inbound_xfr()``, and
   ``dns.query.xfr()`` now check every response message with
   ``dns.message.Message.is_response()`` and raise ``dns.query.BadResponse`` if
