@@ -78,9 +78,10 @@ class Zone(dns.zone.Zone):  # lgtm[py/missing-equals]
         self._write_event: threading.Event | None = None
         self._write_waiters: collections.deque[threading.Event] = collections.deque()
         self._readers: set[Transaction] = set()
-        self._commit_version_unlocked(
-            None, WritableVersion(self, replacement=True), origin
-        )
+        writable_factory = self.writable_version_factory or WritableVersion
+        immutable_factory = self.immutable_version_factory or ImmutableVersion
+        version = immutable_factory(writable_factory(self, True))
+        self._commit_version_unlocked(None, version, origin)
 
     def reader(
         self, id: int | None = None, serial: int | None = None
