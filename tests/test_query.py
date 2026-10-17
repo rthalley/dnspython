@@ -381,7 +381,7 @@ class AXFRNanoNameserver(Server):
 ixfr_message = """id 12345
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -403,7 +403,7 @@ ixfr_trailing_junk = ixfr_message + "junk.example. 300 IN A 10.0.0.6"
 ixfr_up_to_date_message = """id 12345
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -413,7 +413,7 @@ example. 300 IN SOA ns1.example. root.example. 2 7200 900 1209600 86400
 axfr_trailing_junk = """id 12345
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 ;ANSWER

@@ -6,6 +6,19 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.query.inbound_xfr()``, ``dns.asyncquery.inbound_xfr()``, and
+  ``dns.query.xfr()`` now check every response message with
+  ``dns.message.Message.is_response()`` and raise ``dns.query.BadResponse`` if
+  it fails, e.g. if the ID of the request is not copied, QR is not set, or the
+  opcode differs (RFC 5936 section 2.2.1).  Nothing was checked, so a spoofed
+  UDP IXFR response only had to match the source port to be applied to the
+  zone.
+
+* ``dns.message.Message.is_response()`` has a new ``xfr_continuation``
+  parameter which allows an empty question section in the messages after the
+  first one of a zone transfer response, and it now compares question names in
+  absolute form, so a response read with an origin can match its query.
+
 * ``dns.renderer.Renderer`` now draws its default message id from
   ``dns.entropy``, as ``dns.message.Message`` already did.  The id was
   previously taken from the ``random`` module's global generator, which is
