@@ -1217,14 +1217,16 @@ class Transaction(dns.transaction.Transaction):
         else:
             assert self.version is not None
             version = cast(WritableVersion, self.version)
-            return len(version.changed) > 0
+            return len(version.changed) > 0 or (
+                self.replacement and len(self.zone.nodes) > 0
+            )
 
     def _end_transaction(self, commit):
         assert self.zone is not None
         assert self.version is not None
         if self.read_only:
             self.zone._end_read(self)  # pyright: ignore
-        elif commit and len(cast(WritableVersion, self.version).changed) > 0:
+        elif commit and self._changed():
             if self.make_immutable:
                 factory = self.manager.immutable_version_factory  # type: ignore
                 if factory is None:
