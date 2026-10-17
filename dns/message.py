@@ -309,11 +309,16 @@ class Message:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def is_response(self, other: "Message") -> bool:
+    def is_response(self, other: "Message", xfr_continuation: bool = False) -> bool:
         """Is *other* a response to this message?
 
         :param other: The message to check.
         :type other: :py:class:`dns.message.Message`
+        :param xfr_continuation: If ``True``, *other* is a message after the
+            first one in the response to an AXFR or IXFR query, and its
+            question section may be empty (RFC 5936 section 2.2.1).  This has
+            no effect if this message is not an AXFR or IXFR query.
+        :type xfr_continuation: bool
         :rtype: bool
         """
 
@@ -340,13 +345,36 @@ class Message:
             # case, which is that all the sections are returned and
             # identical.
             return True
-        for n in self.question:
-            if n not in other.question:
+        if (
+            xfr_continuation
+            and len(other.question) == 0
+            and len(self.question) == 1
+            and self.question[0].rdtype in {dns.rdatatype.AXFR, dns.rdatatype.IXFR}
+        ):
+            return True
+        # Compare the questions with absolute names, as a message read with
+        # an origin (e.g. a zone transfer response) has relativized names.
+        ours = self._absolute_question()
+        theirs = other._absolute_question()
+        for n in ours:
+            if n not in theirs:
                 return False
-        for n in other.question:
-            if n not in self.question:
+        for n in theirs:
+            if n not in ours:
                 return False
         return True
+
+    def _absolute_question(self) -> list[tuple[dns.name.Name, int, int, int]]:
+        origin = self.origin
+        return [
+            (
+                rrset.name.derelativize(origin) if origin else rrset.name,
+                rrset.rdclass,
+                rrset.rdtype,
+                rrset.covers,
+            )
+            for rrset in self.question
+        ]
 
     def section_number(self, section: list[dns.rrset.RRset]) -> int:
         """Return the "section number" of the specified section for use

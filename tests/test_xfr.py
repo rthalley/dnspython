@@ -7,7 +7,9 @@ import pytest
 
 import dns.asyncbackend
 import dns.asyncquery
+import dns.flags
 import dns.message
+import dns.opcode
 import dns.query
 import dns.tsigkeyring
 import dns.versioned
@@ -30,7 +32,7 @@ except ImportError:
 axfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 ;ANSWER
@@ -46,7 +48,7 @@ ns2 3600 IN A 10.0.0.2
 axfr1 = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 ;ANSWER
@@ -57,7 +59,7 @@ example. IN AXFR
 axfr2 = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;ANSWER
 bar.foo 300 IN MX 0 blaz.foo
 ns1 3600 IN A 10.0.0.1
@@ -76,7 +78,7 @@ ns2 3600 IN A 10.0.0.2
 axfr_unexpected_origin = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 ;ANSWER
@@ -87,7 +89,7 @@ example. IN AXFR
 axfr_with_nonsubdomain_glue = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 ;ANSWER
@@ -103,7 +105,7 @@ ns1.other. 300 IN A 1.2.3.4
 ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -125,7 +127,7 @@ ns3 3600 IN A 10.0.0.3
 compressed_ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -150,7 +152,7 @@ ns3 3600 IN A 10.0.0.3
 ixfr_first_message = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -160,7 +162,7 @@ example. IN IXFR
 ixfr_header = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;ANSWER
 """
 
@@ -185,7 +187,7 @@ ixfrs.extend([ixfr_header + l for l in ixfr_body])
 good_empty_ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -195,7 +197,7 @@ example. IN IXFR
 retry_tcp_ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -205,7 +207,7 @@ example. IN IXFR
 bad_empty_ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -216,7 +218,7 @@ example. IN IXFR
 unexpected_end_ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -234,7 +236,7 @@ ns3 3600 IN A 10.0.0.3
 unexpected_end_ixfr_2 = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -248,7 +250,7 @@ ns2 3600 IN A 10.0.0.2
 bad_serial_ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -266,7 +268,7 @@ ns3 3600 IN A 10.0.0.3
 ixfr_axfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -282,7 +284,7 @@ ns2 3600 IN A 10.0.0.2
 ixfr_axfr1 = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -294,7 +296,7 @@ example. IN IXFR
 ixfr_axfr2 = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -505,7 +507,7 @@ def test_no_udp_with_axfr():
 refused = """id 1
 opcode QUERY
 rcode REFUSED
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 """
@@ -513,7 +515,7 @@ example. IN AXFR
 bad_qname = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 not-example. IN IXFR
 """
@@ -521,7 +523,7 @@ not-example. IN IXFR
 bad_qtype = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 """
@@ -529,7 +531,7 @@ example. IN AXFR
 soa_not_first = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -539,7 +541,7 @@ bar.foo 300 IN MX 0 blaz.foo
 soa_not_first_2 = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -549,7 +551,7 @@ example. IN IXFR
 no_answer = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ADDITIONAL
@@ -559,7 +561,7 @@ bar.foo 300 IN MX 0 blaz.foo
 axfr_answers_after_final_soa = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN AXFR
 ;ANSWER
@@ -859,7 +861,7 @@ def test_asyncio_retry_tcp_inbound_xfr():
 went_backwards_ixfr = """id 1
 opcode QUERY
 rcode NOERROR
-flags AA
+flags QR AA
 ;QUESTION
 example. IN IXFR
 ;ANSWER
@@ -1070,3 +1072,170 @@ try:
 
 except ImportError:
     pass
+
+
+#
+# Every message of the response must pass is_response() against the request
+# (RFC 5936 section 2.2.1), otherwise a spoofed UDP IXFR response only has to
+# hit the source port to be applied to the zone.
+#
+def _wrong_id(r):
+    r.id ^= 1
+
+
+def _no_qr(r):
+    r.flags &= ~dns.flags.QR
+
+
+def _wrong_opcode(r):
+    r.set_opcode(dns.opcode.NOTIFY)
+
+
+bad_responses = [_wrong_id, _no_qr, _wrong_opcode]
+
+
+class BadResponseXFRNanoNameserver(Server):
+    def __init__(self, mutate):
+        super().__init__(origin=dns.name.from_text("example"))
+        self.mutate = mutate
+
+    def handle(self, request):
+        try:
+            r = dns.message.from_text(ixfr, one_rr_per_rrset=True, origin=self.origin)
+            r.id = request.message.id
+            self.mutate(r)
+            return r
+        except Exception:
+            pass
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("udp_mode", udp_modes)
+@pytest.mark.parametrize("mutate", bad_responses)
+def test_sync_inbound_xfr_bad_response(udp_mode, mutate):
+    with BadResponseXFRNanoNameserver(mutate) as ns:
+        where, port = ns.tcp_address
+        zone = dns.zone.from_text(base, "example", zone_factory=dns.versioned.Zone)
+        with pytest.raises(dns.query.BadResponse):
+            dns.query.inbound_xfr(where, zone, port=port, udp_mode=udp_mode)
+        assert zone == dns.zone.from_text(base, "example")
+
+
+async def async_inbound_xfr_bad_response(udp_mode, mutate):
+    with BadResponseXFRNanoNameserver(mutate) as ns:
+        where, port = ns.tcp_address
+        zone = dns.zone.from_text(base, "example", zone_factory=dns.versioned.Zone)
+        with pytest.raises(dns.query.BadResponse):
+            await dns.asyncquery.inbound_xfr(where, zone, port=port, udp_mode=udp_mode)
+        assert zone == dns.zone.from_text(base, "example")
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.parametrize("udp_mode", udp_modes)
+@pytest.mark.parametrize("mutate", bad_responses)
+def test_asyncio_inbound_xfr_bad_response(udp_mode, mutate):
+    dns.asyncbackend.set_default_backend("asyncio")
+
+    async def run():
+        await async_inbound_xfr_bad_response(udp_mode, mutate)
+
+    asyncio.run(run())
+
+
+try:
+    import trio
+
+    @pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+    @pytest.mark.parametrize("udp_mode", udp_modes)
+    @pytest.mark.parametrize("mutate", bad_responses)
+    def test_trio_inbound_xfr_bad_response(udp_mode, mutate):
+        dns.asyncbackend.set_default_backend("trio")
+
+        async def run():
+            await async_inbound_xfr_bad_response(udp_mode, mutate)
+
+        trio.run(run)
+
+except ImportError:
+    pass
+
+
+#
+# Messages after the first one may have an empty question section (RFC 5936
+# section 2.2.1), and that is still accepted.
+#
+axfr_part1 = """id 1
+opcode QUERY
+rcode NOERROR
+flags QR AA
+;QUESTION
+example. IN AXFR
+;ANSWER
+@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns1
+@ 3600 IN NS ns2
+"""
+
+axfr_part2 = """id 1
+opcode QUERY
+rcode NOERROR
+flags QR AA
+;ANSWER
+bar.foo 300 IN MX 0 blaz.foo
+ns1 3600 IN A 10.0.0.1
+ns2 3600 IN A 10.0.0.2
+@ 3600 IN SOA foo bar 1 2 3 4 5
+"""
+
+
+class EmptyQuestionXFRNanoNameserver(Server):
+    def __init__(self, first_empty=False):
+        super().__init__(origin=dns.name.from_text("example"))
+        self.first_empty = first_empty
+
+    def handle(self, request):
+        try:
+            messages = [
+                dns.message.from_text(text, one_rr_per_rrset=True, origin=self.origin)
+                for text in (axfr_part1, axfr_part2)
+            ]
+            for r in messages:
+                r.id = request.message.id
+            if self.first_empty:
+                messages[0].question = []
+            return messages
+        except Exception:
+            pass
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+def test_sync_inbound_xfr_empty_question():
+    with EmptyQuestionXFRNanoNameserver() as ns:
+        where, port = ns.tcp_address
+        zone = dns.versioned.Zone("example")
+        dns.query.inbound_xfr(where, zone, port=port)
+        assert zone == dns.zone.from_text(base, "example")
+    with EmptyQuestionXFRNanoNameserver(first_empty=True) as ns:
+        where, port = ns.tcp_address
+        zone = dns.versioned.Zone("example")
+        with pytest.raises(dns.query.BadResponse):
+            dns.query.inbound_xfr(where, zone, port=port)
+
+
+@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+def test_asyncio_inbound_xfr_empty_question():
+    dns.asyncbackend.set_default_backend("asyncio")
+
+    async def run():
+        with EmptyQuestionXFRNanoNameserver() as ns:
+            where, port = ns.tcp_address
+            zone = dns.versioned.Zone("example")
+            await dns.asyncquery.inbound_xfr(where, zone, port=port)
+            assert zone == dns.zone.from_text(base, "example")
+        with EmptyQuestionXFRNanoNameserver(first_empty=True) as ns:
+            where, port = ns.tcp_address
+            zone = dns.versioned.Zone("example")
+            with pytest.raises(dns.query.BadResponse):
+                await dns.asyncquery.inbound_xfr(where, zone, port=port)
+
+    asyncio.run(run())
