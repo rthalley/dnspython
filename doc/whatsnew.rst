@@ -3,8 +3,8 @@
 What's New in dnspython
 =======================
 
-2.10.0 (in development)
------------------------
+2.9.1 (in development)
+----------------------
 
 * ``dns.query.https()``, ``dns.query.quic()``, and their ``dns.asyncquery``
   equivalents now validate the response to a TSIG-signed query against the
