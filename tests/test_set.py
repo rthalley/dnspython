@@ -264,6 +264,39 @@ class SetTestCase(unittest.TestCase):
         s2 = S(slice)
         self.assertEqual(s1, s2)
 
+    def testNegativeIndex(self):
+        items = [1, 2, 3]
+        s = S(items)
+        for i in range(-len(items), len(items)):
+            with self.subTest(index=i):
+                self.assertEqual(s[i], items[i])
+
+    def testIndexOutOfRange(self):
+        for items in ([], [1, 2, 3]):
+            s = S(items)
+            for i in (-(10**100), -len(items) - 1, len(items), 10**100):
+                with self.subTest(items=items, index=i):
+                    with self.assertRaises(IndexError):
+                        s[i]
+
+    def testDeleteNegativeIndex(self):
+        for i in (-3, -2, -1):
+            with self.subTest(index=i):
+                items = [1, 2, 3]
+                s = S(items)
+                del items[i]
+                del s[i]
+                self.assertEqual(list(s), items)
+
+    def testDeleteIndexOutOfRange(self):
+        for items in ([], [1, 2, 3]):
+            s = S(items)
+            for i in (-len(items) - 1, len(items)):
+                with self.subTest(items=items, index=i):
+                    with self.assertRaises(IndexError):
+                        del s[i]
+                    self.assertEqual(list(s), items)
+
     def testDelitem(self):
         s1 = S([1, 2, 3])
         del s1[0]
