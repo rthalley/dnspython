@@ -4,6 +4,12 @@
 # of the signed query, and a response without a TSIG must be rejected.
 
 import asyncio
+try:
+    import ssl
+    have_ssl = True
+except ImportError:
+    import dns._no_ssl as ssl  # pyright: ignore
+    have_ssl = False
 
 import pytest
 
@@ -31,6 +37,7 @@ except ImportError:
 
 keyring = dns.tsigkeyring.from_text({"name": "tDz6cfXXGtNivRpQ98hr6A=="})
 ca = here("tls/ca.crt")
+ca_context = ssl.create_default_context(cafile=ca)
 
 
 class SignedServer(Server):
@@ -65,14 +72,14 @@ def async_doq(server, q):
 
 def doh(server, q):
     port = server.get_address(ConnectionType.DOH)[1]
-    return dns.query.https(q, f"https://127.0.0.1:{port}/dns-query", verify=ca)
+    return dns.query.https(q, f"https://127.0.0.1:{port}/dns-query", verify=ca_context)
 
 
 def async_doh(server, q):
     port = server.get_address(ConnectionType.DOH)[1]
     dns.asyncbackend.set_default_backend("asyncio")
     return asyncio.run(
-        dns.asyncquery.https(q, f"https://127.0.0.1:{port}/dns-query", verify=ca)
+        dns.asyncquery.https(q, f"https://127.0.0.1:{port}/dns-query", verify=ca_context)
     )
 
 
@@ -119,7 +126,8 @@ transports = [
 ]
 
 
-@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.skipif(not _nanonameserver_available or not have_ssl,
+                    reason="requires nanonameserver and ssl")
 @pytest.mark.parametrize("query_function", transports)
 def test_signed_response(query_function):
     with SignedServer(keyring=keyring) as server:
@@ -127,7 +135,8 @@ def test_signed_response(query_function):
         assert r.had_tsig
 
 
-@pytest.mark.skipif(not _nanonameserver_available, reason="requires nanonameserver")
+@pytest.mark.skipif(not _nanonameserver_available or not have_ssl,
+                    reason="requires nanonameserver and ssl")
 @pytest.mark.parametrize("query_function", transports)
 def test_unsigned_response(query_function):
     with UnsignedServer(keyring=keyring) as server:
