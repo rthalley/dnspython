@@ -6,6 +6,14 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``$GENERATE`` now substitutes the iterator the way BIND does.  The nibble
+  formats ``n`` and ``N`` produced an empty label when the width was 0 and
+  dropped nibbles when the value needed more characters than the width,
+  ``$$`` and ``\$`` were not treated as a literal ``$``, and when a template
+  contained a ``$`` with a modifier, any other ``$`` in it was left
+  unsubstituted.  A malformed ``${...}`` modifier is now a syntax error
+  instead of being copied into the output.
+
 * ``dns.query.https()``, ``dns.query.quic()``, and their ``dns.asyncquery``
   equivalents now validate the response to a TSIG-signed query against the
   query's MAC.  They previously passed an empty request MAC, so a correctly
