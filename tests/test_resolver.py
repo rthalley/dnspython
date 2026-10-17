@@ -37,6 +37,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.resolver
 import dns.reversename
+import dns.rrset
 import dns.tsig
 import dns.tsigkeyring
 import dns.win32util
@@ -363,6 +364,26 @@ class BaseResolverTests(unittest.TestCase):
         answer = dns.resolver.Answer(name, dns.rdatatype.A, dns.rdataclass.IN, message)
         del answer[0]
         self.assertEqual(len(answer), 0)
+
+    def testAnswerNegativeIndex(self):
+        query = dns.message.make_query("example.", "A")
+        response = dns.message.make_response(query)
+        rrset = dns.rrset.from_text(
+            "example.", 300, "IN", "A", "192.0.2.1", "192.0.2.2"
+        )
+        response.answer.append(rrset)
+        response = dns.message.from_wire(response.to_wire(want_shuffle=False))
+        answer = dns.resolver.Answer(
+            query.question[0].name, dns.rdatatype.A, dns.rdataclass.IN, response
+        )
+        self.assertEqual(answer[-1].address, "192.0.2.2")
+        self.assertEqual(answer[-2].address, "192.0.2.1")
+        for i in (-3, 2):
+            with self.subTest(index=i):
+                with self.assertRaises(IndexError):
+                    answer[i]
+        del answer[-1]
+        self.assertEqual([rd.address for rd in answer], ["192.0.2.1"])
 
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
