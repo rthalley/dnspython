@@ -264,6 +264,10 @@ class Set:
         if isinstance(i, slice):
             return list(itertools.islice(self.items, i.start, i.stop, i.step))
         else:
+            if i < 0:
+                i += len(self.items)
+            if i < 0 or i >= len(self.items):
+                raise IndexError("set index out of range")
             return next(itertools.islice(self.items, i, i + 1))
 
     def __delitem__(self, i):
