@@ -47,6 +47,13 @@ What's New in dnspython
   characters, so a record spelled with junk in it decoded to different bytes
   and its ``to_text`` no longer matched the input.
 
+* ``dns.name.Name.to_unicode()`` now escapes the Unicode full stops U+3002,
+  U+FF0E, and U+FF61 when a punycode label decodes to one of them.
+  ``dns.name.from_unicode()`` treats these characters as label separators, so
+  the unescaped output displayed and parsed back as a name with more labels
+  than the original, e.g. the one-label ``xn--wwwexamplecom-582lha.`` was
+  shown as ``www。example。com.``, which parses back as ``www.example.com.``.
+
 2.9.0
 -----
 
