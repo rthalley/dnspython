@@ -1,5 +1,7 @@
 from typing import cast
 
+import pytest
+
 import dns.btreezone
 import dns.rdataset
 import dns.zone
@@ -234,3 +236,21 @@ def test_bounds_absolute():
 
 def test_bounds_relative():
     do_test_bounds(True)
+
+
+@pytest.mark.parametrize("relativize", [True, False])
+def test_incremental_write_to_empty_zone(relativize):
+    zone = dns.btreezone.Zone("example.", relativize=relativize)
+    rdataset = dns.rdataset.from_text("IN", "A", 300, "192.0.2.1")
+    with zone.reader() as original:
+        with zone.writer() as txn:
+            txn.add("host", rdataset)
+        assert original.get("host", "A") is None
+        assert isinstance(original.version, dns.btreezone.ImmutableVersion)
+        assert len(original.version.delegations) == 0
+    with zone.reader() as txn:
+        assert txn.get("host", "A") == rdataset
+    with zone.writer() as txn:
+        txn.delete("host")
+    with zone.reader() as txn:
+        assert txn.get("host", "A") is None

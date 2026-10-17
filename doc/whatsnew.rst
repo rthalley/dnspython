@@ -12,6 +12,19 @@ What's New in dnspython
   signed response failed with ``BadSignature`` and a response with no TSIG at
   all was accepted, as the RFC 8945 section 5.4 check for a missing TSIG was
   skipped.
+  
+* ``dns.query.inbound_xfr()``, ``dns.asyncquery.inbound_xfr()``, and
+  ``dns.query.xfr()`` now check every response message with
+  ``dns.message.Message.is_response()`` and raise ``dns.query.BadResponse`` if
+  it fails, e.g. if the ID of the request is not copied, QR is not set, or the
+  opcode differs (RFC 5936 section 2.2.1).  Nothing was checked, so a spoofed
+  UDP IXFR response only had to match the source port to be applied to the
+  zone.
+
+* ``dns.message.Message.is_response()`` has a new ``xfr_continuation``
+  parameter which allows an empty question section in the messages after the
+  first one of a zone transfer response, and it now compares question names in
+  absolute form, so a response read with an origin can match its query.
 
 * ``dns.renderer.Renderer`` now draws its default message id from
   ``dns.entropy``, as ``dns.message.Message`` already did.  The id was
@@ -19,6 +32,12 @@ What's New in dnspython
   seedable and predictable from its outputs, weakening the id's role as
   anti-spoofing entropy (RFC 5452 section 9.2) for messages built directly
   with the renderer.
+
+* The NSEC3 Next Hashed Owner Name in presentation format is now rejected when
+  it is not canonical base32hex, i.e. when the unused low-order bits of its
+  final character are not zero (RFC 4648 section 3.5).  Such a spelling decoded
+  to the same hash as the canonical one, so ``to_text`` of the result did not
+  match the input.
 
 * CAA constructors now validate the encoded tag bytes, consistently rejecting
   non-ASCII tags supplied as Python strings just as text and wire parsing do.
@@ -34,6 +53,13 @@ What's New in dnspython
   outside the base64 alphabet.  ``base64.b64decode`` silently discarded such
   characters, so a record spelled with junk in it decoded to different bytes
   and its ``to_text`` no longer matched the input.
+
+* ``dns.name.Name.to_unicode()`` now escapes the Unicode full stops U+3002,
+  U+FF0E, and U+FF61 when a punycode label decodes to one of them.
+  ``dns.name.from_unicode()`` treats these characters as label separators, so
+  the unescaped output displayed and parsed back as a name with more labels
+  than the original, e.g. the one-label ``xn--wwwexamplecom-582lha.`` was
+  shown as ``www。example。com.``, which parses back as ``www.example.com.``.
 
 2.9.0
 -----

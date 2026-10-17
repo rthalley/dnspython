@@ -1517,6 +1517,7 @@ def _inbound_xfr(
         txn_manager, rdtype, serial, is_udp, raise_on_serial_went_backwards
     ) as inbound:
         done = False
+        first = True
         tsig_ctx = None
         while not done:
             _, mexpiration = _compute_times(timeout)
@@ -1540,6 +1541,9 @@ def _inbound_xfr(
                 multi=(not is_udp),
                 one_rr_per_rrset=is_ixfr,
             )
+            if not query.is_response(r, xfr_continuation=not first):
+                raise BadResponse
+            first = False
             done = inbound.process_message(r)
             yield r
             tsig_ctx = r.tsig_ctx
