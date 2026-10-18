@@ -6,6 +6,14 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``$GENERATE`` now substitutes the iterator the way BIND does.  The nibble
+  formats ``n`` and ``N`` produced an empty label when the width was 0 and
+  dropped nibbles when the value needed more characters than the width,
+  ``$$`` and ``\$`` were not treated as a literal ``$``, and when a template
+  contained a ``$`` with a modifier, any other ``$`` in it was left
+  unsubstituted.  A malformed ``${...}`` modifier is now a syntax error
+  instead of being copied into the output.
+
 * The ``to_text()`` output of the EDE, EDE-EXTRA-TEXT-LANGUAGE,
   FILTERING-CONTACT, FILTERING-ORGANIZATION, and FILTERING-DB EDNS options now
   escapes backslash and control characters as ``\DDD``.  The text in these

@@ -153,6 +153,26 @@ $GENERATE 1-10 foo$ CNAME $.0
 """
 
 
+nibble_input = """@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns1
+$GENERATE 10-11 ${0,0,n}.a 3600 A 10.0.0.$
+$GENERATE 427-427 ${0,3,n}.b 3600 A 10.0.0.1
+$GENERATE 10-10 ${0,5,N}.c 3600 A 10.0.0.1
+$GENERATE 1-1 d 3600 PTR ${10,3,n}.ip6.arpa.
+"""
+
+dollar_input = """@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns1
+$GENERATE 1-1 a$$ 3600 CNAME b$$.$
+$GENERATE 2-2 c\\$ 3600 CNAME d\\$.$
+"""
+
+multiple_modifiers_input = """@ 3600 IN SOA foo bar 1 2 3 4 5
+@ 3600 IN NS ns1
+$GENERATE 1-2 host${0,2,d}-$ 3600 CNAME h${10}-$.
+"""
+
+
 def _rdata_sort(a):
     return (a[0], a[2].rdclass, a[2].to_text())
 
@@ -695,6 +715,35 @@ class GenerateTestCase(unittest.TestCase):
 
         exl.sort(key=_rdata_sort)
         self.assertEqual(l, exl)
+
+    def testGenerateNibbles(self):
+        z = dns.zone.from_text(nibble_input, "example.")
+        self.assertEqual(z.find_rdataset("a.a", "A")[0].to_text(), "10.0.0.10")
+        self.assertEqual(z.find_rdataset("b.a", "A")[0].to_text(), "10.0.0.11")
+        self.assertIsNotNone(z.get_rdataset("b.a.1.b", "A"))
+        node_names = {n.to_text() for n in z.nodes.keys()}
+        self.assertIn("A.0.0.c", node_names)
+        self.assertEqual(z.find_rdataset("d", "PTR")[0].to_text(), "b.0.ip6.arpa.")
+
+    def testGenerateDollarEscapes(self):
+        z = dns.zone.from_text(dollar_input, "example.")
+        self.assertEqual(z.find_rdataset("a\\$", "CNAME")[0].to_text(), "b\\$.1")
+        self.assertEqual(z.find_rdataset("c\\$", "CNAME")[0].to_text(), "d\\$.2")
+
+    def testGenerateMultipleModifiers(self):
+        z = dns.zone.from_text(multiple_modifiers_input, "example.")
+        self.assertEqual(z.find_rdataset("host01-1", "CNAME")[0].to_text(), "h11-1.")
+        self.assertEqual(z.find_rdataset("host02-2", "CNAME")[0].to_text(), "h12-2.")
+
+    def testGenerateBadModifier(self):
+        for lhs in ["x${bogus}", "x${1,}", "x${1,2,q}", "x${1,2,d", "x${-1,0,n}"]:
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.zone.from_text(
+                    "@ 3600 IN SOA foo bar 1 2 3 4 5\n"
+                    "@ 3600 IN NS ns1\n"
+                    f"$GENERATE 0-0 {lhs} 3600 A 10.0.0.1\n",
+                    "example.",
+                )
 
     def testNoOrigin(self):
         def bad():
