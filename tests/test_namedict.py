@@ -141,6 +141,26 @@ class NameTestCase(unittest.TestCase):
         self.assertEqual(self.ndict.get(nf), None)
         self.assertEqual(self.ndict.get(nb), None)
 
+    def test_replace_max_depth(self):
+        nf = dns.name.from_text("foo.bar.")
+        self.ndict[nf] = 3
+        self.ndict.update({nf: 4})
+        self.assertEqual(self.ndict[nf], 4)
+        self.assertEqual(self.ndict.max_depth, 3)
+        self.assertEqual(self.ndict.max_depth_items, 1)
+        del self.ndict[nf]
+        self.assertEqual(self.ndict.max_depth, 2)
+        self.assertEqual(self.ndict.max_depth_items, 1)
+        self.assertEqual(self.ndict.get_deepest_match(nf)[1], 2)
+
+    def test_replace_equivalent_max_depth_key(self):
+        nf = dns.name.from_text("FOO.BAR.")
+        self.ndict[nf] = 3
+        self.assertEqual(self.ndict.max_depth_items, 1)
+        del self.ndict[nf]
+        self.assertEqual(self.ndict.max_depth, 2)
+        self.assertEqual(self.ndict.max_depth_items, 1)
+
     def test_iter(self):
         nf = dns.name.from_text("foo.bar.")
         nb = dns.name.from_text("bar.")
