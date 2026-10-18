@@ -1520,6 +1520,17 @@ def from_xfr(
             rdclass = r.answer[0].rdclass
             z = zone_factory(origin, rdclass, relativize=relativize)
         for rrset in r.answer:
+            # Apply the checks that dns.xfr.Inbound and a zone transaction would,
+            # as the messages yielded by dns.query.xfr() are not filtered.
+            if z.origin is not None:
+                name = rrset.name.derelativize(z.origin)
+                if not name.is_subdomain(z.origin):
+                    # Ignore glue that is not a subdomain of the origin.
+                    continue
+                if rrset.rdtype == dns.rdatatype.SOA and name != z.origin:
+                    raise dns.exception.FormError("non-origin SOA in zone transfer")
+            if rrset.rdclass != z.rdclass:
+                raise dns.exception.FormError("wrong rdclass in zone transfer")
             znode = z.nodes.get(rrset.name)
             if not znode:
                 znode = z.node_factory()
