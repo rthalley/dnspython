@@ -1366,6 +1366,34 @@ class ZoneTestCase(unittest.TestCase):
         z2_rel = dns.zone.from_xfr(make_xfr(z1_rel), relativize=True)
         self.assertEqual(z1_rel, z2_rel)
 
+    def testZoneFromXFRIgnoresOutOfZoneData(self):
+        for relativize in (False, True):
+            z1 = dns.zone.from_text(example_text, "example.", relativize=relativize)
+            xfr = make_xfr(z1)
+            rrset = dns.rrset.from_text("www.victim.com.", 300, "IN", "A", "10.0.0.1")
+            xfr[0].answer.insert(-1, rrset)
+            z2 = dns.zone.from_xfr(xfr, relativize=relativize)
+            self.assertEqual(z1, z2)
+            self.assertNotIn(dns.name.from_text("www.victim.com."), z2.nodes)
+
+    def testZoneFromXFRWrongClass(self):
+        z1 = dns.zone.from_text(example_text, "example.", relativize=False)
+        xfr = make_xfr(z1)
+        rrset = dns.rrset.from_text("foo.example.", 300, "CH", "TXT", "wrong")
+        xfr[0].answer.insert(-1, rrset)
+        with self.assertRaises(dns.exception.FormError):
+            dns.zone.from_xfr(xfr, relativize=False)
+
+    def testZoneFromXFRNonOriginSOA(self):
+        z1 = dns.zone.from_text(example_text, "example.", relativize=False)
+        xfr = make_xfr(z1)
+        rrset = dns.rrset.from_text(
+            "sub.example.", 300, "IN", "SOA", "ns1.example. h.example. 1 2 3 4 5"
+        )
+        xfr[0].answer.insert(-1, rrset)
+        with self.assertRaises(dns.exception.FormError):
+            dns.zone.from_xfr(xfr, relativize=False)
+
     def testCodec2003(self):
         z = dns.zone.from_text(
             codec_text, "example.", relativize=True, idna_codec=dns.name.IDNA_2003

@@ -13,6 +13,12 @@ What's New in dnspython
   put newlines or terminal escape sequences into ``dns.message.Message.to_text()``
   output, e.g. adding a forged ``;ANSWER`` section to what a tool prints.
 
+* ``dns.zone.from_xfr()`` now ignores records in a zone transfer response that
+  are not at or below the zone origin, and raises ``dns.exception.FormError``
+  for a record of the wrong class or an SOA that is
+  not at the origin.  It previously stored all of them in the zone, so a
+  primary could add data for names outside the zone being transferred.
+
 * ``dns.query.https()``, ``dns.query.quic()``, and their ``dns.asyncquery``
   equivalents now validate the response to a TSIG-signed query against the
   query's MAC.  They previously passed an empty request MAC, so a correctly
