@@ -6,6 +6,13 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* The ``to_text()`` output of the EDE, EDE-EXTRA-TEXT-LANGUAGE,
+  FILTERING-CONTACT, FILTERING-ORGANIZATION, and FILTERING-DB EDNS options now
+  escapes backslash and control characters as ``\DDD``.  The text in these
+  options comes from the wire and was written out verbatim, so a server could
+  put newlines or terminal escape sequences into ``dns.message.Message.to_text()``
+  output, e.g. adding a forged ``;ANSWER`` section to what a tool prints.
+
 * ``dns.query.https()``, ``dns.query.quic()``, and their ``dns.asyncquery``
   equivalents now validate the response to a TSIG-signed query against the
   query's MAC.  They previously passed an empty request MAC, so a correctly
