@@ -744,6 +744,15 @@ class NameTestCase(unittest.TestCase):
 
         self.assertRaises(dns.name.BadPointer, bad)
 
+    def testFromWirePointerToLabelsAfterIt(self):
+        # The pointer at offset 21 targets the label at offset 20, which runs
+        # over the pointer and the bytes after it.  The pointer still only
+        # uses two bytes (RFC 1035 section 4.1.4).
+        w = b"\x00" * 20 + b"\x01" + b"\xc0\x14" + b"X" * 20 + b"\x00"
+        n, cused = dns.name.from_wire(w, 21)
+        self.assertEqual(n, dns.name.Name([b"\xc0", b"X" * 20, b""]))
+        self.assertEqual(cused, 2)
+
     def testBadFromWire3(self):
         def bad():
             w = b"\xbffoo"

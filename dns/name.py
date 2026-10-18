@@ -1159,24 +1159,31 @@ def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
     labels = []
     biggest_pointer = parser.current
     hops = 0
-    with parser.restore_furthest():
+    # RFC 1035 section 4.1.4: a pointer ends the name, so parsing resumes
+    # right after the first pointer, even if the labels it points to run on
+    # past that point.
+    resume = None
+    count = parser.get_uint8()
+    while count != 0:
+        if count < 64:
+            labels.append(parser.get_bytes(count))
+        elif count >= 192:
+            current = (count & 0x3F) * 256 + parser.get_uint8()
+            if resume is None:
+                resume = parser.current
+            if current >= biggest_pointer:
+                raise BadPointer
+            biggest_pointer = current
+            hops += 1
+            if hops > MAX_COMPRESSION_POINTER_CHAIN:
+                raise PointerChainTooLong
+            parser.seek(current)
+        else:
+            raise BadLabelType
         count = parser.get_uint8()
-        while count != 0:
-            if count < 64:
-                labels.append(parser.get_bytes(count))
-            elif count >= 192:
-                current = (count & 0x3F) * 256 + parser.get_uint8()
-                if current >= biggest_pointer:
-                    raise BadPointer
-                biggest_pointer = current
-                hops += 1
-                if hops > MAX_COMPRESSION_POINTER_CHAIN:
-                    raise PointerChainTooLong
-                parser.seek(current)
-            else:
-                raise BadLabelType
-            count = parser.get_uint8()
-        labels.append(b"")
+    labels.append(b"")
+    if resume is not None:
+        parser.seek(resume)
     return Name(labels)
 
 

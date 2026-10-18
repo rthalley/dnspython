@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* Parsing a compressed name from wire format now always resumes right after
+  the first compression pointer (RFC 1035 section 4.1.4).  If the labels the
+  pointer referred to ran on past the pointer itself, parsing resumed after
+  those labels instead, so the bytes following the pointer were skipped and a
+  message could be read differently than by other DNS implementations.
+
 * ``dns.query.https()``, ``dns.query.quic()``, and their ``dns.asyncquery``
   equivalents now validate the response to a TSIG-signed query against the
   query's MAC.  They previously passed an empty request MAC, so a correctly

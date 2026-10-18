@@ -234,6 +234,25 @@ class MessageTestCase(unittest.TestCase):
 
         self.assertRaises(dns.message.TrailingJunk, bad)
 
+    def test_pointer_does_not_hide_the_following_rr(self):
+        # The answer owner name is a pointer to offset 18, the low byte of
+        # QCLASS.  The labels found there run over the pointer and the
+        # A 1.2.3.4 record after it, up to a zero byte that is followed by
+        # an A 6.6.6.6 record.  The record after the pointer is 1.2.3.4, and
+        # the 6.6.6.6 bytes are then trailing junk.
+        badwire = (
+            bytes.fromhex("123481800001000100000000")
+            + b"\x01a\x00\x00\x01\x00\x01"
+            + b"\xc0\x12"
+            + bytes.fromhex("000100010000012c000401020304")
+            + b"ZZZZ\x00"
+            + bytes.fromhex("000100010000012c000406060606")
+        )
+        with self.assertRaises(dns.message.TrailingJunk):
+            dns.message.from_wire(badwire)
+        m = dns.message.from_wire(badwire, ignore_trailing=True)
+        self.assertEqual(m.answer[0][0].address, "1.2.3.4")
+
     def test_ShortHeader(self):
         def bad():
             badwire = b"\x00" * 11
