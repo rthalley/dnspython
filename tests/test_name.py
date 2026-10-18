@@ -24,6 +24,7 @@ from io import BytesIO
 from typing import Dict  # pylint: disable=unused-import
 
 import dns.e164
+import dns.exception
 import dns.name
 import dns.reversename
 
@@ -743,6 +744,20 @@ class NameTestCase(unittest.TestCase):
             dns.name.from_wire(w, 0)
 
         self.assertRaises(dns.name.BadPointer, bad)
+
+    def testFromWirePointerToLabelsAfterIt(self):
+        # The pointer at offset 21 targets the label at offset 20, which runs
+        # over the pointer and the bytes after it.  The pointer still only
+        # uses two bytes (RFC 1035 section 4.1.4).
+        w = b"\x00" * 20 + b"\x01" + b"\xc0\x14" + b"X" * 20 + b"\x00"
+        with self.assertRaises(dns.exception.FormError):
+            dns.name.from_wire(w, 21)
+
+    def testFromWirePointerOverlapsPrefix(self):
+        # Don't allow the compression target to overlap the prefix either.
+        w = b"\x07abc" + b"\x04www\x00" + b"\xc0\x00"
+        with self.assertRaises(dns.exception.FormError):
+            dns.name.from_wire(w, 4)
 
     def testBadFromWire3(self):
         def bad():
