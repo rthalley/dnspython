@@ -87,6 +87,77 @@ def _upper_dollarize(s):
     return s
 
 
+# A $GENERATE modifier: ${offset[,width[,base]]}
+_generate_modifier = re.compile(r"{([+-]?\d+)(?:,(\d+)(?:,([doxXnN]))?)?}")
+
+
+def _generate_nibbles(value: int, width: int, base: str) -> str:
+    """Format *value* as dot-separated hexadecimal nibbles, least significant
+    nibble first, as BIND does.  All of the nibbles of *value* are output,
+    and zero nibbles are added until the output is at least *width*
+    characters long."""
+    digits = "0123456789ABCDEF" if base == "N" else "0123456789abcdef"
+    text = ""
+    while True:
+        text += digits[value & 0xF]
+        value >>= 4
+        if width > 0:
+            width -= 1
+        if width > 0 or value != 0:
+            text += "."
+            if width > 0:
+                width -= 1
+        if value == 0 and width == 0:
+            return text
+
+
+def _generate_text(template: str, counter: int) -> str:
+    """Substitute the $GENERATE iterator *counter* into *template*.
+
+    Each "$" is replaced by the counter, optionally modified by a following
+    ${offset[,width[,base]]}.  "$$" is a literal "$", and a backslash escape
+    such as "\\$" is copied unchanged, as in BIND.
+    """
+    text = ""
+    i = 0
+    while i < len(template):
+        c = template[i]
+        if c == "\\":
+            text += template[i : i + 2]
+            i += 2
+        elif c != "$":
+            text += c
+            i += 1
+        elif template.startswith("$", i + 1):
+            text += "$"
+            i += 2
+        else:
+            i += 1
+            offset = 0
+            width = 0
+            base = "d"
+            if template.startswith("{", i):
+                match = _generate_modifier.match(template, i)
+                if match is None:
+                    raise dns.exception.SyntaxError("invalid $GENERATE modifier")
+                offset = int(match.group(1))
+                if match.group(2) is not None:
+                    width = int(match.group(2))
+                if match.group(3) is not None:
+                    base = match.group(3)
+                i = match.end()
+            value = counter + offset
+            if base in "nN":
+                if value < 0:
+                    raise dns.exception.SyntaxError(
+                        "negative $GENERATE value in nibble mode"
+                    )
+                text += _generate_nibbles(value, width, base)
+            else:
+                text += format(value, base).zfill(width)
+    return text
+
+
 class Reader:
     """Read a DNS zone file into a transaction."""
 
@@ -296,51 +367,6 @@ class Reader:
 
         self.txn.add(name, ttl, rd)
 
-    def _parse_modify(self, side: str) -> tuple[str, str, int, int, str]:
-        # Here we catch everything in '{' '}' in a group so we can replace it
-        # with ''.
-        is_generate1 = re.compile(r"^.*\$({(\+|-?)(\d+),(\d+),(.)}).*$")
-        is_generate2 = re.compile(r"^.*\$({(\+|-?)(\d+)}).*$")
-        is_generate3 = re.compile(r"^.*\$({(\+|-?)(\d+),(\d+)}).*$")
-        # Sometimes there are modifiers in the hostname. These come after
-        # the dollar sign. They are in the form: ${offset[,width[,base]]}.
-        # Make names
-        mod = ""
-        sign = "+"
-        offset = "0"
-        width = "0"
-        base = "d"
-        g1 = is_generate1.match(side)
-        if g1:
-            mod, sign, offset, width, base = g1.groups()
-            if sign == "":
-                sign = "+"
-        else:
-            g2 = is_generate2.match(side)
-            if g2:
-                mod, sign, offset = g2.groups()
-                if sign == "":
-                    sign = "+"
-                width = "0"
-                base = "d"
-            else:
-                g3 = is_generate3.match(side)
-                if g3:
-                    mod, sign, offset, width = g3.groups()
-                    if sign == "":
-                        sign = "+"
-                    base = "d"
-
-        ioffset = int(offset)
-        iwidth = int(width)
-
-        if sign not in ["+", "-"]:
-            raise dns.exception.SyntaxError(f"invalid offset sign {sign}")
-        if base not in ["d", "o", "x", "X", "n", "N"]:
-            raise dns.exception.SyntaxError(f"invalid type {base}")
-
-        return mod, sign, ioffset, iwidth, base
-
     def _generate_line(self):
         # range lhs [ttl] [class] type rhs [ comment ]
         """Process one line containing the GENERATE statement from a DNS
@@ -407,38 +433,11 @@ class Reader:
         # rhs (required)
         rhs = token.value
 
-        def _calculate_index(counter: int, offset_sign: str, offset: int) -> int:
-            """Calculate the index from the counter and offset."""
-            if offset_sign == "-":
-                offset *= -1
-            return counter + offset
-
-        def _format_index(index: int, base: str, width: int) -> str:
-            """Format the index with the given base, and zero-fill it
-            to the given width."""
-            if base in ["d", "o", "x", "X"]:
-                return format(index, base).zfill(width)
-
-            # base can only be n or N here
-            hexa = _format_index(index, "x", width)
-            nibbles = ".".join(hexa[::-1])[:width]
-            if base == "N":
-                nibbles = nibbles.upper()
-            return nibbles
-
-        lmod, lsign, loffset, lwidth, lbase = self._parse_modify(lhs)
-        rmod, rsign, roffset, rwidth, rbase = self._parse_modify(rhs)
         for i in range(start, stop + 1, step):
             # +1 because bind is inclusive and python is exclusive
 
-            lindex = _calculate_index(i, lsign, loffset)
-            rindex = _calculate_index(i, rsign, roffset)
-
-            lzfindex = _format_index(lindex, lbase, lwidth)
-            rzfindex = _format_index(rindex, rbase, rwidth)
-
-            name = lhs.replace(f"${lmod}", lzfindex)
-            rdata = rhs.replace(f"${rmod}", rzfindex)
+            name = _generate_text(lhs, i)
+            rdata = _generate_text(rhs, i)
 
             self.last_name = dns.name.from_text(
                 name, self.current_origin, self.tok.idna_codec
