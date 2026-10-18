@@ -379,6 +379,24 @@ class OptionTestCase(unittest.TestCase):
         )
         self.assertEqual(opt2.db, db)
 
+    def test_text_option_to_text_escapes_controls(self):
+        text = "blocked\r\n;ANSWER\nwww.example. 300 IN A 192.0.2.1\x1b[2J\x9b\\"
+        escaped = "blocked\\013\\010;ANSWER\\010www.example. 300 IN A 192.0.2.1\\027[2J\\155\\\\"
+        wire = b"\x00\x11" + text.encode("utf8")
+        opt = dns.edns.option_from_wire(dns.edns.OptionType.EDE, wire, 0, len(wire))
+        self.assertEqual(opt.text, text)
+        self.assertEqual(str(opt), "EDE 17 (Filtered): " + escaped)
+        for otype, prefix in (
+            (dns.edns.OptionType.EDE_EXTRA_TEXT_LANGUAGE, "EDE-EXTRA-TEXT-LANGUAGE"),
+            (dns.edns.OptionType.FILTERING_CONTACT, "FILTERING-CONTACT"),
+            (dns.edns.OptionType.FILTERING_ORGANIZATION, "FILTERING-ORGANIZATION"),
+            (dns.edns.OptionType.FILTERING_DB, "FILTERING-DB"),
+        ):
+            wire = text.encode("utf8")
+            opt = dns.edns.option_from_wire(otype, wire, 0, len(wire))
+            self.assertEqual(str(opt), f"{prefix} {escaped}")
+            self.assertEqual(opt.to_wire(), wire)
+
     def test_option_registration(self):
         U32OptionType = 9999
 
