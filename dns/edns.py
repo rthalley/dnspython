@@ -73,6 +73,22 @@ class OptionType(dns.enum.IntEnum):
         return 65535
 
 
+def _escapify_text(text: str) -> str:
+    """Escape backslash and control characters in option text so that text
+    taken from the wire cannot add lines to, or otherwise alter, the output
+    of ``to_text()``."""
+
+    escaped = ""
+    for c in text:
+        if c == "\\":
+            escaped += "\\\\"
+        elif ord(c) < 0x20 or 0x7F <= ord(c) <= 0x9F:
+            escaped += f"\\{ord(c):03d}"
+        else:
+            escaped += c
+    return escaped
+
+
 class Option:
     """Base class for all EDNS option types."""
 
@@ -432,7 +448,7 @@ class EDEOption(Option):  # lgtm[py/missing-equals]
             )
             output += f" ({desc})"
         if self.text is not None:
-            output += f": {self.text}"
+            output += f": {_escapify_text(self.text)}"
         return output
 
     def to_wire(self, file: Any | None = None) -> bytes | None:
@@ -564,7 +580,7 @@ class EDEExtraTextLanguageOption(Option):
             return self.language.encode()
 
     def to_text(self) -> str:
-        return f"EDE-EXTRA-TEXT-LANGUAGE {self.language}"
+        return f"EDE-EXTRA-TEXT-LANGUAGE {_escapify_text(self.language)}"
 
     @classmethod
     def from_wire_parser(
@@ -594,7 +610,7 @@ class FilteringContactOption(Option):
             return self.contact.encode()
 
     def to_text(self) -> str:
-        return f"FILTERING-CONTACT {self.contact}"
+        return f"FILTERING-CONTACT {_escapify_text(self.contact)}"
 
     @classmethod
     def from_wire_parser(
@@ -624,7 +640,7 @@ class FilteringOrganizationOption(Option):
             return self.organization.encode()
 
     def to_text(self) -> str:
-        return f"FILTERING-ORGANIZATION {self.organization}"
+        return f"FILTERING-ORGANIZATION {_escapify_text(self.organization)}"
 
     @classmethod
     def from_wire_parser(
@@ -658,7 +674,7 @@ class FilteringDBOption(Option):
             return self.db.encode()
 
     def to_text(self) -> str:
-        return f"FILTERING-DB {self.db}"
+        return f"FILTERING-DB {_escapify_text(self.db)}"
 
     @classmethod
     def from_wire_parser(

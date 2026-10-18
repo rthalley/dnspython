@@ -6,6 +6,13 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* The ``to_text()`` output of the EDE, EDE-EXTRA-TEXT-LANGUAGE,
+  FILTERING-CONTACT, FILTERING-ORGANIZATION, and FILTERING-DB EDNS options now
+  escapes backslash and control characters as ``\DDD``.  The text in these
+  options comes from the wire and was written out verbatim, so a server could
+  put newlines or terminal escape sequences into ``dns.message.Message.to_text()``
+  output, e.g. adding a forged ``;ANSWER`` section to what a tool prints.
+
 * ``dns.zone.from_xfr()`` now ignores records in a zone transfer response that
   are not at or below the zone origin, and raises ``dns.exception.FormError``
   for a record of the wrong class or an SOA that is
