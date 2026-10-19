@@ -68,6 +68,11 @@ class Parser:
             raise dns.exception.FormError
         self.current = where
 
+    def restrict_end(self, end: int):
+        if end > self.end:
+            raise dns.exception.FormError
+        self.end = end
+
     @contextlib.contextmanager
     def restrict_to(self, size: int) -> Generator:
         assert size >= 0
@@ -87,7 +92,9 @@ class Parser:
 
     @contextlib.contextmanager
     def restore_furthest(self) -> Generator:
+        saved_end = self.end
         try:
             yield None
         finally:
             self.current = self.furthest
+            self.end = saved_end
