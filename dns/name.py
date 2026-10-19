@@ -172,12 +172,13 @@ def _escapify(label: bytes | str) -> str:
                 text += f"\\{c:03d}"
         return text
 
-    # Unicode label mode.  Escape only special characters and values < 0x20
+    # Unicode label mode.  Escape only special characters and control
+    # characters, i.e. values <= 0x20 and the DEL and C1 range 0x7f-0x9f.
     text = ""
     for uc in label:
         if uc in _escaped_text:
             text += "\\" + uc
-        elif uc <= "\x20":
+        elif uc <= "\x20" or "\x7f" <= uc <= "\x9f":
             text += f"\\{ord(uc):03d}"
         else:
             text += uc

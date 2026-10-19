@@ -622,6 +622,27 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(dns.rdata._escapify(b"ab\\c"), "ab\\\\c")
         self.assertEqual(dns.rdata._escapify(b"ab\x01c"), "ab\\001c")
 
+    def test_escapify_unicode(self):
+        self.assertEqual(dns.rdata._escapify_unicode("abc"), "abc")
+        self.assertEqual(dns.rdata._escapify_unicode('ab"c'), 'ab\\"c')
+        self.assertEqual(dns.rdata._escapify_unicode("ab\\c"), "ab\\\\c")
+        self.assertEqual(dns.rdata._escapify_unicode("ab\x01c"), "ab\\001c")
+        self.assertEqual(dns.rdata._escapify_unicode("élèves"), "élèves")
+        # DEL and the C1 controls are escaped too, as the bytes of their UTF-8
+        # encoding, since \DDD is a byte value in a TXT string.
+        self.assertEqual(
+            dns.rdata._escapify_unicode("a\x7fb\x85c\x9bd\xa0e"),
+            "a\\127b\\194\\133c\\194\\155d\xa0e",
+        )
+
+    def test_txt_utf8_style_escapes_control_characters(self):
+        style = dns.rdata.RdataStyle(txt_is_utf8=True)
+        wire = b"\x06a\xc2\x85b\n\x7f"
+        rd = dns.rdata.from_wire("in", "txt", wire, 0, len(wire))
+        text = rd.to_styled_text(style)
+        self.assertEqual(text, '"a\\194\\133b\\010\\127"')
+        self.assertEqual(dns.rdata.from_text("in", "txt", text), rd)
+
     def test_truncate_bitmap(self):
         self.assertEqual(dns.rdata._truncate_bitmap(b"\x00\x01\x00\x00"), b"\x00\x01")
         self.assertEqual(
