@@ -113,7 +113,7 @@ class RdataType(dns.enum.IntEnum):
     DLV = 32769
     # Temporary DELEG values
     DELEG = 61440
-    DELEGPARAM = 65433
+    DELEGPARAM = 54
 
     @classmethod
     def _maximum(cls):
