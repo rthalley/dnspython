@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.asyncquery.quic()`` now verifies the server certificate against the
+  *hostname* parameter.  It passed the deprecated *server_hostname* alias to
+  the QUIC connection instead, so a query made with ``hostname=`` accepted any
+  certificate trusted by the CA set, with no check of the name or address in
+  it.  ``dns.query.quic()`` was not affected.
+
 * ``dns.name.Name.to_unicode()`` and the UTF-8 TXT output of
   ``dns.zone.Zone.to_text()`` (``$UNICODE ... TXT``) now escape the DEL and
   C1 control characters U+007F through U+009F as ``\DDD``, as ``to_text()``
