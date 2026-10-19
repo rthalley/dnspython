@@ -209,10 +209,13 @@ def _escapify_unicode(qstring):
     for c in qstring:
         if c in _unicode_escaped:
             text += "\\" + c
-        elif ord(c) >= 0x20:
-            text += c
+        elif ord(c) < 0x20 or 0x7F <= ord(c) <= 0x9F:
+            # A control character.  \DDD escapes are byte values, so emit the
+            # escaped UTF-8 encoding to get the same bytes back when read.
+            for b in c.encode():
+                text += f"\\{b:03d}"
         else:
-            text += f"\\{ord(c):03d}"
+            text += c
     return text
 
 

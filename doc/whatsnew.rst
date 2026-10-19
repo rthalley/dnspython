@@ -6,6 +6,13 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.name.Name.to_unicode()`` and the UTF-8 TXT output of
+  ``dns.zone.Zone.to_text()`` (``$UNICODE ... TXT``) now escape the DEL and
+  C1 control characters U+007F through U+009F as ``\DDD``, as ``to_text()``
+  and the EDNS option text already do.  A punycode label from the wire can
+  decode to any code point, so a name in an untrusted response could put e.g.
+  a NEL (U+0085) line break or a C1 terminal control sequence into the output.
+
 * ``$GENERATE`` now substitutes the iterator the way BIND does.  The nibble
   formats ``n`` and ``N`` produced an empty label when the width was 0 and
   dropped nibbles when the value needed more characters than the width,

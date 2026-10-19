@@ -959,6 +959,19 @@ class NameTestCase(unittest.TestCase):
         u = dns.name.from_unicode(s, idna_codec=dns.name.IDNA_2003_Practical)
         self.assertEqual(len(u), 3)
 
+    def testToUnicodeEscapesControlCharacters(self):
+        # One label which punycode-decodes to "evil\x85com", i.e. with a C1
+        # NEL in it.  Control characters must be escaped, as they are in
+        # to_text(), so a name from the wire cannot add a line break or a
+        # terminal control sequence to the output.
+        n = dns.name.from_text("xn--evilcom-jba.example.")
+        for codec in (dns.name.IDNA_2003_Practical, dns.name.IDNA_2008_Practical):
+            s = n.to_unicode(idna_codec=codec)
+            self.assertEqual(s, "evil\\133com.example.")
+        self.assertEqual(
+            dns.name._escapify("a\x7fb\x85c\x9bd\xa0e"), "a\\127b\\133c\\155d\xa0e"
+        )
+
     def testIDNA2003Misc(self):
         self.assertEqual(dns.name.IDNA_2003.encode(""), b"")
         self.assertRaises(
