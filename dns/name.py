@@ -1161,11 +1161,13 @@ def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
     biggest_pointer = parser.current
     hops = 0
     with parser.restore_furthest():
+        start = parser.current
         count = parser.get_uint8()
         while count != 0:
             if count < 64:
                 labels.append(parser.get_bytes(count))
             elif count >= 192:
+                # For sanity, compression pointers must point backwards.
                 current = (count & 0x3F) * 256 + parser.get_uint8()
                 if current >= biggest_pointer:
                     raise BadPointer
@@ -1173,7 +1175,11 @@ def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
                 hops += 1
                 if hops > MAX_COMPRESSION_POINTER_CHAIN:
                     raise PointerChainTooLong
+                # For sanity, the entire compression target must not overlap
+                # with any part of this name.
+                parser.restrict_end(start)
                 parser.seek(current)
+                start = current
             else:
                 raise BadLabelType
             count = parser.get_uint8()
