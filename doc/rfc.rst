@@ -84,6 +84,9 @@ Core RFCs
 DNSSEC RFCs
 -----------
 
+`RFC 2536 <https://tools.ietf.org/html/rfc2536>`_
+    DSA KEYs and SIGs in the Domain Name System (DNS).
+
 `RFC 4033 <https://tools.ietf.org/html/rfc4033>`_
     Introduction and requirements.
 
