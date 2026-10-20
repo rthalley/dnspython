@@ -1,3 +1,4 @@
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, utils
@@ -16,6 +17,10 @@ class PublicECDSA(CryptographyPublicKey):
     octets: int
 
     def verify(self, signature: bytes, data: bytes) -> None:
+        # RFC 6605 section 4: the signature is r and s, each exactly
+        # self.octets long.
+        if len(signature) != self.octets * 2:
+            raise InvalidSignature
         sig_r = signature[0 : self.octets]
         sig_s = signature[self.octets :]
         sig = utils.encode_dss_signature(

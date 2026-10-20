@@ -12,6 +12,13 @@ What's New in dnspython
   certificate trusted by the CA set, with no check of the name or address in
   it.  ``dns.query.quic()`` was not affected.
 
+* DNSSEC validation now rejects an ECDSA signature that is not exactly 64
+  (P-256) or 96 (P-384) octets long (RFC 6605 section 4), and a DSA signature
+  that is not 41 octets long or whose T octet differs from the key's
+  (RFC 2536 section 3).  The signature halves were read with no length check,
+  so e.g. inserting zero octets before S gave a different RRSIG that still
+  validated.
+
 * ``dns.name.Name.to_unicode()`` and the UTF-8 TXT output of
   ``dns.zone.Zone.to_text()`` (``$UNICODE ... TXT``) now escape the DEL and
   C1 control characters U+007F through U+009F as ``\DDD``, as ``to_text()``
