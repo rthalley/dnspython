@@ -57,8 +57,12 @@ class NSEC3(dns.rdata.Rdata):
         self.windows = tuple(windows.windows)
 
     def _next_text(self):
-        next = base64.b32hexencode(self.next).lower().decode()
-        next = next.rstrip("=")
+        if sys.version_info >= (3, 15):
+            next = base64.b32hexencode(self.next, padded=False).lower().decode()
+        else:
+            # Remove this workaround when Python 3.15 is the minimum version.
+            next = base64.b32hexencode(self.next).lower().decode()
+            next = next.rstrip("=")
         return next
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
@@ -86,17 +90,17 @@ class NSEC3(dns.rdata.Rdata):
         next = tok.get_string().encode("ascii").upper()
         if next.endswith(b"="):
             raise binascii.Error("Incorrect padding")
-        padded = next
-        if len(padded) % 8 != 0:
-            padded += b"=" * (8 - len(padded) % 8)
-        # A non-canonical spelling whose final base32hex character has non-zero
-        # unused bits decodes to the same hash as the canonical one, so to_text
-        # would not reproduce the input (RFC 4648 section 3.5).
         if sys.version_info >= (3, 15):
-            next = base64.b32hexdecode(padded, canonical=True)
+            next = base64.b32hexdecode(next, padded=False, canonical=True)
         else:
             # Remove this workaround when Python 3.15 is the minimum version.
+            padded = next
+            if len(padded) % 8 != 0:
+                padded += b"=" * (8 - len(padded) % 8)
             decoded = base64.b32hexdecode(padded)
+            # A non-canonical spelling whose final base32hex character has non-zero
+            # unused bits decodes to the same hash as the canonical one, so to_text
+            # would not reproduce the input (RFC 4648 section 3.5).
             if base64.b32hexencode(decoded).rstrip(b"=") != next:
                 raise binascii.Error("non-canonical base32hex")
             next = decoded
