@@ -818,7 +818,7 @@ async def quic(
         async with mfactory(
             context,
             verify_mode=verify,
-            server_name=server_hostname,
+            server_name=hostname,
         ) as the_manager:
             if not connection:
                 the_connection = the_manager.connect(  # pyright: ignore

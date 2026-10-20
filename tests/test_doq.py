@@ -16,6 +16,8 @@ from .util import have_ipv4, have_ipv6, here
 
 have_quic = dns._features.have("doq")
 try:
+    from dns.quic._common import UnexpectedEOF
+
     from .nanonameserver import Server
 except ImportError:
     pass
@@ -23,6 +25,9 @@ except ImportError:
 if not have_quic:
 
     class Server(object):
+        pass
+
+    class UnexpectedEOF(Exception):
         pass
 
 
@@ -71,6 +76,67 @@ try:
             with Server(address=address) as server:
                 port = server.doq_address[1]
                 trio.run(amain, address, port)
+
+except ImportError:
+    pass
+
+
+@pytest.mark.skipif(not have_quic, reason="requires aioquic")
+def test_hostname_sync():
+    q = dns.message.make_query("www.example.", "A")
+    for address in addresses:
+        with Server(address=address) as server:
+            port = server.doq_address[1]
+            r = dns.query.quic(
+                q, address, port=port, verify=here("tls/ca.crt"), hostname="localhost"
+            )
+            assert r.rcode() == dns.rcode.REFUSED
+            with pytest.raises(UnexpectedEOF):
+                dns.query.quic(
+                    q,
+                    address,
+                    port=port,
+                    verify=here("tls/ca.crt"),
+                    hostname="wrong.example",
+                )
+
+
+async def ahostname(address, port):
+    q = dns.message.make_query("www.example.", "A")
+    r = await dns.asyncquery.quic(
+        q, address, port=port, verify=here("tls/ca.crt"), hostname="localhost"
+    )
+    assert r.rcode() == dns.rcode.REFUSED
+    rejected = False
+    try:
+        await dns.asyncquery.quic(
+            q, address, port=port, verify=here("tls/ca.crt"), hostname="wrong.example"
+        )
+    except* UnexpectedEOF:
+        # except* as trio wraps the error in an ExceptionGroup
+        rejected = True
+    assert rejected
+
+
+@pytest.mark.skipif(not have_quic, reason="requires aioquic")
+def test_hostname_asyncio():
+    dns.asyncbackend.set_default_backend("asyncio")
+    for address in addresses:
+        with Server(address=address) as server:
+            port = server.doq_address[1]
+            asyncio.run(ahostname(address, port))
+
+
+try:
+    import trio
+
+    @pytest.mark.skipif(not have_quic, reason="requires aioquic")
+    def test_hostname_trio():
+        dns.asyncbackend.set_default_backend("trio")
+        for address in addresses:
+            with Server(address=address) as server:
+                port = server.doq_address[1]
+                trio.run(ahostname, address, port)
 
 except ImportError:
     pass
