@@ -47,6 +47,7 @@ except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
 try:
+    from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.backends import default_backend
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
@@ -152,6 +153,44 @@ class DNSSECAlgorithm(unittest.TestCase):
                 dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
                 with self.assertRaises(ValueError):
                     public_cls.from_dnskey(dnskey)
+
+    def _check_bad_signatures(self, private_key, signature, bad_signatures):
+        data = b"hello"
+        public_key = private_key.public_key()
+        public_key.verify(signature, data)
+        for bad in bad_signatures:
+            with self.assertRaises(InvalidSignature):
+                public_key.verify(bad, data)
+
+    def test_dsa_signature_length(self):
+        private_key = PrivateDSA.generate(1024)
+        sig = private_key.sign(b"hello")
+        self._check_bad_signatures(
+            private_key,
+            sig,
+            (
+                sig[:21] + b"\x00" + sig[21:],
+                sig + b"\x00",
+                sig[:-1],
+                bytes([sig[0] ^ 1]) + sig[1:],
+            ),
+        )
+
+    def test_ecdsa_signature_length(self):
+        for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
+            octets = private_cls.public_cls.octets
+            private_key = private_cls.generate()
+            sig = private_key.sign(b"hello")
+            self._check_bad_signatures(
+                private_key,
+                sig,
+                (
+                    sig[:octets] + b"\x00" + sig[octets:],
+                    sig[:octets] + b"\x00\x00\x00" + sig[octets:],
+                    sig + b"\x00",
+                    sig[:-1],
+                ),
+            )
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")

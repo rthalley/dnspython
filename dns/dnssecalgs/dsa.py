@@ -1,5 +1,6 @@
 import struct
 
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import dsa, utils
@@ -16,6 +17,11 @@ class PublicDSA(CryptographyPublicKey):
     chosen_hash = hashes.SHA1()
 
     def verify(self, signature: bytes, data: bytes) -> None:
+        # RFC 2536 section 3: the signature is T, R, and S (41 octets), where T
+        # is the same as the key's T.
+        dsa_t = (self.key.key_size // 8 - 64) // 8
+        if len(signature) != 41 or signature[0] != dsa_t:
+            raise InvalidSignature
         sig_r = signature[1:21]
         sig_s = signature[21:]
         sig = utils.encode_dss_signature(
