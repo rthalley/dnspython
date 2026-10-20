@@ -91,7 +91,7 @@ class NSEC3(dns.rdata.Rdata):
         if next.endswith(b"="):
             raise binascii.Error("Incorrect padding")
         if sys.version_info >= (3, 15):
-            next = base64.b32hexdecode(padded=False, canonical=True)
+            next = base64.b32hexdecode(next, padded=False, canonical=True)
         else:
             # Remove this workaround when Python 3.15 is the minimum version.
             padded = next
