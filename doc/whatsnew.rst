@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.asyncquery.quic()`` now verifies the server certificate against the
+  *hostname* parameter.  It passed the deprecated *server_hostname* alias to
+  the QUIC connection instead, so a query made with ``hostname=`` accepted any
+  certificate trusted by the CA set, with no check of the name or address in
+  it.  ``dns.query.quic()`` was not affected.
+
 * DNSSEC validation now rejects an ECDSA signature that is not exactly 64
   (P-256) or 96 (P-384) octets long (RFC 6605 section 4), and a DSA signature
   that is not 41 octets long or whose T octet differs from the key's
