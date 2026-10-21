@@ -225,7 +225,7 @@ class WritableVersion(dns.zone.WritableVersion):
         if self.zone.relativize:
             return name == dns.name.empty
         else:
-            return name == self.zone.origin
+            return name == self.origin
 
     def _maybe_cow_with_name(
         self, name: dns.name.Name
@@ -236,20 +236,25 @@ class WritableVersion(dns.zone.WritableVersion):
             node.flags |= NodeFlags.ORIGIN
         elif self.delegations.is_glue(name):
             node.flags |= NodeFlags.GLUE
+        elif name in self.delegations:
+            node.flags |= NodeFlags.DELEGATION
         return (node, name)
 
     def update_glue_flag(self, name: dns.name.Name, is_glue: bool) -> None:
-        """Set or clear the ``NodeFlags.GLUE`` flag on all nodes that are
-        subdomains of *name*.
+        """Update the delegation and glue flags on proper subdomains of *name*.
+
+        An added delegation obscures any descendant delegations.  Removing
+        one exposes the first NS rdataset on each branch of its subtree.
 
         :param name: The delegation-point name whose subtree should be updated.
         :type name: :py:class:`dns.name.Name`
-        :param is_glue: ``True`` to set the GLUE flag; ``False`` to clear it.
+        :param is_glue: ``True`` to obscure the subtree; ``False`` to expose it.
         :type is_glue: bool
         """
         cursor = self.nodes.cursor()  # pyright: ignore
         cursor.seek(name, False)
         updates = []
+        cut = name if is_glue else None
         while True:
             elt = cursor.next()
             if elt is None:
@@ -257,18 +262,27 @@ class WritableVersion(dns.zone.WritableVersion):
             ename = elt.key()
             if not ename.is_subdomain(name):
                 break
-            node = cast(dns.node.Node, elt.value())
+            node = elt.value()
+            self.delegations.discard(ename)
+            if cut is not None and not ename.is_subdomain(cut):
+                cut = None
+            if cut is not None:
+                flags = NodeFlags.GLUE
+            elif node.get_rdataset(self.zone.rdclass, dns.rdatatype.NS) is not None:
+                flags = NodeFlags.DELEGATION
+                cut = ename
+                self.delegations.add(ename)
+            else:
+                flags = NodeFlags(0)
+            if node.flags == flags:
+                continue
             if ename not in self.changed:
-                new_node = self.zone.node_factory()
-                new_node.id = self.id  # type: ignore
+                new_node = cast(Node, self.zone.node_factory())
+                new_node.id = self.id
                 new_node.rdatasets.extend(node.rdatasets)
                 self.changed.add(ename)
                 node = new_node
-            assert isinstance(node, Node)
-            if is_glue:
-                node.flags |= NodeFlags.GLUE
-            else:
-                node.flags &= ~NodeFlags.GLUE
+            node.flags = flags
             # We don't update node here as any insertion could disturb the
             # btree and invalidate our cursor.  We could use the cursor in a
             # with block and avoid this, but it would do a lot of parking and
@@ -277,12 +291,28 @@ class WritableVersion(dns.zone.WritableVersion):
         for ename, node in updates:
             self.nodes[ename] = node
 
+    def _update_delegation(self, name: dns.name.Name, node: Node) -> None:
+        is_delegation = (
+            not node.is_origin_or_glue()
+            and node.get_rdataset(self.zone.rdclass, dns.rdatatype.NS) is not None
+        )
+        if is_delegation:
+            node.flags |= NodeFlags.DELEGATION
+            if name not in self.delegations:
+                self.delegations.add(name)
+                self.update_glue_flag(name, True)
+        elif name in self.delegations:
+            node.flags &= ~NodeFlags.DELEGATION
+            self.delegations.discard(name)
+            self.update_glue_flag(name, False)
+
     def delete_node(self, name: dns.name.Name) -> None:
         """Delete the node at *name*, updating delegation tracking as needed.
 
         If *name* is a delegation point, it is removed from the delegations
-        index and the GLUE flag is cleared from its subtree.  If *name* does
-        not exist in the zone, this method is a no-op.
+        index and any exposed descendant NS nodes become delegation points.
+        Nodes beneath those delegations remain glue.  If *name* does not
+        exist in the zone, this method is a no-op.
 
         :param name: The name of the node to delete.
         :type name: :py:class:`dns.name.Name`
@@ -290,7 +320,7 @@ class WritableVersion(dns.zone.WritableVersion):
         name = self._validate_name(name)
         node = self.nodes.get(name)
         if node is not None:
-            if node.is_delegation():  # pyright: ignore
+            if name in self.delegations:
                 self.delegations.discard(name)
                 self.update_glue_flag(name, False)
             del self.nodes[name]
@@ -303,7 +333,9 @@ class WritableVersion(dns.zone.WritableVersion):
 
         If *rdataset* is an NS rdataset and *name* is not the origin or beneath
         an existing delegation, the ``DELEGATION`` flag is set on the node and
-        the ``GLUE`` flag is set on all nodes in *name*'s subtree.
+        the ``GLUE`` flag is set on all nodes in *name*'s subtree, obscuring
+        any descendant delegations.  Replacing an NS rdataset with a CNAME
+        removes the delegation and exposes descendant delegations.
 
         :param name: The owner name.
         :type name: :py:class:`dns.name.Name`
@@ -311,15 +343,8 @@ class WritableVersion(dns.zone.WritableVersion):
         :type rdataset: :py:class:`dns.rdataset.Rdataset`
         """
         node, name = self._maybe_cow_with_name(name)
-        if (
-            rdataset.rdtype == dns.rdatatype.NS
-            and not node.is_origin_or_glue()  # type: ignore
-        ):
-            node.flags |= NodeFlags.DELEGATION  # type: ignore
-            if name not in self.delegations:
-                self.delegations.add(name)
-                self.update_glue_flag(name, True)
         node.replace_rdataset(rdataset)
+        self._update_delegation(name, cast(Node, node))
 
     def delete_rdataset(
         self,
@@ -330,8 +355,9 @@ class WritableVersion(dns.zone.WritableVersion):
         """Delete the rdataset with *rdtype* and *covers* at *name*.
 
         If the deleted rdataset was the NS rdataset at a delegation point,
-        the ``DELEGATION`` flag is cleared from that node and the ``GLUE``
-        flag is cleared from all nodes in its subtree.
+        the ``DELEGATION`` flag is cleared from that node and any exposed
+        descendant NS nodes become delegation points.  Nodes beneath those
+        delegations remain glue.
 
         :param name: The owner name.
         :type name: :py:class:`dns.name.Name`
@@ -341,11 +367,8 @@ class WritableVersion(dns.zone.WritableVersion):
         :type covers: :py:class:`dns.rdatatype.RdataType`
         """
         node, name = self._maybe_cow_with_name(name)
-        if rdtype == dns.rdatatype.NS and name in self.delegations:  # pyright: ignore
-            node.flags &= ~NodeFlags.DELEGATION  # type: ignore
-            self.delegations.discard(name)  # pyright: ignore
-            self.update_glue_flag(name, False)
         node.delete_rdataset(self.zone.rdclass, rdtype, covers)
+        self._update_delegation(name, cast(Node, node))
         if len(node) == 0:
             del self.nodes[name]
 
