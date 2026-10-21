@@ -202,9 +202,16 @@ class IDNACodec:
         if self.is_idna(label):
             try:
                 slabel = label[4:].decode("punycode")
-                return _escapify(slabel)
             except Exception as e:
                 raise IDNAException(idna_exception=e)
+            # An A-label encodes a U-label, which has at least one non-ASCII
+            # character.  Otherwise e.g. "xn--www-" would decode to "www" and
+            # the name would display as a different one.
+            if is_all_ascii(slabel):
+                raise IDNAException(
+                    idna_exception=f"{label!r} does not decode to a U-label"
+                )
+            return _escapify(slabel)
         else:
             return _escapify(label)
 

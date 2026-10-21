@@ -19,6 +19,13 @@ What's New in dnspython
   so e.g. inserting zero octets before S gave a different RRSIG that still
   validated.
 
+* ``dns.name.Name.to_unicode()`` now raises ``dns.name.IDNAException`` for an
+  ACE label that does not decode to a U-label, i.e. one whose punycode decodes
+  to an empty or all-ASCII string, as the strict IDNA codecs already did.  The
+  default codec and the other non-strict codecs decoded e.g. ``xn--www-`` to
+  ``www``, so ``xn--www-.example.`` was shown as ``www.example.``, a different
+  name.
+
 * ``dns.name.Name.to_unicode()`` and the UTF-8 TXT output of
   ``dns.zone.Zone.to_text()`` (``$UNICODE ... TXT``) now escape the DEL and
   C1 control characters U+007F through U+009F as ``\DDD``, as ``to_text()``
