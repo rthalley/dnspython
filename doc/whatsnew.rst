@@ -3,6 +3,18 @@
 What's New in dnspython
 =======================
 
+2.9.10 (in development)
+
+* The type annotation of ``public_key()`` on the ``dns.dnssecalgs`` private
+  key classes is now ``dns.dnssecalgs.base.GenericPublicKey``, as declared by
+  ``GenericPrivateKey``, instead of ``CryptographyPublicKey``, and the
+  ``public_cls`` attribute is now uniformly ``type[GenericPublicKey]``.  The
+  narrower annotations were not consistent with the base class, and were not
+  the concrete algorithm class in any case.  Runtime behavior is unchanged,
+  but code that relies on the narrower static type, e.g. to use the ``key``
+  attribute of the result, may now need an ``isinstance()`` check or a cast to
+  satisfy a type checker.
+
 2.9.1 (in development)
 ----------------------
 

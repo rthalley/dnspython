@@ -174,4 +174,4 @@ class RRSIGBase(dns.rdata.Rdata):
         header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()
-        return cls(rdclass, rdtype, *header, signer, signature)  # type: ignore
+        return cls(rdclass, rdtype, *header, signer, signature)  # pyright: ignore

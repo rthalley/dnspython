@@ -1,5 +1,3 @@
-from typing import Type
-
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import mldsa
 
@@ -27,7 +25,6 @@ class PublicMLDSA(CryptographyPublicKey):
 
 
 class PrivateMLDSA(CryptographyPrivateKey):
-    public_cls: Type[PublicMLDSA]  # pyright: ignore
 
     def sign(
         self,

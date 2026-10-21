@@ -34,7 +34,6 @@ class CryptographyPublicKey(GenericPublicKey):
 class CryptographyPrivateKey(GenericPrivateKey):
     key: Any = None
     key_cls: Any = None
-    public_cls: type[CryptographyPublicKey]  # pyright: ignore
 
     def __init__(self, key: Any) -> None:  # pylint: disable=super-init-not-called
         if self.key_cls is None:
@@ -45,7 +44,7 @@ class CryptographyPrivateKey(GenericPrivateKey):
             raise AlgorithmKeyMismatch
         self.key = key
 
-    def public_key(self) -> "CryptographyPublicKey":
+    def public_key(self) -> "GenericPublicKey":
         return self.public_cls(key=self.key.public_key())
 
     @classmethod
