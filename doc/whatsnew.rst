@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* BTree zones now keep delegation indexes and node flags consistent when a
+  parent delegation hides or exposes nested NS records, when nodes are copied
+  for a new version, and when CNAME replacement implicitly removes NS records.
+  An origin learned from a zone file is also correctly identified as the
+  origin rather than a delegation when names are absolute.
+
 * ``dns.asyncquery.quic()`` now verifies the server certificate against the
   *hostname* parameter.  It passed the deprecated *server_hostname* alias to
   the QUIC connection instead, so a query made with ``hostname=`` accepted any
