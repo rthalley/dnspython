@@ -89,7 +89,7 @@ class EntropyPool:
         with self.lock:
             self._maybe_seed()
             if self.digest is None or self.next_byte == self.hash_len:
-                assert(self.hash is not None)
+                assert self.hash is not None
                 self.hash.update(bytes(self.pool))
                 self.digest = bytearray(self.hash.digest())
                 # We make a new hash because on MicroPython you can't update
