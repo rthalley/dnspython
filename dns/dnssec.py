@@ -715,10 +715,6 @@ def nsec3_hash(
     :rtype: str
     """
 
-    b32_conversion = str.maketrans(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", "0123456789ABCDEFGHIJKLMNOPQRSTUV"
-    )
-
     try:
         if isinstance(algorithm, str):
             algorithm = NSEC3Hash[algorithm.upper()]
@@ -747,10 +743,7 @@ def nsec3_hash(
     for _ in range(iterations):
         digest = hashlib.sha1(digest + salt_encoded).digest()
 
-    output = base64.b32encode(digest).decode("utf-8")
-    output = output.translate(b32_conversion)
-
-    return output
+    return base64.b32hexencode(digest).decode("utf-8")
 
 
 def make_ds_rdataset(
