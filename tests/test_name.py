@@ -974,6 +974,15 @@ class NameTestCase(unittest.TestCase):
         u = dns.name.from_unicode(s, idna_codec=dns.name.IDNA_2003_Practical)
         self.assertEqual(len(u), 3)
 
+    def testToUnicodeRejectsASCIIOnlyACELabel(self):
+        # "xn--www-" punycode-decodes to "www", which would make the name
+        # display as www.example., a different name.  "xn--" decodes to "".
+        for label in ("xn--www-", "XN--www-", "xn--"):
+            n = dns.name.from_text(f"{label}.example.")
+            for codec in (dns.name.IDNA_2003_Practical, dns.name.IDNA_2008_Practical):
+                with self.assertRaises(dns.name.IDNAException):
+                    n.to_unicode(idna_codec=codec)
+
     def testToUnicodeEscapesControlCharacters(self):
         # One label which punycode-decodes to "evil\x85com", i.e. with a C1
         # NEL in it.  Control characters must be escaped, as they are in
