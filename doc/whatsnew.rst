@@ -18,6 +18,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.reversename.to_address()`` now rejects IPv4 reverse-map names without
+  exactly 4 labels, as it already does for IPv6.  It joined the labels with
+  ``.``, so a label containing an escaped dot was read as several octets, e.g.
+  ``4\.3\.2\.1.in-addr.arpa.`` gave ``4.3.2.1``, an address whose reverse-map
+  name is a different name.
+
 * BTree zones now keep delegation indexes and node flags consistent when a
   parent delegation hides or exposes nested NS records, when nodes are copied
   for a new version, and when CNAME replacement implicitly removes NS records.
