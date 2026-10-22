@@ -24,6 +24,12 @@ What's New in dnspython
   ``2\.1.3.4.in-addr.arpa.`` were both accepted as ``4.3.2.1``, although only
   ``1.2.3.4.in-addr.arpa.`` is its reverse-map name.
 
+* NSEC3 now rejects an empty Next Hashed Owner Name, as RFC 5155 section
+  3.1.6 requires a hash length of 1 to 255 octets.  The wire parser accepted
+  it, ``next_name()`` returned the zone origin, and ``to_text()`` wrote an
+  empty field, so reading the text back took the first type mnemonic as the
+  hash, e.g. types ``NS SOA`` came back as next ``ns`` and type ``SOA``.
+
 * BTree zones now keep delegation indexes and node flags consistent when a
   parent delegation hides or exposes nested NS records, when nodes are copied
   for a new version, and when CNAME replacement implicitly removes NS records.

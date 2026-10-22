@@ -21,6 +21,7 @@ import dns.exception
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdtypes.ANY.NSEC3
 import dns.rdtypes.ANY.TXT
 import dns.ttl
 
@@ -115,6 +116,19 @@ class NSEC3TestCase(unittest.TestCase):
         empty = prefix + bytes([0, 1, 0])
         with self.assertRaises(dns.exception.FormError):
             dns.rdata.from_wire("IN", "NSEC3", empty, 0, len(empty))
+
+    def test_NSEC3_empty_next(self):
+        # RFC 5155 Sec 3.1.6: the hash length is 1 to 255 octets.  An empty
+        # Next Hashed Owner Name was accepted from wire, and to_text() wrote it
+        # as an empty field, so reading the text back took the first type
+        # mnemonic as the hash: types NS SOA came back as next "ns", type SOA.
+        wire = bytes([1, 0, 0, 0, 0, 0, 0, 1, 0x22])
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire("IN", "NSEC3", wire, 0, len(wire))
+        with self.assertRaises(ValueError):
+            dns.rdtypes.ANY.NSEC3.NSEC3(
+                dns.rdataclass.IN, dns.rdatatype.NSEC3, 1, 0, 0, b"", b"", []
+            )
 
 
 if __name__ == "__main__":
