@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* NSEC3 now rejects an empty Next Hashed Owner Name, as RFC 5155 section
+  3.1.6 requires a hash length of 1 to 255 octets.  The wire parser accepted
+  it, ``next_name()`` returned the zone origin, and ``to_text()`` wrote an
+  empty field, so reading the text back took the first type mnemonic as the
+  hash, e.g. types ``NS SOA`` came back as next ``ns`` and type ``SOA``.
+
 * BTree zones now keep delegation indexes and node flags consistent when a
   parent delegation hides or exposes nested NS records, when nodes are copied
   for a new version, and when CNAME replacement implicitly removes NS records.
