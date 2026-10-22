@@ -18,6 +18,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.reversename.to_address()`` now rejects IPv4 reverse-map names without
+  exactly 4 labels.  A label containing an escaped ``.`` was joined into the
+  address text, so e.g. ``4\.3\.2\.1.in-addr.arpa.`` and
+  ``2\.1.3.4.in-addr.arpa.`` were both accepted as ``4.3.2.1``, although only
+  ``1.2.3.4.in-addr.arpa.`` is its reverse-map name.
+
 * NSEC3 now rejects an empty Next Hashed Owner Name, as RFC 5155 section
   3.1.6 requires a hash length of 1 to 255 octets.  The wire parser accepted
   it, ``next_name()`` returned the zone origin, and ``to_text()`` wrote an
