@@ -27,7 +27,7 @@ class PublicMLDSA(CryptographyPublicKey):
 
 
 class PrivateMLDSA(CryptographyPrivateKey):
-    public_cls: Type[PublicMLDSA]  # pyright: ignore
+    public_cls: Type[PublicMLDSA]  # type: ignore
 
     def sign(
         self,
