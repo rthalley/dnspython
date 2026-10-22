@@ -51,7 +51,8 @@ class NSEC3(dns.rdata.Rdata):
         self.flags = self._as_uint8(flags)
         self.iterations = self._as_uint16(iterations)
         self.salt = self._as_bytes(salt, True, 255)
-        self.next = self._as_bytes(next, True, 255)
+        # RFC 5155 section 3.1.6: the hash length is 1 to 255 octets.
+        self.next = self._as_bytes(next, True, 255, empty_ok=False)
         if not isinstance(windows, Bitmap):
             windows = Bitmap(windows)
         self.windows = tuple(windows.windows)
