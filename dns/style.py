@@ -1,20 +1,18 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import dataclasses
-from typing import Any, TypeVar
-
-T = TypeVar("T", bound="BaseStyle")
+from typing import Any, Self
 
 
 @dataclasses.dataclass(frozen=True)
 class BaseStyle:
     """All text styles"""
 
-    def replace(self: T, /, **changes) -> T:
+    def replace(self: Self, /, **changes) -> Self:
         return dataclasses.replace(self, **changes)
 
     @classmethod
-    def from_keywords(cls: type[T], kw: dict[str, Any]) -> T:
+    def from_keywords(cls: type[Self], kw: dict[str, Any]) -> Self:
         ok_kw: dict[str, Any] = {}
         for k, v in kw.items():
             if k == "chunksize":

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod  # pylint: disable=no-name-in-module
-from typing import Any
+from typing import Any, Self
 
 import dns.rdataclass
 import dns.rdatatype
@@ -42,12 +42,12 @@ class GenericPublicKey(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dnskey(cls, key: DNSKEY) -> "GenericPublicKey":
+    def from_dnskey(cls, key: DNSKEY) -> Self:
         """Create public key from DNSKEY"""
 
     @classmethod
     @abstractmethod
-    def from_pem(cls, public_pem: bytes) -> "GenericPublicKey":
+    def from_pem(cls, public_pem: bytes) -> Self:
         """Create public key from PEM-encoded SubjectPublicKeyInfo as specified
         in RFC 5280"""
 
@@ -74,14 +74,14 @@ class GenericPrivateKey(ABC):
         """Sign DNSSEC data"""
 
     @abstractmethod
-    def public_key(self) -> "GenericPublicKey":
+    def public_key(self) -> GenericPublicKey:
         """Return public key instance"""
 
     @classmethod
     @abstractmethod
     def from_pem(
         cls, private_pem: bytes, password: bytes | None = None
-    ) -> "GenericPrivateKey":
+    ) -> Self:
         """Create private key from PEM-encoded PKCS#8"""
 
     @abstractmethod

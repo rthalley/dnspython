@@ -19,7 +19,7 @@ import base64
 import datetime
 import struct
 import time
-from typing import TypeVar
+from typing import Self
 
 import dns.dnssectypes
 import dns._text_util
@@ -58,9 +58,6 @@ def sigtime_to_posixtime(what):
 
 def posixtime_to_sigtime(what):
     return time.strftime("%Y%m%d%H%M%S", time.gmtime(what))
-
-
-T = TypeVar("T", bound="RRSIGBase")
 
 
 @dns.immutable.immutable
@@ -122,14 +119,14 @@ class RRSIGBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls: type[T],
+        cls: type[Self],
         rdclass,
         rdtype,
         tok,
         origin=None,
         relativize=True,
         relativize_to=None,
-    ) -> T:
+    ) -> Self:
         type_covered = dns.rdatatype.from_text(tok.get_string())
         algorithm = dns.dnssectypes.Algorithm.from_text(tok.get_string())
         labels = tok.get_int()
@@ -170,7 +167,7 @@ class RRSIGBase(dns.rdata.Rdata):
         file.write(self.signature)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()
