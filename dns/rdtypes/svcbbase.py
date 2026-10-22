@@ -4,7 +4,7 @@ import base64
 import enum
 import re
 import struct
-from typing import Any, TypeVar
+from typing import Any, Self
 
 import dns._text_util
 import dns.enum
@@ -531,9 +531,6 @@ def _validate_and_define(params, key, value):
     params[key] = value
 
 
-T = TypeVar("T", bound="SVCBBase")
-
-
 @dns.immutable.immutable
 class SVCBBase(dns.rdata.Rdata):
     """Base class for SVCB-like records"""
@@ -587,14 +584,14 @@ class SVCBBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls: type[T],
+        cls: type[Self],
         rdclass,
         rdtype,
         tok,
         origin=None,
         relativize=True,
         relativize_to=None,
-    ) -> T:
+    ) -> Self:
         priority = tok.get_uint16()
         target = tok.get_name(origin, relativize, relativize_to)
         if priority == 0:
@@ -645,7 +642,7 @@ class SVCBBase(dns.rdata.Rdata):
                     value.to_wire(file, origin)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         priority = parser.get_uint16()
         target = parser.get_name(origin)
         if priority == 0 and parser.remaining() != 0:

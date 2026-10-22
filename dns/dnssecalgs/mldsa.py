@@ -1,3 +1,5 @@
+from typing import Self
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import mldsa
 
@@ -17,7 +19,7 @@ class PublicMLDSA(CryptographyPublicKey):
         )
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY) -> "PublicMLDSA":
+    def from_dnskey(cls, key: DNSKEY) -> Self:
         cls._ensure_algorithm_key_combination(key)
         return cls(
             key=cls.key_cls.from_public_bytes(key.key),
@@ -39,7 +41,7 @@ class PrivateMLDSA(CryptographyPrivateKey):
         return signature
 
     @classmethod
-    def generate(cls) -> "PrivateMLDSA":
+    def generate(cls) -> Self:
         return cls(key=cls.key_cls.generate())
 
 

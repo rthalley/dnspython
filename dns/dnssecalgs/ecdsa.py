@@ -1,3 +1,5 @@
+from typing import Self
+
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -34,7 +36,7 @@ class PublicECDSA(CryptographyPublicKey):
         return pn.x.to_bytes(self.octets, "big") + pn.y.to_bytes(self.octets, "big")
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY) -> "PublicECDSA":
+    def from_dnskey(cls, key: DNSKEY) -> Self:
         cls._ensure_algorithm_key_combination(key)
         if len(key.key) < cls.octets * 2:
             raise ValueError("truncated ECDSA key material")
@@ -77,7 +79,7 @@ class PrivateECDSA(CryptographyPrivateKey):
         return signature
 
     @classmethod
-    def generate(cls) -> "PrivateECDSA":
+    def generate(cls) -> Self:
         return cls(
             key=ec.generate_private_key(
                 curve=cls.public_cls.curve, backend=default_backend()  # type: ignore

@@ -1,4 +1,5 @@
 import struct
+from typing import Self
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
@@ -44,7 +45,7 @@ class PublicDSA(CryptographyPublicKey):
         return res
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY) -> "PublicDSA":
+    def from_dnskey(cls, key: DNSKEY) -> Self:
         cls._ensure_algorithm_key_combination(key)
         keyptr = key.key
         if len(keyptr) < 1:
@@ -102,7 +103,7 @@ class PrivateDSA(CryptographyPrivateKey):
         return signature
 
     @classmethod
-    def generate(cls, key_size: int) -> "PrivateDSA":
+    def generate(cls, key_size: int) -> Self:
         return cls(
             key=dsa.generate_private_key(key_size=key_size),
         )
