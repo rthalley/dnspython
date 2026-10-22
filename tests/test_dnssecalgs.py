@@ -145,6 +145,7 @@ class DNSSECAlgorithm(unittest.TestCase):
             with self.assertRaises(ValueError):
                 PublicDSA.from_dnskey(dnskey)
 
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def test_truncated_ecdsa(self):
         for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
             public_cls = private_cls.public_cls
@@ -176,6 +177,7 @@ class DNSSECAlgorithm(unittest.TestCase):
             ),
         )
 
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def test_ecdsa_signature_length(self):
         for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
             octets = private_cls.public_cls.octets
