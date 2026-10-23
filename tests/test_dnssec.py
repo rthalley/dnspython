@@ -1298,6 +1298,26 @@ class DNSSECMiscTestCase(unittest.TestCase):
         self.assertIsNotNone(zone.find_rdataset(dns.name.empty, "SOA"))
         self.assertIsNotNone(zone.find_rdataset(dns.name.empty, "RRSIG", covers="SOA"))
 
+    def test_sign_zone_apex_only(self):
+        # The only secure name is the origin, which is the empty name (and
+        # thus false) when the zone is relativized.
+        privkey = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(privkey.public_key(), dns.dnssec.ED25519)
+        for relativize in (True, False):
+            zone = dns.zone.from_text(
+                "@ 300 IN SOA ns.other. hostmaster.other. 1 2 3 4 5\n"
+                "@ 300 IN NS ns.other.\n"
+                "@ 300 IN A 10.0.0.1\n",
+                "example.",
+                relativize=relativize,
+            )
+            dns.dnssec.sign_zone(zone, keys=[(privkey, dnskey)], lifetime=3600)
+            nsec = zone.find_rdataset(zone.origin, "NSEC")
+            self.assertEqual(nsec[0].next, zone.origin)
+            self.assertIsNotNone(
+                zone.find_rdataset(zone.origin, "RRSIG", covers="NSEC")
+            )
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMakeDSTestCase(unittest.TestCase):
