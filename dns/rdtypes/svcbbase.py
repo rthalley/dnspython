@@ -111,7 +111,7 @@ def _escapify(qstring: bytes) -> bytes:
 def _unescape(value: str) -> bytes:
     if value == "":
         return b""
-    unescaped = b""
+    unescaped = bytearray()
     l = len(value)
     i = 0
     while i < l:
@@ -142,14 +142,14 @@ def _unescape(value: str) -> bytes:
                 unescaped += b"%c" % (codepoint)
                 continue
         unescaped += c.encode()
-    return unescaped
+    return bytes(unescaped)
 
 
 def _split(value):
     l = len(value)
     i = 0
     items = []
-    unescaped = b""
+    unescaped = bytearray()
     while i < l:
         c = value[i]
         i += 1
@@ -163,11 +163,11 @@ def _split(value):
                 raise dns.exception.SyntaxError("invalid escape in value list")
             unescaped += b"%c" % (c)
         elif c == ord(","):
-            items.append(unescaped)
-            unescaped = b""
+            items.append(bytes(unescaped))
+            unescaped = bytearray()
         else:
             unescaped += b"%c" % (c)
-    items.append(unescaped)
+    items.append(bytes(unescaped))
     return items
 
 
