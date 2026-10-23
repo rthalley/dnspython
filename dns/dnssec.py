@@ -1110,7 +1110,7 @@ def _sign_zone_nsec(
             _txn_add_nsec(txn, last_secure, name, zone.rdclass, rrsig_ttl, rrset_signer)
         last_secure = name
 
-    if last_secure:
+    if last_secure is not None:
         _txn_add_nsec(
             txn, last_secure, zone.origin, zone.rdclass, rrsig_ttl, rrset_signer
         )

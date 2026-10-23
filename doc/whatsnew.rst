@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.dnssec.sign_zone()`` now adds the apex NSEC record when the origin is
+  the only name in a relativized zone.  The origin is then the empty name,
+  which is false, so the closing NSEC was skipped and the signed zone had no
+  NSEC at all, and so no authenticated denial of existence (RFC 4035 section
+  2.3).
+
 * ``dns.reversename.to_address()`` now rejects IPv4 reverse-map names without
   exactly 4 labels.  A label containing an escaped ``.`` was joined into the
   address text, so e.g. ``4\.3\.2\.1.in-addr.arpa.`` and
