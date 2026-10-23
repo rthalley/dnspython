@@ -18,6 +18,7 @@
 import functools
 import time
 import unittest
+import unittest.mock
 from datetime import datetime, timedelta, timezone
 from typing import Any, cast
 
@@ -1167,6 +1168,33 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         rrsig = dns.dnssec.sign(a_rrset, private_key, signer, dnskey, lifetime=300)
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(a_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys)
+
+    def _bogus_rrsigs(self, count):
+        good = abs_soa_rrsig[0]
+        rdatas = [
+            good.replace(signature=bytes([i]) * len(good.signature))
+            for i in range(count)
+        ]
+        return dns.rrset.from_rdata_list(abs_soa_rrsig.name, 3600, rdatas + [good])
+
+    def testFailureLimitAllowsGoodRRSIG(self):
+        rrsigs = self._bogus_rrsigs(dns.dnssec.MAX_VALIDATION_FAILURES - 1)
+        dns.dnssec.validate(abs_soa, rrsigs, abs_keys, None, when)
+
+    def testFailureLimitStopsValidation(self):
+        rrsigs = self._bogus_rrsigs(dns.dnssec.MAX_VALIDATION_FAILURES)
+        with self.assertRaises(dns.dnssec.ValidationFailure) as cm:
+            dns.dnssec.validate(abs_soa, rrsigs, abs_keys, None, when)
+        self.assertEqual(str(cm.exception), "too many failed signature verifications")
+
+    def testFailureLimitCollidingKeys(self):
+        rrsig = abs_soa_rrsig[0]
+        dns.dnssec.validate_rrsig(abs_soa, rrsig, abs_keys_duplicate_keytag, None, when)
+        with unittest.mock.patch.object(dns.dnssec, "MAX_VALIDATION_FAILURES", 1):
+            with self.assertRaises(dns.dnssec.ValidationFailure):
+                dns.dnssec.validate_rrsig(
+                    abs_soa, rrsig, abs_keys_duplicate_keytag, None, when
+                )
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")

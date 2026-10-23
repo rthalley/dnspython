@@ -20,6 +20,7 @@ DNSSEC Functions
 .. autofunction:: dns.dnssec.sign
 .. autofunction:: dns.dnssec.validate
 .. autofunction:: dns.dnssec.validate_rrsig
+.. autodata:: dns.dnssec.MAX_VALIDATION_FAILURES
 .. autofunction:: dns.dnssec.nsec3_hash
 .. autofunction:: dns.dnssec.make_ds_rdataset()
 .. autofunction:: dns.dnssec.cds_rdataset_to_ds_rdataset()

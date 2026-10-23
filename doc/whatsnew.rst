@@ -18,6 +18,15 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.dnssec.validate()`` and ``dns.dnssec.validate_rrsig()`` now give up
+  with ``dns.dnssec.ValidationFailure`` after
+  ``dns.dnssec.MAX_VALIDATION_FAILURES`` (default 8) failed signature
+  verifications.  Each RRSIG was tried against every DNSKEY with a matching
+  algorithm and key tag, so an RRset with many RRSIGs and many colliding
+  DNSKEYs cost the product of the two in public key operations
+  (CVE-2023-50387, "KeyTrap").  A 16 KB response with 20 such RRSIGs and
+  DNSKEYs took about 9 seconds to validate.
+
 * DNSSEC validation no longer uses a DNSKEY with the REVOKE flag set to
   validate anything other than the DNSKEY RRset.  RFC 5011 section 2.1 says a
   revoked key must not be used for any other purpose, but it was a candidate

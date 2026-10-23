@@ -322,6 +322,26 @@ def _validate_signature(sig: bytes, data: bytes, key: DNSKEY) -> None:
     public_key.verify(sig, data)
 
 
+#: The maximum number of failed signature verifications that
+#: :py:func:`dns.dnssec.validate` or :py:func:`dns.dnssec.validate_rrsig` will
+#: attempt before giving up.  Each RRSIG is tried against every DNSKEY with a
+#: matching algorithm and key tag, so without a limit the work grows with the
+#: number of RRSIGs times the number of colliding DNSKEYs (CVE-2023-50387,
+#: "KeyTrap").
+MAX_VALIDATION_FAILURES = 8
+
+
+class _FailureLimit:
+    def __init__(self):
+        self.remaining = MAX_VALIDATION_FAILURES
+
+    def failed(self) -> None:
+        self.remaining -= 1
+
+    def exhausted(self) -> bool:
+        return self.remaining <= 0
+
+
 def _validate_rrsig(
     rrset: dns.rrset.RRset | tuple[dns.name.Name, dns.rdataset.Rdataset],
     rrsig: RRSIG,
@@ -329,6 +349,8 @@ def _validate_rrsig(
     origin: dns.name.Name | None = None,
     now: float | None = None,
     policy: Policy | None = None,
+    *,
+    _limit: _FailureLimit | None = None,
 ) -> None:
     """Validate an RRset against a single signature rdata, throwing an
     exception if validation is not successful.
@@ -357,6 +379,8 @@ def _validate_rrsig(
 
     if policy is None:
         policy = default_policy
+    if _limit is None:
+        _limit = _FailureLimit()
 
     candidate_keys = _find_candidate_keys(keys, rrsig)
     if candidate_keys is None:
@@ -380,6 +404,9 @@ def _validate_rrsig(
             return
         except (InvalidSignature, ValidationFailure):
             # this happens on an individual validation failure
+            _limit.failed()
+            if _limit.exhausted():
+                raise ValidationFailure("too many failed signature verifications")
             continue
     # nothing verified -- raise failure:
     raise ValidationFailure("verify failure")
@@ -437,14 +464,16 @@ def _validate(
     if rrname != rrsigname:
         raise ValidationFailure("owner names do not match")
 
+    limit = _FailureLimit()
     for rrsig in rrsigrdataset:
         if not isinstance(rrsig, RRSIG):
             raise ValidationFailure("expected an RRSIG")
         try:
-            _validate_rrsig(rrset, rrsig, keys, origin, now, policy)
+            _validate_rrsig(rrset, rrsig, keys, origin, now, policy, _limit=limit)
             return
         except (ValidationFailure, UnsupportedAlgorithm):
-            pass
+            if limit.exhausted():
+                raise
     raise ValidationFailure("no RRSIGs validated")
 
 
