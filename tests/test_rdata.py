@@ -887,12 +887,67 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(a, b)
 
     def test_good_SMIMEA(self):
-        self.equal_smimea("3 0 1 aabbccddeeff", "3 0 01 AABBCCDDEEFF")
+        # matching type 1 is SHA-256, so the cert field must be 32 octets.
+        lower = "aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+        self.equal_smimea(f"3 0 1 {lower}", f"3 0 01 {lower.upper()}")
 
     def test_bad_SMIMEA(self):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text(
                 dns.rdataclass.IN, dns.rdatatype.SMIMEA, "1 1 1 aGVsbG8gd29ybGQh"
+            )
+
+    def test_TLSA_cert_length_by_mtype(self):
+        # RFC 6698 Section 2.1.3: matching type 1 is SHA-256 (32 octets) and
+        # type 2 is SHA-512 (64 octets).  A wrong length is malformed, and the
+        # wire parser accepted it even though the sibling DS family rejects a
+        # digest of the wrong length.
+        sha256 = "00" * 32
+        sha512 = "00" * 64
+        for rdtype in (dns.rdatatype.TLSA, dns.rdatatype.SMIMEA):
+            # Correct lengths are accepted and round-trip over the wire.
+            for text in (f"3 0 1 {sha256}", f"3 0 2 {sha512}", "3 0 0 aabbcc"):
+                rd = dns.rdata.from_text(dns.rdataclass.IN, rdtype, text)
+                wire = rd.to_wire()
+                assert (
+                    dns.rdata.from_wire(dns.rdataclass.IN, rdtype, wire, 0, len(wire))
+                    == rd
+                )
+            # Wrong lengths are rejected from text and from wire.
+            for text in (
+                f"3 0 1 {sha512}",
+                f"3 0 2 {sha256}",
+                "3 0 1 ",
+                "3 0 1 aabbcc",
+            ):
+                with self.assertRaises(dns.exception.SyntaxError):
+                    dns.rdata.from_text(dns.rdataclass.IN, rdtype, text)
+            # mtype 1 with a 4-octet value, straight from the wire.
+            wire = bytes([3, 0, 1]) + b"\x00\x00\x00\x00"
+            with self.assertRaises(dns.exception.FormError):
+                dns.rdata.from_wire(dns.rdataclass.IN, rdtype, wire, 0, len(wire))
+
+    def test_SSHFP_fingerprint_length_by_type(self):
+        # fp_type 1 is SHA-1 (20 octets, RFC 4255) and type 2 is SHA-256
+        # (32 octets, RFC 6594); a wrong length is malformed.
+        sha1 = "00" * 20
+        sha256 = "00" * 32
+        for text in (f"1 1 {sha1}", f"1 2 {sha256}"):
+            rd = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SSHFP, text)
+            wire = rd.to_wire()
+            assert (
+                dns.rdata.from_wire(
+                    dns.rdataclass.IN, dns.rdatatype.SSHFP, wire, 0, len(wire)
+                )
+                == rd
+            )
+        for text in (f"1 1 {sha256}", f"1 2 {sha1}", "1 1 ", "1 1 aabbcc"):
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.SSHFP, text)
+        wire = bytes([1, 1]) + b"\x00\x00\x00\x00"
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.SSHFP, wire, 0, len(wire)
             )
 
     def test_bad_APLItem_address_length(self):

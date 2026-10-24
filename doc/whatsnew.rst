@@ -24,6 +24,15 @@ What's New in dnspython
   NSEC at all, and so no authenticated denial of existence (RFC 4035 section
   2.3).
 
+* TLSA and SMIMEA now reject a certificate association data field whose length
+  does not match the matching type (RFC 6698 section 2.1.3: type 1 is SHA-256,
+  32 octets, and type 2 is SHA-512, 64 octets), and SSHFP rejects a fingerprint
+  whose length does not match the fingerprint type (SHA-1, 20 octets, RFC 4255
+  section 3.1.3; SHA-256, 32 octets, RFC 6594 section 3.2).  Both the wire and
+  the text parser accepted any length, including empty, so they took records
+  that conforming parsers reject.  The DS family already rejects a digest of
+  the wrong length.
+
 * ``dns.reversename.to_address()`` now rejects IPv4 reverse-map names without
   exactly 4 labels.  A label containing an escaped ``.`` was joined into the
   address text, so e.g. ``4\.3\.2\.1.in-addr.arpa.`` and

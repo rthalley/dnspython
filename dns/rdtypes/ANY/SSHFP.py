@@ -31,11 +31,21 @@ class SSHFP(dns.rdata.Rdata):
 
     __slots__ = ["algorithm", "fp_type", "fingerprint"]
 
+    # Fingerprint type registry: type 1 is SHA-1 (RFC 4255 Section 3.1.3) and
+    # type 2 is SHA-256 (RFC 6594 Section 3.2).
+    _fingerprint_length_by_type = {
+        1: 20,  # SHA-1, RFC 4255 Section 3.1.3
+        2: 32,  # SHA-256, RFC 6594 Section 3.2
+    }
+
     def __init__(self, rdclass, rdtype, algorithm, fp_type, fingerprint):
         super().__init__(rdclass, rdtype)
         self.algorithm = self._as_uint8(algorithm)
         self.fp_type = self._as_uint8(fp_type)
         self.fingerprint = self._as_bytes(fingerprint, True)
+        expected = self._fingerprint_length_by_type.get(self.fp_type)
+        if expected is not None and len(self.fingerprint) != expected:
+            raise ValueError("fingerprint length inconsistent with fingerprint type")
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         fingerprint = dns.rdata._styled_hexify(self.fingerprint, style)
