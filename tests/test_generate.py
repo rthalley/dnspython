@@ -745,6 +745,20 @@ class GenerateTestCase(unittest.TestCase):
                     "example.",
                 )
 
+    def testGenerateWidthLimit(self):
+        zone_text = "@ 3600 IN SOA foo bar 1 2 3 4 5\n@ 3600 IN NS ns1\n"
+        z = dns.zone.from_text(
+            zone_text + "$GENERATE 7-7 x 3600 TXT ${0,127,d}\n", "example."
+        )
+        self.assertEqual(z.find_rdataset("x", "TXT")[0].strings, (b"7".zfill(127),))
+        # BIND rejects a substitution that does not fit in 127 characters.  A
+        # huge width must be refused before the padded string is built.
+        for modifier in ["${0,128,d}", "${0,1000000000000,d}", "${0,1000000000000,n}"]:
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.zone.from_text(
+                    zone_text + f"$GENERATE 7-7 x 3600 TXT {modifier}\n", "example."
+                )
+
     def testNoOrigin(self):
         def bad():
             dns.zone.from_text("$GENERATE 1-10 fooo$ CNAME $.0")

@@ -161,7 +161,7 @@ class Token:
         #
         #     foo\226\128\139bar
         #
-        unescaped = b""
+        unescaped = bytearray()
         l = len(self.value)
         i = 0
         while i < l:
