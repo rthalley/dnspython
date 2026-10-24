@@ -61,8 +61,8 @@ class PX(dns.rdata.Rdata):
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         preference = parser.get_uint16()
-        map822 = parser.get_name(origin)
-        mapx400 = parser.get_name(origin)
+        map822 = parser.get_name(origin, True)
+        mapx400 = parser.get_name(origin, True)
         return cls(rdclass, rdtype, preference, map822, mapx400)
 
     def _processing_priority(self):

@@ -20,5 +20,5 @@ import dns.rdtypes.mxbase
 
 
 @dns.immutable.immutable
-class RT(dns.rdtypes.mxbase.UncompressedDowncasingMX):
+class RT(dns.rdtypes.mxbase.DecompressionOnlyDowncasingMX):
     """RT record"""

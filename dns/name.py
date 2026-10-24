@@ -102,6 +102,8 @@ class PointerChainTooLong(dns.exception.FormError):
 class BadLabelType(dns.exception.FormError):
     """The label type in DNS name wire format is unknown."""
 
+class DecompressionForbidden(dns.exception.FormError):
+    """A name has a compression pointer but decompression is forbidden."""
 
 class NeedAbsoluteNameOrOrigin(dns.exception.DNSException):
     """An attempt was made to convert a non-absolute name to
@@ -1152,15 +1154,40 @@ def from_text(
 
 MAX_COMPRESSION_POINTER_CHAIN = 16
 
+# A Note on Decompressability
+#
+# Dnspython used to be generous about decompression, being willing to decompress
+# any name.  To reduce algorithmic complexity attacks, dnspython now is strict about
+# where compression is permissible.  This policy is applied in the individual
+# rdata parsers, and by having dns.wire.Parser.get_name() disallow compression by
+# default (a breaking change for code which directly calls get_name()).
+#
+# For the record, here are the rules enforced in the library, which is the policy
+# specified in RFC 3597:
+#
+#     All owner names may be compressed and decompressed.
+#
+#     Names in the original types that are not obsolete, namely CNAME, MX, NS, PTR,
+#     and SOA are compressed in wire format and thus may be decompressed too.
+#
+#     Names in types RP, AFSDB, RT, SIG, PX, NXT, NAPTR, and SRV will not be
+#     compressed by dnspython, but MAY be compressed when decoding wire format.
+#
+#     Names in all other types will not be compressed by dnspython, and MUST NOT
+#     be compressed when decoding wire format.
 
-def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
+def from_wire_parser(parser: dns.wirebase.Parser, decompress: bool = True) -> Name:
     """Convert possibly compressed wire format into a :py:class:`dns.name.Name`.
 
     :param parser: The wire format parser.
     :type parser: :py:class:`dns.wirebase.Parser`
+    :param decompress: Is decompression allowed?
+    :type decompress: bool
     :raises dns.name.BadPointer: if a compression pointer did not
         point backwards in the message.
     :raises dns.name.BadLabelType: if an invalid label type was encountered.
+    :raises dns.name.DecompressionForbidden: if a name needs decompression but it is
+        not allowed.
     :rtype: :py:class:`dns.name.Name`
     """
 
@@ -1174,6 +1201,9 @@ def from_wire_parser(parser: dns.wirebase.Parser) -> Name:
             if count < 64:
                 labels.append(parser.get_bytes(count))
             elif count >= 192:
+                # Are compressed names allowed at all?
+                if not decompress:
+                    raise DecompressionForbidden
                 # For sanity, compression pointers must point backwards.
                 current = (count & 0x3F) * 256 + parser.get_uint8()
                 if current >= biggest_pointer:
