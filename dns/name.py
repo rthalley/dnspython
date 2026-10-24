@@ -1098,7 +1098,8 @@ def from_text(
         # codepoints > 127.
         text = text.encode("ascii")
     labels = []
-    label = b""
+    # A bytearray, as appending to bytes copies the label each time.
+    label = bytearray()
     escaping = False
     edigits = 0
     total = 0
@@ -1131,8 +1132,8 @@ def from_text(
             elif byte_ == b".":
                 if len(label) == 0:
                     raise EmptyLabel
-                labels.append(label)
-                label = b""
+                labels.append(bytes(label))
+                label = bytearray()
             elif byte_ == b"\\":
                 escaping = True
                 edigits = 0
@@ -1142,7 +1143,7 @@ def from_text(
         if escaping:
             raise BadEscape
         if len(label) > 0:
-            labels.append(label)
+            labels.append(bytes(label))
         else:
             labels.append(b"")
     if (len(labels) == 0 or labels[-1] != b"") and origin is not None:

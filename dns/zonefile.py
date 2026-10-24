@@ -88,6 +88,11 @@ def _upper_dollarize(s):
 
 
 # A $GENERATE modifier: ${offset[,width[,base]]}
+#
+# BIND formats each substitution into a 128 byte buffer and rejects it if it
+# does not fit, so the width cannot usefully exceed 127.  Without a limit, a
+# short line could ask for an arbitrarily long zero-padded string.
+_MAX_GENERATE_WIDTH = 127
 _generate_modifier = re.compile(r"{([+-]?\d+)(?:,(\d+)(?:,([doxXnN]))?)?}")
 
 
@@ -143,6 +148,8 @@ def _generate_text(template: str, counter: int) -> str:
                 offset = int(match.group(1))
                 if match.group(2) is not None:
                     width = int(match.group(2))
+                    if width > _MAX_GENERATE_WIDTH:
+                        raise dns.exception.SyntaxError("$GENERATE width is too large")
                 if match.group(3) is not None:
                     base = match.group(3)
                 i = match.end()
