@@ -33,6 +33,18 @@ What's New in dnspython
   that conforming parsers reject.  The DS family already rejects a digest of
   the wrong length.
 
+* A ``$GENERATE`` modifier width greater than 127 is now a syntax error, as
+  BIND rejects a substitution that does not fit in 127 characters.  The width
+  was not limited, so a short line such as ``$GENERATE 1-1 ${0,100000000,d}
+  A 10.0.0.1`` built a 100 MB padded label before anything was checked, and
+  the ``dns.transaction.TransactionLimiter`` meant for untrusted zone files
+  never saw it.
+
+* ``dns.name.from_text()`` and the parsing of quoted strings and SVCB
+  parameter values no longer take time quadratic in the length of the text.
+  They appended to ``bytes`` one character at a time, so e.g. a 1 MB label
+  took about 7 seconds to be rejected as too long.
+
 * ``dns.reversename.to_address()`` now rejects IPv4 reverse-map names without
   exactly 4 labels.  A label containing an escaped ``.`` was joined into the
   address text, so e.g. ``4\.3\.2\.1.in-addr.arpa.`` and
