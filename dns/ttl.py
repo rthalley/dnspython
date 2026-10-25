@@ -74,7 +74,7 @@ def from_text(text: str) -> int:
                     raise BadTTL(f"unknown unit '{c}'")
                 current = 0
                 need_digit = True
-        if not current == 0:
+        if not need_digit:
             raise BadTTL("trailing integer")
     if total < 0 or total > MAX_TTL:
         raise BadTTL("TTL should be between 0 and 2**32 - 1 (inclusive)")
