@@ -102,6 +102,9 @@ DNSSEC RFCs
 `RFC 4471 <https://tools.ietf.org/html/rfc4471>`_
     Derivation of DNS Name Predecessor and Successor.
 
+`RFC 5011 <https://tools.ietf.org/html/rfc5011>`_
+    Automated Updates of DNS Security (DNSSEC) Trust Anchors.
+
 `RFC 5155 <https://tools.ietf.org/html/rfc5155>`_
     DNS Security (DNSSEC) Hashed Authenticated Denial of Existence.  [NSEC3]
 
