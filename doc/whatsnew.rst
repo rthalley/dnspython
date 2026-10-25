@@ -24,6 +24,11 @@ What's New in dnspython
   key like any other, so as long as the revoked key was still published, data
   signed with its private key, e.g. by whoever compromised it, validated.
 
+* ``dns.ttl.from_text()`` now rejects a BIND-style TTL that ends in a 0
+  without a unit, e.g. ``1h0``, as it already did for other numbers, e.g.
+  ``1h5``, and as BIND does.  The check for a trailing number tested its value
+  instead of whether there was one, so ``1h0`` was read as one hour.
+
 * ``dns.dnssec.sign_zone()`` now adds the apex NSEC record when the origin is
   the only name in a relativized zone.  The origin is then the empty name,
   which is false, so the closing NSEC was skipped and the signed zone had no
