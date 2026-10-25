@@ -18,6 +18,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* DNSSEC validation no longer uses a DNSKEY with the REVOKE flag set to
+  validate anything other than the DNSKEY RRset.  RFC 5011 section 2.1 says a
+  revoked key must not be used for any other purpose, but it was a candidate
+  key like any other, so as long as the revoked key was still published, data
+  signed with its private key, e.g. by whoever compromised it, validated.
+
 * ``dns.dnssec.sign_zone()`` now adds the apex NSEC record when the origin is
   the only name in a relativized zone.  The origin is then the empty name,
   which is false, so the closing NSEC was skipped and the signed zone had no
