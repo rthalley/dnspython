@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* DNSSEC validation no longer uses a DNSKEY with the REVOKE flag set to
+  validate anything other than the DNSKEY RRset.  RFC 5011 section 2.1 says a
+  revoked key must not be used for any other purpose, but it was a candidate
+  key like any other, so as long as the revoked key was still published, data
+  signed with its private key, e.g. by whoever compromised it, validated.
+
 * ``dns.ttl.from_text()`` now rejects a BIND-style TTL that ends in a 0
   without a unit, e.g. ``1h0``, as it already did for other numbers, e.g.
   ``1h5``, and as BIND does.  The check for a trailing number tested its value

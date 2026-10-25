@@ -1147,6 +1147,27 @@ class DNSSECValidatorTestCase(unittest.TestCase):
     def testGoodCandidateKeyIsFound(self):
         self.check_candidates(Flag.ZONE, 3, 1)
 
+    def testRevokedKeyOnlyValidatesDNSKEY(self):
+        # RFC 5011 section 2.1: a revoked key may only be used to validate its
+        # signature over the DNSKEY RRset.
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=private_key.public_key(),
+            algorithm=dns.dnssec.Algorithm.ED25519,
+            flags=Flag.ZONE | Flag.SEP | Flag.REVOKE,
+        )
+        signer = dns.name.from_text("example")
+        dnskey_rrset = dns.rrset.from_rdata(signer, 300, dnskey)
+        keys = {signer: dnskey_rrset}
+        rrsig = dns.dnssec.sign(dnskey_rrset, private_key, signer, dnskey, lifetime=300)
+        dns.dnssec.validate(
+            dnskey_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys
+        )
+        a_rrset = dns.rrset.from_text(signer, 300, "IN", "A", "10.0.0.1")
+        rrsig = dns.dnssec.sign(a_rrset, private_key, signer, dnskey, lifetime=300)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(a_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys)
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMiscTestCase(unittest.TestCase):
