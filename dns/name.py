@@ -48,6 +48,7 @@ else:  # pragma: no cover
 
 CompressType = dict["Name", int]
 
+MAX_COMPRESSION_POINTER_OFFSET = 0x3fff
 
 class NameRelation(dns.enum.IntEnum):
     """Name relation result from fullcompare()."""
@@ -92,7 +93,7 @@ class BadEscape(dns.exception.SyntaxError):
 
 
 class BadPointer(dns.exception.FormError):
-    """A DNS compression pointer points forward instead of backward."""
+    """A DNS compression pointer points to an invalid offset."""
 
 
 class PointerChainTooLong(dns.exception.FormError):
@@ -796,7 +797,7 @@ class Name:
             else:
                 if compress is not None and len(n) > 1:
                     pos = file.tell()
-                    if pos <= 0x3FFF:
+                    if pos <= MAX_COMPRESSION_POINTER_OFFSET:
                         compress[n] = pos
                 l = len(label)
                 file.write(struct.pack("!B", l))
@@ -1184,7 +1185,8 @@ def from_wire_parser(parser: dns.wirebase.Parser, decompress: bool = True) -> Na
     :param decompress: Is decompression allowed?
     :type decompress: bool
     :raises dns.name.BadPointer: if a compression pointer did not
-        point backwards in the message.
+        point backwards in the message, or did not point at a non-compression-pointer
+        label in a previously encountered name.
     :raises dns.name.BadLabelType: if an invalid label type was encountered.
     :raises dns.name.DecompressionForbidden: if a name needs decompression but it is
         not allowed.
@@ -1196,17 +1198,20 @@ def from_wire_parser(parser: dns.wirebase.Parser, decompress: bool = True) -> Na
     hops = 0
     with parser.restore_furthest():
         start = parser.current
+        label_start = parser.current
         count = parser.get_uint8()
         while count != 0:
             if count < 64:
                 labels.append(parser.get_bytes(count))
+                if label_start <= MAX_COMPRESSION_POINTER_OFFSET:
+                    parser.add_name_offset(label_start)
             elif count >= 192:
                 # Are compressed names allowed at all?
                 if not decompress:
                     raise DecompressionForbidden
                 # For sanity, compression pointers must point backwards.
                 current = (count & 0x3F) * 256 + parser.get_uint8()
-                if current >= biggest_pointer:
+                if current >= biggest_pointer or not parser.is_name_offset(current):
                     raise BadPointer
                 biggest_pointer = current
                 hops += 1
@@ -1219,6 +1224,7 @@ def from_wire_parser(parser: dns.wirebase.Parser, decompress: bool = True) -> Na
                 start = current
             else:
                 raise BadLabelType
+            label_start = parser.current
             count = parser.get_uint8()
         labels.append(b"")
     return Name(labels)
