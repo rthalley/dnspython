@@ -18,6 +18,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* DNSSEC validation now rejects an RRSIG whose type covered or class does not
+  match the RRset, as RFC 4035 section 5.3.1 requires.  This was not checked,
+  so a revoked DNSKEY, which may only validate the DNSKEY RRset, still
+  validated any RRset signed with its private key if the RRSIG claimed to
+  cover DNSKEY.
+
 * DNSSEC validation no longer uses a DNSKEY with the REVOKE flag set to
   validate anything other than the DNSKEY RRset.  RFC 5011 section 2.1 says a
   revoked key must not be used for any other purpose, but it was a candidate
