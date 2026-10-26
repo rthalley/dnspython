@@ -24,6 +24,11 @@ What's New in dnspython
   key like any other, so as long as the revoked key was still published, data
   signed with its private key, e.g. by whoever compromised it, validated.
 
+* DNSSEC validation now rejects an RRSIG whose Type Covered field does not
+  match the type of the RRset, as RFC 4035 section 5.3.1 requires.  It was not
+  checked, so a revoked key could still validate any RRset with an RRSIG
+  claiming to cover DNSKEY.
+
 * ``dns.ttl.from_text()`` now rejects a BIND-style TTL that ends in a 0
   without a unit, e.g. ``1h0``, as it already did for other numbers, e.g.
   ``1h5``, and as BIND does.  The check for a trailing number tested its value

@@ -1168,6 +1168,25 @@ class DNSSECValidatorTestCase(unittest.TestCase):
         with self.assertRaises(dns.dnssec.ValidationFailure):
             dns.dnssec.validate(a_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys)
 
+    def testTypeCoveredMustMatchRRset(self):
+        # RFC 4035 section 5.3.1: the RRSIG type covered must equal the RRset
+        # type, so a revoked key can't validate an A RRset by claiming DNSKEY.
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=private_key.public_key(),
+            algorithm=dns.dnssec.Algorithm.ED25519,
+            flags=Flag.ZONE | Flag.SEP | Flag.REVOKE,
+        )
+        signer = dns.name.from_text("example")
+        keys = {signer: dns.rrset.from_rdata(signer, 300, dnskey)}
+        a_rrset = dns.rrset.from_text(signer, 300, "IN", "A", "10.0.0.1")
+        rrsig = dns.dnssec.sign(a_rrset, private_key, signer, dnskey, lifetime=300)
+        rrsig = rrsig.replace(type_covered=dns.rdatatype.DNSKEY)
+        data = dns.dnssec._make_rrsig_signature_data(a_rrset, rrsig)
+        rrsig = rrsig.replace(signature=private_key.sign(data))
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(a_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys)
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMiscTestCase(unittest.TestCase):
