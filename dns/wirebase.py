@@ -12,7 +12,7 @@ import dns.exception
 class Parser:
     """Helper class for parsing DNS wire format."""
 
-    def __init__(self, wire: bytes, current: int = 0):
+    def __init__(self, wire: bytes, current: int = 0, strict: bool = False):
         """Initialize a Parser.
 
         :param wire: The data to be parsed (typically a whole message or a slice of it).
@@ -26,6 +26,8 @@ class Parser:
         if current:
             self.seek(current)
         self.furthest = current
+        self.strict = strict
+        self.name_offsets: set[int] = set()
 
     def remaining(self) -> int:
         return self.end - self.current
@@ -98,3 +100,13 @@ class Parser:
         finally:
             self.current = self.furthest
             self.end = saved_end
+
+    def add_name_offset(self, offset: int):
+        if self.strict:
+            self.name_offsets.add(offset)
+
+    def is_name_offset(self, offset: int) -> bool:
+        if self.strict:
+            return offset in self.name_offsets
+        else:
+            return True

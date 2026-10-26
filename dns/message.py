@@ -1135,7 +1135,7 @@ class _WireReader:
         multi=False,
         continue_on_error=False,
     ):
-        self.parser = dns.wire.Parser(wire)
+        self.parser = dns.wire.Parser(wire, strict=True)
         self.message = None
         self.initialize_message = initialize_message
         self.question_only = question_only
