@@ -305,6 +305,25 @@ class BaseResolverTests(unittest.TestCase):
                 cache.get((name, dns.rdatatype.A, dns.rdataclass.IN)) is None
             )
 
+    def testCacheNegativeWithoutSOA(self):
+        # RFC 2308 section 5: a negative answer with no SOA has no TTL and
+        # must not be cached.
+        with FakeTime() as fake_time:
+            message = dns.message.from_text("""id 1
+flags QR RA
+rcode NXDOMAIN
+;QUESTION
+www.example. IN A
+""")
+            name = dns.name.from_text("www.example.")
+            answer = dns.resolver.Answer(
+                name, dns.rdatatype.ANY, dns.rdataclass.IN, message
+            )
+            self.assertLessEqual(answer.expiration, fake_time.time())
+            cache = dns.resolver.Cache()
+            cache.put((name, dns.rdatatype.ANY, dns.rdataclass.IN), answer)
+            self.assertIsNone(cache.get((name, dns.rdatatype.ANY, dns.rdataclass.IN)))
+
     def testCacheCleaning(self):
         with FakeTime() as fake_time:
             message = dns.message.from_text(message_text)
@@ -1102,6 +1121,19 @@ class NanoTests(unittest.TestCase):
             self.assertEqual(answer[0].replacement, dns.name.root)
             with self.assertRaises(dns.resolver.NXDOMAIN):
                 dns.e164.query("0123456789", ["e164.arpa"], res)
+
+    def testNXDOMAINWithoutSOANotCached(self):
+        with AlwaysType3NXDOMAINNanoNameserver() as na:
+            res = dns.resolver.Resolver(configure=False)
+            res.port = na.udp_address[1]
+            res.nameservers = [na.udp_address[0]]
+            res.cache = dns.resolver.Cache()
+            qname = dns.name.from_text("www.example.")
+            with self.assertRaises(dns.resolver.NXDOMAIN):
+                res.resolve(qname, "A")
+            self.assertIsNone(
+                res.cache.get((qname, dns.rdatatype.ANY, dns.rdataclass.IN))
+            )
 
 
 class AlwaysType3NXDOMAINNanoNameserver(Server):

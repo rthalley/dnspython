@@ -984,7 +984,9 @@ class ChainingResult:
     The ``minimum_ttl`` attribute is the minimum TTL, i.e. the TTL to
     use if caching the data.  It is the smallest of all the CNAME TTLs
     and either the answer TTL if it exists or the SOA TTL and SOA
-    minimum values for negative answers.
+    minimum values for negative answers.  It is 0 for a negative answer
+    with no SOA record, as RFC 2308 section 5 says such answers should
+    not be cached.
 
     The ``cnames`` attribute is a list of all the CNAME RRSets followed to
     get to the canonical name.
@@ -1072,6 +1074,9 @@ class QueryMessage(Message):
                     try:
                         auname = auname.parent()
                     except dns.name.NoParent:
+                        # There is no SOA, so there is no negative TTL and
+                        # the answer must not be cached (RFC 2308 section 5).
+                        min_ttl = 0
                         break
         return ChainingResult(qname, answer, min_ttl, cnames)
 

@@ -18,6 +18,14 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.message.QueryMessage.resolve_chaining()`` now returns a minimum TTL of
+  0 for a negative response with no SOA record, so ``dns.resolver.Answer``
+  objects made from such responses are not cached.  RFC 2308 section 5 says a
+  negative response without an SOA should not be cached, but the TTL was left
+  at its initial value of 2^32 - 1, so a single NXDOMAIN or NODATA response
+  with no SOA, e.g. a spoofed one, stayed in the resolver cache for the life
+  of the process.
+
 * DNSSEC validation now rejects an RRSIG whose type covered or class does not
   match the RRset, as RFC 4035 section 5.3.1 requires.  This was not checked,
   so a revoked DNSKEY, which may only validate the DNSKEY RRset, still
