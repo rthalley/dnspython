@@ -1153,7 +1153,7 @@ class _WireReader:
         assert self.message is not None
         section = self.message.sections[section_number]
         for _ in range(qcount):
-            qname = self.parser.get_name(self.message.origin)
+            qname = self.parser.get_name(self.message.origin, True)
             rdtype, rdclass = self.parser.get_struct("!HH")
             rdclass, rdtype, _, _ = self.message._parse_rr_header(
                 section_number, qname, rdclass, rdtype
@@ -1177,7 +1177,7 @@ class _WireReader:
         force_unique = self.one_rr_per_rrset
         for i in range(count):
             rr_start = self.parser.current
-            absolute_name = self.parser.get_name()
+            absolute_name = self.parser.get_name(decompress=True)
             if self.message.origin is not None:
                 name = absolute_name.relativize(self.message.origin)
             else:

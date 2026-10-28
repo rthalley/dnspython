@@ -58,15 +58,19 @@ class NSBase(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
-        target = parser.get_name(origin)
+        target = parser.get_name(origin, True)
         return cls(rdclass, rdtype, target)
-
 
 @dns.immutable.immutable
 class UncompressedNS(NSBase):
     """Base class for rdata that is like an NS record, but whose name
-    is not compressed when convert to DNS wire format, and whose
-    digestable form is not downcased."""
+    is not compressed when converted to DNS wire format, may not be decompressed,
+    and whose digestable form is not downcased."""
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         self.target.to_wire(file, None, origin, False)
+
+    @classmethod
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+        target = parser.get_name(origin)
+        return cls(rdclass, rdtype, target)

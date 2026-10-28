@@ -53,6 +53,6 @@ class RP(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        mbox = parser.get_name(origin)
-        txt = parser.get_name(origin)
+        mbox = parser.get_name(origin, True)
+        txt = parser.get_name(origin, True)
         return cls(rdclass, rdtype, mbox, txt)
