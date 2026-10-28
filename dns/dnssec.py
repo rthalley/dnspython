@@ -358,6 +358,11 @@ def _validate_rrsig(
     if policy is None:
         policy = default_policy
 
+    # RFC 4035 section 5.3.1: the RRSIG must cover the RRset's type and class.
+    _, rdataset = _get_rrname_rdataset(rrset)
+    if rrsig.type_covered != rdataset.rdtype or rrsig.rdclass != rdataset.rdclass:
+        raise ValidationFailure("RRSIG does not cover the RRset")
+
     candidate_keys = _find_candidate_keys(keys, rrsig)
     if candidate_keys is None:
         raise ValidationFailure("unknown key")
