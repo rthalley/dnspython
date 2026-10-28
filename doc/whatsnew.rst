@@ -6,6 +6,11 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* The resolver now assigns a new random query id to every query.
+
+* For transports that require a 0 query id, set it in a way that does not break
+  TSIG.
+
 * ``dns.message.QueryMessage.resolve_chaining()`` now caps the minimum TTL of
   a negative response with no SOA record at 300 seconds
   (``dns.message.NEGATIVE_TTL_WITHOUT_SOA``).  Previously the TTL was left at
@@ -135,7 +140,7 @@ What's New in dnspython
   signed response failed with ``BadSignature`` and a response with no TSIG at
   all was accepted, as the RFC 8945 section 5.4 check for a missing TSIG was
   skipped.
-  
+
 * ``dns.query.inbound_xfr()``, ``dns.asyncquery.inbound_xfr()``, and
   ``dns.query.xfr()`` now check every response message with
   ``dns.message.Message.is_response()`` and raise ``dns.query.BadResponse`` if
