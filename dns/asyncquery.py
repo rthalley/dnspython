@@ -46,9 +46,11 @@ from dns.query import (
     NoDOQ,
     UDPMode,
     _check_status,
+    _check_zero_id_response,
     _compute_times,
     _matches_destination,
     _remaining,
+    _zero_id_wire,
     have_doh,
     make_ssl_context,
 )
@@ -732,8 +734,7 @@ async def _http3(
     if url_parts.port is not None:
         port = url_parts.port
 
-    q.id = 0
-    wire = q.to_wire()
+    wire = _zero_id_wire(q)
     the_connection: dns.quic.AsyncQuicConnection
     if connection:
         cfactory = dns.quic.null_factory
@@ -767,8 +768,7 @@ async def _http3(
             ignore_trailing=ignore_trailing,
         )
     r.time = max(finish - start, 0.0)
-    if not q.is_response(r):
-        raise BadResponse
+    _check_zero_id_response(q, r)
     return r
 
 
@@ -804,8 +804,7 @@ async def quic(
     if server_hostname is not None and hostname is None:
         hostname = server_hostname
 
-    q.id = 0
-    wire = q.to_wire()
+    wire = _zero_id_wire(q)
     the_connection: dns.quic.AsyncQuicConnection
     if connection:
         cfactory = dns.quic.null_factory
@@ -838,8 +837,7 @@ async def quic(
             ignore_trailing=ignore_trailing,
         )
     r.time = max(finish - start, 0.0)
-    if not q.is_response(r):
-        raise BadResponse
+    _check_zero_id_response(q, r)
     return r
 
 

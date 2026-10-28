@@ -658,6 +658,26 @@ def _check_status(headers: dns.quic.Headers, peer: str, wire: bytes) -> None:
         raise ValueError(f"{peer} responded with status code {status}{error}")
 
 
+def _zero_id_wire(q: dns.message.Message) -> bytes:
+    # DoQ and DoH3 queries have a message id of 0 (RFC 9250 section 4.2.1).  Only the
+    # wire format is changed, as the caller may send the message again over a
+    # transport where the id is anti-spoofing entropy (RFC 5452 section 9.2), e.g. the
+    # resolver when it moves on to a Do53 nameserver.  The TSIG digest uses the
+    # original id, so a signature is not affected.
+    return b"\x00\x00" + q.to_wire()[2:]
+
+
+def _check_zero_id_response(q: dns.message.Message, r: dns.message.Message) -> None:
+    # The response to a query sent with _zero_id_wire() has an id of 0 too.  Give it
+    # the id of the query, so it matches the caller's message as it would for any
+    # other transport.
+    if r.id != 0:
+        raise BadResponse
+    r.id = q.id
+    if not q.is_response(r):
+        raise BadResponse
+
+
 def _http3(
     q: dns.message.Message,
     where: str,
@@ -681,8 +701,7 @@ def _http3(
     if url_parts.port is not None:
         port = url_parts.port
 
-    q.id = 0
-    wire = q.to_wire()
+    wire = _zero_id_wire(q)
     the_connection: dns.quic.SyncQuicConnection
     the_manager: dns.quic.SyncQuicManager
     if connection:
@@ -714,8 +733,7 @@ def _http3(
         ignore_trailing=ignore_trailing,
     )
     r.time = max(finish - start, 0.0)
-    if not q.is_response(r):
-        raise BadResponse
+    _check_zero_id_response(q, r)
     return r
 
 
@@ -1444,8 +1462,7 @@ def quic(
     if server_hostname is not None and hostname is None:
         hostname = server_hostname
 
-    q.id = 0
-    wire = q.to_wire()
+    wire = _zero_id_wire(q)
     the_connection: dns.quic.SyncQuicConnection
     the_manager: dns.quic.SyncQuicManager
     if connection:
@@ -1475,8 +1492,7 @@ def quic(
         ignore_trailing=ignore_trailing,
     )
     r.time = max(finish - start, 0.0)
-    if not q.is_response(r):
-        raise BadResponse
+    _check_zero_id_response(q, r)
     return r
 
 

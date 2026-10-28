@@ -18,6 +18,15 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.query.quic()``, ``dns.asyncquery.quic()``, and the DNS-over-HTTP/3
+  queries of ``dns.query.https()`` and ``dns.asyncquery.https()`` no longer set
+  the id of the query message to 0.  Only the wire format sent has an id of 0,
+  as RFC 9250 section 4.2.1 requires, and the response is given the id of the
+  query.  The resolver sends the same query message to each nameserver it
+  tries, so once a DoQ or DoH3 attempt had failed, every Do53 query after it
+  for that name was sent over UDP with id 0, leaving only the source port as
+  anti-spoofing entropy (RFC 5452 section 9.2).
+
 * ``dns.message.QueryMessage.resolve_chaining()`` now caps the minimum TTL of
   a negative response with no SOA record at 300 seconds
   (``dns.message.NEGATIVE_TTL_WITHOUT_SOA``).  Previously the TTL was left at
