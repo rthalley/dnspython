@@ -81,6 +81,35 @@ class TokenizerTestCase(unittest.TestCase):
         token2 = tok.get()
         self.assertTrue(token1.is_eol() and token2.is_eof())
 
+    def testCRLF(self):
+        def read_all(text):
+            tok = dns.tokenizer.Tokenizer(text)
+            tokens = []
+            while True:
+                token = tok.get(want_leading=True, want_comment=True)
+                tokens.append((token.ttype, token.value))
+                if token.is_eof():
+                    return tokens, tok.line_number
+
+        # CRLF reads as LF does, in the cases where the CR could be kept:
+        # at the end of a token, of a comment, and of a blank line.
+        text = "a b ; c\nd (\n e ; f\n g)\n\n  \nh\n"
+        expected = read_all(text)
+        self.assertEqual(read_all(text.replace("\n", "\r\n")), expected)
+        self.assertEqual(read_all(text.replace("\n", "\r\n").encode()), expected)
+        # A CR alone also ends the line.
+        self.assertEqual(read_all(text.replace("\n", "\r")), expected)
+        # A CR alone does not skip a later LF.
+        self.assertEqual(read_all("a\rb\n"), read_all("a\nb\n"))
+        # A CR in a quoted string is data.
+        tok = dns.tokenizer.Tokenizer('"a\rb"\r\n')
+        self.assertEqual(tok.get(), Token(dns.tokenizer.QUOTED_STRING, "a\rb"))
+        self.assertTrue(tok.get().is_eol())
+        self.assertTrue(tok.get().is_eof())
+        tok = dns.tokenizer.Tokenizer('"a\r\nb"')
+        with self.assertRaises(dns.exception.SyntaxError):
+            tok.get()
+
     def testWS1(self):
         tok = dns.tokenizer.Tokenizer(" \n")
         token1 = tok.get()
