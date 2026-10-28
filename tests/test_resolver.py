@@ -305,6 +305,28 @@ class BaseResolverTests(unittest.TestCase):
                 cache.get((name, dns.rdatatype.A, dns.rdataclass.IN)) is None
             )
 
+    def testCacheNegativeWithoutSOA(self):
+        # A negative answer with no SOA is cached for the default negative
+        # TTL, not for the initial maximum TTL.
+        with FakeTime() as fake_time:
+            message = dns.message.from_text("""id 1
+flags QR RA
+rcode NXDOMAIN
+;QUESTION
+www.example. IN A
+""")
+            name = dns.name.from_text("www.example.")
+            key = (name, dns.rdatatype.ANY, dns.rdataclass.IN)
+            answer = dns.resolver.Answer(
+                name, dns.rdatatype.ANY, dns.rdataclass.IN, message
+            )
+            self.assertEqual(answer.expiration, fake_time.time() + 300)
+            cache = dns.resolver.Cache()
+            cache.put(key, answer)
+            self.assertIs(cache.get(key), answer)
+            fake_time.sleep(301)
+            self.assertIsNone(cache.get(key))
+
     def testCacheCleaning(self):
         with FakeTime() as fake_time:
             message = dns.message.from_text(message_text)
@@ -1102,6 +1124,19 @@ class NanoTests(unittest.TestCase):
             self.assertEqual(answer[0].replacement, dns.name.root)
             with self.assertRaises(dns.resolver.NXDOMAIN):
                 dns.e164.query("0123456789", ["e164.arpa"], res)
+
+    def testNXDOMAINWithoutSOACachedBriefly(self):
+        with AlwaysType3NXDOMAINNanoNameserver() as na:
+            res = dns.resolver.Resolver(configure=False)
+            res.port = na.udp_address[1]
+            res.nameservers = [na.udp_address[0]]
+            res.cache = dns.resolver.Cache()
+            qname = dns.name.from_text("www.example.")
+            with self.assertRaises(dns.resolver.NXDOMAIN):
+                res.resolve(qname, "A")
+            answer = res.cache.get((qname, dns.rdatatype.ANY, dns.rdataclass.IN))
+            self.assertIsNotNone(answer)
+            self.assertLessEqual(answer.expiration, time.time() + 300)
 
 
 class AlwaysType3NXDOMAINNanoNameserver(Server):
