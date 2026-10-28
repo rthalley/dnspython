@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.tokenizer.Tokenizer`` now ends a line at a carriage return, or at a
+  carriage return followed by a line feed, unless the carriage return is in a
+  quoted string.  The carriage return of CRLF line ends used to stay in the
+  last token of each line and in the text of a comment, so e.g.
+  ``dns.zone.from_text()`` rejected a zone with CRLF line ends.
+
 * DNSSEC validation no longer uses a DNSKEY with the REVOKE flag set to
   validate anything other than the DNSKEY RRset.  RFC 5011 section 2.1 says a
   revoked key must not be used for any other purpose, but it was a candidate

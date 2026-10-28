@@ -594,6 +594,18 @@ class ZoneTestCase(unittest.TestCase):
             f.write("\n")
         self.assertEqual(f.getvalue(), example_text_output)
 
+    def testFromTextCRLF(self):
+        z = dns.zone.from_text(
+            example_text.replace("\n", "\r\n"), "example.", relativize=True
+        )
+        self.assertEqual(z, dns.zone.from_text(example_text, "example.", True))
+        z = dns.zone.from_text(
+            example_comments_text.replace("\n", "\r\n"), "example.", relativize=True
+        )
+        f = StringIO()
+        z.to_file(f, want_comments=True)
+        self.assertEqual(f.getvalue(), example_comments_text_output)
+
     def testGenerate(self):
         z = dns.zone.from_text(example_generate, "example.", relativize=True)
         f = StringIO()
