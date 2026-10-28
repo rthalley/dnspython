@@ -65,7 +65,7 @@ class MXBase(dns.rdata.Rdata):
     @classmethod
     def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
         preference = parser.get_uint16()
-        exchange = parser.get_name(origin)
+        exchange = parser.get_name(origin, True)
         return cls(rdclass, rdtype, preference, exchange)
 
     def _processing_priority(self):
@@ -85,11 +85,40 @@ class UncompressedMX(MXBase):
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         super()._to_wire(file, None, origin, False)
 
+    @classmethod
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+        preference = parser.get_uint16()
+        exchange = parser.get_name(origin, False)
+        return cls(rdclass, rdtype, preference, exchange)
+
+
+@dns.immutable.immutable
+class DecompressionOnlyDowncasingMX(MXBase):
+    """Base class for rdata that is like an MX record, but whose name
+    is not compressed when converted to DNS wire format and which may
+    be decompressed."""
+
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        super()._to_wire(file, None, origin, canonicalize)
+
+    @classmethod
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+        preference = parser.get_uint16()
+        exchange = parser.get_name(origin, True)
+        return cls(rdclass, rdtype, preference, exchange)
+
 
 @dns.immutable.immutable
 class UncompressedDowncasingMX(MXBase):
     """Base class for rdata that is like an MX record, but whose name
-    is not compressed when convert to DNS wire format."""
+    is not compressed when converted to DNS wire format, and which may not
+    be decompressed, and whose digestable form is downcased."""
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         super()._to_wire(file, None, origin, canonicalize)
+
+    @classmethod
+    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+        preference = parser.get_uint16()
+        exchange = parser.get_name(origin, False)
+        return cls(rdclass, rdtype, preference, exchange)

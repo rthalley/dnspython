@@ -21,8 +21,8 @@ import struct
 import time
 from typing import TypeVar
 
-import dns.dnssectypes
 import dns._text_util
+import dns.dnssectypes
 import dns.exception
 import dns.immutable
 import dns.name

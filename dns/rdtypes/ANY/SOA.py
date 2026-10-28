@@ -73,6 +73,6 @@ class SOA(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "SOA":
-        mname = parser.get_name(origin)
-        rname = parser.get_name(origin)
+        mname = parser.get_name(origin, True)
+        rname = parser.get_name(origin, True)
         return cls(rdclass, rdtype, mname, rname, *parser.get_struct("!IIIII"))

@@ -31,3 +31,10 @@ from dns.rdtypes.rrsigbase import (  # noqa: F401  lgtm[py/unused-import]
 @dns.immutable.immutable
 class SIG(dns.rdtypes.rrsigbase.RRSIGBase):
     """SIG record"""
+
+    @classmethod
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "SIG":
+        header = parser.get_struct("!HBBIIIH")
+        signer = parser.get_name(origin, True)  # allow decompression
+        signature = parser.get_remaining()
+        return cls(rdclass, rdtype, *header, signer, signature)  # pyright: ignore

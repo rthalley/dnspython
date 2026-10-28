@@ -6,6 +6,7 @@ import unittest
 import dns.exception
 import dns.wire
 import dns.name
+import dns.rdata
 import dns._render_util
 
 
@@ -50,11 +51,17 @@ class BinaryTestCase(unittest.TestCase):
         expected1 = dns.name.from_text("dnspython.org")
         expected2 = dns.name.from_text("www.dnspython.org")
         p = dns.wire.Parser(wire)
-        self.assertEqual(p.get_name(), expected1)
-        self.assertEqual(p.get_name(), expected2)
+        self.assertEqual(p.get_name(decompress=True), expected1)
+        self.assertEqual(p.get_name(decompress=True), expected2)
         self.assertEqual(p.remaining(), 0)
         # verify the restore_furthest()
         self.assertEqual(p.current, len(wire))
+        # If compression is disallowed, we should fail on the second
+        # name.
+        p = dns.wire.Parser(wire)
+        self.assertEqual(p.get_name(decompress=True), expected1)
+        with self.assertRaises(dns.name.DecompressionForbidden):
+            p.get_name(decompress=False)
 
     def test_seek(self):
         wire = b"\x09dnspython\x03org\x00"
@@ -100,3 +107,55 @@ class BinaryTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.FormError):
             with dns._render_util.prefixed_length(out, 1):
                 out.write(b"x" * 256)
+
+    def test_rdata_decompression_policy(self):
+        # NSBase
+        a_name = dns.name.from_text("a.foo.")
+        wire = b"\x03foo\x00\x01a\xc0\x00"
+        rdata = dns.rdata.from_wire("IN", "CNAME", wire, 5, 4)
+        self.assertEqual(rdata.target, a_name)
+        # UncompressedNS
+        with self.assertRaises(dns.name.DecompressionForbidden):
+            dns.rdata.from_wire("IN", "DNAME", wire, 5, 4)
+        # MXBase
+        wire = b"\x03foo\x00\x00\x0a\x01a\xc0\x00"
+        rdata = dns.rdata.from_wire("IN", "MX", wire, 5, 6)
+        self.assertEqual(rdata.preference, 10)
+        self.assertEqual(rdata.exchange, a_name)
+        # DecompressionOnlyDowncasingMX
+        rdata = dns.rdata.from_wire("IN", "AFSDB", wire, 5, 6)
+        self.assertEqual(rdata.subtype, 10)
+        self.assertEqual(rdata.hostname, a_name)
+        # UncompressedDowncasingMX
+        with self.assertRaises(dns.name.DecompressionForbidden):
+            dns.rdata.from_wire("IN", "KX", wire, 5, 6)
+        # UncompressedMX -- none currently, but here is where to test it
+        #
+        # SOA
+        wire = b"\x03foo\x00\x01a\xc0\x00\x01a\xc0\x00" + b"\x00" * 20
+        rdata = dns.rdata.from_wire("IN", "SOA", wire, 5, 28)
+        self.assertEqual(rdata.mname, a_name)
+        # SRV
+        wire = b"\x03foo\x00\x00\x00\x00\x00\x00\x00\x01a\xc0\x00"
+        rdata = dns.rdata.from_wire("IN", "SRV", wire, 5, 10)
+        self.assertEqual(rdata.target, a_name)
+        # NAPTR
+        wire = b"\x03foo\x00\x00\x00\x00\x00\x00\x00\x00\x01a\xc0\x00"
+        rdata = dns.rdata.from_wire("IN", "NAPTR", wire, 5, 11)
+        self.assertEqual(rdata.replacement, a_name)
+        # RP
+        wire = b"\x03foo\x00\x01a\xc0\x00\x01a\xc0\x00"
+        rdata = dns.rdata.from_wire("IN", "RP", wire, 5, 8)
+        self.assertEqual(rdata.mbox, a_name)
+        # PX
+        wire = b"\x03foo\x00\x00\x00\x01a\xc0\x00\x01a\xc0\x00"
+        rdata = dns.rdata.from_wire("IN", "PX", wire, 5, 10)
+        self.assertEqual(rdata.mapx400, a_name)
+        # SIG -- too annoying to test it!
+        #
+        # DSYNC -- chosen as an example of a type where there is no compression or
+        # decompression, and the default behavior of Parser.get_name() is used.
+        wire = b"\x03foo\x00\x00\x00\x01\x00\x00\x01a\xc0\x00"
+        with self.assertRaises(dns.name.DecompressionForbidden):
+            dns.rdata.from_wire("IN", "DSYNC", wire, 5, 9)
+
