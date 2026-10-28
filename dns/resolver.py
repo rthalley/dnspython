@@ -32,7 +32,6 @@ import dns._ddr
 import dns._file_util
 import dns.edns
 import dns.exception
-import dns.flags
 import dns.inet
 import dns.ipv4
 import dns.ipv6
@@ -41,11 +40,9 @@ import dns.name
 import dns.nameserver
 import dns.query
 import dns.rcode
-import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 import dns.rdtypes.ANY.PTR
-import dns.rdtypes.svcbbase
 import dns.reversename
 import dns.tsig
 
@@ -1317,6 +1314,7 @@ class Resolver(BaseResolver):
                 nameserver, tcp, backoff = resolution.next_nameserver()
                 if backoff:
                     time.sleep(backoff)
+                request.set_random_id()
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
                 try:
                     response = nameserver.query(
