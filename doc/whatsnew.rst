@@ -6,6 +6,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* DNSSEC validation now rejects an RRSIG whose type covered or class does not
+  match the RRset, as RFC 4035 section 5.3.1 requires.  This was not checked,
+  so a revoked DNSKEY, which may only validate the DNSKEY RRset, still
+  validated any RRset signed with its private key if the RRSIG claimed to
+  cover DNSKEY.
+
 * ``dns.tokenizer.Tokenizer`` now ends a line at a carriage return, or at a
   carriage return followed by a line feed, unless the carriage return is in a
   quoted string.  The carriage return of CRLF line ends used to stay in the
