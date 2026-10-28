@@ -131,6 +131,10 @@ class MessageError:
 DEFAULT_EDNS_PAYLOAD = dns.renderer.DEFAULT_EDNS_PAYLOAD
 MAX_CHAIN = 16
 
+#: The negative caching TTL used by ``resolve_chaining()`` for a negative
+#: answer whose authority section has no SOA record.
+NEGATIVE_TTL_WITHOUT_SOA = 300
+
 IndexKeyType = tuple[
     int,
     dns.name.Name,
@@ -984,9 +988,9 @@ class ChainingResult:
     The ``minimum_ttl`` attribute is the minimum TTL, i.e. the TTL to
     use if caching the data.  It is the smallest of all the CNAME TTLs
     and either the answer TTL if it exists or the SOA TTL and SOA
-    minimum values for negative answers.  It is 0 for a negative answer
-    with no SOA record, as RFC 2308 section 5 says such answers should
-    not be cached.
+    minimum values for negative answers.  For a negative answer with no
+    SOA record, ``NEGATIVE_TTL_WITHOUT_SOA`` is used in place of the SOA
+    values.
 
     The ``cnames`` attribute is a list of all the CNAME RRSets followed to
     get to the canonical name.
@@ -1074,9 +1078,10 @@ class QueryMessage(Message):
                     try:
                         auname = auname.parent()
                     except dns.name.NoParent:
-                        # There is no SOA, so there is no negative TTL and
-                        # the answer must not be cached (RFC 2308 section 5).
-                        min_ttl = 0
+                        # There is no SOA, so there is no negative TTL.
+                        # Like many other implementations, use a short
+                        # default negative caching TTL.
+                        min_ttl = min(min_ttl, NEGATIVE_TTL_WITHOUT_SOA)
                         break
         return ChainingResult(qname, answer, min_ttl, cnames)
 

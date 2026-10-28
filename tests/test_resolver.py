@@ -306,8 +306,8 @@ class BaseResolverTests(unittest.TestCase):
             )
 
     def testCacheNegativeWithoutSOA(self):
-        # RFC 2308 section 5: a negative answer with no SOA has no TTL and
-        # must not be cached.
+        # A negative answer with no SOA is cached for the default negative
+        # TTL, not for the initial maximum TTL.
         with FakeTime() as fake_time:
             message = dns.message.from_text("""id 1
 flags QR RA
@@ -316,13 +316,16 @@ rcode NXDOMAIN
 www.example. IN A
 """)
             name = dns.name.from_text("www.example.")
+            key = (name, dns.rdatatype.ANY, dns.rdataclass.IN)
             answer = dns.resolver.Answer(
                 name, dns.rdatatype.ANY, dns.rdataclass.IN, message
             )
-            self.assertLessEqual(answer.expiration, fake_time.time())
+            self.assertEqual(answer.expiration, fake_time.time() + 300)
             cache = dns.resolver.Cache()
-            cache.put((name, dns.rdatatype.ANY, dns.rdataclass.IN), answer)
-            self.assertIsNone(cache.get((name, dns.rdatatype.ANY, dns.rdataclass.IN)))
+            cache.put(key, answer)
+            self.assertIs(cache.get(key), answer)
+            fake_time.sleep(301)
+            self.assertIsNone(cache.get(key))
 
     def testCacheCleaning(self):
         with FakeTime() as fake_time:
@@ -1122,7 +1125,7 @@ class NanoTests(unittest.TestCase):
             with self.assertRaises(dns.resolver.NXDOMAIN):
                 dns.e164.query("0123456789", ["e164.arpa"], res)
 
-    def testNXDOMAINWithoutSOANotCached(self):
+    def testNXDOMAINWithoutSOACachedBriefly(self):
         with AlwaysType3NXDOMAINNanoNameserver() as na:
             res = dns.resolver.Resolver(configure=False)
             res.port = na.udp_address[1]
@@ -1131,9 +1134,9 @@ class NanoTests(unittest.TestCase):
             qname = dns.name.from_text("www.example.")
             with self.assertRaises(dns.resolver.NXDOMAIN):
                 res.resolve(qname, "A")
-            self.assertIsNone(
-                res.cache.get((qname, dns.rdatatype.ANY, dns.rdataclass.IN))
-            )
+            answer = res.cache.get((qname, dns.rdatatype.ANY, dns.rdataclass.IN))
+            self.assertIsNotNone(answer)
+            self.assertLessEqual(answer.expiration, time.time() + 300)
 
 
 class AlwaysType3NXDOMAINNanoNameserver(Server):
