@@ -801,6 +801,25 @@ class Message:
     def _make_opt(flags=0, payload=DEFAULT_EDNS_PAYLOAD, options=None):
         return dns.renderer._make_opt(flags, payload, options)
 
+    def set_id(self, id: int):
+        """Set the message id to the specified value, and if TSIG is going to be used
+        to sign this message later, update it accordingly.
+
+        :param id: The message id
+        :type id: int
+        """
+        self.id = id
+        if self.want_tsig_sign:
+            assert self.tsig is not None
+            assert self.tsig.rdtype == dns.rdatatype.TSIG
+            tsig_rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            self.use_tsig(self.keyring, None, tsig_rdata.fudge, id, tsig_rdata.error, tsig_rdata.other,
+                          tsig_rdata.algorithm)
+
+    def set_random_id(self):
+        """Assign a newly-generated random query id to the message."""
+        self.set_id(dns.entropy.random_16())
+
     def use_edns(
         self,
         edns: int | bool | None = 0,
