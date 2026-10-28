@@ -21,14 +21,14 @@ import dns.rdtypes.mxbase
 
 
 @dns.immutable.immutable
-class AFSDB(dns.rdtypes.mxbase.UncompressedDowncasingMX):
+class AFSDB(dns.rdtypes.mxbase.DecompressionOnlyDowncasingMX):
     """AFSDB record"""
 
     # Use the property mechanism to make "subtype" an alias for the
     # "preference" attribute, and "hostname" an alias for the "exchange"
     # attribute.
     #
-    # This lets us inherit the UncompressedMX implementation but lets
+    # This lets us inherit the DecompressionOnlyDowncasingMX implementation but lets
     # the caller use appropriate attribute names for the rdata type.
     #
     # We probably lose some performance vs. a cut-and-paste
