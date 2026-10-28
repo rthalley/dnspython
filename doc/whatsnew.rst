@@ -6,6 +6,13 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* ``dns.message.QueryMessage.resolve_chaining()`` now caps the minimum TTL of
+  a negative response with no SOA record at 300 seconds
+  (``dns.message.NEGATIVE_TTL_WITHOUT_SOA``).  Previously the TTL was left at
+  its initial value of 2^32 - 1, so a single NXDOMAIN or NODATA response with
+  no SOA, e.g. a spoofed one, stayed in the resolver cache for the life of
+  the process.
+
 * DNSSEC validation now rejects an RRSIG whose type covered or class does not
   match the RRset, as RFC 4035 section 5.3.1 requires.  This was not checked,
   so a revoked DNSKEY, which may only validate the DNSKEY RRset, still

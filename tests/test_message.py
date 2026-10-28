@@ -764,6 +764,43 @@ example. 300 IN SOA . . 1 2 3 4 5
         self.assertEqual(result.minimum_ttl, 5)
         self.assertIsNone(result.answer)
 
+    def test_resolve_chaining_negative_without_soa(self):
+        # With no SOA there is no negative TTL, so a short default is used
+        # instead of the initial maximum.
+        r = dns.message.from_text("""id 1
+flags QR
+rcode NXDOMAIN
+;QUESTION
+www.example. IN A
+""")
+        result = r.resolve_chaining()
+        self.assertIsNone(result.answer)
+        self.assertEqual(result.minimum_ttl, dns.message.NEGATIVE_TTL_WITHOUT_SOA)
+        self.assertEqual(result.minimum_ttl, 300)
+        # NODATA after a CNAME, with no SOA for the canonical name.
+        r = dns.message.from_text("""id 1
+flags QR
+;QUESTION
+www.example. IN A
+;ANSWER
+www.example. 600 IN CNAME www2.example.
+""")
+        result = r.resolve_chaining()
+        self.assertIsNone(result.answer)
+        self.assertEqual(result.canonical_name, dns.name.from_text("www2.example."))
+        self.assertEqual(result.minimum_ttl, 300)
+        # A smaller CNAME TTL still wins.
+        r = dns.message.from_text("""id 1
+flags QR
+;QUESTION
+www.example. IN A
+;ANSWER
+www.example. 60 IN CNAME www2.example.
+""")
+        result = r.resolve_chaining()
+        self.assertIsNone(result.answer)
+        self.assertEqual(result.minimum_ttl, 60)
+
     def test_bad_text_questions(self):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.message.from_text("""id 1
