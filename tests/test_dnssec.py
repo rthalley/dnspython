@@ -1147,6 +1147,55 @@ class DNSSECValidatorTestCase(unittest.TestCase):
     def testGoodCandidateKeyIsFound(self):
         self.check_candidates(Flag.ZONE, 3, 1)
 
+    def testRevokedKeyOnlyValidatesDNSKEY(self):
+        # RFC 5011 section 2.1: a revoked key may only be used to validate its
+        # signature over the DNSKEY RRset.
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=private_key.public_key(),
+            algorithm=dns.dnssec.Algorithm.ED25519,
+            flags=Flag.ZONE | Flag.SEP | Flag.REVOKE,
+        )
+        signer = dns.name.from_text("example")
+        dnskey_rrset = dns.rrset.from_rdata(signer, 300, dnskey)
+        keys = {signer: dnskey_rrset}
+        rrsig = dns.dnssec.sign(dnskey_rrset, private_key, signer, dnskey, lifetime=300)
+        dns.dnssec.validate(
+            dnskey_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys
+        )
+        a_rrset = dns.rrset.from_text(signer, 300, "IN", "A", "10.0.0.1")
+        rrsig = dns.dnssec.sign(a_rrset, private_key, signer, dnskey, lifetime=300)
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(a_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys)
+
+    def testRRSIGMustCoverRRsetType(self):
+        # RFC 4035 section 5.3.1: the RRSIG type covered and class must match
+        # the RRset.  Otherwise a revoked key could sign any RRset with an
+        # RRSIG claiming to cover DNSKEY.
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=private_key.public_key(),
+            algorithm=dns.dnssec.Algorithm.ED25519,
+            flags=Flag.ZONE | Flag.SEP | Flag.REVOKE,
+        )
+        signer = dns.name.from_text("example")
+        keys = {signer: dns.rrset.from_rdata(signer, 300, dnskey)}
+        a_rrset = dns.rrset.from_text(signer, 300, "IN", "A", "10.0.0.1")
+        rrsig = dns.dnssec.sign(a_rrset, private_key, signer, dnskey, lifetime=300)
+        rrsig = rrsig.replace(type_covered=dns.rdatatype.DNSKEY)
+        data = dns.dnssec._make_rrsig_signature_data(a_rrset, rrsig)
+        rrsig = rrsig.replace(signature=private_key.sign(data))
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(a_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys)
+
+        txt_rrset = dns.rrset.from_text(signer, 300, "IN", "TXT", "foo")
+        rrsig = dns.dnssec.sign(txt_rrset, private_key, signer, dnskey, lifetime=300)
+        ch_rrset = dns.rrset.from_text(signer, 300, "CH", "TXT", "foo")
+        with self.assertRaises(dns.dnssec.ValidationFailure):
+            dns.dnssec.validate(
+                ch_rrset, dns.rrset.from_rdata(signer, 300, rrsig), keys
+            )
+
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECMiscTestCase(unittest.TestCase):
@@ -1297,6 +1346,26 @@ class DNSSECMiscTestCase(unittest.TestCase):
 
         self.assertIsNotNone(zone.find_rdataset(dns.name.empty, "SOA"))
         self.assertIsNotNone(zone.find_rdataset(dns.name.empty, "RRSIG", covers="SOA"))
+
+    def test_sign_zone_apex_only(self):
+        # The only secure name is the origin, which is the empty name (and
+        # thus false) when the zone is relativized.
+        privkey = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(privkey.public_key(), dns.dnssec.ED25519)
+        for relativize in (True, False):
+            zone = dns.zone.from_text(
+                "@ 300 IN SOA ns.other. hostmaster.other. 1 2 3 4 5\n"
+                "@ 300 IN NS ns.other.\n"
+                "@ 300 IN A 10.0.0.1\n",
+                "example.",
+                relativize=relativize,
+            )
+            dns.dnssec.sign_zone(zone, keys=[(privkey, dnskey)], lifetime=3600)
+            nsec = zone.find_rdataset(zone.origin, "NSEC")
+            self.assertEqual(nsec[0].next, zone.origin)
+            self.assertIsNotNone(
+                zone.find_rdataset(zone.origin, "RRSIG", covers="NSEC")
+            )
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")

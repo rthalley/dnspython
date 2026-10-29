@@ -23,6 +23,11 @@ class TTLTestCase(unittest.TestCase):
         with self.assertRaises(dns.ttl.BadTTL):
             dns.ttl.from_text("1d5")
 
+    def test_bind_style_no_unit_zero(self):
+        for text in ["1d0", "1h00", "2w1d0"]:
+            with self.assertRaises(dns.ttl.BadTTL):
+                dns.ttl.from_text(text)
+
     def test_bind_style_leading_unit(self):
         with self.assertRaises(dns.ttl.BadTTL):
             dns.ttl.from_text("s")

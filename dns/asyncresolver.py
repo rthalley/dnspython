@@ -89,6 +89,7 @@ class Resolver(dns.resolver.BaseResolver):
                 nameserver, tcp, backoff = resolution.next_nameserver()
                 if backoff:
                     await backend.sleep(backoff)
+                request.set_random_id()
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
                 try:
                     response = await nameserver.async_query(

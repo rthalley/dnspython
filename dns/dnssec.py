@@ -296,6 +296,10 @@ def _find_candidate_keys(
         and key_id(rd) == rrsig.key_tag
         and (rd.flags & Flag.ZONE) == Flag.ZONE  # RFC 4034 2.1.1
         and rd.protocol == 3  # RFC 4034 2.1.2
+        # A revoked key may only validate the DNSKEY RRset (RFC 5011 2.1)
+        and (
+            (rd.flags & Flag.REVOKE) == 0 or rrsig.type_covered == dns.rdatatype.DNSKEY
+        )
     ]
 
 
@@ -353,6 +357,11 @@ def _validate_rrsig(
 
     if policy is None:
         policy = default_policy
+
+    # RFC 4035 section 5.3.1: the RRSIG must cover the RRset's type and class.
+    _, rdataset = _get_rrname_rdataset(rrset)
+    if rrsig.type_covered != rdataset.rdtype or rrsig.rdclass != rdataset.rdclass:
+        raise ValidationFailure("RRSIG does not cover the RRset")
 
     candidate_keys = _find_candidate_keys(keys, rrsig)
     if candidate_keys is None:
@@ -1110,7 +1119,7 @@ def _sign_zone_nsec(
             _txn_add_nsec(txn, last_secure, name, zone.rdclass, rrsig_ttl, rrset_signer)
         last_secure = name
 
-    if last_secure:
+    if last_secure is not None:
         _txn_add_nsec(
             txn, last_secure, zone.origin, zone.rdclass, rrsig_ttl, rrset_signer
         )

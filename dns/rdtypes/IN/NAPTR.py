@@ -89,7 +89,7 @@ class NAPTR(dns.rdata.Rdata):
         for _ in range(3):
             s = parser.get_counted_bytes()
             strings.append(s)
-        replacement = parser.get_name(origin)
+        replacement = parser.get_name(origin, True)
         return cls(
             rdclass,
             rdtype,

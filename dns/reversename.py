@@ -85,6 +85,8 @@ def to_address(
 
     if name.is_subdomain(v4_origin):
         name = name.relativize(v4_origin)
+        if len(name.labels) != 4:
+            raise dns.exception.SyntaxError("invalid IPv4 reverse-map name")
         text = b".".join(reversed(name.labels))
         # run through inet_ntoa() to check syntax and make pretty.
         return dns.ipv4.inet_ntoa(dns.ipv4.inet_aton(text))

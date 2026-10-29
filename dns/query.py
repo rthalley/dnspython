@@ -681,7 +681,7 @@ def _http3(
     if url_parts.port is not None:
         port = url_parts.port
 
-    q.id = 0
+    q.set_id(0)
     wire = q.to_wire()
     the_connection: dns.quic.SyncQuicConnection
     the_manager: dns.quic.SyncQuicManager
@@ -1444,7 +1444,7 @@ def quic(
     if server_hostname is not None and hostname is None:
         hostname = server_hostname
 
-    q.id = 0
+    q.set_id(0)
     wire = q.to_wire()
     the_connection: dns.quic.SyncQuicConnection
     the_manager: dns.quic.SyncQuicManager

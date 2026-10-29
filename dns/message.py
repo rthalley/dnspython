@@ -131,6 +131,10 @@ class MessageError:
 DEFAULT_EDNS_PAYLOAD = dns.renderer.DEFAULT_EDNS_PAYLOAD
 MAX_CHAIN = 16
 
+#: The negative caching TTL used by ``resolve_chaining()`` for a negative
+#: answer whose authority section has no SOA record.
+NEGATIVE_TTL_WITHOUT_SOA = 300
+
 IndexKeyType = tuple[
     int,
     dns.name.Name,
@@ -797,6 +801,32 @@ class Message:
     def _make_opt(flags=0, payload=DEFAULT_EDNS_PAYLOAD, options=None):
         return dns.renderer._make_opt(flags, payload, options)
 
+    def set_id(self, id: int):
+        """Set the message id to the specified value, and if TSIG is going to be used
+        to sign this message later, update it accordingly.
+
+        :param id: The message id
+        :type id: int
+        """
+        self.id = id
+        if self.want_tsig_sign:
+            assert self.tsig is not None
+            assert self.tsig.rdtype == dns.rdatatype.TSIG
+            tsig_rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
+            self.use_tsig(
+                self.keyring,
+                None,
+                tsig_rdata.fudge,
+                id,
+                tsig_rdata.error,
+                tsig_rdata.other,
+                tsig_rdata.algorithm,
+            )
+
+    def set_random_id(self):
+        """Assign a newly-generated random query id to the message."""
+        self.set_id(dns.entropy.random_16())
+
     def use_edns(
         self,
         edns: int | bool | None = 0,
@@ -984,7 +1014,9 @@ class ChainingResult:
     The ``minimum_ttl`` attribute is the minimum TTL, i.e. the TTL to
     use if caching the data.  It is the smallest of all the CNAME TTLs
     and either the answer TTL if it exists or the SOA TTL and SOA
-    minimum values for negative answers.
+    minimum values for negative answers.  For a negative answer with no
+    SOA record, ``NEGATIVE_TTL_WITHOUT_SOA`` is used in place of the SOA
+    values.
 
     The ``cnames`` attribute is a list of all the CNAME RRSets followed to
     get to the canonical name.
@@ -1072,6 +1104,10 @@ class QueryMessage(Message):
                     try:
                         auname = auname.parent()
                     except dns.name.NoParent:
+                        # There is no SOA, so there is no negative TTL.
+                        # Like many other implementations, use a short
+                        # default negative caching TTL.
+                        min_ttl = min(min_ttl, NEGATIVE_TTL_WITHOUT_SOA)
                         break
         return ChainingResult(qname, answer, min_ttl, cnames)
 
@@ -1153,7 +1189,7 @@ class _WireReader:
         assert self.message is not None
         section = self.message.sections[section_number]
         for _ in range(qcount):
-            qname = self.parser.get_name(self.message.origin)
+            qname = self.parser.get_name(self.message.origin, True)
             rdtype, rdclass = self.parser.get_struct("!HH")
             rdclass, rdtype, _, _ = self.message._parse_rr_header(
                 section_number, qname, rdclass, rdtype
@@ -1177,7 +1213,7 @@ class _WireReader:
         force_unique = self.one_rr_per_rrset
         for i in range(count):
             rr_start = self.parser.current
-            absolute_name = self.parser.get_name()
+            absolute_name = self.parser.get_name(decompress=True)
             if self.message.origin is not None:
                 name = absolute_name.relativize(self.message.origin)
             else:

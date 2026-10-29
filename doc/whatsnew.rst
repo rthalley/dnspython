@@ -3,7 +3,7 @@
 What's New in dnspython
 =======================
 
-2.9.10 (in development)
+2.10.0 (in development)
 
 * The type annotation of ``public_key()`` on the ``dns.dnssecalgs`` private
   key classes is now ``dns.dnssecalgs.base.GenericPublicKey``, as declared by
@@ -17,6 +17,80 @@ What's New in dnspython
 
 2.9.1 (in development)
 ----------------------
+
+* The resolver now assigns a new random query id to every query.
+
+* For transports that require a 0 query id, set it in a way that does not break
+  TSIG.
+
+* ``dns.message.QueryMessage.resolve_chaining()`` now caps the minimum TTL of
+  a negative response with no SOA record at 300 seconds
+  (``dns.message.NEGATIVE_TTL_WITHOUT_SOA``).  Previously the TTL was left at
+  its initial value of 2^32 - 1, so a single NXDOMAIN or NODATA response with
+  no SOA, e.g. a spoofed one, stayed in the resolver cache for the life of
+  the process.
+
+* DNSSEC validation now rejects an RRSIG whose type covered or class does not
+  match the RRset, as RFC 4035 section 5.3.1 requires.  This was not checked,
+  so a revoked DNSKEY, which may only validate the DNSKEY RRset, still
+  validated any RRset signed with its private key if the RRSIG claimed to
+  cover DNSKEY.
+
+* ``dns.tokenizer.Tokenizer`` now ends a line at a carriage return, or at a
+  carriage return followed by a line feed, unless the carriage return is in a
+  quoted string.  The carriage return of CRLF line ends used to stay in the
+  last token of each line and in the text of a comment, so e.g.
+  ``dns.zone.from_text()`` rejected a zone with CRLF line ends.
+
+* DNSSEC validation no longer uses a DNSKEY with the REVOKE flag set to
+  validate anything other than the DNSKEY RRset.  RFC 5011 section 2.1 says a
+  revoked key must not be used for any other purpose, but it was a candidate
+  key like any other, so as long as the revoked key was still published, data
+  signed with its private key, e.g. by whoever compromised it, validated.
+
+* ``dns.ttl.from_text()`` now rejects a BIND-style TTL that ends in a 0
+  without a unit, e.g. ``1h0``, as it already did for other numbers, e.g.
+  ``1h5``, and as BIND does.  The check for a trailing number tested its value
+  instead of whether there was one, so ``1h0`` was read as one hour.
+
+* ``dns.dnssec.sign_zone()`` now adds the apex NSEC record when the origin is
+  the only name in a relativized zone.  The origin is then the empty name,
+  which is false, so the closing NSEC was skipped and the signed zone had no
+  NSEC at all, and so no authenticated denial of existence (RFC 4035 section
+  2.3).
+
+* TLSA and SMIMEA now reject a certificate association data field whose length
+  does not match the matching type (RFC 6698 section 2.1.3: type 1 is SHA-256,
+  32 octets, and type 2 is SHA-512, 64 octets), and SSHFP rejects a fingerprint
+  whose length does not match the fingerprint type (SHA-1, 20 octets, RFC 4255
+  section 3.1.3; SHA-256, 32 octets, RFC 6594 section 3.2).  Both the wire and
+  the text parser accepted any length, including empty, so they took records
+  that conforming parsers reject.  The DS family already rejects a digest of
+  the wrong length.
+
+* A ``$GENERATE`` modifier width greater than 127 is now a syntax error, as
+  BIND rejects a substitution that does not fit in 127 characters.  The width
+  was not limited, so a short line such as ``$GENERATE 1-1 ${0,100000000,d}
+  A 10.0.0.1`` built a 100 MB padded label before anything was checked, and
+  the ``dns.transaction.TransactionLimiter`` meant for untrusted zone files
+  never saw it.
+
+* ``dns.name.from_text()`` and the parsing of quoted strings and SVCB
+  parameter values no longer take time quadratic in the length of the text.
+  They appended to ``bytes`` one character at a time, so e.g. a 1 MB label
+  took about 7 seconds to be rejected as too long.
+
+* ``dns.reversename.to_address()`` now rejects IPv4 reverse-map names without
+  exactly 4 labels.  A label containing an escaped ``.`` was joined into the
+  address text, so e.g. ``4\.3\.2\.1.in-addr.arpa.`` and
+  ``2\.1.3.4.in-addr.arpa.`` were both accepted as ``4.3.2.1``, although only
+  ``1.2.3.4.in-addr.arpa.`` is its reverse-map name.
+
+* NSEC3 now rejects an empty Next Hashed Owner Name, as RFC 5155 section
+  3.1.6 requires a hash length of 1 to 255 octets.  The wire parser accepted
+  it, ``next_name()`` returned the zone origin, and ``to_text()`` wrote an
+  empty field, so reading the text back took the first type mnemonic as the
+  hash, e.g. types ``NS SOA`` came back as next ``ns`` and type ``SOA``.
 
 * BTree zones now keep delegation indexes and node flags consistent when a
   parent delegation hides or exposes nested NS records, when nodes are copied
@@ -78,7 +152,7 @@ What's New in dnspython
   signed response failed with ``BadSignature`` and a response with no TSIG at
   all was accepted, as the RFC 8945 section 5.4 check for a missing TSIG was
   skipped.
-  
+
 * ``dns.query.inbound_xfr()``, ``dns.asyncquery.inbound_xfr()``, and
   ``dns.query.xfr()`` now check every response message with
   ``dns.message.Message.is_response()`` and raise ``dns.query.BadResponse`` if

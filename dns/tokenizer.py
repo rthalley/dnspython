@@ -161,7 +161,7 @@ class Token:
         #
         #     foo\226\128\139bar
         #
-        unescaped = b""
+        unescaped = bytearray()
         l = len(self.value)
         i = 0
         while i < l:
@@ -224,6 +224,9 @@ class Tokenizer:
 
     eof: This variable is true if the tokenizer has encountered EOF.
 
+    after_cr: This variable is true if the most recent character read was
+    a carriage return, which is read as a newline.
+
     delimiters: The current delimiter dictionary.
 
     line_number: The current line number
@@ -275,6 +278,7 @@ class Tokenizer:
         self.multiline = 0
         self.quoting = False
         self.eof = False
+        self.after_cr = False
         self.delimiters = _DELIMITERS
         self.line_number = 1
         assert filename is not None
@@ -292,6 +296,15 @@ class Tokenizer:
                 c = ""
             else:
                 c = self.file.read(1)
+                if self.after_cr:
+                    self.after_cr = False
+                    if c == "\n":
+                        # The newline of a CRLF pair; the CR already ended the line.
+                        c = self.file.read(1)
+                if c == "\r" and not self.quoting:
+                    # Outside of a quoted string, a CR ends the line like a newline.
+                    self.after_cr = True
+                    c = "\n"
                 if c == "":
                     self.eof = True
                 elif c == "\n":
