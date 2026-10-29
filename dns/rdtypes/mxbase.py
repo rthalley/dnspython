@@ -84,7 +84,7 @@ class UncompressedMX(MXBase):
         super()._to_wire(file, None, origin, False)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin, False)
         return cls(rdclass, rdtype, preference, exchange)
@@ -100,7 +100,7 @@ class DecompressionOnlyDowncasingMX(MXBase):
         super()._to_wire(file, None, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin, True)
         return cls(rdclass, rdtype, preference, exchange)
@@ -116,7 +116,7 @@ class UncompressedDowncasingMX(MXBase):
         super()._to_wire(file, None, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin, False)
         return cls(rdclass, rdtype, preference, exchange)

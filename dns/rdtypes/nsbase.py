@@ -70,6 +70,6 @@ class UncompressedNS(NSBase):
         self.target.to_wire(file, None, origin, False)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> Self:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         target = parser.get_name(origin)
         return cls(rdclass, rdtype, target)
