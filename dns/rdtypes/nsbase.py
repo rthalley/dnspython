@@ -61,6 +61,7 @@ class NSBase(dns.rdata.Rdata):
         target = parser.get_name(origin, True)
         return cls(rdclass, rdtype, target)
 
+
 @dns.immutable.immutable
 class UncompressedNS(NSBase):
     """Base class for rdata that is like an NS record, but whose name

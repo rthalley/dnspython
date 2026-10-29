@@ -102,8 +102,10 @@ class PointerChainTooLong(dns.exception.FormError):
 class BadLabelType(dns.exception.FormError):
     """The label type in DNS name wire format is unknown."""
 
+
 class DecompressionForbidden(dns.exception.FormError):
     """A name has a compression pointer but decompression is forbidden."""
+
 
 class NeedAbsoluteNameOrOrigin(dns.exception.DNSException):
     """An attempt was made to convert a non-absolute name to
@@ -1176,6 +1178,7 @@ MAX_COMPRESSION_POINTER_CHAIN = 16
 #
 #     Names in all other types will not be compressed by dnspython, and MUST NOT
 #     be compressed when decoding wire format.
+
 
 def from_wire_parser(parser: dns.wirebase.Parser, decompress: bool = True) -> Name:
     """Convert possibly compressed wire format into a :py:class:`dns.name.Name`.
