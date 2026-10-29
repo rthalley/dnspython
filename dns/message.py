@@ -813,8 +813,15 @@ class Message:
             assert self.tsig is not None
             assert self.tsig.rdtype == dns.rdatatype.TSIG
             tsig_rdata = cast(dns.rdtypes.ANY.TSIG.TSIG, self.tsig[0])
-            self.use_tsig(self.keyring, None, tsig_rdata.fudge, id, tsig_rdata.error, tsig_rdata.other,
-                          tsig_rdata.algorithm)
+            self.use_tsig(
+                self.keyring,
+                None,
+                tsig_rdata.fudge,
+                id,
+                tsig_rdata.error,
+                tsig_rdata.other,
+                tsig_rdata.algorithm,
+            )
 
     def set_random_id(self):
         """Assign a newly-generated random query id to the message."""
