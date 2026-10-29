@@ -79,9 +79,7 @@ class GenericPrivateKey(ABC):
 
     @classmethod
     @abstractmethod
-    def from_pem(
-        cls, private_pem: bytes, password: bytes | None = None
-    ) -> Self:
+    def from_pem(cls, private_pem: bytes, password: bytes | None = None) -> Self:
         """Create private key from PEM-encoded PKCS#8"""
 
     @abstractmethod

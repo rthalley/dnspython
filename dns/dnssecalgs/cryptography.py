@@ -48,9 +48,7 @@ class CryptographyPrivateKey(GenericPrivateKey):
         return self.public_cls(key=self.key.public_key())
 
     @classmethod
-    def from_pem(
-        cls, private_pem: bytes, password: bytes | None = None
-    ) -> Self:
+    def from_pem(cls, private_pem: bytes, password: bytes | None = None) -> Self:
         key = serialization.load_pem_private_key(private_pem, password=password)
         return cls(key=key)
 
