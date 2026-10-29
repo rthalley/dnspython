@@ -3,8 +3,8 @@
 What's New in dnspython
 =======================
 
-2.9.1 (in development)
-----------------------
+2.9.1
+-----
 
 * The resolver now assigns a new random query id to every query.
 
