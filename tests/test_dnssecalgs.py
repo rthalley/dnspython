@@ -19,12 +19,18 @@ import os
 import unittest
 
 import dns.dnssec
+from dns.dnssecalgs.serialization import (
+    read_jwk_private_key,
+    write_bind_private_key,
+    write_jwk_private_key,
+)
 import dns.exception
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
+from pathlib import Path
 
 try:
     from dns.dnssecalgs import (
@@ -32,6 +38,7 @@ try:
         get_algorithm_cls_from_dnskey,
         register_algorithm_cls,
     )
+    from dns.dnssecalgs.serialization import read_bind_private_key
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1, PublicDSA
     from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
@@ -62,6 +69,8 @@ if dns.dnssec._have_pyca:
 else:
     have_deterministic = False
     have_mldsa = False
+
+KEYS_DIRECTORY = Path(os.path.dirname(__file__)) / "dnsseckeys"
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
@@ -385,6 +394,51 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
             register_algorithm_cls(
                 algorithm=Algorithm.PRIVATEOID,
                 algorithm_cls=PrivateED25519,
+            )
+
+
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
+class DNSSECPrivateKeyImportExport(unittest.TestCase):
+    def test_import_export_bind_private_key(self):
+        for private_key_file in KEYS_DIRECTORY.glob("K*.private"):
+            public_key_file = private_key_file.with_suffix(".key")
+            with open(private_key_file, "rb") as fp:
+                private_data = fp.read()
+            with open(public_key_file, "rb") as fp:
+                public_data = fp.read()
+
+            keypair_from_bind = read_bind_private_key(private_data, public_data)
+            private_key, dnskey_rrset = (
+                keypair_from_bind.private_key,
+                keypair_from_bind.dnskey_rrset,
+            )
+            assert private_key.public_key().to_dnskey() == dnskey_rrset[0]
+
+            bind_keypair = write_bind_private_key(private_key, dnskey_rrset)
+            assert private_key_file.stem == bind_keypair.basename
+
+    def test_import_export_jwk_private_key(self):
+        for private_key_file in KEYS_DIRECTORY.glob("K*.private"):
+            public_key_file = private_key_file.with_suffix(".key")
+            with open(private_key_file, "rb") as fp:
+                private_data = fp.read()
+            with open(public_key_file, "rb") as fp:
+                public_data = fp.read()
+
+            keypair_from_bind = read_bind_private_key(private_data, public_data)
+            private_key, dnskey_rrset = (
+                keypair_from_bind.private_key,
+                keypair_from_bind.dnskey_rrset,
+            )
+            assert private_key.public_key().to_dnskey() == dnskey_rrset[0]
+
+            jwk_private_data = write_jwk_private_key(private_key, dnskey_rrset)
+            keypair_from_jwk = read_jwk_private_key(jwk_private_data)
+
+            assert keypair_from_bind.dnskey_rrset[0] == keypair_from_jwk.dnskey_rrset[0]
+            assert (
+                keypair_from_jwk.private_key.public_key().to_dnskey()
+                == keypair_from_jwk.dnskey_rrset[0]
             )
 
 
