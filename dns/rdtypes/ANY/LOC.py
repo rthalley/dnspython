@@ -35,6 +35,11 @@ _MIN_LATITUDE = 0x80000000 - 90 * 3600000
 _MAX_LONGITUDE = 0x80000000 + 180 * 3600000
 _MIN_LONGITUDE = 0x80000000 - 180 * 3600000
 
+# altitude range in centimeters; the wire form is an unsigned 32-bit count of
+# centimeters from a base 100,000 meters below sea level (RFC 1876 section 2)
+_MIN_ALTITUDE = -10000000
+_MAX_ALTITUDE = 0xFFFFFFFF - 10000000
+
 
 def _exponent_of(what, desc):
     if what == 0:
@@ -96,6 +101,36 @@ def _decode_size(what, desc):
         # would not round-trip.
         raise dns.exception.FormError(f"bad {desc}: non-canonical zero")
     return base * pow(10, exponent)
+
+
+def _text_to_cm(what, desc, negative_ok=False):
+    # RFC 1876 section 3: a value in meters with at most two decimal places,
+    # optionally followed by "m", e.g. "42849672.95m".  Convert it to an integer
+    # number of centimeters exactly rather than via float(), which accepts forms
+    # the presentation format does not have (an exponent, "inf", "nan", "1_000",
+    # a leading "+") and does not represent decimal fractions exactly, e.g.
+    # float("9.29") * 100 is 928.99..., which truncates to 928.
+    text = what
+    if text.endswith("m"):
+        text = text[:-1]
+    negative = False
+    if negative_ok and text.startswith("-"):
+        negative = True
+        text = text[1:]
+    whole, _, fraction = text.partition(".")
+    if (
+        (whole == "" and fraction == "")
+        or (whole != "" and not dns._text_util.is_ascii_digits(whole))
+        or (
+            fraction != ""
+            and (len(fraction) > 2 or not dns._text_util.is_ascii_digits(fraction))
+        )
+    ):
+        raise dns.exception.SyntaxError(f"bad {desc} value")
+    value = int(whole or "0") * 100 + int(fraction.ljust(2, "0"))
+    if negative:
+        value = -value
+    return value
 
 
 def _check_coordinate_list(value, high):
@@ -266,27 +301,19 @@ class LOC(dns.rdata.Rdata):
         elif t != "E":
             raise dns.exception.SyntaxError("bad longitude hemisphere value")
 
-        t = tok.get_string()
-        if t[-1] == "m":
-            t = t[0:-1]
-        altitude = float(t) * 100.0  # m -> cm
+        altitude = _text_to_cm(tok.get_string(), "altitude", True)
+        if altitude < _MIN_ALTITUDE or altitude > _MAX_ALTITUDE:
+            raise dns.exception.SyntaxError("altitude value out of bounds")
 
         tokens = tok.get_remaining(max_tokens=3)
         if len(tokens) >= 1:
-            value = tokens[0].unescape().value
-            if value[-1] == "m":
-                value = value[0:-1]
-            size = float(value) * 100.0  # m -> cm
+            size = _text_to_cm(tokens[0].unescape().value, "size")
             if len(tokens) >= 2:
-                value = tokens[1].unescape().value
-                if value[-1] == "m":
-                    value = value[0:-1]
-                hprec = float(value) * 100.0  # m -> cm
+                hprec = _text_to_cm(tokens[1].unescape().value, "horizontal precision")
                 if len(tokens) >= 3:
-                    value = tokens[2].unescape().value
-                    if value[-1] == "m":
-                        value = value[0:-1]
-                    vprec = float(value) * 100.0  # m -> cm
+                    vprec = _text_to_cm(
+                        tokens[2].unescape().value, "vertical precision"
+                    )
 
         # Try encoding these now so we raise if they are bad
         _encode_size(size, "size")
