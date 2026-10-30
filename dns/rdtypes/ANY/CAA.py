@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import struct
+from typing import Self
 
 import dns.exception
 import dns.immutable
@@ -45,7 +46,7 @@ class CAA(dns.rdata.Rdata):
     @classmethod
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ) -> "CAA":
+    ) -> Self:
         flags = tok.get_uint8()
         tag = tok.get_bytes(max_length=255)
         value = tok.get_bytes()
@@ -60,7 +61,7 @@ class CAA(dns.rdata.Rdata):
         file.write(self.value)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "CAA":
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> Self:
         flags = parser.get_uint8()
         tag = parser.get_counted_bytes()
         value = parser.get_remaining()

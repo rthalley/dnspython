@@ -1,5 +1,6 @@
 import math
 import struct
+from typing import Self
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -33,7 +34,7 @@ class PublicRSA(CryptographyPublicKey):
         return exp_header + exp + pn.n.to_bytes((pn.n.bit_length() + 7) // 8, "big")
 
     @classmethod
-    def from_dnskey(cls, key: DNSKEY) -> "PublicRSA":
+    def from_dnskey(cls, key: DNSKEY) -> Self:
         cls._ensure_algorithm_key_combination(key)
         keyptr = key.key
         if len(keyptr) < 1:
@@ -77,7 +78,7 @@ class PrivateRSA(CryptographyPrivateKey):
         return signature
 
     @classmethod
-    def generate(cls, key_size: int) -> "PrivateRSA":
+    def generate(cls, key_size: int) -> Self:
         return cls(
             key=rsa.generate_private_key(
                 public_exponent=cls.default_public_exponent,

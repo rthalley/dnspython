@@ -15,13 +15,11 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import binascii
-from typing import TypeVar
+from typing import Self
 
 import dns.exception
 import dns.immutable
 import dns.rdata
-
-T = TypeVar("T", bound="EUIBase")
 
 
 @dns.immutable.immutable
@@ -51,14 +49,14 @@ class EUIBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls: type[T],
+        cls: type[Self],
         rdclass,
         rdtype,
         tok,
         origin=None,
         relativize=True,
         relativize_to=None,
-    ) -> T:
+    ) -> Self:
         text = tok.get_string()
         if len(text) != cls.text_len:
             raise dns.exception.SyntaxError(
@@ -78,6 +76,6 @@ class EUIBase(dns.rdata.Rdata):
         file.write(self.eui)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         eui = parser.get_bytes(cls.byte_len)
         return cls(rdclass, rdtype, eui)

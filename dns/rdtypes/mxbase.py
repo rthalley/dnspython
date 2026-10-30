@@ -18,15 +18,13 @@
 """MX-like base classes."""
 
 import struct
-from typing import TypeVar
+from typing import Self
 
 import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
 import dns.rdtypes.util
-
-T = TypeVar("T", bound="MXBase")
 
 
 @dns.immutable.immutable
@@ -45,14 +43,14 @@ class MXBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls: type[T],
+        cls: type[Self],
         rdclass,
         rdtype,
         tok,
         origin=None,
         relativize=True,
         relativize_to=None,
-    ) -> T:
+    ) -> Self:
         preference = tok.get_uint16()
         exchange = tok.get_name(origin, relativize, relativize_to)
         return cls(rdclass, rdtype, preference, exchange)
@@ -63,7 +61,7 @@ class MXBase(dns.rdata.Rdata):
         self.exchange.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin, True)
         return cls(rdclass, rdtype, preference, exchange)
@@ -86,7 +84,7 @@ class UncompressedMX(MXBase):
         super()._to_wire(file, None, origin, False)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin, False)
         return cls(rdclass, rdtype, preference, exchange)
@@ -102,7 +100,7 @@ class DecompressionOnlyDowncasingMX(MXBase):
         super()._to_wire(file, None, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin, True)
         return cls(rdclass, rdtype, preference, exchange)
@@ -118,7 +116,7 @@ class UncompressedDowncasingMX(MXBase):
         super()._to_wire(file, None, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         preference = parser.get_uint16()
         exchange = parser.get_name(origin, False)
         return cls(rdclass, rdtype, preference, exchange)

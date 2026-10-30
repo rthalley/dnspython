@@ -26,7 +26,7 @@ import ipaddress
 import itertools
 import random
 from importlib import import_module
-from typing import Any
+from typing import Any, Self
 
 import dns.exception
 import dns.immutable
@@ -541,7 +541,7 @@ class Rdata:
         origin: dns.name.Name | None = None,
         relativize: bool = True,
         relativize_to: dns.name.Name | None = None,
-    ) -> "Rdata":
+    ) -> Self:
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
@@ -551,10 +551,10 @@ class Rdata:
         rdtype: dns.rdatatype.RdataType,
         parser: dns.wire.Parser,
         origin: dns.name.Name | None = None,
-    ) -> "Rdata":
+    ) -> Self:
         raise NotImplementedError  # pragma: no cover
 
-    def replace(self, **kwargs: Any) -> "Rdata":
+    def replace(self, **kwargs: Any) -> Self:
         """Create a new Rdata instance based on the instance replace was
         invoked on. It is possible to pass different parameters to
         override the corresponding properties of the base Rdata.
@@ -782,7 +782,7 @@ class GenericRdata(Rdata):
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.data)
 
-    def to_generic(self, origin: dns.name.Name | None = None) -> "GenericRdata":
+    def to_generic(self, origin: dns.name.Name | None = None) -> Self:
         return self
 
     @classmethod

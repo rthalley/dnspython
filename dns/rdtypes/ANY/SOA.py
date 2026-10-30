@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import struct
+from typing import Self
 
 import dns.exception
 import dns.immutable
@@ -51,7 +52,7 @@ class SOA(dns.rdata.Rdata):
     @classmethod
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ) -> "SOA":
+    ) -> Self:
         mname = tok.get_name(origin, relativize, relativize_to)
         rname = tok.get_name(origin, relativize, relativize_to)
         serial = tok.get_uint32()
@@ -72,7 +73,7 @@ class SOA(dns.rdata.Rdata):
         file.write(five_ints)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "SOA":
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> Self:
         mname = parser.get_name(origin, True)
         rname = parser.get_name(origin, True)
         return cls(rdclass, rdtype, mname, rname, *parser.get_struct("!IIIII"))
