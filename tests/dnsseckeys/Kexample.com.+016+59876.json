@@ -1,0 +1,1 @@
+{"kty": "OKP", "crv": "Ed448", "x": "IUcq8lS3nCQhkFAsIcDD8ZRt_73I2GX90VpZX4vGjfC5zjlRpqrxRBzefMttZ73GM-9fjmIZhF-A", "d": "WZ1tgCvCZEIOG5uMiKY0LUfj4J9-VLzi8Zck8EyaZ2-zeehDKV35e-l2YlYhEtNFoSSJpFoMJmfg", "kid": "r1UXOQj28tT-PaLNx959ngGg28JPzFs2hwTrFz1QiE8", "dnssec": {"name": "example.com.", "algorithm": 16, "protocol": 3, "flags": 256, "keytag": 59876}}

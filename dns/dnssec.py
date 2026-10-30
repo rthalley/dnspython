@@ -1146,6 +1146,7 @@ if dns._features.have("dnssec"):
         get_algorithm_cls_from_dnskey,
     )
     from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
+    from dns.dnssecalgs.serialization import Key
 
     validate = _validate  # pyright: ignore
     validate_rrsig = _validate_rrsig  # pyright: ignore

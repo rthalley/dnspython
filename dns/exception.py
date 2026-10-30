@@ -153,6 +153,10 @@ class DeniedByPolicy(DNSException):
     """Denied by DNSSEC policy."""
 
 
+class InvalidKeyFormat(DNSException):
+    """Exception raised for invalid key formats."""
+
+
 class ExceptionWrapper:
     def __init__(self, exception_class):
         self.exception_class = exception_class
