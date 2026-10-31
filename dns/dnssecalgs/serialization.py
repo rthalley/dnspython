@@ -253,12 +253,15 @@ def write_bind_private_key(
 
     basename = f"K{dnskey_rrset.name.to_text()}+{private_key.public_cls.algorithm.value:03}+{key_id(dnskey_rdata):05}"
 
-    private_data = {
+    private_data_dict = {
         "Private-key-format": "v1.3",
         "Algorithm": f"{private_key.public_cls.algorithm.value} ({private_key.public_cls.algorithm.name})",
     }
 
     algorithm = private_key.public_cls.algorithm
+
+    if not isinstance(private_key, CryptographyPrivateKey):
+        raise TypeError("Private key is not a valid CryptographyPrivateKey instance")
 
     match algorithm:
         case (
@@ -268,12 +271,8 @@ def write_bind_private_key(
             | Algorithm.RSASHA256
             | Algorithm.RSASHA512
         ):
-            if not isinstance(private_key, CryptographyPrivateKey):
-                raise TypeError(
-                    "Private key is not a valid CryptographyPrivateKey instance"
-                )
             private_key_numbers = private_key.key.private_numbers()
-            private_data.update(
+            private_data_dict.update(
                 {
                     "Modulus": _int_to_base64(private_key_numbers.public_numbers.n),
                     "PublicExponent": _int_to_base64(
@@ -289,13 +288,9 @@ def write_bind_private_key(
             )
 
         case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
-            if not isinstance(private_key, CryptographyPrivateKey):
-                raise TypeError(
-                    "Private key is not a valid CryptographyPrivateKey instance"
-                )
             private_key_numbers = private_key.key.private_numbers()
             curve_size = private_key_numbers.public_numbers.curve.key_size // 8
-            private_data.update(
+            private_data_dict.update(
                 {
                     "PrivateKey": _int_to_base64(
                         private_key_numbers.private_value, curve_size
@@ -304,11 +299,7 @@ def write_bind_private_key(
             )
 
         case Algorithm.ED25519 | Algorithm.ED448 | Algorithm.MLDSA44:
-            if not isinstance(private_key, CryptographyPrivateKey):
-                raise TypeError(
-                    "Private key is not a valid CryptographyPrivateKey instance"
-                )
-            private_data.update(
+            private_data_dict.update(
                 {
                     "PrivateKey": base64.b64encode(
                         private_key.key.private_bytes_raw()
@@ -320,7 +311,7 @@ def write_bind_private_key(
             raise NotImplementedError(f"Algorithm {algorithm} not supported")
 
     private_data = b"\n".join(
-        f"{key}: {value}".encode() for key, value in private_data.items()
+        f"{key}: {value}".encode() for key, value in private_data_dict.items()
     )
 
     return BindKeyPair(
