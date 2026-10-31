@@ -166,6 +166,12 @@ def read_bind_private_key(
         )
 
     algorithm = int(key_dict["algorithm"].split(" ")[0])
+
+    if algorithm != dnskey_rdata.algorithm:
+        raise ValueError(
+            f"Algorithm mismatch between private key ({algorithm}) and DNSKEY ({dnskey_rdata.algorithm})"
+        )
+
     algorithm_cls = get_algorithm_cls(algorithm)
     public_key = algorithm_cls.public_cls.from_dnskey(dnskey_rdata)
 
