@@ -1,34 +1,33 @@
 import base64
+import binascii
+import dataclasses
+import json
+import os
 import re
-from typing import NamedTuple
+from pathlib import Path
+from typing import Self
 
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
+from jwcrypto.common import JWException
 from jwcrypto.jwk import JWK
 
 import dns.dnssec
+import dns.dnssectypes
+import dns.name
 import dns.rdataset
 import dns.rdatatype
 import dns.rdtypes.ANY.DNSKEY
+import dns.rdtypes.ANY.DS
 import dns.rrset
 import dns.zonefile
 from dns.dnssec import key_id
 from dns.dnssecalgs import get_algorithm_cls
-from dns.dnssecalgs.base import GenericPrivateKey
+from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
 from dns.dnssecalgs.cryptography import CryptographyPrivateKey, CryptographyPublicKey
-from dns.dnssectypes import Algorithm
+from dns.dnssectypes import Algorithm, DSDigest
+from dns.exception import DNSException, InvalidKeyFormat
 
 SUPPORTED_BIND_PRIVATE_KEY_FORMATS = {"v1.3"}
-
-
-class KeyPair(NamedTuple):
-    private_key: GenericPrivateKey
-    dnskey_rrset: dns.rrset.RRset
-
-
-class BindKeyPair(NamedTuple):
-    basename: str
-    private_data: bytes
-    public_data: bytes
 
 
 def _int_to_base64(value: int, length: int | None = None) -> str:
@@ -50,272 +49,426 @@ def _base64_to_int(value: str) -> int:
     :type value: :py:class:`str`
     :rtype: :py:class:`int`
     """
-    return int.from_bytes(base64.decodebytes(value.encode()))
+    return int.from_bytes(base64.b64decode(value.encode(), validate=True))
 
 
-def read_jwk_private_key(private_data: bytes) -> KeyPair:
-    """Read an JWK private key from bytes and return a KeyPair.
+@dataclasses.dataclass(frozen=True)
+class Key:
+    """Represents a DNSSEC key with associated public and private keys."""
 
-    :param private_data: The JWK private key bytes.
-    :type private_data: :py:class:`bytes`
-    :rtype: :py:class:`KeyPair`
-    """
+    name: dns.name.Name
+    public: GenericPublicKey
+    private: GenericPrivateKey | None
+    dnskey: dns.rdtypes.ANY.DNSKEY.DNSKEY
 
-    jwk = JWK.from_json(private_data.decode())
+    def to_ds(self, algorithm: DSDigest | str = "SHA256") -> dns.rdtypes.ANY.DS.DS:
+        """Return the DS record for the key.
 
-    algorithm = jwk["dnssec"]["algorithm"]
-    algorithm_cls = get_algorithm_cls(algorithm)
-    private_key = algorithm_cls(jwk.get_op_key("sign"))
+        :param algorithm: The hash algorithm. Currently supported: ``"SHA1"``,
+            ``"SHA256"``, ``"SHA384"`` (case-insensitive).
+        :type algorithm: :py:class:`DSDigest` or :py:class:`str`
+        :rtype: :py:class:`dns.rdtypes.ANY.DS.DS`
+        """
 
-    dnskey_rrset = dns.rrset.from_rdata(
-        jwk["dnssec"]["name"],
-        0,
-        dns.dnssec.make_dnskey(
-            public_key=private_key.public_key(),
-            algorithm=jwk["dnssec"]["algorithm"],
-            flags=jwk["dnssec"]["flags"],
-            protocol=jwk["dnssec"]["protocol"],
-        ),
-    )
+        return dns.dnssec.make_ds(self.name, self.dnskey, algorithm)
 
-    return KeyPair(private_key=private_key, dnskey_rrset=dnskey_rrset)
+    def key_id(self) -> int:
+        """Return the key ID for the key.
 
+        :rtype: :py:class:`int`
+        """
+        return key_id(self.dnskey)
 
-def write_jwk_private_key(
-    private_key: GenericPrivateKey,
-    dnskey_rrset: dns.rrset.RRset,
-) -> bytes:
-    """Write private key and DNSKEY RRset and return JWK bytes.
+    @classmethod
+    def from_jwk(cls, data: bytes) -> Self:
+        """Create key from JWK bytes.
 
-    :param private_key: The private key to write.
-    :type private_key: :py:class:`dns.dnssecalgs.base.GenericPrivateKey`
-    :param dnskey_rrset: The DNSKEY RRset corresponding to the private key.
-    :type dnskey_rrset: :py:class:`dns.rrset.RRset`
-    :rtype: :py:class:`bytes`
-    """
+        :param data: The JWK key bytes.
+        :type data: :py:class:`bytes`
+        :rtype: :py:class:`Key`
+        """
 
-    if len(dnskey_rrset) != 1:
-        raise ValueError("DNSKEY RRset must contain exactly one record")
+        try:
+            jwk = JWK.from_json(data.decode())
 
-    dnskey_rdata = dnskey_rrset[0]
-    if not isinstance(dnskey_rdata, dns.rdtypes.ANY.DNSKEY.DNSKEY):
-        raise ValueError("RRset does not contain a valid DNSKEY record")
+            dnssec_properties = jwk["dnssec"]
 
-    if not isinstance(private_key, CryptographyPrivateKey):
-        raise TypeError("Private key is not a valid CryptographyPrivateKey instance")
+            algorithm = dnssec_properties["algorithm"]
+            algorithm_cls = get_algorithm_cls(algorithm)
 
-    jwk = JWK.from_pyca(private_key.key)
-    jwk.update(
-        {
-            "dnssec": {
-                "name": dnskey_rrset.name.to_text(),
-                "algorithm": private_key.public_key().algorithm,
-                "protocol": dnskey_rdata.protocol,
-                "flags": dnskey_rdata.flags,
-            },
-        }
-    )
-    return jwk.export(private_key=True).encode()
+            if jwk.has_private:
+                private_key = algorithm_cls(jwk.get_op_key("sign"))
+                public_key = private_key.public_key()
+            else:
+                private_key = None
+                public_key = algorithm_cls.public_cls(jwk.get_op_key("verify"))
 
+            name = dns.name.from_text(dnssec_properties["name"])
 
-def read_bind_private_key(
-    private_data: bytes,
-    public_data: bytes,
-) -> KeyPair:
-    """Read a BIND-style private key and public key from bytes and return a KeyPair instance.
+            keytag = dnssec_properties["keytag"]
 
-    :param private_data: The BIND-style private key bytes.
-    :type private_data: :py:class:`bytes`
-    :param public_data: The corresponding public DNSKEY data bytes.
-    :type public_data: :py:class:`bytes`
-    :rtype: :py:class:`KeyPair`
-    """
+            dnskey = dns.dnssec.make_dnskey(
+                public_key=public_key,
+                algorithm=dnssec_properties["algorithm"],
+                flags=dnssec_properties["flags"],
+                protocol=dnssec_properties["protocol"],
+            )
+        except (KeyError, ValueError, TypeError, binascii.Error, JWException) as exc:
+            raise InvalidKeyFormat("Failed to create key from JWK") from exc
 
-    algorithm_cls: type[GenericPrivateKey] | None = None
-    key_dict: dict[str, str] = {}
-    dnskey_rrset: dns.rrset.RRset | None = None
+        if keytag != key_id(dnskey):
+            raise InvalidKeyFormat("Keytag mismatch between JWK and DNSKEY")
 
-    # Construct RRset from DNSKEY in public data
-    rrsets = dns.zonefile.read_rrsets(public_data, rdclass=None, default_ttl=0)
-    for rrset in rrsets:
-        if rrset.rdtype == dns.rdatatype.DNSKEY:
-            dnskey_rrset = rrset
-            break
-
-    if dnskey_rrset is None:
-        raise ValueError("No DNSKEY RRset found in public data")
-
-    if len(dnskey_rrset) != 1:
-        raise ValueError("DNSKEY RRset must contain exactly one record")
-
-    dnskey_rdata = dnskey_rrset[0]
-    if not isinstance(dnskey_rdata, dns.rdtypes.ANY.DNSKEY.DNSKEY):
-        raise ValueError("RRset does not contain a valid DNSKEY record")
-
-    for line in private_data.decode().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-
-        if match := re.match(r"^([\w\-+]+):\s*(.+)$", line):
-            key_dict[match.group(1).lower()] = match.group(2)
-
-    if key_dict.get("private-key-format") not in SUPPORTED_BIND_PRIVATE_KEY_FORMATS:
-        raise ValueError(
-            f"Unsupported private key format: {key_dict.get('private-key-format')}"
+        return cls(
+            name=name,
+            private=private_key,
+            public=public_key,
+            dnskey=dnskey,
         )
 
-    algorithm = int(key_dict["algorithm"].split(" ")[0])
+    def to_jwk(self, public_only: bool = False) -> bytes:
+        """Return JWK bytes for the key.
 
-    if algorithm != dnskey_rdata.algorithm:
-        raise ValueError(
-            f"Algorithm mismatch between private key ({algorithm}) and DNSKEY ({dnskey_rdata.algorithm})"
+        DNSKEY information will be included in the JWK under the "dnssec" key
+        and includes name, algorithm, protocol, flags, and keytag.
+
+        :param public_only: Whether to include only the public key in the JWK.
+        :type public_only: :py:class:`bool`
+        :rtype: :py:class:`bytes`
+        """
+
+        if public_only:
+            if isinstance(self.public, CryptographyPublicKey):
+                jwk = JWK.from_pyca(self.public.key)
+            else:
+                raise InvalidKeyFormat("Unsupported public key type")
+        else:
+            if isinstance(self.private, CryptographyPrivateKey):
+                jwk = JWK.from_pyca(self.private.key)
+            elif self.private is None:
+                raise InvalidKeyFormat("Private key is not set")
+            else:
+                raise InvalidKeyFormat("Unsupported private key type")
+
+        jwk_dict = jwk.export(private_key=not public_only, as_dict=True)
+
+        jwk_dict.update(
+            {
+                "dnssec": {
+                    "name": self.name.to_text(),
+                    "algorithm": self.dnskey.algorithm,
+                    "protocol": self.dnskey.protocol,
+                    "flags": self.dnskey.flags,
+                    "keytag": key_id(self.dnskey),
+                },
+            }
         )
 
-    algorithm_cls = get_algorithm_cls(algorithm)
-    public_key = algorithm_cls.public_cls.from_dnskey(dnskey_rdata)
+        return json.dumps(jwk_dict).encode()
 
-    match algorithm:
-        case (
-            Algorithm.RSAMD5
-            | Algorithm.RSASHA1
-            | Algorithm.RSASHA1NSEC3SHA1
-            | Algorithm.RSASHA256
-            | Algorithm.RSASHA512
-        ):
-            private_key_numbers = rsa.RSAPrivateNumbers(
-                p=_base64_to_int(key_dict["prime1"]),
-                q=_base64_to_int(key_dict["prime2"]),
-                d=_base64_to_int(key_dict["privateexponent"]),
-                dmp1=_base64_to_int(key_dict["exponent1"]),
-                dmq1=_base64_to_int(key_dict["exponent2"]),
-                iqmp=_base64_to_int(key_dict["coefficient"]),
-                public_numbers=rsa.RSAPublicNumbers(
-                    e=_base64_to_int(key_dict["publicexponent"]),
-                    n=_base64_to_int(key_dict["modulus"]),
-                ),
+    @classmethod
+    def from_bind(cls, private_filename: Path | str) -> Self:
+        """Read the key from BIND-style files.
+
+        :param private_filename: The path to the input file. Must follow the BIND-style naming convention.
+        :type private_filename: :py:class:`Path` or :py:class:`str`
+        :rtype: :py:class:`Key`
+        """
+
+        if isinstance(private_filename, str):
+            private_filename = Path(private_filename)
+
+        public_filename = private_filename.with_suffix(".key")
+
+        if match := re.fullmatch(r"K.*\+.*\+(\d{5})\.private", private_filename.name):
+            expected_key_id = int(match.group(1))
+        else:
+            raise InvalidKeyFormat(
+                f"Invalid private key filename: {private_filename.name}"
             )
-            private_key = private_key_numbers.private_key()
 
-        case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
-            if not isinstance(public_key, CryptographyPublicKey):
-                raise TypeError(
-                    "Public key is not a valid CryptographyPublicKey instance"
-                )
-            private_bytes = base64.decodebytes(key_dict["privatekey"].encode())
-            private_key_numbers = ec.EllipticCurvePrivateNumbers(
-                private_value=int.from_bytes(private_bytes, "big"),
-                public_numbers=public_key.key.public_numbers(),
+        with open(private_filename, "rb") as fp:
+            private_data = fp.read()
+
+        with open(public_filename, "rb") as fp:
+            public_data = fp.read()
+
+        try:
+            res = cls._from_bind_data(
+                private_data=private_data, public_data=public_data
             )
-            private_key = private_key_numbers.private_key()
+        except (KeyError, ValueError, SyntaxError, TypeError, binascii.Error) as exc:
+            raise InvalidKeyFormat("Failed to create key from BIND keys") from exc
 
-        case Algorithm.ED25519:
-            private_bytes = base64.decodebytes(key_dict["privatekey"].encode())
-            private_key = ed25519.Ed25519PrivateKey.from_private_bytes(private_bytes)
+        if not expected_key_id == res.key_id():
+            raise InvalidKeyFormat(
+                f"Key ID mismatch: expected {expected_key_id}, got {res.key_id()}"
+            )
 
-        case Algorithm.ED448:
-            private_bytes = base64.decodebytes(key_dict["privatekey"].encode())
-            private_key = ed448.Ed448PrivateKey.from_private_bytes(private_bytes)
+        return res
 
-        case Algorithm.MLDSA44:
-            seed_bytes = base64.decodebytes(key_dict["privatekey"].encode())
-            private_key = mldsa.MLDSA44PrivateKey.from_seed_bytes(seed_bytes)
+    @classmethod
+    def _from_bind_data(cls, private_data: bytes, public_data: bytes) -> Self:
+        """Create a key pair from BIND-style key data.
 
-        case _:
-            raise NotImplementedError(f"Algorithm {algorithm} not supported")
+        :param private_data: The private key data.
+        :type private_data: :py:class:`bytes`
+        :param public_data: The public key data.
+        :type public_data: :py:class:`bytes`
+        :rtype: :py:class:`Key`
+        """
 
-    return KeyPair(private_key=algorithm_cls(private_key), dnskey_rrset=dnskey_rrset)
+        algorithm_cls: type[GenericPrivateKey] | None = None
+        key_dict: dict[str, str] = {}
+        dnskey_rrset: dns.rrset.RRset | None = None
 
+        # Construct RRset from DNSKEY in public data
+        rrsets = dns.zonefile.read_rrsets(public_data, rdclass=None, default_ttl=0)
+        for rrset in rrsets:
+            if rrset.rdtype == dns.rdatatype.DNSKEY:
+                dnskey_rrset = rrset
+                break
 
-def write_bind_private_key(
-    private_key: GenericPrivateKey,
-    dnskey_rrset: dns.rrset.RRset,
-) -> BindKeyPair:
-    """Write private key and DNSKEY RRset to BIND-style bytes.
+        if dnskey_rrset is None:
+            raise InvalidKeyFormat("No DNSKEY RRset found in public data")
 
-    :param private_key: The private key to write.
-    :type private_key: :py:class:`dns.dnssecalgs.base.GenericPrivateKey`
-    :param dnskey_rrset: The DNSKEY RRset corresponding to the private key.
-    :type dnskey_rrset: :py:class:`dns.rrset.RRset`
-    :rtype: :py:class:`BindKeyPair`
-    """
+        if len(dnskey_rrset) != 1:
+            raise InvalidKeyFormat("DNSKEY RRset must contain exactly one record")
 
-    if len(dnskey_rrset) != 1:
-        raise ValueError("DNSKEY RRset must contain exactly one record")
+        dnskey_rdata = dnskey_rrset[0]
+        if not isinstance(dnskey_rdata, dns.rdtypes.ANY.DNSKEY.DNSKEY):
+            raise InvalidKeyFormat("RRset does not contain a valid DNSKEY record")
 
-    dnskey_rdata = dnskey_rrset[0]
-    if not isinstance(dnskey_rdata, dns.rdtypes.ANY.DNSKEY.DNSKEY):
-        raise ValueError("RRset does not contain a valid DNSKEY record")
+        for line in private_data.decode().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
 
-    public_data = dnskey_rrset.to_text(
-        style=dns.rdataset.RdatasetStyle(omit_ttl=True)
-    ).encode()
+            if match := re.match(r"^([\w\-+]+):\s*(.+)$", line):
+                key_dict[match.group(1).lower()] = match.group(2)
 
-    basename = f"K{dnskey_rrset.name.to_text()}+{private_key.public_cls.algorithm.value:03}+{key_id(dnskey_rdata):05}"
+        if key_dict.get("private-key-format") not in SUPPORTED_BIND_PRIVATE_KEY_FORMATS:
+            raise InvalidKeyFormat(
+                f"Unsupported private key format: {key_dict.get('private-key-format')}"
+            )
 
-    private_data_dict = {
-        "Private-key-format": "v1.3",
-        "Algorithm": f"{private_key.public_cls.algorithm.value} ({private_key.public_cls.algorithm.name})",
-    }
+        algorithm = int(key_dict["algorithm"].split(" ")[0])
 
-    algorithm = private_key.public_cls.algorithm
+        if algorithm != dnskey_rdata.algorithm:
+            raise InvalidKeyFormat(
+                f"Algorithm mismatch between private key ({algorithm}) and DNSKEY ({dnskey_rdata.algorithm})"
+            )
 
-    if not isinstance(private_key, CryptographyPrivateKey):
-        raise TypeError("Private key is not a valid CryptographyPrivateKey instance")
+        algorithm_cls = get_algorithm_cls(algorithm)
+        public_key = algorithm_cls.public_cls.from_dnskey(dnskey_rdata)
 
-    match algorithm:
-        case (
-            Algorithm.RSAMD5
-            | Algorithm.RSASHA1
-            | Algorithm.RSASHA1NSEC3SHA1
-            | Algorithm.RSASHA256
-            | Algorithm.RSASHA512
-        ):
-            private_key_numbers = private_key.key.private_numbers()
-            private_data_dict.update(
-                {
-                    "Modulus": _int_to_base64(private_key_numbers.public_numbers.n),
-                    "PublicExponent": _int_to_base64(
-                        private_key_numbers.public_numbers.e
+        match algorithm:
+            case (
+                Algorithm.RSAMD5
+                | Algorithm.RSASHA1
+                | Algorithm.RSASHA1NSEC3SHA1
+                | Algorithm.RSASHA256
+                | Algorithm.RSASHA512
+            ):
+                private_key_numbers = rsa.RSAPrivateNumbers(
+                    p=_base64_to_int(key_dict["prime1"]),
+                    q=_base64_to_int(key_dict["prime2"]),
+                    d=_base64_to_int(key_dict["privateexponent"]),
+                    dmp1=_base64_to_int(key_dict["exponent1"]),
+                    dmq1=_base64_to_int(key_dict["exponent2"]),
+                    iqmp=_base64_to_int(key_dict["coefficient"]),
+                    public_numbers=rsa.RSAPublicNumbers(
+                        e=_base64_to_int(key_dict["publicexponent"]),
+                        n=_base64_to_int(key_dict["modulus"]),
                     ),
-                    "PrivateExponent": _int_to_base64(private_key_numbers.d),
-                    "Prime1": _int_to_base64(private_key_numbers.p),
-                    "Prime2": _int_to_base64(private_key_numbers.q),
-                    "Exponent1": _int_to_base64(private_key_numbers.dmp1),
-                    "Exponent2": _int_to_base64(private_key_numbers.dmq1),
-                    "Coefficient": _int_to_base64(private_key_numbers.iqmp),
-                }
-            )
+                )
+                private_key = private_key_numbers.private_key()
 
-        case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
-            private_key_numbers = private_key.key.private_numbers()
-            curve_size = private_key_numbers.public_numbers.curve.key_size // 8
-            private_data_dict.update(
-                {
-                    "PrivateKey": _int_to_base64(
-                        private_key_numbers.private_value, curve_size
+            case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
+                if not isinstance(public_key, CryptographyPublicKey):
+                    raise TypeError(
+                        "Public key is not a valid CryptographyPublicKey instance"
                     )
-                }
+                private_bytes = base64.b64decode(
+                    key_dict["privatekey"].encode(), validate=True
+                )
+                private_key_numbers = ec.EllipticCurvePrivateNumbers(
+                    private_value=int.from_bytes(private_bytes, "big"),
+                    public_numbers=public_key.key.public_numbers(),
+                )
+                private_key = private_key_numbers.private_key()
+
+            case Algorithm.ED25519:
+                private_bytes = base64.b64decode(
+                    key_dict["privatekey"].encode(), validate=True
+                )
+                private_key = ed25519.Ed25519PrivateKey.from_private_bytes(
+                    private_bytes
+                )
+
+            case Algorithm.ED448:
+                private_bytes = base64.b64decode(
+                    key_dict["privatekey"].encode(), validate=True
+                )
+                private_key = ed448.Ed448PrivateKey.from_private_bytes(private_bytes)
+
+            case Algorithm.MLDSA44:
+                seed_bytes = base64.b64decode(
+                    key_dict["privatekey"].encode(), validate=True
+                )
+                private_key = mldsa.MLDSA44PrivateKey.from_seed_bytes(seed_bytes)
+
+            case _:
+                raise NotImplementedError(
+                    f"Algorithm {algorithm} not implemented when importing private key"
+                )
+
+        private = algorithm_cls(private_key)
+        public = private.public_key()
+
+        if public.to_dnskey().key != dnskey_rdata.key:
+            raise InvalidKeyFormat("Private key does not match DNSKEY")
+
+        return cls(
+            name=dnskey_rrset.name,
+            private=private,
+            public=public,
+            dnskey=dnskey_rdata,
+        )
+
+    def to_bind(self, directory: Path | str, overwrite: bool = False) -> Path:
+        """Write the key to BIND-style files.
+
+        :param directory: The path to the output directory.
+        :type directory: :py:class:`Path`
+        :param overwrite: Whether to overwrite existing key files.
+        :type overwrite: bool
+        :rtype: Path
+        """
+
+        if isinstance(directory, str):
+            directory = Path(directory)
+
+        if not (directory.exists() and directory.is_dir()):
+            raise NotADirectoryError(f"{directory} is not a valid directory")
+
+        public_data = self._to_bind_public()
+        private_data = self._to_bind_private()
+
+        basename = f"K{self.name.to_text()}+{self.dnskey.algorithm.value:03}+{self.key_id():05}"
+
+        private_filename = directory / f"{basename}.private"
+        public_filename = directory / f"{basename}.key"
+
+        if overwrite:
+            # If overwrite is True, remove existing files before writing
+            public_filename.unlink(missing_ok=True)
+            private_filename.unlink(missing_ok=True)
+        else:
+            # Abort if the key files already exist to prevent overwriting existing keys
+            if private_filename.exists():
+                raise FileExistsError(
+                    f"Private key file {private_filename} already exists"
+                )
+            if public_filename.exists():
+                raise FileExistsError(
+                    f"Public key file {public_filename} already exists"
+                )
+
+        try:
+            with open(public_filename, "xb") as fp:
+                fp.write(public_data)
+
+            with open(
+                os.open(
+                    private_filename,
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                    0o600,
+                ),
+                "wb",
+            ) as fp:
+                fp.write(private_data)
+        except Exception:
+            # Remove any partially written key files to avoid leaving incomplete files on disk
+            public_filename.unlink(missing_ok=True)
+            private_filename.unlink(missing_ok=True)
+            raise
+
+        return private_filename
+
+    def _to_bind_public(self) -> bytes:
+        """Return the public key in BIND-style format."""
+        rrset = dns.rrset.from_rdata(self.name, 0, self.dnskey)
+        return rrset.to_text(style=dns.rdataset.RdatasetStyle(omit_ttl=True)).encode()
+
+    def _to_bind_private(self) -> bytes:
+        """Return the private key in BIND-style format."""
+
+        if self.private is None:
+            raise DNSException("Private key is not set")
+
+        if not isinstance(self.private, CryptographyPrivateKey):
+            raise TypeError(
+                "Private key is not a valid CryptographyPrivateKey instance"
             )
 
-        case Algorithm.ED25519 | Algorithm.ED448 | Algorithm.MLDSA44:
-            private_data_dict.update(
-                {
-                    "PrivateKey": base64.b64encode(
-                        private_key.key.private_bytes_raw()
-                    ).decode()
-                }
+        private_data_dict = {
+            "Private-key-format": "v1.3",
+            "Algorithm": f"{self.dnskey.algorithm.value} ({self.dnskey.algorithm.name})",
+        }
+
+        match self.dnskey.algorithm:
+            case (
+                Algorithm.RSAMD5
+                | Algorithm.RSASHA1
+                | Algorithm.RSASHA1NSEC3SHA1
+                | Algorithm.RSASHA256
+                | Algorithm.RSASHA512
+            ):
+                private_key_numbers = self.private.key.private_numbers()
+                private_data_dict.update(
+                    {
+                        "Modulus": _int_to_base64(private_key_numbers.public_numbers.n),
+                        "PublicExponent": _int_to_base64(
+                            private_key_numbers.public_numbers.e
+                        ),
+                        "PrivateExponent": _int_to_base64(private_key_numbers.d),
+                        "Prime1": _int_to_base64(private_key_numbers.p),
+                        "Prime2": _int_to_base64(private_key_numbers.q),
+                        "Exponent1": _int_to_base64(private_key_numbers.dmp1),
+                        "Exponent2": _int_to_base64(private_key_numbers.dmq1),
+                        "Coefficient": _int_to_base64(private_key_numbers.iqmp),
+                    }
+                )
+
+            case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
+                private_key_numbers = self.private.key.private_numbers()
+                curve_size = private_key_numbers.public_numbers.curve.key_size // 8
+                private_data_dict.update(
+                    {
+                        "PrivateKey": _int_to_base64(
+                            private_key_numbers.private_value, curve_size
+                        )
+                    }
+                )
+
+            case Algorithm.ED25519 | Algorithm.ED448 | Algorithm.MLDSA44:
+                private_data_dict.update(
+                    {
+                        "PrivateKey": base64.b64encode(
+                            self.private.key.private_bytes_raw()
+                        ).decode()
+                    }
+                )
+
+            case _:
+                raise NotImplementedError(
+                    f"Algorithm {self.dnskey.algorithm} not implemented when exporting private key"
+                )
+
+        return (
+            b"\n".join(
+                f"{key}: {value}".encode() for key, value in private_data_dict.items()
             )
-
-        case _:
-            raise NotImplementedError(f"Algorithm {algorithm} not supported")
-
-    private_data = b"\n".join(
-        f"{key}: {value}".encode() for key, value in private_data_dict.items()
-    )
-
-    return BindKeyPair(
-        basename=basename,
-        private_data=private_data,
-        public_data=public_data,
-    )
+            + b"\n"
+        )
