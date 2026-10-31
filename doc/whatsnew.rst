@@ -18,6 +18,17 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* LOC text parsing now converts the altitude, size, horizontal precision, and
+  vertical precision fields to centimeters exactly, and requires them to be
+  decimal numbers of meters with at most two fractional digits, as RFC 1876
+  section 3 specifies.  They were converted with ``float()``, so ``9.29m``
+  became 928 cm rather than 929 cm and the text and wire forms of the record
+  disagreed, forms such as ``1e3m``, ``1_000m``, ``+10m``, ``nanm``, and
+  ``infm`` were accepted, extra fractional digits were silently dropped, and an
+  altitude outside the representable range was accepted and then failed in
+  ``to_wire()`` with a non-DNS exception.  ``dns.exception.SyntaxError`` is
+  now raised for all of these.
+
 * The resolver now assigns a new random query id to every query.
 
 * For transports that require a 0 query id, set it in a way that does not break
