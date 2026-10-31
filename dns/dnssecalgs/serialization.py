@@ -5,13 +5,16 @@ from typing import NamedTuple
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
 from jwcrypto.jwk import JWK
 
+import dns.dnssec
 import dns.rdataset
 import dns.rdatatype
+import dns.rdtypes.ANY.DNSKEY
 import dns.rrset
 import dns.zonefile
 from dns.dnssec import key_id
 from dns.dnssecalgs import get_algorithm_cls
 from dns.dnssecalgs.base import GenericPrivateKey
+from dns.dnssecalgs.cryptography import CryptographyPrivateKey, CryptographyPublicKey
 from dns.dnssectypes import Algorithm
 
 SUPPORTED_BIND_PRIVATE_KEY_FORMATS = {"v1.3"}
@@ -23,7 +26,7 @@ class KeyPair(NamedTuple):
 
 
 class BindKeyPair(NamedTuple):
-    basename: str | None
+    basename: str
     private_data: bytes
     public_data: bytes
 
@@ -94,14 +97,21 @@ def write_jwk_private_key(
     if len(dnskey_rrset) != 1:
         raise ValueError("DNSKEY RRset must contain exactly one record")
 
+    dnskey_rdata = dnskey_rrset[0]
+    if not isinstance(dnskey_rdata, dns.rdtypes.ANY.DNSKEY.DNSKEY):
+        raise ValueError("RRset does not contain a valid DNSKEY record")
+
+    if not isinstance(private_key, CryptographyPrivateKey):
+        raise TypeError("Private key is not a valid CryptographyPrivateKey instance")
+
     jwk = JWK.from_pyca(private_key.key)
     jwk.update(
         {
             "dnssec": {
                 "name": dnskey_rrset.name.to_text(),
                 "algorithm": private_key.public_key().algorithm,
-                "protocol": dnskey_rrset[0].protocol,
-                "flags": dnskey_rrset[0].flags,
+                "protocol": dnskey_rdata.protocol,
+                "flags": dnskey_rdata.flags,
             },
         }
     )
@@ -112,7 +122,7 @@ def read_bind_private_key(
     private_data: bytes,
     public_data: bytes,
 ) -> KeyPair:
-    """Read an BIND-style private key and public key from bytes and return a KeyPair instance.
+    """Read a BIND-style private key and public key from bytes and return a KeyPair instance.
 
     :param private_data: The BIND-style private key bytes.
     :type private_data: :py:class:`bytes`
@@ -135,6 +145,13 @@ def read_bind_private_key(
     if dnskey_rrset is None:
         raise ValueError("No DNSKEY RRset found in public data")
 
+    if len(dnskey_rrset) != 1:
+        raise ValueError("DNSKEY RRset must contain exactly one record")
+
+    dnskey_rdata = dnskey_rrset[0]
+    if not isinstance(dnskey_rdata, dns.rdtypes.ANY.DNSKEY.DNSKEY):
+        raise ValueError("RRset does not contain a valid DNSKEY record")
+
     for line in private_data.decode().splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
@@ -150,7 +167,7 @@ def read_bind_private_key(
 
     algorithm = int(key_dict["algorithm"].split(" ")[0])
     algorithm_cls = get_algorithm_cls(algorithm)
-    public_key = algorithm_cls.public_cls.from_dnskey(dnskey_rrset[0])
+    public_key = algorithm_cls.public_cls.from_dnskey(dnskey_rdata)
 
     match algorithm:
         case (
@@ -175,6 +192,10 @@ def read_bind_private_key(
             private_key = private_key_numbers.private_key()
 
         case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
+            if not isinstance(public_key, CryptographyPublicKey):
+                raise TypeError(
+                    "Public key is not a valid CryptographyPublicKey instance"
+                )
             private_bytes = base64.decodebytes(key_dict["privatekey"].encode())
             private_key_numbers = ec.EllipticCurvePrivateNumbers(
                 private_value=int.from_bytes(private_bytes, "big"),
@@ -216,16 +237,20 @@ def write_bind_private_key(
     if len(dnskey_rrset) != 1:
         raise ValueError("DNSKEY RRset must contain exactly one record")
 
+    dnskey_rdata = dnskey_rrset[0]
+    if not isinstance(dnskey_rdata, dns.rdtypes.ANY.DNSKEY.DNSKEY):
+        raise ValueError("RRset does not contain a valid DNSKEY record")
+
     public_data = dnskey_rrset.to_text(
         style=dns.rdataset.RdatasetStyle(omit_ttl=True)
     ).encode()
-    private_data = {}
-    basename = f"K{dnskey_rrset.name.to_text()}+{private_key.public_cls.algorithm.value:03}+{key_id(dnskey_rrset[0]):05}"
 
-    private_data["Private-key-format"] = "v1.3"
-    private_data["Algorithm"] = (
-        f"{private_key.public_cls.algorithm.value} ({private_key.public_cls.algorithm.name})"
-    )
+    basename = f"K{dnskey_rrset.name.to_text()}+{private_key.public_cls.algorithm.value:03}+{key_id(dnskey_rdata):05}"
+
+    private_data = {
+        "Private-key-format": "v1.3",
+        "Algorithm": f"{private_key.public_cls.algorithm.value} ({private_key.public_cls.algorithm.name})",
+    }
 
     algorithm = private_key.public_cls.algorithm
 
@@ -237,6 +262,10 @@ def write_bind_private_key(
             | Algorithm.RSASHA256
             | Algorithm.RSASHA512
         ):
+            if not isinstance(private_key, CryptographyPrivateKey):
+                raise TypeError(
+                    "Private key is not a valid CryptographyPrivateKey instance"
+                )
             private_key_numbers = private_key.key.private_numbers()
             private_data.update(
                 {
@@ -254,6 +283,10 @@ def write_bind_private_key(
             )
 
         case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
+            if not isinstance(private_key, CryptographyPrivateKey):
+                raise TypeError(
+                    "Private key is not a valid CryptographyPrivateKey instance"
+                )
             private_key_numbers = private_key.key.private_numbers()
             curve_size = private_key_numbers.public_numbers.curve.key_size // 8
             private_data.update(
@@ -265,9 +298,13 @@ def write_bind_private_key(
             )
 
         case Algorithm.ED25519 | Algorithm.ED448 | Algorithm.MLDSA44:
+            if not isinstance(private_key, CryptographyPrivateKey):
+                raise TypeError(
+                    "Private key is not a valid CryptographyPrivateKey instance"
+                )
             private_data.update(
                 {
-                    "PrivateKey": base64.encodebytes(
+                    "PrivateKey": base64.b64encode(
                         private_key.key.private_bytes_raw()
                     ).decode()
                 }
@@ -276,10 +313,12 @@ def write_bind_private_key(
         case _:
             raise NotImplementedError(f"Algorithm {algorithm} not supported")
 
+    private_data = b"\n".join(
+        f"{key}: {value}".encode() for key, value in private_data.items()
+    )
+
     return BindKeyPair(
         basename=basename,
-        private_data=b"\n".join(
-            f"{key}: {value}".encode() for key, value in private_data.items()
-        ),
+        private_data=private_data,
         public_data=public_data,
     )
