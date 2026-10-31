@@ -35,7 +35,7 @@ def _int_to_base64(value: int, length: int | None = None) -> str:
     """
     if length is None:
         length = (value.bit_length() + 7) // 8
-    return base64.encodebytes(value.to_bytes(length)).decode().replace("\n", "")
+    return base64.b64encode(value.to_bytes(length)).decode()
 
 
 def _base64_to_int(value: str) -> int:
@@ -255,8 +255,7 @@ def write_bind_private_key(
 
         case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
             private_key_numbers = private_key.key.private_numbers()
-            curve_size = (private_key_numbers.public_numbers.curve.key_size + 7) // 8
-            breakpoint()
+            curve_size = private_key_numbers.public_numbers.curve.key_size // 8
             private_data.update(
                 {
                     "PrivateKey": _int_to_base64(
