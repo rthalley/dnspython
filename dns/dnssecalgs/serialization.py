@@ -14,6 +14,8 @@ from dns.dnssecalgs import get_algorithm_cls
 from dns.dnssecalgs.base import GenericPrivateKey
 from dns.dnssectypes import Algorithm
 
+SUPPORTED_BIND_PRIVATE_KEY_FORMATS = {"v1.3"}
+
 
 class KeyPair(NamedTuple):
     private_key: GenericPrivateKey
@@ -119,8 +121,6 @@ def read_bind_private_key(
     :rtype: :py:class:`KeyPair`
     """
 
-    SUPPORTED_FORMATS = {"v1.3"}
-
     algorithm_cls: type[GenericPrivateKey] | None = None
     key_dict: dict[str, str] = {}
     dnskey_rrset: dns.rrset.RRset | None = None
@@ -143,7 +143,7 @@ def read_bind_private_key(
         if match := re.match(r"^([\w\-+]+):\s*(.+)$", line):
             key_dict[match.group(1).lower()] = match.group(2)
 
-    if key_dict.get("private-key-format") not in SUPPORTED_FORMATS:
+    if key_dict.get("private-key-format") not in SUPPORTED_BIND_PRIVATE_KEY_FORMATS:
         raise ValueError(
             f"Unsupported private key format: {key_dict.get('private-key-format')}"
         )
