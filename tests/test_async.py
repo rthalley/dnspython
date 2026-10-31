@@ -600,7 +600,7 @@ class AsyncTests(unittest.TestCase):
 
     @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
     @tests.util.retry_on_timeout
-    def TestDoH3PostRequest(self):
+    def testDoH3PostRequest(self):
         async def run():
             nameserver_url = random.choice(KNOWN_ANYCAST_DOH3_RESOLVER_URLS)
             q = dns.message.make_query("dns.google.", dns.rdatatype.A)
@@ -618,11 +618,11 @@ class AsyncTests(unittest.TestCase):
 
     @unittest.skipIf(not dns.quic.have_quic, "aioquic not available")
     @tests.util.retry_on_timeout
-    def TestDoH3QueryIP(self):
+    def testDoH3QueryIP(self):
         async def run():
             nameserver_ip = "8.8.8.8"
             q = dns.message.make_query("example.com.", dns.rdatatype.A)
-            r = dns.asyncquery.https(
+            r = await dns.asyncquery.https(
                 q,
                 nameserver_ip,
                 post=False,
