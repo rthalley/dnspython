@@ -26,12 +26,26 @@ class BindKeyPair(NamedTuple):
     public_data: bytes
 
 
-def int_to_base64(value: int) -> str:
-    return (
-        base64.encodebytes(value.to_bytes((value.bit_length() + 7) // 8))
-        .decode()
-        .replace("\n", "")
-    )
+def _int_to_base64(value: int, length: int | None = None) -> str:
+    """Convert an integer to a base64-encoded string.
+
+    :param value: The integer to convert.
+    :type value: :py:class:`int`
+    :rtype: :py:class:`str`
+    """
+    if length is None:
+        length = (value.bit_length() + 7) // 8
+    return base64.encodebytes(value.to_bytes(length)).decode().replace("\n", "")
+
+
+def _base64_to_int(value: str) -> int:
+    """Convert a base64-encoded string to an integer.
+
+    :param value: The base64-encoded string.
+    :type value: :py:class:`str`
+    :rtype: :py:class:`int`
+    """
+    return int.from_bytes(base64.decodebytes(value.encode()))
 
 
 def read_jwk_private_key(private_data: bytes) -> KeyPair:
@@ -146,23 +160,17 @@ def read_bind_private_key(
             | Algorithm.RSASHA256
             | Algorithm.RSASHA512
         ):
-            n = int.from_bytes(base64.decodebytes(key_dict["modulus"].encode()))
-            e = int.from_bytes(base64.decodebytes(key_dict["publicexponent"].encode()))
-            d = int.from_bytes(base64.decodebytes(key_dict["privateexponent"].encode()))
-            p = int.from_bytes(base64.decodebytes(key_dict["prime1"].encode()))
-            q = int.from_bytes(base64.decodebytes(key_dict["prime2"].encode()))
-            dmp1 = int.from_bytes(base64.decodebytes(key_dict["exponent1"].encode()))
-            dmq1 = int.from_bytes(base64.decodebytes(key_dict["exponent2"].encode()))
-            iqmp = int.from_bytes(base64.decodebytes(key_dict["coefficient"].encode()))
-
             private_key_numbers = rsa.RSAPrivateNumbers(
-                p=p,
-                q=q,
-                d=d,
-                dmp1=dmp1,
-                dmq1=dmq1,
-                iqmp=iqmp,
-                public_numbers=rsa.RSAPublicNumbers(e=e, n=n),
+                p=_base64_to_int(key_dict["prime1"]),
+                q=_base64_to_int(key_dict["prime2"]),
+                d=_base64_to_int(key_dict["privateexponent"]),
+                dmp1=_base64_to_int(key_dict["exponent1"]),
+                dmq1=_base64_to_int(key_dict["exponent2"]),
+                iqmp=_base64_to_int(key_dict["coefficient"]),
+                public_numbers=rsa.RSAPublicNumbers(
+                    e=_base64_to_int(key_dict["publicexponent"]),
+                    n=_base64_to_int(key_dict["modulus"]),
+                ),
             )
             private_key = private_key_numbers.private_key()
 
@@ -232,23 +240,29 @@ def write_bind_private_key(
             private_key_numbers = private_key.key.private_numbers()
             private_data.update(
                 {
-                    "Modulus": int_to_base64(private_key_numbers.public_numbers.n),
-                    "PublicExponent": int_to_base64(
+                    "Modulus": _int_to_base64(private_key_numbers.public_numbers.n),
+                    "PublicExponent": _int_to_base64(
                         private_key_numbers.public_numbers.e
                     ),
-                    "PrivateExponent": int_to_base64(private_key_numbers.d),
-                    "Prime1": int_to_base64(private_key_numbers.p),
-                    "Prime2": int_to_base64(private_key_numbers.q),
-                    "Exponent1": int_to_base64(private_key_numbers.dmp1),
-                    "Exponent2": int_to_base64(private_key_numbers.dmq1),
-                    "Coefficient": int_to_base64(private_key_numbers.iqmp),
+                    "PrivateExponent": _int_to_base64(private_key_numbers.d),
+                    "Prime1": _int_to_base64(private_key_numbers.p),
+                    "Prime2": _int_to_base64(private_key_numbers.q),
+                    "Exponent1": _int_to_base64(private_key_numbers.dmp1),
+                    "Exponent2": _int_to_base64(private_key_numbers.dmq1),
+                    "Coefficient": _int_to_base64(private_key_numbers.iqmp),
                 }
             )
 
         case Algorithm.ECDSAP256SHA256 | Algorithm.ECDSAP384SHA384:
             private_key_numbers = private_key.key.private_numbers()
+            curve_size = (private_key_numbers.public_numbers.curve.key_size + 7) // 8
+            breakpoint()
             private_data.update(
-                {"PrivateKey": int_to_base64(private_key_numbers.private_value)}
+                {
+                    "PrivateKey": _int_to_base64(
+                        private_key_numbers.private_value, curve_size
+                    )
+                }
             )
 
         case Algorithm.ED25519 | Algorithm.ED448 | Algorithm.MLDSA44:

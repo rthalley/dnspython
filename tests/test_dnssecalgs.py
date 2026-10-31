@@ -19,11 +19,6 @@ import os
 import unittest
 
 import dns.dnssec
-from dns.dnssecalgs.serialization import (
-    read_jwk_private_key,
-    write_bind_private_key,
-    write_jwk_private_key,
-)
 import dns.exception
 import dns.rdata
 import dns.rdataclass
@@ -38,7 +33,12 @@ try:
         get_algorithm_cls_from_dnskey,
         register_algorithm_cls,
     )
-    from dns.dnssecalgs.serialization import read_bind_private_key
+    from dns.dnssecalgs.serialization import (
+        read_bind_private_key,
+        read_jwk_private_key,
+        write_bind_private_key,
+        write_jwk_private_key,
+    )
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1, PublicDSA
     from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
