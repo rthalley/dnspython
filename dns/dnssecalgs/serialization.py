@@ -35,7 +35,12 @@ def int_to_base64(value: int) -> str:
 
 
 def read_jwk_private_key(private_data: bytes) -> KeyPair:
-    """Read an JWK private key from bytes and return a GenericPrivateKey instance."""
+    """Read an JWK private key from bytes and return a KeyPair.
+
+    :param private_data: The JWK private key bytes.
+    :type private_data: :py:class:`bytes`
+    :rtype: :py:class:`KeyPair`
+    """
 
     jwk = JWK.from_json(private_data.decode())
 
@@ -61,7 +66,14 @@ def write_jwk_private_key(
     private_key: GenericPrivateKey,
     dnskey_rrset: dns.rrset.RRset,
 ) -> bytes:
-    """Write private key and DNSKEY RRset to JWK bytes."""
+    """Write private key and DNSKEY RRset and return JWK bytes.
+
+    :param private_key: The private key to write.
+    :type private_key: :py:class:`dns.dnssecalgs.base.GenericPrivateKey`
+    :param dnskey_rrset: The DNSKEY RRset corresponding to the private key.
+    :type dnskey_rrset: :py:class:`dns.rrset.RRset`
+    :rtype: :py:class:`bytes`
+    """
 
     if len(dnskey_rrset) != 1:
         raise ValueError("DNSKEY RRset must contain exactly one record")
@@ -84,7 +96,14 @@ def read_bind_private_key(
     private_data: bytes,
     public_data: bytes,
 ) -> KeyPair:
-    """Read an BIND-style private key from bytes and return a GenericPrivateKey instance."""
+    """Read an BIND-style private key and public key from bytes and return a KeyPair instance.
+
+    :param private_data: The BIND-style private key bytes.
+    :type private_data: :py:class:`bytes`
+    :param public_data: The corresponding public DNSKEY data bytes.
+    :type public_data: :py:class:`bytes`
+    :rtype: :py:class:`KeyPair`
+    """
 
     SUPPORTED_FORMATS = {"v1.3"}
 
@@ -177,7 +196,14 @@ def write_bind_private_key(
     private_key: GenericPrivateKey,
     dnskey_rrset: dns.rrset.RRset,
 ) -> BindKeyPair:
-    """Write private key and DNSKEY RRset to BIND-style bytes."""
+    """Write private key and DNSKEY RRset to BIND-style bytes.
+
+    :param private_key: The private key to write.
+    :type private_key: :py:class:`dns.dnssecalgs.base.GenericPrivateKey`
+    :param dnskey_rrset: The DNSKEY RRset corresponding to the private key.
+    :type dnskey_rrset: :py:class:`dns.rrset.RRset`
+    :rtype: :py:class:`BindKeyPair`
+    """
 
     if len(dnskey_rrset) != 1:
         raise ValueError("DNSKEY RRset must contain exactly one record")
