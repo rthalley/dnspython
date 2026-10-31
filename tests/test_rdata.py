@@ -463,10 +463,48 @@ class RdataTestCase(unittest.TestCase):
             "60 9 0.000 N 24 39 0.000 E 10.00m 100000000m 2000m 20m",
             "60 9 0.000 N 24 39 0.000 E 10.00m 20m 100000000m 20m",
             "60 9 0.000 N 24 39 0.000 E 10.00m 20m 20m 100000000m",
+            # altitude, size, and precisions are decimal meters with at most
+            # two fractional digits (RFC 1876 section 3)
+            "60 9 0.000 N 24 39 0.000 E nanm 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E infm 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E 1e3m 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E 1_000m 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E +10m 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E 10.001m 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E m 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E 42849672.96m 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E -100000.01m 20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E 10.00m 2.001m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E 10.00m -20m 2000m 20m",
+            "60 9 0.000 N 24 39 0.000 E 10.00m 20m 2e3m 20m",
+            "60 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 2_0m",
         ]
         for loc in bad_locs:
             with self.assertRaises(dns.exception.SyntaxError):
                 dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.LOC, loc)
+
+    def test_LOC_text_meters_are_exact(self):
+        # float("9.29") * 100 is 928.99..., which used to be truncated to 928
+        # cm, so the text form and the wire form disagreed by a centimeter.
+        for text, cm in [
+            ("9.29m", 929),
+            ("-655.31m", -65531),
+            ("0.07", 7),
+            ("5.m", 500),
+            (".5m", 50),
+            ("-100000.00m", -10000000),
+            ("42849672.95m", 4284967295),
+        ]:
+            loc = dns.rdata.from_text("in", "loc", f"60 S 24 W {text}")
+            wire = loc.to_wire()
+            (altitude,) = struct.unpack("!I", wire[12:16])
+            self.assertEqual(altitude - 10000000, cm)
+            self.assertEqual(dns.rdata.from_wire("in", "loc", wire, 0, len(wire)), loc)
+        loc = dns.rdata.from_text("in", "loc", "60 S 24 W 1m 0.29m 20.m .2m")
+        self.assertEqual(
+            (loc.size, loc.horizontal_precision, loc.vertical_precision),
+            (29.0, 2000.0, 20.0),
+        )
 
     def test_bad_LOC_wire(self):
         bad_locs = [
