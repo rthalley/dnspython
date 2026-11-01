@@ -33,7 +33,12 @@ try:
         register_algorithm_cls,
     )
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1, PublicDSA
-    from dns.dnssecalgs.ecdsa import PrivateECDSAP256SHA256, PrivateECDSAP384SHA384
+    from dns.dnssecalgs.ecdsa import (
+        PrivateECDSAP256SHA256,
+        PrivateECDSAP384SHA384,
+        PublicECDSAP384SHA384,
+        PublicECDSAP256SHA256,
+    )
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
     from dns.dnssecalgs.mldsa import PrivateMLDSA44, PublicMLDSA44
     from dns.dnssecalgs.rsa import (
@@ -176,6 +181,19 @@ class DNSSECAlgorithm(unittest.TestCase):
                 bytes([sig[0] ^ 1]) + sig[1:],
             ),
         )
+
+    def test_ecdsa_curve_mismatch(self):
+        private_key_p256 = PrivateECDSAP256SHA256.generate()
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
+            PrivateECDSAP384SHA384(private_key_p256.key)
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
+            PublicECDSAP384SHA384(private_key_p256.public_key())
+
+        private_key_p384 = PrivateECDSAP384SHA384.generate()
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
+            PrivateECDSAP256SHA256(private_key_p384.key)
+        with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
+            PublicECDSAP256SHA256(private_key_p384.public_key())
 
     @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def test_ecdsa_signature_length(self):
