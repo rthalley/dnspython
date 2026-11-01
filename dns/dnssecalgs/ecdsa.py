@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Any, Self
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, utils
 
 from dns.dnssecalgs.cryptography import CryptographyPrivateKey, CryptographyPublicKey
 from dns.dnssectypes import Algorithm
+from dns.exception import AlgorithmKeyMismatch
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 
 
@@ -17,6 +18,11 @@ class PublicECDSA(CryptographyPublicKey):
     chosen_hash: hashes.HashAlgorithm
     curve: ec.EllipticCurve
     octets: int
+
+    def __init__(self, key: Any) -> None:
+        super().__init__(key)
+        if not key.curve.name == self.curve.name:
+            raise AlgorithmKeyMismatch("Curve mismatch between key and class")
 
     def verify(self, signature: bytes, data: bytes) -> None:
         # RFC 6605 section 4: the signature is r and s, each exactly
@@ -55,6 +61,11 @@ class PrivateECDSA(CryptographyPrivateKey):
     key: ec.EllipticCurvePrivateKey
     key_cls = ec.EllipticCurvePrivateKey
     public_cls = PublicECDSA
+
+    def __init__(self, key: Any) -> None:
+        super().__init__(key)
+        if not key.curve.name == self.public_cls.curve.name:  # type: ignore
+            raise AlgorithmKeyMismatch("Curve mismatch between key and class")
 
     def sign(
         self,
