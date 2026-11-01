@@ -17,13 +17,11 @@
 
 import binascii
 import struct
-from typing import TypeVar
+from typing import Self
 
 import dns.immutable
 import dns.rdata
 import dns.rdatatype
-
-T = TypeVar("T", bound="TLSABase")
 
 
 @dns.immutable.immutable
@@ -60,14 +58,14 @@ class TLSABase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls: type[T],
+        cls: type[Self],
         rdclass,
         rdtype,
         tok,
         origin=None,
         relativize=True,
         relativize_to=None,
-    ) -> T:
+    ) -> Self:
         usage = tok.get_uint8()
         selector = tok.get_uint8()
         mtype = tok.get_uint8()
@@ -81,7 +79,7 @@ class TLSABase(dns.rdata.Rdata):
         file.write(self.cert)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         header = parser.get_struct("BBB")
         cert = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2], cert)

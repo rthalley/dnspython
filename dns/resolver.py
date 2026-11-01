@@ -25,7 +25,7 @@ import threading
 import time
 import warnings
 from collections.abc import Iterator, Sequence
-from typing import Any, TextIO, cast
+from typing import Any, Self, TextIO, cast
 from urllib.parse import urlparse
 
 import dns._ddr
@@ -333,8 +333,8 @@ class HostAnswers(Answers):
         v6: Answer | None = None,
         v4: Answer | None = None,
         add_empty: bool = True,
-    ) -> "HostAnswers":
-        answers = HostAnswers()
+    ) -> Self:
+        answers = cls()
         if v6 is not None and (add_empty or v6.rrset):
             answers[dns.rdatatype.AAAA] = v6
         if v4 is not None and (add_empty or v4.rrset):
@@ -384,8 +384,8 @@ class CacheStatistics:
         self.hits = 0
         self.misses = 0
 
-    def clone(self) -> "CacheStatistics":
-        return CacheStatistics(self.hits, self.misses)
+    def clone(self) -> Self:
+        return self.__class__(self.hits, self.misses)
 
 
 class CacheBase:

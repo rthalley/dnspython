@@ -21,7 +21,7 @@ import binascii
 import math
 import socket
 import struct
-from typing import Any
+from typing import Any, Self
 
 import dns.enum
 import dns.inet
@@ -203,7 +203,7 @@ class GenericOption(Option):  # lgtm[py/missing-equals]
     def to_text(self) -> str:
         return f"Generic {self.otype}"
 
-    def to_generic(self) -> "GenericOption":
+    def to_generic(self) -> Self:
         return self
 
     @classmethod

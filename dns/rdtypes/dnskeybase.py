@@ -18,7 +18,7 @@
 import base64
 import enum
 import struct
-from typing import TypeVar
+from typing import Self
 
 import dns.dnssectypes
 import dns.exception
@@ -33,9 +33,6 @@ class Flag(enum.IntFlag):
     SEP = 0x0001
     REVOKE = 0x0080
     ZONE = 0x0100
-
-
-T = TypeVar("T", bound="DNSKEYBase")
 
 
 @dns.immutable.immutable
@@ -62,14 +59,14 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls: type[T],
+        cls: type[Self],
         rdclass,
         rdtype,
         tok,
         origin=None,
         relativize=True,
         relativize_to=None,
-    ) -> T:
+    ) -> Self:
         flags = tok.get_uint16()
         protocol = tok.get_uint8()
         algorithm = tok.get_string()
@@ -83,7 +80,7 @@ class DNSKEYBase(dns.rdata.Rdata):
         file.write(self.key)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         header = parser.get_struct("!HBB")
         key = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2], key)

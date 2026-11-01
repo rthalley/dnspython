@@ -19,7 +19,7 @@ import collections
 import random
 import struct
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Self
 
 import dns._text_util
 import dns.exception
@@ -171,7 +171,7 @@ class Bitmap:
         return text
 
     @classmethod
-    def from_text(cls, tok: "dns.tokenizer.Tokenizer") -> "Bitmap":
+    def from_text(cls, tok: "dns.tokenizer.Tokenizer") -> Self:
         rdtypes = []
         for token in tok.get_remaining():
             rdtype = dns.rdatatype.from_text(token.unescape().value)
@@ -181,7 +181,7 @@ class Bitmap:
         return cls.from_rdtypes(rdtypes)
 
     @classmethod
-    def from_rdtypes(cls, rdtypes: list[dns.rdatatype.RdataType]) -> "Bitmap":
+    def from_rdtypes(cls, rdtypes: list[dns.rdatatype.RdataType]) -> Self:
         rdtypes = sorted(rdtypes)
         window = 0
         octets = 0
@@ -213,7 +213,7 @@ class Bitmap:
             file.write(bitmap)
 
     @classmethod
-    def from_wire_parser(cls, parser: "dns.wire.Parser") -> "Bitmap":
+    def from_wire_parser(cls, parser: "dns.wire.Parser") -> Self:
         windows = []
         while parser.remaining() > 0:
             window = parser.get_uint8()

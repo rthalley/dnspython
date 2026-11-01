@@ -16,11 +16,9 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import enum
-from typing import Any, TypeVar
+from typing import Any, Self
 
 import dns._text_util
-
-TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 
 
 class IntEnum(enum.IntEnum):
@@ -42,7 +40,7 @@ class IntEnum(enum.IntEnum):
             raise ValueError(f"{name} must be an int between >= 0 and <= {max}")
 
     @classmethod
-    def from_text(cls: type[TIntEnum], text: str) -> TIntEnum:
+    def from_text(cls: type[Self], text: str) -> Self:
         text = text.upper()
         try:
             return cls[text]
@@ -61,7 +59,7 @@ class IntEnum(enum.IntEnum):
         raise cls._unknown_exception_class()
 
     @classmethod
-    def to_text(cls: type[TIntEnum], value: int) -> str:
+    def to_text(cls: type[Self], value: int) -> str:
         cls._check_value(value)
         try:
             text = cls(value).name
@@ -73,7 +71,7 @@ class IntEnum(enum.IntEnum):
         return text
 
     @classmethod
-    def make(cls: type[TIntEnum], value: int | str) -> TIntEnum:
+    def make(cls: type[Self], value: int | str) -> Self:
         """Convert text or a value into an enumerated type, if possible.
 
         :param value: The value to convert.

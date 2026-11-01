@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import struct
+from typing import Self
 
 import dns.exception
 import dns.immutable
@@ -59,7 +60,7 @@ class AMTRELAY(dns.rdata.Rdata):
     @classmethod
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ) -> "AMTRELAY":
+    ) -> Self:
         precedence = tok.get_uint8()
         discovery_optional = tok.get_uint8()
         if discovery_optional > 1:
@@ -80,7 +81,7 @@ class AMTRELAY(dns.rdata.Rdata):
         Relay(self.relay_type, self.relay).to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> "AMTRELAY":
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None) -> Self:
         precedence, relay_type = parser.get_struct("!BB")
         discovery_optional = bool(relay_type >> 7)
         relay_type &= 0x7F

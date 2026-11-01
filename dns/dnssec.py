@@ -567,7 +567,7 @@ def _sign(
 
     signature = signing_key.sign(data, verify, deterministic)
 
-    return cast(RRSIG, rrsig_template.replace(signature=signature))
+    return rrsig_template.replace(signature=signature)
 
 
 def _make_rrsig_signature_data(

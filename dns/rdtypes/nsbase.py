@@ -17,14 +17,12 @@
 
 """NS-like base classes."""
 
-from typing import TypeVar
+from typing import Self
 
 import dns.exception
 import dns.immutable
 import dns.name
 import dns.rdata
-
-T = TypeVar("T", bound="NSBase")
 
 
 @dns.immutable.immutable
@@ -42,14 +40,14 @@ class NSBase(dns.rdata.Rdata):
 
     @classmethod
     def from_text(
-        cls: type[T],
+        cls: type[Self],
         rdclass,
         rdtype,
         tok,
         origin=None,
         relativize=True,
         relativize_to=None,
-    ) -> T:
+    ) -> Self:
         target = tok.get_name(origin, relativize, relativize_to)
         return cls(rdclass, rdtype, target)
 
@@ -57,7 +55,7 @@ class NSBase(dns.rdata.Rdata):
         self.target.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         target = parser.get_name(origin, True)
         return cls(rdclass, rdtype, target)
 
@@ -72,6 +70,6 @@ class UncompressedNS(NSBase):
         self.target.to_wire(file, None, origin, False)
 
     @classmethod
-    def from_wire_parser(cls: type[T], rdclass, rdtype, parser, origin=None) -> T:
+    def from_wire_parser(cls: type[Self], rdclass, rdtype, parser, origin=None) -> Self:
         target = parser.get_name(origin)
         return cls(rdclass, rdtype, target)
