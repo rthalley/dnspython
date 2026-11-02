@@ -18,6 +18,12 @@ What's New in dnspython
 2.9.1 (in development)
 ----------------------
 
+* The NSEC, NSEC3, and CSYNC wire parsers now reject a type bitmap with the
+  bit for type 0 set, raising ``dns.exception.FormError``.  Type 0 is
+  reserved and was already rejected in text, but it was accepted from wire,
+  so ``to_text()`` of such a record, e.g. in a zone received by zone transfer,
+  produced text that could not be read back.
+
 * LOC text parsing now converts the altitude, size, horizontal precision, and
   vertical precision fields to centimeters exactly, and requires them to be
   decimal numbers of meters with at most two fractional digits, as RFC 1876

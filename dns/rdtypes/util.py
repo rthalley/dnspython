@@ -156,6 +156,10 @@ class Bitmap:
                 # be included and trailing zero octets must be omitted, so the
                 # last octet of a window's bitmap is always non-zero.
                 raise ValueError(f"bad {self.type_name} octets: trailing zero octet")
+            if window == 0 and bitmap[0] & 0x80:
+                # Type 0 is reserved, and from_text() rejects it, so do the same
+                # here so that to_text() output can always be read back.
+                raise ValueError(f"bad {self.type_name} octets: bit 0 is set")
             self.windows.append((window, bitmap))
 
     def to_text(self) -> str:

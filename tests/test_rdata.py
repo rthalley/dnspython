@@ -1248,6 +1248,26 @@ class UtilTestCase(unittest.TestCase):
         ba.append(0x01)  # bit 15, for MX
         self.assertEqual(windows, [(0, bytes(ba))])
 
+    def test_Bitmap_type0(self):
+        # Type 0 is rejected in text, so it must be rejected from wire too, or
+        # to_text() would produce text that from_text() cannot read.
+        with self.assertRaises(ValueError):
+            dns.rdtypes.util.Bitmap([(0, b"\x80")])
+        cases = [
+            ("NSEC", "next. A"),
+            ("NSEC3", "1 0 0 - 00 A"),
+            ("CSYNC", "1 0 A"),
+        ]
+        for rdtype, text in cases:
+            with self.subTest(rdtype=rdtype):
+                with self.assertRaises(dns.exception.SyntaxError):
+                    dns.rdata.from_text("IN", rdtype, text.replace(" A", " TYPE0"))
+                wire = dns.rdata.from_text("IN", rdtype, text).to_wire()
+                # the last three octets are the bitmap: window 0, length 1, 0x40
+                bad = wire[:-1] + bytes([0xC0])
+                with self.assertRaises(dns.exception.FormError):
+                    dns.rdata.from_wire("IN", rdtype, bad, 0, len(bad))
+
     def test_Bitmap_generator_windows(self):
         windows = [(0, b"@"), (1, b"\x80")]
         bitmap = dns.rdtypes.util.Bitmap(window for window in windows)
