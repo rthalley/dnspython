@@ -187,13 +187,13 @@ class DNSSECAlgorithm(unittest.TestCase):
         with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             PrivateECDSAP384SHA384(private_key_p256.key)
         with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
-            PublicECDSAP384SHA384(private_key_p256.public_key())
+            PublicECDSAP384SHA384(private_key_p256.key.public_key())
 
         private_key_p384 = PrivateECDSAP384SHA384.generate()
         with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
             PrivateECDSAP256SHA256(private_key_p384.key)
         with self.assertRaises(dns.exception.AlgorithmKeyMismatch):
-            PublicECDSAP256SHA256(private_key_p384.public_key())
+            PublicECDSAP256SHA256(private_key_p384.key.public_key())
 
     @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def test_ecdsa_signature_length(self):
