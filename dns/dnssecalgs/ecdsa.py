@@ -21,7 +21,7 @@ class PublicECDSA(CryptographyPublicKey):
 
     def __init__(self, key: Any) -> None:
         super().__init__(key)
-        if not key.curve.name == self.curve.name:
+        if key.curve.name != self.curve.name:
             raise AlgorithmKeyMismatch("Curve mismatch between key and class")
 
     def verify(self, signature: bytes, data: bytes) -> None:
@@ -64,7 +64,7 @@ class PrivateECDSA(CryptographyPrivateKey):
 
     def __init__(self, key: Any) -> None:
         super().__init__(key)
-        if not key.curve.name == self.public_cls.curve.name:  # type: ignore
+        if key.curve.name != self.public_cls.curve.name:  # type: ignore
             raise AlgorithmKeyMismatch("Curve mismatch between key and class")
 
     def sign(
