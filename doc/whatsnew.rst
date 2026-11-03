@@ -15,8 +15,15 @@ What's New in dnspython
   attribute of the result, may now need an ``isinstance()`` check or a cast to
   satisfy a type checker.
 
-2.9.1 (in development)
+2.9.2 (in development)
 ----------------------
+
+* A maliciously crafted zone file could use a WKS record to consume excessive
+  memory and CPU, possibly causing the process to exit due to memory exhaustion.
+  Thanks to Jace (GitHub @manus-use) for discovering and reporting this issue.
+
+2.9.1
+-----
 
 * LOC text parsing now converts the altitude, size, horizontal precision, and
   vertical precision fields to centimeters exactly, and requires them to be
