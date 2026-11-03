@@ -45,6 +45,7 @@ from dns.rdtypes.ANY.CAA import CAA
 from dns.rdtypes.ANY.GPOS import GPOS
 from dns.rdtypes.ANY.LOC import LOC
 from dns.rdtypes.ANY.OPT import OPT
+from dns.rdtypes.IN.WKS import WKS
 from tests.util import here
 
 
@@ -510,6 +511,22 @@ class RdataTestCase(unittest.TestCase):
             self.assertTrue(False)  # should not happen
         except dns.exception.SyntaxError as e:
             self.assertIsInstance(e.__cause__, NotImplementedError)
+
+    def test_wks_bounds(self):
+        rd = dns.rdata.from_text("IN", "WKS", "10.0.0.1 udp 0")
+        self.assertEqual(rd.bitmap, b"\x80")
+        rd = dns.rdata.from_text("IN", "WKS", "10.0.0.1 udp 65535")
+        self.assertEqual(len(rd.bitmap), 8192)
+        self.assertEqual(rd.bitmap[-1], 1)
+        with self.assertRaises(dns.exception.SyntaxError):
+            rd = dns.rdata.from_text("IN", "WKS", "10.0.0.1 udp -1")
+        with self.assertRaises(dns.exception.SyntaxError):
+            rd = dns.rdata.from_text("IN", "WKS", "10.0.0.1 udp 65536")
+        # test direct invocation of the constructor too
+        rd = WKS(dns.rdataclass.IN, dns.rdatatype.WKS, "10.0.0.1", 1, bytes())
+        rd = WKS(dns.rdataclass.IN, dns.rdatatype.WKS, "10.0.0.1", 1, bytes(8192))
+        with self.assertRaises(ValueError):
+            WKS(dns.rdataclass.IN, dns.rdatatype.WKS, "10.0.0.1", 1, bytes(8193))
 
     def test_GPOS_float_converters(self):
         rd = dns.rdata.from_text("in", "gpos", "49 0 0")
