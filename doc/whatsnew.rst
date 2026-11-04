@@ -6,6 +6,16 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* The rdata types whose value is a single base64 block, i.e. DHCID, HHIT, BRID,
+  and OPENPGPKEY, now reject an empty value, like the TXT family does.  The
+  presentation format of these types (RFC 4701 section 3.2, RFC 7929 section
+  2.3, RFC 9886) has no way to write an empty value, so ``to_text()`` returned
+  an empty string which ``from_text()`` then rejected.  The wire parser accepted
+  a zero-length rdata, so a message received from the network could be written
+  out with ``to_text()`` and then could not be read back in.  A
+  ``dns.exception.FormError`` is now raised when such an rdata is read from the
+  wire.
+
 * The type annotation of ``public_key()`` on the ``dns.dnssecalgs`` private
   key classes is now ``dns.dnssecalgs.base.GenericPublicKey``, as declared by
   ``GenericPrivateKey``, instead of ``CryptographyPublicKey``, and the

@@ -33,6 +33,8 @@ class DHCID(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, data):
         super().__init__(rdclass, rdtype)
         self.data = self._as_bytes(data)
+        if len(self.data) == 0:
+            raise ValueError("the data must not be empty")
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         return dns.rdata._styled_base64ify(self.data, style)

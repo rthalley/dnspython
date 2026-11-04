@@ -30,6 +30,8 @@ class Base64Base(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, value):
         super().__init__(rdclass, rdtype)
         self.value = self._as_bytes(value)
+        if len(self.value) == 0:
+            raise ValueError("the value must not be empty")
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         # Fixed style
