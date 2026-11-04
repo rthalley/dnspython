@@ -32,6 +32,8 @@ class OPENPGPKEY(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, key):
         super().__init__(rdclass, rdtype)
         self.key = self._as_bytes(key)
+        if len(self.key) == 0:
+            raise ValueError("the key must not be empty")
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         # Fixed style

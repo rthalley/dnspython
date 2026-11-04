@@ -24,6 +24,7 @@ import struct
 import unittest
 
 import dns.exception
+import dns.message
 import dns.name
 import dns.rdata
 import dns.rdataclass
@@ -930,6 +931,40 @@ class RdataTestCase(unittest.TestCase):
     def test_empty_TXT_wire(self):
         with self.assertRaises(dns.exception.FormError):
             dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.TXT, b"", 0, 0)
+
+    def test_empty_base64_rdata_wire(self):
+        # The presentation format of these types is a single base64 block, so
+        # there is no way to write an empty value: to_text() returns the empty
+        # string, which from_text() rejects.  The wire parser used to accept a
+        # zero-length rdata, so a message read from the network could be written
+        # out with to_text() and then could not be read back in.
+        for rdtype in (
+            dns.rdatatype.DHCID,
+            dns.rdatatype.HHIT,
+            dns.rdatatype.BRID,
+            dns.rdatatype.OPENPGPKEY,
+        ):
+            with self.assertRaises(dns.exception.FormError):
+                dns.rdata.from_wire(dns.rdataclass.IN, rdtype, b"", 0, 0)
+            # A non-empty value still round-trips over the wire and the text.
+            rd = dns.rdata.from_text(dns.rdataclass.IN, rdtype, "AAAB")
+            wire = rd.to_wire()
+            self.assertEqual(
+                dns.rdata.from_wire(dns.rdataclass.IN, rdtype, wire, 0, len(wire)), rd
+            )
+            self.assertEqual(
+                dns.rdata.from_text(dns.rdataclass.IN, rdtype, rd.to_text()), rd
+            )
+
+    def test_empty_base64_rdata_in_message(self):
+        # A response with a single answer whose OPENPGPKEY rdata is zero length.
+        # Before the fix from_wire() accepted it, and then from_text() could not
+        # read the message's own to_text() output.
+        wire = bytes.fromhex(
+            "123481800001000100000000076578616d706c650000010001c00c003d00010000012c0000"
+        )
+        with self.assertRaises(dns.exception.FormError):
+            dns.message.from_wire(wire)
 
     def test_too_long_TXT(self):
         # hit too long
