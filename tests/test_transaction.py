@@ -565,7 +565,7 @@ def test_zone_ooz_name(zone):
     with zone.writer() as txn:
         with pytest.raises(KeyError):
             a99 = dns.name.from_text("a99.not-example.")
-            assert txn.name_exists(a99)
+            txn.name_exists(a99)
 
 
 def test_zone_iteration(zone):
