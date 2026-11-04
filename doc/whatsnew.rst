@@ -23,7 +23,6 @@ What's New in dnspython
   altitude outside the representable range was accepted and then failed in
   ``to_wire()`` with a non-DNS exception.  ``dns.exception.SyntaxError`` is
   now raised for all of these.
->>>>>>> a62e1be0 (Constrain WKS bitmap size.)
 
 * The resolver now assigns a new random query id to every query.
 
