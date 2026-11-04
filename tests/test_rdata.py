@@ -1337,12 +1337,6 @@ class UtilTestCase(unittest.TestCase):
         ba.append(0x40)  # bit 33, for SRV
         self.assertEqual(windows, [(0, bytes(ba))])
 
-    def test_Bitmap_has_type_0_set(self):
-        b = dns.rdtypes.util.Bitmap
-        with self.assertRaises(dns.exception.SyntaxError):
-            tok = dns.tokenizer.Tokenizer("NONE A MX")
-            b.from_text(tok)
-
     def test_Bitmap_empty_window_not_written(self):
         b = dns.rdtypes.util.Bitmap
         tok = dns.tokenizer.Tokenizer("URI CAA")  # types 256 and 257

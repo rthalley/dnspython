@@ -175,8 +175,11 @@ class Bitmap:
         rdtypes = []
         for token in tok.get_remaining():
             rdtype = dns.rdatatype.from_text(token.unescape().value)
-            if rdtype == 0:
-                raise dns.exception.SyntaxError(f"{cls.type_name} with bit 0")
+            # RFC 4035 says you MUST NOT send "pseudo-types" like TYPE0, AXFR, etc.
+            # but also says you MUST ignore them if you see them.  We used to
+            # ban TYPE0 here, but this means TYPE0 doesn't "round trip" if we
+            # get one in an AXFR, for example, and write it to a zonefile.  So,
+            # to promote round-tripping, we no longer object to it.
             rdtypes.append(rdtype)
         return cls.from_rdtypes(rdtypes)
 
