@@ -9,4 +9,7 @@ from GitHub:
 
         git clone https://github.com/rthalley/dnspython.git
 
-The example programs are in the ``examples/`` directory.
+The example programs are in the |examples|_ directory.
+
+.. |examples| replace:: ``examples/``
+.. _examples: https://github.com/rthalley/dnspython/tree/main/examples
