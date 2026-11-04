@@ -1675,6 +1675,15 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         )
         self._test_signature(key, dns.dnssec.Algorithm.RSASHA256, abs_soa)
 
+    def testSignatureECDSACurveMismatch(self):  # type: () -> None
+        key_p256 = ec.generate_private_key(curve=ec.SECP256R1())
+        key_p384 = ec.generate_private_key(curve=ec.SECP384R1())
+        dnskey = dns.dnssec.make_dnskey(
+            key_p256.public_key(), dns.dnssec.Algorithm.ECDSAP256SHA256
+        )
+        with self.assertRaises(TypeError) as cm:
+            dns.dnssec.sign(abs_soa, key_p384, abs_soa.name, dnskey, lifetime=3600)
+
     @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
         key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
