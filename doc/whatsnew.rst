@@ -4,6 +4,7 @@ What's New in dnspython
 =======================
 
 2.10.0 (in development)
+-----------------------
 
 * The type annotation of ``public_key()`` on the ``dns.dnssecalgs`` private
   key classes is now ``dns.dnssecalgs.base.GenericPublicKey``, as declared by
@@ -15,8 +16,8 @@ What's New in dnspython
   attribute of the result, may now need an ``isinstance()`` check or a cast to
   satisfy a type checker.
 
-2.9.2 (in development)
-----------------------
+2.9.2
+-----
 
 * A maliciously crafted zone file could use a WKS record to consume excessive
   memory and CPU, possibly causing the process to exit due to memory exhaustion.
