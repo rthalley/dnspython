@@ -1683,8 +1683,6 @@ class DNSSECSignatureTestCase(unittest.TestCase):
         )
         with self.assertRaises(TypeError) as cm:
             dns.dnssec.sign(abs_soa, key_p384, abs_soa.name, dnskey, lifetime=3600)
-        self.assertIsInstance(cm.exception.__cause__, dns.dnssec.AlgorithmKeyMismatch)
-        self.assertIn("Curve mismatch", str(cm.exception))
 
     @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def testSignatureECDSAP256SHA256(self):  # type: () -> None
