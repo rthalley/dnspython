@@ -93,11 +93,12 @@ class Key:
         return key_id(self.dnskey)
 
     @classmethod
-    def from_jwk_file(cls, f: str | os.PathLike | TextIO) -> Self:
+    def from_jwk_file(cls, f: str | os.PathLike | TextIO | BinaryIO) -> Self:
         """Create key from a JWK file.
 
         :param f: The path to the JWK file or a file-like object.
-        :type f: :py:class:`str`, :py:class:`os.PathLike`, or :py:class:`TextIO`
+        :type f: :py:class:`str`, :py:class:`os.PathLike`, :py:class:`TextIO`,
+            or :py:class:`BinaryIO`
         :rtype: :py:class:`Key`
         """
 
@@ -158,13 +159,18 @@ class Key:
         """Write the key to a JWK file.
 
         :param f: The path to the output file or a file-like object.
-        :type f: :py:class:`str`, :py:class:`os.PathLike`, :py:class:`BinaryIO`, or :py:class:`TextIO`
+        :type f: :py:class:`str`, :py:class:`os.PathLike`, :py:class:`BinaryIO`,
+            or :py:class:`TextIO`
         :param public_only: Whether to include only the public key in the JWK.
         :type public_only: :py:class:`bool`
         """
 
         with dns._file_util.maybe_open(f, "wb") as output:
-            output.write(self.to_jwk_text(public_only=public_only))
+            jwk_str = self.to_jwk_text(public_only=public_only)
+            try:
+                output.write(jwk_str.encode())
+            except TypeError:
+                output.write(jwk_str)
 
     def to_jwk_text(self, public_only: bool = False) -> str:
         """Return JWK string for the key.
@@ -234,7 +240,7 @@ class Key:
             public_data = fp.read()
 
         try:
-            res = cls._from_bind_data(
+            res = cls.from_bind_bytes(
                 private_data=private_data, public_data=public_data
             )
         except (
@@ -254,7 +260,7 @@ class Key:
         return res
 
     @classmethod
-    def _from_bind_data(cls, private_data: bytes, public_data: bytes) -> Self:
+    def from_bind_bytes(cls, private_data: bytes, public_data: bytes) -> Self:
         """Create a key pair from BIND-style key data.
 
         :param private_data: The private key data.

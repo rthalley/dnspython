@@ -469,7 +469,20 @@ class DNSSECKey(unittest.TestCase):
             assert key_from_public_jwk.dnskey == key_from_bind.dnskey
             assert key_from_public_jwk.private is None
 
-            with tempfile.TemporaryFile("w+b") as temp_file:
+            # Write and read as binary
+            with tempfile.TemporaryFile("w+b", suffix=".json") as temp_file:
+                key_from_bind.to_jwk_file(temp_file)
+                temp_file.seek(0)
+                read_jwk = Key.from_jwk_file(temp_file)
+                assert read_jwk.name == key_from_bind.name
+                assert read_jwk.dnskey == key_from_bind.dnskey
+                assert read_jwk.private is not None
+                assert key_from_bind.private is not None
+                assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
+                assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
+
+            # Write and read as text
+            with tempfile.TemporaryFile("w+t", suffix=".json") as temp_file:
                 key_from_bind.to_jwk_file(temp_file)
                 temp_file.seek(0)
                 read_jwk = Key.from_jwk_file(temp_file)
@@ -515,7 +528,7 @@ class DNSSECKey(unittest.TestCase):
             public_data = f"{key_from_bind.name} IN DNSKEY {other_dnskey}\n".encode()
 
             with self.assertRaises((dns.exception.InvalidKeyFormat, ValueError)):
-                Key._from_bind_data(private_data=private_data, public_data=public_data)
+                Key.from_bind_bytes(private_data=private_data, public_data=public_data)
 
     def test_key_to_ds(self):
         """Test that the DS record generated from a key matches the expected value."""
