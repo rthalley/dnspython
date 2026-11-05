@@ -1089,6 +1089,31 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                 abs_ed448_mx, abs_ed448_mx_rrsig_1, abs_ed448_keys_1, None
             )
 
+    def testTimeBoundsAcrossRollover(self) -> None:
+        key = ed25519.Ed25519PrivateKey.generate()
+        signer = abs_soa.name
+        dnskey = dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.ED25519)
+        keys = {signer: dns.rrset.from_rdata(signer, 300, dnskey)}
+        rollover = 2**32
+        rrsig = dns.dnssec.sign(
+            abs_soa, key, signer, dnskey, inception=rollover - 16, expiration=32
+        )
+
+        for now in (rollover - 16, rollover - 1, rollover + 1, rollover + 32):
+            with self.subTest(now=now):
+                dns.dnssec.validate_rrsig(abs_soa, rrsig, keys, now=now)
+
+        for now, message in (
+            (rollover - 16.5, "not yet valid"),
+            (rollover + 32.5, "expired"),
+            (2**31 + 32, "expired"),  # Undefined ordering relative to expiration.
+            (float("nan"), "invalid validation time"),
+            (float("inf"), "invalid validation time"),
+        ):
+            with self.subTest(now=now):
+                with self.assertRaisesRegex(dns.dnssec.ValidationFailure, message):
+                    dns.dnssec.validate_rrsig(abs_soa, rrsig, keys, now=now)
+
     def testOwnerNameMismatch(self):
         bogus = dns.name.from_text("example.bogus")
         with self.assertRaises(dns.dnssec.ValidationFailure):
