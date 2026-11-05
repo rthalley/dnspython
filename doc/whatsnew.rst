@@ -6,6 +6,12 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* The text form of NSEC, NSEC3, and CSYNC type bitmaps now accepts ``TYPE0``
+  and keeps it, so a record with the TYPE0 bit set, e.g. one received in a
+  zone transfer, can be written to a zone file and read back unchanged.  The
+  bit cannot be dropped, as the record is signed and its RRSIG would no
+  longer validate.
+
 * The rdata types whose value is a single base64 block, i.e. DHCID, HHIT, BRID,
   and OPENPGPKEY, now reject an empty value, like the TXT family does.  The
   presentation format of these types (RFC 4701 section 3.2, RFC 7929 section

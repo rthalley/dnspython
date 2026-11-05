@@ -188,7 +188,7 @@ class Bitmap:
         rdtypes = sorted(rdtypes)
         window = 0
         octets = 0
-        prior_rdtype = 0
+        prior_rdtype = None
         bitmap = bytearray(b"\0" * 32)
         windows = []
         for rdtype in rdtypes:

@@ -1379,6 +1379,30 @@ class UtilTestCase(unittest.TestCase):
         ba.append(0x01)  # bit 15, for MX
         self.assertEqual(windows, [(0, bytes(ba))])
 
+    def test_Bitmap_with_type_0(self):
+        b = dns.rdtypes.util.Bitmap
+        tok = dns.tokenizer.Tokenizer("TYPE0 A MX TYPE0")
+        windows = b.from_text(tok).windows
+        ba = bytearray()
+        ba.append(0xC0)  # bits 0 and 1, for TYPE0 and A
+        ba.append(0x01)  # bit 15, for MX
+        self.assertEqual(windows, [(0, bytes(ba))])
+        self.assertEqual(b.from_rdtypes([0]).windows, [(0, b"\x80")])
+
+    def test_Bitmap_with_type_0_round_trips(self):
+        cases = [
+            ("NSEC", b"\x00"),
+            ("NSEC3", b"\x01\x00\x00\x00\x00\x01\x00"),
+            ("CSYNC", b"\x00\x00\x00\x01\x00\x00"),
+        ]
+        for rdtype, prefix in cases:
+            with self.subTest(rdtype=rdtype):
+                wire = prefix + b"\x00\x01\xe0"  # TYPE0 A NS
+                rd = dns.rdata.from_wire("IN", rdtype, wire, 0, len(wire))
+                self.assertTrue(rd.to_text().endswith(" TYPE0 A NS"))
+                rd2 = dns.rdata.from_text("IN", rdtype, rd.to_text())
+                self.assertEqual(rd2.to_wire(), wire)
+
     def test_Bitmap_window_256_is_invalid(self):
         with self.assertRaises(ValueError):
             dns.rdtypes.util.Bitmap([(256, b"\x80")])
