@@ -78,6 +78,10 @@ source-include = [
     "tests/tls/*.crt",
     "tests/tls/*.pem",
     "tests/tsigkeys/*.key",
+    "tests/dnsseckeys/Makefile",
+    "tests/dnsseckeys/*.json",
+    "tests/dnsseckeys/*.key",
+    "tests/dnsseckeys/*.private",
     "util/**",
 ]
 source-exclude = [
