@@ -1,6 +1,6 @@
 """Synchronize DNSSEC private keys with their corresponding JWK files."""
 
-from dns.dnssec import Key
+from dns.dnssecalgs.serialization import Key
 from pathlib import Path
 
 for private_key_file in Path(".").glob("K*.private"):

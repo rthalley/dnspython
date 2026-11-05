@@ -2,7 +2,7 @@
 
 import dns.name
 from dns.dnssectypes import Algorithm
-from dns.dnssec import Key
+from dns.dnssecalgs.serialization import Key
 from dns.dnssecalgs import get_algorithm_cls
 
 for algorithm in [Algorithm.MLDSA44]:
