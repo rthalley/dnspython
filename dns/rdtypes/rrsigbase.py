@@ -112,9 +112,12 @@ class RRSIGBase(dns.rdata.Rdata):
         inception = posixtime_to_sigtime(self.inception)
         signer = self.signer.to_styled_text(style)
         sig = dns.rdata._styled_base64ify(self.signature, style, True)
+        comment = ""
+        if style.dnssec_comments:
+            comment += f" ; alg = {dns.dnssectypes.Algorithm.to_text(self.algorithm)}"
         return (
             f"{ctext} {self.algorithm} {self.labels} {self.original_ttl} "
-            + f"{expiration} {inception} {self.key_tag} {signer} {sig}"
+            + f"{expiration} {inception} {self.key_tag} {signer} {sig}{comment}"
         )
 
     @classmethod

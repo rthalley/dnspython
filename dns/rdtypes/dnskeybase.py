@@ -41,6 +41,9 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     __slots__ = ["flags", "protocol", "algorithm", "key"]
 
+    # subclasses can override this
+    _is_dnssec = False
+
     def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
         super().__init__(rdclass, rdtype)
         self.flags: int = Flag(self._as_uint16(flags))
@@ -55,6 +58,18 @@ class DNSKEYBase(dns.rdata.Rdata):
             key = f"[key id = {self.key_id()}]"
         else:
             key = dns.rdata._styled_base64ify(self.key, style)
+        if style.dnssec_comments:
+            if self._is_dnssec:
+                if self.flags & Flag.SEP:
+                    if self.flags & Flag.REVOKE:
+                        keytype = "revoked KSK"
+                    else:
+                        keytype = "KSK"
+                else:
+                    keytype = "ZSK"
+                key += f" ; {keytype}"
+            key += f" ; alg = {dns.dnssectypes.Algorithm.to_text(self.algorithm)}"
+            key += f" ; key id = {self.key_id()}"
         return f"{self.flags} {self.protocol} {self.algorithm} {key}"
 
     @classmethod

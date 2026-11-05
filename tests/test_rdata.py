@@ -1240,6 +1240,48 @@ class RdataTestCase(unittest.TestCase):
         self.assertEqual(r1, r2)
         self.assertEqual(r1, r3)
 
+    def test_dnssec_comments(self):
+        style = dns.rdata.RdataStyle(dnssec_comments=True)
+        zsk_keydata = "256 3 8 AwEAAcorNxNc9t0ue1ZenPjVMRujlQ2YLBJ0pR/4XMjHby9vr03cRxFS KnWpxeg5PL384D9VeqdS1bjrGyTsHtoagzI3NiXFd8sjHMOnZxu5pp/+ UBIg7tasYgVMMdUiM1Yu/c+t30d1Qw/v6NYLNnOnywTu6HuUh7Y1sZRq /GZcrxLENXHQoyKpOrOr8R3+qd6wK69IKB80ZBZtkX9rdEqKJk+yYXjE ZzZ0zkAFthmNgCreAoU9PVlU66dyOsaLjf3wKUlUm9SNOKs+tK6LuSmR bK6+1T/tPaRaMBSEuv2G6vXfnJ1uyMbGvtpRn/YDcvTjrp6DzE6XyF44 QdwJ3oKx4ek="
+        ksk_keydata = "257 3 8 AwEAAa96jeuknZlaeSrvyAJj6ZHv28hhOKkx3rLGXVaC6rXTsDc449/c idltpkyGwCJNnOAlFNKF2jBosZBU5eeHspaQWOmOElZsjICMQMC3aeHb GiShvZsx4wMYSjH8e7Vrhbu6irwCzVBApESjbUdpWWmEnhathWu1jo+s iFUiRAAxm9qyJNg/wOZqqzL/dL/q8PkcRU5oUKEpUge71M3ej2/7CPqp dVwuMoTvoB+ZOT4YeGyxMvHmbrxlFzGOHOijtzN+u1TQNatX2XBuzZNQ 1K+s2CXkPIZo7s6JgZyvaBevYtxPvYLw4z9mR7K2vaF18UYH9Z9GNUUe ayffKC73PYc="
+        revoked_ksk_keydata = "385 3 8 AwEAAa96jeuknZlaeSrvyAJj6ZHv28hhOKkx3rLGXVaC6rXTsDc449/c idltpkyGwCJNnOAlFNKF2jBosZBU5eeHspaQWOmOElZsjICMQMC3aeHb GiShvZsx4wMYSjH8e7Vrhbu6irwCzVBApESjbUdpWWmEnhathWu1jo+s iFUiRAAxm9qyJNg/wOZqqzL/dL/q8PkcRU5oUKEpUge71M3ej2/7CPqp dVwuMoTvoB+ZOT4YeGyxMvHmbrxlFzGOHOijtzN+u1TQNatX2XBuzZNQ 1K+s2CXkPIZo7s6JgZyvaBevYtxPvYLw4z9mR7K2vaF18UYH9Z9GNUUe ayffKC73PYc="
+        rrsig_keydata = "DNSKEY 8 0 172800 20261121000000 20261031000000 38696 . UFkJYhexq5ZgfvP+oIz2WUJQgF8bhW8s t3LnXtIBP0eRcSQXrYg7+luxwQYg+3ii ZV2+BJPcNmf/pDu+uNPaplkHPJLXh9WS 0oEVZKUNk/0wk3A0XL5UOSTdPWn/IoTW WxyGxun+udV7eRQqVpRvSdlBFaqPWSDI DkX0QQIfye72TB4tsPBnA2iWDye6U157 EcPBdNeKv4cfh1cAOlePIaxLs1NoNHIu /ZrqEY5zM+GNJ4Z72Tba09jYjz3ayBSP VinI64OYOORqZsYtuLXUrBdD6UWfV8Lj f3b0MGfBs7BoZYAJxVyNr5CQF13CLw+4 xrbMsmQWdTBqzp5iEtB9VA=="
+
+        zsk = dns.rdata.from_text("IN", "DNSKEY", zsk_keydata)
+        base = zsk.to_text()
+        text = zsk.to_styled_text(style)
+        id = zsk.key_id()
+        assert f'{base} ; ZSK ; alg = RSASHA256 ; key id = {id}' == text
+
+        ksk = dns.rdata.from_text("IN", "DNSKEY", ksk_keydata)
+        base = ksk.to_text()
+        text = ksk.to_styled_text(style)
+        id = ksk.key_id()
+        assert f'{base} ; KSK ; alg = RSASHA256 ; key id = {id}' == text
+
+        revoked_ksk = dns.rdata.from_text("IN", "DNSKEY", revoked_ksk_keydata)
+        base = revoked_ksk.to_text()
+        text = revoked_ksk.to_styled_text(style)
+        id = revoked_ksk.key_id()
+        assert f'{base} ; revoked KSK ; alg = RSASHA256 ; key id = {id}' == text
+
+        cdnskey = dns.rdata.from_text("IN", "CDNSKEY", zsk_keydata)
+        base = cdnskey.to_text()
+        text = cdnskey.to_styled_text(style)
+        id = cdnskey.key_id()
+        assert f'{base} ; ZSK ; alg = RSASHA256 ; key id = {id}' == text
+
+        key = dns.rdata.from_text("IN", "KEY", zsk_keydata)
+        base = key.to_text()
+        text = key.to_styled_text(style)
+        id = key.key_id()
+        assert f'{base} ; alg = RSASHA256 ; key id = {id}' == text
+
+        rrsig = dns.rdata.from_text("IN", "RRSIG", rrsig_keydata)
+        base = rrsig.to_text()
+        text = rrsig.to_styled_text(style)
+        assert f'{base} ; alg = RSASHA256' == text
+
 
 class UtilTestCase(unittest.TestCase):
     def test_Gateway_bad_type0(self):
