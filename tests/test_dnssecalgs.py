@@ -458,17 +458,27 @@ class DNSSECKey(unittest.TestCase):
 
             key_from_bind = Key.from_bind(private_key_file)
 
-            jwk_private_data = key_from_bind.to_jwk()
-            key_from_jwk = Key.from_jwk(jwk_private_data)
+            key_from_jwk = Key.from_jwk_file(private_key_file.with_suffix(".json"))
 
             assert key_from_bind.dnskey == key_from_jwk.dnskey
             assert key_from_jwk.private.public_key().to_dnskey() == key_from_jwk.dnskey
             assert key_from_bind.private.to_pem() == key_from_jwk.private.to_pem()
 
-            jwk_public_data = key_from_bind.to_jwk(public_only=True)
-            key_from_public_jwk = Key.from_jwk(jwk_public_data)
+            jwk_public_data = key_from_bind.to_jwk_text(public_only=True)
+            key_from_public_jwk = Key.from_jwk_text(jwk_public_data)
             assert key_from_public_jwk.dnskey == key_from_bind.dnskey
             assert key_from_public_jwk.private is None
+
+            with tempfile.TemporaryFile("w+b") as temp_file:
+                key_from_bind.to_jwk_file(temp_file)
+                temp_file.seek(0)
+                read_jwk = Key.from_jwk_file(temp_file)
+                assert read_jwk.name == key_from_bind.name
+                assert read_jwk.dnskey == key_from_bind.dnskey
+                assert read_jwk.private is not None
+                assert key_from_bind.private is not None
+                assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
+                assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
 
     def test_bind_jwk_match(self):
         """Test that a key imported from a BIND private key matches the corresponding JWK."""
@@ -476,10 +486,8 @@ class DNSSECKey(unittest.TestCase):
         for private_key_file in KEYS_DIRECTORY.glob("K*.private"):
 
             jwk_filename = private_key_file.with_suffix(".json")
-            with open(jwk_filename, "rb") as fp:
-                jwk_private_data = fp.read()
 
-            key_from_jwk = Key.from_jwk(jwk_private_data)
+            key_from_jwk = Key.from_jwk_file(jwk_filename)
             key_from_bind = Key.from_bind(private_key_file)
 
             assert key_from_bind.name == key_from_jwk.name

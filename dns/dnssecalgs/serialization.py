@@ -6,12 +6,13 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Self
+from typing import BinaryIO, Self, TextIO
 
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
 from jwcrypto.common import JWException
 from jwcrypto.jwk import JWK
 
+import dns._file_util
 import dns.dnssec
 import dns.dnssectypes
 import dns.name
@@ -92,16 +93,29 @@ class Key:
         return key_id(self.dnskey)
 
     @classmethod
-    def from_jwk(cls, data: bytes) -> Self:
-        """Create key from JWK bytes.
+    def from_jwk_file(cls, f: str | os.PathLike | TextIO) -> Self:
+        """Create key from a JWK file.
 
-        :param data: The JWK key bytes.
-        :type data: :py:class:`bytes`
+        :param f: The path to the JWK file or a file-like object.
+        :type f: :py:class:`str`, :py:class:`os.PathLike`, or :py:class:`TextIO`
+        :rtype: :py:class:`Key`
+        """
+
+        with dns._file_util.maybe_open(f, encoding="utf-8") as fp:
+            data = fp.read()
+        return cls.from_jwk_text(data)
+
+    @classmethod
+    def from_jwk_text(cls, data: str) -> Self:
+        """Create key from JWK text.
+
+        :param data: The JWK key text.
+        :type data: :py:class:`str`
         :rtype: :py:class:`Key`
         """
 
         try:
-            jwk = JWK.from_json(data.decode())
+            jwk = JWK.from_json(data)
 
             dnssec_properties = jwk["dnssec"]
 
@@ -138,15 +152,29 @@ class Key:
             dnskey=dnskey,
         )
 
-    def to_jwk(self, public_only: bool = False) -> bytes:
-        """Return JWK bytes for the key.
+    def to_jwk_file(
+        self, f: str | os.PathLike | BinaryIO | TextIO, public_only: bool = False
+    ) -> None:
+        """Write the key to a JWK file.
+
+        :param f: The path to the output file or a file-like object.
+        :type f: :py:class:`str`, :py:class:`os.PathLike`, :py:class:`BinaryIO`, or :py:class:`TextIO`
+        :param public_only: Whether to include only the public key in the JWK.
+        :type public_only: :py:class:`bool`
+        """
+
+        with dns._file_util.maybe_open(f, "wb") as output:
+            output.write(self.to_jwk_text(public_only=public_only))
+
+    def to_jwk_text(self, public_only: bool = False) -> str:
+        """Return JWK string for the key.
 
         DNSKEY information will be included in the JWK in the "dnssec" parameter
         and includes name, algorithm, protocol, flags, and keytag.
 
         :param public_only: Whether to include only the public key in the JWK.
         :type public_only: :py:class:`bool`
-        :rtype: :py:class:`bytes`
+        :rtype: :py:class:`str`
         """
 
         if public_only:
@@ -176,7 +204,7 @@ class Key:
             }
         )
 
-        return json.dumps(jwk_dict).encode()
+        return json.dumps(jwk_dict)
 
     @classmethod
     def from_bind(cls, private_filename: Path | str) -> Self:
