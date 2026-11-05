@@ -23,6 +23,7 @@ import base64
 import contextlib
 import functools
 import hashlib
+import math
 import struct
 import time
 from collections.abc import Callable
@@ -37,6 +38,7 @@ import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
 import dns.rrset
+import dns.serial
 import dns.transaction
 import dns.zone
 from dns.dnssectypes import Algorithm, DSDigest, NSEC3Hash
@@ -369,9 +371,18 @@ def _validate_rrsig(
 
     if now is None:
         now = time.time()
-    if rrsig.expiration < now:
+    try:
+        now_seconds = math.floor(now)
+    except (OverflowError, ValueError) as exc:
+        raise ValidationFailure("invalid validation time") from exc
+
+    # RFC 4034 section 3.1.5: compare RRSIG times as 32-bit serial numbers.
+    current = dns.serial.Serial(now_seconds)
+    expiration = dns.serial.Serial(rrsig.expiration)
+    # The exact expiration instant is inclusive, even when now is fractional.
+    if not (current <= expiration) or (current == expiration and now > now_seconds):
         raise ValidationFailure("expired")
-    if rrsig.inception > now:
+    if not (dns.serial.Serial(rrsig.inception) <= current):
         raise ValidationFailure("not yet valid")
 
     data = _make_rrsig_signature_data(rrset, rrsig, origin)
