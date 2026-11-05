@@ -98,6 +98,12 @@ class RdataStyle(dns.name.NameStyle):
         (e.g. DNSKEY) is altered to be human-readable in a debugging context,
         but the crypto content is removed. Use of this option will lose
         information.
+
+    .. attribute:: dnssec_comments
+
+        A ``bool`` (default ``False``). If ``True``, additional information
+        about DNSSEC fields will be output as record comments,
+        such as key information in DNSKEY and RRSIG records.
     """
 
     txt_is_utf8: bool = False
@@ -106,6 +112,7 @@ class RdataStyle(dns.name.NameStyle):
     hex_chunk_size: int = 128
     hex_chunk_separator: str = " "
     truncate_crypto: bool = False
+    dnssec_comments: bool = False
 
 
 def _wordbreak(
