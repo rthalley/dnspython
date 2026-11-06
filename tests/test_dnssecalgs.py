@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import os
+import re
 import unittest
 
 import dns.dnssec
@@ -25,6 +26,8 @@ import dns.rdataclass
 import dns.rdatatype
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
+from pathlib import Path
+import tempfile
 
 try:
     from dns.dnssecalgs import (
@@ -42,12 +45,14 @@ try:
     from dns.dnssecalgs.eddsa import PrivateED448, PrivateED25519, PublicED25519
     from dns.dnssecalgs.mldsa import PrivateMLDSA44, PublicMLDSA44
     from dns.dnssecalgs.rsa import (
+        PrivateRSA,
         PrivateRSAMD5,
         PrivateRSASHA1,
         PrivateRSASHA1NSEC3SHA1,
         PrivateRSASHA256,
         PrivateRSASHA512,
     )
+    from dns.dnssecalgs.serialization import Key
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
@@ -67,6 +72,8 @@ if dns.dnssec._have_pyca:
 else:
     have_deterministic = False
     have_mldsa = False
+
+KEYS_DIRECTORY = Path(os.path.dirname(__file__)) / "dnsseckeys"
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
@@ -404,6 +411,169 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
                 algorithm=Algorithm.PRIVATEOID,
                 algorithm_cls=PrivateED25519,
             )
+
+
+@unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
+class DNSSECKey(unittest.TestCase):
+    def test_import_export_bind_private_key(self):
+        """Test importing and exporting BIND private keys."""
+
+        for private_key_file in KEYS_DIRECTORY.glob("K*.private"):
+
+            if match := re.match(r"K.*\+.*\+(\d{5})\.private", private_key_file.name):
+                expected_key_id = int(match.group(1))
+            else:
+                raise ValueError(
+                    f"Invalid private key filename: {private_key_file.name}"
+                )
+
+            key_from_bind = Key.from_bind(private_key_file)
+
+            assert key_from_bind.key_id() == expected_key_id
+            assert key_from_bind.key_id() == dns.dnssec.key_id(key_from_bind.dnskey)
+
+            assert (
+                key_from_bind.private.public_key().to_dnskey() == key_from_bind.dnskey
+            )
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                new_private_filename = key_from_bind.to_bind(Path(temp_dir))
+                assert new_private_filename.exists()
+
+                with self.assertRaises(FileExistsError):
+                    new_private_filename = key_from_bind.to_bind(
+                        Path(temp_dir), overwrite=False
+                    )
+                    assert new_private_filename.exists()
+
+                new_private_filename = key_from_bind.to_bind(
+                    Path(temp_dir), overwrite=True
+                )
+                assert new_private_filename.exists()
+                stat = os.stat(new_private_filename)
+                assert stat.st_mode & 0o777 == 0o600
+
+                new_private_key = Key.from_bind(new_private_filename)
+                assert new_private_key.key_id() == key_from_bind.key_id()
+                assert new_private_key.dnskey == key_from_bind.dnskey
+                assert (
+                    new_private_key.private.to_pem() == key_from_bind.private.to_pem()
+                )
+                assert new_private_key.public.to_pem() == key_from_bind.public.to_pem()
+
+    def test_import_export_jwk_private_key(self):
+        """Test importing and exporting JWK private keys."""
+
+        for private_key_file in KEYS_DIRECTORY.glob("K*.private"):
+
+            key_from_bind = Key.from_bind(private_key_file)
+
+            key_from_jwk = Key.from_jwk_file(private_key_file.with_suffix(".json"))
+
+            assert key_from_bind.dnskey == key_from_jwk.dnskey
+            assert key_from_jwk.private.public_key().to_dnskey() == key_from_jwk.dnskey
+            assert key_from_bind.private.to_pem() == key_from_jwk.private.to_pem()
+
+            jwk_public_data = key_from_bind.to_jwk_text(public_only=True)
+            key_from_public_jwk = Key.from_jwk_text(jwk_public_data)
+            assert key_from_public_jwk.dnskey == key_from_bind.dnskey
+            assert key_from_public_jwk.private is None
+
+            # Write and read JWK-style private key file as binary
+            with tempfile.NamedTemporaryFile("w+b", suffix=".json") as temp_file:
+                key_from_bind.to_jwk_file(temp_file)
+                temp_file.seek(0)
+                read_jwk = Key.from_jwk_file(temp_file)
+                assert read_jwk.name == key_from_bind.name
+                assert read_jwk.dnskey == key_from_bind.dnskey
+                assert read_jwk.private is not None
+                assert key_from_bind.private is not None
+                assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
+                assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
+                stat = os.stat(temp_file.name)
+                assert stat.st_mode & 0o777 == 0o600
+
+            # Write and read JWK-style private file as text
+            with tempfile.NamedTemporaryFile("w+t", suffix=".json") as temp_file:
+                key_from_bind.to_jwk_file(temp_file)
+                temp_file.seek(0)
+                read_jwk = Key.from_jwk_file(temp_file)
+                assert read_jwk.name == key_from_bind.name
+                assert read_jwk.dnskey == key_from_bind.dnskey
+                assert read_jwk.private is not None
+                assert key_from_bind.private is not None
+                assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
+                assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
+                stat = os.stat(temp_file.name)
+                assert stat.st_mode & 0o777 == 0o600
+
+            # Write and read JWK-style public key file as binary
+            with tempfile.TemporaryDirectory() as temp_dir:
+                new_private_filename = key_from_bind.to_bind(
+                    Path(temp_dir)
+                ).with_suffix(".json")
+                key_from_bind.to_jwk_file(new_private_filename, public_only=True)
+                read_jwk = Key.from_jwk_file(new_private_filename)
+                assert read_jwk.name == key_from_bind.name
+                assert read_jwk.dnskey == key_from_bind.dnskey
+                assert read_jwk.private is None
+                assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
+                stat = os.stat(new_private_filename)
+                assert stat.st_mode & 0o444 == 0o444
+
+    def test_bind_jwk_match(self):
+        """Test that a key imported from a BIND private key matches the corresponding JWK."""
+
+        for private_key_file in KEYS_DIRECTORY.glob("K*.private"):
+
+            jwk_filename = private_key_file.with_suffix(".json")
+
+            key_from_jwk = Key.from_jwk_file(jwk_filename)
+            key_from_bind = Key.from_bind(private_key_file)
+
+            assert key_from_bind.name == key_from_jwk.name
+            assert key_from_bind.private.to_pem() == key_from_jwk.private.to_pem()
+            assert key_from_bind.public.to_pem() == key_from_jwk.public.to_pem()
+            assert key_from_bind.dnskey == key_from_jwk.dnskey
+
+    def test_bind_private_key_dnskey_mismatch(self):
+        """Test that a BIND private key with a mismatched DNSKEY raises an error."""
+
+        for private_key_file in KEYS_DIRECTORY.glob("K*.private"):
+            key_from_bind = Key.from_bind(private_key_file)
+            algorithm_cls = get_algorithm_cls(key_from_bind.dnskey.algorithm)
+
+            if issubclass(algorithm_cls, PrivateRSA):
+                other_private_key = algorithm_cls.generate(key_size=2048)
+            else:
+                other_private_key = algorithm_cls.generate()
+            other_dnskey = other_private_key.public_key().to_dnskey(
+                flags=key_from_bind.dnskey.flags
+            )
+
+            with open(private_key_file, "rb") as fp:
+                private_data = fp.read()
+            public_data = f"{key_from_bind.name} IN DNSKEY {other_dnskey}\n".encode()
+
+            with self.assertRaises((dns.exception.InvalidKeyFormat, ValueError)):
+                Key.from_bind_bytes(private_data=private_data, public_data=public_data)
+
+    def test_key_to_ds(self):
+        """Test that the DS record generated from a key matches the expected value."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        dnskey = public_key.to_dnskey()
+        key = Key(
+            name=dns.name.from_text("example.com"),
+            private=private_key,
+            public=public_key,
+            dnskey=dnskey,
+        )
+        algorithm = "SHA256"
+        assert key.to_ds(algorithm=algorithm) == dns.dnssec.make_ds(
+            name=key.name, key=dnskey, algorithm=algorithm
+        )
 
 
 if __name__ == "__main__":
