@@ -17,6 +17,7 @@
 
 import os
 import re
+import sys
 import unittest
 
 import dns.dnssec
@@ -450,8 +451,10 @@ class DNSSECKey(unittest.TestCase):
                     Path(temp_dir), overwrite=True
                 )
                 assert new_private_filename.exists()
-                stat = os.stat(new_private_filename)
-                assert stat.st_mode & 0o777 == 0o600
+                # windows ignores our mode bits
+                if sys.platform != "win32":
+                    stat = os.stat(new_private_filename)
+                    assert stat.st_mode & 0o777 == 0o600
 
                 new_private_key = Key.from_bind(new_private_filename)
                 assert new_private_key.key_id() == key_from_bind.key_id()
