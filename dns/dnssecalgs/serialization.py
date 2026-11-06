@@ -452,7 +452,7 @@ class Key:
                 fp.write(public_data)
 
             with dns._file_util.maybe_open(
-                tmp_public_filename, "wb", chmod=0o600
+                tmp_private_filename, "wb", chmod=0o600
             ) as fp:
                 fp.write(private_data)
 
