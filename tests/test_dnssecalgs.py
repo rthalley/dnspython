@@ -453,6 +453,14 @@ class DNSSECKey(unittest.TestCase):
                 stat = os.stat(new_private_filename)
                 assert stat.st_mode & 0o777 == 0o600
 
+                new_private_key = Key.from_bind(new_private_filename)
+                assert new_private_key.key_id() == key_from_bind.key_id()
+                assert new_private_key.dnskey == key_from_bind.dnskey
+                assert (
+                    new_private_key.private.to_pem() == key_from_bind.private.to_pem()
+                )
+                assert new_private_key.public.to_pem() == key_from_bind.public.to_pem()
+
     def test_import_export_jwk_private_key(self):
         """Test importing and exporting JWK private keys."""
 
