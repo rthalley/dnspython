@@ -1089,6 +1089,62 @@ class DNSSECValidatorTestCase(unittest.TestCase):
                 abs_ed448_mx, abs_ed448_mx_rrsig_1, abs_ed448_keys_1, None
             )
 
+    def testTimeBoundsAcrossRollover(self) -> None:
+        key = ed25519.Ed25519PrivateKey.generate()
+        signer = abs_soa.name
+        dnskey = dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.ED25519)
+        keys = {signer: dns.rrset.from_rdata(signer, 300, dnskey)}
+        rollover = 2**32
+        rrsig = dns.dnssec.sign(
+            abs_soa, key, signer, dnskey, inception=rollover - 16, expiration=32
+        )
+
+        for now in (rollover - 16, rollover - 1, rollover + 1, rollover + 32):
+            with self.subTest(now=now):
+                dns.dnssec.validate_rrsig(abs_soa, rrsig, keys, now=now)
+
+        for now, message in (
+            (rollover - 16.5, "not yet valid"),
+            (rollover + 32.5, "expired"),
+            (float("nan"), "invalid validation time"),
+            (float("inf"), "invalid validation time"),
+        ):
+            with self.subTest(now=now):
+                with self.assertRaisesRegex(dns.dnssec.ValidationFailure, message):
+                    dns.dnssec.validate_rrsig(abs_soa, rrsig, keys, now=now)
+
+    def testTimeBoundsAtSerialHalfRange(self) -> None:
+        key = ed25519.Ed25519PrivateKey.generate()
+        signer = abs_soa.name
+        dnskey = dns.dnssec.make_dnskey(key.public_key(), dns.dnssec.Algorithm.ED25519)
+        keys = {signer: dns.rrset.from_rdata(signer, 300, dnskey)}
+        half_range = 2**31
+        serial_space = 2**32
+        now = half_range + 100
+
+        # RFC 1982 leaves ordering undefined at exactly half the serial space.
+        # Keep one bound equal to now while testing the other bound.
+        for inception, expiration, message in (
+            (now - half_range + 1, now, None),
+            (now - half_range, now, "not yet valid"),
+            (now, now + half_range - 1, None),
+            (now, now + half_range, "expired"),
+        ):
+            with self.subTest(inception=inception, expiration=expiration):
+                rrsig = dns.dnssec.sign(
+                    abs_soa,
+                    key,
+                    signer,
+                    dnskey,
+                    inception=inception % serial_space,
+                    expiration=expiration % serial_space,
+                )
+                if message is None:
+                    dns.dnssec.validate_rrsig(abs_soa, rrsig, keys, now=now)
+                else:
+                    with self.assertRaisesRegex(dns.dnssec.ValidationFailure, message):
+                        dns.dnssec.validate_rrsig(abs_soa, rrsig, keys, now=now)
+
     def testOwnerNameMismatch(self):
         bogus = dns.name.from_text("example.bogus")
         with self.assertRaises(dns.dnssec.ValidationFailure):
