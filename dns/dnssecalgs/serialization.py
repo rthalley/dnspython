@@ -165,7 +165,9 @@ class Key:
         :type public_only: :py:class:`bool`
         """
 
-        with dns._file_util.maybe_open(f, "wb") as output:
+        with dns._file_util.maybe_open(
+            f, "wb", chmod=None if public_only else 0o600
+        ) as output:
             jwk_str = self.to_jwk_text(public_only=public_only)
             try:
                 output.write(jwk_str.encode())
@@ -445,14 +447,15 @@ class Key:
         ).name
 
         try:
+
             with open(tmp_public_filename, "wb") as fp:
                 fp.write(public_data)
 
-            with open(tmp_private_filename, "wb") as fp:
+            with dns._file_util.maybe_open(
+                tmp_public_filename, "wb", chmod=0o600
+            ) as fp:
                 fp.write(private_data)
 
-            os.chmod(tmp_public_filename, 0o644)
-            os.chmod(tmp_private_filename, 0o600)
             if overwrite:
                 os.replace(tmp_public_filename, public_filename)
                 os.replace(tmp_private_filename, private_filename)
