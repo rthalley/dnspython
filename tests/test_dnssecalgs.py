@@ -450,6 +450,8 @@ class DNSSECKey(unittest.TestCase):
                     Path(temp_dir), overwrite=True
                 )
                 assert new_private_filename.exists()
+                stat = os.stat(new_private_filename)
+                assert stat.st_mode & 0o777 == 0o600
 
     def test_import_export_jwk_private_key(self):
         """Test importing and exporting JWK private keys."""
@@ -469,8 +471,8 @@ class DNSSECKey(unittest.TestCase):
             assert key_from_public_jwk.dnskey == key_from_bind.dnskey
             assert key_from_public_jwk.private is None
 
-            # Write and read as binary
-            with tempfile.TemporaryFile("w+b", suffix=".json") as temp_file:
+            # Write and read JWK-style private key file as binary
+            with tempfile.NamedTemporaryFile("w+b", suffix=".json") as temp_file:
                 key_from_bind.to_jwk_file(temp_file)
                 temp_file.seek(0)
                 read_jwk = Key.from_jwk_file(temp_file)
@@ -480,9 +482,11 @@ class DNSSECKey(unittest.TestCase):
                 assert key_from_bind.private is not None
                 assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
                 assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
+                stat = os.stat(temp_file.name)
+                assert stat.st_mode & 0o777 == 0o600
 
-            # Write and read as text
-            with tempfile.TemporaryFile("w+t", suffix=".json") as temp_file:
+            # Write and read JWK-style private file as text
+            with tempfile.NamedTemporaryFile("w+t", suffix=".json") as temp_file:
                 key_from_bind.to_jwk_file(temp_file)
                 temp_file.seek(0)
                 read_jwk = Key.from_jwk_file(temp_file)
@@ -492,6 +496,22 @@ class DNSSECKey(unittest.TestCase):
                 assert key_from_bind.private is not None
                 assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
                 assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
+                stat = os.stat(temp_file.name)
+                assert stat.st_mode & 0o777 == 0o600
+
+            # Write and read JWK-style public key file as binary
+            with tempfile.TemporaryDirectory() as temp_dir:
+                new_private_filename = key_from_bind.to_bind(
+                    Path(temp_dir)
+                ).with_suffix(".json")
+                key_from_bind.to_jwk_file(new_private_filename, public_only=True)
+                read_jwk = Key.from_jwk_file(new_private_filename)
+                assert read_jwk.name == key_from_bind.name
+                assert read_jwk.dnskey == key_from_bind.dnskey
+                assert read_jwk.private is None
+                assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
+                stat = os.stat(new_private_filename)
+                assert stat.st_mode & 0o444 == 0o444
 
     def test_bind_jwk_match(self):
         """Test that a key imported from a BIND private key matches the corresponding JWK."""
