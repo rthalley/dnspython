@@ -493,8 +493,10 @@ class DNSSECKey(unittest.TestCase):
                 assert key_from_bind.private is not None
                 assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
                 assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
-                stat = os.stat(temp_file.name)
-                assert stat.st_mode & 0o777 == 0o600
+                # windows ignores our mode bits
+                if sys.platform != "win32":
+                    stat = os.stat(temp_file.name)
+                    assert stat.st_mode & 0o777 == 0o600
 
             # Write and read JWK-style private file as text
             with tempfile.NamedTemporaryFile("w+t", suffix=".json") as temp_file:
@@ -507,8 +509,10 @@ class DNSSECKey(unittest.TestCase):
                 assert key_from_bind.private is not None
                 assert read_jwk.private.to_pem() == key_from_bind.private.to_pem()
                 assert read_jwk.public.to_pem() == key_from_bind.public.to_pem()
-                stat = os.stat(temp_file.name)
-                assert stat.st_mode & 0o777 == 0o600
+                # windows ignores our mode bits
+                if sys.platform != "win32":
+                    stat = os.stat(temp_file.name)
+                    assert stat.st_mode & 0o777 == 0o600
 
             # Write and read JWK-style public key file as binary
             with tempfile.TemporaryDirectory() as temp_dir:
