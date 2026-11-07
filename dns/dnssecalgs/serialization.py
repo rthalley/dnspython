@@ -9,12 +9,10 @@ from pathlib import Path
 from typing import BinaryIO, Self, TextIO
 
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
-from jwcrypto.common import JWException
-from jwcrypto.jwk import JWK
 
+import dns._features
 import dns._file_util
 import dns.dnssec
-import dns.dnssectypes
 import dns.name
 import dns.rdataset
 import dns.rdatatype
@@ -29,7 +27,16 @@ from dns.dnssecalgs.cryptography import CryptographyPrivateKey, CryptographyPubl
 from dns.dnssectypes import Algorithm, DSDigest
 from dns.exception import DNSException, InvalidKeyFormat, SyntaxError
 
+if dns._features.have("jwk"):
+    from jwcrypto.common import JWException
+    from jwcrypto.jwk import JWK
+
+
 SUPPORTED_BIND_PRIVATE_KEY_FORMATS = {"v1.3"}
+
+
+class NoJWK(DNSException):
+    """JSON Web Keys not available; install jwcrypto."""
 
 
 def _int_to_base64(value: int, length: int | None = None) -> str:
@@ -102,6 +109,8 @@ class Key:
         :rtype: :py:class:`Key`
         """
 
+        if not dns._features.have("jwk"):
+            raise NoJWK
         with dns._file_util.maybe_open(f, encoding="utf-8") as fp:
             data = fp.read()
         return cls.from_jwk_text(data)
@@ -115,8 +124,10 @@ class Key:
         :rtype: :py:class:`Key`
         """
 
+        if not dns._features.have("jwk"):
+            raise NoJWK
         try:
-            jwk = JWK.from_json(data)
+            jwk = JWK.from_json(data)  # pyright: ignore
 
             dnssec_properties = jwk["dnssec"]
 
@@ -140,7 +151,13 @@ class Key:
                 flags=dnssec_properties["flags"],
                 protocol=dnssec_properties["protocol"],
             )
-        except (KeyError, ValueError, TypeError, binascii.Error, JWException) as exc:
+        except (
+            KeyError,
+            ValueError,
+            TypeError,
+            binascii.Error,
+            JWException,  # pyright: ignore
+        ) as exc:
             raise InvalidKeyFormat("Failed to create key from JWK") from exc
 
         if keytag != key_id(dnskey):
@@ -165,6 +182,8 @@ class Key:
         :type public_only: :py:class:`bool`
         """
 
+        if not dns._features.have("jwk"):
+            raise NoJWK
         with dns._file_util.maybe_open(
             f, "wb", chmod=None if public_only else 0o600
         ) as output:
@@ -185,14 +204,16 @@ class Key:
         :rtype: :py:class:`str`
         """
 
+        if not dns._features.have("jwk"):
+            raise NoJWK
         if public_only:
             if isinstance(self.public, CryptographyPublicKey):
-                jwk = JWK.from_pyca(self.public.key)
+                jwk = JWK.from_pyca(self.public.key)  # pyright: ignore
             else:
                 raise InvalidKeyFormat("Unsupported public key type")
         else:
             if isinstance(self.private, CryptographyPrivateKey):
-                jwk = JWK.from_pyca(self.private.key)
+                jwk = JWK.from_pyca(self.private.key)  # pyright: ignore
             elif self.private is None:
                 raise InvalidKeyFormat("Private key is not set")
             else:

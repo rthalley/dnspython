@@ -20,6 +20,7 @@ import re
 import sys
 import unittest
 
+import dns._features
 import dns.dnssec
 import dns.exception
 import dns.rdata
@@ -464,6 +465,7 @@ class DNSSECKey(unittest.TestCase):
                 )
                 assert new_private_key.public.to_pem() == key_from_bind.public.to_pem()
 
+    @unittest.skipUnless(dns._features.have("jwk"), "jwcrypto required")
     def test_import_export_jwk_private_key(self):
         """Test importing and exporting JWK private keys."""
 
@@ -528,6 +530,7 @@ class DNSSECKey(unittest.TestCase):
                 stat = os.stat(new_private_filename)
                 assert stat.st_mode & 0o444 == 0o444
 
+    @unittest.skipUnless(dns._features.have("jwk"), "jwcrypto required")
     def test_bind_jwk_match(self):
         """Test that a key imported from a BIND private key matches the corresponding JWK."""
 
