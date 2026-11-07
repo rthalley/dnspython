@@ -6,6 +6,44 @@ The dns.message.Message Class
 This is the base class for all messages, and the class used for any
 DNS opcodes that do not have a more specific class.
 
+.. _message-indexing:
+
+RRset lookup and section mutation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, :py:meth:`~dns.message.Message.find_rrset` and
+:py:meth:`~dns.message.Message.get_rrset` look up RRsets in an index.
+Use either method with ``create=True`` to add an RRset while keeping the
+index consistent.  Once an RRset has been found, records can be added to it
+without appending another RRset to the section.
+
+Direct changes to the section lists, such as appending, removing, or
+replacing RRsets, do not update the index.  Changing an RRset's indexed
+attributes (name, class, type, covered type, or deleting class) can also
+make the index inconsistent.  A subsequent lookup may miss an RRset in a
+section or return an RRset that has been removed.
+
+If you need to make such changes directly, disable indexing by setting
+``message.index = None``.  The lookup methods will then scan the requested
+section instead of using the index.  For example::
+
+    import dns.message
+    import dns.rrset
+
+    message = dns.message.Message()
+    message.index = None
+    rrset = dns.rrset.from_text("www.example.", 300, "IN", "A", "192.0.2.1")
+    message.answer.append(rrset)
+    assert message.get_rrset(
+        message.answer, rrset.name, rrset.rdclass, rrset.rdtype
+    ) is rrset
+
+Disabling indexing also works after a message has been created or parsed.
+Do not set ``index`` back to an empty dictionary on a populated message:
+that does not rebuild the index and makes existing RRsets invisible to
+indexed lookups.  Serializing a message with
+:py:meth:`~dns.message.Message.to_wire` uses the section lists, not the index.
+
 .. autoclass:: dns.message.Message
    :members:
 
@@ -125,7 +163,8 @@ DNS opcodes that do not have a more specific class.
       A ``dict``, an index of RRsets in the message.  The index key is
       ``(section, name, rdclass, rdtype, covers, deleting)``.  The default
       is ``{}``.  Indexing improves the performance of finding RRsets.
-      Indexing can be disabled by setting the index to ``None``.
+      Indexing can be disabled by setting the index to ``None``.  See
+      :ref:`message-indexing` for the constraints on direct section mutation.
 
    .. attribute:: wire
 
