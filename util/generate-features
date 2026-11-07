@@ -31,7 +31,7 @@ with open(FEATURES, "r") as input:
                         continue
                     deps = [maybe_simplify(dep) for dep in deps]
                     print(
-                        f"    {repr(name)}: {repr(deps)},",
+                        f"    {repr(name)}: {repr(deps)},".replace("'", '"'),
                         file=output,
                     )
                 skip = True
