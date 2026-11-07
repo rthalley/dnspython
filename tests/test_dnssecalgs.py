@@ -19,13 +19,16 @@ import os
 import re
 import sys
 import unittest
+import unittest.mock
 
 import dns._features
 import dns.dnssec
 import dns.exception
+import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+import dns.rrset
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
 from pathlib import Path
@@ -417,6 +420,7 @@ class DNSSECAlgorithmPrivateAlgorithm(unittest.TestCase):
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")
 class DNSSECKey(unittest.TestCase):
+
     def test_import_export_bind_private_key(self):
         """Test importing and exporting BIND private keys."""
 
@@ -439,6 +443,19 @@ class DNSSECKey(unittest.TestCase):
             )
 
             with tempfile.TemporaryDirectory() as temp_dir:
+                new_private_filename = key_from_bind.to_bind(Path(temp_dir))
+                assert new_private_filename.exists()
+
+                new_private_filename.unlink()
+                new_private_filename.with_suffix(".key").unlink()
+
+                new_public_filename = key_from_bind.to_bind(
+                    Path(temp_dir), public_only=True
+                )
+                assert new_public_filename.exists()
+                assert new_private_filename.exists() is False
+                new_public_filename.unlink()
+
                 new_private_filename = key_from_bind.to_bind(Path(temp_dir))
                 assert new_private_filename.exists()
 
@@ -584,6 +601,208 @@ class DNSSECKey(unittest.TestCase):
         assert key.to_ds(algorithm=algorithm) == dns.dnssec.make_ds(
             name=key.name, key=dnskey, algorithm=algorithm
         )
+
+    def test_from_dnskey(self):
+        name = dns.name.from_text("example.com")
+        dnskey = dns.dnssec.make_dnskey(
+            public_key=PrivateED25519.generate().public_key(),
+            algorithm=Algorithm.ED25519,
+            flags=256,
+            protocol=3,
+        )
+
+        key = Key.from_dnskey(name, dnskey)
+        self.assertEqual(key.name, name)
+        self.assertEqual(key.dnskey, dnskey)
+        self.assertIsNone(key.private)
+
+    def test_from_dnskey_text_name(self):
+        dnskey = PrivateED25519.generate().public_key().to_dnskey()
+        key = Key.from_dnskey("example.com", dnskey)
+        self.assertEqual(key.name, dns.name.from_text("example.com"))
+        self.assertEqual(key.key_id(), dns.dnssec.key_id(dnskey))
+        self.assertIsNone(key.private)
+
+    def test_relative_name_rejected(self):
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        with self.assertRaises(ValueError):
+            Key(
+                name=dns.name.from_text("example", None),
+                private=private_key,
+                public=public_key,
+                dnskey=public_key.to_dnskey(),
+            )
+
+    def _copy_bind_key(self, directory, private_name, public_text=None):
+        """Copy the ED25519 test key into *directory* as *private_name*,
+        optionally replacing the public key file contents."""
+
+        source = KEYS_DIRECTORY / "Kexample.com.+015+63713.private"
+        private_filename = Path(directory) / private_name
+        private_filename.write_bytes(source.read_bytes())
+        if public_text is None:
+            public_text = source.with_suffix(".key").read_text()
+        private_filename.with_suffix(".key").write_text(public_text)
+        return private_filename
+
+    def test_from_bind_invalid_filename(self):
+        """Test that a key with an invalid filename raises an error."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            private_filename = self._copy_bind_key(temp_dir, "example.com.private")
+            with self.assertRaisesRegex(
+                dns.exception.InvalidKeyFormat, "Invalid private key filename"
+            ):
+                Key.from_bind(private_filename)
+
+    def test_from_bind_name_mismatch(self):
+        """Test that a key with a mismatched name raises an error."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            private_filename = self._copy_bind_key(
+                temp_dir, "Kexample.org.+015+63713.private"
+            )
+            with self.assertRaisesRegex(
+                dns.exception.InvalidKeyFormat, "Key name mismatch"
+            ):
+                Key.from_bind(private_filename)
+
+    def test_from_bind_algorithm_mismatch(self):
+        """Test that a key with a mismatched algorithm raises an error."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            private_filename = self._copy_bind_key(
+                temp_dir, "Kexample.com.+013+63713.private"
+            )
+            with self.assertRaisesRegex(
+                dns.exception.InvalidKeyFormat, "Algorithm mismatch"
+            ):
+                Key.from_bind(private_filename)
+
+    def test_from_bind_key_id_mismatch(self):
+        """Test that a key with a mismatched key ID raises an error."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            private_filename = self._copy_bind_key(
+                temp_dir, "Kexample.com.+015+00001.private"
+            )
+            with self.assertRaisesRegex(
+                dns.exception.InvalidKeyFormat, "Key ID mismatch"
+            ):
+                Key.from_bind(private_filename)
+
+    def test_from_bind_mixed_case_name(self):
+        """A mixed-case owner name matches a lowercase filename."""
+
+        public_text = (
+            "Example.COM. IN DNSKEY 256 3 15 "
+            "xX2gT6qJ76coFM3/pAUBxfBZYGnfSZqbNvbZFI428Ao=\n"
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            private_filename = self._copy_bind_key(
+                temp_dir, "Kexample.com.+015+63713.private", public_text
+            )
+            key = Key.from_bind(private_filename)
+            self.assertEqual(key.name, dns.name.from_text("example.com"))
+            self.assertEqual(key.key_id(), 63713)
+            self.assertEqual(
+                key.get_bind_private_key_filename(),
+                Path("Kexample.com.+015+63713.private"),
+            )
+
+    def test_to_bind_public_only(self):
+        """Test that a key without a private key can only be written public-only."""
+
+        dnskey = PrivateED25519.generate().public_key().to_dnskey()
+        key = Key.from_dnskey("example.com", dnskey)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            directory = Path(temp_dir)
+
+            # A key without a private key can only be written public-only
+            with self.assertRaises(dns.exception.InvalidKeyFormat):
+                key.to_bind(directory)
+
+            public_filename = key.to_bind(directory, public_only=True)
+            self.assertEqual(
+                public_filename, directory / key.get_bind_public_key_filename()
+            )
+            self.assertEqual(
+                [p.name for p in directory.iterdir()], [public_filename.name]
+            )
+            # The file has no TTL: "<name> IN DNSKEY <rdata>"
+            owner, rdclass, rdtype, rdata = public_filename.read_text().split(
+                maxsplit=3
+            )
+            rrset = dns.rrset.from_text(owner, 0, rdclass, rdtype, rdata)
+            self.assertEqual(rrset.name, key.name)
+            self.assertEqual(rrset[0], dnskey)
+
+            with self.assertRaises(FileExistsError):
+                key.to_bind(directory, public_only=True)
+            self.assertEqual(
+                key.to_bind(directory, public_only=True, overwrite=True),
+                public_filename,
+            )
+
+    def test_to_bind_cleanup_on_failure(self):
+        """Temporary files are removed and the original error is raised
+        when writing fails."""
+
+        key = Key.from_bind(KEYS_DIRECTORY / "Kexample.com.+015+63713.private")
+
+        for overwrite in (False, True):
+            for public_only in (False, True):
+                with (
+                    self.subTest(overwrite=overwrite, public_only=public_only),
+                    tempfile.TemporaryDirectory() as temp_dir,
+                    unittest.mock.patch(
+                        "os.replace" if overwrite else "os.rename",
+                        side_effect=OSError("boom"),
+                    ),
+                ):
+                    with self.assertRaisesRegex(OSError, "boom"):
+                        key.to_bind(
+                            temp_dir, overwrite=overwrite, public_only=public_only
+                        )
+                    self.assertEqual(list(Path(temp_dir).iterdir()), [])
+
+    def test_to_bind_cleanup_on_private_failure(self):
+        """If only moving the private key file fails, its temporary file is
+        removed and the original error is raised."""
+
+        key = Key.from_bind(KEYS_DIRECTORY / "Kexample.com.+015+63713.private")
+        real_rename = os.rename
+
+        def rename(src, dst):
+            if Path(dst).suffix == ".private":
+                raise OSError("boom")
+            real_rename(src, dst)
+
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            unittest.mock.patch("os.rename", side_effect=rename),
+        ):
+            with self.assertRaisesRegex(OSError, "boom"):
+                key.to_bind(temp_dir)
+            # The public key file was already in place; no temporary files remain
+            self.assertEqual(
+                [p.name for p in Path(temp_dir).iterdir()],
+                [key.get_bind_public_key_filename().name],
+            )
+
+    def test_to_bind_private_key_exists(self):
+        """Test that attempting to write a private key file that already exists raises an error."""
+
+        key = Key.from_bind(KEYS_DIRECTORY / "Kexample.com.+015+63713.private")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            directory = Path(temp_dir)
+            (directory / key.get_bind_private_key_filename()).touch()
+            with self.assertRaisesRegex(FileExistsError, "Private key file"):
+                key.to_bind(directory)
 
 
 if __name__ == "__main__":
