@@ -1149,7 +1149,7 @@ if dns._features.have("dnssec"):
         ed448,  # pylint: disable=W0611
         ed25519,
         mldsa,  # pylint: disable=W0611
-        rsa,  # pylint: disable=W0611
+        rsa,  # pylint: disable=W0611  # pylint: disable=W0611
     )
 
     from dns.dnssecalgs import (  # pylint: disable=C0412
