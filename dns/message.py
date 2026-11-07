@@ -744,6 +744,7 @@ class Message:
                 keyname = dns.name.from_text(keyname)
             if keyname is None:
                 keyname = next(iter(keyring))
+                assert keyname is not None
             key = keyring[keyname]
             if isinstance(key, bytes):
                 key = dns.tsig.Key(keyname, key, algorithm)
