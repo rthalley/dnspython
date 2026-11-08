@@ -1,13 +1,9 @@
 [build-system]
-requires = ["uv_build>=0.9.21,<0.14.0"]
 build-backend = "uv_build"
+requires = ["uv_build>=0.9.21,<0.14.0"]
 
 [project]
-name = "dnspython"
-description = "DNS toolkit"
 authors = [{ name = "Bob Halley", email = "halley@dnspython.org" }]
-license = "ISC"
-license-files = ["LICENSE"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -24,9 +20,13 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15",
 ]
+dependencies = []
+description = "DNS toolkit"
+license = "ISC"
+license-files = ["LICENSE"]
+name = "dnspython"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
 version = "2.10.0dev0"
 
 [project.optional-dependencies]
@@ -53,14 +53,18 @@ trio = ["trio>=0.34"]
 wmi = ["wmi>=1.5.1; platform_system=='Windows'"]
 
 [project.urls]
-homepage = "https://www.dnspython.org"
-repository = "https://github.com/rthalley/dnspython.git"
 documentation = "https://dnspython.readthedocs.io/en/stable/"
+homepage = "https://www.dnspython.org"
 issues = "https://github.com/rthalley/dnspython/issues"
+repository = "https://github.com/rthalley/dnspython.git"
 
 [tool.uv.build-backend]
 module-name = "dns"
 module-root = ""
+source-exclude = [
+    ".pytest_cache",
+    ".DS_Store",
+]
 source-include = [
     "dns/*.py",
     "dns/**/*.py",
@@ -85,34 +89,11 @@ source-include = [
     "tests/dnsseckeys/*.private",
     "util/**",
 ]
-source-exclude = [
-    ".pytest_cache",
-    ".DS_Store",
-]
 
-[tool.ruff]
-lint.select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # pyupgrade
-    "UP",
-    # flake8-bugbear
-    "B",
-    # isort
-    "I",
-]
-lint.ignore = [
-    "E501",
-    "E741",
-    "I001",
-    "B904",
-    "B011",
-    "UP006",
-    "UP035",
-]
-lint.exclude = ["tests/*"]
+[tool.ruff.lint]
+exclude = ["tests/*"]
+ignore = [ "E501", "E741", "I001", "B904", "B011", "UP006", "UP035" ]
+select = [ "E", "F", "UP", "B", "I" ]
 
 [tool.black]
 target-version = ["py310"]
@@ -121,5 +102,5 @@ target-version = ["py310"]
 profile = "black"
 
 [tool.pyright]
-reportUnsupportedDunderAll = false
 exclude = ["dns/win32util.py", "examples/*.py", "tests/*.py"]
+reportUnsupportedDunderAll = false
