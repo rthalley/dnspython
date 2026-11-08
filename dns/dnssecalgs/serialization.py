@@ -278,7 +278,7 @@ class Key:
         if match := re.fullmatch(
             r"K(.*\.)\+(\d{3})\+(\d{5})\.private", private_filename.name
         ):
-            expected_name = match.group(1).lower()
+            expected_name = match.group(1)
             expected_algorithm = int(match.group(2))
             expected_key_id = int(match.group(3))
         else:
@@ -305,10 +305,9 @@ class Key:
         ) as exc:
             raise InvalidKeyFormat("Failed to create key from BIND keys") from exc
 
-        name = res.name.to_text().lower()
-        if expected_name != name:
+        if dns.name.from_text(expected_name) != res.name:
             raise InvalidKeyFormat(
-                f"Key name mismatch: expected {expected_name}, got {name}"
+                f"Key name mismatch: expected {expected_name}, got {res.name}"
             )
 
         if expected_algorithm != res.dnskey.algorithm:
@@ -530,7 +529,9 @@ class Key:
 
         try:
 
-            with open(tmp_public_filename, "wb") as fp:
+            with dns._file_util.maybe_open(
+                tmp_public_filename, "wb", chmod=0o644
+            ) as fp:
                 fp.write(public_data)
 
             if tmp_private_filename is not None:
