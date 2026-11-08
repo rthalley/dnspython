@@ -398,6 +398,32 @@ class MessageTestCase(unittest.TestCase):
         rrs2 = a.get_rrset("ANSWER", "dnspython.org.", "IN", "SOA")
         self.assertEqual(rrs1, rrs2)
 
+    def test_RemoveRRset(self):
+        a = dns.message.from_text(answer_text)
+        n = dns.name.from_text("dnspython.org.")
+        rrs = a.find_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        lrrs = a.remove_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        self.assertEqual(len(lrrs), 1)
+        self.assertEqual(rrs, lrrs[0])
+
+    def test_RemoveRRsetUnindexed(self):
+        a = dns.message.from_text(answer_text)
+        a.index = None
+        n = dns.name.from_text("dnspython.org.")
+        rrs = a.find_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        lrrs = a.remove_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.SOA)
+        self.assertEqual(len(lrrs), 1)
+        self.assertEqual(rrs, lrrs[0])
+
+    def test_RemoveNonexistentRRset(self):
+        a = dns.message.from_text(answer_text)
+        a.index = None
+        n = dns.name.from_text("dnspython.org.")
+        lrrs = a.remove_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.TXT)
+        grrs = a.get_rrset(a.answer, n, dns.rdataclass.IN, dns.rdatatype.TXT)
+        self.assertEqual(len(lrrs), 0)
+        self.assertEqual(grrs, None)
+
     def test_CleanTruncated(self):
         def bad():
             a = dns.message.from_text(answer_text)

@@ -406,6 +406,19 @@ class Message:
         section = self._section_enum.make(number)
         return self.sections[section]
 
+    def _get_section_from_section_type(
+        self, section: SectionType
+    ) -> tuple[list[dns.rrset.RRset], int]:
+        if isinstance(section, int):
+            section_number = section
+            section = self.section_from_number(section_number)
+        elif isinstance(section, str):
+            section_number = self._section_enum.from_text(section)
+            section = self.section_from_number(section_number)
+        else:
+            section_number = self.section_number(section)
+        return (section, section_number)
+
     def find_rrset(
         self,
         section: SectionType,
@@ -451,14 +464,7 @@ class Message:
         :rtype: :py:class:`dns.rrset.RRset`
         """
 
-        if isinstance(section, int):
-            section_number = section
-            section = self.section_from_number(section_number)
-        elif isinstance(section, str):
-            section_number = self._section_enum.from_text(section)
-            section = self.section_from_number(section_number)
-        else:
-            section_number = self.section_number(section)
+        section, section_number = self._get_section_from_section_type(section)
         if isinstance(name, str):
             name = dns.name.from_text(name, idna_codec=idna_codec)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
@@ -540,6 +546,66 @@ class Message:
         except KeyError:
             rrset = None
         return rrset
+
+    def remove_rrset(
+        self,
+        section: SectionType,
+        name: dns.name.Name,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+        covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
+        deleting: dns.rdataclass.RdataClass | None = None,
+        idna_codec: dns.name.IDNACodec | None = None,
+    ) -> list[dns.rrset.RRset]:
+        """Remove the RRset(s) with the given attributes from the specified section
+        if it exists.
+
+        Typically the list will have only a single RRset, but if the message contains
+        multiple singleton RRsets matching the given attributes due to prior use of
+        ``force_unique``, then all of them will be removed.  The index is also updated.
+
+        *section* may be an ``int`` section number, a ``str`` section name, or
+        one of the section list attributes of this message.
+
+        :param name: The owner name.
+        :type name: :py:class:`dns.name.Name` or ``str``
+        :param rdclass: The rdata class.
+        :type rdclass: :py:class:`dns.rdataclass.RdataClass` or ``str``
+        :param rdtype: The rdata type.
+        :type rdtype: :py:class:`dns.rdatatype.RdataType` or ``str``
+        :param covers: The covered type; default is ``dns.rdatatype.NONE``.
+        :type covers: :py:class:`dns.rdatatype.RdataType` or ``str``
+        :param deleting: The deleting value; default is ``None``.
+        :type deleting: :py:class:`dns.rdataclass.RdataClass`, ``str``, or ``None``
+        :param idna_codec: The IDNA encoder/decoder. Defaults to IDNA 2003.
+        :type idna_codec: :py:class:`dns.name.IDNACodec` or ``None``
+        :returns: The removed RRsets.
+        :rtype: A list of :py:class:`dns.rrset.RRset`.
+        """
+        section, section_number = self._get_section_from_section_type(section)
+        if isinstance(name, str):
+            name = dns.name.from_text(name, idna_codec=idna_codec)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
+        covers = dns.rdatatype.RdataType.make(covers)
+        if deleting is not None:
+            deleting = dns.rdataclass.RdataClass.make(deleting)
+        kept = []
+        removed = []
+        for rrset in section:
+            if rrset.full_match(name, rdclass, rdtype, covers, deleting):
+                removed.append(rrset)
+            else:
+                kept.append(rrset)
+        # Do an in-place update of section with what we kept.
+        section[:] = kept
+        if self.index is not None:
+            key = (section_number, name, rdclass, rdtype, covers, deleting)
+            try:
+                del self.index[key]
+            except KeyError:
+                pass
+        return removed
 
     def section_count(self, section: SectionType) -> int:
         """Returns the number of records in the specified section.

@@ -12,10 +12,12 @@ RRset lookup and section mutation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, :py:meth:`~dns.message.Message.find_rrset` and
-:py:meth:`~dns.message.Message.get_rrset` look up RRsets in an index.
-Use either method with ``create=True`` to add an RRset while keeping the
+:py:meth:`~dns.message.Message.get_rrset` look up RRsets in an index for greater
+performance.  Use either method with ``create=True`` to add an RRset while keeping the
 index consistent.  Once an RRset has been found, records can be added to it
-without appending another RRset to the section.
+without appending another RRset to the section.  RRsets can be removed from
+a message with :py:meth:`~dns.message.Message.remove_rrset`, which also updates
+the index.
 
 Direct changes to the section lists, such as appending, removing, or
 replacing RRsets, do not update the index.  Changing an RRset's indexed
@@ -177,7 +179,7 @@ indexed lookups.  Serializing a message with
    :inherited-members:
 
 The following constants may be used to specify sections in the
-``find_rrset()`` and ``get_rrset()`` methods:
+``find_rrset()``, ``get_rrset()``, and ``remove_rrset()`` methods:
 
 .. autodata:: dns.message.QUESTION
 .. autodata:: dns.message.ANSWER
