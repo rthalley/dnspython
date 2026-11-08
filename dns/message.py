@@ -182,7 +182,7 @@ class Message:
         self.xfr = False
         self.origin: dns.name.Name | None = None
         self.tsig_ctx: Any | None = None
-        self.index: IndexType = {}
+        self.index: IndexType | None = {}
         self.errors: list[MessageError] = []
         self.time = 0.0
         self.wire: bytes | None = None
@@ -419,6 +419,9 @@ class Message:
         idna_codec: dns.name.IDNACodec | None = None,
     ) -> dns.rrset.RRset:
         """Find the RRset with the given attributes in the specified section.
+
+        Lookups use :attr:`index` unless it is ``None``.  Direct changes to section
+        lists do not update the index; see :ref:`message-indexing`.
 
         *section* may be an ``int`` section number, a ``str`` section name, or
         one of the section list attributes of this message.  For example::
