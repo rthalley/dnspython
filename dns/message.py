@@ -472,9 +472,13 @@ class Message:
         covers = dns.rdatatype.RdataType.make(covers)
         if deleting is not None:
             deleting = dns.rdataclass.RdataClass.make(deleting)
-        key = (section_number, name, rdclass, rdtype, covers, deleting)
+        if self.index is not None:
+            key = (section_number, name, rdclass, rdtype, covers, deleting)
+        else:
+            key = None
         if not force_unique:
             if self.index is not None:
+                assert key is not None
                 rrset = self.index.get(key)
                 if rrset is not None:
                     return rrset
@@ -487,6 +491,7 @@ class Message:
         rrset = dns.rrset.RRset(name, rdclass, rdtype, covers, deleting)
         section.append(rrset)
         if self.index is not None:
+            assert key is not None
             self.index[key] = rrset
         return rrset
 
@@ -1265,7 +1270,12 @@ class _WireReader:
                 section_number, qname, rdclass, rdtype
             )
             self.message.find_rrset(
-                section, qname, rdclass, rdtype, create=True, force_unique=True
+                section,
+                qname,
+                rdclass,
+                rdtype,
+                create=True,
+                force_unique=self.one_rr_per_rrset,
             )
 
     def _add_error(self, e):
@@ -1387,6 +1397,8 @@ class _WireReader:
         self.one_rr_per_rrset = self.message._get_one_rr_per_rrset(
             self.one_rr_per_rrset
         )
+        if self.one_rr_per_rrset:
+            self.message.index = None
         try:
             self._get_question(MessageSection.QUESTION, qcount)
             if self.question_only:
@@ -1631,7 +1643,12 @@ class _TextReader:
             section_number, name, rdclass, rdtype
         )
         self.message.find_rrset(
-            section, name, rdclass, rdtype, create=True, force_unique=True
+            section,
+            name,
+            rdclass,
+            rdtype,
+            create=True,
+            force_unique=self.one_rr_per_rrset,
         )
         self.tok.get_eol()
 
@@ -1752,6 +1769,8 @@ class _TextReader:
                         self.one_rr_per_rrset = message._get_one_rr_per_rrset(
                             self.one_rr_per_rrset
                         )
+                        if self.one_rr_per_rrset:
+                            self.message.index = None
                     if section_number == MessageSection.QUESTION:
                         line_method = self._question_line
                     else:

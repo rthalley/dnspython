@@ -424,6 +424,16 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(len(lrrs), 0)
         self.assertEqual(grrs, None)
 
+    def test_OneRRPerRRsetAndIndexing(self):
+        a = dns.message.from_text(answer_text)
+        self.assertIsNotNone(a.index)
+        a = dns.message.from_text(answer_text, one_rr_per_rrset=True)
+        self.assertIsNone(a.index)
+        a = dns.message.from_wire(goodwire2)
+        self.assertIsNotNone(a.index)
+        a = dns.message.from_wire(goodwire2, one_rr_per_rrset=True)
+        self.assertIsNone(a.index)
+
     def test_CleanTruncated(self):
         def bad():
             a = dns.message.from_text(answer_text)
