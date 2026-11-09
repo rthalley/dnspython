@@ -464,6 +464,9 @@ class Message:
         :rtype: :py:class:`dns.rrset.RRset`
         """
 
+        # Any attempt to use force_unique disables indexing
+        if force_unique:
+            self.index = None
         section, section_number = self._get_section_from_section_type(section)
         if isinstance(name, str):
             name = dns.name.from_text(name, idna_codec=idna_codec)
