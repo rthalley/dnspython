@@ -49,8 +49,10 @@ class IPSECKEY(dns.rdata.Rdata):
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         gateway = Gateway(self.gateway_type, self.gateway).to_styled_text(style)
-        key = dns.rdata._styled_base64ify(self.key, style, True)
-        return f"{self.precedence} {self.gateway_type} {self.algorithm} {gateway} {key}"
+        text = f"{self.precedence} {self.gateway_type} {self.algorithm} {gateway}"
+        if self.key:
+            text += " " + dns.rdata._styled_base64ify(self.key, style, True)
+        return text
 
     @classmethod
     def from_text(
@@ -62,7 +64,8 @@ class IPSECKEY(dns.rdata.Rdata):
         gateway = Gateway.from_text(
             gateway_type, tok, origin, relativize, relativize_to
         )
-        b64 = tok.concatenate_remaining_identifiers().encode()
+        # RFC 4025 section 3.1: the public key is optional.
+        b64 = tok.concatenate_remaining_identifiers(allow_empty=True).encode()
         key = base64.b64decode(b64, validate=True)
         return cls(
             rdclass, rdtype, precedence, gateway_type, algorithm, gateway.gateway, key

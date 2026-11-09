@@ -966,6 +966,21 @@ class RdataTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.FormError):
             dns.message.from_wire(wire)
 
+    def test_ipseckey_without_public_key(self):
+        # RFC 4025 section 3.1: the public key is optional in the presentation
+        # format, and when it is not present, the public key field is zero octets
+        # long, e.g. with algorithm 0, which means that no key is present.
+        for text in ("10 1 0 192.0.2.38", "10 0 0 ."):
+            rd = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.IPSECKEY, text)
+            self.assertEqual(rd.key, b"")
+            self.assertEqual(rd.to_text(), text)
+            wire = rd.to_wire()
+            rd2 = dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.IPSECKEY, wire, 0, len(wire)
+            )
+            self.assertEqual(rd2, rd)
+            self.assertEqual(rd2.to_text(), text)
+
     def test_too_long_TXT(self):
         # hit too long
         with self.assertRaises(dns.exception.SyntaxError):
