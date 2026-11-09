@@ -5,6 +5,7 @@ import json
 import os
 import re
 import tempfile
+import urllib.parse
 from pathlib import Path
 from typing import BinaryIO, Self, TextIO
 
@@ -60,6 +61,49 @@ def _base64_to_int(value: str) -> int:
     :rtype: :py:class:`int`
     """
     return int.from_bytes(base64.b64decode(value.encode(), validate=True))
+
+
+def _encode_name(name: dns.name.Name) -> str:
+    """Encode a DNS name for use in BIND-style filenames.
+
+    :param name: The DNS name to encode.
+    :type name: :py:class:`dns.name.Name`
+    :rtype: :py:class:`str`
+    """
+
+    if name == dns.name.root:
+        return "."
+    return ".".join(
+        "".join(
+            (
+                chr(b).lower()
+                if chr(b).isascii() and (chr(b).isalnum() or chr(b) in "-_")
+                else f"%{b:02X}"
+            )
+            for b in label
+        )
+        for label in name.labels
+    )
+
+
+def _decode_name(encoded_name: str) -> dns.name.Name:
+    """Decode a BIND-style filename into a DNS name.
+
+    :param encoded_name: The encoded DNS name from the filename.
+    :type encoded_name: :py:class:`str`
+    :rtype: :py:class:`dns.name.Name`
+    """
+
+    if encoded_name == ".":
+        return dns.name.root
+
+    try:
+        labels = [
+            urllib.parse.unquote_to_bytes(l) for l in encoded_name[:-1].split(".")
+        ]
+        return dns.name.Name(labels + [b""])
+    except (ValueError, dns.exception.DNSException) as exc:
+        raise InvalidKeyFormat(f"Invalid name in filename: {encoded_name}") from exc
 
 
 @dataclasses.dataclass(frozen=True)
@@ -279,7 +323,7 @@ class Key:
         if match := re.fullmatch(
             r"K(.*\.)\+(\d{3})\+(\d{5})\.private", private_filename.name
         ):
-            expected_name = match.group(1)
+            expected_name = _decode_name(match.group(1))
             expected_algorithm = int(match.group(2))
             expected_key_id = int(match.group(3))
         else:
@@ -306,7 +350,7 @@ class Key:
         ) as exc:
             raise InvalidKeyFormat("Failed to create key from BIND keys") from exc
 
-        if dns.name.from_text(expected_name) != res.name:
+        if expected_name != res.name:
             raise InvalidKeyFormat(
                 f"Key name mismatch: expected {expected_name}, got {res.name}"
             )
@@ -459,7 +503,7 @@ class Key:
 
         :rtype: Path
         """
-        name = self.name.to_text().lower()
+        name = _encode_name(self.name)
         return Path(
             f"K{name}+{self.dnskey.algorithm.value:03}+{self.dnskey.key_id():05}.private"
         )

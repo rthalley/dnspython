@@ -4,5 +4,6 @@ all:
 	dnssec-keygen -a ECDSAP384SHA384  -n ZONE example.com
 	dnssec-keygen -a ED25519 -n ZONE example.com
 	dnssec-keygen -a ED448 -n ZONE example.com
+	dnssec-keygen -a ED25519 -n ZONE 'b\000rken.example.com'
 	python3 bind-to-jwk.py
 	python3 generate-jwk-files.py

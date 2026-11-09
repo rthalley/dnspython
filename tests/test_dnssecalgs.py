@@ -15,6 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from base64 import decode
 import os
 import re
 import sys
@@ -57,7 +58,7 @@ try:
         PrivateRSASHA256,
         PrivateRSASHA512,
     )
-    from dns.dnssecalgs.serialization import Key
+    from dns.dnssecalgs.serialization import Key, _encode_name, _decode_name
 except ImportError:
     pass  # Cryptography ImportError already handled in dns.dnssec
 
@@ -803,6 +804,37 @@ class DNSSECKey(unittest.TestCase):
             (directory / key.get_bind_private_key_filename()).touch()
             with self.assertRaisesRegex(FileExistsError, "Private key file"):
                 key.to_bind(directory)
+
+    def test_to_bind_filename_encoding(self):
+        """Test that the BIND-style filenames are encoded and decoded correctly."""
+
+        test_cases = [
+            (".", "."),
+            ("example.com.", "example.com."),
+            ("räksmörgås.example.com", "xn--rksmrgs-5wao1o.example.com."),
+            ("foo+bar.example.com", "foo%2Bbar.example.com."),
+            ("foo/bar.example.com", "foo%2Fbar.example.com."),
+            (b"b\x00rken.example.com", "b%00rken.example.com."),
+        ]
+
+        for decoded, encoded in test_cases:
+            with self.subTest(decoded=decoded, encoded=encoded):
+                assert _encode_name(dns.name.from_text(decoded)) == encoded
+                assert _decode_name(encoded) == dns.name.from_text(decoded)
+
+    def test_bind_filename_decoder_invalid(self):
+        """Malformed names in filenames raise InvalidKeyFormat."""
+
+        for bad in [
+            "a..com.",
+            ".com.",
+            "..",
+            "x" * 64 + ".com.",
+            ("a" * 63 + ".") * 4,
+        ]:
+            with self.subTest(bad=bad):
+                with self.assertRaises(dns.exception.InvalidKeyFormat):
+                    _decode_name(bad)
 
 
 if __name__ == "__main__":
