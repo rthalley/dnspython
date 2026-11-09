@@ -6,6 +6,12 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* The text form of an IPSECKEY record may now omit the public key, which RFC
+  4025 section 3.1 makes optional, e.g. ``10 1 0 192.0.2.38`` with algorithm
+  0, which means that no key is present.  Such a record could not be read from
+  a zone file, and when one was read from the wire, ``from_text()`` could not
+  read back what ``to_text()`` wrote for it, which also ended with a space.
+
 * The text form of NSEC, NSEC3, and CSYNC type bitmaps now accepts ``TYPE0``
   and keeps it, so a record with the TYPE0 bit set, e.g. one received in a
   zone transfer, can be written to a zone file and read back unchanged.  The
