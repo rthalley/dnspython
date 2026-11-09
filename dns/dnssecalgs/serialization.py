@@ -33,6 +33,7 @@ if dns._features.have("jwk"):
 
 
 SUPPORTED_BIND_PRIVATE_KEY_FORMATS = {"v1.3"}
+DNSKEY_JWK_PARAMETER = "dnskey"
 
 
 class NoJWK(DNSException):
@@ -155,9 +156,9 @@ class Key:
         try:
             jwk = JWK.from_json(data)  # pyright: ignore
 
-            dnssec_properties = jwk["dnssec"]
-
-            algorithm = dnssec_properties["algorithm"]
+            dnskey_properties = jwk[DNSKEY_JWK_PARAMETER]
+            algorithm = dnskey_properties["algorithm"]
+            algorithm = dnskey_properties["algorithm"]
             algorithm_cls = get_algorithm_cls(algorithm)
 
             if jwk.has_private:
@@ -167,15 +168,15 @@ class Key:
                 private_key = None
                 public_key = algorithm_cls.public_cls(jwk.get_op_key("verify"))
 
-            name = dns.name.from_text(dnssec_properties["name"])
+            name = dns.name.from_text(dnskey_properties["name"])
 
-            keytag = dnssec_properties["keytag"]
+            keytag = dnskey_properties["keytag"]
 
             dnskey = dns.dnssec.make_dnskey(
                 public_key=public_key,
-                algorithm=dnssec_properties["algorithm"],
-                flags=dnssec_properties["flags"],
-                protocol=dnssec_properties["protocol"],
+                algorithm=dnskey_properties["algorithm"],
+                flags=dnskey_properties["flags"],
+                protocol=dnskey_properties["protocol"],
             )
         except (
             KeyError,
@@ -222,7 +223,7 @@ class Key:
     def to_jwk_text(self, public_only: bool = False) -> str:
         """Return JWK string for the key.
 
-        DNSKEY information will be included in the JWK in the "dnssec" parameter
+        DNSKEY information will be included in the JWK in the "dnskey" parameter
         and includes name, algorithm, protocol, flags, and keytag.
 
         :param public_only: Whether to include only the public key in the JWK.
@@ -249,7 +250,7 @@ class Key:
 
         jwk_dict.update(
             {
-                "dnssec": {
+                DNSKEY_JWK_PARAMETER: {
                     "name": self.name.to_text(),
                     "algorithm": self.dnskey.algorithm,
                     "protocol": self.dnskey.protocol,
