@@ -102,7 +102,7 @@ def _decode_name(encoded_name: str) -> dns.name.Name:
             urllib.parse.unquote_to_bytes(l) for l in encoded_name[:-1].split(".")
         ]
         return dns.name.Name(labels + [b""])
-    except (ValueError, dns.exception.DNSException) as exc:
+    except (ValueError, DNSException) as exc:
         raise InvalidKeyFormat(f"Invalid name in filename: {encoded_name}") from exc
 
 
