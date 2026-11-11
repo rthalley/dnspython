@@ -167,7 +167,7 @@ class BaseQuicConnection:
         self._manager = manager
         self._streams = {}
         if manager is not None and manager.is_h3():
-            self._h3_conn = aioquic.h3.connection.H3Connection(connection, False)
+            self._h3_conn = aioquic.h3.connection.H3Connection(connection)
         else:
             self._h3_conn = None
         self._af = dns.inet.af_for_address(address)
