@@ -1,1 +1,1 @@
-{"kty": "OKP", "crv": "Ed25519", "x": "xX2gT6qJ76coFM3_pAUBxfBZYGnfSZqbNvbZFI428Ao", "d": "Dz9KOncZ00D1WiPEJR_Ec_WXR7YuCbdhUO_H9AERYvw", "kid": "sddEIwsSByQMb2_YrSxRWGFZoIZSxVP9SWB7_IZ4X5Q", "dnssec": {"name": "example.com.", "algorithm": 15, "protocol": 3, "flags": 256, "keytag": 63713}}
+{"kty": "OKP", "crv": "Ed25519", "x": "xX2gT6qJ76coFM3_pAUBxfBZYGnfSZqbNvbZFI428Ao", "d": "Dz9KOncZ00D1WiPEJR_Ec_WXR7YuCbdhUO_H9AERYvw", "kid": "sddEIwsSByQMb2_YrSxRWGFZoIZSxVP9SWB7_IZ4X5Q", "dnskey": {"name": "example.com.", "algorithm": 15, "protocol": 3, "flags": 256, "keytag": 63713}}

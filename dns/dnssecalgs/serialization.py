@@ -5,6 +5,7 @@ import json
 import os
 import re
 import tempfile
+import urllib.parse
 from pathlib import Path
 from typing import BinaryIO, Self, TextIO
 
@@ -33,6 +34,7 @@ if dns._features.have("jwk"):
 
 
 SUPPORTED_BIND_PRIVATE_KEY_FORMATS = {"v1.3"}
+DNSKEY_JWK_PARAMETER = "dnskey"
 
 
 class NoJWK(DNSException):
@@ -61,6 +63,49 @@ def _base64_to_int(value: str) -> int:
     return int.from_bytes(base64.b64decode(value.encode(), validate=True))
 
 
+def _encode_name(name: dns.name.Name) -> str:
+    """Encode a DNS name for use in BIND-style filenames.
+
+    :param name: The DNS name to encode.
+    :type name: :py:class:`dns.name.Name`
+    :rtype: :py:class:`str`
+    """
+
+    if name == dns.name.root:
+        return "."
+    return ".".join(
+        "".join(
+            (
+                chr(b).lower()
+                if chr(b).isascii() and (chr(b).isalnum() or chr(b) in "-_")
+                else f"%{b:02X}"
+            )
+            for b in label
+        )
+        for label in name.labels
+    )
+
+
+def _decode_name(encoded_name: str) -> dns.name.Name:
+    """Decode a BIND-style filename into a DNS name.
+
+    :param encoded_name: The encoded DNS name from the filename.
+    :type encoded_name: :py:class:`str`
+    :rtype: :py:class:`dns.name.Name`
+    """
+
+    if encoded_name == ".":
+        return dns.name.root
+
+    try:
+        labels = [
+            urllib.parse.unquote_to_bytes(l) for l in encoded_name[:-1].split(".")
+        ]
+        return dns.name.Name(labels + [b""])
+    except (ValueError, DNSException) as exc:
+        raise InvalidKeyFormat(f"Invalid name in filename: {encoded_name}") from exc
+
+
 @dataclasses.dataclass(frozen=True)
 class Key:
     """Represents a DNSSEC key with associated public and private keys."""
@@ -74,6 +119,8 @@ class Key:
         """Validate the types of the key components."""
         if not isinstance(self.name, dns.name.Name):
             raise TypeError("name must be a dns.name.Name instance")
+        if self.name.is_absolute() is False:
+            raise ValueError("name must be an absolute DNS name")
         if not isinstance(self.public, GenericPublicKey):
             raise TypeError("public must be a GenericPublicKey instance")
         if self.private is not None and not isinstance(self.private, GenericPrivateKey):
@@ -98,6 +145,30 @@ class Key:
         :rtype: :py:class:`int`
         """
         return key_id(self.dnskey)
+
+    @classmethod
+    def from_dnskey(
+        cls, name: dns.name.Name | str, dnskey: dns.rdtypes.ANY.DNSKEY.DNSKEY
+    ) -> Self:
+        """Create key from a DNSKEY record.
+
+        :param name: The DNS name associated with the key.
+        :type name: :py:class:`dns.name.Name` or :py:class:`str`
+        :param dnskey: The DNSKEY record.
+        :type dnskey: :py:class:`dns.rdtypes.ANY.DNSKEY.DNSKEY`
+        :rtype: :py:class:`Key`
+        """
+
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+
+        public_key = get_algorithm_cls(dnskey.algorithm).public_cls.from_dnskey(dnskey)
+        return cls(
+            name=name,
+            private=None,
+            public=public_key,
+            dnskey=dnskey,
+        )
 
     @classmethod
     def from_jwk_file(cls, f: str | os.PathLike | TextIO | BinaryIO) -> Self:
@@ -129,9 +200,9 @@ class Key:
         try:
             jwk = JWK.from_json(data)  # pyright: ignore
 
-            dnssec_properties = jwk["dnssec"]
-
-            algorithm = dnssec_properties["algorithm"]
+            dnskey_properties = jwk[DNSKEY_JWK_PARAMETER]
+            algorithm = dnskey_properties["algorithm"]
+            algorithm = dnskey_properties["algorithm"]
             algorithm_cls = get_algorithm_cls(algorithm)
 
             if jwk.has_private:
@@ -141,15 +212,15 @@ class Key:
                 private_key = None
                 public_key = algorithm_cls.public_cls(jwk.get_op_key("verify"))
 
-            name = dns.name.from_text(dnssec_properties["name"])
+            name = dns.name.from_text(dnskey_properties["name"])
 
-            keytag = dnssec_properties["keytag"]
+            keytag = dnskey_properties["keytag"]
 
             dnskey = dns.dnssec.make_dnskey(
                 public_key=public_key,
-                algorithm=dnssec_properties["algorithm"],
-                flags=dnssec_properties["flags"],
-                protocol=dnssec_properties["protocol"],
+                algorithm=dnskey_properties["algorithm"],
+                flags=dnskey_properties["flags"],
+                protocol=dnskey_properties["protocol"],
             )
         except (
             KeyError,
@@ -196,7 +267,7 @@ class Key:
     def to_jwk_text(self, public_only: bool = False) -> str:
         """Return JWK string for the key.
 
-        DNSKEY information will be included in the JWK in the "dnssec" parameter
+        DNSKEY information will be included in the JWK in the "dnskey" parameter
         and includes name, algorithm, protocol, flags, and keytag.
 
         :param public_only: Whether to include only the public key in the JWK.
@@ -223,7 +294,7 @@ class Key:
 
         jwk_dict.update(
             {
-                "dnssec": {
+                DNSKEY_JWK_PARAMETER: {
                     "name": self.name.to_text(),
                     "algorithm": self.dnskey.algorithm,
                     "protocol": self.dnskey.protocol,
@@ -249,8 +320,12 @@ class Key:
 
         public_filename = private_filename.with_suffix(".key")
 
-        if match := re.fullmatch(r"K.*\+.*\+(\d{5})\.private", private_filename.name):
-            expected_key_id = int(match.group(1))
+        if match := re.fullmatch(
+            r"K(.*\.)\+(\d{3})\+(\d{5})\.private", private_filename.name
+        ):
+            expected_name = _decode_name(match.group(1))
+            expected_algorithm = int(match.group(2))
+            expected_key_id = int(match.group(3))
         else:
             raise InvalidKeyFormat(
                 f"Invalid private key filename: {private_filename.name}"
@@ -275,7 +350,17 @@ class Key:
         ) as exc:
             raise InvalidKeyFormat("Failed to create key from BIND keys") from exc
 
-        if not expected_key_id == res.key_id():
+        if expected_name != res.name:
+            raise InvalidKeyFormat(
+                f"Key name mismatch: expected {expected_name}, got {res.name}"
+            )
+
+        if expected_algorithm != res.dnskey.algorithm:
+            raise InvalidKeyFormat(
+                f"Algorithm mismatch: expected {expected_algorithm}, got {res.dnskey.algorithm}"
+            )
+
+        if expected_key_id != res.key_id():
             raise InvalidKeyFormat(
                 f"Key ID mismatch: expected {expected_key_id}, got {res.key_id()}"
             )
@@ -418,17 +503,29 @@ class Key:
 
         :rtype: Path
         """
+        name = _encode_name(self.name)
         return Path(
-            f"K{self.name.to_text()}+{self.dnskey.algorithm.value:03}+{self.dnskey.key_id():05}.private"
+            f"K{name}+{self.dnskey.algorithm.value:03}+{self.dnskey.key_id():05}.private"
         )
 
-    def to_bind(self, directory: Path | str, overwrite: bool = False) -> Path:
-        """Write the key to BIND-style files and return the path to the private key file.
+    def get_bind_public_key_filename(self) -> Path:
+        """Get the filename for the BIND-style public key file.
+
+        :rtype: Path
+        """
+        return self.get_bind_private_key_filename().with_suffix(".key")
+
+    def to_bind(
+        self, directory: Path | str, overwrite: bool = False, public_only: bool = False
+    ) -> Path:
+        """Write the key to BIND-style files and return the path to the private or public key file.
 
         :param directory: The path to the output directory for resulting private and public key files.
         :type directory: :py:class:`Path` or :py:class:`str`
         :param overwrite: Whether to overwrite existing key files.
         :type overwrite: bool
+        :param public_only: Whether to output the public key file only.
+        :type public_only: :py:class:`bool`
         :rtype: Path
         """
 
@@ -438,21 +535,25 @@ class Key:
         if not (directory.exists() and directory.is_dir()):
             raise NotADirectoryError(f"{directory} is not a valid directory")
 
-        public_data = self._to_bind_public()
-        private_data = self._to_bind_private()
+        public_filename = directory / self.get_bind_public_key_filename()
+        private_filename = (
+            directory / self.get_bind_private_key_filename()
+            if not public_only
+            else None
+        )
 
-        private_filename = directory / self.get_bind_private_key_filename()
-        public_filename = private_filename.with_suffix(".key")
+        public_data = self._to_bind_public()
+        private_data = self._to_bind_private() if not public_only else None
 
         if not overwrite:
             # Abort if the key files already exist to prevent overwriting existing keys
-            if private_filename.exists():
-                raise FileExistsError(
-                    f"Private key file {private_filename} already exists"
-                )
             if public_filename.exists():
                 raise FileExistsError(
                     f"Public key file {public_filename} already exists"
+                )
+            if private_filename and private_filename.exists():
+                raise FileExistsError(
+                    f"Private key file {private_filename} already exists"
                 )
 
         tmp_public_filename = tempfile.NamedTemporaryFile(
@@ -461,35 +562,48 @@ class Key:
             delete=False,
         ).name
 
-        tmp_private_filename = tempfile.NamedTemporaryFile(
-            dir=directory,
-            prefix=f".{private_filename.name}",
-            delete=False,
-        ).name
+        tmp_private_filename = (
+            tempfile.NamedTemporaryFile(
+                dir=directory,
+                prefix=f".{private_filename.name}",
+                delete=False,
+            ).name
+            if private_filename
+            else None
+        )
 
         try:
 
-            with open(tmp_public_filename, "wb") as fp:
+            with dns._file_util.maybe_open(
+                tmp_public_filename, "wb", chmod=0o644
+            ) as fp:
                 fp.write(public_data)
 
-            with dns._file_util.maybe_open(
-                tmp_private_filename, "wb", chmod=0o600
-            ) as fp:
-                fp.write(private_data)
+            if tmp_private_filename is not None:
+                with dns._file_util.maybe_open(
+                    tmp_private_filename, "wb", chmod=0o600
+                ) as fp:
+                    fp.write(private_data)
 
             if overwrite:
                 os.replace(tmp_public_filename, public_filename)
-                os.replace(tmp_private_filename, private_filename)
+                if tmp_private_filename and private_filename:
+                    os.replace(tmp_private_filename, private_filename)
             else:
                 os.rename(tmp_public_filename, public_filename)
-                os.rename(tmp_private_filename, private_filename)
+                if tmp_private_filename and private_filename:
+                    os.rename(tmp_private_filename, private_filename)
         except Exception:
             # Remove any partially written key files to avoid leaving incomplete files on disk
-            os.unlink(tmp_public_filename)
-            os.unlink(tmp_private_filename)
+            try:
+                os.unlink(tmp_public_filename)
+            except FileNotFoundError:
+                pass
+            if tmp_private_filename:
+                os.unlink(tmp_private_filename)
             raise
 
-        return private_filename
+        return private_filename or public_filename
 
     def _to_bind_public(self) -> bytes:
         """Return the public key in BIND-style format."""
