@@ -159,31 +159,33 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             event = self._connection.next_event()
             if event is None:
                 return
-            if isinstance(event, aioquic.quic.events.StreamDataReceived):
-                if self.is_h3():
-                    assert self._h3_conn is not None
-                    h3_events = self._h3_conn.handle_event(event)
-                    for h3_event in h3_events:
-                        if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
-                            stream = self._streams.get(event.stream_id)
-                            if stream:
-                                if stream._headers is None:
-                                    stream._headers = h3_event.headers
-                                elif stream._trailers is None:
-                                    stream._trailers = h3_event.headers
-                                if h3_event.stream_ended:
-                                    await stream._add_input(b"", True)
-                        elif isinstance(h3_event, aioquic.h3.events.DataReceived):
-                            stream = self._streams.get(event.stream_id)
-                            if stream:
-                                await stream._add_input(
-                                    h3_event.data, h3_event.stream_ended
-                                )
-                else:
-                    stream = self._streams.get(event.stream_id)
-                    if stream:
-                        await stream._add_input(event.data, event.end_stream)
-            elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
+            if self.is_h3():
+                assert self._h3_conn is not None
+                # The H3 connection needs every event, for instance to learn that a
+                # stream was reset, and its events can be for another stream than the
+                # QUIC event's.
+                h3_events = self._h3_conn.handle_event(event)
+                for h3_event in h3_events:
+                    if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
+                        stream = self._streams.get(h3_event.stream_id)
+                        if stream:
+                            if stream._headers is None:
+                                stream._headers = h3_event.headers
+                            elif stream._trailers is None:
+                                stream._trailers = h3_event.headers
+                            if h3_event.stream_ended:
+                                await stream._add_input(b"", True)
+                    elif isinstance(h3_event, aioquic.h3.events.DataReceived):
+                        stream = self._streams.get(h3_event.stream_id)
+                        if stream:
+                            await stream._add_input(
+                                h3_event.data, h3_event.stream_ended
+                            )
+            elif isinstance(event, aioquic.quic.events.StreamDataReceived):
+                stream = self._streams.get(event.stream_id)
+                if stream:
+                    await stream._add_input(event.data, event.end_stream)
+            if isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
             elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
                 self._done = True
