@@ -214,7 +214,7 @@ class Key:
 
             name = dns.name.from_text(dnskey_properties["name"])
 
-            keytag = dnskey_properties["keytag"]
+            keytag = dnskey_properties.get("keytag")
 
             dnskey = dns.dnssec.make_dnskey(
                 public_key=public_key,
@@ -231,7 +231,7 @@ class Key:
         ) as exc:
             raise InvalidKeyFormat("Failed to create key from JWK") from exc
 
-        if keytag != key_id(dnskey):
+        if keytag is not None and keytag != key_id(dnskey):
             raise InvalidKeyFormat("Keytag mismatch between JWK and DNSKEY")
 
         return cls(
