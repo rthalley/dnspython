@@ -128,6 +128,15 @@ class Key:
         if not isinstance(self.dnskey, dns.rdtypes.ANY.DNSKEY.DNSKEY):
             raise TypeError("dnskey must be a dns.rdtypes.ANY.DNSKEY.DNSKEY instance")
 
+        if (
+            self.private is not None
+            and self.private.public_key().to_pem() != self.public.to_pem()
+        ):
+            raise InvalidKeyFormat("Private and public key mismatch")
+
+        if self.public.from_dnskey(self.dnskey).to_pem() != self.public.to_pem():
+            raise InvalidKeyFormat("Public key mismatch between JWK and DNSKEY")
+
     def to_ds(self, algorithm: DSDigest | str) -> dns.rdtypes.ANY.DS.DS:
         """Return the DS record for the key.
 
