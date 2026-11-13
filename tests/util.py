@@ -144,7 +144,7 @@ def retry_on_timeout(f):
                 f(*args, **kwargs)
                 bad = False
                 break
-            except dns.exception.Timeout:
+            except (dns.exception.Timeout, TimeoutError):
                 pass
         if bad:
             raise dns.exception.Timeout
