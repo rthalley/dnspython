@@ -28,12 +28,8 @@ def sign_zone(
     origin: str | None = None,
     lifetime: int | None = 3600,
     output: Path | None = None,
-    debug: bool = False,
 ) -> None:
     """Sign a DNS zone with the provided KSK and ZSK keys."""
-
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
 
     zone = dns.zone.from_file(zonefile, origin=origin, relativize=False)
     if zone is None:
@@ -68,14 +64,8 @@ def sign_zone(
 
 
 @app.command(name="bind-to-jwk")
-def convert_bind_to_jwk(
-    keyfile: Path,
-    debug: bool = False,
-) -> None:
+def convert_bind_to_jwk(keyfile: Path) -> None:
     """Convert a BIND-style key to a JWK."""
-
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
 
     if keyfile.suffix == ".key":
         with open(keyfile, "rb") as fp:
@@ -92,14 +82,8 @@ def convert_bind_to_jwk(
 
 
 @app.command(name="jwk-to-bind")
-def convert_jwk_to_bind(
-    keyfile: Path,
-    debug: bool = False,
-) -> None:
+def convert_jwk_to_bind(keyfile: Path) -> None:
     """Convert a JWK to a BIND-style key."""
-
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
 
     key = Key.from_jwk_file(keyfile)
 
@@ -114,15 +98,8 @@ def convert_jwk_to_bind(
 
 
 @app.command(name="jwk-to-dnskey")
-def convert_jwk_to_dnskey(
-    keyfile: Path,
-    cdnskey: bool = False,
-    debug: bool = False,
-) -> None:
+def convert_jwk_to_dnskey(keyfile: Path, cdnskey: bool = False) -> None:
     """Convert a JWK to a DNSKEY/CDNSKEY record."""
-
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
 
     key = Key.from_jwk_file(keyfile)
     dnskey = key.dnskey
@@ -155,12 +132,8 @@ def convert_jwk_to_ds(
         typer.Argument(parser=DSDigest.from_text),
     ] = DSDigest.SHA256.name,
     cds: bool = False,
-    debug: bool = False,
 ) -> None:
     """Convert a JWK to a DS/CDS record."""
-
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
 
     key = Key.from_jwk_file(keyfile)
 
@@ -183,12 +156,8 @@ def generate_key(
     size: int | None = None,
     ksk: bool = False,
     output: Path | None = None,
-    debug: bool = False,
 ) -> None:
     """Generate a private key and output it as a JWK."""
-
-    if debug:
-        logging.basicConfig(level=logging.DEBUG)
 
     if (private_cls := algorithms.get((algorithm, None))) is None:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
