@@ -1,12 +1,13 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 import typer
 
 import dns.dnssec
 import dns.name
+import dns.rdtypes.ANY.CDNSKEY
 import dns.rdtypes.ANY.DNSKEY
 import dns.rrset
 import dns.zone
@@ -112,6 +113,40 @@ def convert_jwk_to_bind(
         print(f"Converted {keyfile} to {output_filename}")
 
 
+@app.command(name="jwk-to-dnskey")
+def convert_jwk_to_dnskey(
+    keyfile: Path,
+    cdnskey: bool = False,
+    debug: bool = False,
+) -> None:
+    """Convert a JWK to a DNSKEY/CDNSKEY record."""
+
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    key = Key.from_jwk_file(keyfile)
+    dnskey = key.dnskey
+
+    if cdnskey:
+        rdataset = dns.rdataset.from_rdata(
+            0,
+            dns.rdtypes.ANY.CDNSKEY.CDNSKEY(
+                rdclass=dns.rdataclass.IN,
+                rdtype=dns.rdatatype.CDNSKEY,
+                flags=dnskey.flags,
+                protocol=dnskey.protocol,
+                algorithm=dnskey.algorithm,
+                key=dnskey.key,
+            ),
+        )
+    else:
+        rdataset = dns.rdataset.from_rdata(0, dnskey)
+
+    print(
+        rdataset.to_text(name=key.name, style=dns.rdataset.RdatasetStyle(omit_ttl=True))
+    )
+
+
 @app.command(name="jwk-to-ds")
 def convert_jwk_to_ds(
     keyfile: Path,
@@ -141,8 +176,8 @@ def convert_jwk_to_ds(
     )
 
 
-@app.command(name="generate-dnskey")
-def generate_dnskey(
+@app.command(name="generate-key")
+def generate_key(
     name: Annotated[dns.name.Name, typer.Argument(parser=dns.name.from_text)],
     algorithm: Annotated[Algorithm, typer.Argument(parser=Algorithm.from_text)],
     size: int | None = None,
@@ -150,7 +185,7 @@ def generate_dnskey(
     output: Path | None = None,
     debug: bool = False,
 ) -> None:
-    """Generate a DNSSEC key and output it as a JWK."""
+    """Generate a private key and output it as a JWK."""
 
     if debug:
         logging.basicConfig(level=logging.DEBUG)
