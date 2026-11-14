@@ -101,22 +101,12 @@ def convert_jwk_to_dnskey(keyfile: Path, cdnskey: bool = False) -> None:
     """Convert a JWK to a DNSKEY/CDNSKEY record."""
 
     key = Key.from_jwk_file(keyfile)
-    dnskey = key.dnskey
 
     if cdnskey:
-        rdataset = dns.rdataset.from_rdata(
-            0,
-            dns.rdtypes.ANY.CDNSKEY.CDNSKEY(
-                rdclass=dns.rdataclass.IN,
-                rdtype=dns.rdatatype.CDNSKEY,
-                flags=dnskey.flags,
-                protocol=dnskey.protocol,
-                algorithm=dnskey.algorithm,
-                key=dnskey.key,
-            ),
-        )
+
+        rdataset = dns.rdataset.from_rdata(0, key.cdnskey)
     else:
-        rdataset = dns.rdataset.from_rdata(0, dnskey)
+        rdataset = dns.rdataset.from_rdata(0, key.dnskey)
 
     print(
         rdataset.to_text(name=key.name, style=dns.rdataset.RdatasetStyle(omit_ttl=True))
@@ -137,9 +127,7 @@ def convert_jwk_to_ds(
     key = Key.from_jwk_file(keyfile)
 
     if cds:
-        rdataset = dns.dnssec.dnskey_rdataset_to_cds_rdataset(
-            key.name, dns.rdataset.from_rdata(0, key.dnskey), algorithm
-        )
+        rdataset = dns.rdataset.from_rdata(0, key.to_cds(algorithm))
     else:
         rdataset = dns.rdataset.from_rdata(0, key.to_ds(algorithm))
 
