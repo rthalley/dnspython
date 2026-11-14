@@ -17,6 +17,7 @@ import dns.dnssec
 import dns.name
 import dns.rdataset
 import dns.rdatatype
+import dns.rdtypes.ANY.CDS
 import dns.rdtypes.ANY.DNSKEY
 import dns.rdtypes.ANY.DS
 import dns.rrset
@@ -128,6 +129,20 @@ class Key:
         if not isinstance(self.dnskey, dns.rdtypes.ANY.DNSKEY.DNSKEY):
             raise TypeError("dnskey must be a dns.rdtypes.ANY.DNSKEY.DNSKEY instance")
 
+    @property
+    def cdnskey(self) -> dns.rdtypes.ANY.CDNSKEY.CDNSKEY:
+        """Return the CDNSKEY record for the key.
+
+        :rtype: :py:class:`dns.rdtypes.ANY.CDNSKEY.CDNSKEY`
+        """
+
+        return dns.dnssec.make_cdnskey(
+            self.public,
+            self.dnskey.algorithm,
+            flags=self.dnskey.flags,
+            protocol=self.dnskey.protocol,
+        )
+
     def to_ds(self, algorithm: DSDigest | str) -> dns.rdtypes.ANY.DS.DS:
         """Return the DS record for the key.
 
@@ -138,6 +153,17 @@ class Key:
         """
 
         return dns.dnssec.make_ds(self.name, self.dnskey, algorithm)
+
+    def to_cds(self, algorithm: DSDigest | str) -> dns.rdtypes.ANY.CDS.CDS:
+        """Return the CDS record for the key.
+
+        :param algorithm: The hash algorithm. Currently supported: ``"SHA1"``,
+            ``"SHA256"``, ``"SHA384"`` (case-insensitive).
+        :type algorithm: :py:class:`DSDigest` or :py:class:`str`
+        :rtype: :py:class:`dns.rdtypes.ANY.CDS.CDS`
+        """
+
+        return dns.dnssec.make_cds(self.name, self.dnskey, algorithm)
 
     def key_id(self) -> int:
         """Return the key ID for the key.
