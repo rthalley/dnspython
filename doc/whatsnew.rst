@@ -6,6 +6,14 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* HIP records now reject an empty HIT or an empty public key.  The
+  presentation format (RFC 8005 section 6) separates the fields with
+  whitespace and has no way to write an empty one, so ``to_text()`` of such a
+  record, e.g. one received from the wire, could not be read back, or was read
+  back as a different record with the following fields shifted into the HIT
+  and the public key.  A ``dns.exception.FormError`` is now raised when such
+  an rdata is read from the wire.
+
 * The text form of an IPSECKEY record may now omit the public key, which RFC
   4025 section 3.1 makes optional, e.g. ``10 1 0 192.0.2.38`` with algorithm
   0, which means that no key is present.  Such a record could not be read from
