@@ -6,14 +6,16 @@ import typer
 
 import dns.dnssec
 import dns.name
-import dns.rdtypes.ANY.CDNSKEY
-import dns.rdtypes.ANY.DNSKEY
+import dns.rdataclass
+import dns.rdatatype
 import dns.rrset
 import dns.zone
 from dns.dnssecalgs import algorithms
 from dns.dnssecalgs.base import GenericPrivateKey
 from dns.dnssecalgs.serialization import Key
 from dns.dnssectypes import Algorithm, DSDigest
+from dns.rdtypes.ANY.DNSKEY import DNSKEY
+from dns.rdtypes.ANY.NSEC3PARAM import NSEC3PARAM
 
 name_to_cls = {a.name.upper(): cls for ((a, _), cls) in algorithms.items()}
 
@@ -27,6 +29,7 @@ def sign_zone(
     origin: str | None = None,
     lifetime: int | None = 3600,
     output: Path | None = None,
+    nsec3: bool = False,
 ) -> None:
     """Sign a DNS zone with the provided KSK and ZSK keys."""
 
@@ -34,7 +37,7 @@ def sign_zone(
     if zone is None:
         raise ValueError(f"Failed to load zone from file {zonefile}")
 
-    signing_keys: list[tuple[GenericPrivateKey, dns.rdtypes.ANY.DNSKEY.DNSKEY]] = []
+    signing_keys: list[tuple[GenericPrivateKey, DNSKEY]] = []
 
     for key_file in keys:
         key = Key.from_jwk_file(key_file)
@@ -55,6 +58,11 @@ def sign_zone(
             txn=txn,
             keys=signing_keys,
             lifetime=lifetime,
+            nsec3=(
+                NSEC3PARAM(dns.rdataclass.IN, dns.rdatatype.NSEC3PARAM, 1, 0, 0, b"")
+                if nsec3
+                else None
+            ),
         )
 
     zone.to_file(
@@ -103,7 +111,6 @@ def convert_jwk_to_dnskey(keyfile: Path, cdnskey: bool = False) -> None:
     key = Key.from_jwk_file(keyfile)
 
     if cdnskey:
-
         rdataset = dns.rdataset.from_rdata(0, key.cdnskey)
     else:
         rdataset = dns.rdataset.from_rdata(0, key.dnskey)
