@@ -201,6 +201,8 @@ DNSKEY
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
 DS
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
+HIP
+    `RFC 8005 <https://tools.ietf.org/html/rfc8005>`_
 HTTPS
     `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_,
     `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter),

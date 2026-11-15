@@ -855,6 +855,28 @@ class RdataTestCase(unittest.TestCase):
         # hit too long
         with self.assertRaises(dns.exception.SyntaxError):
             dns.rdata.from_text("in", "hip", "2 " + "00" * 256 + " Ym9ndXM=")
+        # empty HIT or public key
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text("in", "hip", '2 "" Ym9ndXM=')
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rdata.from_text("in", "hip", '2 00 ""')
+
+    def test_empty_HIP_fields_wire(self):
+        # The presentation format has no way to write an empty HIT or public
+        # key.  An empty HIT read from the wire used to be written out as
+        # "2  AAAA aaaa", which reads back as a different record with HIT
+        # AAAA, public key aaaa, and no rendezvous server.
+        server = dns.name.from_text("aaaa.example.").to_wire()
+        wire = struct.pack("!BBH", 0, 2, 3) + b"\x00\x00\x00" + server
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.HIP, wire, 0, len(wire)
+            )
+        wire = struct.pack("!BBH", 1, 2, 0) + b"\x00" + server
+        with self.assertRaises(dns.exception.FormError):
+            dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.HIP, wire, 0, len(wire)
+            )
 
     def test_bad_sigtime(self):
         try:
