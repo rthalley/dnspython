@@ -156,6 +156,12 @@ _escaped = b'"().;\\@$'
 # separators.
 _escaped_text = '"().;\\@$。．｡'
 
+# Octet values used by from_text().
+_PERIOD_VALUE = ord(".")
+_BACKSLASH_VALUE = ord("\\")
+_ZERO_VALUE = ord("0")
+_NINE_VALUE = ord("9")
+
 
 def _escapify(label: bytes | str) -> str:
     """Escape the characters in label which need it.
@@ -1112,38 +1118,45 @@ def from_text(
     if text:
         if text == b".":
             return Name([b""])
+        if isinstance(text, bytes) and b"\\" not in text:
+            # No escapes, so the labels are just the text split at the dots.
+            labels = text.split(b".")
+            if b"" in labels[:-1]:
+                raise EmptyLabel
+            if labels[-1] != b"" and origin is not None:
+                labels.extend(origin.labels)
+            return Name(labels)
         for c in text:
-            byte_ = struct.pack("!B", c)
             if escaping:
                 if edigits == 0:
-                    if byte_.isdigit():
-                        total = int(byte_)
+                    if _ZERO_VALUE <= c <= _NINE_VALUE:
+                        total = c - _ZERO_VALUE
                         edigits += 1
                     else:
-                        label += byte_
+                        label.append(c)
                         escaping = False
                 else:
-                    if not byte_.isdigit():
+                    if not _ZERO_VALUE <= c <= _NINE_VALUE:
                         raise BadEscape
                     total *= 10
-                    total += int(byte_)
+                    total += c - _ZERO_VALUE
                     edigits += 1
                     if edigits == 3:
                         if total > 255:
                             raise BadEscape
                         escaping = False
-                        label += struct.pack("!B", total)
-            elif byte_ == b".":
+                        label.append(total)
+            elif c == _PERIOD_VALUE:
                 if len(label) == 0:
                     raise EmptyLabel
                 labels.append(bytes(label))
                 label = bytearray()
-            elif byte_ == b"\\":
+            elif c == _BACKSLASH_VALUE:
                 escaping = True
                 edigits = 0
                 total = 0
             else:
-                label += byte_
+                label.append(c)
         if escaping:
             raise BadEscape
         if len(label) > 0:
