@@ -6,6 +6,11 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.name.from_text()`` is faster.  A name without escapes is now split at
+  its dots, instead of being read one byte at a time, so e.g.
+  ``www.example.com.`` takes about half the time it did.  Names with escapes
+  take about a quarter less time.
+
 * The text form of an IPSECKEY record may now omit the public key, which RFC
   4025 section 3.1 makes optional, e.g. ``10 1 0 192.0.2.38`` with algorithm
   0, which means that no key is present.  Such a record could not be read from
