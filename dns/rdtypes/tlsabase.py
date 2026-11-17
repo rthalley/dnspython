@@ -46,6 +46,8 @@ class TLSABase(dns.rdata.Rdata):
         self.selector: int = self._as_uint8(selector)
         self.mtype: int = self._as_uint8(mtype)
         self.cert: bytes = self._as_bytes(cert)
+        if len(self.cert) == 0:
+            raise ValueError("the certificate association data must not be empty")
         expected = self._cert_length_by_mtype.get(self.mtype)
         if expected is not None and len(self.cert) != expected:
             raise ValueError(

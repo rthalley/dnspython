@@ -12,6 +12,18 @@ What's New in dnspython
   a zone file, and when one was read from the wire, ``from_text()`` could not
   read back what ``to_text()`` wrote for it, which also ended with a space.
 
+* The DS, CDS, DLV, DNSKEY, CDNSKEY, CERT, TLSA, SMIMEA, SSHFP, RRSIG, and SIG
+  rdata types now reject an empty digest, key, certificate, certificate
+  association data, fingerprint, or signature when read from the wire, and all
+  but RRSIG and SIG also reject it when the rdata is constructed.  These fields
+  are last in the rdata and cannot be empty in the presentation format, so
+  ``to_text()`` wrote a record ending in a space that ``from_text()`` then
+  rejected.  Only types without a fixed length for the field were affected,
+  e.g. a DS with an unknown digest type or a TLSA with matching type 0, but
+  every DNSKEY, CERT, and RRSIG was.  A record received in a zone transfer
+  could be written to a zone file that could not be read back.  KEY records
+  are unchanged, as RFC 2535 allows a KEY with no key.
+
 * The text form of NSEC, NSEC3, and CSYNC type bitmaps now accepts ``TYPE0``
   and keeps it, so a record with the TYPE0 bit set, e.g. one received in a
   zone transfer, can be written to a zone file and read back unchanged.  The

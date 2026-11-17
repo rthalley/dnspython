@@ -52,6 +52,9 @@ class DNSKEYBase(dns.rdata.Rdata):
             algorithm
         )
         self.key: bytes = self._as_bytes(key)
+        # KEY may have no key (RFC 2535 section 3.1.2), but DNSKEY may not.
+        if self._is_dnssec and len(self.key) == 0:
+            raise ValueError("the key must not be empty")
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         if style.truncate_crypto:
