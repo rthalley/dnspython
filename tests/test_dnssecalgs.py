@@ -549,6 +549,36 @@ class DNSSECKey(unittest.TestCase):
                 assert stat.st_mode & 0o444 == 0o444
 
     @unittest.skipUnless(dns._features.have("jwk"), "jwcrypto required")
+    def test_jwk_private_key_file_overwrite(self):
+        """Test that writing a private key over an existing file truncates it and
+        restricts its mode."""
+
+        def make_key(private_key):
+            public_key = private_key.public_key()
+            return Key(
+                name=dns.name.from_text("example.com"),
+                private=private_key,
+                public=public_key,
+                dnskey=public_key.to_dnskey(),
+            )
+
+        key = make_key(PrivateED25519.generate())
+        # an RSA public key JWK is longer than an ED25519 private key JWK
+        longer_key = make_key(PrivateRSASHA256.generate(2048))
+        with tempfile.TemporaryDirectory() as temp_dir:
+            filename = Path(temp_dir) / "key.json"
+            for public_key in (key, longer_key):
+                public_key.to_jwk_file(filename, public_only=True)
+                key.to_jwk_file(filename)
+                read_jwk = Key.from_jwk_file(filename)
+                assert read_jwk.private is not None
+                assert key.private is not None
+                assert read_jwk.private.to_pem() == key.private.to_pem()
+                # windows ignores our mode bits
+                if sys.platform != "win32":
+                    assert os.stat(filename).st_mode & 0o777 == 0o600
+
+    @unittest.skipUnless(dns._features.have("jwk"), "jwcrypto required")
     def test_bind_jwk_match(self):
         """Test that a key imported from a BIND private key matches the corresponding JWK."""
 
