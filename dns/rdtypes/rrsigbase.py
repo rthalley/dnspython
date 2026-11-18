@@ -174,4 +174,7 @@ class RRSIGBase(dns.rdata.Rdata):
         header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()
+        # Not checked in __init__(), as dns.dnssec signs with an empty template.
+        if len(signature) == 0:
+            raise dns.exception.FormError("the signature must not be empty")
         return cls(rdclass, rdtype, *header, signer, signature)  # pyright: ignore

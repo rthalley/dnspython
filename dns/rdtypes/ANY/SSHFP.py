@@ -43,6 +43,8 @@ class SSHFP(dns.rdata.Rdata):
         self.algorithm = self._as_uint8(algorithm)
         self.fp_type = self._as_uint8(fp_type)
         self.fingerprint = self._as_bytes(fingerprint, True)
+        if len(self.fingerprint) == 0:
+            raise ValueError("the fingerprint must not be empty")
         expected = self._fingerprint_length_by_type.get(self.fp_type)
         if expected is not None and len(self.fingerprint) != expected:
             raise ValueError("fingerprint length inconsistent with fingerprint type")
