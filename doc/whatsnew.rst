@@ -6,6 +6,11 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ECDSA and DSA DNSKEY public keys with octets after the key material are now
+  rejected.  RFC 6605 section 4 and RFC 2536 section 2 fix the length of the
+  key, but the extra octets were ignored, so such a DNSKEY, which has a
+  different key tag than the real one, validated the real key's signatures.
+
 * The text form of an IPSECKEY record may now omit the public key, which RFC
   4025 section 3.1 makes optional, e.g. ``10 1 0 192.0.2.38`` with algorithm
   0, which means that no key is present.  Such a record could not be read from

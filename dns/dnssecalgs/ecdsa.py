@@ -44,8 +44,9 @@ class PublicECDSA(CryptographyPublicKey):
     @classmethod
     def from_dnskey(cls, key: DNSKEY) -> Self:
         cls._ensure_algorithm_key_combination(key)
-        if len(key.key) < cls.octets * 2:
-            raise ValueError("truncated ECDSA key material")
+        # RFC 6605 section 4: the key is x and y, each exactly cls.octets long.
+        if len(key.key) != cls.octets * 2:
+            raise ValueError("ECDSA key material has the wrong length")
         ecdsa_x = key.key[0 : cls.octets]
         ecdsa_y = key.key[cls.octets : cls.octets * 2]
         return cls(
