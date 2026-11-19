@@ -30,6 +30,7 @@ import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+from dns.rdtypes.dnskeybase import Flag
 import dns.rrset
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
@@ -603,6 +604,32 @@ class DNSSECKey(unittest.TestCase):
         assert key.to_ds(algorithm=algorithm) == dns.dnssec.make_ds(
             name=key.name, key=dnskey, algorithm=algorithm
         )
+
+    def test_from_private_key(self):
+        """Test creating a key from a private key."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        name = dns.name.from_text("example.com")
+        key = Key.from_private_key(name=name, private=private_key)
+
+        self.assertEqual(key.name, name)
+        self.assertEqual(key.private.to_pem(), private_key.to_pem())
+        self.assertEqual(key.public.to_pem(), public_key.to_pem())
+        self.assertEqual(key.dnskey, public_key.to_dnskey(flags=Flag.ZONE))
+
+    def test_from_public_key(self):
+        """Test creating a key from a public key."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        name = dns.name.from_text("example.com")
+        key = Key.from_public_key(name=name, public=public_key)
+
+        self.assertEqual(key.name, name)
+        self.assertIsNone(key.private)
+        self.assertEqual(key.public.to_pem(), public_key.to_pem())
+        self.assertEqual(key.dnskey, public_key.to_dnskey(flags=Flag.ZONE))
 
     def test_from_dnskey(self):
         name = dns.name.from_text("example.com")

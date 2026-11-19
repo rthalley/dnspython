@@ -27,6 +27,7 @@ from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
 from dns.dnssecalgs.cryptography import CryptographyPrivateKey, CryptographyPublicKey
 from dns.dnssectypes import Algorithm, DSDigest
 from dns.exception import DNSException, InvalidKeyFormat, SyntaxError
+from dns.rdtypes.dnskeybase import Flag
 
 if dns._features.have("jwk"):
     from jwcrypto.common import JWException
@@ -154,6 +155,64 @@ class Key:
         :rtype: :py:class:`int`
         """
         return key_id(self.dnskey)
+
+    @classmethod
+    def from_private_key(
+        cls,
+        name: dns.name.Name | str,
+        private: GenericPrivateKey,
+        flags: int = Flag.ZONE,
+    ) -> Self:
+        """Create key from a private key.
+
+        :param name: The DNS name associated with the key.
+        :type name: :py:class:`dns.name.Name`
+        :param private: The private key.
+        :type private: :py:class:`GenericPrivateKey`
+        :param flags: The DNSKEY flags.
+        :type flags: :py:class:`int`
+        :rtype: :py:class:`Key`
+        """
+
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+
+        public = private.public_key()
+
+        return cls(
+            name=name,
+            public=public,
+            private=private,
+            dnskey=public.to_dnskey(flags=flags),
+        )
+
+    @classmethod
+    def from_public_key(
+        cls,
+        name: dns.name.Name | str,
+        public: GenericPublicKey,
+        flags: int = Flag.ZONE,
+    ) -> Self:
+        """Create key from a public key.
+
+        :param name: The DNS name associated with the key.
+        :type name: :py:class:`dns.name.Name`
+        :param public: The public key.
+        :type public: :py:class:`GenericPublicKey`
+        :param flags: The DNSKEY flags.
+        :type flags: :py:class:`int`
+        :rtype: :py:class:`Key`
+        """
+
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+
+        return cls(
+            name=name,
+            private=None,
+            public=public,
+            dnskey=public.to_dnskey(flags=flags),
+        )
 
     @classmethod
     def from_dnskey(
