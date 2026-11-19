@@ -6,6 +6,13 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.dnssec.sign_zone()`` now gives NSEC records, and their RRSIGs, the
+  lesser of the SOA MINIMUM field and the SOA TTL as their TTL, as RFC 9077
+  requires.  The SOA MINIMUM field alone was used, so in a zone whose SOA TTL
+  is lower than its MINIMUM, resolvers that use NSEC records aggressively (RFC
+  8198) kept denying names for longer than the negative caching TTL of the
+  zone.
+
 * The text form of an IPSECKEY record may now omit the public key, which RFC
   4025 section 3.1 makes optional, e.g. ``10 1 0 192.0.2.38`` with algorithm
   0, which means that no key is present.  Such a record could not be read from
