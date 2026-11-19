@@ -27,6 +27,7 @@ from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
 from dns.dnssecalgs.cryptography import CryptographyPrivateKey, CryptographyPublicKey
 from dns.dnssectypes import Algorithm, DSDigest
 from dns.exception import DNSException, InvalidKeyFormat, SyntaxError
+from dns.rdtypes.dnskeybase import Flag
 
 if dns._features.have("jwk"):
     from jwcrypto.common import JWException
@@ -128,6 +129,15 @@ class Key:
         if not isinstance(self.dnskey, dns.rdtypes.ANY.DNSKEY.DNSKEY):
             raise TypeError("dnskey must be a dns.rdtypes.ANY.DNSKEY.DNSKEY instance")
 
+        if (
+            self.private is not None
+            and self.private.public_key().to_pem() != self.public.to_pem()
+        ):
+            raise InvalidKeyFormat("Private and public key mismatch")
+
+        if self.public.from_dnskey(self.dnskey).to_pem() != self.public.to_pem():
+            raise InvalidKeyFormat("Public key mismatch between JWK and DNSKEY")
+
     def to_ds(self, algorithm: DSDigest | str) -> dns.rdtypes.ANY.DS.DS:
         """Return the DS record for the key.
 
@@ -145,6 +155,64 @@ class Key:
         :rtype: :py:class:`int`
         """
         return key_id(self.dnskey)
+
+    @classmethod
+    def from_private_key(
+        cls,
+        name: dns.name.Name | str,
+        private: GenericPrivateKey,
+        flags: int = Flag.ZONE,
+    ) -> Self:
+        """Create key from a private key.
+
+        :param name: The DNS name associated with the key.
+        :type name: :py:class:`dns.name.Name`
+        :param private: The private key.
+        :type private: :py:class:`GenericPrivateKey`
+        :param flags: The DNSKEY flags.
+        :type flags: :py:class:`int`
+        :rtype: :py:class:`Key`
+        """
+
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+
+        public = private.public_key()
+
+        return cls(
+            name=name,
+            public=public,
+            private=private,
+            dnskey=public.to_dnskey(flags=flags),
+        )
+
+    @classmethod
+    def from_public_key(
+        cls,
+        name: dns.name.Name | str,
+        public: GenericPublicKey,
+        flags: int = Flag.ZONE,
+    ) -> Self:
+        """Create key from a public key.
+
+        :param name: The DNS name associated with the key.
+        :type name: :py:class:`dns.name.Name`
+        :param public: The public key.
+        :type public: :py:class:`GenericPublicKey`
+        :param flags: The DNSKEY flags.
+        :type flags: :py:class:`int`
+        :rtype: :py:class:`Key`
+        """
+
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+
+        return cls(
+            name=name,
+            private=None,
+            public=public,
+            dnskey=public.to_dnskey(flags=flags),
+        )
 
     @classmethod
     def from_dnskey(
@@ -214,7 +282,7 @@ class Key:
 
             name = dns.name.from_text(dnskey_properties["name"])
 
-            keytag = dnskey_properties["keytag"]
+            keytag = dnskey_properties.get("keytag")
 
             dnskey = dns.dnssec.make_dnskey(
                 public_key=public_key,
@@ -231,7 +299,7 @@ class Key:
         ) as exc:
             raise InvalidKeyFormat("Failed to create key from JWK") from exc
 
-        if keytag != key_id(dnskey):
+        if keytag is not None and keytag != key_id(dnskey):
             raise InvalidKeyFormat("Keytag mismatch between JWK and DNSKEY")
 
         return cls(

@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from base64 import decode
+import json
 import os
 import re
 import sys
@@ -29,6 +30,7 @@ import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+from dns.rdtypes.dnskeybase import Flag
 import dns.rrset
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
@@ -603,6 +605,32 @@ class DNSSECKey(unittest.TestCase):
             name=key.name, key=dnskey, algorithm=algorithm
         )
 
+    def test_from_private_key(self):
+        """Test creating a key from a private key."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        name = dns.name.from_text("example.com")
+        key = Key.from_private_key(name=name, private=private_key)
+
+        self.assertEqual(key.name, name)
+        self.assertEqual(key.private.to_pem(), private_key.to_pem())
+        self.assertEqual(key.public.to_pem(), public_key.to_pem())
+        self.assertEqual(key.dnskey, public_key.to_dnskey(flags=Flag.ZONE))
+
+    def test_from_public_key(self):
+        """Test creating a key from a public key."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        name = dns.name.from_text("example.com")
+        key = Key.from_public_key(name=name, public=public_key)
+
+        self.assertEqual(key.name, name)
+        self.assertIsNone(key.private)
+        self.assertEqual(key.public.to_pem(), public_key.to_pem())
+        self.assertEqual(key.dnskey, public_key.to_dnskey(flags=Flag.ZONE))
+
     def test_from_dnskey(self):
         name = dns.name.from_text("example.com")
         dnskey = dns.dnssec.make_dnskey(
@@ -616,6 +644,73 @@ class DNSSECKey(unittest.TestCase):
         self.assertEqual(key.name, name)
         self.assertEqual(key.dnskey, dnskey)
         self.assertIsNone(key.private)
+
+    def test_private_public_key_mismatch(self):
+        """Test that a key with a mismatched private and public key raises an error."""
+
+        private_key = PrivateED25519.generate()
+        public_key = PrivateED25519.generate().public_key()
+        dnskey = public_key.to_dnskey()
+
+        with self.assertRaisesRegex(
+            dns.exception.InvalidKeyFormat,
+            "Private and public key mismatch",
+        ):
+            key = Key(
+                name=dns.name.from_text("example.com"),
+                private=private_key,
+                public=public_key,
+                dnskey=dnskey,
+            )
+
+    def test_public_key_dnskey_mismatch(self):
+        """Test that a key with a mismatched public key and DNSKEY raises an error."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        dnskey = public_key.to_dnskey()
+        key = Key(
+            name=dns.name.from_text("example.com"),
+            private=private_key,
+            public=public_key,
+            dnskey=dnskey,
+        )
+        other_private_key = PrivateED25519.generate()
+        other_public_key = other_private_key.public_key()
+        other_dnskey = other_public_key.to_dnskey()
+
+        with self.assertRaisesRegex(
+            dns.exception.InvalidKeyFormat,
+            "Public key mismatch between JWK and DNSKEY",
+        ):
+            Key(
+                name=key.name,
+                private=key.private,
+                public=key.public,
+                dnskey=other_dnskey,
+            )
+
+    def test_dnskey_keytag_mismatch(self):
+        """Test that a key with a mismatched keytag raises an error."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        dnskey = public_key.to_dnskey()
+        key = Key(
+            name=dns.name.from_text("example.com"),
+            private=private_key,
+            public=public_key,
+            dnskey=dnskey,
+        )
+
+        key_dict = json.loads(key.to_jwk_text())
+        key_dict["dnskey"]["keytag"] = 1337
+
+        with self.assertRaisesRegex(
+            dns.exception.InvalidKeyFormat,
+            "Keytag mismatch between JWK and DNSKEY",
+        ):
+            _ = Key.from_jwk_text(json.dumps(key_dict))
 
     def test_from_dnskey_text_name(self):
         dnskey = PrivateED25519.generate().public_key().to_dnskey()
