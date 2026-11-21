@@ -838,7 +838,7 @@ class IgnoreErrors(unittest.TestCase):
     def test_not_response_not_ignored_udp_level(self):
         async def abad():
             bad_r = dns.message.make_response(self.q)
-            bad_r.id += 1
+            bad_r.id = (bad_r.id + 1) % 65536
             bad_r_wire = bad_r.to_wire()
             s = MockSock(
                 bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
@@ -853,7 +853,7 @@ class IgnoreErrors(unittest.TestCase):
     def test_bad_id(self):
         async def run():
             bad_r = dns.message.make_response(self.q)
-            bad_r.id += 1
+            bad_r.id = (bad_r.id + 1) % 65536
             bad_r_wire = bad_r.to_wire()
             await self.mock_receive(
                 bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
@@ -863,7 +863,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_bad_id_not_ignored(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r_wire = bad_r.to_wire()
 
         async def abad():
@@ -883,7 +883,7 @@ class IgnoreErrors(unittest.TestCase):
     def test_bad_wire(self):
         async def run():
             bad_r = dns.message.make_response(self.q)
-            bad_r.id += 1
+            bad_r.id = (bad_r.id + 1) % 65536
             bad_r_wire = bad_r.to_wire()
             await self.mock_receive(
                 bad_r_wire[:10], ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
@@ -919,7 +919,7 @@ class IgnoreErrors(unittest.TestCase):
     def test_wrong_id_wire_with_truncation_flag_and_no_truncation_raise(self):
         async def run():
             bad_r = dns.message.make_response(self.q)
-            bad_r.id += 1
+            bad_r.id = (bad_r.id + 1) % 65536
             bad_r.flags |= dns.flags.TC
             bad_r_wire = bad_r.to_wire()
             await self.mock_receive(
@@ -931,7 +931,7 @@ class IgnoreErrors(unittest.TestCase):
     def test_wrong_id_wire_with_truncation_flag_and_truncation_raise(self):
         async def run():
             bad_r = dns.message.make_response(self.q)
-            bad_r.id += 1
+            bad_r.id = (bad_r.id + 1) % 65536
             bad_r.flags |= dns.flags.TC
             bad_r_wire = bad_r.to_wire()
             await self.mock_receive(
@@ -946,7 +946,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_bad_wire_not_ignored(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r_wire = bad_r.to_wire()
 
         async def abad():
