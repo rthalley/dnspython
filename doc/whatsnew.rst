@@ -6,6 +6,9 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* Add private and public key serialization to and from JWK files and BIND
+  private key files via the ``Key`` class methods.
+
 * ``dns.name.from_text()`` is faster.  A name without escapes is now split at
   its dots, instead of being read one byte at a time, so e.g.
   ``www.example.com.`` takes about half the time it did.  Names with escapes
