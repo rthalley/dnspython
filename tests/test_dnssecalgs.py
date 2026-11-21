@@ -30,6 +30,7 @@ import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdataset
 import dns.rrset
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
@@ -173,6 +174,33 @@ class DNSSECAlgorithm(unittest.TestCase):
                 dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
                 with self.assertRaises(ValueError):
                     public_cls.from_dnskey(dnskey)
+
+    def test_padded_dsa(self):
+        good = PrivateDSA.generate(1024).public_key().to_dnskey().key
+        for key_material in (good + b"\x00", good + b"\x00\x01"):
+            dnskey = self._truncated_dnskey(Algorithm.DSA, key_material)
+            with self.assertRaises(ValueError):
+                PublicDSA.from_dnskey(dnskey)
+
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
+    def test_padded_ecdsa(self):
+        # RFC 6605 section 4 fixes the key length, so a DNSKEY with extra
+        # octets is a different record (and key tag) that must not validate
+        # signatures made with the real key.
+        name = dns.name.from_text("example.")
+        rrset = dns.rrset.from_text(name, 300, "IN", "A", "192.0.2.1")
+        for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
+            public_cls = private_cls.public_cls
+            private_key = private_cls.generate()
+            good = private_key.public_key().to_dnskey()
+            for key_material in (good.key + b"\x00", good.key + b"\x00\x01"):
+                dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
+                with self.assertRaises(ValueError):
+                    public_cls.from_dnskey(dnskey)
+                rrsig = dns.dnssec.sign(rrset, private_key, name, dnskey, lifetime=60)
+                keys = {name: dns.rdataset.from_rdata(300, dnskey)}
+                with self.assertRaises(dns.dnssec.ValidationFailure):
+                    dns.dnssec.validate_rrsig(rrset, rrsig, keys)
 
     def _check_bad_signatures(self, private_key, signature, bad_signatures):
         data = b"hello"

@@ -6,6 +6,11 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ECDSA and DSA DNSKEY public keys with octets after the key material are now
+  rejected.  RFC 6605 section 4 and RFC 2536 section 2 fix the length of the
+  key, but the extra octets were ignored, so such a DNSKEY, which has a
+  different key tag than the real one, validated the real key's signatures.
+
 * HIP records now reject an empty HIT or an empty public key.  The
   presentation format (RFC 8005 section 6) separates the fields with
   whitespace and has no way to write an empty one, so ``to_text()`` of such a
