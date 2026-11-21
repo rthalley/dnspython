@@ -160,7 +160,7 @@ class DNSSECAlgorithm(unittest.TestCase):
 
     def test_truncated_dsa(self):
         good = PrivateDSA.generate(1024).public_key().to_dnskey().key
-        for key_material in (b"", good[:1], good[:21], good[:-1]):
+        for key_material in (good[:1], good[:21], good[:-1]):
             dnskey = self._truncated_dnskey(Algorithm.DSA, key_material)
             with self.assertRaises(ValueError):
                 PublicDSA.from_dnskey(dnskey)
@@ -170,7 +170,7 @@ class DNSSECAlgorithm(unittest.TestCase):
         for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
             public_cls = private_cls.public_cls
             good = private_cls.generate().public_key().to_dnskey().key
-            for key_material in (b"", good[: public_cls.octets], good[:-1]):
+            for key_material in (good[: public_cls.octets], good[:-1]):
                 dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
                 with self.assertRaises(ValueError):
                     public_cls.from_dnskey(dnskey)

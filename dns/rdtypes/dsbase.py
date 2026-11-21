@@ -46,6 +46,8 @@ class DSBase(dns.rdata.Rdata):
         self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
         self.digest_type = dns.dnssectypes.DSDigest.make(self._as_uint8(digest_type))
         self.digest = self._as_bytes(digest)
+        if len(self.digest) == 0:
+            raise ValueError("the digest must not be empty")
         try:
             if len(self.digest) != self._digest_length_by_type[self.digest_type]:
                 raise ValueError("digest length inconsistent with digest type")

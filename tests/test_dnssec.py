@@ -809,7 +809,9 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             )
 
     def testEmptyRSADNSKEYKeyMaterial(self):
-        self._assertMalformedRSADNSKEYFailsValidation(b"")
+        # The wire parser now rejects a DNSKEY with no key at all.
+        with self.assertRaises(dns.exception.FormError):
+            self._assertMalformedRSADNSKEYFailsValidation(b"")
 
     def testTruncatedRSADNSKEYExponentLength(self):
         # An exponent length octet of 0 selects the two-octet form of

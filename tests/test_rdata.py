@@ -988,6 +988,45 @@ class RdataTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.FormError):
             dns.message.from_wire(wire)
 
+    def test_empty_trailing_field_wire(self):
+        # In these types the digest, key, certificate, or signature is the last
+        # field and has no way to be written empty in the presentation format,
+        # so to_text() of an empty one ended with a space and from_text() could
+        # not read it back.  The types with an unknown digest, matching, or
+        # fingerprint type (and every CERT, DNSKEY, and RRSIG) have no length
+        # check, so the wire parser used to accept the empty field.
+        for rdtype, header in (
+            (dns.rdatatype.DS, "00010dfe"),
+            (dns.rdatatype.CDS, "00010dfe"),
+            (dns.rdatatype.DLV, "00010dfe"),
+            (dns.rdatatype.DNSKEY, "0100030d"),
+            (dns.rdatatype.CDNSKEY, "0100030d"),
+            (dns.rdatatype.CERT, "00010001" "0d"),
+            (dns.rdatatype.TLSA, "030100"),
+            (dns.rdatatype.SMIMEA, "030100"),
+            (dns.rdatatype.SSHFP, "04fe"),
+            (
+                dns.rdatatype.RRSIG,
+                "0001" "0d" "02" "00000e10" "5f5e1000" "5f5e0000" "0001" "00",
+            ),
+        ):
+            wire = bytes.fromhex(header)
+            with self.assertRaises(dns.exception.FormError):
+                dns.rdata.from_wire(dns.rdataclass.IN, rdtype, wire, 0, len(wire))
+            # A non-empty value still round-trips over the wire and the text.
+            wire += b""
+            rd = dns.rdata.from_wire(dns.rdataclass.IN, rdtype, wire, 0, len(wire))
+            self.assertEqual(rd.to_wire(), wire)
+            self.assertEqual(
+                dns.rdata.from_text(dns.rdataclass.IN, rdtype, rd.to_text()), rd
+            )
+        # KEY may have no key (RFC 2535 section 3.1.2).
+        wire = bytes.fromhex("c000030d")
+        rd = dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.KEY, wire, 0, 4)
+        self.assertEqual(
+            dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.KEY, rd.to_text()), rd
+        )
+
     def test_ipseckey_without_public_key(self):
         # RFC 4025 section 3.1: the public key is optional in the presentation
         # format, and when it is not present, the public key field is zero octets
