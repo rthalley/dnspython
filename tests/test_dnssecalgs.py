@@ -552,8 +552,17 @@ class DNSSECKey(unittest.TestCase):
     def test_jwk_file_overwrite(self):
         """Test writing a private JWK file over an existing file."""
 
-        rsa_key = Key.from_bind(KEYS_DIRECTORY / "Kexample.com.+008+49458.private")
-        ed_key = Key.from_bind(KEYS_DIRECTORY / "Kexample.com.+015+63713.private")
+        def make_key(private_key):
+            public_key = private_key.public_key()
+            return Key(
+                name=dns.name.from_text("example.com"),
+                private=private_key,
+                public=public_key,
+                dnskey=public_key.to_dnskey(),
+            )
+
+        rsa_key = make_key(PrivateRSASHA256.generate(2048))
+        ed_key = make_key(PrivateED25519.generate())
         with tempfile.TemporaryDirectory() as temp_dir:
             filename = Path(temp_dir) / "key.json"
             # The public JWK is created with the default mode.
