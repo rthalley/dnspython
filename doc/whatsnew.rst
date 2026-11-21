@@ -11,6 +11,26 @@ What's New in dnspython
   ``www.example.com.`` takes about half the time it did.  Names with escapes
   take about a quarter less time.
 
+* ECDSA and DSA DNSKEY public keys with octets after the key material are now
+  rejected.  RFC 6605 section 4 and RFC 2536 section 2 fix the length of the
+  key, but the extra octets were ignored, so such a DNSKEY, which has a
+  different key tag than the real one, validated the real key's signatures.
+
+* HIP records now reject an empty HIT or an empty public key.  The
+  presentation format (RFC 8005 section 6) separates the fields with
+  whitespace and has no way to write an empty one, so ``to_text()`` of such a
+  record, e.g. one received from the wire, could not be read back, or was read
+  back as a different record with the following fields shifted into the HIT
+  and the public key.  A ``dns.exception.FormError`` is now raised when such
+  an rdata is read from the wire.
+
+* ``dns.dnssec.sign_zone()`` now gives NSEC records, and their RRSIGs, the
+  lesser of the SOA MINIMUM field and the SOA TTL as their TTL, as RFC 9077
+  requires.  The SOA MINIMUM field alone was used, so in a zone whose SOA TTL
+  is lower than its MINIMUM, resolvers that use NSEC records aggressively (RFC
+  8198) kept denying names for longer than the negative caching TTL of the
+  zone.
+
 * The text form of an IPSECKEY record may now omit the public key, which RFC
   4025 section 3.1 makes optional, e.g. ``10 1 0 192.0.2.38`` with algorithm
   0, which means that no key is present.  Such a record could not be read from

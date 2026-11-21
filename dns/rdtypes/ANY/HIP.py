@@ -39,6 +39,10 @@ class HIP(dns.rdata.Rdata):
         self.hit: bytes = self._as_bytes(hit, True, 255)
         self.algorithm: int = self._as_uint8(algorithm)
         self.key: bytes = self._as_bytes(key, True)
+        if len(self.hit) == 0:
+            raise ValueError("the HIT must not be empty")
+        if len(self.key) == 0:
+            raise ValueError("the public key must not be empty")
         self.servers: tuple[dns.name.Name] = self._as_tuple(servers, self._as_name)
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
