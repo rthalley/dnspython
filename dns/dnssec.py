@@ -1096,7 +1096,12 @@ def _sign_zone_nsec(
             if rrset_signer:
                 rrset_signer(txn, rrset)
 
-    rrsig_ttl = zone.get_soa(txn).minimum
+    # RFC 9077 section 3: the NSEC TTL is the lesser of the SOA MINIMUM field
+    # and the TTL of the SOA itself.
+    soa = zone.get_soa(txn)
+    soa_rdataset = txn.get(zone.origin, dns.rdatatype.SOA)
+    assert soa_rdataset is not None  # get_soa() raised NoSOA otherwise
+    rrsig_ttl = min(soa.minimum, soa_rdataset.ttl)
     delegation = None
     last_secure = None
 
