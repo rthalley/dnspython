@@ -16,6 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 from base64 import decode
+import json
 import os
 import re
 import sys
@@ -29,6 +30,8 @@ import dns.name
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
+from dns.rdtypes.dnskeybase import Flag
+import dns.rdataset
 import dns.rrset
 from dns.dnssectypes import Algorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
@@ -158,7 +161,7 @@ class DNSSECAlgorithm(unittest.TestCase):
 
     def test_truncated_dsa(self):
         good = PrivateDSA.generate(1024).public_key().to_dnskey().key
-        for key_material in (b"", good[:1], good[:21], good[:-1]):
+        for key_material in (good[:1], good[:21], good[:-1]):
             dnskey = self._truncated_dnskey(Algorithm.DSA, key_material)
             with self.assertRaises(ValueError):
                 PublicDSA.from_dnskey(dnskey)
@@ -168,10 +171,37 @@ class DNSSECAlgorithm(unittest.TestCase):
         for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
             public_cls = private_cls.public_cls
             good = private_cls.generate().public_key().to_dnskey().key
-            for key_material in (b"", good[: public_cls.octets], good[:-1]):
+            for key_material in (good[: public_cls.octets], good[:-1]):
                 dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
                 with self.assertRaises(ValueError):
                     public_cls.from_dnskey(dnskey)
+
+    def test_padded_dsa(self):
+        good = PrivateDSA.generate(1024).public_key().to_dnskey().key
+        for key_material in (good + b"\x00", good + b"\x00\x01"):
+            dnskey = self._truncated_dnskey(Algorithm.DSA, key_material)
+            with self.assertRaises(ValueError):
+                PublicDSA.from_dnskey(dnskey)
+
+    @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
+    def test_padded_ecdsa(self):
+        # RFC 6605 section 4 fixes the key length, so a DNSKEY with extra
+        # octets is a different record (and key tag) that must not validate
+        # signatures made with the real key.
+        name = dns.name.from_text("example.")
+        rrset = dns.rrset.from_text(name, 300, "IN", "A", "192.0.2.1")
+        for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):
+            public_cls = private_cls.public_cls
+            private_key = private_cls.generate()
+            good = private_key.public_key().to_dnskey()
+            for key_material in (good.key + b"\x00", good.key + b"\x00\x01"):
+                dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
+                with self.assertRaises(ValueError):
+                    public_cls.from_dnskey(dnskey)
+                rrsig = dns.dnssec.sign(rrset, private_key, name, dnskey, lifetime=60)
+                keys = {name: dns.rdataset.from_rdata(300, dnskey)}
+                with self.assertRaises(dns.dnssec.ValidationFailure):
+                    dns.dnssec.validate_rrsig(rrset, rrsig, keys)
 
     def _check_bad_signatures(self, private_key, signature, bad_signatures):
         data = b"hello"
@@ -549,6 +579,36 @@ class DNSSECKey(unittest.TestCase):
                 assert stat.st_mode & 0o444 == 0o444
 
     @unittest.skipUnless(dns._features.have("jwk"), "jwcrypto required")
+    def test_jwk_file_overwrite(self):
+        """Test writing a private JWK file over an existing file."""
+
+        def make_key(private_key):
+            public_key = private_key.public_key()
+            return Key(
+                name=dns.name.from_text("example.com"),
+                private=private_key,
+                public=public_key,
+                dnskey=public_key.to_dnskey(),
+            )
+
+        rsa_key = make_key(PrivateRSASHA256.generate(2048))
+        ed_key = make_key(PrivateED25519.generate())
+        with tempfile.TemporaryDirectory() as temp_dir:
+            filename = Path(temp_dir) / "key.json"
+            # The public JWK is created with the default mode.
+            ed_key.to_jwk_file(filename, public_only=True)
+            rsa_key.to_jwk_file(filename)
+            # windows ignores our mode bits
+            if sys.platform != "win32":
+                stat = os.stat(filename)
+                assert stat.st_mode & 0o777 == 0o600
+            # A shorter key must not leave the tail of the previous one behind.
+            ed_key.to_jwk_file(filename)
+            assert filename.read_text() == ed_key.to_jwk_text()
+            read_jwk = Key.from_jwk_file(filename)
+            assert read_jwk.private.to_pem() == ed_key.private.to_pem()
+
+    @unittest.skipUnless(dns._features.have("jwk"), "jwcrypto required")
     def test_bind_jwk_match(self):
         """Test that a key imported from a BIND private key matches the corresponding JWK."""
 
@@ -603,6 +663,32 @@ class DNSSECKey(unittest.TestCase):
             name=key.name, key=dnskey, algorithm=algorithm
         )
 
+    def test_from_private_key(self):
+        """Test creating a key from a private key."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        name = dns.name.from_text("example.com")
+        key = Key.from_private_key(name=name, private=private_key)
+
+        self.assertEqual(key.name, name)
+        self.assertEqual(key.private.to_pem(), private_key.to_pem())
+        self.assertEqual(key.public.to_pem(), public_key.to_pem())
+        self.assertEqual(key.dnskey, public_key.to_dnskey(flags=Flag.ZONE))
+
+    def test_from_public_key(self):
+        """Test creating a key from a public key."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        name = dns.name.from_text("example.com")
+        key = Key.from_public_key(name=name, public=public_key)
+
+        self.assertEqual(key.name, name)
+        self.assertIsNone(key.private)
+        self.assertEqual(key.public.to_pem(), public_key.to_pem())
+        self.assertEqual(key.dnskey, public_key.to_dnskey(flags=Flag.ZONE))
+
     def test_from_dnskey(self):
         name = dns.name.from_text("example.com")
         dnskey = dns.dnssec.make_dnskey(
@@ -616,6 +702,73 @@ class DNSSECKey(unittest.TestCase):
         self.assertEqual(key.name, name)
         self.assertEqual(key.dnskey, dnskey)
         self.assertIsNone(key.private)
+
+    def test_private_public_key_mismatch(self):
+        """Test that a key with a mismatched private and public key raises an error."""
+
+        private_key = PrivateED25519.generate()
+        public_key = PrivateED25519.generate().public_key()
+        dnskey = public_key.to_dnskey()
+
+        with self.assertRaisesRegex(
+            dns.exception.InvalidKeyFormat,
+            "Private and public key mismatch",
+        ):
+            key = Key(
+                name=dns.name.from_text("example.com"),
+                private=private_key,
+                public=public_key,
+                dnskey=dnskey,
+            )
+
+    def test_public_key_dnskey_mismatch(self):
+        """Test that a key with a mismatched public key and DNSKEY raises an error."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        dnskey = public_key.to_dnskey()
+        key = Key(
+            name=dns.name.from_text("example.com"),
+            private=private_key,
+            public=public_key,
+            dnskey=dnskey,
+        )
+        other_private_key = PrivateED25519.generate()
+        other_public_key = other_private_key.public_key()
+        other_dnskey = other_public_key.to_dnskey()
+
+        with self.assertRaisesRegex(
+            dns.exception.InvalidKeyFormat,
+            "Public key mismatch between JWK and DNSKEY",
+        ):
+            Key(
+                name=key.name,
+                private=key.private,
+                public=key.public,
+                dnskey=other_dnskey,
+            )
+
+    def test_dnskey_keytag_mismatch(self):
+        """Test that a key with a mismatched keytag raises an error."""
+
+        private_key = PrivateED25519.generate()
+        public_key = private_key.public_key()
+        dnskey = public_key.to_dnskey()
+        key = Key(
+            name=dns.name.from_text("example.com"),
+            private=private_key,
+            public=public_key,
+            dnskey=dnskey,
+        )
+
+        key_dict = json.loads(key.to_jwk_text())
+        key_dict["dnskey"]["keytag"] = 1337
+
+        with self.assertRaisesRegex(
+            dns.exception.InvalidKeyFormat,
+            "Keytag mismatch between JWK and DNSKEY",
+        ):
+            _ = Key.from_jwk_text(json.dumps(key_dict))
 
     def test_from_dnskey_text_name(self):
         dnskey = PrivateED25519.generate().public_key().to_dnskey()

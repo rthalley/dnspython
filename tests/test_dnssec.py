@@ -809,7 +809,9 @@ class DNSSECValidatorTestCase(unittest.TestCase):
             )
 
     def testEmptyRSADNSKEYKeyMaterial(self):
-        self._assertMalformedRSADNSKEYFailsValidation(b"")
+        # The wire parser now rejects a DNSKEY with no key at all.
+        with self.assertRaises(dns.exception.FormError):
+            self._assertMalformedRSADNSKEYFailsValidation(b"")
 
     def testTruncatedRSADNSKEYExponentLength(self):
         # An exponent length octet of 0 selects the two-octet form of
@@ -1422,6 +1424,25 @@ class DNSSECMiscTestCase(unittest.TestCase):
             self.assertIsNotNone(
                 zone.find_rdataset(zone.origin, "RRSIG", covers="NSEC")
             )
+
+    def test_sign_zone_nsec_ttl(self):
+        # RFC 9077: the NSEC TTL is the lesser of the SOA MINIMUM field and the
+        # SOA TTL.
+        privkey = ed25519.Ed25519PrivateKey.generate()
+        dnskey = dns.dnssec.make_dnskey(privkey.public_key(), dns.dnssec.ED25519)
+        for soa_ttl, minimum in ((300, 86400), (86400, 300)):
+            zone = dns.zone.from_text(
+                f"@ {soa_ttl} IN SOA ns.other. hostmaster.other. 1 2 3 4 {minimum}\n"
+                "@ 3600 IN NS ns.other.\n"
+                "www 3600 IN A 10.0.0.1\n",
+                "example.",
+            )
+            dns.dnssec.sign_zone(zone, keys=[(privkey, dnskey)], lifetime=3600)
+            for name in ("@", "www"):
+                self.assertEqual(zone.find_rdataset(name, "NSEC").ttl, 300)
+                self.assertEqual(
+                    zone.find_rdataset(name, "RRSIG", covers="NSEC").ttl, 300
+                )
 
 
 @unittest.skipUnless(dns.dnssec._have_pyca, "Python Cryptography cannot be imported")

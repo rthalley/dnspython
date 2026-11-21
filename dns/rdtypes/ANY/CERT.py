@@ -81,6 +81,8 @@ class CERT(dns.rdata.Rdata):
         self.key_tag: int = self._as_uint16(key_tag)
         self.algorithm: int = self._as_uint8(algorithm)
         self.certificate: bytes = self._as_bytes(certificate)
+        if len(self.certificate) == 0:
+            raise ValueError("the certificate must not be empty")
 
     def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
         certificate_type = _ctype_to_text(self.certificate_type)

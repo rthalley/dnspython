@@ -106,6 +106,11 @@ class NameTestCase(unittest.TestCase):
         n = dns.name.from_text("foo.bar.")
         self.assertEqual(n.labels, (b"foo", b"bar", b""))
 
+    def testFromTextBytesLike(self):
+        for text in [bytearray(b"foo.bar."), memoryview(b"foo.bar.")]:
+            n = dns.name.from_text(text)
+            self.assertEqual(n.labels, (b"foo", b"bar", b""))
+
     def testTortureFromText(self):
         good = [
             rb".",

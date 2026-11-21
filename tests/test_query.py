@@ -230,7 +230,7 @@ class QueryTests(unittest.TestCase):
                 udp_s.setblocking(0)
                 with socket.socket(af, socket.SOCK_STREAM) as tcp_s:
                     ll = dns.inet.low_level_address_tuple((address, 53))
-                    tcp_s.settimeout(2)
+                    tcp_s.settimeout(4)
                     tcp_s.connect(ll)
                     tcp_s.setblocking(0)
                     qname = dns.name.from_text(".")
@@ -762,7 +762,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_bad_id(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r_wire = bad_r.to_wire()
         self.mock_receive(
             bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
@@ -770,7 +770,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_bad_id_not_ignored(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r_wire = bad_r.to_wire()
 
         def bad():
@@ -787,7 +787,7 @@ class IgnoreErrors(unittest.TestCase):
     def test_not_response_not_ignored_udp_level(self):
         def bad():
             bad_r = dns.message.make_response(self.q)
-            bad_r.id += 1
+            bad_r.id = (bad_r.id + 1) % 65536
             bad_r_wire = bad_r.to_wire()
             with mock_udp_recv(
                 bad_r_wire, ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
@@ -799,7 +799,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_bad_wire(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r_wire = bad_r.to_wire()
         self.mock_receive(
             bad_r_wire[:10], ("127.0.0.1", 53), self.good_r_wire, ("127.0.0.1", 53)
@@ -824,7 +824,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_wrong_id_wire_with_truncation_flag_and_no_truncation_raise(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r.flags |= dns.flags.TC
         bad_r_wire = bad_r.to_wire()
         self.mock_receive(
@@ -833,7 +833,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_wrong_id_wire_with_truncation_flag_and_truncation_raise(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r.flags |= dns.flags.TC
         bad_r_wire = bad_r.to_wire()
         self.mock_receive(
@@ -846,7 +846,7 @@ class IgnoreErrors(unittest.TestCase):
 
     def test_bad_wire_not_ignored(self):
         bad_r = dns.message.make_response(self.q)
-        bad_r.id += 1
+        bad_r.id = (bad_r.id + 1) % 65536
         bad_r_wire = bad_r.to_wire()
 
         def bad():

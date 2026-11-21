@@ -126,6 +126,9 @@ DNSSEC RFCs
 `RFC 8080 <https://tools.ietf.org/html/rfc8080>`_
     Edwards-Curve Digital Security Algorithm (EdDSA) for DNSSEC.
 
+`RFC 9077 <https://tools.ietf.org/html/rfc9077>`_
+    NSEC and NSEC3: TTLs and Aggressive Use.
+
 `RFC 9157 <https://tools.ietf.org/html/rfc9157>`_
     Revised IANA Considerations for DNSSEC.
 
@@ -201,6 +204,8 @@ DNSKEY
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
 DS
     `RFC 4034 <https://tools.ietf.org/html/rfc4034>`_
+HIP
+    `RFC 8005 <https://tools.ietf.org/html/rfc8005>`_
 HTTPS
     `RFC 9460 <https://tools.ietf.org/html/rfc9460>`_,
     `RFC 9848 <https://tools.ietf.org/html/rfc9848>`_ (ech parameter),
