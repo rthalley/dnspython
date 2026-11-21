@@ -6,6 +6,11 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.name.from_text()`` is faster.  A name without escapes is now split at
+  its dots, instead of being read one byte at a time, so e.g.
+  ``www.example.com.`` takes about half the time it did.  Names with escapes
+  take about a quarter less time.
+
 * ECDSA and DSA DNSKEY public keys with octets after the key material are now
   rejected.  RFC 6605 section 4 and RFC 2536 section 2 fix the length of the
   key, but the extra octets were ignored, so such a DNSKEY, which has a
