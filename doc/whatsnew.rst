@@ -6,11 +6,48 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.name.from_text()`` is faster.  A name without escapes is now split at
+  its dots, instead of being read one byte at a time, so e.g.
+  ``www.example.com.`` takes about half the time it did.  Names with escapes
+  take about a quarter less time.
+
+* ECDSA and DSA DNSKEY public keys with octets after the key material are now
+  rejected.  RFC 6605 section 4 and RFC 2536 section 2 fix the length of the
+  key, but the extra octets were ignored, so such a DNSKEY, which has a
+  different key tag than the real one, validated the real key's signatures.
+
+* HIP records now reject an empty HIT or an empty public key.  The
+  presentation format (RFC 8005 section 6) separates the fields with
+  whitespace and has no way to write an empty one, so ``to_text()`` of such a
+  record, e.g. one received from the wire, could not be read back, or was read
+  back as a different record with the following fields shifted into the HIT
+  and the public key.  A ``dns.exception.FormError`` is now raised when such
+  an rdata is read from the wire.
+
+* ``dns.dnssec.sign_zone()`` now gives NSEC records, and their RRSIGs, the
+  lesser of the SOA MINIMUM field and the SOA TTL as their TTL, as RFC 9077
+  requires.  The SOA MINIMUM field alone was used, so in a zone whose SOA TTL
+  is lower than its MINIMUM, resolvers that use NSEC records aggressively (RFC
+  8198) kept denying names for longer than the negative caching TTL of the
+  zone.
+
 * The text form of an IPSECKEY record may now omit the public key, which RFC
   4025 section 3.1 makes optional, e.g. ``10 1 0 192.0.2.38`` with algorithm
   0, which means that no key is present.  Such a record could not be read from
   a zone file, and when one was read from the wire, ``from_text()`` could not
   read back what ``to_text()`` wrote for it, which also ended with a space.
+
+* The DS, CDS, DLV, DNSKEY, CDNSKEY, CERT, TLSA, SMIMEA, SSHFP, RRSIG, and SIG
+  rdata types now reject an empty digest, key, certificate, certificate
+  association data, fingerprint, or signature when read from the wire, and all
+  but RRSIG and SIG also reject it when the rdata is constructed.  These fields
+  are last in the rdata and cannot be empty in the presentation format, so
+  ``to_text()`` wrote a record ending in a space that ``from_text()`` then
+  rejected.  Only types without a fixed length for the field were affected,
+  e.g. a DS with an unknown digest type or a TLSA with matching type 0, but
+  every DNSKEY, CERT, and RRSIG was.  A record received in a zone transfer
+  could be written to a zone file that could not be read back.  KEY records
+  are unchanged, as RFC 2535 allows a KEY with no key.
 
 * The text form of NSEC, NSEC3, and CSYNC type bitmaps now accepts ``TYPE0``
   and keeps it, so a record with the TYPE0 bit set, e.g. one received in a

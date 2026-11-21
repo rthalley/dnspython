@@ -53,8 +53,9 @@ class PublicDSA(CryptographyPublicKey):
         (t,) = struct.unpack("!B", keyptr[0:1])
         keyptr = keyptr[1:]
         octets = 64 + t * 8
-        if len(keyptr) < 20 + 3 * octets:
-            raise ValueError("truncated DSA key material")
+        # RFC 2536 section 2: the key is T, Q, P, G, and Y, with nothing after.
+        if len(keyptr) != 20 + 3 * octets:
+            raise ValueError("DSA key material has the wrong length")
         dsa_q = keyptr[0:20]
         keyptr = keyptr[20:]
         dsa_p = keyptr[0:octets]

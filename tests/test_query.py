@@ -230,7 +230,7 @@ class QueryTests(unittest.TestCase):
                 udp_s.setblocking(0)
                 with socket.socket(af, socket.SOCK_STREAM) as tcp_s:
                     ll = dns.inet.low_level_address_tuple((address, 53))
-                    tcp_s.settimeout(2)
+                    tcp_s.settimeout(4)
                     tcp_s.connect(ll)
                     tcp_s.setblocking(0)
                     qname = dns.name.from_text(".")
