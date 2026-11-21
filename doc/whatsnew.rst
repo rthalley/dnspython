@@ -6,6 +6,14 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* HIP records now reject an empty HIT or an empty public key.  The
+  presentation format (RFC 8005 section 6) separates the fields with
+  whitespace and has no way to write an empty one, so ``to_text()`` of such a
+  record, e.g. one received from the wire, could not be read back, or was read
+  back as a different record with the following fields shifted into the HIT
+  and the public key.  A ``dns.exception.FormError`` is now raised when such
+  an rdata is read from the wire.
+
 * ``dns.dnssec.sign_zone()`` now gives NSEC records, and their RRSIGs, the
   lesser of the SOA MINIMUM field and the SOA TTL as their TTL, as RFC 9077
   requires.  The SOA MINIMUM field alone was used, so in a zone whose SOA TTL
