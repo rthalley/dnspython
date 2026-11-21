@@ -25,7 +25,7 @@ def maybe_open(
                 # The mode passed to os.open() is only used if the file is
                 # created, so set it on an existing file too.
                 if hasattr(os, "fchmod"):  # pragma: no branch
-                    os.fchmod(fd, chmod)
+                    os.fchmod(fd, chmod)  # pyright: ignore
                 return open(fd, mode, encoding=encoding)
             except Exception:  # pragma: no cover
                 os.close(fd)
