@@ -22,6 +22,17 @@ name_to_cls = {a.name.upper(): cls for ((a, _), cls) in algorithms.items()}
 app = typer.Typer(name="DNSSEC Toolbox")
 
 
+def read_key(filename: Path) -> Key:
+    """Read a key from a file, either BIND-style or JWK."""
+    match filename.suffix:
+        case ".private":
+            return Key.from_bind(filename)
+        case ".json":
+            return Key.from_jwk_file(filename)
+        case _:
+            raise ValueError(f"Unsupported key file suffix: {filename.suffix}")
+
+
 @app.command(name="sign-zone")
 def sign_zone(
     zonefile: Path,
@@ -39,8 +50,8 @@ def sign_zone(
 
     signing_keys: list[tuple[GenericPrivateKey, DNSKEY]] = []
 
-    for key_file in keys:
-        key = Key.from_jwk_file(key_file)
+    for keyfile in keys:
+        key = read_key(keyfile)
         if key.private is None:
             raise ValueError(f"Key {key.name} does not have a private key")
         if key.name != zone.origin:
@@ -104,11 +115,11 @@ def convert_jwk_to_bind(keyfile: Path) -> None:
         print(f"Converted {keyfile} to {output_filename}")
 
 
-@app.command(name="jwk-to-dnskey")
-def convert_jwk_to_dnskey(keyfile: Path, cdnskey: bool = False) -> None:
+@app.command(name="key-to-dnskey")
+def convert_key_to_dnskey(keyfile: Path, cdnskey: bool = False) -> None:
     """Convert a JWK to a DNSKEY/CDNSKEY record."""
 
-    key = Key.from_jwk_file(keyfile)
+    key = read_key(keyfile)
 
     if cdnskey:
         rdataset = dns.rdataset.from_rdata(0, key.cdnskey)
@@ -120,8 +131,8 @@ def convert_jwk_to_dnskey(keyfile: Path, cdnskey: bool = False) -> None:
     )
 
 
-@app.command(name="jwk-to-ds")
-def convert_jwk_to_ds(
+@app.command(name="key-to-ds")
+def convert_key_to_ds(
     keyfile: Path,
     algorithm: Annotated[
         DSDigest,
@@ -129,9 +140,9 @@ def convert_jwk_to_ds(
     ] = DSDigest.SHA256.name,
     cds: bool = False,
 ) -> None:
-    """Convert a JWK to a DS/CDS record."""
+    """Convert a key to a DS/CDS record."""
 
-    key = Key.from_jwk_file(keyfile)
+    key = read_key(keyfile)
 
     if cds:
         rdataset = dns.rdataset.from_rdata(0, key.to_cds(algorithm))
