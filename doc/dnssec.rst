@@ -52,6 +52,12 @@ DNSSEC Algorithm Implementations
 .. autoclass:: dns.dnssecalgs.base.GenericPrivateKey
    :members:
 
+DNSSEC Key Serialization
+---------------------------------
+
+.. autoclass:: dns.dnssecalgs.serialization.Key
+   :members:
+
 DNSSEC Algorithm Constants
 ---------------------------
 
@@ -66,6 +72,9 @@ DNSSEC Algorithm Constants
 .. autodata:: dns.dnssec.RSASHA512
 .. autodata:: dns.dnssec.ECDSAP256SHA256
 .. autodata:: dns.dnssec.ECDSAP384SHA384
+.. autodata:: dns.dnssec.ED25519
+.. autodata:: dns.dnssec.ED448
+.. autodata:: dns.dnssec.MLDSA44
 .. autodata:: dns.dnssec.INDIRECT
 .. autodata:: dns.dnssec.PRIVATEDNS
 .. autodata:: dns.dnssec.PRIVATEOID

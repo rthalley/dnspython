@@ -17,6 +17,7 @@ import dns.dnssec
 import dns.name
 import dns.rdataset
 import dns.rdatatype
+import dns.rdtypes.ANY.CDNSKEY
 import dns.rdtypes.ANY.CDS
 import dns.rdtypes.ANY.DNSKEY
 import dns.rdtypes.ANY.DS
