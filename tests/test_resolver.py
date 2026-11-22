@@ -407,6 +407,38 @@ www.example. IN A
         del answer[-1]
         self.assertEqual([rd.address for rd in answer], ["192.0.2.1"])
 
+    def testAnswerSlices(self):
+        for index in (
+            slice(-2, None),
+            slice(None, -1),
+            slice(None, None, -1),
+            slice(None, None, -2),
+        ):
+            with self.subTest(index=index):
+                query = dns.message.make_query("example.", "A")
+                response = dns.message.make_response(query)
+                response.answer.append(
+                    dns.rrset.from_text(
+                        "example.",
+                        300,
+                        "IN",
+                        "A",
+                        "192.0.2.1",
+                        "192.0.2.2",
+                        "192.0.2.3",
+                    )
+                )
+                response = dns.message.from_wire(response.to_wire(want_shuffle=False))
+                answer = dns.resolver.Answer(
+                    query.question[0].name, dns.rdatatype.A, dns.rdataclass.IN, response
+                )
+                items = list(answer)
+                self.assertEqual(response.answer[0][index], items[index])
+                self.assertEqual(answer[index], items[index])
+                del items[index]
+                del answer[index]
+                self.assertEqual(list(answer), items)
+
     def testLRUReplace(self):
         cache = dns.resolver.LRUCache(4)
         for i in range(0, 5):
