@@ -77,6 +77,18 @@ DNS_KEYFLAG_TYPEMASK = LegacyFlag.NOAUTH | LegacyFlag.NOCONF
 class KEY(dns.rdtypes.dnskeybase.DNSKEYBase):
     """KEY record"""
 
+    def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
+        super().__init__(rdclass, rdtype, flags, protocol, algorithm, key)
+        # RFC 2535 section 3.1.2: with the NOKEY type the RR stops after the
+        # algorithm octet, and with any other type a key is present.  The text
+        # form (section 7.1) can only express a missing key as NOKEY, so a
+        # record that disagrees with its type flags cannot round trip.
+        if (self.flags & DNS_KEYFLAG_TYPEMASK) == LegacyFlag.NOKEY:
+            if len(self.key) != 0:
+                raise ValueError("a NOKEY KEY must not have a key")
+        elif len(self.key) == 0:
+            raise ValueError("the key must not be empty")
+
     @classmethod
     def from_text(
         cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None

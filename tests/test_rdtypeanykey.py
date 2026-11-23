@@ -2,6 +2,11 @@
 
 import unittest
 
+import dns.exception
+import dns.rdata
+import dns.rdataclass
+import dns.rdatatype
+import dns.rdtypes.ANY.KEY
 import dns.rrset
 
 
@@ -38,6 +43,40 @@ class RdtypeAnyKeyTestCase(unittest.TestCase):
 
         with self.assertRaises(dns.exception.SyntaxError):
             _ = dns.rrset.from_text("foo", 300, "IN", "KEY", "257 XYZZY 8 KEY=")[0]
+
+    def testKeyPresenceMatchesTypeFlags(self):  # type: () -> None
+        """A NOKEY KEY has no key, and any other KEY has one (RFC 2535 3.1.2)."""
+
+        def from_wire(wire):
+            return dns.rdata.from_wire(
+                dns.rdataclass.IN, dns.rdatatype.KEY, wire, 0, len(wire)
+            )
+
+        # The text form could not read back what to_text() wrote for these.
+        for wire in (
+            bytes.fromhex("c0000308") + b"\x01\x02\x03\x04",  # NOKEY with a key
+            bytes.fromhex("01000308"),  # ZONE without a key
+        ):
+            with self.assertRaises(dns.exception.FormError):
+                from_wire(wire)
+        with self.assertRaises(ValueError):
+            dns.rdtypes.ANY.KEY.KEY(
+                dns.rdataclass.IN, dns.rdatatype.KEY, 0xC000, 3, 8, b"\x01"
+            )
+        with self.assertRaises(ValueError):
+            dns.rdtypes.ANY.KEY.KEY(dns.rdataclass.IN, dns.rdatatype.KEY, 0, 3, 8, b"")
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rrset.from_text("foo", 300, "IN", "KEY", "NOKEY 3 8 KEY=")
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.rrset.from_text("foo", 300, "IN", "KEY", "ZONE 3 8")
+        # Consistent records still round trip over the wire and the text.
+        for wire in (bytes.fromhex("c0000308"), bytes.fromhex("01000308") + b"\x01"):
+            rd = from_wire(wire)
+            self.assertEqual(rd.to_wire(), wire)
+            self.assertEqual(
+                dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.KEY, rd.to_text()),
+                rd,
+            )
 
 
 if __name__ == "__main__":
