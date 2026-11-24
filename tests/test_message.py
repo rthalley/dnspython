@@ -1055,6 +1055,22 @@ www.dnspython.org. 300 IN A 1.2.3.4
         r = dns.message.make_response(pq)
         assert r.pad == 0
 
+    def test_padding_implies_edns(self):
+        # A pad argument alone must enable EDNS; padding must not be
+        # silently dropped.
+        q = dns.message.make_query("www.example", "a", pad=128)
+        assert q.edns == 0
+        assert q.pad == 128
+        self.assertEqual(len(q.to_wire()), 128)
+
+    def test_response_padding_in_memory_query(self):
+        # The query has not been serialized, so no PADDING option has been
+        # instantiated; make_response must look at query.pad.
+        q = dns.message.make_query("www.example", "a", pad=128)
+        r = dns.message.make_response(q)
+        assert r.pad == 468
+        self.assertEqual(len(r.to_wire()), 468)
+
     def test_prefer_truncation_answer(self):
         q = dns.message.make_query("www.example", "a")
         rrs = [
