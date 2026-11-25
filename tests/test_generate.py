@@ -745,6 +745,16 @@ class GenerateTestCase(unittest.TestCase):
                     "example.",
                 )
 
+    def testGenerateBadRange(self):
+        for range_text in ["1-5/2/3", "1-4/0", "1/4", "1-", "1-4/"]:
+            with self.assertRaises(dns.exception.SyntaxError):
+                dns.zone.from_text(
+                    "@ 3600 IN SOA foo bar 1 2 3 4 5\n"
+                    "@ 3600 IN NS ns1\n"
+                    f"$GENERATE {range_text} x$ 3600 A 10.0.0.$\n",
+                    "example.",
+                )
+
     def testGenerateWidthLimit(self):
         zone_text = "@ 3600 IN SOA foo bar 1 2 3 4 5\n@ 3600 IN NS ns1\n"
         z = dns.zone.from_text(

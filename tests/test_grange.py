@@ -88,6 +88,28 @@ class GRangeTestCase(unittest.TestCase):
         with self.assertRaises(dns.exception.SyntaxError):
             dns.grange.from_text("1")
 
+    def testFailFromText5(self):
+        # step of zero
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.grange.from_text("1-4/0")
+
+    def testFailFromText6(self):
+        # step without a start-stop range
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.grange.from_text("1/4")
+
+    def testFailFromText7(self):
+        # more than one step
+        with self.assertRaises(dns.exception.SyntaxError):
+            dns.grange.from_text("1-5/2/3")
+
+    def testFailFromText8(self):
+        # missing stop or step
+        for text in ["1-", "1-/2", "1-4/"]:
+            with self.subTest(text=text):
+                with self.assertRaises(dns.exception.SyntaxError):
+                    dns.grange.from_text(text)
+
 
 if __name__ == "__main__":
     unittest.main()
