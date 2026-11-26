@@ -943,6 +943,7 @@ class Message:
         if edns < 0:
             self.opt = None
             self.request_payload = 0
+            self.pad = 0
         else:
             # make sure the EDNS version in ednsflags agrees with edns
             ednsflags &= 0xFF00FFFF
@@ -1928,10 +1929,12 @@ def make_query(
         kwargs["request_payload"] = request_payload
     if options is not None:
         kwargs["options"] = options
+    if pad:
+        kwargs["pad"] = pad
     if kwargs and use_edns is None:
         use_edns = 0
     kwargs["edns"] = use_edns
-    kwargs["pad"] = pad
+    kwargs.setdefault("pad", pad)
     m.use_edns(**kwargs)
     if want_dnssec:
         m.want_dnssec(want_dnssec)
@@ -2007,10 +2010,9 @@ def make_response(
     if query.edns >= 0:
         if pad is None:
             # Set response padding per RFC 8467
-            pad = 0
-            for option in query.options:
-                if option.otype == dns.edns.OptionType.PADDING:
-                    pad = 468
+            pad = 468 if query.pad > 0 or any(
+                option.otype == dns.edns.OptionType.PADDING for option in query.options
+            ) else 0
         response.use_edns(0, 0, our_payload, query.payload, pad=pad)
     if query.had_tsig and query.keyring:
         assert query.mac is not None
