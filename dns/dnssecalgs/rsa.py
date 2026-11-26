@@ -45,11 +45,18 @@ class PublicRSA(CryptographyPublicKey):
             if len(keyptr) < 2:
                 raise ValueError("truncated RSA exponent length")
             (bytes_,) = struct.unpack("!H", keyptr[0:2])
+            if bytes_ <= 255:
+                raise ValueError("non-minimal RSA exponent length")
             keyptr = keyptr[2:]
         if len(keyptr) < bytes_:
             raise ValueError("truncated RSA public exponent")
         rsa_e = keyptr[0:bytes_]
         rsa_n = keyptr[bytes_:]
+        if len(rsa_n) == 0:
+            raise ValueError("truncated RSA modulus")
+        # RFC 3110 section 2 prohibits leading zero octets in the exponent and modulus.
+        if rsa_e[0] == 0 or rsa_n[0] == 0:
+            raise ValueError("leading zero octet in RSA key material")
         return cls(
             key=rsa.RSAPublicNumbers(
                 int.from_bytes(rsa_e, "big"), int.from_bytes(rsa_n, "big")
