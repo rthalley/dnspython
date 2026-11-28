@@ -271,6 +271,58 @@ class SetTestCase(unittest.TestCase):
             with self.subTest(index=i):
                 self.assertEqual(s[i], items[i])
 
+    def testSliceBounds(self):
+        slices = (
+            slice(None),
+            slice(1, 4),
+            slice(-2, None),
+            slice(None, -1),
+            slice(-4, -1, 2),
+            slice(None, None, -1),
+            slice(4, 0, -2),
+            slice(-1, -5, -2),
+            slice(4, 1),
+            slice(1, 4, -1),
+            slice(-(10**100), 10**100, 2),
+            slice(10**100, -(10**100), -2),
+            slice(None, None, 10**100),
+            slice(None, None, -(10**100)),
+        )
+        for size in (0, 1, 5):
+            items = list(range(size))
+            s = S(items)
+            for index in slices:
+                with self.subTest(size=size, index=index):
+                    self.assertEqual(s[index], items[index])
+                    self.assertEqual(list(s), items)
+
+    def testDeleteSliceBounds(self):
+        for size in (0, 1, 5):
+            for index in (
+                slice(-2, None),
+                slice(None, -1),
+                slice(None, None, -1),
+                slice(4, 0, -2),
+                slice(-1, -5, -2),
+                slice(1, 4, -1),
+                slice(-(10**100), 10**100, 2),
+                slice(None, None, -(10**100)),
+            ):
+                with self.subTest(size=size, index=index):
+                    items = list(range(size))
+                    s = S(items)
+                    del items[index]
+                    del s[index]
+                    self.assertEqual(list(s), items)
+
+    def testZeroSliceStep(self):
+        s = S([1, 2, 3])
+        with self.assertRaises(ValueError):
+            s[::0]
+        with self.assertRaises(ValueError):
+            del s[::0]
+        self.assertEqual(list(s), [1, 2, 3])
+
     def testIndexOutOfRange(self):
         for items in ([], [1, 2, 3]):
             s = S(items)

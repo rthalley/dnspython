@@ -262,7 +262,16 @@ class Set:
 
     def __getitem__(self, i):
         if isinstance(i, slice):
-            return list(itertools.islice(self.items, i.start, i.stop, i.step))
+            size = len(self.items)
+            start, stop, step = i.indices(size)
+            if step < 0:
+                items = reversed(self.items)
+                start, stop, step = size - 1 - start, size - 1 - stop, -step
+            else:
+                items = iter(self.items)
+            # A larger step selects the same items, but may exceed islice's limit.
+            step = min(step, size or 1)
+            return list(itertools.islice(items, start, stop, step))
         else:
             if i < 0:
                 i += len(self.items)
