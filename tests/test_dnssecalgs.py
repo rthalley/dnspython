@@ -166,6 +166,39 @@ class DNSSECAlgorithm(unittest.TestCase):
             with self.assertRaises(ValueError):
                 PublicDSA.from_dnskey(dnskey)
 
+    def test_truncated_rsa(self):
+        public_cls = PrivateRSASHA256.public_cls
+        good = PrivateRSASHA256.generate(2048).public_key().to_dnskey().key
+        exp_len = good[0]
+        for key_material in (b"\x00", b"\x00\x01", good[:2], good[: 1 + exp_len]):
+            dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
+            with self.assertRaises(ValueError):
+                public_cls.from_dnskey(dnskey)
+
+    def test_padded_rsa(self):
+        # RFC 3110 section 2 requires a unique representation of the public key
+        # and prohibits leading zero octets in the exponent and modulus.
+        name = dns.name.from_text("example.")
+        rrset = dns.rrset.from_text(name, 300, "IN", "A", "192.0.2.1")
+        public_cls = PrivateRSASHA256.public_cls
+        private_key = PrivateRSASHA256.generate(2048)
+        good = private_key.public_key().to_dnskey()
+        exp_len = good.key[0]
+        exp = good.key[1 : 1 + exp_len]
+        mod = good.key[1 + exp_len :]
+        for key_material in (
+            bytes([exp_len + 1, 0]) + exp + mod,
+            bytes([exp_len]) + exp + b"\x00" + mod,
+            b"\x00\x00" + bytes([exp_len]) + exp + mod,
+        ):
+            dnskey = self._truncated_dnskey(public_cls.algorithm, key_material)
+            with self.assertRaises(ValueError):
+                public_cls.from_dnskey(dnskey)
+            rrsig = dns.dnssec.sign(rrset, private_key, name, dnskey, lifetime=60)
+            keys = {name: dns.rdataset.from_rdata(300, dnskey)}
+            with self.assertRaises(dns.dnssec.ValidationFailure):
+                dns.dnssec.validate_rrsig(rrset, rrsig, keys)
+
     @unittest.skipUnless(have_deterministic, "deterministic ECDSA not available")
     def test_truncated_ecdsa(self):
         for private_cls in (PrivateECDSAP256SHA256, PrivateECDSAP384SHA384):

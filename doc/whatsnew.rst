@@ -19,6 +19,10 @@ What's New in dnspython
   key, but the extra octets were ignored, so such a DNSKEY, which has a
   different key tag than the real one, validated the real key's signatures.
 
+* RSA DNSKEY public keys with leading zero octets in the exponent or modulus,
+  or with a 3-octet exponent length prefix for an exponent of 255 octets or
+  fewer, are now rejected as required by RFC 3110 section 2.
+
 * HIP records now reject an empty HIT or an empty public key.  The
   presentation format (RFC 8005 section 6) separates the fields with
   whitespace and has no way to write an empty one, so ``to_text()`` of such a
