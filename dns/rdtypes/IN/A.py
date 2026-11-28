@@ -15,37 +15,19 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.exception
 import dns.immutable
 import dns.ipv4
-import dns.rdata
-import dns.tokenizer
+import dns.rdtypes.addressbase
 
 
 @dns.immutable.immutable
-class A(dns.rdata.Rdata):
+class A(dns.rdtypes.addressbase.AddressBase):
     """A record."""
 
-    __slots__ = ["address"]
-
-    def __init__(self, rdclass, rdtype, address):
-        super().__init__(rdclass, rdtype)
-        self.address = self._as_ipv4_address(address)
-
-    def to_styled_text(self, style: dns.rdata.RdataStyle) -> str:
-        return self.address
+    @classmethod
+    def _as_address(cls, value):
+        return cls._as_ipv4_address(value)
 
     @classmethod
-    def from_text(
-        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
-    ):
-        address = tok.get_identifier()
-        return cls(rdclass, rdtype, address)
-
-    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        file.write(dns.ipv4.inet_aton(self.address))
-
-    @classmethod
-    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        address = parser.get_remaining()
-        return cls(rdclass, rdtype, address)
+    def _address_to_wire(cls, address):
+        return dns.ipv4.inet_aton(address)
