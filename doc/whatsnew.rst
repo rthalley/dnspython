@@ -6,6 +6,14 @@ What's New in dnspython
 2.10.0 (in development)
 -----------------------
 
+* ``dns.grange.from_text()`` now raises ``dns.exception.SyntaxError`` for every
+  malformed ``$GENERATE`` range.  A range with a second step, e.g.
+  ``1-5/2/3``, was read as ``1-2/3``, so a zone file using it silently
+  generated different records, and a missing number (``1-``, ``1-4/``), a step
+  of zero (``1-4/0``), or a step without a start-stop range (``1/4``) raised
+  ``ValueError`` or ``AssertionError``.  With ``python -O`` a step of zero was
+  returned, and loading a zone file with it raised ``ValueError``.
+
 * Add private and public key serialization to and from JWK files and BIND
   private key files via the ``Key`` class methods.
 

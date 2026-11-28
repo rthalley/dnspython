@@ -21,12 +21,19 @@ import dns._text_util
 import dns.exception
 
 
+def _number(text: str) -> int:
+    if not text:
+        raise dns.exception.SyntaxError("missing number in range")
+    return int(text)
+
+
 def from_text(text: str) -> tuple[int, int, int]:
     """Convert the text form of a range in a ``$GENERATE`` statement to an
     integer.
 
     :param text: The textual range in ``$GENERATE`` form.
     :type text: str
+    :raises dns.exception.SyntaxError: If the range is not well-formed.
     :rtype: tuple[int, int, int]
     """
 
@@ -43,11 +50,11 @@ def from_text(text: str) -> tuple[int, int, int]:
 
     for c in text:
         if c == "-" and state == 0:
-            start = int(cur)
+            start = _number(cur)
             cur = ""
             state = 1
-        elif c == "/":
-            stop = int(cur)
+        elif c == "/" and state == 1:
+            stop = _number(cur)
             cur = ""
             state = 2
         elif dns._text_util.is_ascii_digit(c):
@@ -58,12 +65,13 @@ def from_text(text: str) -> tuple[int, int, int]:
     if state == 0:
         raise dns.exception.SyntaxError("no stop value specified")
     elif state == 1:
-        stop = int(cur)
+        stop = _number(cur)
     else:
         assert state == 2
-        step = int(cur)
+        step = _number(cur)
 
-    assert step >= 1
+    if step < 1:
+        raise dns.exception.SyntaxError("step must be at least 1")
     assert start >= 0
     if start > stop:
         raise dns.exception.SyntaxError("start must be <= stop")
