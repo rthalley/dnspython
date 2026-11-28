@@ -748,6 +748,7 @@ class DNSSECKey(unittest.TestCase):
                 dnskey=other_dnskey,
             )
 
+    @unittest.skipUnless(dns._features.have("jwk"), "jwcrypto required")
     def test_dnskey_keytag_mismatch(self):
         """Test that a key with a mismatched keytag raises an error."""
 
