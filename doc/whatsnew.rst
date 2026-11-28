@@ -52,6 +52,15 @@ What's New in dnspython
   could be written to a zone file that could not be read back.  KEY records
   are unchanged, as RFC 2535 allows a KEY with no key.
 
+* KEY records now reject a key that disagrees with the type flags: a NOKEY
+  record with key material, or a record of any other type with no key.  RFC
+  2535 section 3.1.2 says a NOKEY record stops after the algorithm octet, and
+  the text form (section 7.1) can only leave the key out when the type is
+  NOKEY, so ``from_text()`` already enforced this but the wire parser and the
+  constructor did not, and ``to_text()`` of such a record, e.g. one received in
+  a zone transfer, could not be read back.  A ``dns.exception.FormError`` is
+  now raised when such an rdata is read from the wire.
+
 * The text form of NSEC, NSEC3, and CSYNC type bitmaps now accepts ``TYPE0``
   and keeps it, so a record with the TYPE0 bit set, e.g. one received in a
   zone transfer, can be written to a zone file and read back unchanged.  The
