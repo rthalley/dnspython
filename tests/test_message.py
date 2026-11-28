@@ -997,6 +997,18 @@ www.dnspython.org. 300 IN A 1.2.3.4
         q2 = dns.message.from_wire(w)
         self.assertEqual(q, q2)
 
+    def test_padding_enables_edns_implicitly(self):
+        q = dns.message.make_query("www.example", "a", pad=128)
+        self.assertEqual(q.edns, 0)
+        self.assertEqual(q.pad, 128)
+        self.assertEqual(len(q.to_wire()), 128)
+
+    def test_disabling_edns_resets_padding(self):
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=128)
+        q.use_edns(False)
+        self.assertEqual(q.pad, 0)
+        self.assertEqual(q.edns, -1)
+
     def test_padding_various(self):
         q = dns.message.make_query("www.example", "a", use_edns=0, pad=1)
         w = q.to_wire()
@@ -1054,6 +1066,9 @@ www.dnspython.org. 300 IN A 1.2.3.4
         pq = dns.message.from_wire(w)
         r = dns.message.make_response(pq)
         assert r.pad == 0
+        q = dns.message.make_query("www.example", "a", use_edns=0, pad=128)
+        r = dns.message.make_response(q)
+        assert r.pad == 468
 
     def test_prefer_truncation_answer(self):
         q = dns.message.make_query("www.example", "a")
