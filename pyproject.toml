@@ -51,6 +51,7 @@ idna = ["idna>=3.20"]
 jwk = ["jwcrypto>=1.6.1"]
 trio = ["trio>=0.34"]
 wmi = ["wmi>=1.5.1; platform_system=='Windows'"]
+cli = ["typer>=0.28.0"]
 
 [project.urls]
 documentation = "https://dnspython.readthedocs.io/en/stable/"
